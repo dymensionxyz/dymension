@@ -10,7 +10,7 @@ client:
   vuex:
     path: "vue/src/store"
 faucet:
-  name: itzhak
+  name: itzha
   coins: [ "100000stake" ]
 build:
   binary: "dymd"
