@@ -10,7 +10,7 @@ import (
 
 func main() {
 	rootCmd, _ := cosmoscmd.NewRootCmd(
-		app.Name,
+		"dym",
 		app.AccountAddressPrefix,
 		app.DefaultNodeHome,
 		app.Name,
@@ -20,5 +20,6 @@ func main() {
 	)
 	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
 		os.Exit(1)
+
 	}
 }
