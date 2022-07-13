@@ -1,0 +1,22 @@
+accounts:
+  - name: itzhak
+    coins: [ "250000000dym" ]
+  - name: barry
+    coins: [ "200000000dym" ]
+validator:
+  name: itzhak
+  staked: "125000000dym"
+client:
+  openapi:
+    path: "docs/static/openapi.yml"
+faucet:
+  name: itzhak
+  coins: [ "100000dym" ]
+build:
+  binary: "dymd"
+genesis:
+  chain_id: "dymension"
+  app_state:
+    staking:
+      params:
+        bond_denom: "dym"
