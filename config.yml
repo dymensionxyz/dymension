@@ -20,3 +20,6 @@ genesis:
     staking:
       params:
         bond_denom: "dym"
+    mint:
+      params:
+        mint_denom: "dym"
