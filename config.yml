@@ -12,6 +12,7 @@ client:
 faucet:
   name: itzhak
   coins: [ "100000dym" ]
+  coins_max: [ "200000dym" ]
 build:
   binary: "dymd"
 genesis:

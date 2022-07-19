@@ -8,14 +8,10 @@ import (
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 )
 
-const (
-	CommandName = "dym"
-)
-
 func main() {
 	rootCmd, _ := cosmoscmd.NewRootCmd(
 		app.Name,
-		CommandName,
+		app.ShortName,
 		app.DefaultNodeHome,
 		app.Name,
 		app.ModuleBasics,

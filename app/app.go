@@ -109,6 +109,7 @@ import (
 const (
 	AccountAddressPrefix = "dymension"
 	Name                 = "dymension"
+	ShortName            = "dym"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
