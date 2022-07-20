@@ -9,8 +9,9 @@ import (
 )
 
 func main() {
+
 	rootCmd, _ := cosmoscmd.NewRootCmd(
-		app.Name,
+		app.ShortName,
 		app.ShortName,
 		app.DefaultNodeHome,
 		app.Name,

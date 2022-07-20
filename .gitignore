@@ -1,5 +1,4 @@
-release/
+dymension-testnet.pem
 .idea/
 .vscode/
 .DS_Store
-dymension-testnet.pem
