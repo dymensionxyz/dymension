@@ -61,8 +61,9 @@ mv genesis.json "$DATA_DIRECTORY/"
 # ............... Update configurations ................ #
 # ...................................................... #
 
-PEERS='81d3d1cc389ac41a36c89c449bfc4282f7b494ef@44.209.89.17:26656'
-tsed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
+PEERS='06bf14a552b22518ed6fff254d74331f60e965cd@44.209.89.17:26656'
+sed -i'' -e "s/^persistent_peers *= .*/persistent_peers = \"$PEERS\"/" "$TENDERMINT_CONFIG_FILE"
+sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 
 if [ "$BLOCK_HEIGHT" ] && [ "$BLOCK_HASH" ]; then
   sed -i'' -e 's/^enable *= false/enable = true/' "$TENDERMINT_CONFIG_FILE"
