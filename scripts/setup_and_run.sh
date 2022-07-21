@@ -1,5 +1,5 @@
 #!/bin/sh
 
-./setup_dymension.sh
+./scripts/setup_dymension.sh
 
 dymd start
