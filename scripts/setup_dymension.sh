@@ -12,7 +12,9 @@ BLOCK_HEIGHT=${BLOCK_HEIGHT:-""}
 BLOCK_HASH=${BLOCK_HASH:-""}
 MONIKER_NAME=${MONIKER_NAME:-""}
 TOKEN=${TOKEN:-""}
+CHAIN_REPO=https://$([ -z "$TOKEN" ] && echo "" || echo "$TOKEN@")raw.githubusercontent.com/dymensionxyz/networks/main
 
+echo "$CHAIN_ID"
 if [ -z "$CHAIN_ID" ]; then
   echo "Missing CHAIN_ID."
   exit 1
@@ -45,11 +47,7 @@ dymd tendermint unsafe-reset-all
 # .................. Fetch genesis ..................... #
 # ...................................................... #
 
-genesisPath="raw.githubusercontent.com/dymensionxyz/networks/main/$CHAIN_ID/genesis.json"
-if [ "$TOKEN" ]; then
-  genesisPath="$TOKEN@$genesisPath"
-fi
-curl -s "https://$genesisPath" >genesis.json
+curl -s "$CHAIN_REPO/$CHAIN_ID/genesis.json" >genesis.json
 if grep -q "404: Not Found" "genesis.json"; then
   rm genesis.json
   echo "Can't download genesis file"
@@ -61,7 +59,7 @@ mv genesis.json "$DATA_DIRECTORY/"
 # ............... Update configurations ................ #
 # ...................................................... #
 
-PEERS='06bf14a552b22518ed6fff254d74331f60e965cd@44.209.89.17:26656'
+PEERS="$(curl -s "$CHAIN_REPO/$CHAIN_ID/persistent_peers.txt")"
 sed -i'' -e "s/^persistent_peers *= .*/persistent_peers = \"$PEERS\"/" "$TENDERMINT_CONFIG_FILE"
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 
