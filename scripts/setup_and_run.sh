@@ -1,5 +1,4 @@
 #!/bin/sh
 
 ./scripts/setup_dymension.sh
-
-dymd start
+./scripts/run_dymension.sh
