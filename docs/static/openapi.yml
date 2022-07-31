@@ -20122,6 +20122,7 @@ paths:
           format: int64
       tags:
         - Query
+<<<<<<< HEAD
   /dymensionxyz/dymension/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -20194,6 +20195,8 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+=======
+>>>>>>> remove dymension module and re-add vue
   /ibc/apps/interchain_accounts/controller/v1/params:
     get:
       summary: Params queries all parameters of the ICA controller submodule.
@@ -47214,6 +47217,7 @@ definitions:
     description: >-
       MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount
       response type.
+<<<<<<< HEAD
   dymensionxyz.dymension.rollapp.Params:
     type: object
     description: Params defines the parameters for the module.
@@ -47234,6 +47238,8 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+=======
+>>>>>>> remove dymension module and re-add vue
   ibc.applications.interchain_accounts.controller.v1.Params:
     type: object
     properties:
