@@ -5,7 +5,9 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "rollapp/params.proto";
+import "rollapp/rollapp.proto";
 // this line is used by starport scaffolding # 1
+import "rollapp/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -15,7 +17,17 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/rollapp/params";
   }
-  // this line is used by starport scaffolding # 2
+  // Queries a Rollapp by index.
+	rpc Rollapp(QueryGetRollappRequest) returns (QueryGetRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp/{rollappId}";
+	}
+
+	// Queries a list of Rollapp items.
+	rpc RollappAll(QueryAllRollappRequest) returns (QueryAllRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
+	}
+
+// this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -25,6 +37,24 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetRollappRequest {
+	  string rollappId = 1;
+
+}
+
+message QueryGetRollappResponse {
+	Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllRollappRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllRollappResponse {
+	repeated Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3

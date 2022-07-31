@@ -13,10 +13,31 @@ export interface ProtobufAny {
   "@type"?: string;
 }
 
+export type RollappMsgCreateRollappResponse = object;
+
 /**
  * Params defines the parameters for the module.
  */
 export type RollappParams = object;
+
+export interface RollappQueryAllRollappResponse {
+  rollapp?: RollappRollapp[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
+export interface RollappQueryGetRollappResponse {
+  rollapp?: RollappRollapp;
+}
 
 /**
  * QueryParamsResponse is response type for the Query/Params RPC method.
@@ -26,11 +47,121 @@ export interface RollappQueryParamsResponse {
   params?: RollappParams;
 }
 
+export interface RollappRollapp {
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
+  rollappId?: string;
+
+  /** creator is the bech32-encoded address of the rollapp creator. */
+  creator?: string;
+
+  /** @format uint64 */
+  version?: string;
+
+  /** codeStamp is a generated hash for unique identification of the rollapp code. */
+  codeStamp?: string;
+
+  /** genesisPath is the description of the genesis file location on the DA. */
+  genesisPath?: string;
+
+  /**
+   * maxWithholdingBlocks is the maximum number of blocks for
+   * an active sequencer to send a state update (MsgUpdateState).
+   * @format uint64
+   */
+  maxWithholdingBlocks?: string;
+
+  /**
+   * maxSequencers is the maximum number of sequencers.
+   * @format uint64
+   */
+  maxSequencers?: string;
+
+  /**
+   * permissionedAddresses is a bech32-encoded address list of the
+   * sequencers that are allowed to serve this rollappId.
+   * In the case of an empty list, the rollapp is considered permissionless.
+   */
+  permissionedAddresses?: RollappSequencers;
+}
+
+/**
+ * Sequencers defines list of sequencers addresses.
+ */
+export interface RollappSequencers {
+  addresses?: string[];
+}
+
 export interface RpcStatus {
   /** @format int32 */
   code?: number;
   message?: string;
   details?: ProtobufAny[];
+}
+
+/**
+* message SomeRequest {
+         Foo some_parameter = 1;
+         PageRequest pagination = 2;
+ }
+*/
+export interface V1Beta1PageRequest {
+  /**
+   * key is a value returned in PageResponse.next_key to begin
+   * querying the next page most efficiently. Only one of offset or key
+   * should be set.
+   * @format byte
+   */
+  key?: string;
+
+  /**
+   * offset is a numeric offset that can be used when key is unavailable.
+   * It is less efficient than using key. Only one of offset or key should
+   * be set.
+   * @format uint64
+   */
+  offset?: string;
+
+  /**
+   * limit is the total number of results to be returned in the result page.
+   * If left empty it will default to a value to be set by each app.
+   * @format uint64
+   */
+  limit?: string;
+
+  /**
+   * count_total is set to true  to indicate that the result set should include
+   * a count of the total number of items available for pagination in UIs.
+   * count_total is only respected when offset is used. It is ignored when key
+   * is set.
+   */
+  count_total?: boolean;
+
+  /**
+   * reverse is set to true if results are to be returned in the descending order.
+   *
+   * Since: cosmos-sdk 0.43
+   */
+  reverse?: boolean;
+}
+
+/**
+* PageResponse is to be embedded in gRPC response messages where the
+corresponding request message has used PageRequest.
+
+ message SomeResponse {
+         repeated Bar results = 1;
+         PageResponse page = 2;
+ }
+*/
+export interface V1Beta1PageResponse {
+  /** @format byte */
+  next_key?: string;
+
+  /** @format uint64 */
+  total?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -240,6 +371,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryParams = (params: RequestParams = {}) =>
     this.request<RollappQueryParamsResponse, RpcStatus>({
       path: `/dymensionxyz/dymension/rollapp/params`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRollappAll
+   * @summary Queries a list of Rollapp items.
+   * @request GET:/dymensionxyz/dymension/rollapp/rollapp
+   */
+  queryRollappAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<RollappQueryAllRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/rollapp`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryRollapp
+   * @summary Queries a Rollapp by index.
+   * @request GET:/dymensionxyz/dymension/rollapp/rollapp/{rollappId}
+   */
+  queryRollapp = (rollappId: string, params: RequestParams = {}) =>
+    this.request<RollappQueryGetRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/rollapp/${rollappId}`,
       method: "GET",
       format: "json",
       ...params,

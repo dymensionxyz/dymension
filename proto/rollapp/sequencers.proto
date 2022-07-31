@@ -1,0 +1,10 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+// Sequencers defines list of sequencers addresses.
+message Sequencers {
+  
+  repeated string addresses = 1; 
+}

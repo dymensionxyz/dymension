@@ -20158,6 +20158,287 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+  /dymensionxyz/dymension/rollapp/rollapp:
+    get:
+      summary: Queries a list of Rollapp items.
+      operationId: DymensionxyzDymensionRollappRollappAll
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              rollapp:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rollappId:
+                      type: string
+                      description: >-
+                        rollappId is the unique identifier of the rollapp chain.
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id.
+                    creator:
+                      type: string
+                      description: >-
+                        creator is the bech32-encoded address of the rollapp
+                        creator.
+                    version:
+                      type: string
+                      format: uint64
+                      title: >-
+                        version is the software and configuration version.
+
+                        starts from 1 and increases by one on every
+                        MsgUpdateState
+                    codeStamp:
+                      type: string
+                      description: >-
+                        codeStamp is a generated hash for unique identification
+                        of the rollapp code.
+                    genesisPath:
+                      type: string
+                      description: >-
+                        genesisPath is the description of the genesis file
+                        location on the DA.
+                    maxWithholdingBlocks:
+                      type: string
+                      format: uint64
+                      description: >-
+                        maxWithholdingBlocks is the maximum number of blocks for
+
+                        an active sequencer to send a state update
+                        (MsgUpdateState).
+                    maxSequencers:
+                      type: string
+                      format: uint64
+                      description: maxSequencers is the maximum number of sequencers.
+                    permissionedAddresses:
+                      description: >-
+                        permissionedAddresses is a bech32-encoded address list
+                        of the 
+
+                        sequencers that are allowed to serve this rollappId. 
+
+                        In the case of an empty list, the rollapp is considered
+                        permissionless.
+                      type: object
+                      properties:
+                        addresses:
+                          type: array
+                          items:
+                            type: string
+                  title: >-
+                    Rollapp defines a rollapp object. First rollapp is create
+                    and then
+
+                    sequencers can be create and attach to it. Rollapp is
+                    identified by rollappId
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  '/dymensionxyz/dymension/rollapp/rollapp/{rollappId}':
+    get:
+      summary: Queries a Rollapp by index.
+      operationId: DymensionxyzDymensionRollappRollapp
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              rollapp:
+                type: object
+                properties:
+                  rollappId:
+                    type: string
+                    description: >-
+                      rollappId is the unique identifier of the rollapp chain.
+
+                      The rollappId follows the same standard as cosmos
+                      chain_id.
+                  creator:
+                    type: string
+                    description: >-
+                      creator is the bech32-encoded address of the rollapp
+                      creator.
+                  version:
+                    type: string
+                    format: uint64
+                    title: |-
+                      version is the software and configuration version.
+                      starts from 1 and increases by one on every MsgUpdateState
+                  codeStamp:
+                    type: string
+                    description: >-
+                      codeStamp is a generated hash for unique identification of
+                      the rollapp code.
+                  genesisPath:
+                    type: string
+                    description: >-
+                      genesisPath is the description of the genesis file
+                      location on the DA.
+                  maxWithholdingBlocks:
+                    type: string
+                    format: uint64
+                    description: >-
+                      maxWithholdingBlocks is the maximum number of blocks for
+
+                      an active sequencer to send a state update
+                      (MsgUpdateState).
+                  maxSequencers:
+                    type: string
+                    format: uint64
+                    description: maxSequencers is the maximum number of sequencers.
+                  permissionedAddresses:
+                    description: >-
+                      permissionedAddresses is a bech32-encoded address list of
+                      the 
+
+                      sequencers that are allowed to serve this rollappId. 
+
+                      In the case of an empty list, the rollapp is considered
+                      permissionless.
+                    type: object
+                    properties:
+                      addresses:
+                        type: array
+                        items:
+                          type: string
+                title: >-
+                  Rollapp defines a rollapp object. First rollapp is create and
+                  then
+
+                  sequencers can be create and attach to it. Rollapp is
+                  identified by rollappId
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: rollappId
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /dymensionxyz/dymension/sequencer/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -47214,9 +47495,156 @@ definitions:
     description: >-
       MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount
       response type.
+  dymensionxyz.dymension.rollapp.MsgCreateRollappResponse:
+    type: object
   dymensionxyz.dymension.rollapp.Params:
     type: object
     description: Params defines the parameters for the module.
+  dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
+    type: object
+    properties:
+      rollapp:
+        type: array
+        items:
+          type: object
+          properties:
+            rollappId:
+              type: string
+              description: |-
+                rollappId is the unique identifier of the rollapp chain.
+                The rollappId follows the same standard as cosmos chain_id.
+            creator:
+              type: string
+              description: creator is the bech32-encoded address of the rollapp creator.
+            version:
+              type: string
+              format: uint64
+              title: |-
+                version is the software and configuration version.
+                starts from 1 and increases by one on every MsgUpdateState
+            codeStamp:
+              type: string
+              description: >-
+                codeStamp is a generated hash for unique identification of the
+                rollapp code.
+            genesisPath:
+              type: string
+              description: >-
+                genesisPath is the description of the genesis file location on
+                the DA.
+            maxWithholdingBlocks:
+              type: string
+              format: uint64
+              description: |-
+                maxWithholdingBlocks is the maximum number of blocks for
+                an active sequencer to send a state update (MsgUpdateState).
+            maxSequencers:
+              type: string
+              format: uint64
+              description: maxSequencers is the maximum number of sequencers.
+            permissionedAddresses:
+              description: >-
+                permissionedAddresses is a bech32-encoded address list of the 
+
+                sequencers that are allowed to serve this rollappId. 
+
+                In the case of an empty list, the rollapp is considered
+                permissionless.
+              type: object
+              properties:
+                addresses:
+                  type: array
+                  items:
+                    type: string
+          title: >-
+            Rollapp defines a rollapp object. First rollapp is create and then
+
+            sequencers can be create and attach to it. Rollapp is identified by
+            rollappId
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
+    type: object
+    properties:
+      rollapp:
+        type: object
+        properties:
+          rollappId:
+            type: string
+            description: |-
+              rollappId is the unique identifier of the rollapp chain.
+              The rollappId follows the same standard as cosmos chain_id.
+          creator:
+            type: string
+            description: creator is the bech32-encoded address of the rollapp creator.
+          version:
+            type: string
+            format: uint64
+            title: |-
+              version is the software and configuration version.
+              starts from 1 and increases by one on every MsgUpdateState
+          codeStamp:
+            type: string
+            description: >-
+              codeStamp is a generated hash for unique identification of the
+              rollapp code.
+          genesisPath:
+            type: string
+            description: >-
+              genesisPath is the description of the genesis file location on the
+              DA.
+          maxWithholdingBlocks:
+            type: string
+            format: uint64
+            description: |-
+              maxWithholdingBlocks is the maximum number of blocks for
+              an active sequencer to send a state update (MsgUpdateState).
+          maxSequencers:
+            type: string
+            format: uint64
+            description: maxSequencers is the maximum number of sequencers.
+          permissionedAddresses:
+            description: >-
+              permissionedAddresses is a bech32-encoded address list of the 
+
+              sequencers that are allowed to serve this rollappId. 
+
+              In the case of an empty list, the rollapp is considered
+              permissionless.
+            type: object
+            properties:
+              addresses:
+                type: array
+                items:
+                  type: string
+        title: >-
+          Rollapp defines a rollapp object. First rollapp is create and then
+
+          sequencers can be create and attach to it. Rollapp is identified by
+          rollappId
   dymensionxyz.dymension.rollapp.QueryParamsResponse:
     type: object
     properties:
@@ -47224,6 +47652,68 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  dymensionxyz.dymension.rollapp.Rollapp:
+    type: object
+    properties:
+      rollappId:
+        type: string
+        description: |-
+          rollappId is the unique identifier of the rollapp chain.
+          The rollappId follows the same standard as cosmos chain_id.
+      creator:
+        type: string
+        description: creator is the bech32-encoded address of the rollapp creator.
+      version:
+        type: string
+        format: uint64
+        title: |-
+          version is the software and configuration version.
+          starts from 1 and increases by one on every MsgUpdateState
+      codeStamp:
+        type: string
+        description: >-
+          codeStamp is a generated hash for unique identification of the rollapp
+          code.
+      genesisPath:
+        type: string
+        description: genesisPath is the description of the genesis file location on the DA.
+      maxWithholdingBlocks:
+        type: string
+        format: uint64
+        description: |-
+          maxWithholdingBlocks is the maximum number of blocks for
+          an active sequencer to send a state update (MsgUpdateState).
+      maxSequencers:
+        type: string
+        format: uint64
+        description: maxSequencers is the maximum number of sequencers.
+      permissionedAddresses:
+        description: >-
+          permissionedAddresses is a bech32-encoded address list of the 
+
+          sequencers that are allowed to serve this rollappId. 
+
+          In the case of an empty list, the rollapp is considered
+          permissionless.
+        type: object
+        properties:
+          addresses:
+            type: array
+            items:
+              type: string
+    title: >-
+      Rollapp defines a rollapp object. First rollapp is create and then
+
+      sequencers can be create and attach to it. Rollapp is identified by
+      rollappId
+  dymensionxyz.dymension.rollapp.Sequencers:
+    type: object
+    properties:
+      addresses:
+        type: array
+        items:
+          type: string
+    description: Sequencers defines list of sequencers addresses.
   dymensionxyz.dymension.sequencer.Params:
     type: object
     description: Params defines the parameters for the module.

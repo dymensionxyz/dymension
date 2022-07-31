@@ -19,12 +19,34 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
+		},
+		{
+			desc: "duplicated rollapp",
+			genState: &types.GenesisState{
+				RollappList: []types.Rollapp{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "0",
+					},
+				},
+			},
+			valid: false,
 		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	} {

@@ -2,12 +2,40 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
+import "rollapp/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
+import "gogoproto/gogo.proto";
+
 // Msg defines the Msg service.
 service Msg {
-    // this line is used by starport scaffolding # proto/tx/rpc
+      rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+// this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgCreateRollapp {
+  // creator is the bech32-encoded address of the rollapp creator.
+  string creator = 1;
+  // rollappId is the unique identifier of the rollapp chain.
+  // The rollappId follows the same standard as cosmos chain_id.
+  string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
+  // genesisPath is the description of the genesis file location on the DA.
+  string codeStamp = 3;
+  // genesisPath is the description of the genesis file location on the DA.
+  string genesisPath = 4;
+  // maxWithholdingBlocks is the maximum number of blocks for
+  // an active sequencer to send a state update (MsgUpdateState). 
+  uint64 maxWithholdingBlocks = 5;   
+  // maxSequencers is the maximum number of sequencers. 
+  uint64 maxSequencers = 6;
+  // permissionedAddresses is a bech32-encoded address list of the 
+  // sequencers that are allowed to serve this rollappId. 
+  // In the case of an empty list, the rollapp is considered permissionless.
+  Sequencers permissionedAddresses = 7 [(gogoproto.nullable) = false];
+}
+
+message MsgCreateRollappResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message

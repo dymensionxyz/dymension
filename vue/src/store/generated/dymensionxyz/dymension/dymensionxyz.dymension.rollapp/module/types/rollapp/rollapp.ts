@@ -1,19 +1,28 @@
 /* eslint-disable */
-import { Reader, util, configure, Writer } from "protobufjs/minimal";
 import * as Long from "long";
+import { util, configure, Writer, Reader } from "protobufjs/minimal";
 import { Sequencers } from "../rollapp/sequencers";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
-export interface MsgCreateRollapp {
-  /** creator is the bech32-encoded address of the rollapp creator. */
-  creator: string;
+/**
+ * Rollapp defines a rollapp object. First rollapp is create and then
+ * sequencers can be create and attach to it. Rollapp is identified by rollappId
+ */
+export interface Rollapp {
   /**
    * rollappId is the unique identifier of the rollapp chain.
    * The rollappId follows the same standard as cosmos chain_id.
    */
   rollappId: string;
-  /** genesisPath is the description of the genesis file location on the DA. */
+  /** creator is the bech32-encoded address of the rollapp creator. */
+  creator: string;
+  /**
+   * version is the software and configuration version.
+   * starts from 1 and increases by one on every MsgUpdateState
+   */
+  version: number;
+  /** codeStamp is a generated hash for unique identification of the rollapp code. */
   codeStamp: string;
   /** genesisPath is the description of the genesis file location on the DA. */
   genesisPath: string;
@@ -32,72 +41,77 @@ export interface MsgCreateRollapp {
   permissionedAddresses: Sequencers | undefined;
 }
 
-export interface MsgCreateRollappResponse {}
-
-const baseMsgCreateRollapp: object = {
-  creator: "",
+const baseRollapp: object = {
   rollappId: "",
+  creator: "",
+  version: 0,
   codeStamp: "",
   genesisPath: "",
   maxWithholdingBlocks: 0,
   maxSequencers: 0,
 };
 
-export const MsgCreateRollapp = {
-  encode(message: MsgCreateRollapp, writer: Writer = Writer.create()): Writer {
-    if (message.creator !== "") {
-      writer.uint32(10).string(message.creator);
-    }
+export const Rollapp = {
+  encode(message: Rollapp, writer: Writer = Writer.create()): Writer {
     if (message.rollappId !== "") {
-      writer.uint32(18).string(message.rollappId);
+      writer.uint32(10).string(message.rollappId);
+    }
+    if (message.creator !== "") {
+      writer.uint32(18).string(message.creator);
+    }
+    if (message.version !== 0) {
+      writer.uint32(24).uint64(message.version);
     }
     if (message.codeStamp !== "") {
-      writer.uint32(26).string(message.codeStamp);
+      writer.uint32(34).string(message.codeStamp);
     }
     if (message.genesisPath !== "") {
-      writer.uint32(34).string(message.genesisPath);
+      writer.uint32(42).string(message.genesisPath);
     }
     if (message.maxWithholdingBlocks !== 0) {
-      writer.uint32(40).uint64(message.maxWithholdingBlocks);
+      writer.uint32(48).uint64(message.maxWithholdingBlocks);
     }
     if (message.maxSequencers !== 0) {
-      writer.uint32(48).uint64(message.maxSequencers);
+      writer.uint32(56).uint64(message.maxSequencers);
     }
     if (message.permissionedAddresses !== undefined) {
       Sequencers.encode(
         message.permissionedAddresses,
-        writer.uint32(58).fork()
+        writer.uint32(66).fork()
       ).ldelim();
     }
     return writer;
   },
 
-  decode(input: Reader | Uint8Array, length?: number): MsgCreateRollapp {
+  decode(input: Reader | Uint8Array, length?: number): Rollapp {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = { ...baseMsgCreateRollapp } as MsgCreateRollapp;
+    const message = { ...baseRollapp } as Rollapp;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.creator = reader.string();
-          break;
-        case 2:
           message.rollappId = reader.string();
           break;
+        case 2:
+          message.creator = reader.string();
+          break;
         case 3:
-          message.codeStamp = reader.string();
+          message.version = longToNumber(reader.uint64() as Long);
           break;
         case 4:
-          message.genesisPath = reader.string();
+          message.codeStamp = reader.string();
           break;
         case 5:
-          message.maxWithholdingBlocks = longToNumber(reader.uint64() as Long);
+          message.genesisPath = reader.string();
           break;
         case 6:
-          message.maxSequencers = longToNumber(reader.uint64() as Long);
+          message.maxWithholdingBlocks = longToNumber(reader.uint64() as Long);
           break;
         case 7:
+          message.maxSequencers = longToNumber(reader.uint64() as Long);
+          break;
+        case 8:
           message.permissionedAddresses = Sequencers.decode(
             reader,
             reader.uint32()
@@ -111,17 +125,22 @@ export const MsgCreateRollapp = {
     return message;
   },
 
-  fromJSON(object: any): MsgCreateRollapp {
-    const message = { ...baseMsgCreateRollapp } as MsgCreateRollapp;
+  fromJSON(object: any): Rollapp {
+    const message = { ...baseRollapp } as Rollapp;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = String(object.rollappId);
+    } else {
+      message.rollappId = "";
+    }
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = String(object.creator);
     } else {
       message.creator = "";
     }
-    if (object.rollappId !== undefined && object.rollappId !== null) {
-      message.rollappId = String(object.rollappId);
+    if (object.version !== undefined && object.version !== null) {
+      message.version = Number(object.version);
     } else {
-      message.rollappId = "";
+      message.version = 0;
     }
     if (object.codeStamp !== undefined && object.codeStamp !== null) {
       message.codeStamp = String(object.codeStamp);
@@ -159,10 +178,11 @@ export const MsgCreateRollapp = {
     return message;
   },
 
-  toJSON(message: MsgCreateRollapp): unknown {
+  toJSON(message: Rollapp): unknown {
     const obj: any = {};
-    message.creator !== undefined && (obj.creator = message.creator);
     message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.version !== undefined && (obj.version = message.version);
     message.codeStamp !== undefined && (obj.codeStamp = message.codeStamp);
     message.genesisPath !== undefined &&
       (obj.genesisPath = message.genesisPath);
@@ -177,17 +197,22 @@ export const MsgCreateRollapp = {
     return obj;
   },
 
-  fromPartial(object: DeepPartial<MsgCreateRollapp>): MsgCreateRollapp {
-    const message = { ...baseMsgCreateRollapp } as MsgCreateRollapp;
+  fromPartial(object: DeepPartial<Rollapp>): Rollapp {
+    const message = { ...baseRollapp } as Rollapp;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = object.rollappId;
+    } else {
+      message.rollappId = "";
+    }
     if (object.creator !== undefined && object.creator !== null) {
       message.creator = object.creator;
     } else {
       message.creator = "";
     }
-    if (object.rollappId !== undefined && object.rollappId !== null) {
-      message.rollappId = object.rollappId;
+    if (object.version !== undefined && object.version !== null) {
+      message.version = object.version;
     } else {
-      message.rollappId = "";
+      message.version = 0;
     }
     if (object.codeStamp !== undefined && object.codeStamp !== null) {
       message.codeStamp = object.codeStamp;
@@ -225,90 +250,6 @@ export const MsgCreateRollapp = {
     return message;
   },
 };
-
-const baseMsgCreateRollappResponse: object = {};
-
-export const MsgCreateRollappResponse = {
-  encode(
-    _: MsgCreateRollappResponse,
-    writer: Writer = Writer.create()
-  ): Writer {
-    return writer;
-  },
-
-  decode(
-    input: Reader | Uint8Array,
-    length?: number
-  ): MsgCreateRollappResponse {
-    const reader = input instanceof Uint8Array ? new Reader(input) : input;
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = {
-      ...baseMsgCreateRollappResponse,
-    } as MsgCreateRollappResponse;
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(_: any): MsgCreateRollappResponse {
-    const message = {
-      ...baseMsgCreateRollappResponse,
-    } as MsgCreateRollappResponse;
-    return message;
-  },
-
-  toJSON(_: MsgCreateRollappResponse): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  fromPartial(
-    _: DeepPartial<MsgCreateRollappResponse>
-  ): MsgCreateRollappResponse {
-    const message = {
-      ...baseMsgCreateRollappResponse,
-    } as MsgCreateRollappResponse;
-    return message;
-  },
-};
-
-/** Msg defines the Msg service. */
-export interface Msg {
-  /** this line is used by starport scaffolding # proto/tx/rpc */
-  CreateRollapp(request: MsgCreateRollapp): Promise<MsgCreateRollappResponse>;
-}
-
-export class MsgClientImpl implements Msg {
-  private readonly rpc: Rpc;
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-  }
-  CreateRollapp(request: MsgCreateRollapp): Promise<MsgCreateRollappResponse> {
-    const data = MsgCreateRollapp.encode(request).finish();
-    const promise = this.rpc.request(
-      "dymensionxyz.dymension.rollapp.Msg",
-      "CreateRollapp",
-      data
-    );
-    return promise.then((data) =>
-      MsgCreateRollappResponse.decode(new Reader(data))
-    );
-  }
-}
-
-interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
-}
 
 declare var self: any | undefined;
 declare var window: any | undefined;

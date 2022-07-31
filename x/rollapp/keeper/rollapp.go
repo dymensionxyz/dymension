@@ -1,0 +1,63 @@
+package keeper
+
+import (
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
+)
+
+// SetRollapp set a specific rollapp in the store from its index
+func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	b := k.cdc.MustMarshal(&rollapp)
+	store.Set(types.RollappKey(
+		rollapp.RollappId,
+	), b)
+}
+
+// GetRollapp returns a rollapp from its index
+func (k Keeper) GetRollapp(
+	ctx sdk.Context,
+	rollappId string,
+
+) (val types.Rollapp, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+
+	b := store.Get(types.RollappKey(
+		rollappId,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+// RemoveRollapp removes a rollapp from the store
+func (k Keeper) RemoveRollapp(
+	ctx sdk.Context,
+	rollappId string,
+
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	store.Delete(types.RollappKey(
+		rollappId,
+	))
+}
+
+// GetAllRollapp returns all rollapp
+func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Rollapp
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}
