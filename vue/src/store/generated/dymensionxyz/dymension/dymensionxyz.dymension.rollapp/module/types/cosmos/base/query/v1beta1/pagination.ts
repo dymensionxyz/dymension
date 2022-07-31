@@ -38,12 +38,15 @@ export interface PageRequest {
    * is set.
    */
   count_total: boolean;
+<<<<<<< HEAD
   /**
    * reverse is set to true if results are to be returned in the descending order.
    *
    * Since: cosmos-sdk 0.43
    */
   reverse: boolean;
+=======
+>>>>>>> ignite scaffold module rollapp
 }
 
 /**
@@ -68,12 +71,16 @@ export interface PageResponse {
   total: number;
 }
 
+<<<<<<< HEAD
 const basePageRequest: object = {
   offset: 0,
   limit: 0,
   count_total: false,
   reverse: false,
 };
+=======
+const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
+>>>>>>> ignite scaffold module rollapp
 
 export const PageRequest = {
   encode(message: PageRequest, writer: Writer = Writer.create()): Writer {
@@ -89,9 +96,12 @@ export const PageRequest = {
     if (message.count_total === true) {
       writer.uint32(32).bool(message.count_total);
     }
+<<<<<<< HEAD
     if (message.reverse === true) {
       writer.uint32(40).bool(message.reverse);
     }
+=======
+>>>>>>> ignite scaffold module rollapp
     return writer;
   },
 
@@ -114,9 +124,12 @@ export const PageRequest = {
         case 4:
           message.count_total = reader.bool();
           break;
+<<<<<<< HEAD
         case 5:
           message.reverse = reader.bool();
           break;
+=======
+>>>>>>> ignite scaffold module rollapp
         default:
           reader.skipType(tag & 7);
           break;
@@ -145,11 +158,14 @@ export const PageRequest = {
     } else {
       message.count_total = false;
     }
+<<<<<<< HEAD
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = Boolean(object.reverse);
     } else {
       message.reverse = false;
     }
+=======
+>>>>>>> ignite scaffold module rollapp
     return message;
   },
 
@@ -163,7 +179,10 @@ export const PageRequest = {
     message.limit !== undefined && (obj.limit = message.limit);
     message.count_total !== undefined &&
       (obj.count_total = message.count_total);
+<<<<<<< HEAD
     message.reverse !== undefined && (obj.reverse = message.reverse);
+=======
+>>>>>>> ignite scaffold module rollapp
     return obj;
   },
 
@@ -189,11 +208,14 @@ export const PageRequest = {
     } else {
       message.count_total = false;
     }
+<<<<<<< HEAD
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = object.reverse;
     } else {
       message.reverse = false;
     }
+=======
+>>>>>>> ignite scaffold module rollapp
     return message;
   },
 };
