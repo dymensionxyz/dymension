@@ -39,14 +39,20 @@ export interface PageRequest {
    */
   count_total: boolean;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
   /**
    * reverse is set to true if results are to be returned in the descending order.
    *
    * Since: cosmos-sdk 0.43
    */
   reverse: boolean;
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
 }
 
 /**
@@ -72,15 +78,21 @@ export interface PageResponse {
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
 const basePageRequest: object = {
   offset: 0,
   limit: 0,
   count_total: false,
   reverse: false,
 };
+<<<<<<< HEAD
 =======
 const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
 >>>>>>> ignite scaffold module rollapp
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
 
 export const PageRequest = {
   encode(message: PageRequest, writer: Writer = Writer.create()): Writer {
@@ -97,11 +109,17 @@ export const PageRequest = {
       writer.uint32(32).bool(message.count_total);
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (message.reverse === true) {
       writer.uint32(40).bool(message.reverse);
     }
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+    if (message.reverse === true) {
+      writer.uint32(40).bool(message.reverse);
+    }
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     return writer;
   },
 
@@ -125,11 +143,17 @@ export const PageRequest = {
           message.count_total = reader.bool();
           break;
 <<<<<<< HEAD
+<<<<<<< HEAD
         case 5:
           message.reverse = reader.bool();
           break;
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+        case 5:
+          message.reverse = reader.bool();
+          break;
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
         default:
           reader.skipType(tag & 7);
           break;
@@ -159,13 +183,19 @@ export const PageRequest = {
       message.count_total = false;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = Boolean(object.reverse);
     } else {
       message.reverse = false;
     }
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     return message;
   },
 
@@ -180,9 +210,13 @@ export const PageRequest = {
     message.count_total !== undefined &&
       (obj.count_total = message.count_total);
 <<<<<<< HEAD
+<<<<<<< HEAD
     message.reverse !== undefined && (obj.reverse = message.reverse);
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+    message.reverse !== undefined && (obj.reverse = message.reverse);
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     return obj;
   },
 
@@ -209,13 +243,19 @@ export const PageRequest = {
       message.count_total = false;
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = object.reverse;
     } else {
       message.reverse = false;
     }
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module rollapp
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     return message;
   },
 };

@@ -24,11 +24,14 @@ import CosmosIbcGoIbcCorePortV1 from './cosmos/ibc-go/ibc.core.port.v1'
 <<<<<<< HEAD
 import DymensionxyzDymensionDymensionxyzDymensionRollapp from './dymensionxyz/dymension/dymensionxyz.dymension.rollapp'
 import DymensionxyzDymensionDymensionxyzDymensionSequencer from './dymensionxyz/dymension/dymensionxyz.dymension.sequencer'
+<<<<<<< HEAD
 =======
 >>>>>>> remove dymension module and re-add vue
 =======
 import DymensionxyzDymensionDymensionxyzDymensionRollapp from './dymensionxyz/dymension/dymensionxyz.dymension.rollapp'
 >>>>>>> ignite scaffold module rollapp
+=======
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
 
 
 export default { 
@@ -60,7 +63,11 @@ export default {
 >>>>>>> remove dymension module and re-add vue
 =======
   DymensionxyzDymensionDymensionxyzDymensionRollapp: load(DymensionxyzDymensionDymensionxyzDymensionRollapp, 'dymensionxyz.dymension.rollapp'),
+<<<<<<< HEAD
 >>>>>>> ignite scaffold module rollapp
+=======
+  DymensionxyzDymensionDymensionxyzDymensionSequencer: load(DymensionxyzDymensionDymensionxyzDymensionSequencer, 'dymensionxyz.dymension.sequencer'),
+>>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
   
 }
 
