@@ -2,17 +2,33 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
-import "rollapp/sequencers.proto"; 
+import "rollapp/sequencers.proto";
+import "gogoproto/gogo.proto";
 
+// Rollapp defines a rollapp object. First rollapp is create and then
+// sequencers can be create and attach to it. Rollapp is identified by rollappId
 message Rollapp {
+  // rollappId is the unique identifier of the rollapp chain.
+  // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1; 
+  // creator is the bech32-encoded address of the rollapp creator.
   string creator = 2; 
+  // version is the software and configuration version.
+  // starts from 1 and increases by one on every MsgUpdateState
   uint64 version = 3; 
+  // codeStamp is a generated hash for unique identification of the rollapp code.
   string codeStamp = 4; 
+  // genesisPath is the description of the genesis file location on the DA.
   string genesisPath = 5; 
+  // maxWithholdingBlocks is the maximum number of blocks for
+  // an active sequencer to send a state update (MsgUpdateState). 
   uint64 maxWithholdingBlocks = 6; 
+  // maxSequencers is the maximum number of sequencers. 
   uint64 maxSequencers = 7; 
-  Sequencers permissionedAddresses = 8; 
+  // permissionedAddresses is a bech32-encoded address list of the 
+  // sequencers that are allowed to serve this rollappId. 
+  // In the case of an empty list, the rollapp is considered permissionless.
+  Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false]; 
   
 }
 

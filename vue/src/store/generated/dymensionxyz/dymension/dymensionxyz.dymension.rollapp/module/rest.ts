@@ -46,21 +46,42 @@ export interface RollappQueryParamsResponse {
 }
 
 export interface RollappRollapp {
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
   rollappId?: string;
+
+  /** creator is the bech32-encoded address of the rollapp creator. */
   creator?: string;
 
   /** @format uint64 */
   version?: string;
+
+  /** codeStamp is a generated hash for unique identification of the rollapp code. */
   codeStamp?: string;
+
+  /** genesisPath is the description of the genesis file location on the DA. */
   genesisPath?: string;
 
-  /** @format uint64 */
+  /**
+   * maxWithholdingBlocks is the maximum number of blocks for
+   * an active sequencer to send a state update (MsgUpdateState).
+   * @format uint64
+   */
   maxWithholdingBlocks?: string;
 
-  /** @format uint64 */
+  /**
+   * maxSequencers is the maximum number of sequencers.
+   * @format uint64
+   */
   maxSequencers?: string;
 
-  /** Sequencers defines list of sequencers addresses. */
+  /**
+   * permissionedAddresses is a bech32-encoded address list of the
+   * sequencers that are allowed to serve this rollappId.
+   * In the case of an empty list, the rollapp is considered permissionless.
+   */
   permissionedAddresses?: RollappSequencers;
 }
 

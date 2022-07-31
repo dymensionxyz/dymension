@@ -20185,29 +20185,67 @@ paths:
                   properties:
                     rollappId:
                       type: string
+                      description: >-
+                        rollappId is the unique identifier of the rollapp chain.
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id.
                     creator:
                       type: string
+                      description: >-
+                        creator is the bech32-encoded address of the rollapp
+                        creator.
                     version:
                       type: string
                       format: uint64
+                      title: >-
+                        version is the software and configuration version.
+
+                        starts from 1 and increases by one on every
+                        MsgUpdateState
                     codeStamp:
                       type: string
+                      description: >-
+                        codeStamp is a generated hash for unique identification
+                        of the rollapp code.
                     genesisPath:
                       type: string
+                      description: >-
+                        genesisPath is the description of the genesis file
+                        location on the DA.
                     maxWithholdingBlocks:
                       type: string
                       format: uint64
+                      description: >-
+                        maxWithholdingBlocks is the maximum number of blocks for
+
+                        an active sequencer to send a state update
+                        (MsgUpdateState).
                     maxSequencers:
                       type: string
                       format: uint64
+                      description: maxSequencers is the maximum number of sequencers.
                     permissionedAddresses:
+                      description: >-
+                        permissionedAddresses is a bech32-encoded address list
+                        of the 
+
+                        sequencers that are allowed to serve this rollappId. 
+
+                        In the case of an empty list, the rollapp is considered
+                        permissionless.
                       type: object
                       properties:
                         addresses:
                           type: array
                           items:
                             type: string
-                      description: Sequencers defines list of sequencers addresses.
+                  title: >-
+                    Rollapp defines a rollapp object. First rollapp is create
+                    and then
+
+                    sequencers can be create and attach to it. Rollapp is
+                    identified by rollappId
               pagination:
                 type: object
                 properties:
@@ -20317,29 +20355,65 @@ paths:
                 properties:
                   rollappId:
                     type: string
+                    description: >-
+                      rollappId is the unique identifier of the rollapp chain.
+
+                      The rollappId follows the same standard as cosmos
+                      chain_id.
                   creator:
                     type: string
+                    description: >-
+                      creator is the bech32-encoded address of the rollapp
+                      creator.
                   version:
                     type: string
                     format: uint64
+                    title: |-
+                      version is the software and configuration version.
+                      starts from 1 and increases by one on every MsgUpdateState
                   codeStamp:
                     type: string
+                    description: >-
+                      codeStamp is a generated hash for unique identification of
+                      the rollapp code.
                   genesisPath:
                     type: string
+                    description: >-
+                      genesisPath is the description of the genesis file
+                      location on the DA.
                   maxWithholdingBlocks:
                     type: string
                     format: uint64
+                    description: >-
+                      maxWithholdingBlocks is the maximum number of blocks for
+
+                      an active sequencer to send a state update
+                      (MsgUpdateState).
                   maxSequencers:
                     type: string
                     format: uint64
+                    description: maxSequencers is the maximum number of sequencers.
                   permissionedAddresses:
+                    description: >-
+                      permissionedAddresses is a bech32-encoded address list of
+                      the 
+
+                      sequencers that are allowed to serve this rollappId. 
+
+                      In the case of an empty list, the rollapp is considered
+                      permissionless.
                     type: object
                     properties:
                       addresses:
                         type: array
                         items:
                           type: string
-                    description: Sequencers defines list of sequencers addresses.
+                title: >-
+                  Rollapp defines a rollapp object. First rollapp is create and
+                  then
+
+                  sequencers can be create and attach to it. Rollapp is
+                  identified by rollappId
         default:
           description: An unexpected error response.
           schema:
@@ -47446,29 +47520,57 @@ definitions:
           properties:
             rollappId:
               type: string
+              description: |-
+                rollappId is the unique identifier of the rollapp chain.
+                The rollappId follows the same standard as cosmos chain_id.
             creator:
               type: string
+              description: creator is the bech32-encoded address of the rollapp creator.
             version:
               type: string
               format: uint64
+              title: |-
+                version is the software and configuration version.
+                starts from 1 and increases by one on every MsgUpdateState
             codeStamp:
               type: string
+              description: >-
+                codeStamp is a generated hash for unique identification of the
+                rollapp code.
             genesisPath:
               type: string
+              description: >-
+                genesisPath is the description of the genesis file location on
+                the DA.
             maxWithholdingBlocks:
               type: string
               format: uint64
+              description: |-
+                maxWithholdingBlocks is the maximum number of blocks for
+                an active sequencer to send a state update (MsgUpdateState).
             maxSequencers:
               type: string
               format: uint64
+              description: maxSequencers is the maximum number of sequencers.
             permissionedAddresses:
+              description: >-
+                permissionedAddresses is a bech32-encoded address list of the 
+
+                sequencers that are allowed to serve this rollappId. 
+
+                In the case of an empty list, the rollapp is considered
+                permissionless.
               type: object
               properties:
                 addresses:
                   type: array
                   items:
                     type: string
-              description: Sequencers defines list of sequencers addresses.
+          title: >-
+            Rollapp defines a rollapp object. First rollapp is create and then
+
+            sequencers can be create and attach to it. Rollapp is identified by
+            rollappId
       pagination:
         type: object
         properties:
@@ -47502,29 +47604,57 @@ definitions:
         properties:
           rollappId:
             type: string
+            description: |-
+              rollappId is the unique identifier of the rollapp chain.
+              The rollappId follows the same standard as cosmos chain_id.
           creator:
             type: string
+            description: creator is the bech32-encoded address of the rollapp creator.
           version:
             type: string
             format: uint64
+            title: |-
+              version is the software and configuration version.
+              starts from 1 and increases by one on every MsgUpdateState
           codeStamp:
             type: string
+            description: >-
+              codeStamp is a generated hash for unique identification of the
+              rollapp code.
           genesisPath:
             type: string
+            description: >-
+              genesisPath is the description of the genesis file location on the
+              DA.
           maxWithholdingBlocks:
             type: string
             format: uint64
+            description: |-
+              maxWithholdingBlocks is the maximum number of blocks for
+              an active sequencer to send a state update (MsgUpdateState).
           maxSequencers:
             type: string
             format: uint64
+            description: maxSequencers is the maximum number of sequencers.
           permissionedAddresses:
+            description: >-
+              permissionedAddresses is a bech32-encoded address list of the 
+
+              sequencers that are allowed to serve this rollappId. 
+
+              In the case of an empty list, the rollapp is considered
+              permissionless.
             type: object
             properties:
               addresses:
                 type: array
                 items:
                   type: string
-            description: Sequencers defines list of sequencers addresses.
+        title: >-
+          Rollapp defines a rollapp object. First rollapp is create and then
+
+          sequencers can be create and attach to it. Rollapp is identified by
+          rollappId
   dymensionxyz.dymension.rollapp.QueryParamsResponse:
     type: object
     properties:
@@ -47543,29 +47673,55 @@ definitions:
     properties:
       rollappId:
         type: string
+        description: |-
+          rollappId is the unique identifier of the rollapp chain.
+          The rollappId follows the same standard as cosmos chain_id.
       creator:
         type: string
+        description: creator is the bech32-encoded address of the rollapp creator.
       version:
         type: string
         format: uint64
+        title: |-
+          version is the software and configuration version.
+          starts from 1 and increases by one on every MsgUpdateState
       codeStamp:
         type: string
+        description: >-
+          codeStamp is a generated hash for unique identification of the rollapp
+          code.
       genesisPath:
         type: string
+        description: genesisPath is the description of the genesis file location on the DA.
       maxWithholdingBlocks:
         type: string
         format: uint64
+        description: |-
+          maxWithholdingBlocks is the maximum number of blocks for
+          an active sequencer to send a state update (MsgUpdateState).
       maxSequencers:
         type: string
         format: uint64
+        description: maxSequencers is the maximum number of sequencers.
       permissionedAddresses:
+        description: >-
+          permissionedAddresses is a bech32-encoded address list of the 
+
+          sequencers that are allowed to serve this rollappId. 
+
+          In the case of an empty list, the rollapp is considered
+          permissionless.
         type: object
         properties:
           addresses:
             type: array
             items:
               type: string
-        description: Sequencers defines list of sequencers addresses.
+    title: >-
+      Rollapp defines a rollapp object. First rollapp is create and then
+
+      sequencers can be create and attach to it. Rollapp is identified by
+      rollappId
   dymensionxyz.dymension.rollapp.Sequencers:
     type: object
     properties:
