@@ -40,6 +40,7 @@ export interface PageRequest {
   count_total: boolean;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
   /**
@@ -53,6 +54,8 @@ export interface PageRequest {
 >>>>>>> ignite scaffold module rollapp
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
 }
 
 /**
@@ -79,6 +82,7 @@ export interface PageResponse {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
 const basePageRequest: object = {
@@ -93,6 +97,9 @@ const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
 >>>>>>> ignite scaffold module rollapp
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
 
 export const PageRequest = {
   encode(message: PageRequest, writer: Writer = Writer.create()): Writer {
@@ -110,6 +117,7 @@ export const PageRequest = {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     if (message.reverse === true) {
       writer.uint32(40).bool(message.reverse);
     }
@@ -120,6 +128,8 @@ export const PageRequest = {
       writer.uint32(40).bool(message.reverse);
     }
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
     return writer;
   },
 
@@ -144,6 +154,7 @@ export const PageRequest = {
           break;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         case 5:
           message.reverse = reader.bool();
           break;
@@ -154,6 +165,8 @@ export const PageRequest = {
           message.reverse = reader.bool();
           break;
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
         default:
           reader.skipType(tag & 7);
           break;
@@ -184,6 +197,7 @@ export const PageRequest = {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
@@ -196,6 +210,8 @@ export const PageRequest = {
 >>>>>>> ignite scaffold module rollapp
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
     return message;
   },
 
@@ -211,12 +227,15 @@ export const PageRequest = {
       (obj.count_total = message.count_total);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     message.reverse !== undefined && (obj.reverse = message.reverse);
 =======
 >>>>>>> ignite scaffold module rollapp
 =======
     message.reverse !== undefined && (obj.reverse = message.reverse);
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
     return obj;
   },
 
@@ -244,6 +263,7 @@ export const PageRequest = {
     }
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
@@ -256,6 +276,8 @@ export const PageRequest = {
 >>>>>>> ignite scaffold module rollapp
 =======
 >>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
+=======
+>>>>>>> add description for 'mesage Sequencers' proto in rollapp module
     return message;
   },
 };

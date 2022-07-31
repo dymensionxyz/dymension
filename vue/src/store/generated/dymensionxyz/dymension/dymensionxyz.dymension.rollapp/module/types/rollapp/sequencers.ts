@@ -3,6 +3,7 @@ import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
+/** Sequencers defines list of sequencers addresses. */
 export interface Sequencers {
   addresses: string[];
 }
