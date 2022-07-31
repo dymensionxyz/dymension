@@ -2,12 +2,27 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
+import "rollapp/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
 // Msg defines the Msg service.
 service Msg {
-    // this line is used by starport scaffolding # proto/tx/rpc
+      rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+// this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgCreateRollapp {
+  string creator = 1;
+  string rollappId = 2;
+  string codeStamp = 3;
+  string genesisPath = 4;
+  uint64 maxWithholdingBlocks = 5;
+  uint64 maxSequencers = 6;
+  Sequencers permissionedAddresses = 7;
+}
+
+message MsgCreateRollappResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message
