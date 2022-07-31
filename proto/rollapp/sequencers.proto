@@ -1,0 +1,9 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+message Sequencers {
+  
+  repeated string addresses = 1; 
+}
