@@ -1,0 +1,18 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+import "rollapp/sequencers.proto"; 
+
+message Rollapp {
+  string rollappId = 1; 
+  string creator = 2; 
+  uint64 version = 3; 
+  string codeStamp = 4; 
+  string genesisPath = 5; 
+  uint64 maxWithholdingBlocks = 6; 
+  uint64 maxSequencers = 7; 
+  Sequencers permissionedAddresses = 8; 
+  
+}
+

@@ -1,10 +1,11 @@
 import { txClient, queryClient, MissingWalletError , registry} from './module'
 
 import { Params } from "./module/types/rollapp/params"
+import { Rollapp } from "./module/types/rollapp/rollapp"
 import { Sequencers } from "./module/types/rollapp/sequencers"
 
 
-export { Params, Sequencers };
+export { Params, Rollapp, Sequencers };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -43,9 +44,12 @@ function getStructure(template) {
 const getDefaultState = () => {
 	return {
 				Params: {},
+				Rollapp: {},
+				RollappAll: {},
 				
 				_Structure: {
 						Params: getStructure(Params.fromPartial({})),
+						Rollapp: getStructure(Rollapp.fromPartial({})),
 						Sequencers: getStructure(Sequencers.fromPartial({})),
 						
 		},
@@ -80,6 +84,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.Params[JSON.stringify(params)] ?? {}
+		},
+				getRollapp: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.Rollapp[JSON.stringify(params)] ?? {}
+		},
+				getRollappAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.RollappAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -132,6 +148,54 @@ export default {
 				return getters['getParams']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QueryParams API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryRollapp({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryRollapp( key.rollappId)).data
+				
+					
+				commit('QUERY', { query: 'Rollapp', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRollapp', payload: { options: { all }, params: {...key},query }})
+				return getters['getRollapp']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryRollapp API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryRollappAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryRollappAll(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.queryRollappAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'RollappAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRollappAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getRollappAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryRollappAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
