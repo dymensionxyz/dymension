@@ -35,6 +35,7 @@ fi
 # .................. Init dYmension .................... #
 # ...................................................... #
 
+export PATH=$PATH:$HOME/go/bin
 if ! command -v dymd; then
   echo "dYmension binary not found, call \"make install\"."
   exit 1

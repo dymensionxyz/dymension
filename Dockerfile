@@ -16,7 +16,7 @@ RUN make build
 
 FROM alpine:3.16.1
 
-RUN apk add curl
+RUN apk add curl jq
 
 COPY --from=go-builder /app/bin/dymd /usr/local/bin/
 
