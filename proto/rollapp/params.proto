@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  
+}
