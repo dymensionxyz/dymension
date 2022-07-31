@@ -38,30 +38,12 @@ export interface PageRequest {
    * is set.
    */
   count_total: boolean;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
   /**
    * reverse is set to true if results are to be returned in the descending order.
    *
    * Since: cosmos-sdk 0.43
    */
   reverse: boolean;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module rollapp
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
 }
 
 /**
@@ -86,32 +68,12 @@ export interface PageResponse {
   total: number;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
 const basePageRequest: object = {
   offset: 0,
   limit: 0,
   count_total: false,
   reverse: false,
 };
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
->>>>>>> ignite scaffold module rollapp
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
-const basePageRequest: object = { offset: 0, limit: 0, count_total: false };
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
 
 export const PageRequest = {
   encode(message: PageRequest, writer: Writer = Writer.create()): Writer {
@@ -127,27 +89,9 @@ export const PageRequest = {
     if (message.count_total === true) {
       writer.uint32(32).bool(message.count_total);
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     if (message.reverse === true) {
       writer.uint32(40).bool(message.reverse);
     }
-=======
->>>>>>> ignite scaffold module rollapp
-=======
-    if (message.reverse === true) {
-      writer.uint32(40).bool(message.reverse);
-    }
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
-    if (message.reverse === true) {
-      writer.uint32(40).bool(message.reverse);
-    }
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     return writer;
   },
 
@@ -170,27 +114,9 @@ export const PageRequest = {
         case 4:
           message.count_total = reader.bool();
           break;
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
         case 5:
           message.reverse = reader.bool();
           break;
-=======
->>>>>>> ignite scaffold module rollapp
-=======
-        case 5:
-          message.reverse = reader.bool();
-          break;
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
-        case 5:
-          message.reverse = reader.bool();
-          break;
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
         default:
           reader.skipType(tag & 7);
           break;
@@ -219,29 +145,11 @@ export const PageRequest = {
     } else {
       message.count_total = false;
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = Boolean(object.reverse);
     } else {
       message.reverse = false;
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module rollapp
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     return message;
   },
 
@@ -255,21 +163,7 @@ export const PageRequest = {
     message.limit !== undefined && (obj.limit = message.limit);
     message.count_total !== undefined &&
       (obj.count_total = message.count_total);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     message.reverse !== undefined && (obj.reverse = message.reverse);
-=======
->>>>>>> ignite scaffold module rollapp
-=======
-    message.reverse !== undefined && (obj.reverse = message.reverse);
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
-    message.reverse !== undefined && (obj.reverse = message.reverse);
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     return obj;
   },
 
@@ -295,29 +189,11 @@ export const PageRequest = {
     } else {
       message.count_total = false;
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     if (object.reverse !== undefined && object.reverse !== null) {
       message.reverse = object.reverse;
     } else {
       message.reverse = false;
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ignite scaffold module rollapp
-=======
->>>>>>> ignite scaffold module sequencer --dep bank --dep rollapp
-=======
->>>>>>> add description for 'mesage Sequencers' proto in rollapp module
-=======
->>>>>>> ignite scaffold message create-rollapp rollapp_id code_stamp genesis_path max_withholding_blocks:uint max_sequencers:uint permissioned_addresses:Sequencers --desc "Create a new rollapp" --module rollapp
     return message;
   },
 };
