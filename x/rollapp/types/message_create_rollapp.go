@@ -17,7 +17,7 @@ func NewMsgCreateRollapp(creator string, rollappId string, codeStamp string, gen
 		GenesisPath:           genesisPath,
 		MaxWithholdingBlocks:  maxWithholdingBlocks,
 		MaxSequencers:         maxSequencers,
-		PermissionedAddresses: permissionedAddresses,
+		PermissionedAddresses: *permissionedAddresses,
 	}
 }
 

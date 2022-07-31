@@ -6,12 +6,29 @@ import { Sequencers } from "../rollapp/sequencers";
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
 export interface MsgCreateRollapp {
+  /** creator is the bech32-encoded address of the rollapp creator. */
   creator: string;
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
   rollappId: string;
+  /** genesisPath is the description of the genesis file location on the DA. */
   codeStamp: string;
+  /** genesisPath is the description of the genesis file location on the DA. */
   genesisPath: string;
+  /**
+   * maxWithholdingBlocks is the maximum number of blocks for
+   * an active sequencer to send a state update (MsgUpdateState).
+   */
   maxWithholdingBlocks: number;
+  /** maxSequencers is the maximum number of sequencers. */
   maxSequencers: number;
+  /**
+   * permissionedAddresses is a bech32-encoded address list of the
+   * sequencers that are allowed to serve this rollappId.
+   * In the case of an empty list, the rollapp is considered permissionless.
+   */
   permissionedAddresses: Sequencers | undefined;
 }
 
