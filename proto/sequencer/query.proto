@@ -5,7 +5,9 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "sequencer/params.proto";
+import "sequencer/sequencer.proto";
 // this line is used by starport scaffolding # 1
+import "sequencer/description.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 
@@ -15,7 +17,17 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/sequencer/params";
   }
-  // this line is used by starport scaffolding # 2
+  // Queries a Sequencer by index.
+	rpc Sequencer(QueryGetSequencerRequest) returns (QueryGetSequencerResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}";
+	}
+
+	// Queries a list of Sequencer items.
+	rpc SequencerAll(QueryAllSequencerRequest) returns (QueryAllSequencerResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencer";
+	}
+
+// this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -25,6 +37,24 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetSequencerRequest {
+	  string sequencerAddress = 1;
+
+}
+
+message QueryGetSequencerResponse {
+	Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllSequencerRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllSequencerResponse {
+	repeated Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3

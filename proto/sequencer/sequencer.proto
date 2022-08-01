@@ -1,0 +1,15 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+import "sequencer/description.proto"; 
+
+message Sequencer {
+  string sequencerAddress = 1; 
+  string creator = 2; 
+  string pubkey = 3; 
+  string rollappId = 4; 
+  Description description = 5; 
+  
+}
+
