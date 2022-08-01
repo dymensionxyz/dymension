@@ -20226,9 +20226,10 @@ paths:
                         permissionless.
                       type: object
                       properties:
-                        id:
-                          type: string
-                          format: uint64
+                        addresses:
+                          type: array
+                          items:
+                            type: string
                   title: >-
                     Rollapp defines a rollapp object. First rollapp is create
                     and then
@@ -20403,9 +20404,10 @@ paths:
                       permissionless.
                     type: object
                     properties:
-                      id:
-                        type: string
-                        format: uint64
+                      addresses:
+                        type: array
+                        items:
+                          type: string
                 title: >-
                   Rollapp defines a rollapp object. First rollapp is create and
                   then
@@ -21137,16 +21139,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}':
@@ -21592,7 +21584,13 @@ paths:
                   properties:
                     rollappId:
                       type: string
+                      description: >-
+                        rollappId is the unique identifier of the rollapp chain.
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id.
                     sequencers:
+                      title: list of sequencers' account address
                       type: object
                       properties:
                         addresses:
@@ -21600,6 +21598,11 @@ paths:
                           items:
                             type: string
                       description: Sequencers defines list of sequencers addresses.
+                  description: >-
+                    SequencersByRollapp defines an map between rollappId to a
+                    list of 
+
+                    all sequencers that belongs to it.
               pagination:
                 type: object
                 properties:
@@ -21859,16 +21862,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}':
@@ -21886,7 +21879,13 @@ paths:
                 properties:
                   rollappId:
                     type: string
+                    description: >-
+                      rollappId is the unique identifier of the rollapp chain.
+
+                      The rollappId follows the same standard as cosmos
+                      chain_id.
                   sequencers:
+                    title: list of sequencers' account address
                     type: object
                     properties:
                       addresses:
@@ -21894,6 +21893,11 @@ paths:
                         items:
                           type: string
                     description: Sequencers defines list of sequencers addresses.
+                description: >-
+                  SequencersByRollapp defines an map between rollappId to a list
+                  of 
+
+                  all sequencers that belongs to it.
         default:
           description: An unexpected error response.
           schema:
@@ -49163,9 +49167,10 @@ definitions:
                 permissionless.
               type: object
               properties:
-                id:
-                  type: string
-                  format: uint64
+                addresses:
+                  type: array
+                  items:
+                    type: string
           title: >-
             Rollapp defines a rollapp object. First rollapp is create and then
 
@@ -49246,9 +49251,10 @@ definitions:
               permissionless.
             type: object
             properties:
-              id:
-                type: string
-                format: uint64
+              addresses:
+                type: array
+                items:
+                  type: string
         title: >-
           Rollapp defines a rollapp object. First rollapp is create and then
 
@@ -49306,9 +49312,10 @@ definitions:
           permissionless.
         type: object
         properties:
-          id:
-            type: string
-            format: uint64
+          addresses:
+            type: array
+            items:
+              type: string
     title: >-
       Rollapp defines a rollapp object. First rollapp is create and then
 
@@ -49317,9 +49324,6 @@ definitions:
   dymensionxyz.dymension.sequencer.Sequencers:
     type: object
     properties:
-      id:
-        type: string
-        format: uint64
       addresses:
         type: array
         items:
@@ -49602,7 +49606,11 @@ definitions:
           properties:
             rollappId:
               type: string
+              description: |-
+                rollappId is the unique identifier of the rollapp chain.
+                The rollappId follows the same standard as cosmos chain_id.
             sequencers:
+              title: list of sequencers' account address
               type: object
               properties:
                 addresses:
@@ -49610,6 +49618,9 @@ definitions:
                   items:
                     type: string
               description: Sequencers defines list of sequencers addresses.
+          description: |-
+            SequencersByRollapp defines an map between rollappId to a list of 
+            all sequencers that belongs to it.
       pagination:
         type: object
         properties:
@@ -49853,7 +49864,11 @@ definitions:
         properties:
           rollappId:
             type: string
+            description: |-
+              rollappId is the unique identifier of the rollapp chain.
+              The rollappId follows the same standard as cosmos chain_id.
           sequencers:
+            title: list of sequencers' account address
             type: object
             properties:
               addresses:
@@ -49861,6 +49876,9 @@ definitions:
                 items:
                   type: string
             description: Sequencers defines list of sequencers addresses.
+        description: |-
+          SequencersByRollapp defines an map between rollappId to a list of 
+          all sequencers that belongs to it.
   dymensionxyz.dymension.sequencer.QueryParamsResponse:
     type: object
     properties:
@@ -50072,7 +50090,11 @@ definitions:
     properties:
       rollappId:
         type: string
+        description: |-
+          rollappId is the unique identifier of the rollapp chain.
+          The rollappId follows the same standard as cosmos chain_id.
       sequencers:
+        title: list of sequencers' account address
         type: object
         properties:
           addresses:
@@ -50080,6 +50102,9 @@ definitions:
             items:
               type: string
         description: Sequencers defines list of sequencers addresses.
+    description: |-
+      SequencersByRollapp defines an map between rollappId to a list of 
+      all sequencers that belongs to it.
   ibc.applications.interchain_accounts.controller.v1.Params:
     type: object
     properties:

@@ -4,8 +4,17 @@ import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
+/**
+ * SequencersByRollapp defines an map between rollappId to a list of
+ * all sequencers that belongs to it.
+ */
 export interface SequencersByRollapp {
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
   rollappId: string;
+  /** list of sequencers' account address */
   sequencers: Sequencers | undefined;
 }
 

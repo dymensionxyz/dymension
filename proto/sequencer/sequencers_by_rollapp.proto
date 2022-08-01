@@ -4,9 +4,17 @@ package dymensionxyz.dymension.sequencer;
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 import "sequencer/sequencers.proto"; 
 
+import "gogoproto/gogo.proto";
+
+
+// SequencersByRollapp defines an map between rollappId to a list of 
+// all sequencers that belongs to it.
 message SequencersByRollapp {
+  // rollappId is the unique identifier of the rollapp chain.
+  // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1; 
-  Sequencers sequencers = 2; 
+  // list of sequencers' account address
+  Sequencers sequencers = 2 [(gogoproto.nullable) = false];
   
 }
 

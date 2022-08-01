@@ -199,6 +199,10 @@ export interface SequencerQueryGetSequencerResponse {
 }
 
 export interface SequencerQueryGetSequencersByRollappResponse {
+  /**
+   * SequencersByRollapp defines an map between rollappId to a list of
+   * all sequencers that belongs to it.
+   */
   sequencersByRollapp?: SequencerSequencersByRollapp;
 }
 
@@ -236,7 +240,15 @@ export interface SequencerSequencers {
   addresses?: string[];
 }
 
+/**
+* SequencersByRollapp defines an map between rollappId to a list of 
+all sequencers that belongs to it.
+*/
 export interface SequencerSequencersByRollapp {
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
   rollappId?: string;
 
   /** Sequencers defines list of sequencers addresses. */
