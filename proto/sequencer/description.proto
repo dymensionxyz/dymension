@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+
+message Description {
+  
+  string moniker = 1; 
+  string identity = 2; 
+  string website = 3; 
+  string securityContact = 4; 
+  string details = 5; 
+}
