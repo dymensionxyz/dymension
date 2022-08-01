@@ -27,10 +27,22 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	seqAddrStr := seqAddr.String()
 
-	// check to see if the pubkey or sender has been registered before
+	// check to see if the sequencer has been registered before
 	if _, found := k.GetSequencer(ctx, seqAddrStr); found {
 		return nil, types.ErrSequencerExists
 	}
+
+	// update sequencers list
+	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
+	if found {
+		// add sequencer to list
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, seqAddrStr)
+	} else {
+		// should be: return nil, types.XXXX
+		sequencersByRollapp.RollappId = msg.RollappId
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, seqAddrStr)
+	}
+	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
 	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
