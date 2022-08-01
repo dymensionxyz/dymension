@@ -4,12 +4,15 @@ import (
 	"strconv"
 
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
+	sequencer "github.com/dymensionxyz/dymension/x/sequencer/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -31,7 +34,7 @@ func CmdCreateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			argPermissionedAddresses := new(types.Sequencers)
+			argPermissionedAddresses := new(sequencer.Sequencers)
 			err = json.Unmarshal([]byte(args[5]), argPermissionedAddresses)
 			if err != nil {
 				return err

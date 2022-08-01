@@ -21139,6 +21139,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}':
@@ -48798,7 +48808,7 @@ definitions:
 
       sequencers can be create and attach to it. Rollapp is identified by
       rollappId
-  dymensionxyz.dymension.rollapp.Sequencers:
+  dymensionxyz.dymension.sequencer.Sequencers:
     type: object
     properties:
       addresses:
