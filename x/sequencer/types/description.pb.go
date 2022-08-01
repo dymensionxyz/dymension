@@ -22,12 +22,18 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Description defines a sequencer description.
 type Description struct {
-	Moniker         string `protobuf:"bytes,1,opt,name=moniker,proto3" json:"moniker,omitempty"`
-	Identity        string `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
-	Website         string `protobuf:"bytes,3,opt,name=website,proto3" json:"website,omitempty"`
+	// moniker defines a human-readable name for the sequencer.
+	Moniker string `protobuf:"bytes,1,opt,name=moniker,proto3" json:"moniker,omitempty"`
+	// identity defines an optional identity signature (ex. UPort or Keybase).
+	Identity string `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
+	// website defines an optional website link.
+	Website string `protobuf:"bytes,3,opt,name=website,proto3" json:"website,omitempty"`
+	// securityContact defines an optional email for security contact.
 	SecurityContact string `protobuf:"bytes,4,opt,name=securityContact,proto3" json:"securityContact,omitempty"`
-	Details         string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
+	// details define other optional details.
+	Details string `protobuf:"bytes,5,opt,name=details,proto3" json:"details,omitempty"`
 }
 
 func (m *Description) Reset()         { *m = Description{} }

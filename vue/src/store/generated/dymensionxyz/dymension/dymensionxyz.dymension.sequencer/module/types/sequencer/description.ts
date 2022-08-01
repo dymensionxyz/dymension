@@ -3,11 +3,17 @@ import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
+/** Description defines a sequencer description. */
 export interface Description {
+  /** moniker defines a human-readable name for the sequencer. */
   moniker: string;
+  /** identity defines an optional identity signature (ex. UPort or Keybase). */
   identity: string;
+  /** website defines an optional website link. */
   website: string;
+  /** securityContact defines an optional email for security contact. */
   securityContact: string;
+  /** details define other optional details. */
   details: string;
 }
 
