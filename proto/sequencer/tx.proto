@@ -4,6 +4,10 @@ package dymensionxyz.dymension.sequencer;
 // this line is used by starport scaffolding # proto/tx/import
 import "sequencer/description.proto";
 
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 
 // Msg defines the Msg service.
@@ -12,12 +16,18 @@ service Msg {
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
+// MsgCreateSequencer defines a SDK message for creating a new sequencer.
 message MsgCreateSequencer {
+  // creator is the bech32-encoded address of the account sent the transaction (sequencer creator)
   string creator = 1;
+  // sequencerAddress is the bech32-encoded address of the sequencer account.
   string sequencerAddress = 2;
-  string pubkey = 3;
+  // pubkey is the public key of the sequencer, as a Protobuf Any.
+  google.protobuf.Any pubkey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  // rollappId defines the rollapp to which the sequencer belongs.
   string rollappId = 4;
-  Description description = 5;
+  // description defines the descriptive terms for the sequencer.
+  Description description = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateSequencerResponse {

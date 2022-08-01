@@ -1,14 +1,21 @@
 /* eslint-disable */
 import { Reader, Writer } from "protobufjs/minimal";
+import { Any } from "../google/protobuf/any";
 import { Description } from "../sequencer/description";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
+/** MsgCreateSequencer defines a SDK message for creating a new sequencer. */
 export interface MsgCreateSequencer {
+  /** creator is the bech32-encoded address of the account sent the transaction (sequencer creator) */
   creator: string;
+  /** sequencerAddress is the bech32-encoded address of the sequencer account. */
   sequencerAddress: string;
-  pubkey: string;
+  /** pubkey is the public key of the sequencer, as a Protobuf Any. */
+  pubkey: Any | undefined;
+  /** rollappId defines the rollapp to which the sequencer belongs. */
   rollappId: string;
+  /** description defines the descriptive terms for the sequencer. */
   description: Description | undefined;
 }
 
@@ -17,7 +24,6 @@ export interface MsgCreateSequencerResponse {}
 const baseMsgCreateSequencer: object = {
   creator: "",
   sequencerAddress: "",
-  pubkey: "",
   rollappId: "",
 };
 
@@ -32,8 +38,8 @@ export const MsgCreateSequencer = {
     if (message.sequencerAddress !== "") {
       writer.uint32(18).string(message.sequencerAddress);
     }
-    if (message.pubkey !== "") {
-      writer.uint32(26).string(message.pubkey);
+    if (message.pubkey !== undefined) {
+      Any.encode(message.pubkey, writer.uint32(26).fork()).ldelim();
     }
     if (message.rollappId !== "") {
       writer.uint32(34).string(message.rollappId);
@@ -61,7 +67,7 @@ export const MsgCreateSequencer = {
           message.sequencerAddress = reader.string();
           break;
         case 3:
-          message.pubkey = reader.string();
+          message.pubkey = Any.decode(reader, reader.uint32());
           break;
         case 4:
           message.rollappId = reader.string();
@@ -93,9 +99,9 @@ export const MsgCreateSequencer = {
       message.sequencerAddress = "";
     }
     if (object.pubkey !== undefined && object.pubkey !== null) {
-      message.pubkey = String(object.pubkey);
+      message.pubkey = Any.fromJSON(object.pubkey);
     } else {
-      message.pubkey = "";
+      message.pubkey = undefined;
     }
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = String(object.rollappId);
@@ -115,7 +121,8 @@ export const MsgCreateSequencer = {
     message.creator !== undefined && (obj.creator = message.creator);
     message.sequencerAddress !== undefined &&
       (obj.sequencerAddress = message.sequencerAddress);
-    message.pubkey !== undefined && (obj.pubkey = message.pubkey);
+    message.pubkey !== undefined &&
+      (obj.pubkey = message.pubkey ? Any.toJSON(message.pubkey) : undefined);
     message.rollappId !== undefined && (obj.rollappId = message.rollappId);
     message.description !== undefined &&
       (obj.description = message.description
@@ -140,9 +147,9 @@ export const MsgCreateSequencer = {
       message.sequencerAddress = "";
     }
     if (object.pubkey !== undefined && object.pubkey !== null) {
-      message.pubkey = object.pubkey;
+      message.pubkey = Any.fromPartial(object.pubkey);
     } else {
-      message.pubkey = "";
+      message.pubkey = undefined;
     }
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = object.rollappId;

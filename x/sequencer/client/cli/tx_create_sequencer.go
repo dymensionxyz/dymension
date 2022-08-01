@@ -4,11 +4,14 @@ import (
 	"strconv"
 
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	"github.com/spf13/cobra"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -33,13 +36,22 @@ func CmdCreateSequencer() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateSequencer(
+			var pk cryptotypes.PubKey
+			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(argPubkey), &pk); err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgCreateSequencer(
 				clientCtx.GetFromAddress().String(),
 				argSequencerAddress,
-				argPubkey,
+				pk,
 				argRollappId,
 				argDescription,
 			)
+			if err != nil {
+				return err
+			}
+
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
