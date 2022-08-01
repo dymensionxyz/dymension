@@ -6,7 +6,9 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "sequencer/params.proto";
 import "sequencer/sequencer.proto";
+import "sequencer/sequencers_by_rollapp.proto";
 // this line is used by starport scaffolding # 1
+import "sequencer/sequencers.proto";
 import "sequencer/description.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
@@ -25,6 +27,16 @@ service Query {
 	// Queries a list of Sequencer items.
 	rpc SequencerAll(QueryAllSequencerRequest) returns (QueryAllSequencerResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencer";
+	}
+
+// Queries a SequencersByRollapp by index.
+	rpc SequencersByRollapp(QueryGetSequencersByRollappRequest) returns (QueryGetSequencersByRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}";
+	}
+
+	// Queries a list of SequencersByRollapp items.
+	rpc SequencersByRollappAll(QueryAllSequencersByRollappRequest) returns (QueryAllSequencersByRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -54,6 +66,24 @@ message QueryAllSequencerRequest {
 
 message QueryAllSequencerResponse {
 	repeated Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetSequencersByRollappRequest {
+	  string rollappId = 1;
+
+}
+
+message QueryGetSequencersByRollappResponse {
+	SequencersByRollapp sequencersByRollapp = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllSequencersByRollappRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllSequencersByRollappResponse {
+	repeated SequencersByRollapp sequencersByRollapp = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

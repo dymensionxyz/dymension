@@ -4,9 +4,10 @@ import { Description } from "./module/types/sequencer/description"
 import { Params } from "./module/types/sequencer/params"
 import { Sequencer } from "./module/types/sequencer/sequencer"
 import { Sequencers } from "./module/types/sequencer/sequencers"
+import { SequencersByRollapp } from "./module/types/sequencer/sequencers_by_rollapp"
 
 
-export { Description, Params, Sequencer, Sequencers };
+export { Description, Params, Sequencer, Sequencers, SequencersByRollapp };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -47,12 +48,15 @@ const getDefaultState = () => {
 				Params: {},
 				Sequencer: {},
 				SequencerAll: {},
+				SequencersByRollapp: {},
+				SequencersByRollappAll: {},
 				
 				_Structure: {
 						Description: getStructure(Description.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						Sequencer: getStructure(Sequencer.fromPartial({})),
 						Sequencers: getStructure(Sequencers.fromPartial({})),
+						SequencersByRollapp: getStructure(SequencersByRollapp.fromPartial({})),
 						
 		},
 		_Registry: registry,
@@ -98,6 +102,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.SequencerAll[JSON.stringify(params)] ?? {}
+		},
+				getSequencersByRollapp: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.SequencersByRollapp[JSON.stringify(params)] ?? {}
+		},
+				getSequencersByRollappAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.SequencersByRollappAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -198,6 +214,54 @@ export default {
 				return getters['getSequencerAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QuerySequencerAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QuerySequencersByRollapp({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.querySequencersByRollapp( key.rollappId)).data
+				
+					
+				commit('QUERY', { query: 'SequencersByRollapp', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QuerySequencersByRollapp', payload: { options: { all }, params: {...key},query }})
+				return getters['getSequencersByRollapp']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QuerySequencersByRollapp API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QuerySequencersByRollappAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.querySequencersByRollappAll(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.querySequencersByRollappAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'SequencersByRollappAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QuerySequencersByRollappAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getSequencersByRollappAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QuerySequencersByRollappAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},

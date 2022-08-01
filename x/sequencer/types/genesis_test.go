@@ -30,6 +30,14 @@ func TestGenesisState_Validate(t *testing.T) {
 						SequencerAddress: "1",
 					},
 				},
+				SequencersByRollappList: []types.SequencersByRollapp{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -43,6 +51,20 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						SequencerAddress: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated sequencersByRollapp",
+			genState: &types.GenesisState{
+				SequencersByRollappList: []types.SequencersByRollapp{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "0",
 					},
 				},
 			},

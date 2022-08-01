@@ -175,12 +175,31 @@ export interface SequencerQueryAllSequencerResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface SequencerQueryAllSequencersByRollappResponse {
+  sequencersByRollapp?: SequencerSequencersByRollapp[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface SequencerQueryGetSequencerResponse {
   /**
    * Sequencer defines a sequencer identified by its' address (sequencerAddress).
    * The sequencer could be attached to only one rollapp (rollappId).
    */
   sequencer?: SequencerSequencer;
+}
+
+export interface SequencerQueryGetSequencersByRollappResponse {
+  sequencersByRollapp?: SequencerSequencersByRollapp;
 }
 
 /**
@@ -208,6 +227,20 @@ export interface SequencerSequencer {
 
   /** description defines the descriptive terms for the sequencer. */
   description?: SequencerDescription;
+}
+
+/**
+ * Sequencers defines list of sequencers addresses.
+ */
+export interface SequencerSequencers {
+  addresses?: string[];
+}
+
+export interface SequencerSequencersByRollapp {
+  rollappId?: string;
+
+  /** Sequencers defines list of sequencers addresses. */
+  sequencers?: SequencerSequencers;
 }
 
 /**
@@ -514,6 +547,47 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   querySequencer = (sequencerAddress: string, params: RequestParams = {}) =>
     this.request<SequencerQueryGetSequencerResponse, RpcStatus>({
       path: `/dymensionxyz/dymension/sequencer/sequencer/${sequencerAddress}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencersByRollappAll
+   * @summary Queries a list of SequencersByRollapp items.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencers_by_rollapp
+   */
+  querySequencersByRollappAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SequencerQueryAllSequencersByRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencers_by_rollapp`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencersByRollapp
+   * @summary Queries a SequencersByRollapp by index.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}
+   */
+  querySequencersByRollapp = (rollappId: string, params: RequestParams = {}) =>
+    this.request<SequencerQueryGetSequencersByRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/${rollappId}`,
       method: "GET",
       format: "json",
       ...params,

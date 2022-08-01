@@ -6,6 +6,7 @@ import {
   PageRequest,
   PageResponse,
 } from "../cosmos/base/query/v1beta1/pagination";
+import { SequencersByRollapp } from "../sequencer/sequencers_by_rollapp";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
@@ -32,6 +33,23 @@ export interface QueryAllSequencerRequest {
 
 export interface QueryAllSequencerResponse {
   sequencer: Sequencer[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetSequencersByRollappRequest {
+  rollappId: string;
+}
+
+export interface QueryGetSequencersByRollappResponse {
+  sequencersByRollapp: SequencersByRollapp | undefined;
+}
+
+export interface QueryAllSequencersByRollappRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllSequencersByRollappResponse {
+  sequencersByRollapp: SequencersByRollapp[];
   pagination: PageResponse | undefined;
 }
 
@@ -453,6 +471,344 @@ export const QueryAllSequencerResponse = {
   },
 };
 
+const baseQueryGetSequencersByRollappRequest: object = { rollappId: "" };
+
+export const QueryGetSequencersByRollappRequest = {
+  encode(
+    message: QueryGetSequencersByRollappRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetSequencersByRollappRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetSequencersByRollappRequest,
+    } as QueryGetSequencersByRollappRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rollappId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetSequencersByRollappRequest {
+    const message = {
+      ...baseQueryGetSequencersByRollappRequest,
+    } as QueryGetSequencersByRollappRequest;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = String(object.rollappId);
+    } else {
+      message.rollappId = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetSequencersByRollappRequest): unknown {
+    const obj: any = {};
+    message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetSequencersByRollappRequest>
+  ): QueryGetSequencersByRollappRequest {
+    const message = {
+      ...baseQueryGetSequencersByRollappRequest,
+    } as QueryGetSequencersByRollappRequest;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = object.rollappId;
+    } else {
+      message.rollappId = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetSequencersByRollappResponse: object = {};
+
+export const QueryGetSequencersByRollappResponse = {
+  encode(
+    message: QueryGetSequencersByRollappResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.sequencersByRollapp !== undefined) {
+      SequencersByRollapp.encode(
+        message.sequencersByRollapp,
+        writer.uint32(10).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetSequencersByRollappResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetSequencersByRollappResponse,
+    } as QueryGetSequencersByRollappResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sequencersByRollapp = SequencersByRollapp.decode(
+            reader,
+            reader.uint32()
+          );
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetSequencersByRollappResponse {
+    const message = {
+      ...baseQueryGetSequencersByRollappResponse,
+    } as QueryGetSequencersByRollappResponse;
+    if (
+      object.sequencersByRollapp !== undefined &&
+      object.sequencersByRollapp !== null
+    ) {
+      message.sequencersByRollapp = SequencersByRollapp.fromJSON(
+        object.sequencersByRollapp
+      );
+    } else {
+      message.sequencersByRollapp = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetSequencersByRollappResponse): unknown {
+    const obj: any = {};
+    message.sequencersByRollapp !== undefined &&
+      (obj.sequencersByRollapp = message.sequencersByRollapp
+        ? SequencersByRollapp.toJSON(message.sequencersByRollapp)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetSequencersByRollappResponse>
+  ): QueryGetSequencersByRollappResponse {
+    const message = {
+      ...baseQueryGetSequencersByRollappResponse,
+    } as QueryGetSequencersByRollappResponse;
+    if (
+      object.sequencersByRollapp !== undefined &&
+      object.sequencersByRollapp !== null
+    ) {
+      message.sequencersByRollapp = SequencersByRollapp.fromPartial(
+        object.sequencersByRollapp
+      );
+    } else {
+      message.sequencersByRollapp = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllSequencersByRollappRequest: object = {};
+
+export const QueryAllSequencersByRollappRequest = {
+  encode(
+    message: QueryAllSequencersByRollappRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllSequencersByRollappRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllSequencersByRollappRequest,
+    } as QueryAllSequencersByRollappRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllSequencersByRollappRequest {
+    const message = {
+      ...baseQueryAllSequencersByRollappRequest,
+    } as QueryAllSequencersByRollappRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllSequencersByRollappRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllSequencersByRollappRequest>
+  ): QueryAllSequencersByRollappRequest {
+    const message = {
+      ...baseQueryAllSequencersByRollappRequest,
+    } as QueryAllSequencersByRollappRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllSequencersByRollappResponse: object = {};
+
+export const QueryAllSequencersByRollappResponse = {
+  encode(
+    message: QueryAllSequencersByRollappResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.sequencersByRollapp) {
+      SequencersByRollapp.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllSequencersByRollappResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllSequencersByRollappResponse,
+    } as QueryAllSequencersByRollappResponse;
+    message.sequencersByRollapp = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sequencersByRollapp.push(
+            SequencersByRollapp.decode(reader, reader.uint32())
+          );
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllSequencersByRollappResponse {
+    const message = {
+      ...baseQueryAllSequencersByRollappResponse,
+    } as QueryAllSequencersByRollappResponse;
+    message.sequencersByRollapp = [];
+    if (
+      object.sequencersByRollapp !== undefined &&
+      object.sequencersByRollapp !== null
+    ) {
+      for (const e of object.sequencersByRollapp) {
+        message.sequencersByRollapp.push(SequencersByRollapp.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllSequencersByRollappResponse): unknown {
+    const obj: any = {};
+    if (message.sequencersByRollapp) {
+      obj.sequencersByRollapp = message.sequencersByRollapp.map((e) =>
+        e ? SequencersByRollapp.toJSON(e) : undefined
+      );
+    } else {
+      obj.sequencersByRollapp = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllSequencersByRollappResponse>
+  ): QueryAllSequencersByRollappResponse {
+    const message = {
+      ...baseQueryAllSequencersByRollappResponse,
+    } as QueryAllSequencersByRollappResponse;
+    message.sequencersByRollapp = [];
+    if (
+      object.sequencersByRollapp !== undefined &&
+      object.sequencersByRollapp !== null
+    ) {
+      for (const e of object.sequencersByRollapp) {
+        message.sequencersByRollapp.push(SequencersByRollapp.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -465,6 +821,14 @@ export interface Query {
   SequencerAll(
     request: QueryAllSequencerRequest
   ): Promise<QueryAllSequencerResponse>;
+  /** Queries a SequencersByRollapp by index. */
+  SequencersByRollapp(
+    request: QueryGetSequencersByRollappRequest
+  ): Promise<QueryGetSequencersByRollappResponse>;
+  /** Queries a list of SequencersByRollapp items. */
+  SequencersByRollappAll(
+    request: QueryAllSequencersByRollappRequest
+  ): Promise<QueryAllSequencersByRollappResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -507,6 +871,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllSequencerResponse.decode(new Reader(data))
+    );
+  }
+
+  SequencersByRollapp(
+    request: QueryGetSequencersByRollappRequest
+  ): Promise<QueryGetSequencersByRollappResponse> {
+    const data = QueryGetSequencersByRollappRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.sequencer.Query",
+      "SequencersByRollapp",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetSequencersByRollappResponse.decode(new Reader(data))
+    );
+  }
+
+  SequencersByRollappAll(
+    request: QueryAllSequencersByRollappRequest
+  ): Promise<QueryAllSequencersByRollappResponse> {
+    const data = QueryAllSequencersByRollappRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.sequencer.Query",
+      "SequencersByRollappAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllSequencersByRollappResponse.decode(new Reader(data))
     );
   }
 }
