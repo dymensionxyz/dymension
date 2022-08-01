@@ -1,0 +1,31 @@
+name: Build and Test
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - main
+  pull_request:
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test & Coverage
+      run: |
+        go install github.com/ory/go-acc@v0.2.6
+        go-acc -o coverage.txt ./... -- -v --race
+
+    - uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.txt
