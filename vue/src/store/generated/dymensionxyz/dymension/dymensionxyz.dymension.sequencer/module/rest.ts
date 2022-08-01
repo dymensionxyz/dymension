@@ -176,6 +176,10 @@ export interface SequencerQueryAllSequencerResponse {
 }
 
 export interface SequencerQueryGetSequencerResponse {
+  /**
+   * Sequencer defines a sequencer identified by its' address (sequencerAddress).
+   * The sequencer could be attached to only one rollapp (rollappId).
+   */
   sequencer?: SequencerSequencer;
 }
 
@@ -187,13 +191,22 @@ export interface SequencerQueryParamsResponse {
   params?: SequencerParams;
 }
 
+/**
+* Sequencer defines a sequencer identified by its' address (sequencerAddress).
+The sequencer could be attached to only one rollapp (rollappId).
+*/
 export interface SequencerSequencer {
+  /** sequencerAddress is the bech32-encoded address of the sequencer account. */
   sequencerAddress?: string;
   creator?: string;
-  pubkey?: string;
+
+  /** pubkey is the public key of the sequencer, as a Protobuf Any. */
+  pubkey?: ProtobufAny;
+
+  /** rollappId defines the rollapp to which the sequencer belongs. */
   rollappId?: string;
 
-  /** Description defines a sequencer description. */
+  /** description defines the descriptive terms for the sequencer. */
   description?: SequencerDescription;
 }
 
@@ -234,6 +247,13 @@ export interface V1Beta1PageRequest {
    * is set.
    */
   count_total?: boolean;
+
+  /**
+   * reverse is set to true if results are to be returned in the descending order.
+   *
+   * Since: cosmos-sdk 0.43
+   */
+  reverse?: boolean;
 }
 
 /**
@@ -479,6 +499,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>
