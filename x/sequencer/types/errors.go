@@ -8,5 +8,5 @@ import (
 
 // x/sequencer module sentinel errors
 var (
-	ErrSample = sdkerrors.Register(ModuleName, 1100, "sample error")
+	ErrSequencerExists = sdkerrors.Register(ModuleName, 1000, "sequencer already exist for this address; must use new sequencer address")
 )
