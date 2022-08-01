@@ -47714,6 +47714,29 @@ definitions:
         items:
           type: string
     description: Sequencers defines list of sequencers addresses.
+  dymensionxyz.dymension.sequencer.Description:
+    type: object
+    properties:
+      moniker:
+        type: string
+        description: moniker defines a human-readable name for the sequencer.
+      identity:
+        type: string
+        description: >-
+          identity defines an optional identity signature (ex. UPort or
+          Keybase).
+      website:
+        type: string
+        description: website defines an optional website link.
+      securityContact:
+        type: string
+        description: securityContact defines an optional email for security contact.
+      details:
+        type: string
+        description: details define other optional details.
+    description: Description defines a sequencer description.
+  dymensionxyz.dymension.sequencer.MsgCreateSequencerResponse:
+    type: object
   dymensionxyz.dymension.sequencer.Params:
     type: object
     description: Params defines the parameters for the module.
