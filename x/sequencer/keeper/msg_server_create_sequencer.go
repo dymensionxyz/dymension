@@ -42,6 +42,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
+	if _, err := msg.Description.EnsureLength(); err != nil {
+		return nil, err
+	}
+
 	sequencer := types.Sequencer{
 		Creator:          creator.String(),
 		SequencerAddress: seqAddrStr,
