@@ -4,6 +4,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+// constant for maximum string length of the Description fields
 const (
 	MaxMonikerLength         = 70
 	MaxIdentityLength        = 3000
@@ -12,7 +13,7 @@ const (
 	MaxDetailsLength         = 280
 )
 
-// constant used in flags to indicate that description field should not be updated
+// DoNotModifyDesc constant is used in flags to indicate that description field should not be updated
 const DoNotModifyDesc = "[do-not-modify]"
 
 // UpdateDescription updates the fields of a given description. An error is
