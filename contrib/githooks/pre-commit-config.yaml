@@ -113,10 +113,3 @@ repos:
   rev: master
   hooks:
     - id: markdownlint
-default_language_version:
-  ruby: 2.7.2
-repos:
-- repo: https://github.com/markdownlint/markdownlint
-  rev: v0.11.0
-  hooks:
-  - id: markdownlint
