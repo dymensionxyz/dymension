@@ -35,3 +35,9 @@ linters:
 
 issues:
   exclude-use-default: false
+
+linters-settings:
+  revive:
+    - name: exported
+      severity: warning
+      disabled: true
