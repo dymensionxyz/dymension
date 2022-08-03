@@ -38,6 +38,7 @@ issues:
 
 linters-settings:
   revive:
-    - name: exported
-      severity: warning
-      disabled: true
+    rules:
+      - name: exported
+        severity: warning
+        disabled: true
