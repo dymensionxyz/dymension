@@ -14,6 +14,22 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
+		SequencerList: []types.Sequencer{
+			{
+				SequencerAddress: "0",
+			},
+			{
+				SequencerAddress: "1",
+			},
+		},
+		SequencersByRollappList: []types.SequencersByRollapp{
+			{
+				RollappId: "0",
+			},
+			{
+				RollappId: "1",
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -25,5 +41,7 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
+	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
+	require.ElementsMatch(t, genesisState.SequencersByRollappList, got.SequencersByRollappList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

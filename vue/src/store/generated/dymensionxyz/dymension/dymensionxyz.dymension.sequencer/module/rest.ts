@@ -9,7 +9,120 @@
  * ---------------------------------------------------------------
  */
 
+/**
+* `Any` contains an arbitrary serialized protocol buffer message along with a
+URL that describes the type of the serialized message.
+
+Protobuf library provides support to pack/unpack Any values in the form
+of utility functions or additional generated methods of the Any type.
+
+Example 1: Pack and unpack a message in C++.
+
+    Foo foo = ...;
+    Any any;
+    any.PackFrom(foo);
+    ...
+    if (any.UnpackTo(&foo)) {
+      ...
+    }
+
+Example 2: Pack and unpack a message in Java.
+
+    Foo foo = ...;
+    Any any = Any.pack(foo);
+    ...
+    if (any.is(Foo.class)) {
+      foo = any.unpack(Foo.class);
+    }
+
+ Example 3: Pack and unpack a message in Python.
+
+    foo = Foo(...)
+    any = Any()
+    any.Pack(foo)
+    ...
+    if any.Is(Foo.DESCRIPTOR):
+      any.Unpack(foo)
+      ...
+
+ Example 4: Pack and unpack a message in Go
+
+     foo := &pb.Foo{...}
+     any, err := anypb.New(foo)
+     if err != nil {
+       ...
+     }
+     ...
+     foo := &pb.Foo{}
+     if err := any.UnmarshalTo(foo); err != nil {
+       ...
+     }
+
+The pack methods provided by protobuf library will by default use
+'type.googleapis.com/full.type.name' as the type URL and the unpack
+methods only use the fully qualified type name after the last '/'
+in the type URL, for example "foo.bar.com/x/y.z" will yield type
+name "y.z".
+
+
+JSON
+====
+The JSON representation of an `Any` value uses the regular
+representation of the deserialized, embedded message, with an
+additional field `@type` which contains the type URL. Example:
+
+    package google.profile;
+    message Person {
+      string first_name = 1;
+      string last_name = 2;
+    }
+
+    {
+      "@type": "type.googleapis.com/google.profile.Person",
+      "firstName": <string>,
+      "lastName": <string>
+    }
+
+If the embedded message type is well-known and has a custom JSON
+representation, that representation will be embedded adding a field
+`value` which holds the custom JSON in addition to the `@type`
+field. Example (for message [google.protobuf.Duration][]):
+
+    {
+      "@type": "type.googleapis.com/google.protobuf.Duration",
+      "value": "1.212s"
+    }
+*/
 export interface ProtobufAny {
+  /**
+   * A URL/resource name that uniquely identifies the type of the serialized
+   * protocol buffer message. This string must contain at least
+   * one "/" character. The last segment of the URL's path must represent
+   * the fully qualified name of the type (as in
+   * `path/google.protobuf.Duration`). The name should be in a canonical form
+   * (e.g., leading "." is not accepted).
+   *
+   * In practice, teams usually precompile into the binary all types that they
+   * expect it to use in the context of Any. However, for URLs which use the
+   * scheme `http`, `https`, or no scheme, one can optionally set up a type
+   * server that maps type URLs to message definitions as follows:
+   *
+   * * If no scheme is provided, `https` is assumed.
+   * * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+   *   value in binary format, or produce an error.
+   * * Applications are allowed to cache lookup results based on the
+   *   URL, or have them precompiled into a binary to avoid any
+   *   lookup. Therefore, binary compatibility needs to be preserved
+   *   on changes to types. (Use versioned type names to manage
+   *   breaking changes.)
+   *
+   * Note: this functionality is not currently available in the official
+   * protobuf release, and it is not used for type URLs beginning with
+   * type.googleapis.com.
+   *
+   * Schemes other than `http`, `https` (or the empty scheme) might be
+   * used with implementation specific semantics.
+   */
   "@type"?: string;
 }
 
@@ -21,9 +134,77 @@ export interface RpcStatus {
 }
 
 /**
+ * Description defines a sequencer description.
+ */
+export interface SequencerDescription {
+  /** moniker defines a human-readable name for the sequencer. */
+  moniker?: string;
+
+  /** identity defines an optional identity signature (ex. UPort or Keybase). */
+  identity?: string;
+
+  /** website defines an optional website link. */
+  website?: string;
+
+  /** securityContact defines an optional email for security contact. */
+  securityContact?: string;
+
+  /** details define other optional details. */
+  details?: string;
+}
+
+export type SequencerMsgCreateSequencerResponse = object;
+
+/**
  * Params defines the parameters for the module.
  */
 export type SequencerParams = object;
+
+export interface SequencerQueryAllSequencerResponse {
+  sequencer?: SequencerSequencer[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
+export interface SequencerQueryAllSequencersByRollappResponse {
+  sequencersByRollapp?: SequencerSequencersByRollapp[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
+export interface SequencerQueryGetSequencerResponse {
+  /**
+   * Sequencer defines a sequencer identified by its' address (sequencerAddress).
+   * The sequencer could be attached to only one rollapp (rollappId).
+   */
+  sequencer?: SequencerSequencer;
+}
+
+export interface SequencerQueryGetSequencersByRollappResponse {
+  /**
+   * SequencersByRollapp defines an map between rollappId to a list of
+   * all sequencers that belongs to it.
+   */
+  sequencersByRollapp?: SequencerSequencersByRollapp;
+}
 
 /**
  * QueryParamsResponse is response type for the Query/Params RPC method.
@@ -31,6 +212,103 @@ export type SequencerParams = object;
 export interface SequencerQueryParamsResponse {
   /** params holds all the parameters of this module. */
   params?: SequencerParams;
+}
+
+/**
+* Sequencer defines a sequencer identified by its' address (sequencerAddress).
+The sequencer could be attached to only one rollapp (rollappId).
+*/
+export interface SequencerSequencer {
+  /** sequencerAddress is the bech32-encoded address of the sequencer account. */
+  sequencerAddress?: string;
+  creator?: string;
+
+  /** pubkey is the public key of the sequencer, as a Protobuf Any. */
+  pubkey?: ProtobufAny;
+
+  /** rollappId defines the rollapp to which the sequencer belongs. */
+  rollappId?: string;
+
+  /** description defines the descriptive terms for the sequencer. */
+  description?: SequencerDescription;
+}
+
+/**
+ * Sequencers defines list of sequencers addresses.
+ */
+export interface SequencerSequencers {
+  addresses?: string[];
+}
+
+/**
+* SequencersByRollapp defines an map between rollappId to a list of 
+all sequencers that belongs to it.
+*/
+export interface SequencerSequencersByRollapp {
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id.
+   */
+  rollappId?: string;
+
+  /** Sequencers defines list of sequencers addresses. */
+  sequencers?: SequencerSequencers;
+}
+
+/**
+* message SomeRequest {
+         Foo some_parameter = 1;
+         PageRequest pagination = 2;
+ }
+*/
+export interface V1Beta1PageRequest {
+  /**
+   * key is a value returned in PageResponse.next_key to begin
+   * querying the next page most efficiently. Only one of offset or key
+   * should be set.
+   * @format byte
+   */
+  key?: string;
+
+  /**
+   * offset is a numeric offset that can be used when key is unavailable.
+   * It is less efficient than using key. Only one of offset or key should
+   * be set.
+   * @format uint64
+   */
+  offset?: string;
+
+  /**
+   * limit is the total number of results to be returned in the result page.
+   * If left empty it will default to a value to be set by each app.
+   * @format uint64
+   */
+  limit?: string;
+
+  /**
+   * count_total is set to true  to indicate that the result set should include
+   * a count of the total number of items available for pagination in UIs.
+   * count_total is only respected when offset is used. It is ignored when key
+   * is set.
+   */
+  count_total?: boolean;
+}
+
+/**
+* PageResponse is to be embedded in gRPC response messages where the
+corresponding request message has used PageRequest.
+
+ message SomeResponse {
+         repeated Bar results = 1;
+         PageResponse page = 2;
+ }
+*/
+export interface V1Beta1PageResponse {
+  /** @format byte */
+  next_key?: string;
+
+  /** @format uint64 */
+  total?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -225,7 +503,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title sequencer/genesis.proto
+ * @title sequencer/description.proto
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -240,6 +518,88 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryParams = (params: RequestParams = {}) =>
     this.request<SequencerQueryParamsResponse, RpcStatus>({
       path: `/dymensionxyz/dymension/sequencer/params`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencerAll
+   * @summary Queries a list of Sequencer items.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencer
+   */
+  querySequencerAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SequencerQueryAllSequencerResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencer`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencer
+   * @summary Queries a Sequencer by index.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}
+   */
+  querySequencer = (sequencerAddress: string, params: RequestParams = {}) =>
+    this.request<SequencerQueryGetSequencerResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencer/${sequencerAddress}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencersByRollappAll
+   * @summary Queries a list of SequencersByRollapp items.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencers_by_rollapp
+   */
+  querySequencersByRollappAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SequencerQueryAllSequencersByRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencers_by_rollapp`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QuerySequencersByRollapp
+   * @summary Queries a SequencersByRollapp by index.
+   * @request GET:/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}
+   */
+  querySequencersByRollapp = (rollappId: string, params: RequestParams = {}) =>
+    this.request<SequencerQueryGetSequencersByRollappResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/${rollappId}`,
       method: "GET",
       format: "json",
       ...params,

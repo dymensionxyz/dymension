@@ -3,6 +3,8 @@ package dymensionxyz.dymension.sequencer;
 
 import "gogoproto/gogo.proto";
 import "sequencer/params.proto";
+import "sequencer/sequencer.proto";
+import "sequencer/sequencers_by_rollapp.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
@@ -10,5 +12,7 @@ option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
+  repeated Sequencer sequencerList = 2 [(gogoproto.nullable) = false];
+  repeated SequencersByRollapp sequencersByRollappList = 3 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

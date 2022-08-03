@@ -30,7 +30,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
-	// Create an updated whois record
+	// Create an updated rollapp record
 	rollapp := types.Rollapp{
 		RollappId:             msg.RollappId,
 		Creator:               creator.String(),
@@ -41,7 +41,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		MaxSequencers:         msg.MaxSequencers,
 		PermissionedAddresses: msg.PermissionedAddresses,
 	}
-	// Write whois information to the store
+	// Write rollapp information to the store
 	k.SetRollapp(ctx, rollapp)
 
 	return &types.MsgCreateRollappResponse{}, nil

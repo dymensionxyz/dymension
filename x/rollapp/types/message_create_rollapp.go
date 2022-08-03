@@ -3,13 +3,15 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-func NewMsgCreateRollapp(creator string, rollappId string, codeStamp string, genesisPath string, maxWithholdingBlocks uint64, maxSequencers uint64, permissionedAddresses *Sequencers) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator string, rollappId string, codeStamp string, genesisPath string, maxWithholdingBlocks uint64, maxSequencers uint64, permissionedAddresses *types.Sequencers) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,

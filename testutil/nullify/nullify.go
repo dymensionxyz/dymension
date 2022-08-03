@@ -22,6 +22,7 @@ func Fill(x interface{}) interface{} {
 	case reflect.Slice:
 		for i := 0; i < v.Len(); i++ {
 			obj := v.Index(i)
+			// nolint: gosec
 			objPt := reflect.NewAt(obj.Type(), unsafe.Pointer(obj.UnsafeAddr())).Interface()
 			objPt = Fill(objPt)
 			obj.Set(reflect.ValueOf(objPt))
@@ -46,6 +47,7 @@ func Fill(x interface{}) interface{} {
 					s := reflect.ValueOf(coins).Elem()
 					f.Set(s)
 				default:
+					// nolint: errcheck, gosec
 					objPt := reflect.NewAt(f.Type(), unsafe.Pointer(f.UnsafeAddr())).Interface()
 					s := Fill(objPt)
 					f.Set(reflect.ValueOf(s))
