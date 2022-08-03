@@ -51,6 +51,7 @@ func (k Keeper) GetAllSequencer(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SequencerKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
+	// nolint: errcheck
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

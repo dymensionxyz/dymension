@@ -24,6 +24,7 @@ var (
 )
 
 const (
+	// nolint: gosec
 	opWeightMsgCreateRollapp = "op_weight_msg_create_rollapp"
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgCreateRollapp int = 100

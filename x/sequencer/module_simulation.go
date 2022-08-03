@@ -24,6 +24,7 @@ var (
 )
 
 const (
+	// nolint: gosec
 	opWeightMsgCreateSequencer = "op_weight_msg_create_sequencer"
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgCreateSequencer int = 100
