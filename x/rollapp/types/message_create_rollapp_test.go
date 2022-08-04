@@ -5,10 +5,12 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/testutil/sample"
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
+	seqDupAddr := sample.AccAddress()
 	tests := []struct {
 		name string
 		msg  MsgCreateRollapp
@@ -17,14 +19,60 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgCreateRollapp{
-				Creator: "invalid_address",
+				Creator:              "invalid_address",
+				MaxSequencers:        1,
+				MaxWithholdingBlocks: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCreateRollapp{
-				Creator: sample.AccAddress(),
+				Creator:              sample.AccAddress(),
+				MaxSequencers:        1,
+				MaxWithholdingBlocks: 1,
 			},
+		}, {
+			name: "invalid max sequencers",
+			msg: MsgCreateRollapp{
+				Creator:              sample.AccAddress(),
+				MaxSequencers:        0,
+				MaxWithholdingBlocks: 1,
+			},
+			err: ErrInvalidwMaxSequencers,
+		}, {
+			name: "invalid max withholding blocks",
+			msg: MsgCreateRollapp{
+				Creator:              sample.AccAddress(),
+				MaxSequencers:        1,
+				MaxWithholdingBlocks: 0,
+			},
+			err: ErrInvalidwMaxWithholding,
+		}, {
+			name: "valid permissioned addresses",
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         1,
+				MaxWithholdingBlocks:  1,
+				PermissionedAddresses: types.Sequencers{Addresses: []string{sample.AccAddress(), sample.AccAddress()}},
+			},
+		}, {
+			name: "duplicate permissioned addresses",
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         1,
+				MaxWithholdingBlocks:  1,
+				PermissionedAddresses: types.Sequencers{Addresses: []string{seqDupAddr, seqDupAddr}},
+			},
+			err: ErrPermissionedAddressesDuplicate,
+		}, {
+			name: "invalid permissioned addresses",
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         1,
+				MaxWithholdingBlocks:  1,
+				PermissionedAddresses: types.Sequencers{Addresses: []string{seqDupAddr, "invalid permissioned address"}},
+			},
+			err: ErrInvalidPermissionedAddress,
 		},
 	}
 	for _, tt := range tests {
