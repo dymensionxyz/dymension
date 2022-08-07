@@ -81,7 +81,7 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
 	// rollappsExpect is the expected result of query all
-	rollappsExpect := []types.Rollapp{}
+	rollappsExpect := []*types.Rollapp{}
 
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {
@@ -121,7 +121,7 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 		equalRollapp(suite, &rollappExpect, &queryResponse.Rollapp)
 
 		// add the rollapp to the list of get all expected list
-		rollappsExpect = append(rollappsExpect, rollappExpect)
+		rollappsExpect = append(rollappsExpect, &rollappExpect)
 		// verify that query all contains all the rollapps that were created
 		vereifyAll(suite, rollappsExpect, getAll(suite, i+1))
 
@@ -140,14 +140,14 @@ func generateAddresses(numOfAddresses int) []string {
 
 // vereifyAll receives a list of expcted results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
-func vereifyAll(suite *IntegrationTestSuite, rollappsExpect []types.Rollapp, rollappsRes map[string]*types.Rollapp) {
+func vereifyAll(suite *IntegrationTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.Rollapp) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(rollappsExpect), len(rollappsRes))
 	for i := 0; i < len(rollappsExpect); i++ {
 		rollappExpect := rollappsExpect[i]
 		rollappRes := rollappsRes[rollappExpect.GetRollappId()]
 		// println("rollappId:", rollappExpect.GetRollappId(), "=>", "rollapp:", rollappExpect.String())
-		equalRollapp(suite, &rollappExpect, rollappRes)
+		equalRollapp(suite, rollappExpect, rollappRes)
 	}
 }
 
