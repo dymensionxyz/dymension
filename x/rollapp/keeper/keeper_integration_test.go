@@ -129,6 +129,29 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 
 }
 
+func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp1",
+		CodeStamp:             "",
+		GenesisPath:           "",
+		MaxWithholdingBlocks:  1,
+		MaxSequencers:         1,
+		PermissionedAddresses: sequencertypes.Sequencers{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+
+	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.EqualError(err, types.ErrRollappExists.Error())
+}
+
+//-------------------------------------------------------------------------------------------------------------------------------
+
 // numOfAddresses bech32 address
 func generateAddresses(numOfAddresses int) []string {
 	addresses := []string{}
