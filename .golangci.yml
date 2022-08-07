@@ -6,9 +6,10 @@ run:
     - mempool
     - state/indexer
     - state/txindex
+    - vue
   skip-files:
     - da/celestia/mock/server.go
-    - ./*_test.go
+    - ./*_test.go    
 
 linters:
   disable-all: true
