@@ -86,7 +86,7 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {
 		// generate sequences address
-		addresses := generateAddresses(i)
+		addresses := sample.GenerateAddresses(i)
 		// rollapp is the rollapp to create
 		rollapp := types.MsgCreateRollapp{
 			Creator:               alice,
@@ -97,7 +97,7 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 			MaxSequencers:         1,
 			PermissionedAddresses: sequencertypes.Sequencers{Addresses: addresses},
 		}
-		// rollappExpect is the expexted result of creating rollapp
+		// rollappExpect is the expected result of creating rollapp
 		rollappExpect := types.Rollapp{
 			RollappId:             rollapp.GetRollappId(),
 			Creator:               rollapp.GetCreator(),
@@ -113,17 +113,22 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 		suite.Require().Nil(err)
 		suite.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
 
-		// query the spesific rollapp
+		// query the specific rollapp
 		queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
 			RollappId: rollapp.GetRollappId(),
 		})
+		if queryResponse.Rollapp.PermissionedAddresses.Addresses == nil {
+			queryResponse.Rollapp.PermissionedAddresses.Addresses = []string{}
+		}
 		suite.Require().Nil(err)
-		equalRollapp(suite, &rollappExpect, &queryResponse.Rollapp)
+		suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
 		// add the rollapp to the list of get all expected list
 		rollappsExpect = append(rollappsExpect, &rollappExpect)
 		// verify that query all contains all the rollapps that were created
-		vereifyAll(suite, rollappsExpect, getAll(suite, i+1))
+		rollappsRes, totalRes := getAll(suite)
+		suite.Require().EqualValues(totalRes, i+1)
+		vereifyAll(suite, rollappsExpect, rollappsRes)
 
 	}
 
@@ -152,16 +157,7 @@ func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {
 
 //-------------------------------------------------------------------------------------------------------------------------------
 
-// numOfAddresses bech32 address
-func generateAddresses(numOfAddresses int) []string {
-	addresses := []string{}
-	for i := 0; i < numOfAddresses; i++ {
-		addresses = append(addresses, sample.AccAddress())
-	}
-	return addresses
-}
-
-// vereifyAll receives a list of expcted results and a map of rollapId->rollapp
+// vereifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
 func vereifyAll(suite *IntegrationTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.Rollapp) {
 	// check number of items are equal
@@ -170,18 +166,19 @@ func vereifyAll(suite *IntegrationTestSuite, rollappsExpect []*types.Rollapp, ro
 		rollappExpect := rollappsExpect[i]
 		rollappRes := rollappsRes[rollappExpect.GetRollappId()]
 		// println("rollappId:", rollappExpect.GetRollappId(), "=>", "rollapp:", rollappExpect.String())
-		equalRollapp(suite, rollappExpect, rollappRes)
+		suite.Require().EqualValues(&rollappExpect, &rollappRes)
 	}
 }
 
-// get all query for all exsisting rollapps and returns a map of rollappId->rollapp
-func getAll(suite *IntegrationTestSuite, totalTarget int) map[string]*types.Rollapp {
+// getAll queries for all exsisting rollapps and returns a tuple of:
+// map of rollappId->rollapp and the number of retrieved rollapps
+func getAll(suite *IntegrationTestSuite) (map[string]*types.Rollapp, int) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	totalChecked := 0
 	totalRes := 0
 	nextKey := []byte{}
 	rollappsRes := make(map[string]*types.Rollapp)
-	for totalChecked < totalTarget {
+	for {
 		queryAllResponse, err := suite.queryClient.RollappAll(goCtx,
 			&types.QueryAllRollappRequest{
 				Pagination: &query.PageRequest{
@@ -192,38 +189,25 @@ func getAll(suite *IntegrationTestSuite, totalTarget int) map[string]*types.Roll
 					Reverse:    false,
 				}})
 		suite.Require().Nil(err)
-		// println(queryAllResponse.GetPagination().GetTotal())
-		// println(queryAllResponse.GetPagination().GetNextKey())
-		// println(len(queryAllResponse.GetRollapp()))
 
 		if totalRes == 0 {
 			totalRes = int(queryAllResponse.GetPagination().GetTotal())
-			suite.Require().EqualValues(totalTarget, totalRes)
 		}
 
 		for i := 0; i < len(queryAllResponse.GetRollapp()); i++ {
 			rollappRes := queryAllResponse.GetRollapp()[i]
-			//println(queryAllResponse.GetRollapp()[i].String())
+			if rollappRes.PermissionedAddresses.Addresses == nil {
+				rollappRes.PermissionedAddresses.Addresses = []string{}
+			}
 			rollappsRes[rollappRes.GetRollappId()] = &rollappRes
 		}
 		totalChecked += len(queryAllResponse.GetRollapp())
 		nextKey = queryAllResponse.GetPagination().GetNextKey()
+
+		if nextKey == nil {
+			break
+		}
 	}
 
-	return rollappsRes
-}
-
-// equalRollapp receives teo rollapps and compare them. If there there they not equal, fails the test
-func equalRollapp(suite *IntegrationTestSuite, r1 *types.Rollapp, r2 *types.Rollapp) {
-	suite.Require().EqualValues(r1.RollappId, r2.RollappId)
-	suite.Require().EqualValues(r1.Creator, r2.Creator)
-	suite.Require().EqualValues(r1.Version, r2.Version)
-	suite.Require().EqualValues(r1.CodeStamp, r2.CodeStamp)
-	suite.Require().EqualValues(r1.GenesisPath, r2.GenesisPath)
-	suite.Require().EqualValues(r1.MaxWithholdingBlocks, r2.MaxWithholdingBlocks)
-	suite.Require().EqualValues(r1.MaxSequencers, r2.MaxSequencers)
-	suite.Require().EqualValues(len(r1.PermissionedAddresses.Addresses), len(r2.PermissionedAddresses.Addresses))
-	for i := 0; i < len(r1.PermissionedAddresses.Addresses); i++ {
-		suite.Require().EqualValues(r1.PermissionedAddresses.Addresses[i], r2.PermissionedAddresses.Addresses[i])
-	}
+	return rollappsRes, totalRes
 }
