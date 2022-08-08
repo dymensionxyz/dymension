@@ -63,5 +63,24 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+
+	// check Bech32 format
+	if _, err := sdk.AccAddressFromBech32(msg.SequencerAddress); err != nil {
+		return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
+	}
+
+	// public key also checked by the application logic
+	if msg.Pubkey != nil {
+		if _, err = codectypes.NewAnyWithValue(msg.Pubkey); err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
+		}
+	} else {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+	}
+
+	if _, err := msg.Description.EnsureLength(); err != nil {
+		return err
+	}
+
 	return nil
 }
