@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	sequencer "github.com/dymensionxyz/dymension/x/sequencer/types"
+	shared "github.com/dymensionxyz/dymension/shared/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -34,7 +34,7 @@ func CmdCreateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			argPermissionedAddresses := new(sequencer.Sequencers)
+			argPermissionedAddresses := new(shared.Sequencers)
 			err = json.Unmarshal([]byte(args[5]), argPermissionedAddresses)
 			if err != nil {
 				return err

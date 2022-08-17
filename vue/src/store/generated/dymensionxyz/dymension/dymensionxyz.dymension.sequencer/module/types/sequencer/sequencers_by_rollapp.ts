@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { Sequencers } from "../sequencer/sequencers";
+import { Sequencers } from "../shared/sequencers";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";

@@ -1,7 +1,7 @@
 syntax = "proto3";
-package dymensionxyz.dymension.sequencer;
+package dymensionxyz.dymension.shared;
 
-option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+option go_package = "github.com/dymensionxyz/dymension/shared/types";
 
 // Sequencers defines list of sequencers addresses.
 message Sequencers {

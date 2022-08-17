@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Reader, util, configure, Writer } from "protobufjs/minimal";
 import * as Long from "long";
-import { Sequencers } from "../sequencer/sequencers";
+import { Sequencers } from "../shared/sequencers";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 

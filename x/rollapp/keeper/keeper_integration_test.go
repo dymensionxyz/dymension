@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	dymensionapp "github.com/dymensionxyz/dymension/app"
+	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -95,7 +95,7 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 			GenesisPath:           "",
 			MaxWithholdingBlocks:  1,
 			MaxSequencers:         1,
-			PermissionedAddresses: sequencertypes.Sequencers{Addresses: addresses},
+			PermissionedAddresses: sharedtypes.Sequencers{Addresses: addresses},
 		}
 		// rollappExpect is the expected result of creating rollapp
 		rollappExpect := types.Rollapp{
@@ -146,7 +146,7 @@ func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {
 		GenesisPath:           "",
 		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
-		PermissionedAddresses: sequencertypes.Sequencers{},
+		PermissionedAddresses: sharedtypes.Sequencers{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)

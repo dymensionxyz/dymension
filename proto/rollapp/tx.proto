@@ -2,7 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
-import "sequencer/sequencers.proto";
+import "shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -32,7 +32,7 @@ message MsgCreateRollapp {
   // permissionedAddresses is a bech32-encoded address list of the 
   // sequencers that are allowed to serve this rollappId. 
   // In the case of an empty list, the rollapp is considered permissionless.
-  sequencer.Sequencers permissionedAddresses = 7 [(gogoproto.nullable) = false];
+  shared.Sequencers permissionedAddresses = 7 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateRollappResponse {

@@ -2,7 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
-import "sequencer/sequencers.proto"; 
+import "shared/sequencers.proto";
 
 import "gogoproto/gogo.proto";
 
@@ -14,7 +14,7 @@ message SequencersByRollapp {
   // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1; 
   // list of sequencers' account address
-  Sequencers sequencers = 2 [(gogoproto.nullable) = false];
+  shared.Sequencers sequencers = 2 [(gogoproto.nullable) = false];
   
 }
 
