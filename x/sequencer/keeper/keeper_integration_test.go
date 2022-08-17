@@ -7,6 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
 	dymensionapp "github.com/dymensionxyz/dymension/app"
+	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
@@ -104,7 +105,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			GenesisPath:           "",
 			MaxWithholdingBlocks:  1,
 			MaxSequencers:         1,
-			PermissionedAddresses: sequencertypes.Sequencers{Addresses: []string{}},
+			PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 		}
 		suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -187,7 +188,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 		GenesisPath:           "",
 		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
-		PermissionedAddresses: sequencertypes.Sequencers{Addresses: []string{}},
+		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 

@@ -1,1 +1,2 @@
+<!-- markdownlint-disable-file -->
 THIS FOLDER IS GENERATED AUTOMATICALLY. DO NOT MODIFY.
