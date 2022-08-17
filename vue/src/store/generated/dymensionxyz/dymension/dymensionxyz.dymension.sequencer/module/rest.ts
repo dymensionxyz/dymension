@@ -234,13 +234,6 @@ export interface SequencerSequencer {
 }
 
 /**
- * Sequencers defines list of sequencers addresses.
- */
-export interface SequencerSequencers {
-  addresses?: string[];
-}
-
-/**
 * SequencersByRollapp defines an map between rollappId to a list of 
 all sequencers that belongs to it.
 */
@@ -252,7 +245,14 @@ export interface SequencerSequencersByRollapp {
   rollappId?: string;
 
   /** Sequencers defines list of sequencers addresses. */
-  sequencers?: SequencerSequencers;
+  sequencers?: SharedSequencers;
+}
+
+/**
+ * Sequencers defines list of sequencers addresses.
+ */
+export interface SharedSequencers {
+  addresses?: string[];
 }
 
 /**
@@ -292,13 +292,6 @@ export interface V1Beta1PageRequest {
    * is set.
    */
   count_total?: boolean;
-
-  /**
-   * reverse is set to true if results are to be returned in the descending order.
-   *
-   * Since: cosmos-sdk 0.43
-   */
-  reverse?: boolean;
 }
 
 /**
@@ -544,7 +537,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>
@@ -586,7 +578,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>

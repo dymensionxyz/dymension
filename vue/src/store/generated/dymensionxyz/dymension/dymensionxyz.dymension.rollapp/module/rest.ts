@@ -84,7 +84,7 @@ export interface RollappRollapp {
    * sequencers that are allowed to serve this rollappId.
    * In the case of an empty list, the rollapp is considered permissionless.
    */
-  permissionedAddresses?: SequencerSequencers;
+  permissionedAddresses?: SharedSequencers;
 }
 
 export interface RpcStatus {
@@ -97,7 +97,7 @@ export interface RpcStatus {
 /**
  * Sequencers defines list of sequencers addresses.
  */
-export interface SequencerSequencers {
+export interface SharedSequencers {
   addresses?: string[];
 }
 

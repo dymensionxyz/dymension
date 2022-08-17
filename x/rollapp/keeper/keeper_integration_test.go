@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	dymensionapp "github.com/dymensionxyz/dymension/app"
+	sequencertypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"

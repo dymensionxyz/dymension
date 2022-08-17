@@ -8,7 +8,7 @@ import "sequencer/params.proto";
 import "sequencer/sequencer.proto";
 import "sequencer/sequencers_by_rollapp.proto";
 // this line is used by starport scaffolding # 1
-import "sequencer/sequencers.proto";
+import "shared/sequencers.proto";
 import "sequencer/description.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
