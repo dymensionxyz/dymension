@@ -3,10 +3,12 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 type RollappKeeper interface {
 	// Methods imported from rollapp should be defined here
+	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
