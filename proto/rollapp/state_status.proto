@@ -1,0 +1,16 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+import "gogoproto/gogo.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+enum StateStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // zero-value for status ordering
+  STATE_STATUS_UNSPECIFIED = 0;
+  // STATE_STATUS_RECEIVED defines a rollapp state where the state update transaction was published on dYmension chain
+  STATE_STATUS_RECEIVED = 1; 
+  // STATE_STATUS_FINALIZED defines a rollapp state where the the "Dispute Period" has ended and this state is considered final
+  STATE_STATUS_FINALIZED = 2; 
+}
