@@ -21,7 +21,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-
+				Params: types.Params{DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks},
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
@@ -37,10 +37,23 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
+				Params: types.Params{DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks},
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
 					},
+					{
+						RollappId: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "invalid DisputePeriodInBlocks",
+			genState: &types.GenesisState{
+				Params: types.Params{DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1},
+				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
 					},

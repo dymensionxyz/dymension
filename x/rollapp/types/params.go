@@ -13,6 +13,8 @@ var (
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 	// default value
 	DefaultDisputePeriodInBlocks uint64 = 100
+	// MinDisputePeriodInBlocks is the minimum numner of blocks for dispute period
+	MinDisputePeriodInBlocks uint64 = 1
 )
 
 // ParamKeyTable the param key table for launch module
@@ -65,7 +67,7 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if disputePeriodInBlocks < 1 {
+	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return fmt.Errorf("dispute period cannot be lower than 1 block")
 	}
 
