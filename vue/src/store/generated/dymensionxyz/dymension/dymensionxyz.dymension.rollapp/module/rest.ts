@@ -19,7 +19,7 @@ export type RollappMsgCreateRollappResponse = object;
  * Params defines the parameters for the module.
  */
 export interface RollappParams {
-  /** @format int64 */
+  /** @format uint64 */
   dispute_period_in_blocks?: string;
 }
 

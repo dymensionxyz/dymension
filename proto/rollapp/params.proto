@@ -12,6 +12,6 @@ message Params {
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
-  int64 dispute_period_in_blocks = 1
+  uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 }

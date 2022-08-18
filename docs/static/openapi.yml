@@ -20138,7 +20138,7 @@ paths:
                 properties:
                   dispute_period_in_blocks:
                     type: string
-                    format: int64
+                    format: uint64
                     title: |-
                       dispute_period_in_blocks the number of blocks it takes
                       to change a status of a state from received to finalized.
@@ -49125,7 +49125,7 @@ definitions:
     properties:
       dispute_period_in_blocks:
         type: string
-        format: int64
+        format: uint64
         title: |-
           dispute_period_in_blocks the number of blocks it takes
           to change a status of a state from received to finalized.
@@ -49285,7 +49285,7 @@ definitions:
         properties:
           dispute_period_in_blocks:
             type: string
-            format: int64
+            format: uint64
             title: |-
               dispute_period_in_blocks the number of blocks it takes
               to change a status of a state from received to finalized.

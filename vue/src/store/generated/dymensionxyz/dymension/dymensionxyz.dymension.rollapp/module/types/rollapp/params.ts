@@ -19,7 +19,7 @@ const baseParams: object = { dispute_period_in_blocks: 0 };
 export const Params = {
   encode(message: Params, writer: Writer = Writer.create()): Writer {
     if (message.dispute_period_in_blocks !== 0) {
-      writer.uint32(8).int64(message.dispute_period_in_blocks);
+      writer.uint32(8).uint64(message.dispute_period_in_blocks);
     }
     return writer;
   },
@@ -33,7 +33,7 @@ export const Params = {
       switch (tag >>> 3) {
         case 1:
           message.dispute_period_in_blocks = longToNumber(
-            reader.int64() as Long
+            reader.uint64() as Long
           );
           break;
         default:
