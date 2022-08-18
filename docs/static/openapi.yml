@@ -20135,6 +20135,14 @@ paths:
               params:
                 description: params holds all the parameters of this module.
                 type: object
+                properties:
+                  dispute_period_in_blocks:
+                    type: string
+                    format: uint64
+                    title: |-
+                      dispute_period_in_blocks the number of blocks it takes
+                      to change a status of a state from received to finalized.
+                      during that period, any user could submit fraud proof
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -49114,6 +49122,14 @@ definitions:
     type: object
   dymensionxyz.dymension.rollapp.Params:
     type: object
+    properties:
+      dispute_period_in_blocks:
+        type: string
+        format: uint64
+        title: |-
+          dispute_period_in_blocks the number of blocks it takes
+          to change a status of a state from received to finalized.
+          during that period, any user could submit fraud proof
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
@@ -49266,6 +49282,14 @@ definitions:
       params:
         description: params holds all the parameters of this module.
         type: object
+        properties:
+          dispute_period_in_blocks:
+            type: string
+            format: uint64
+            title: |-
+              dispute_period_in_blocks the number of blocks it takes
+              to change a status of a state from received to finalized.
+              during that period, any user could submit fraud proof
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object
