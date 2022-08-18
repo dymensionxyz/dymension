@@ -8,6 +8,7 @@ import (
 
 	dymensionapp "github.com/dymensionxyz/dymension/app"
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
+	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
@@ -86,6 +87,9 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
+	// max sequencers per rollapp
+	maxSequencers := 10
+
 	// sequencersExpect is the expected result of query all
 	sequencersExpect := []*types.Sequencer{}
 
@@ -104,7 +108,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			CodeStamp:             "",
 			GenesisPath:           "",
 			MaxWithholdingBlocks:  1,
-			MaxSequencers:         1,
+			MaxSequencers:         uint64(maxSequencers),
 			PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 		}
 		suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
@@ -210,6 +214,166 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
 	suite.EqualError(err, types.ErrSequencerExists.Error())
+}
+
+func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	suite.Require().Nil(err)
+	sequencer := types.MsgCreateSequencer{
+		Creator:          alice,
+		SequencerAddress: addr.String(),
+		Pubkey:           pkAny,
+		RollappId:        "rollappId",
+		Description:      sequencertypes.Description{},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	suite.EqualError(err, types.ErrUnknownRollappId.Error())
+}
+
+func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	sequencerAddress := addr.String()
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               0,
+		CodeStamp:             "",
+		GenesisPath:           "",
+		MaxWithholdingBlocks:  1,
+		MaxSequencers:         1,
+		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sequencerAddress}},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	rollappId := rollapp.GetRollappId()
+
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	suite.Require().Nil(err)
+	sequencer := types.MsgCreateSequencer{
+		Creator:          alice,
+		SequencerAddress: sequencerAddress,
+		Pubkey:           pkAny,
+		RollappId:        rollappId,
+		Description:      sequencertypes.Description{},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	suite.Require().Nil(err)
+
+	// query the spesific sequencer
+	queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
+		SequencerAddress: sequencer.GetSequencerAddress(),
+	})
+	suite.Require().Nil(err)
+
+	// sequencerExpect is the expected result of creating a sequencer
+	sequencerExpect := types.Sequencer{
+		SequencerAddress: sequencer.GetSequencerAddress(),
+		Creator:          sequencer.GetCreator(),
+		Pubkey:           sequencer.GetPubkey(),
+		RollappId:        rollappId,
+		Description:      sequencer.GetDescription(),
+	}
+	equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
+}
+
+func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               0,
+		CodeStamp:             "",
+		GenesisPath:           "",
+		MaxWithholdingBlocks:  1,
+		MaxSequencers:         1,
+		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sample.AccAddress()}},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	rollappId := rollapp.GetRollappId()
+
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	suite.Require().Nil(err)
+	sequencer := types.MsgCreateSequencer{
+		Creator:          alice,
+		SequencerAddress: addr.String(),
+		Pubkey:           pkAny,
+		RollappId:        rollappId,
+		Description:      sequencertypes.Description{},
+	}
+
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	suite.EqualError(err, types.ErrSequencerNotPermissioned.Error())
+}
+
+func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+	maxSequencers := 3
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               0,
+		CodeStamp:             "",
+		GenesisPath:           "",
+		MaxWithholdingBlocks:  1,
+		MaxSequencers:         uint64(maxSequencers),
+		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	rollappId := rollapp.GetRollappId()
+
+	// create MaxSequencers
+	for i := 0; i < maxSequencers; i++ {
+		pubkey := secp256k1.GenPrivKey().PubKey()
+		addr := sdk.AccAddress(pubkey.Address())
+		pkAny, err := codectypes.NewAnyWithValue(pubkey)
+		suite.Require().Nil(err)
+		sequencer := types.MsgCreateSequencer{
+			Creator:          alice,
+			SequencerAddress: addr.String(),
+			Pubkey:           pkAny,
+			RollappId:        rollappId,
+			Description:      sequencertypes.Description{},
+		}
+		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+		suite.Require().Nil(err)
+	}
+
+	// add more to be failed
+	for i := 0; i < 2; i++ {
+		pubkey := secp256k1.GenPrivKey().PubKey()
+		addr := sdk.AccAddress(pubkey.Address())
+		pkAny, err := codectypes.NewAnyWithValue(pubkey)
+		suite.Require().Nil(err)
+		sequencer := types.MsgCreateSequencer{
+			Creator:          alice,
+			SequencerAddress: addr.String(),
+			Pubkey:           pkAny,
+			RollappId:        rollappId,
+			Description:      sequencertypes.Description{},
+		}
+		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+		suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
+	}
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------
