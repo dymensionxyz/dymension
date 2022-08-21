@@ -13,4 +13,6 @@ var (
 	ErrInvalidwMaxWithholding         = sdkerrors.Register(ModuleName, 1002, "invalid max withholding")
 	ErrInvalidPermissionedAddress     = sdkerrors.Register(ModuleName, 1003, "invalid permissioned address")
 	ErrPermissionedAddressesDuplicate = sdkerrors.Register(ModuleName, 1004, "permissioned-address has duplicates")
+	ErrInvalidNumBlocks               = sdkerrors.Register(ModuleName, 1005, "invalid number of blocks")
+	ErrInvalidBlockSequence           = sdkerrors.Register(ModuleName, 1006, "invalid block sequence")
 )
