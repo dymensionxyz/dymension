@@ -1,0 +1,11 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+message BlockDescriptor {
+  
+  uint64 height = 1; 
+  string stateRoot = 2; 
+  string intermediateStatesRoot = 3; 
+}

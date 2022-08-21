@@ -359,7 +359,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title rollapp/genesis.proto
+ * @title rollapp/block_descriptor.proto
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
