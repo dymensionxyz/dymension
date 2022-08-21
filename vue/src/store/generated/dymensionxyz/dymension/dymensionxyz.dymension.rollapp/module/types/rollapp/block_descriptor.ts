@@ -4,9 +4,16 @@ import { util, configure, Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
+/** BlockDescriptor defines a singke rollapp chain block description. */
 export interface BlockDescriptor {
+  /** height is the height of the block */
   height: number;
+  /** stateRoot is the state root of the block */
   stateRoot: string;
+  /**
+   * intermediateStatesRoot is is the root of a Merkle tree built
+   * from the ISRs of the block (Intermediate State Roots)
+   */
   intermediateStatesRoot: string;
 }
 

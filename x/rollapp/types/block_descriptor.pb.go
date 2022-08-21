@@ -22,9 +22,14 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// BlockDescriptor defines a singke rollapp chain block description.
 type BlockDescriptor struct {
-	Height                 uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	StateRoot              string `protobuf:"bytes,2,opt,name=stateRoot,proto3" json:"stateRoot,omitempty"`
+	// height is the height of the block
+	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	// stateRoot is the state root of the block
+	StateRoot string `protobuf:"bytes,2,opt,name=stateRoot,proto3" json:"stateRoot,omitempty"`
+	// intermediateStatesRoot is is the root of a Merkle tree built
+	// from the ISRs of the block (Intermediate State Roots)
 	IntermediateStatesRoot string `protobuf:"bytes,3,opt,name=intermediateStatesRoot,proto3" json:"intermediateStatesRoot,omitempty"`
 }
 
