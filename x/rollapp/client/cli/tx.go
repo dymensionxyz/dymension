@@ -32,7 +32,8 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateRollapp())
-	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(CmdUpdateState())
+// this line is used by starport scaffolding # 1
 
 	return cmd
 }

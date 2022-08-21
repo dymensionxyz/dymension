@@ -49118,7 +49118,47 @@ definitions:
     description: >-
       MsgCreateVestingAccountResponse defines the Msg/CreateVestingAccount
       response type.
+  dymensionxyz.dymension.rollapp.BlockDescriptor:
+    type: object
+    properties:
+      height:
+        type: string
+        format: uint64
+        title: height is the height of the block
+      stateRoot:
+        type: string
+        title: stateRoot is the state root of the block
+      intermediateStatesRoot:
+        type: string
+        title: |-
+          intermediateStatesRoot is is the root of a Merkle tree built 
+          from the ISRs of the block (Intermediate State Roots)
+    description: BlockDescriptor defines a singke rollapp chain block description.
+  dymensionxyz.dymension.rollapp.BlockDescriptors:
+    type: object
+    properties:
+      BD:
+        type: array
+        items:
+          type: object
+          properties:
+            height:
+              type: string
+              format: uint64
+              title: height is the height of the block
+            stateRoot:
+              type: string
+              title: stateRoot is the state root of the block
+            intermediateStatesRoot:
+              type: string
+              title: |-
+                intermediateStatesRoot is is the root of a Merkle tree built 
+                from the ISRs of the block (Intermediate State Roots)
+          description: BlockDescriptor defines a singke rollapp chain block description.
+    description: BlockDescriptors defines list of BlockDescriptor.
   dymensionxyz.dymension.rollapp.MsgCreateRollappResponse:
+    type: object
+  dymensionxyz.dymension.rollapp.MsgUpdateStateResponse:
     type: object
   dymensionxyz.dymension.rollapp.Params:
     type: object

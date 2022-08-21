@@ -2,6 +2,7 @@
 import { Reader, util, configure, Writer } from "protobufjs/minimal";
 import * as Long from "long";
 import { Sequencers } from "../shared/sequencers";
+import { BlockDescriptor, BlockDescriptors } from "../rollapp/block_descriptor";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
@@ -33,6 +34,19 @@ export interface MsgCreateRollapp {
 }
 
 export interface MsgCreateRollappResponse {}
+
+export interface MsgUpdateState {
+  creator: string;
+  rollappId: string;
+  startHeight: number;
+  numBlocks: number;
+  DAPath: string;
+  version: number;
+  lastBD: BlockDescriptor | undefined;
+  BDs: BlockDescriptors | undefined;
+}
+
+export interface MsgUpdateStateResponse {}
 
 const baseMsgCreateRollapp: object = {
   creator: "",
@@ -278,10 +292,237 @@ export const MsgCreateRollappResponse = {
   },
 };
 
+const baseMsgUpdateState: object = {
+  creator: "",
+  rollappId: "",
+  startHeight: 0,
+  numBlocks: 0,
+  DAPath: "",
+  version: 0,
+};
+
+export const MsgUpdateState = {
+  encode(message: MsgUpdateState, writer: Writer = Writer.create()): Writer {
+    if (message.creator !== "") {
+      writer.uint32(10).string(message.creator);
+    }
+    if (message.rollappId !== "") {
+      writer.uint32(18).string(message.rollappId);
+    }
+    if (message.startHeight !== 0) {
+      writer.uint32(24).uint64(message.startHeight);
+    }
+    if (message.numBlocks !== 0) {
+      writer.uint32(32).uint64(message.numBlocks);
+    }
+    if (message.DAPath !== "") {
+      writer.uint32(42).string(message.DAPath);
+    }
+    if (message.version !== 0) {
+      writer.uint32(48).uint64(message.version);
+    }
+    if (message.lastBD !== undefined) {
+      BlockDescriptor.encode(message.lastBD, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.BDs !== undefined) {
+      BlockDescriptors.encode(message.BDs, writer.uint32(66).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): MsgUpdateState {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMsgUpdateState } as MsgUpdateState;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.creator = reader.string();
+          break;
+        case 2:
+          message.rollappId = reader.string();
+          break;
+        case 3:
+          message.startHeight = longToNumber(reader.uint64() as Long);
+          break;
+        case 4:
+          message.numBlocks = longToNumber(reader.uint64() as Long);
+          break;
+        case 5:
+          message.DAPath = reader.string();
+          break;
+        case 6:
+          message.version = longToNumber(reader.uint64() as Long);
+          break;
+        case 7:
+          message.lastBD = BlockDescriptor.decode(reader, reader.uint32());
+          break;
+        case 8:
+          message.BDs = BlockDescriptors.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MsgUpdateState {
+    const message = { ...baseMsgUpdateState } as MsgUpdateState;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = String(object.creator);
+    } else {
+      message.creator = "";
+    }
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = String(object.rollappId);
+    } else {
+      message.rollappId = "";
+    }
+    if (object.startHeight !== undefined && object.startHeight !== null) {
+      message.startHeight = Number(object.startHeight);
+    } else {
+      message.startHeight = 0;
+    }
+    if (object.numBlocks !== undefined && object.numBlocks !== null) {
+      message.numBlocks = Number(object.numBlocks);
+    } else {
+      message.numBlocks = 0;
+    }
+    if (object.DAPath !== undefined && object.DAPath !== null) {
+      message.DAPath = String(object.DAPath);
+    } else {
+      message.DAPath = "";
+    }
+    if (object.version !== undefined && object.version !== null) {
+      message.version = Number(object.version);
+    } else {
+      message.version = 0;
+    }
+    if (object.lastBD !== undefined && object.lastBD !== null) {
+      message.lastBD = BlockDescriptor.fromJSON(object.lastBD);
+    } else {
+      message.lastBD = undefined;
+    }
+    if (object.BDs !== undefined && object.BDs !== null) {
+      message.BDs = BlockDescriptors.fromJSON(object.BDs);
+    } else {
+      message.BDs = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: MsgUpdateState): unknown {
+    const obj: any = {};
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    message.startHeight !== undefined &&
+      (obj.startHeight = message.startHeight);
+    message.numBlocks !== undefined && (obj.numBlocks = message.numBlocks);
+    message.DAPath !== undefined && (obj.DAPath = message.DAPath);
+    message.version !== undefined && (obj.version = message.version);
+    message.lastBD !== undefined &&
+      (obj.lastBD = message.lastBD
+        ? BlockDescriptor.toJSON(message.lastBD)
+        : undefined);
+    message.BDs !== undefined &&
+      (obj.BDs = message.BDs
+        ? BlockDescriptors.toJSON(message.BDs)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<MsgUpdateState>): MsgUpdateState {
+    const message = { ...baseMsgUpdateState } as MsgUpdateState;
+    if (object.creator !== undefined && object.creator !== null) {
+      message.creator = object.creator;
+    } else {
+      message.creator = "";
+    }
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = object.rollappId;
+    } else {
+      message.rollappId = "";
+    }
+    if (object.startHeight !== undefined && object.startHeight !== null) {
+      message.startHeight = object.startHeight;
+    } else {
+      message.startHeight = 0;
+    }
+    if (object.numBlocks !== undefined && object.numBlocks !== null) {
+      message.numBlocks = object.numBlocks;
+    } else {
+      message.numBlocks = 0;
+    }
+    if (object.DAPath !== undefined && object.DAPath !== null) {
+      message.DAPath = object.DAPath;
+    } else {
+      message.DAPath = "";
+    }
+    if (object.version !== undefined && object.version !== null) {
+      message.version = object.version;
+    } else {
+      message.version = 0;
+    }
+    if (object.lastBD !== undefined && object.lastBD !== null) {
+      message.lastBD = BlockDescriptor.fromPartial(object.lastBD);
+    } else {
+      message.lastBD = undefined;
+    }
+    if (object.BDs !== undefined && object.BDs !== null) {
+      message.BDs = BlockDescriptors.fromPartial(object.BDs);
+    } else {
+      message.BDs = undefined;
+    }
+    return message;
+  },
+};
+
+const baseMsgUpdateStateResponse: object = {};
+
+export const MsgUpdateStateResponse = {
+  encode(_: MsgUpdateStateResponse, writer: Writer = Writer.create()): Writer {
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): MsgUpdateStateResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseMsgUpdateStateResponse } as MsgUpdateStateResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): MsgUpdateStateResponse {
+    const message = { ...baseMsgUpdateStateResponse } as MsgUpdateStateResponse;
+    return message;
+  },
+
+  toJSON(_: MsgUpdateStateResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial(_: DeepPartial<MsgUpdateStateResponse>): MsgUpdateStateResponse {
+    const message = { ...baseMsgUpdateStateResponse } as MsgUpdateStateResponse;
+    return message;
+  },
+};
+
 /** Msg defines the Msg service. */
 export interface Msg {
-  /** this line is used by starport scaffolding # proto/tx/rpc */
   CreateRollapp(request: MsgCreateRollapp): Promise<MsgCreateRollappResponse>;
+  /** this line is used by starport scaffolding # proto/tx/rpc */
+  UpdateState(request: MsgUpdateState): Promise<MsgUpdateStateResponse>;
 }
 
 export class MsgClientImpl implements Msg {
@@ -298,6 +539,18 @@ export class MsgClientImpl implements Msg {
     );
     return promise.then((data) =>
       MsgCreateRollappResponse.decode(new Reader(data))
+    );
+  }
+
+  UpdateState(request: MsgUpdateState): Promise<MsgUpdateStateResponse> {
+    const data = MsgUpdateState.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.rollapp.Msg",
+      "UpdateState",
+      data
+    );
+    return promise.then((data) =>
+      MsgUpdateStateResponse.decode(new Reader(data))
     );
   }
 }

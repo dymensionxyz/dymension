@@ -168,39 +168,186 @@ func (m *MsgCreateRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateRollappResponse proto.InternalMessageInfo
 
+type MsgUpdateState struct {
+	Creator     string            `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	RollappId   string            `protobuf:"bytes,2,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	StartHeight uint64            `protobuf:"varint,3,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
+	NumBlocks   uint64            `protobuf:"varint,4,opt,name=numBlocks,proto3" json:"numBlocks,omitempty"`
+	DAPath      string            `protobuf:"bytes,5,opt,name=DAPath,proto3" json:"DAPath,omitempty"`
+	Version     uint64            `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
+	LastBD      *BlockDescriptor  `protobuf:"bytes,7,opt,name=lastBD,proto3" json:"lastBD,omitempty"`
+	BDs         *BlockDescriptors `protobuf:"bytes,8,opt,name=BDs,proto3" json:"BDs,omitempty"`
+}
+
+func (m *MsgUpdateState) Reset()         { *m = MsgUpdateState{} }
+func (m *MsgUpdateState) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateState) ProtoMessage()    {}
+func (*MsgUpdateState) Descriptor() ([]byte, []int) {
+	return fileDescriptor_28d664456664c256, []int{2}
+}
+func (m *MsgUpdateState) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateState.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateState.Merge(m, src)
+}
+func (m *MsgUpdateState) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateState) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateState.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateState proto.InternalMessageInfo
+
+func (m *MsgUpdateState) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgUpdateState) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgUpdateState) GetStartHeight() uint64 {
+	if m != nil {
+		return m.StartHeight
+	}
+	return 0
+}
+
+func (m *MsgUpdateState) GetNumBlocks() uint64 {
+	if m != nil {
+		return m.NumBlocks
+	}
+	return 0
+}
+
+func (m *MsgUpdateState) GetDAPath() string {
+	if m != nil {
+		return m.DAPath
+	}
+	return ""
+}
+
+func (m *MsgUpdateState) GetVersion() uint64 {
+	if m != nil {
+		return m.Version
+	}
+	return 0
+}
+
+func (m *MsgUpdateState) GetLastBD() *BlockDescriptor {
+	if m != nil {
+		return m.LastBD
+	}
+	return nil
+}
+
+func (m *MsgUpdateState) GetBDs() *BlockDescriptors {
+	if m != nil {
+		return m.BDs
+	}
+	return nil
+}
+
+type MsgUpdateStateResponse struct {
+}
+
+func (m *MsgUpdateStateResponse) Reset()         { *m = MsgUpdateStateResponse{} }
+func (m *MsgUpdateStateResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateStateResponse) ProtoMessage()    {}
+func (*MsgUpdateStateResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_28d664456664c256, []int{3}
+}
+func (m *MsgUpdateStateResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateStateResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateStateResponse.Merge(m, src)
+}
+func (m *MsgUpdateStateResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateStateResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
+	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
+	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
 }
 
 func init() { proto.RegisterFile("rollapp/tx.proto", fileDescriptor_28d664456664c256) }
 
 var fileDescriptor_28d664456664c256 = []byte{
-	// 372 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0x4d, 0x0b, 0xd3, 0x40,
-	0x10, 0xcd, 0xb6, 0xb5, 0xa5, 0x5b, 0x0a, 0x65, 0xa9, 0xb8, 0x04, 0x89, 0xa1, 0x78, 0xa8, 0x97,
-	0x8d, 0xd6, 0x8b, 0x57, 0xeb, 0x49, 0xa4, 0x20, 0xe9, 0x41, 0xf0, 0x96, 0x66, 0x87, 0x24, 0x98,
-	0x64, 0xe3, 0x4e, 0x0a, 0xa9, 0xde, 0xfc, 0x05, 0xfe, 0xac, 0x82, 0x97, 0x1e, 0x3d, 0x89, 0xb4,
-	0x7f, 0x44, 0x92, 0xb4, 0xe9, 0x07, 0x55, 0xf0, 0x36, 0xef, 0xbd, 0x99, 0xb7, 0xbb, 0x6f, 0x87,
-	0x8e, 0xb4, 0x8a, 0x63, 0x2f, 0xcb, 0x9c, 0xbc, 0x10, 0x99, 0x56, 0xb9, 0x62, 0x96, 0xdc, 0x24,
-	0x90, 0x62, 0xa4, 0xd2, 0x62, 0xf3, 0x45, 0x34, 0x40, 0x1c, 0x1b, 0xcd, 0x47, 0x18, 0x7a, 0x1a,
-	0xa4, 0x83, 0xf0, 0x79, 0x0d, 0xa9, 0x0f, 0x1a, 0xeb, 0x41, 0x73, 0x1c, 0xa8, 0x40, 0x55, 0xa5,
-	0x53, 0x56, 0x35, 0x3b, 0xf9, 0xd1, 0xa2, 0xa3, 0x05, 0x06, 0x6f, 0x34, 0x78, 0x39, 0xb8, 0xb5,
-	0x07, 0xe3, 0xb4, 0xe7, 0x97, 0x84, 0xd2, 0x9c, 0xd8, 0x64, 0xda, 0x77, 0x4f, 0x90, 0x3d, 0xa6,
-	0xfd, 0xe3, 0x41, 0x6f, 0x25, 0x6f, 0x55, 0xda, 0x99, 0x28, 0x55, 0x5f, 0x49, 0x58, 0xe6, 0x5e,
-	0x92, 0xf1, 0x76, 0xad, 0x36, 0x04, 0xb3, 0xe9, 0x20, 0x80, 0x14, 0x30, 0xc2, 0xf7, 0x5e, 0x1e,
-	0xf2, 0x4e, 0xa5, 0x5f, 0x52, 0x6c, 0x46, 0xc7, 0x89, 0x57, 0x7c, 0x88, 0xf2, 0x30, 0x54, 0xb1,
-	0x8c, 0xd2, 0x60, 0x1e, 0x2b, 0xff, 0x13, 0xf2, 0x07, 0x36, 0x99, 0x76, 0xdc, 0xbb, 0x1a, 0x7b,
-	0x4a, 0x87, 0x89, 0x57, 0x2c, 0x9b, 0xd7, 0xf2, 0x6e, 0xd5, 0x7c, 0x4d, 0x32, 0xa0, 0x0f, 0x33,
-	0xd0, 0x49, 0x84, 0x65, 0x56, 0x20, 0x5f, 0x4b, 0xa9, 0x01, 0x11, 0x90, 0xf7, 0x6c, 0x32, 0x1d,
-	0xcc, 0x9e, 0x89, 0xbf, 0xa4, 0x5a, 0x87, 0x29, 0xce, 0x4e, 0xf3, 0xce, 0xf6, 0xd7, 0x13, 0xc3,
-	0xbd, 0xef, 0x36, 0x31, 0x29, 0xbf, 0x0d, 0xd3, 0x05, 0xcc, 0x54, 0x8a, 0x30, 0xfb, 0x46, 0x68,
-	0x7b, 0x81, 0x01, 0xfb, 0x4a, 0x87, 0xd7, 0x69, 0x3f, 0x17, 0xff, 0xfe, 0x52, 0x71, 0x6b, 0x69,
-	0xbe, 0xfa, 0xdf, 0x89, 0xd3, 0x25, 0xe6, 0xef, 0xb6, 0x7b, 0x8b, 0xec, 0xf6, 0x16, 0xf9, 0xbd,
-	0xb7, 0xc8, 0xf7, 0x83, 0x65, 0xec, 0x0e, 0x96, 0xf1, 0xf3, 0x60, 0x19, 0x1f, 0x5f, 0x04, 0x51,
-	0x1e, 0xae, 0x57, 0xc2, 0x57, 0x89, 0x73, 0xe9, 0x7e, 0x06, 0x4e, 0xe1, 0x34, 0xdb, 0xb8, 0xc9,
-	0x00, 0x57, 0xdd, 0x6a, 0x85, 0x5e, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0x86, 0xa4, 0x57, 0xd3,
-	0xa5, 0x02, 0x00, 0x00,
+	// 520 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcf, 0x8b, 0xd3, 0x40,
+	0x14, 0x6e, 0xda, 0x6e, 0xd7, 0x9d, 0xb2, 0xb2, 0x0c, 0xeb, 0x3a, 0x14, 0x89, 0xa5, 0x78, 0xa8,
+	0x97, 0x44, 0x2b, 0x88, 0xd7, 0x8d, 0x05, 0x15, 0x29, 0x48, 0x16, 0x11, 0xbc, 0x48, 0x9a, 0x79,
+	0x24, 0xc1, 0x26, 0x13, 0xe7, 0x4d, 0xa5, 0xd5, 0x7f, 0xc2, 0xff, 0xca, 0x05, 0x2f, 0x7b, 0xf4,
+	0x24, 0xd2, 0xfe, 0x15, 0xde, 0x64, 0xa6, 0x49, 0x9b, 0x2e, 0xeb, 0x8f, 0xee, 0x6d, 0xde, 0xf7,
+	0xbd, 0xef, 0x7b, 0x33, 0xdf, 0x0c, 0x43, 0x8e, 0xa4, 0x98, 0x4c, 0x82, 0x3c, 0x77, 0xd5, 0xcc,
+	0xc9, 0xa5, 0x50, 0x82, 0xda, 0x7c, 0x9e, 0x42, 0x86, 0x89, 0xc8, 0x66, 0xf3, 0x4f, 0xce, 0xba,
+	0x70, 0x8a, 0xc6, 0x8e, 0x5d, 0x2a, 0xc6, 0x13, 0x11, 0xbe, 0x7f, 0xc7, 0x01, 0x43, 0x99, 0xe4,
+	0x4a, 0xc8, 0x95, 0xbe, 0x73, 0x1b, 0xe3, 0x40, 0x02, 0x77, 0x11, 0x3e, 0x4c, 0x21, 0x0b, 0x41,
+	0x62, 0x41, 0x1c, 0x47, 0x22, 0x12, 0x66, 0xe9, 0xea, 0xd5, 0x0a, 0xed, 0x7d, 0xab, 0x93, 0xa3,
+	0x11, 0x46, 0x4f, 0x25, 0x04, 0x0a, 0xfc, 0x95, 0x35, 0x65, 0x64, 0x3f, 0xd4, 0x80, 0x90, 0xcc,
+	0xea, 0x5a, 0xfd, 0x03, 0xbf, 0x2c, 0xe9, 0x1d, 0x72, 0x50, 0xcc, 0x7f, 0xc1, 0x59, 0xdd, 0x70,
+	0x1b, 0x40, 0xb3, 0xa1, 0xe0, 0x70, 0xa6, 0x82, 0x34, 0x67, 0x8d, 0x15, 0xbb, 0x06, 0x68, 0x97,
+	0xb4, 0x23, 0xc8, 0x00, 0x13, 0x7c, 0x15, 0xa8, 0x98, 0x35, 0x0d, 0x5f, 0x85, 0xe8, 0x80, 0x1c,
+	0xa7, 0xc1, 0xec, 0x4d, 0xa2, 0xe2, 0x58, 0x4c, 0x78, 0x92, 0x45, 0x9e, 0x3e, 0x23, 0xb2, 0xbd,
+	0xae, 0xd5, 0x6f, 0xfa, 0x57, 0x72, 0xf4, 0x1e, 0x39, 0x4c, 0x83, 0xd9, 0xd9, 0xfa, 0xb4, 0xac,
+	0x65, 0x9a, 0xb7, 0x41, 0x0a, 0xe4, 0x56, 0x0e, 0x32, 0x4d, 0x50, 0x67, 0x09, 0xfc, 0x94, 0x73,
+	0x09, 0x88, 0x80, 0x6c, 0xbf, 0x6b, 0xf5, 0xdb, 0x83, 0xfb, 0xce, 0x1f, 0x52, 0x5f, 0x85, 0xe9,
+	0x6c, 0x9c, 0xbc, 0xe6, 0xf9, 0x8f, 0xbb, 0x35, 0xff, 0x6a, 0xb7, 0x5e, 0x87, 0xb0, 0xcb, 0x61,
+	0xfa, 0x80, 0xb9, 0xc8, 0x10, 0x7a, 0x5f, 0xeb, 0xe4, 0xe6, 0x08, 0xa3, 0xd7, 0x39, 0x0f, 0x94,
+	0x4e, 0x44, 0xc1, 0xb5, 0x73, 0xee, 0x92, 0x36, 0xaa, 0x40, 0xaa, 0xe7, 0x90, 0x44, 0xb1, 0x32,
+	0x49, 0x37, 0xfd, 0x2a, 0xa4, 0xf5, 0xd9, 0x34, 0x2d, 0xe2, 0x6b, 0x1a, 0x7e, 0x03, 0xd0, 0x13,
+	0xd2, 0x1a, 0x9e, 0x9a, 0x4b, 0xd8, 0x33, 0xd6, 0x45, 0xa5, 0xf7, 0xf3, 0x11, 0xa4, 0x3e, 0x54,
+	0x91, 0x62, 0x59, 0xd2, 0x67, 0xa4, 0x35, 0x09, 0x50, 0x79, 0xc3, 0x22, 0x30, 0xd7, 0xf9, 0xfb,
+	0x33, 0x75, 0xcc, 0xa4, 0xe1, 0xfa, 0x71, 0xfa, 0x85, 0x9c, 0x7a, 0xa4, 0xe1, 0x0d, 0x91, 0xdd,
+	0x30, 0x2e, 0x0f, 0x76, 0x74, 0x41, 0x5f, 0x8b, 0x7b, 0x8c, 0x9c, 0x6c, 0x07, 0x59, 0x66, 0x3c,
+	0xf8, 0x65, 0x91, 0xc6, 0x08, 0x23, 0xfa, 0x99, 0x1c, 0x6e, 0xbf, 0xe8, 0x7f, 0x4e, 0xba, 0x7c,
+	0x6d, 0x9d, 0x27, 0xbb, 0x2a, 0xca, 0x4d, 0xd0, 0x29, 0x69, 0x57, 0x2f, 0xd9, 0xf9, 0x0f, 0xa3,
+	0x4a, 0x7f, 0xe7, 0xf1, 0x6e, 0xfd, 0xe5, 0x58, 0xef, 0xe5, 0xf9, 0xc2, 0xb6, 0x2e, 0x16, 0xb6,
+	0xf5, 0x73, 0x61, 0x5b, 0x5f, 0x96, 0x76, 0xed, 0x62, 0x69, 0xd7, 0xbe, 0x2f, 0xed, 0xda, 0xdb,
+	0x87, 0x51, 0xa2, 0xe2, 0xe9, 0xd8, 0x09, 0x45, 0xea, 0x56, 0xbd, 0x37, 0x85, 0x3b, 0x73, 0xd7,
+	0x1f, 0xd1, 0x3c, 0x07, 0x1c, 0xb7, 0xcc, 0xef, 0xf0, 0xe8, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x9d, 0x1a, 0xba, 0xa0, 0xa0, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -216,6 +363,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error)
+	UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error)
 }
 
 type msgClient struct {
@@ -235,9 +383,19 @@ func (c *msgClient) CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opt
 	return out, nil
 }
 
+func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error) {
+	out := new(MsgUpdateStateResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/UpdateState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateRollapp(context.Context, *MsgCreateRollapp) (*MsgCreateRollappResponse, error)
+	UpdateState(context.Context, *MsgUpdateState) (*MsgUpdateStateResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -246,6 +404,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreateRollapp) (*MsgCreateRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRollapp not implemented")
+}
+func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -270,6 +431,24 @@ func _Msg_CreateRollapp_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateState)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/UpdateState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateState(ctx, req.(*MsgUpdateState))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.rollapp.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -277,6 +456,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateRollapp",
 			Handler:    _Msg_CreateRollapp_Handler,
+		},
+		{
+			MethodName: "UpdateState",
+			Handler:    _Msg_UpdateState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -377,6 +560,112 @@ func (m *MsgCreateRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateState) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateState) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.BDs != nil {
+		{
+			size, err := m.BDs.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x42
+	}
+	if m.LastBD != nil {
+		{
+			size, err := m.LastBD.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.Version != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Version))
+		i--
+		dAtA[i] = 0x30
+	}
+	if len(m.DAPath) > 0 {
+		i -= len(m.DAPath)
+		copy(dAtA[i:], m.DAPath)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.DAPath)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.NumBlocks != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.NumBlocks))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.StartHeight != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.StartHeight))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateStateResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateStateResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -422,6 +711,53 @@ func (m *MsgCreateRollapp) Size() (n int) {
 }
 
 func (m *MsgCreateRollappResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateState) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.StartHeight != 0 {
+		n += 1 + sovTx(uint64(m.StartHeight))
+	}
+	if m.NumBlocks != 0 {
+		n += 1 + sovTx(uint64(m.NumBlocks))
+	}
+	l = len(m.DAPath)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Version != 0 {
+		n += 1 + sovTx(uint64(m.Version))
+	}
+	if m.LastBD != nil {
+		l = m.LastBD.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.BDs != nil {
+		l = m.BDs.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgUpdateStateResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -712,6 +1048,331 @@ func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgCreateRollappResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateState: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateState: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartHeight", wireType)
+			}
+			m.StartHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumBlocks", wireType)
+			}
+			m.NumBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DAPath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DAPath = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+			}
+			m.Version = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Version |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastBD", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.LastBD == nil {
+				m.LastBD = &BlockDescriptor{}
+			}
+			if err := m.LastBD.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BDs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.BDs == nil {
+				m.BDs = &BlockDescriptors{}
+			}
+			if err := m.BDs.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateStateResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

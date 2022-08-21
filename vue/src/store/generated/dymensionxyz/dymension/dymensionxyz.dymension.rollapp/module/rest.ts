@@ -13,7 +13,26 @@ export interface ProtobufAny {
   "@type"?: string;
 }
 
+/**
+ * BlockDescriptor defines a singke rollapp chain block description.
+ */
+export interface RollappBlockDescriptor {
+  /** @format uint64 */
+  height?: string;
+  stateRoot?: string;
+  intermediateStatesRoot?: string;
+}
+
+/**
+ * BlockDescriptors defines list of BlockDescriptor.
+ */
+export interface RollappBlockDescriptors {
+  BD?: RollappBlockDescriptor[];
+}
+
 export type RollappMsgCreateRollappResponse = object;
+
+export type RollappMsgUpdateStateResponse = object;
 
 /**
  * Params defines the parameters for the module.

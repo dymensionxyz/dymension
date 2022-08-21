@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
+import "rollapp/block_descriptor.proto";
 import "shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
@@ -11,6 +12,7 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
       rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -36,6 +38,20 @@ message MsgCreateRollapp {
 }
 
 message MsgCreateRollappResponse {
+}
+
+message MsgUpdateState {
+  string creator = 1;
+  string rollappId = 2;
+  uint64 startHeight = 3;
+  uint64 numBlocks = 4;
+  string DAPath = 5;
+  uint64 version = 6;
+  BlockDescriptor lastBD = 7;
+  BlockDescriptors BDs = 8;
+}
+
+message MsgUpdateStateResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message
