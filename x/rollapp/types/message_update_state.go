@@ -17,8 +17,8 @@ func NewMsgUpdateState(creator string, rollappId string, startHeight uint64, num
 		NumBlocks:   numBlocks,
 		DAPath:      dAPath,
 		Version:     version,
-		LastBD:      lastBD,
-		BDs:         bDs,
+		LastBD:      *lastBD,
+		BDs:         *bDs,
 	}
 }
 

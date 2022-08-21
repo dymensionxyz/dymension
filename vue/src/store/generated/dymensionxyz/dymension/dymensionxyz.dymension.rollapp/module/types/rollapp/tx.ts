@@ -6,43 +6,63 @@ import { BlockDescriptor, BlockDescriptors } from "../rollapp/block_descriptor";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
+/** ===================== MsgCreateRollapp */
 export interface MsgCreateRollapp {
-  /** creator is the bech32-encoded address of the rollapp creator. */
+  /** creator is the bech32-encoded address of the rollapp creator */
   creator: string;
   /**
    * rollappId is the unique identifier of the rollapp chain.
-   * The rollappId follows the same standard as cosmos chain_id.
+   * The rollappId follows the same standard as cosmos chain_id
    */
   rollappId: string;
-  /** genesisPath is the description of the genesis file location on the DA. */
+  /** genesisPath is the description of the genesis file location on the DA */
   codeStamp: string;
-  /** genesisPath is the description of the genesis file location on the DA. */
+  /** genesisPath is the description of the genesis file location on the DA */
   genesisPath: string;
   /**
    * maxWithholdingBlocks is the maximum number of blocks for
-   * an active sequencer to send a state update (MsgUpdateState).
+   * an active sequencer to send a state update (MsgUpdateState)
    */
   maxWithholdingBlocks: number;
-  /** maxSequencers is the maximum number of sequencers. */
+  /** maxSequencers is the maximum number of sequencers */
   maxSequencers: number;
   /**
    * permissionedAddresses is a bech32-encoded address list of the
    * sequencers that are allowed to serve this rollappId.
-   * In the case of an empty list, the rollapp is considered permissionless.
+   * In the case of an empty list, the rollapp is considered permissionless
    */
   permissionedAddresses: Sequencers | undefined;
 }
 
 export interface MsgCreateRollappResponse {}
 
+/**
+ * ===================== MsgUpdateState
+ * Updating a rollapp state with a block batch
+ * a block batch is a list of ordered blocks (by height)
+ */
 export interface MsgUpdateState {
+  /** creator is the bech32-encoded address of the sequencer sending the update */
   creator: string;
+  /**
+   * rollappId is the unique identifier of the rollapp chain.
+   * The rollappId follows the same standard as cosmos chain_id
+   */
   rollappId: string;
+  /** startHeight is the block height of the first block in the batch */
   startHeight: number;
+  /** numBlocks is the number of blocks included in this batch update */
   numBlocks: number;
+  /** DAPath is the description of the location on the DA layer */
   DAPath: string;
+  /** version is the version of the rollapp */
   version: number;
+  /** lastBD is the latest block descriptor of the last state update */
   lastBD: BlockDescriptor | undefined;
+  /**
+   * BDs is a list of block description objects (one per block)
+   * the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+   */
   BDs: BlockDescriptors | undefined;
 }
 
