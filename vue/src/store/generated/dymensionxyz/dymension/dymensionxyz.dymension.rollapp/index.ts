@@ -1,11 +1,12 @@
 import { txClient, queryClient, MissingWalletError , registry} from './module'
 
 import { BlockDescriptor } from "./module/types/rollapp/block_descriptor"
+import { BlockDescriptors } from "./module/types/rollapp/block_descriptor"
 import { Params } from "./module/types/rollapp/params"
 import { Rollapp } from "./module/types/rollapp/rollapp"
 
 
-export { BlockDescriptor, Params, Rollapp };
+export { BlockDescriptor, BlockDescriptors, Params, Rollapp };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -49,6 +50,7 @@ const getDefaultState = () => {
 				
 				_Structure: {
 						BlockDescriptor: getStructure(BlockDescriptor.fromPartial({})),
+						BlockDescriptors: getStructure(BlockDescriptors.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						Rollapp: getStructure(Rollapp.fromPartial({})),
 						

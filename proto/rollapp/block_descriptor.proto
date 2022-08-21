@@ -3,6 +3,9 @@ package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
+import "gogoproto/gogo.proto";
+
+
 // BlockDescriptor defines a singke rollapp chain block description.
 message BlockDescriptor {
   // height is the height of the block
@@ -12,4 +15,10 @@ message BlockDescriptor {
   // intermediateStatesRoot is is the root of a Merkle tree built 
   // from the ISRs of the block (Intermediate State Roots)
   string intermediateStatesRoot = 3; 
+}
+
+// BlockDescriptors defines list of BlockDescriptor.
+message BlockDescriptors {
+  
+  repeated BlockDescriptor BD = 1 [(gogoproto.nullable) = false];
 }

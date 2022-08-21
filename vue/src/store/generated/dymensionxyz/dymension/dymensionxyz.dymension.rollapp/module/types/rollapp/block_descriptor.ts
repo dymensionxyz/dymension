@@ -17,6 +17,11 @@ export interface BlockDescriptor {
   intermediateStatesRoot: string;
 }
 
+/** BlockDescriptors defines list of BlockDescriptor. */
+export interface BlockDescriptors {
+  BD: BlockDescriptor[];
+}
+
 const baseBlockDescriptor: object = {
   height: 0,
   stateRoot: "",
@@ -112,6 +117,70 @@ export const BlockDescriptor = {
       message.intermediateStatesRoot = object.intermediateStatesRoot;
     } else {
       message.intermediateStatesRoot = "";
+    }
+    return message;
+  },
+};
+
+const baseBlockDescriptors: object = {};
+
+export const BlockDescriptors = {
+  encode(message: BlockDescriptors, writer: Writer = Writer.create()): Writer {
+    for (const v of message.BD) {
+      BlockDescriptor.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: Reader | Uint8Array, length?: number): BlockDescriptors {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = { ...baseBlockDescriptors } as BlockDescriptors;
+    message.BD = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.BD.push(BlockDescriptor.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): BlockDescriptors {
+    const message = { ...baseBlockDescriptors } as BlockDescriptors;
+    message.BD = [];
+    if (object.BD !== undefined && object.BD !== null) {
+      for (const e of object.BD) {
+        message.BD.push(BlockDescriptor.fromJSON(e));
+      }
+    }
+    return message;
+  },
+
+  toJSON(message: BlockDescriptors): unknown {
+    const obj: any = {};
+    if (message.BD) {
+      obj.BD = message.BD.map((e) =>
+        e ? BlockDescriptor.toJSON(e) : undefined
+      );
+    } else {
+      obj.BD = [];
+    }
+    return obj;
+  },
+
+  fromPartial(object: DeepPartial<BlockDescriptors>): BlockDescriptors {
+    const message = { ...baseBlockDescriptors } as BlockDescriptors;
+    message.BD = [];
+    if (object.BD !== undefined && object.BD !== null) {
+      for (const e of object.BD) {
+        message.BD.push(BlockDescriptor.fromPartial(e));
+      }
     }
     return message;
   },
