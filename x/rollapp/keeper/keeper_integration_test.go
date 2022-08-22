@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -153,6 +154,38 @@ func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
+}
+
+func (suite *IntegrationTestSuite) TestUpdateState() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp1",
+		CodeStamp:             "",
+		GenesisPath:           "",
+		MaxWithholdingBlocks:  1,
+		MaxSequencers:         1,
+		PermissionedAddresses: sharedtypes.Sequencers{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+
+	updateState := types.MsgUpdateState{
+		Creator:     sample.AccAddress(),
+		RollappId:   "rollapp1",
+		StartHeight: 4,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     0,
+		LastBD:      types.BlockDescriptor{Height: 3},
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 4}, {Height: 6}, {Height: 5}}},
+	}
+
+	_, err = suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.EqualError(err, sequencertypes.ErrInvalidSequencerAddress.Error())
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------
