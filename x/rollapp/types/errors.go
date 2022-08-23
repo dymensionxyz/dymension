@@ -15,4 +15,6 @@ var (
 	ErrPermissionedAddressesDuplicate = sdkerrors.Register(ModuleName, 1004, "permissioned-address has duplicates")
 	ErrInvalidNumBlocks               = sdkerrors.Register(ModuleName, 1005, "invalid number of blocks")
 	ErrInvalidBlockSequence           = sdkerrors.Register(ModuleName, 1006, "invalid block sequence")
+	ErrUnknownRollappId               = sdkerrors.Register(ModuleName, 1007, "rollapp does not exist")
+	ErrVersionMismatch                = sdkerrors.Register(ModuleName, 1008, "rollapp version mismatch")
 )

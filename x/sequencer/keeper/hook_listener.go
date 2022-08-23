@@ -21,5 +21,16 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) {
 	// fmt.Printf("BeforeUpdateState seqAddr(%s), rollappId(%s)\n", seqAddr, rollappId)
 	// hook.k.Logger(ctx).Error(fmt.Sprintf("not implemented: BeforeUpdateState seqAddr(%s), rollappId(%s)\n", seqAddr, rollappId))
-	panic(types.ErrInvalidSequencerAddress)
+
+	// check to see if the sequencer has been registered before
+	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
+	if !found {
+		panic(types.ErrUnknownSequencer)
+	}
+
+	// check to see if the rollappId matches the one of the sequencer
+	if sequencer.RollappId != rollappId {
+		panic(types.ErrSequencerRollappMismatch)
+	}
+
 }

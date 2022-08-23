@@ -175,7 +175,7 @@ var xxx_messageInfo_MsgCreateRollappResponse proto.InternalMessageInfo
 type MsgUpdateState struct {
 	// creator is the bech32-encoded address of the sequencer sending the update
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// rollappId is the unique identifier of the rollapp chain.
+	// rollappId is the rollapp that the sequencer belongs to and asking to update
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,2,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	// startHeight is the block height of the first block in the batch

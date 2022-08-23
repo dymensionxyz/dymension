@@ -13,4 +13,6 @@ var (
 	ErrUnknownRollappId         = sdkerrors.Register(ModuleName, 1002, "rollapp does not exist")
 	ErrMaxSequencersLimit       = sdkerrors.Register(ModuleName, 1003, "too many sequencers for rollapp")
 	ErrSequencerNotPermissioned = sdkerrors.Register(ModuleName, 1004, "sequencer is not permissioned for serving the rollapp")
+	ErrUnknownSequencer         = sdkerrors.Register(ModuleName, 1005, "sequencer was not registered")
+	ErrSequencerRollappMismatch = sdkerrors.Register(ModuleName, 1006, "sequencer was not registered for this rollapp")
 )

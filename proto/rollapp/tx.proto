@@ -48,7 +48,7 @@ message MsgCreateRollappResponse {
 message MsgUpdateState {
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
-  // rollappId is the unique identifier of the rollapp chain.
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;
   // startHeight is the block height of the first block in the batch
