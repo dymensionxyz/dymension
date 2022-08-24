@@ -7,7 +7,6 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
 // this line is used by starport scaffolding # 1
-import "shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 

@@ -4,13 +4,13 @@ import { StdFee } from "@cosmjs/launchpad";
 import { SigningStargateClient } from "@cosmjs/stargate";
 import { Registry, OfflineSigner, EncodeObject, DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
 import { Api } from "./rest";
-import { MsgCreateRollapp } from "./types/rollapp/tx";
 import { MsgUpdateState } from "./types/rollapp/tx";
+import { MsgCreateRollapp } from "./types/rollapp/tx";
 
 
 const types = [
-  ["/dymensionxyz.dymension.rollapp.MsgCreateRollapp", MsgCreateRollapp],
   ["/dymensionxyz.dymension.rollapp.MsgUpdateState", MsgUpdateState],
+  ["/dymensionxyz.dymension.rollapp.MsgCreateRollapp", MsgCreateRollapp],
   
 ];
 export const MissingWalletError = new Error("wallet is required");
@@ -43,8 +43,8 @@ const txClient = async (wallet: OfflineSigner, { addr: addr }: TxClientOptions =
 
   return {
     signAndBroadcast: (msgs: EncodeObject[], { fee, memo }: SignAndBroadcastOptions = {fee: defaultFee, memo: ""}) => client.signAndBroadcast(address, msgs, fee,memo),
-    msgCreateRollapp: (data: MsgCreateRollapp): EncodeObject => ({ typeUrl: "/dymensionxyz.dymension.rollapp.MsgCreateRollapp", value: MsgCreateRollapp.fromPartial( data ) }),
     msgUpdateState: (data: MsgUpdateState): EncodeObject => ({ typeUrl: "/dymensionxyz.dymension.rollapp.MsgUpdateState", value: MsgUpdateState.fromPartial( data ) }),
+    msgCreateRollapp: (data: MsgCreateRollapp): EncodeObject => ({ typeUrl: "/dymensionxyz.dymension.rollapp.MsgCreateRollapp", value: MsgCreateRollapp.fromPartial( data ) }),
     
   };
 };

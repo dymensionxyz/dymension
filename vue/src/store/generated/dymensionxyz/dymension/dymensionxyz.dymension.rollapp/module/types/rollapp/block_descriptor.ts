@@ -4,7 +4,7 @@ import { util, configure, Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
-/** BlockDescriptor defines a singke rollapp chain block description. */
+/** BlockDescriptor defines a single rollapp chain block description. */
 export interface BlockDescriptor {
   /** height is the height of the block */
   height: number;

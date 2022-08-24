@@ -6,7 +6,7 @@ option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 import "gogoproto/gogo.proto";
 
 
-// BlockDescriptor defines a singke rollapp chain block description.
+// BlockDescriptor defines a single rollapp chain block description.
 message BlockDescriptor {
   // height is the height of the block
   uint64 height = 1; 

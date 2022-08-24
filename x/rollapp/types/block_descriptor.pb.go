@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// BlockDescriptor defines a singke rollapp chain block description.
+// BlockDescriptor defines a single rollapp chain block description.
 type BlockDescriptor struct {
 	// height is the height of the block
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
