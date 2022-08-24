@@ -6,9 +6,8 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
-import "rollapp/rollapp_state_info.proto";
-// this line is used by starport scaffolding # 1
 import "rollapp/state_info.proto";
+// this line is used by starport scaffolding # 1
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -28,14 +27,14 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
 	}
 
-// Queries a RollappStateInfo by index.
-	rpc RollappStateInfo(QueryGetRollappStateInfoRequest) returns (QueryGetRollappStateInfoResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp_state_info/{rollappId}/{stateIndex}";
+// Queries a StateInfo by index.
+	rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}";
 	}
 
-	// Queries a list of RollappStateInfo items.
-	rpc RollappStateInfoAll(QueryAllRollappStateInfoRequest) returns (QueryAllRollappStateInfoResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp_state_info";
+	// Queries a list of StateInfo items.
+	rpc StateInfoAll(QueryAllStateInfoRequest) returns (QueryAllStateInfoResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -68,21 +67,21 @@ message QueryAllRollappResponse {
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetRollappStateInfoRequest {
+message QueryGetStateInfoRequest {
 	  string rollappId = 1;
 	  uint64 stateIndex = 2;
 }
 
-message QueryGetRollappStateInfoResponse {
-	RollappStateInfo rollappStateInfo = 1 [(gogoproto.nullable) = false];
+message QueryGetStateInfoResponse {
+	StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryAllRollappStateInfoRequest {
+message QueryAllStateInfoRequest {
 	cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllRollappStateInfoResponse {
-	repeated RollappStateInfo rollappStateInfo = 1 [(gogoproto.nullable) = false];
+message QueryAllStateInfoResponse {
+	repeated StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

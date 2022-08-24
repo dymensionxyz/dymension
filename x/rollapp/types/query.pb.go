@@ -297,23 +297,23 @@ func (m *QueryAllRollappResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-type QueryGetRollappStateInfoRequest struct {
+type QueryGetStateInfoRequest struct {
 	RollappId  string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	StateIndex uint64 `protobuf:"varint,2,opt,name=stateIndex,proto3" json:"stateIndex,omitempty"`
 }
 
-func (m *QueryGetRollappStateInfoRequest) Reset()         { *m = QueryGetRollappStateInfoRequest{} }
-func (m *QueryGetRollappStateInfoRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetRollappStateInfoRequest) ProtoMessage()    {}
-func (*QueryGetRollappStateInfoRequest) Descriptor() ([]byte, []int) {
+func (m *QueryGetStateInfoRequest) Reset()         { *m = QueryGetStateInfoRequest{} }
+func (m *QueryGetStateInfoRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetStateInfoRequest) ProtoMessage()    {}
+func (*QueryGetStateInfoRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b2fc533dd2941a55, []int{6}
 }
-func (m *QueryGetRollappStateInfoRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryGetStateInfoRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetRollappStateInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryGetStateInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetRollappStateInfoRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryGetStateInfoRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -323,48 +323,48 @@ func (m *QueryGetRollappStateInfoRequest) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QueryGetRollappStateInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetRollappStateInfoRequest.Merge(m, src)
+func (m *QueryGetStateInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetStateInfoRequest.Merge(m, src)
 }
-func (m *QueryGetRollappStateInfoRequest) XXX_Size() int {
+func (m *QueryGetStateInfoRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetRollappStateInfoRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetRollappStateInfoRequest.DiscardUnknown(m)
+func (m *QueryGetStateInfoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetStateInfoRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetRollappStateInfoRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryGetStateInfoRequest proto.InternalMessageInfo
 
-func (m *QueryGetRollappStateInfoRequest) GetRollappId() string {
+func (m *QueryGetStateInfoRequest) GetRollappId() string {
 	if m != nil {
 		return m.RollappId
 	}
 	return ""
 }
 
-func (m *QueryGetRollappStateInfoRequest) GetStateIndex() uint64 {
+func (m *QueryGetStateInfoRequest) GetStateIndex() uint64 {
 	if m != nil {
 		return m.StateIndex
 	}
 	return 0
 }
 
-type QueryGetRollappStateInfoResponse struct {
-	RollappStateInfo RollappStateInfo `protobuf:"bytes,1,opt,name=rollappStateInfo,proto3" json:"rollappStateInfo"`
+type QueryGetStateInfoResponse struct {
+	StateInfo StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
 }
 
-func (m *QueryGetRollappStateInfoResponse) Reset()         { *m = QueryGetRollappStateInfoResponse{} }
-func (m *QueryGetRollappStateInfoResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetRollappStateInfoResponse) ProtoMessage()    {}
-func (*QueryGetRollappStateInfoResponse) Descriptor() ([]byte, []int) {
+func (m *QueryGetStateInfoResponse) Reset()         { *m = QueryGetStateInfoResponse{} }
+func (m *QueryGetStateInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetStateInfoResponse) ProtoMessage()    {}
+func (*QueryGetStateInfoResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b2fc533dd2941a55, []int{7}
 }
-func (m *QueryGetRollappStateInfoResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryGetStateInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetRollappStateInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryGetStateInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetRollappStateInfoResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryGetStateInfoResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -374,41 +374,41 @@ func (m *QueryGetRollappStateInfoResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *QueryGetRollappStateInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetRollappStateInfoResponse.Merge(m, src)
+func (m *QueryGetStateInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetStateInfoResponse.Merge(m, src)
 }
-func (m *QueryGetRollappStateInfoResponse) XXX_Size() int {
+func (m *QueryGetStateInfoResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetRollappStateInfoResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetRollappStateInfoResponse.DiscardUnknown(m)
+func (m *QueryGetStateInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetStateInfoResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetRollappStateInfoResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryGetStateInfoResponse proto.InternalMessageInfo
 
-func (m *QueryGetRollappStateInfoResponse) GetRollappStateInfo() RollappStateInfo {
+func (m *QueryGetStateInfoResponse) GetStateInfo() StateInfo {
 	if m != nil {
-		return m.RollappStateInfo
+		return m.StateInfo
 	}
-	return RollappStateInfo{}
+	return StateInfo{}
 }
 
-type QueryAllRollappStateInfoRequest struct {
+type QueryAllStateInfoRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllRollappStateInfoRequest) Reset()         { *m = QueryAllRollappStateInfoRequest{} }
-func (m *QueryAllRollappStateInfoRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllRollappStateInfoRequest) ProtoMessage()    {}
-func (*QueryAllRollappStateInfoRequest) Descriptor() ([]byte, []int) {
+func (m *QueryAllStateInfoRequest) Reset()         { *m = QueryAllStateInfoRequest{} }
+func (m *QueryAllStateInfoRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAllStateInfoRequest) ProtoMessage()    {}
+func (*QueryAllStateInfoRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b2fc533dd2941a55, []int{8}
 }
-func (m *QueryAllRollappStateInfoRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryAllStateInfoRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllRollappStateInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAllStateInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllRollappStateInfoRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAllStateInfoRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -418,42 +418,42 @@ func (m *QueryAllRollappStateInfoRequest) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QueryAllRollappStateInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllRollappStateInfoRequest.Merge(m, src)
+func (m *QueryAllStateInfoRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllStateInfoRequest.Merge(m, src)
 }
-func (m *QueryAllRollappStateInfoRequest) XXX_Size() int {
+func (m *QueryAllStateInfoRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllRollappStateInfoRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllRollappStateInfoRequest.DiscardUnknown(m)
+func (m *QueryAllStateInfoRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllStateInfoRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllRollappStateInfoRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryAllStateInfoRequest proto.InternalMessageInfo
 
-func (m *QueryAllRollappStateInfoRequest) GetPagination() *query.PageRequest {
+func (m *QueryAllStateInfoRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllRollappStateInfoResponse struct {
-	RollappStateInfo []RollappStateInfo  `protobuf:"bytes,1,rep,name=rollappStateInfo,proto3" json:"rollappStateInfo"`
-	Pagination       *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+type QueryAllStateInfoResponse struct {
+	StateInfo  []StateInfo         `protobuf:"bytes,1,rep,name=stateInfo,proto3" json:"stateInfo"`
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllRollappStateInfoResponse) Reset()         { *m = QueryAllRollappStateInfoResponse{} }
-func (m *QueryAllRollappStateInfoResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllRollappStateInfoResponse) ProtoMessage()    {}
-func (*QueryAllRollappStateInfoResponse) Descriptor() ([]byte, []int) {
+func (m *QueryAllStateInfoResponse) Reset()         { *m = QueryAllStateInfoResponse{} }
+func (m *QueryAllStateInfoResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAllStateInfoResponse) ProtoMessage()    {}
+func (*QueryAllStateInfoResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b2fc533dd2941a55, []int{9}
 }
-func (m *QueryAllRollappStateInfoResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryAllStateInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllRollappStateInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAllStateInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllRollappStateInfoResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAllStateInfoResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -463,26 +463,26 @@ func (m *QueryAllRollappStateInfoResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *QueryAllRollappStateInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllRollappStateInfoResponse.Merge(m, src)
+func (m *QueryAllStateInfoResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAllStateInfoResponse.Merge(m, src)
 }
-func (m *QueryAllRollappStateInfoResponse) XXX_Size() int {
+func (m *QueryAllStateInfoResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllRollappStateInfoResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllRollappStateInfoResponse.DiscardUnknown(m)
+func (m *QueryAllStateInfoResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAllStateInfoResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllRollappStateInfoResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryAllStateInfoResponse proto.InternalMessageInfo
 
-func (m *QueryAllRollappStateInfoResponse) GetRollappStateInfo() []RollappStateInfo {
+func (m *QueryAllStateInfoResponse) GetStateInfo() []StateInfo {
 	if m != nil {
-		return m.RollappStateInfo
+		return m.StateInfo
 	}
 	return nil
 }
 
-func (m *QueryAllRollappStateInfoResponse) GetPagination() *query.PageResponse {
+func (m *QueryAllStateInfoResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -496,58 +496,57 @@ func init() {
 	proto.RegisterType((*QueryGetRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappResponse")
 	proto.RegisterType((*QueryAllRollappRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappRequest")
 	proto.RegisterType((*QueryAllRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappResponse")
-	proto.RegisterType((*QueryGetRollappStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappStateInfoRequest")
-	proto.RegisterType((*QueryGetRollappStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappStateInfoResponse")
-	proto.RegisterType((*QueryAllRollappStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappStateInfoRequest")
-	proto.RegisterType((*QueryAllRollappStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappStateInfoResponse")
+	proto.RegisterType((*QueryGetStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoRequest")
+	proto.RegisterType((*QueryGetStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse")
+	proto.RegisterType((*QueryAllStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllStateInfoRequest")
+	proto.RegisterType((*QueryAllStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllStateInfoResponse")
 }
 
 func init() { proto.RegisterFile("rollapp/query.proto", fileDescriptor_b2fc533dd2941a55) }
 
 var fileDescriptor_b2fc533dd2941a55 = []byte{
-	// 665 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x31, 0x6f, 0xd3, 0x50,
-	0x10, 0xc7, 0xf3, 0xda, 0xd2, 0xaa, 0xc7, 0x52, 0xbd, 0x06, 0xa8, 0xa2, 0xca, 0x8d, 0x3c, 0xb4,
-	0x85, 0xc1, 0x26, 0x09, 0x14, 0x09, 0x86, 0xd2, 0x0a, 0x11, 0x55, 0x15, 0x52, 0x71, 0x37, 0x18,
-	0x82, 0xdd, 0xbc, 0x1a, 0x4b, 0x8e, 0x9f, 0x1b, 0x3b, 0x28, 0xa1, 0xea, 0xc2, 0xc0, 0x8c, 0xc4,
-	0x27, 0x60, 0x46, 0x62, 0xe5, 0x2b, 0x74, 0xa3, 0x12, 0x0c, 0x88, 0x01, 0xa1, 0x84, 0x89, 0x4f,
-	0x81, 0xf2, 0x7c, 0x4e, 0x1c, 0xbb, 0x4d, 0x9c, 0x28, 0x53, 0x9a, 0xe7, 0xfb, 0xdf, 0xfd, 0xfe,
-	0x77, 0xcf, 0xd7, 0xc0, 0x72, 0x9d, 0xdb, 0xb6, 0xee, 0xba, 0xea, 0x49, 0x83, 0xd5, 0x5b, 0x8a,
-	0x5b, 0xe7, 0x3e, 0xa7, 0x52, 0xb5, 0x55, 0x63, 0x8e, 0x67, 0x71, 0xa7, 0xd9, 0x7a, 0xab, 0xf4,
-	0xbe, 0x28, 0x18, 0x9b, 0xcb, 0x9a, 0xdc, 0xe4, 0x22, 0x54, 0xed, 0xfe, 0x15, 0xa8, 0x72, 0xab,
-	0x26, 0xe7, 0xa6, 0xcd, 0x54, 0xdd, 0xb5, 0x54, 0xdd, 0x71, 0xb8, 0xaf, 0xfb, 0x16, 0x77, 0x3c,
-	0x7c, 0x7a, 0xe7, 0x88, 0x7b, 0x35, 0xee, 0xa9, 0x86, 0xee, 0xb1, 0xa0, 0x98, 0xfa, 0xa6, 0x60,
-	0x30, 0x5f, 0x2f, 0xa8, 0xae, 0x6e, 0x5a, 0x8e, 0x08, 0xc6, 0xd8, 0x6c, 0x08, 0xe5, 0xea, 0x75,
-	0xbd, 0x16, 0x66, 0xb8, 0x11, 0x9e, 0xe2, 0x27, 0x1e, 0xe7, 0x63, 0xc7, 0x15, 0xcf, 0xd7, 0x7d,
-	0x56, 0xb1, 0x9c, 0xe3, 0x10, 0x6c, 0x25, 0x8c, 0x88, 0x3f, 0x91, 0xb3, 0x40, 0x9f, 0x77, 0x51,
-	0x0e, 0x44, 0x1d, 0x8d, 0x9d, 0x34, 0x98, 0xe7, 0xcb, 0x2f, 0x61, 0x79, 0xe0, 0xd4, 0x73, 0xb9,
-	0xe3, 0x31, 0xfa, 0x04, 0xe6, 0x03, 0x9e, 0x15, 0x92, 0x27, 0x9b, 0xd7, 0x8b, 0xeb, 0xca, 0xf0,
-	0x36, 0x29, 0x81, 0x7e, 0x77, 0xee, 0xfc, 0xf7, 0x5a, 0x46, 0x43, 0xad, 0xbc, 0x05, 0x37, 0x45,
-	0xf2, 0x32, 0xf3, 0xb5, 0x20, 0x0e, 0xcb, 0xd2, 0x55, 0x58, 0x44, 0xe5, 0x5e, 0x55, 0x94, 0x58,
-	0xd4, 0xfa, 0x07, 0xb2, 0x01, 0xb7, 0x12, 0x3a, 0x04, 0x2b, 0xc3, 0x02, 0xc6, 0x21, 0xd9, 0xc6,
-	0x28, 0x32, 0xcc, 0x80, 0x68, 0xa1, 0x5a, 0x7e, 0x85, 0x6c, 0x3b, 0xb6, 0x1d, 0x63, 0x7b, 0x0a,
-	0xd0, 0x9f, 0x52, 0xcf, 0x7f, 0x30, 0x52, 0xa5, 0x3b, 0x52, 0x25, 0xb8, 0x3f, 0x38, 0x52, 0xe5,
-	0x40, 0x37, 0x19, 0x6a, 0xb5, 0x88, 0x52, 0xfe, 0x4c, 0xd0, 0x46, 0xb4, 0xc4, 0x65, 0x36, 0x66,
-	0x27, 0xb7, 0x41, 0xcb, 0x03, 0xb0, 0x33, 0xd8, 0x92, 0x51, 0xb0, 0x01, 0xc5, 0x00, 0x6d, 0x05,
-	0xd6, 0x62, 0x3d, 0x3f, 0xec, 0xde, 0xa0, 0x3d, 0xe7, 0x98, 0xa7, 0x1a, 0x1a, 0x95, 0x00, 0xbc,
-	0x40, 0x51, 0x65, 0x4d, 0x41, 0x32, 0xa7, 0x45, 0x4e, 0xe4, 0xf7, 0x04, 0xf2, 0x57, 0x57, 0xc0,
-	0xbe, 0x18, 0xb0, 0x54, 0x8f, 0x3d, 0xc3, 0x09, 0xdc, 0x4d, 0xd9, 0xa0, 0x9e, 0x0e, 0x3b, 0x95,
-	0xc8, 0x27, 0x5b, 0xe8, 0xb4, 0x3f, 0x96, 0x84, 0xd3, 0x69, 0x5d, 0x81, 0x6f, 0xa1, 0xe7, 0x4b,
-	0x6b, 0x0d, 0xf5, 0x3c, 0x3b, 0x4d, 0xcf, 0x53, 0xbb, 0x26, 0xc5, 0x5f, 0x0b, 0x70, 0x4d, 0x38,
-	0xa2, 0x9f, 0x08, 0xcc, 0x07, 0x6f, 0x3d, 0x2d, 0x8e, 0xe2, 0x4c, 0x2e, 0x9e, 0x5c, 0x69, 0x2c,
-	0x4d, 0x40, 0x22, 0x2b, 0xef, 0xbe, 0xff, 0xfd, 0x38, 0xb3, 0x49, 0xd7, 0xd5, 0xa8, 0xb8, 0xff,
-	0x45, 0x1d, 0x5c, 0xa6, 0xf4, 0x2b, 0x81, 0x05, 0xec, 0x11, 0xdd, 0x4a, 0x55, 0x30, 0xb1, 0xaa,
-	0x72, 0x0f, 0xc6, 0xd6, 0x21, 0xec, 0x23, 0x01, 0x7b, 0x9f, 0x96, 0x46, 0xc1, 0x86, 0x9f, 0xa7,
-	0xbd, 0x97, 0xe9, 0x8c, 0x7e, 0x21, 0x00, 0x98, 0x70, 0xc7, 0xb6, 0x53, 0xc2, 0x27, 0x76, 0x59,
-	0x4a, 0xf8, 0xe4, 0x82, 0x92, 0x55, 0x01, 0x7f, 0x9b, 0x6e, 0xa4, 0x84, 0xa7, 0xff, 0x08, 0x2c,
-	0xc5, 0xaf, 0x23, 0xdd, 0x1e, 0xb3, 0x77, 0xf1, 0x17, 0x31, 0xf7, 0x78, 0xf2, 0x04, 0x68, 0xe4,
-	0x50, 0x18, 0x79, 0x46, 0xf7, 0x53, 0x1a, 0x89, 0xfc, 0x4b, 0x8d, 0x0e, 0x44, 0x3d, 0xed, 0xaf,
-	0xb2, 0x33, 0xfa, 0x83, 0xc0, 0x72, 0xbc, 0x62, 0x77, 0x4c, 0xdb, 0x63, 0xb6, 0x7b, 0x42, 0xbf,
-	0x43, 0xb6, 0x89, 0xfc, 0x50, 0xf8, 0xbd, 0x47, 0x8b, 0xe3, 0xfb, 0xdd, 0xdd, 0x3f, 0x6f, 0x4b,
-	0xe4, 0xa2, 0x2d, 0x91, 0x3f, 0x6d, 0x89, 0x7c, 0xe8, 0x48, 0x99, 0x8b, 0x8e, 0x94, 0xf9, 0xd9,
-	0x91, 0x32, 0x2f, 0x0a, 0xa6, 0xe5, 0xbf, 0x6e, 0x18, 0xca, 0x11, 0xaf, 0x5d, 0x95, 0xb7, 0xd9,
-	0xcb, 0xec, 0xb7, 0x5c, 0xe6, 0x19, 0xf3, 0xe2, 0x67, 0x47, 0xe9, 0x7f, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0x13, 0xa5, 0xc2, 0x1f, 0x76, 0x09, 0x00, 0x00,
+	// 655 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0xcf, 0x6e, 0xd3, 0x4e,
+	0x10, 0xc7, 0xe3, 0xb6, 0xbf, 0x56, 0xd9, 0x1f, 0xa7, 0x6d, 0x80, 0x10, 0x55, 0x06, 0xf9, 0xd0,
+	0x7f, 0x42, 0xb6, 0x92, 0x88, 0x52, 0xc4, 0x29, 0xe5, 0x4f, 0x54, 0x55, 0x48, 0xc5, 0x5c, 0x10,
+	0x1c, 0x60, 0xdd, 0x6c, 0x8d, 0x91, 0xe3, 0x75, 0xb3, 0x0e, 0x4a, 0xa8, 0x7a, 0xe1, 0x09, 0x90,
+	0x78, 0x01, 0x38, 0x23, 0x71, 0xe1, 0xc0, 0x2b, 0xf4, 0x82, 0x54, 0x89, 0x0b, 0x27, 0x84, 0x12,
+	0x1e, 0x04, 0x79, 0x77, 0x6c, 0x27, 0x75, 0xc0, 0x6e, 0xe8, 0xc9, 0xf1, 0x64, 0xbe, 0x33, 0x9f,
+	0x99, 0xd9, 0x1d, 0xa3, 0xc5, 0x0e, 0x73, 0x5d, 0xe2, 0xfb, 0xc6, 0x41, 0x97, 0x76, 0xfa, 0xba,
+	0xdf, 0x61, 0x01, 0xc3, 0x6a, 0xab, 0xdf, 0xa6, 0x1e, 0x77, 0x98, 0xd7, 0xeb, 0xbf, 0xd6, 0xe3,
+	0x17, 0x1d, 0x7c, 0x2b, 0x25, 0x9b, 0xd9, 0x4c, 0xb8, 0x1a, 0xe1, 0x2f, 0xa9, 0xaa, 0x2c, 0xd9,
+	0x8c, 0xd9, 0x2e, 0x35, 0x88, 0xef, 0x18, 0xc4, 0xf3, 0x58, 0x40, 0x02, 0x87, 0x79, 0x1c, 0xfe,
+	0x5d, 0xdf, 0x63, 0xbc, 0xcd, 0xb8, 0x61, 0x11, 0x4e, 0x65, 0x32, 0xe3, 0x55, 0xd5, 0xa2, 0x01,
+	0xa9, 0x1a, 0x3e, 0xb1, 0x1d, 0x4f, 0x38, 0x83, 0x6f, 0x29, 0x82, 0xf2, 0x49, 0x87, 0xb4, 0xa3,
+	0x08, 0x17, 0x23, 0x2b, 0x3c, 0xc1, 0x5c, 0x8e, 0xcc, 0x3c, 0x20, 0x01, 0x7d, 0xe6, 0x78, 0xfb,
+	0x00, 0xa4, 0x95, 0x10, 0x7e, 0x18, 0x26, 0xda, 0x15, 0x51, 0x4c, 0x7a, 0xd0, 0xa5, 0x3c, 0xd0,
+	0x9e, 0xa2, 0xc5, 0x31, 0x2b, 0xf7, 0x99, 0xc7, 0x29, 0xbe, 0x8b, 0xe6, 0x65, 0xb6, 0xb2, 0x72,
+	0x4d, 0x59, 0xfd, 0xbf, 0xb6, 0xac, 0xff, 0xbd, 0x09, 0xba, 0xd4, 0x6f, 0xcd, 0x1d, 0xff, 0xb8,
+	0x5a, 0x30, 0x41, 0xab, 0x6d, 0xa0, 0x4b, 0x22, 0x78, 0x93, 0x06, 0xa6, 0xf4, 0x83, 0xb4, 0x78,
+	0x09, 0x15, 0x41, 0xb9, 0xdd, 0x12, 0x29, 0x8a, 0x66, 0x62, 0xd0, 0x2c, 0x74, 0x39, 0xa5, 0x03,
+	0xb0, 0x26, 0x5a, 0x00, 0x3f, 0x20, 0x5b, 0xc9, 0x22, 0x83, 0x08, 0x80, 0x16, 0xa9, 0xb5, 0xe7,
+	0xc0, 0xd6, 0x70, 0xdd, 0x53, 0x6c, 0xf7, 0x11, 0x4a, 0x66, 0x10, 0xd7, 0x2f, 0x07, 0xa6, 0x87,
+	0x03, 0xd3, 0xe5, 0xe9, 0x80, 0x81, 0xe9, 0xbb, 0xc4, 0xa6, 0xa0, 0x35, 0x47, 0x94, 0xda, 0x47,
+	0x05, 0xca, 0x18, 0x4d, 0x31, 0xa9, 0x8c, 0xd9, 0xe9, 0xcb, 0xc0, 0xcd, 0x31, 0xd8, 0x19, 0x68,
+	0x49, 0x16, 0xac, 0xa4, 0x18, 0xa3, 0x7d, 0x8c, 0xca, 0x51, 0xcf, 0x1f, 0x85, 0x47, 0x67, 0xdb,
+	0xdb, 0x67, 0xb9, 0xa6, 0x85, 0x55, 0x84, 0xb8, 0x54, 0xb4, 0x68, 0x4f, 0x20, 0xcc, 0x99, 0x23,
+	0x16, 0xed, 0x25, 0xba, 0x32, 0x21, 0x32, 0x34, 0xe2, 0x01, 0x2a, 0xf2, 0xc8, 0x08, 0xbd, 0x5e,
+	0xcb, 0x6a, 0x45, 0x1c, 0x05, 0x9a, 0x91, 0x44, 0xd0, 0x2c, 0xa8, 0xa2, 0xe1, 0xba, 0xa9, 0x2a,
+	0xce, 0x6b, 0xae, 0x9f, 0x15, 0x28, 0x68, 0x3c, 0xc9, 0xe4, 0x82, 0x66, 0xff, 0xad, 0xa0, 0x73,
+	0x9b, 0x6f, 0xed, 0xfd, 0x02, 0xfa, 0x4f, 0x50, 0xe3, 0x0f, 0x0a, 0x9a, 0x97, 0xd7, 0x15, 0xd7,
+	0xb2, 0xc8, 0xd2, 0x1b, 0xa3, 0x52, 0x3f, 0x93, 0x46, 0x92, 0x68, 0xfa, 0x9b, 0x6f, 0xbf, 0xde,
+	0xcd, 0xac, 0xe2, 0x65, 0x63, 0x54, 0x9c, 0xbc, 0x18, 0xe3, 0x3b, 0x0e, 0x7f, 0x51, 0xd0, 0x02,
+	0x9c, 0x78, 0xbc, 0x91, 0x2b, 0x61, 0x6a, 0xc7, 0x54, 0x6e, 0x9e, 0x59, 0x07, 0xb0, 0xb7, 0x05,
+	0xec, 0x0d, 0x5c, 0xcf, 0x82, 0x8d, 0x9e, 0x87, 0xf1, 0x65, 0x38, 0xc2, 0x9f, 0x14, 0x84, 0x20,
+	0x60, 0xc3, 0x75, 0x73, 0xc2, 0xa7, 0x96, 0x50, 0x4e, 0xf8, 0xf4, 0x66, 0xd1, 0x0c, 0x01, 0xbf,
+	0x86, 0x57, 0x72, 0xc2, 0xe3, 0xaf, 0x0a, 0x2a, 0xc6, 0x07, 0x10, 0x6f, 0xe6, 0x6d, 0xda, 0xe9,
+	0xeb, 0x55, 0xb9, 0x35, 0x85, 0x12, 0x98, 0x77, 0x04, 0xf3, 0x3d, 0x7c, 0x27, 0x8b, 0x39, 0xf9,
+	0xa8, 0x8d, 0xf6, 0xdc, 0x38, 0x4c, 0xb6, 0xcd, 0x51, 0x78, 0x74, 0x2e, 0xc4, 0x29, 0xc2, 0x11,
+	0x6c, 0xe6, 0x6d, 0xe5, 0x94, 0x25, 0x4d, 0x5a, 0x03, 0x5a, 0x4d, 0x94, 0x74, 0x1d, 0xaf, 0xe7,
+	0x2f, 0x69, 0x6b, 0xe7, 0x78, 0xa0, 0x2a, 0x27, 0x03, 0x55, 0xf9, 0x39, 0x50, 0x95, 0xb7, 0x43,
+	0xb5, 0x70, 0x32, 0x54, 0x0b, 0xdf, 0x87, 0x6a, 0xe1, 0x49, 0xd5, 0x76, 0x82, 0x17, 0x5d, 0x4b,
+	0xdf, 0x63, 0xed, 0x3f, 0xc5, 0xeb, 0xc5, 0x11, 0x83, 0xbe, 0x4f, 0xb9, 0x35, 0x2f, 0xbe, 0xfa,
+	0xf5, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xc0, 0x61, 0xd0, 0x49, 0xd3, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -568,10 +567,10 @@ type QueryClient interface {
 	Rollapp(ctx context.Context, in *QueryGetRollappRequest, opts ...grpc.CallOption) (*QueryGetRollappResponse, error)
 	// Queries a list of Rollapp items.
 	RollappAll(ctx context.Context, in *QueryAllRollappRequest, opts ...grpc.CallOption) (*QueryAllRollappResponse, error)
-	// Queries a RollappStateInfo by index.
-	RollappStateInfo(ctx context.Context, in *QueryGetRollappStateInfoRequest, opts ...grpc.CallOption) (*QueryGetRollappStateInfoResponse, error)
-	// Queries a list of RollappStateInfo items.
-	RollappStateInfoAll(ctx context.Context, in *QueryAllRollappStateInfoRequest, opts ...grpc.CallOption) (*QueryAllRollappStateInfoResponse, error)
+	// Queries a StateInfo by index.
+	StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error)
+	// Queries a list of StateInfo items.
+	StateInfoAll(ctx context.Context, in *QueryAllStateInfoRequest, opts ...grpc.CallOption) (*QueryAllStateInfoResponse, error)
 }
 
 type queryClient struct {
@@ -609,18 +608,18 @@ func (c *queryClient) RollappAll(ctx context.Context, in *QueryAllRollappRequest
 	return out, nil
 }
 
-func (c *queryClient) RollappStateInfo(ctx context.Context, in *QueryGetRollappStateInfoRequest, opts ...grpc.CallOption) (*QueryGetRollappStateInfoResponse, error) {
-	out := new(QueryGetRollappStateInfoResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/RollappStateInfo", in, out, opts...)
+func (c *queryClient) StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error) {
+	out := new(QueryGetStateInfoResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/StateInfo", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) RollappStateInfoAll(ctx context.Context, in *QueryAllRollappStateInfoRequest, opts ...grpc.CallOption) (*QueryAllRollappStateInfoResponse, error) {
-	out := new(QueryAllRollappStateInfoResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/RollappStateInfoAll", in, out, opts...)
+func (c *queryClient) StateInfoAll(ctx context.Context, in *QueryAllStateInfoRequest, opts ...grpc.CallOption) (*QueryAllStateInfoResponse, error) {
+	out := new(QueryAllStateInfoResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/StateInfoAll", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -635,10 +634,10 @@ type QueryServer interface {
 	Rollapp(context.Context, *QueryGetRollappRequest) (*QueryGetRollappResponse, error)
 	// Queries a list of Rollapp items.
 	RollappAll(context.Context, *QueryAllRollappRequest) (*QueryAllRollappResponse, error)
-	// Queries a RollappStateInfo by index.
-	RollappStateInfo(context.Context, *QueryGetRollappStateInfoRequest) (*QueryGetRollappStateInfoResponse, error)
-	// Queries a list of RollappStateInfo items.
-	RollappStateInfoAll(context.Context, *QueryAllRollappStateInfoRequest) (*QueryAllRollappStateInfoResponse, error)
+	// Queries a StateInfo by index.
+	StateInfo(context.Context, *QueryGetStateInfoRequest) (*QueryGetStateInfoResponse, error)
+	// Queries a list of StateInfo items.
+	StateInfoAll(context.Context, *QueryAllStateInfoRequest) (*QueryAllStateInfoResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -654,11 +653,11 @@ func (*UnimplementedQueryServer) Rollapp(ctx context.Context, req *QueryGetRolla
 func (*UnimplementedQueryServer) RollappAll(ctx context.Context, req *QueryAllRollappRequest) (*QueryAllRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollappAll not implemented")
 }
-func (*UnimplementedQueryServer) RollappStateInfo(ctx context.Context, req *QueryGetRollappStateInfoRequest) (*QueryGetRollappStateInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RollappStateInfo not implemented")
+func (*UnimplementedQueryServer) StateInfo(ctx context.Context, req *QueryGetStateInfoRequest) (*QueryGetStateInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StateInfo not implemented")
 }
-func (*UnimplementedQueryServer) RollappStateInfoAll(ctx context.Context, req *QueryAllRollappStateInfoRequest) (*QueryAllRollappStateInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RollappStateInfoAll not implemented")
+func (*UnimplementedQueryServer) StateInfoAll(ctx context.Context, req *QueryAllStateInfoRequest) (*QueryAllStateInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StateInfoAll not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -719,38 +718,38 @@ func _Query_RollappAll_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_RollappStateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetRollappStateInfoRequest)
+func _Query_StateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetStateInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).RollappStateInfo(ctx, in)
+		return srv.(QueryServer).StateInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/RollappStateInfo",
+		FullMethod: "/dymensionxyz.dymension.rollapp.Query/StateInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).RollappStateInfo(ctx, req.(*QueryGetRollappStateInfoRequest))
+		return srv.(QueryServer).StateInfo(ctx, req.(*QueryGetStateInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_RollappStateInfoAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllRollappStateInfoRequest)
+func _Query_StateInfoAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAllStateInfoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).RollappStateInfoAll(ctx, in)
+		return srv.(QueryServer).StateInfoAll(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/RollappStateInfoAll",
+		FullMethod: "/dymensionxyz.dymension.rollapp.Query/StateInfoAll",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).RollappStateInfoAll(ctx, req.(*QueryAllRollappStateInfoRequest))
+		return srv.(QueryServer).StateInfoAll(ctx, req.(*QueryAllStateInfoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -772,12 +771,12 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_RollappAll_Handler,
 		},
 		{
-			MethodName: "RollappStateInfo",
-			Handler:    _Query_RollappStateInfo_Handler,
+			MethodName: "StateInfo",
+			Handler:    _Query_StateInfo_Handler,
 		},
 		{
-			MethodName: "RollappStateInfoAll",
-			Handler:    _Query_RollappStateInfoAll_Handler,
+			MethodName: "StateInfoAll",
+			Handler:    _Query_StateInfoAll_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -987,7 +986,7 @@ func (m *QueryAllRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetRollappStateInfoRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryGetStateInfoRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -997,12 +996,12 @@ func (m *QueryGetRollappStateInfoRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetRollappStateInfoRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryGetStateInfoRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetRollappStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryGetStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1022,7 +1021,7 @@ func (m *QueryGetRollappStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetRollappStateInfoResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryGetStateInfoResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1032,18 +1031,18 @@ func (m *QueryGetRollappStateInfoResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetRollappStateInfoResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryGetStateInfoResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetRollappStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryGetStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.RollappStateInfo.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.StateInfo.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -1055,7 +1054,7 @@ func (m *QueryGetRollappStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllRollappStateInfoRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryAllStateInfoRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1065,12 +1064,12 @@ func (m *QueryAllRollappStateInfoRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllRollappStateInfoRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAllStateInfoRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllRollappStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAllStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1090,7 +1089,7 @@ func (m *QueryAllRollappStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllRollappStateInfoResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryAllStateInfoResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1100,12 +1099,12 @@ func (m *QueryAllRollappStateInfoResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllRollappStateInfoResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAllStateInfoResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllRollappStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAllStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1122,10 +1121,10 @@ func (m *QueryAllRollappStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (in
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.RollappStateInfo) > 0 {
-		for iNdEx := len(m.RollappStateInfo) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.StateInfo) > 0 {
+		for iNdEx := len(m.StateInfo) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.RollappStateInfo[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.StateInfo[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1226,7 +1225,7 @@ func (m *QueryAllRollappResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetRollappStateInfoRequest) Size() (n int) {
+func (m *QueryGetStateInfoRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1242,18 +1241,18 @@ func (m *QueryGetRollappStateInfoRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetRollappStateInfoResponse) Size() (n int) {
+func (m *QueryGetStateInfoResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.RollappStateInfo.Size()
+	l = m.StateInfo.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
-func (m *QueryAllRollappStateInfoRequest) Size() (n int) {
+func (m *QueryAllStateInfoRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1266,14 +1265,14 @@ func (m *QueryAllRollappStateInfoRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllRollappStateInfoResponse) Size() (n int) {
+func (m *QueryAllStateInfoResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.RollappStateInfo) > 0 {
-		for _, e := range m.RollappStateInfo {
+	if len(m.StateInfo) > 0 {
+		for _, e := range m.StateInfo {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -1795,7 +1794,7 @@ func (m *QueryAllRollappResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryGetStateInfoRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1818,10 +1817,10 @@ func (m *QueryGetRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetRollappStateInfoRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryGetStateInfoRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetRollappStateInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryGetStateInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1896,7 +1895,7 @@ func (m *QueryGetRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryGetStateInfoResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1919,15 +1918,15 @@ func (m *QueryGetRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetRollappStateInfoResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryGetStateInfoResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetRollappStateInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryGetStateInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappStateInfo", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field StateInfo", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1954,7 +1953,7 @@ func (m *QueryGetRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.RollappStateInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.StateInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1979,7 +1978,7 @@ func (m *QueryGetRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryAllStateInfoRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2002,10 +2001,10 @@ func (m *QueryAllRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllRollappStateInfoRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAllStateInfoRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllRollappStateInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAllStateInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2065,7 +2064,7 @@ func (m *QueryAllRollappStateInfoRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryAllStateInfoResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2088,15 +2087,15 @@ func (m *QueryAllRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllRollappStateInfoResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAllStateInfoResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllRollappStateInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAllStateInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappStateInfo", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field StateInfo", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2123,8 +2122,8 @@ func (m *QueryAllRollappStateInfoResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RollappStateInfo = append(m.RollappStateInfo, RollappStateInfo{})
-			if err := m.RollappStateInfo[len(m.RollappStateInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.StateInfo = append(m.StateInfo, StateInfo{})
+			if err := m.StateInfo[len(m.StateInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

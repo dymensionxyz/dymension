@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { Params } from "../rollapp/params";
 import { Rollapp } from "../rollapp/rollapp";
-import { RollappStateInfo } from "../rollapp/rollapp_state_info";
+import { StateInfo } from "../rollapp/state_info";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
@@ -11,7 +11,7 @@ export interface GenesisState {
   params: Params | undefined;
   rollappList: Rollapp[];
   /** this line is used by starport scaffolding # genesis/proto/state */
-  rollappStateInfoList: RollappStateInfo[];
+  stateInfoList: StateInfo[];
 }
 
 const baseGenesisState: object = {};
@@ -24,8 +24,8 @@ export const GenesisState = {
     for (const v of message.rollappList) {
       Rollapp.encode(v!, writer.uint32(18).fork()).ldelim();
     }
-    for (const v of message.rollappStateInfoList) {
-      RollappStateInfo.encode(v!, writer.uint32(26).fork()).ldelim();
+    for (const v of message.stateInfoList) {
+      StateInfo.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -35,7 +35,7 @@ export const GenesisState = {
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
-    message.rollappStateInfoList = [];
+    message.stateInfoList = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -46,9 +46,7 @@ export const GenesisState = {
           message.rollappList.push(Rollapp.decode(reader, reader.uint32()));
           break;
         case 3:
-          message.rollappStateInfoList.push(
-            RollappStateInfo.decode(reader, reader.uint32())
-          );
+          message.stateInfoList.push(StateInfo.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -61,7 +59,7 @@ export const GenesisState = {
   fromJSON(object: any): GenesisState {
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
-    message.rollappStateInfoList = [];
+    message.stateInfoList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromJSON(object.params);
     } else {
@@ -72,12 +70,9 @@ export const GenesisState = {
         message.rollappList.push(Rollapp.fromJSON(e));
       }
     }
-    if (
-      object.rollappStateInfoList !== undefined &&
-      object.rollappStateInfoList !== null
-    ) {
-      for (const e of object.rollappStateInfoList) {
-        message.rollappStateInfoList.push(RollappStateInfo.fromJSON(e));
+    if (object.stateInfoList !== undefined && object.stateInfoList !== null) {
+      for (const e of object.stateInfoList) {
+        message.stateInfoList.push(StateInfo.fromJSON(e));
       }
     }
     return message;
@@ -94,12 +89,12 @@ export const GenesisState = {
     } else {
       obj.rollappList = [];
     }
-    if (message.rollappStateInfoList) {
-      obj.rollappStateInfoList = message.rollappStateInfoList.map((e) =>
-        e ? RollappStateInfo.toJSON(e) : undefined
+    if (message.stateInfoList) {
+      obj.stateInfoList = message.stateInfoList.map((e) =>
+        e ? StateInfo.toJSON(e) : undefined
       );
     } else {
-      obj.rollappStateInfoList = [];
+      obj.stateInfoList = [];
     }
     return obj;
   },
@@ -107,7 +102,7 @@ export const GenesisState = {
   fromPartial(object: DeepPartial<GenesisState>): GenesisState {
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
-    message.rollappStateInfoList = [];
+    message.stateInfoList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromPartial(object.params);
     } else {
@@ -118,12 +113,9 @@ export const GenesisState = {
         message.rollappList.push(Rollapp.fromPartial(e));
       }
     }
-    if (
-      object.rollappStateInfoList !== undefined &&
-      object.rollappStateInfoList !== null
-    ) {
-      for (const e of object.rollappStateInfoList) {
-        message.rollappStateInfoList.push(RollappStateInfo.fromPartial(e));
+    if (object.stateInfoList !== undefined && object.stateInfoList !== null) {
+      for (const e of object.stateInfoList) {
+        message.stateInfoList.push(StateInfo.fromPartial(e));
       }
     }
     return message;

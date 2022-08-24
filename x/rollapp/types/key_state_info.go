@@ -8,12 +8,12 @@ import (
 var _ binary.ByteOrder
 
 const (
-	// RollappStateInfoKeyPrefix is the prefix to retrieve all RollappStateInfo
-	RollappStateInfoKeyPrefix = "RollappStateInfo/value/"
+	// StateInfoKeyPrefix is the prefix to retrieve all StateInfo
+	StateInfoKeyPrefix = "StateInfo/value/"
 )
 
-// RollappStateInfoKey returns the store key to retrieve a RollappStateInfo from the index fields
-func RollappStateInfoKey(
+// StateInfoKey returns the store key to retrieve a StateInfo from the index fields
+func StateInfoKey(
 	rollappId string,
 	stateIndex uint64,
 ) []byte {

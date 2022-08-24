@@ -30,7 +30,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RollappId: "1",
 					},
 				},
-				RollappStateInfoList: []types.RollappStateInfo{
+				StateInfoList: []types.StateInfo{
 					{
 						RollappId:  "0",
 						StateIndex: 0,
@@ -72,9 +72,9 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-			desc: "duplicated rollappStateInfo",
+			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
-				RollappStateInfoList: []types.RollappStateInfo{
+				StateInfoList: []types.StateInfo{
 					{
 						RollappId:  "0",
 						StateIndex: 0,

@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListRollappStateInfo() *cobra.Command {
+func CmdListStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-rollapp-state-info",
-		Short: "list all rollapp_state_info",
+		Short: "list all state_info",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -24,11 +24,11 @@ func CmdListRollappStateInfo() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllRollappStateInfoRequest{
+			params := &types.QueryAllStateInfoRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.RollappStateInfoAll(context.Background(), params)
+			res, err := queryClient.StateInfoAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -43,10 +43,10 @@ func CmdListRollappStateInfo() *cobra.Command {
 	return cmd
 }
 
-func CmdShowRollappStateInfo() *cobra.Command {
+func CmdShowStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-rollapp-state-info [rollapp-id] [state-index]",
-		Short: "shows a rollapp_state_info",
+		Short: "shows a state_info",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -59,12 +59,12 @@ func CmdShowRollappStateInfo() *cobra.Command {
 				return err
 			}
 
-			params := &types.QueryGetRollappStateInfoRequest{
+			params := &types.QueryGetStateInfoRequest{
 				RollappId:  argRollappId,
 				StateIndex: argStateIndex,
 			}
 
-			res, err := queryClient.RollappStateInfo(context.Background(), params)
+			res, err := queryClient.StateInfo(context.Background(), params)
 			if err != nil {
 				return err
 			}

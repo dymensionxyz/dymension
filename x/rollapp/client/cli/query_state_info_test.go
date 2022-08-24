@@ -21,28 +21,28 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func networkWithRollappStateInfoObjects(t *testing.T, n int) (*network.Network, []types.RollappStateInfo) {
+func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types.StateInfo) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
-		rollappStateInfo := types.RollappStateInfo{
+		stateInfo := types.StateInfo{
 			RollappId:  strconv.Itoa(i),
 			StateIndex: uint64(i),
 		}
-		nullify.Fill(&rollappStateInfo)
-		state.RollappStateInfoList = append(state.RollappStateInfoList, rollappStateInfo)
+		nullify.Fill(&stateInfo)
+		state.StateInfoList = append(state.StateInfoList, stateInfo)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.RollappStateInfoList
+	return network.New(t, cfg), state.StateInfoList
 }
 
-func TestShowRollappStateInfo(t *testing.T) {
-	net, objs := networkWithRollappStateInfoObjects(t, 2)
+func TestShowStateInfo(t *testing.T) {
+	net, objs := networkWithStateInfoObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
@@ -55,7 +55,7 @@ func TestShowRollappStateInfo(t *testing.T) {
 
 		args []string
 		err  error
-		obj  types.RollappStateInfo
+		obj  types.StateInfo
 	}{
 		{
 			desc:         "found",
@@ -88,27 +88,27 @@ func TestShowRollappStateInfo(t *testing.T) {
 				fmt.Sprint(tc.idStateIndex),
 			}
 			args = append(args, tc.args...)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowRollappStateInfo(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowStateInfo(), args)
 			if tc.err != nil {
 				stat, ok := status.FromError(tc.err)
 				require.True(t, ok)
 				require.ErrorIs(t, stat.Err(), tc.err)
 			} else {
 				require.NoError(t, err)
-				var resp types.QueryGetRollappStateInfoResponse
+				var resp types.QueryGetStateInfoResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.RollappStateInfo)
+				require.NotNil(t, resp.StateInfo)
 				require.Equal(t,
 					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.RollappStateInfo),
+					nullify.Fill(&resp.StateInfo),
 				)
 			}
 		})
 	}
 }
 
-func TestListRollappStateInfo(t *testing.T) {
-	net, objs := networkWithRollappStateInfoObjects(t, 5)
+func TestListStateInfo(t *testing.T) {
+	net, objs := networkWithStateInfoObjects(t, 5)
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -130,14 +130,14 @@ func TestListRollappStateInfo(t *testing.T) {
 		step := 2
 		for i := 0; i < len(objs); i += step {
 			args := request(nil, uint64(i), uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollappStateInfo(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllRollappStateInfoResponse
+			var resp types.QueryAllStateInfoResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.RollappStateInfo), step)
+			require.LessOrEqual(t, len(resp.StateInfo), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.RollappStateInfo),
+				nullify.Fill(resp.StateInfo),
 			)
 		}
 	})
@@ -146,29 +146,29 @@ func TestListRollappStateInfo(t *testing.T) {
 		var next []byte
 		for i := 0; i < len(objs); i += step {
 			args := request(next, 0, uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollappStateInfo(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllRollappStateInfoResponse
+			var resp types.QueryAllStateInfoResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.RollappStateInfo), step)
+			require.LessOrEqual(t, len(resp.StateInfo), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.RollappStateInfo),
+				nullify.Fill(resp.StateInfo),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
 		args := request(nil, 0, uint64(len(objs)), true)
-		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollappStateInfo(), args)
+		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 		require.NoError(t, err)
-		var resp types.QueryAllRollappStateInfoResponse
+		var resp types.QueryAllStateInfoResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			nullify.Fill(objs),
-			nullify.Fill(resp.RollappStateInfo),
+			nullify.Fill(resp.StateInfo),
 		)
 	})
 }

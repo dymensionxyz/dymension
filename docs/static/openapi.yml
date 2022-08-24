@@ -20336,16 +20336,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/rollapp/{rollappId}':
@@ -20447,111 +20437,111 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/rollapp_state_info:
+  /dymensionxyz/dymension/rollapp/state_info:
     get:
-      summary: Queries a list of RollappStateInfo items.
-      operationId: DymensionxyzDymensionRollappRollappStateInfoAll
+      summary: Queries a list of StateInfo items.
+      operationId: DymensionxyzDymensionRollappStateInfoAll
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              rollappStateInfo:
+              stateInfo:
                 type: array
                 items:
                   type: object
                   properties:
                     rollappId:
                       type: string
-                    sateInfo:
-                      type: object
-                      properties:
-                        sequencer:
-                          type: string
-                          title: >-
-                            sequencer is the bech32-encoded address of the
-                            sequencer sent the update
-                        rollappId:
-                          type: string
-                          title: >-
-                            rollappId is the rollapp that the sequencer belongs
-                            to and asking to update
+                      title: >-
+                        rollappId is the rollapp that the sequencer belongs to
+                        and asking to update
 
-                            The rollappId follows the same standard as cosmos
-                            chain_id
-                        startHeight:
-                          type: string
-                          format: uint64
-                          title: >-
-                            startHeight is the block height of the first block
-                            in the batch
-                        numBlocks:
-                          type: string
-                          format: uint64
-                          title: >-
-                            numBlocks is the number of blocks included in this
-                            batch update
-                        DAPath:
-                          type: string
-                          title: >-
-                            DAPath is the description of the location on the DA
-                            layer
-                        version:
-                          type: string
-                          format: uint64
-                          title: version is the version of the rollapp
-                        creationHeight:
-                          type: string
-                          format: uint64
-                          title: >-
-                            creationHeight is the height at which the
-                            UpdateState took place
-                        status:
-                          title: status is the status of the state update
-                          type: string
-                          enum:
-                            - STATE_STATUS_UNSPECIFIED
-                            - STATE_STATUS_RECEIVED
-                            - STATE_STATUS_FINALIZED
-                          default: STATE_STATUS_UNSPECIFIED
-                        BDs:
-                          title: >-
-                            BDs is a list of block description objects (one per
-                            block)
-
-                            the list must be ordered by height, starting from
-                            startHeight to startHeight+numBlocks-1
-                          type: object
-                          properties:
-                            BD:
-                              type: array
-                              items:
-                                type: object
-                                properties:
-                                  height:
-                                    type: string
-                                    format: uint64
-                                    title: height is the height of the block
-                                  stateRoot:
-                                    type: string
-                                    title: stateRoot is the state root of the block
-                                  intermediateStatesRoot:
-                                    type: string
-                                    title: >-
-                                      intermediateStatesRoot is is the root of a
-                                      Merkle tree built 
-
-                                      from the ISRs of the block (Intermediate
-                                      State Roots)
-                                description: >-
-                                  BlockDescriptor defines a single rollapp chain
-                                  block description.
-                          description: BlockDescriptors defines list of BlockDescriptor.
-                      description: StateInfo defines a rollapps' state.
+                        The rollappId follows the same standard as cosmos
+                        chain_id
                     stateIndex:
                       type: string
                       format: uint64
+                      title: >-
+                        stateIndex is a sequential increasing number, updating
+                        on each
+
+                        state update used for indexing to a specific state info
+                    sequencer:
+                      type: string
+                      title: >-
+                        sequencer is the bech32-encoded address of the sequencer
+                        sent the update
+                    startHeight:
+                      type: string
+                      format: uint64
+                      title: >-
+                        startHeight is the block height of the first block in
+                        the batch
+                    numBlocks:
+                      type: string
+                      format: uint64
+                      title: >-
+                        numBlocks is the number of blocks included in this batch
+                        update
+                    DAPath:
+                      type: string
+                      title: >-
+                        DAPath is the description of the location on the DA
+                        layer
+                    version:
+                      type: string
+                      format: uint64
+                      title: version is the version of the rollapp
+                    creationHeight:
+                      type: string
+                      format: uint64
+                      title: >-
+                        creationHeight is the height at which the UpdateState
+                        took place
+                    status:
+                      title: status is the status of the state update
+                      type: string
+                      enum:
+                        - STATE_STATUS_UNSPECIFIED
+                        - STATE_STATUS_RECEIVED
+                        - STATE_STATUS_FINALIZED
+                      default: STATE_STATUS_UNSPECIFIED
+                    BDs:
+                      title: >-
+                        BDs is a list of block description objects (one per
+                        block)
+
+                        the list must be ordered by height, starting from
+                        startHeight to startHeight+numBlocks-1
+                      type: object
+                      properties:
+                        BD:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              height:
+                                type: string
+                                format: uint64
+                                title: height is the height of the block
+                              stateRoot:
+                                type: string
+                                title: stateRoot is the state root of the block
+                              intermediateStatesRoot:
+                                type: string
+                                title: >-
+                                  intermediateStatesRoot is is the root of a
+                                  Merkle tree built 
+
+                                  from the ISRs of the block (Intermediate State
+                                  Roots)
+                            description: >-
+                              BlockDescriptor defines a single rollapp chain
+                              block description.
+                      description: BlockDescriptors defines list of BlockDescriptor.
+                  description: StateInfo defines a rollapps' state.
               pagination:
                 type: object
                 properties:
@@ -20644,121 +20634,107 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
-  '/dymensionxyz/dymension/rollapp/rollapp_state_info/{rollappId}/{stateIndex}':
+  '/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}':
     get:
-      summary: Queries a RollappStateInfo by index.
-      operationId: DymensionxyzDymensionRollappRollappStateInfo
+      summary: Queries a StateInfo by index.
+      operationId: DymensionxyzDymensionRollappStateInfo
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              rollappStateInfo:
+              stateInfo:
                 type: object
                 properties:
                   rollappId:
                     type: string
-                  sateInfo:
-                    type: object
-                    properties:
-                      sequencer:
-                        type: string
-                        title: >-
-                          sequencer is the bech32-encoded address of the
-                          sequencer sent the update
-                      rollappId:
-                        type: string
-                        title: >-
-                          rollappId is the rollapp that the sequencer belongs to
-                          and asking to update
+                    title: >-
+                      rollappId is the rollapp that the sequencer belongs to and
+                      asking to update
 
-                          The rollappId follows the same standard as cosmos
-                          chain_id
-                      startHeight:
-                        type: string
-                        format: uint64
-                        title: >-
-                          startHeight is the block height of the first block in
-                          the batch
-                      numBlocks:
-                        type: string
-                        format: uint64
-                        title: >-
-                          numBlocks is the number of blocks included in this
-                          batch update
-                      DAPath:
-                        type: string
-                        title: >-
-                          DAPath is the description of the location on the DA
-                          layer
-                      version:
-                        type: string
-                        format: uint64
-                        title: version is the version of the rollapp
-                      creationHeight:
-                        type: string
-                        format: uint64
-                        title: >-
-                          creationHeight is the height at which the UpdateState
-                          took place
-                      status:
-                        title: status is the status of the state update
-                        type: string
-                        enum:
-                          - STATE_STATUS_UNSPECIFIED
-                          - STATE_STATUS_RECEIVED
-                          - STATE_STATUS_FINALIZED
-                        default: STATE_STATUS_UNSPECIFIED
-                      BDs:
-                        title: >-
-                          BDs is a list of block description objects (one per
-                          block)
-
-                          the list must be ordered by height, starting from
-                          startHeight to startHeight+numBlocks-1
-                        type: object
-                        properties:
-                          BD:
-                            type: array
-                            items:
-                              type: object
-                              properties:
-                                height:
-                                  type: string
-                                  format: uint64
-                                  title: height is the height of the block
-                                stateRoot:
-                                  type: string
-                                  title: stateRoot is the state root of the block
-                                intermediateStatesRoot:
-                                  type: string
-                                  title: >-
-                                    intermediateStatesRoot is is the root of a
-                                    Merkle tree built 
-
-                                    from the ISRs of the block (Intermediate
-                                    State Roots)
-                              description: >-
-                                BlockDescriptor defines a single rollapp chain
-                                block description.
-                        description: BlockDescriptors defines list of BlockDescriptor.
-                    description: StateInfo defines a rollapps' state.
+                      The rollappId follows the same standard as cosmos chain_id
                   stateIndex:
                     type: string
                     format: uint64
+                    title: >-
+                      stateIndex is a sequential increasing number, updating on
+                      each
+
+                      state update used for indexing to a specific state info
+                  sequencer:
+                    type: string
+                    title: >-
+                      sequencer is the bech32-encoded address of the sequencer
+                      sent the update
+                  startHeight:
+                    type: string
+                    format: uint64
+                    title: >-
+                      startHeight is the block height of the first block in the
+                      batch
+                  numBlocks:
+                    type: string
+                    format: uint64
+                    title: >-
+                      numBlocks is the number of blocks included in this batch
+                      update
+                  DAPath:
+                    type: string
+                    title: DAPath is the description of the location on the DA layer
+                  version:
+                    type: string
+                    format: uint64
+                    title: version is the version of the rollapp
+                  creationHeight:
+                    type: string
+                    format: uint64
+                    title: >-
+                      creationHeight is the height at which the UpdateState took
+                      place
+                  status:
+                    title: status is the status of the state update
+                    type: string
+                    enum:
+                      - STATE_STATUS_UNSPECIFIED
+                      - STATE_STATUS_RECEIVED
+                      - STATE_STATUS_FINALIZED
+                    default: STATE_STATUS_UNSPECIFIED
+                  BDs:
+                    title: >-
+                      BDs is a list of block description objects (one per block)
+
+                      the list must be ordered by height, starting from
+                      startHeight to startHeight+numBlocks-1
+                    type: object
+                    properties:
+                      BD:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            height:
+                              type: string
+                              format: uint64
+                              title: height is the height of the block
+                            stateRoot:
+                              type: string
+                              title: stateRoot is the state root of the block
+                            intermediateStatesRoot:
+                              type: string
+                              title: >-
+                                intermediateStatesRoot is is the root of a
+                                Merkle tree built 
+
+                                from the ISRs of the block (Intermediate State
+                                Roots)
+                          description: >-
+                            BlockDescriptor defines a single rollapp chain block
+                            description.
+                    description: BlockDescriptors defines list of BlockDescriptor.
+                description: StateInfo defines a rollapps' state.
         default:
           description: An unexpected error response.
           schema:
@@ -49619,100 +49595,91 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  dymensionxyz.dymension.rollapp.QueryAllRollappStateInfoResponse:
+  dymensionxyz.dymension.rollapp.QueryAllStateInfoResponse:
     type: object
     properties:
-      rollappStateInfo:
+      stateInfo:
         type: array
         items:
           type: object
           properties:
             rollappId:
               type: string
-            sateInfo:
-              type: object
-              properties:
-                sequencer:
-                  type: string
-                  title: >-
-                    sequencer is the bech32-encoded address of the sequencer
-                    sent the update
-                rollappId:
-                  type: string
-                  title: >-
-                    rollappId is the rollapp that the sequencer belongs to and
-                    asking to update
+              title: >-
+                rollappId is the rollapp that the sequencer belongs to and
+                asking to update
 
-                    The rollappId follows the same standard as cosmos chain_id
-                startHeight:
-                  type: string
-                  format: uint64
-                  title: >-
-                    startHeight is the block height of the first block in the
-                    batch
-                numBlocks:
-                  type: string
-                  format: uint64
-                  title: >-
-                    numBlocks is the number of blocks included in this batch
-                    update
-                DAPath:
-                  type: string
-                  title: DAPath is the description of the location on the DA layer
-                version:
-                  type: string
-                  format: uint64
-                  title: version is the version of the rollapp
-                creationHeight:
-                  type: string
-                  format: uint64
-                  title: >-
-                    creationHeight is the height at which the UpdateState took
-                    place
-                status:
-                  title: status is the status of the state update
-                  type: string
-                  enum:
-                    - STATE_STATUS_UNSPECIFIED
-                    - STATE_STATUS_RECEIVED
-                    - STATE_STATUS_FINALIZED
-                  default: STATE_STATUS_UNSPECIFIED
-                BDs:
-                  title: >-
-                    BDs is a list of block description objects (one per block)
-
-                    the list must be ordered by height, starting from
-                    startHeight to startHeight+numBlocks-1
-                  type: object
-                  properties:
-                    BD:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          height:
-                            type: string
-                            format: uint64
-                            title: height is the height of the block
-                          stateRoot:
-                            type: string
-                            title: stateRoot is the state root of the block
-                          intermediateStatesRoot:
-                            type: string
-                            title: >-
-                              intermediateStatesRoot is is the root of a Merkle
-                              tree built 
-
-                              from the ISRs of the block (Intermediate State
-                              Roots)
-                        description: >-
-                          BlockDescriptor defines a single rollapp chain block
-                          description.
-                  description: BlockDescriptors defines list of BlockDescriptor.
-              description: StateInfo defines a rollapps' state.
+                The rollappId follows the same standard as cosmos chain_id
             stateIndex:
               type: string
               format: uint64
+              title: |-
+                stateIndex is a sequential increasing number, updating on each
+                state update used for indexing to a specific state info
+            sequencer:
+              type: string
+              title: >-
+                sequencer is the bech32-encoded address of the sequencer sent
+                the update
+            startHeight:
+              type: string
+              format: uint64
+              title: startHeight is the block height of the first block in the batch
+            numBlocks:
+              type: string
+              format: uint64
+              title: numBlocks is the number of blocks included in this batch update
+            DAPath:
+              type: string
+              title: DAPath is the description of the location on the DA layer
+            version:
+              type: string
+              format: uint64
+              title: version is the version of the rollapp
+            creationHeight:
+              type: string
+              format: uint64
+              title: creationHeight is the height at which the UpdateState took place
+            status:
+              title: status is the status of the state update
+              type: string
+              enum:
+                - STATE_STATUS_UNSPECIFIED
+                - STATE_STATUS_RECEIVED
+                - STATE_STATUS_FINALIZED
+              default: STATE_STATUS_UNSPECIFIED
+            BDs:
+              title: >-
+                BDs is a list of block description objects (one per block)
+
+                the list must be ordered by height, starting from startHeight to
+                startHeight+numBlocks-1
+              type: object
+              properties:
+                BD:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      height:
+                        type: string
+                        format: uint64
+                        title: height is the height of the block
+                      stateRoot:
+                        type: string
+                        title: stateRoot is the state root of the block
+                      intermediateStatesRoot:
+                        type: string
+                        title: >-
+                          intermediateStatesRoot is is the root of a Merkle tree
+                          built 
+
+                          from the ISRs of the block (Intermediate State Roots)
+                    description: >-
+                      BlockDescriptor defines a single rollapp chain block
+                      description.
+              description: BlockDescriptors defines list of BlockDescriptor.
+          description: StateInfo defines a rollapps' state.
       pagination:
         type: object
         properties:
@@ -49797,98 +49764,89 @@ definitions:
 
           sequencers can be create and attach to it. Rollapp is identified by
           rollappId
-  dymensionxyz.dymension.rollapp.QueryGetRollappStateInfoResponse:
+  dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
-      rollappStateInfo:
+      stateInfo:
         type: object
         properties:
           rollappId:
             type: string
-          sateInfo:
-            type: object
-            properties:
-              sequencer:
-                type: string
-                title: >-
-                  sequencer is the bech32-encoded address of the sequencer sent
-                  the update
-              rollappId:
-                type: string
-                title: >-
-                  rollappId is the rollapp that the sequencer belongs to and
-                  asking to update
+            title: >-
+              rollappId is the rollapp that the sequencer belongs to and asking
+              to update
 
-                  The rollappId follows the same standard as cosmos chain_id
-              startHeight:
-                type: string
-                format: uint64
-                title: >-
-                  startHeight is the block height of the first block in the
-                  batch
-              numBlocks:
-                type: string
-                format: uint64
-                title: >-
-                  numBlocks is the number of blocks included in this batch
-                  update
-              DAPath:
-                type: string
-                title: DAPath is the description of the location on the DA layer
-              version:
-                type: string
-                format: uint64
-                title: version is the version of the rollapp
-              creationHeight:
-                type: string
-                format: uint64
-                title: >-
-                  creationHeight is the height at which the UpdateState took
-                  place
-              status:
-                title: status is the status of the state update
-                type: string
-                enum:
-                  - STATE_STATUS_UNSPECIFIED
-                  - STATE_STATUS_RECEIVED
-                  - STATE_STATUS_FINALIZED
-                default: STATE_STATUS_UNSPECIFIED
-              BDs:
-                title: >-
-                  BDs is a list of block description objects (one per block)
-
-                  the list must be ordered by height, starting from startHeight
-                  to startHeight+numBlocks-1
-                type: object
-                properties:
-                  BD:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        height:
-                          type: string
-                          format: uint64
-                          title: height is the height of the block
-                        stateRoot:
-                          type: string
-                          title: stateRoot is the state root of the block
-                        intermediateStatesRoot:
-                          type: string
-                          title: >-
-                            intermediateStatesRoot is is the root of a Merkle
-                            tree built 
-
-                            from the ISRs of the block (Intermediate State
-                            Roots)
-                      description: >-
-                        BlockDescriptor defines a single rollapp chain block
-                        description.
-                description: BlockDescriptors defines list of BlockDescriptor.
-            description: StateInfo defines a rollapps' state.
+              The rollappId follows the same standard as cosmos chain_id
           stateIndex:
             type: string
             format: uint64
+            title: |-
+              stateIndex is a sequential increasing number, updating on each
+              state update used for indexing to a specific state info
+          sequencer:
+            type: string
+            title: >-
+              sequencer is the bech32-encoded address of the sequencer sent the
+              update
+          startHeight:
+            type: string
+            format: uint64
+            title: startHeight is the block height of the first block in the batch
+          numBlocks:
+            type: string
+            format: uint64
+            title: numBlocks is the number of blocks included in this batch update
+          DAPath:
+            type: string
+            title: DAPath is the description of the location on the DA layer
+          version:
+            type: string
+            format: uint64
+            title: version is the version of the rollapp
+          creationHeight:
+            type: string
+            format: uint64
+            title: creationHeight is the height at which the UpdateState took place
+          status:
+            title: status is the status of the state update
+            type: string
+            enum:
+              - STATE_STATUS_UNSPECIFIED
+              - STATE_STATUS_RECEIVED
+              - STATE_STATUS_FINALIZED
+            default: STATE_STATUS_UNSPECIFIED
+          BDs:
+            title: >-
+              BDs is a list of block description objects (one per block)
+
+              the list must be ordered by height, starting from startHeight to
+              startHeight+numBlocks-1
+            type: object
+            properties:
+              BD:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    height:
+                      type: string
+                      format: uint64
+                      title: height is the height of the block
+                    stateRoot:
+                      type: string
+                      title: stateRoot is the state root of the block
+                    intermediateStatesRoot:
+                      type: string
+                      title: >-
+                        intermediateStatesRoot is is the root of a Merkle tree
+                        built 
+
+                        from the ISRs of the block (Intermediate State Roots)
+                  description: >-
+                    BlockDescriptor defines a single rollapp chain block
+                    description.
+            description: BlockDescriptors defines list of BlockDescriptor.
+        description: StateInfo defines a rollapps' state.
   dymensionxyz.dymension.rollapp.QueryParamsResponse:
     type: object
     properties:
@@ -49958,96 +49916,9 @@ definitions:
 
       sequencers can be create and attach to it. Rollapp is identified by
       rollappId
-  dymensionxyz.dymension.rollapp.RollappStateInfo:
-    type: object
-    properties:
-      rollappId:
-        type: string
-      sateInfo:
-        type: object
-        properties:
-          sequencer:
-            type: string
-            title: >-
-              sequencer is the bech32-encoded address of the sequencer sent the
-              update
-          rollappId:
-            type: string
-            title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
-
-              The rollappId follows the same standard as cosmos chain_id
-          startHeight:
-            type: string
-            format: uint64
-            title: startHeight is the block height of the first block in the batch
-          numBlocks:
-            type: string
-            format: uint64
-            title: numBlocks is the number of blocks included in this batch update
-          DAPath:
-            type: string
-            title: DAPath is the description of the location on the DA layer
-          version:
-            type: string
-            format: uint64
-            title: version is the version of the rollapp
-          creationHeight:
-            type: string
-            format: uint64
-            title: creationHeight is the height at which the UpdateState took place
-          status:
-            title: status is the status of the state update
-            type: string
-            enum:
-              - STATE_STATUS_UNSPECIFIED
-              - STATE_STATUS_RECEIVED
-              - STATE_STATUS_FINALIZED
-            default: STATE_STATUS_UNSPECIFIED
-          BDs:
-            title: >-
-              BDs is a list of block description objects (one per block)
-
-              the list must be ordered by height, starting from startHeight to
-              startHeight+numBlocks-1
-            type: object
-            properties:
-              BD:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    height:
-                      type: string
-                      format: uint64
-                      title: height is the height of the block
-                    stateRoot:
-                      type: string
-                      title: stateRoot is the state root of the block
-                    intermediateStatesRoot:
-                      type: string
-                      title: >-
-                        intermediateStatesRoot is is the root of a Merkle tree
-                        built 
-
-                        from the ISRs of the block (Intermediate State Roots)
-                  description: >-
-                    BlockDescriptor defines a single rollapp chain block
-                    description.
-            description: BlockDescriptors defines list of BlockDescriptor.
-        description: StateInfo defines a rollapps' state.
-      stateIndex:
-        type: string
-        format: uint64
   dymensionxyz.dymension.rollapp.StateInfo:
     type: object
     properties:
-      sequencer:
-        type: string
-        title: >-
-          sequencer is the bech32-encoded address of the sequencer sent the
-          update
       rollappId:
         type: string
         title: >-
@@ -50055,6 +49926,17 @@ definitions:
           update
 
           The rollappId follows the same standard as cosmos chain_id
+      stateIndex:
+        type: string
+        format: uint64
+        title: |-
+          stateIndex is a sequential increasing number, updating on each
+          state update used for indexing to a specific state info
+      sequencer:
+        type: string
+        title: >-
+          sequencer is the bech32-encoded address of the sequencer sent the
+          update
       startHeight:
         type: string
         format: uint64

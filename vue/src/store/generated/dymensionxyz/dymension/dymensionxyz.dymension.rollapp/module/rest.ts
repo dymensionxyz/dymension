@@ -57,8 +57,8 @@ export interface RollappQueryAllRollappResponse {
   pagination?: V1Beta1PageResponse;
 }
 
-export interface RollappQueryAllRollappStateInfoResponse {
-  rollappStateInfo?: RollappRollappStateInfo[];
+export interface RollappQueryAllStateInfoResponse {
+  stateInfo?: RollappStateInfo[];
 
   /**
    * PageResponse is to be embedded in gRPC response messages where the
@@ -76,8 +76,9 @@ export interface RollappQueryGetRollappResponse {
   rollapp?: RollappRollapp;
 }
 
-export interface RollappQueryGetRollappStateInfoResponse {
-  rollappStateInfo?: RollappRollappStateInfo;
+export interface RollappQueryGetStateInfoResponse {
+  /** StateInfo defines a rollapps' state. */
+  stateInfo?: RollappStateInfo;
 }
 
 /**
@@ -128,22 +129,15 @@ export interface RollappRollapp {
   permissionedAddresses?: SharedSequencers;
 }
 
-export interface RollappRollappStateInfo {
-  rollappId?: string;
-
-  /** StateInfo defines a rollapps' state. */
-  sateInfo?: RollappStateInfo;
-
-  /** @format uint64 */
-  stateIndex?: string;
-}
-
 /**
  * StateInfo defines a rollapps' state.
  */
 export interface RollappStateInfo {
-  sequencer?: string;
   rollappId?: string;
+
+  /** @format uint64 */
+  stateIndex?: string;
+  sequencer?: string;
 
   /** @format uint64 */
   startHeight?: string;
@@ -496,11 +490,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
-   * @name QueryRollappStateInfoAll
-   * @summary Queries a list of RollappStateInfo items.
-   * @request GET:/dymensionxyz/dymension/rollapp/rollapp_state_info
+   * @name QueryStateInfoAll
+   * @summary Queries a list of StateInfo items.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_info
    */
-  queryRollappStateInfoAll = (
+  queryStateInfoAll = (
     query?: {
       "pagination.key"?: string;
       "pagination.offset"?: string;
@@ -509,8 +503,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     },
     params: RequestParams = {},
   ) =>
-    this.request<RollappQueryAllRollappStateInfoResponse, RpcStatus>({
-      path: `/dymensionxyz/dymension/rollapp/rollapp_state_info`,
+    this.request<RollappQueryAllStateInfoResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_info`,
       method: "GET",
       query: query,
       format: "json",
@@ -521,13 +515,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
-   * @name QueryRollappStateInfo
-   * @summary Queries a RollappStateInfo by index.
-   * @request GET:/dymensionxyz/dymension/rollapp/rollapp_state_info/{rollappId}/{stateIndex}
+   * @name QueryStateInfo
+   * @summary Queries a StateInfo by index.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}
    */
-  queryRollappStateInfo = (rollappId: string, stateIndex: string, params: RequestParams = {}) =>
-    this.request<RollappQueryGetRollappStateInfoResponse, RpcStatus>({
-      path: `/dymensionxyz/dymension/rollapp/rollapp_state_info/${rollappId}/${stateIndex}`,
+  queryStateInfo = (rollappId: string, stateIndex: string, params: RequestParams = {}) =>
+    this.request<RollappQueryGetStateInfoResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_info/${rollappId}/${stateIndex}`,
       method: "GET",
       format: "json",
       ...params,

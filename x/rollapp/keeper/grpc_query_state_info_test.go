@@ -18,35 +18,35 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func TestRollappStateInfoQuerySingle(t *testing.T) {
+func TestStateInfoQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRollappStateInfo(keeper, ctx, 2)
+	msgs := createNStateInfo(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
-		request  *types.QueryGetRollappStateInfoRequest
-		response *types.QueryGetRollappStateInfoResponse
+		request  *types.QueryGetStateInfoRequest
+		response *types.QueryGetStateInfoResponse
 		err      error
 	}{
 		{
 			desc: "First",
-			request: &types.QueryGetRollappStateInfoRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId:  msgs[0].RollappId,
 				StateIndex: msgs[0].StateIndex,
 			},
-			response: &types.QueryGetRollappStateInfoResponse{RollappStateInfo: msgs[0]},
+			response: &types.QueryGetStateInfoResponse{StateInfo: msgs[0]},
 		},
 		{
 			desc: "Second",
-			request: &types.QueryGetRollappStateInfoRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId:  msgs[1].RollappId,
 				StateIndex: msgs[1].StateIndex,
 			},
-			response: &types.QueryGetRollappStateInfoResponse{RollappStateInfo: msgs[1]},
+			response: &types.QueryGetStateInfoResponse{StateInfo: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.QueryGetRollappStateInfoRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId:  strconv.Itoa(100000),
 				StateIndex: msgs[0].StateIndex,
 			},
@@ -54,7 +54,7 @@ func TestRollappStateInfoQuerySingle(t *testing.T) {
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.QueryGetRollappStateInfoRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId:  msgs[1].RollappId,
 				StateIndex: 100000,
 			},
@@ -66,7 +66,7 @@ func TestRollappStateInfoQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.RollappStateInfo(wctx, tc.request)
+			response, err := keeper.StateInfo(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -80,13 +80,13 @@ func TestRollappStateInfoQuerySingle(t *testing.T) {
 	}
 }
 
-func TestRollappStateInfoQueryPaginated(t *testing.T) {
+func TestStateInfoQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRollappStateInfo(keeper, ctx, 5)
+	msgs := createNStateInfo(keeper, ctx, 5)
 
-	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllRollappStateInfoRequest {
-		return &types.QueryAllRollappStateInfoRequest{
+	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllStateInfoRequest {
+		return &types.QueryAllStateInfoRequest{
 			Pagination: &query.PageRequest{
 				Key:        next,
 				Offset:     offset,
@@ -98,12 +98,12 @@ func TestRollappStateInfoQueryPaginated(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RollappStateInfoAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := keeper.StateInfoAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.RollappStateInfo), step)
+			require.LessOrEqual(t, len(resp.StateInfo), step)
 			require.Subset(t,
 				nullify.Fill(msgs),
-				nullify.Fill(resp.RollappStateInfo),
+				nullify.Fill(resp.StateInfo),
 			)
 		}
 	})
@@ -111,27 +111,27 @@ func TestRollappStateInfoQueryPaginated(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RollappStateInfoAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := keeper.StateInfoAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.RollappStateInfo), step)
+			require.LessOrEqual(t, len(resp.StateInfo), step)
 			require.Subset(t,
 				nullify.Fill(msgs),
-				nullify.Fill(resp.RollappStateInfo),
+				nullify.Fill(resp.StateInfo),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := keeper.RollappStateInfoAll(wctx, request(nil, 0, 0, true))
+		resp, err := keeper.StateInfoAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(msgs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			nullify.Fill(msgs),
-			nullify.Fill(resp.RollappStateInfo),
+			nullify.Fill(resp.StateInfo),
 		)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.RollappStateInfoAll(wctx, nil)
+		_, err := keeper.StateInfoAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }

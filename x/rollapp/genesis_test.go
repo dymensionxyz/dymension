@@ -22,7 +22,7 @@ func TestGenesis(t *testing.T) {
 				RollappId: "1",
 			},
 		},
-		RollappStateInfoList: []types.RollappStateInfo{
+		StateInfoList: []types.StateInfo{
 			{
 				RollappId:  "0",
 				StateIndex: 0,
@@ -44,6 +44,6 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
-	require.ElementsMatch(t, genesisState.RollappStateInfoList, got.RollappStateInfoList)
+	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

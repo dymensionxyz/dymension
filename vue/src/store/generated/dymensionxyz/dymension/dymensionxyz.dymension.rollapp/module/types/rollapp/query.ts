@@ -7,7 +7,7 @@ import {
   PageRequest,
   PageResponse,
 } from "../cosmos/base/query/v1beta1/pagination";
-import { RollappStateInfo } from "../rollapp/rollapp_state_info";
+import { StateInfo } from "../rollapp/state_info";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
@@ -37,21 +37,21 @@ export interface QueryAllRollappResponse {
   pagination: PageResponse | undefined;
 }
 
-export interface QueryGetRollappStateInfoRequest {
+export interface QueryGetStateInfoRequest {
   rollappId: string;
   stateIndex: number;
 }
 
-export interface QueryGetRollappStateInfoResponse {
-  rollappStateInfo: RollappStateInfo | undefined;
+export interface QueryGetStateInfoResponse {
+  stateInfo: StateInfo | undefined;
 }
 
-export interface QueryAllRollappStateInfoRequest {
+export interface QueryAllStateInfoRequest {
   pagination: PageRequest | undefined;
 }
 
-export interface QueryAllRollappStateInfoResponse {
-  rollappStateInfo: RollappStateInfo[];
+export interface QueryAllStateInfoResponse {
+  stateInfo: StateInfo[];
   pagination: PageResponse | undefined;
 }
 
@@ -442,14 +442,11 @@ export const QueryAllRollappResponse = {
   },
 };
 
-const baseQueryGetRollappStateInfoRequest: object = {
-  rollappId: "",
-  stateIndex: 0,
-};
+const baseQueryGetStateInfoRequest: object = { rollappId: "", stateIndex: 0 };
 
-export const QueryGetRollappStateInfoRequest = {
+export const QueryGetStateInfoRequest = {
   encode(
-    message: QueryGetRollappStateInfoRequest,
+    message: QueryGetStateInfoRequest,
     writer: Writer = Writer.create()
   ): Writer {
     if (message.rollappId !== "") {
@@ -464,12 +461,12 @@ export const QueryGetRollappStateInfoRequest = {
   decode(
     input: Reader | Uint8Array,
     length?: number
-  ): QueryGetRollappStateInfoRequest {
+  ): QueryGetStateInfoRequest {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = {
-      ...baseQueryGetRollappStateInfoRequest,
-    } as QueryGetRollappStateInfoRequest;
+      ...baseQueryGetStateInfoRequest,
+    } as QueryGetStateInfoRequest;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -487,10 +484,10 @@ export const QueryGetRollappStateInfoRequest = {
     return message;
   },
 
-  fromJSON(object: any): QueryGetRollappStateInfoRequest {
+  fromJSON(object: any): QueryGetStateInfoRequest {
     const message = {
-      ...baseQueryGetRollappStateInfoRequest,
-    } as QueryGetRollappStateInfoRequest;
+      ...baseQueryGetStateInfoRequest,
+    } as QueryGetStateInfoRequest;
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = String(object.rollappId);
     } else {
@@ -504,7 +501,7 @@ export const QueryGetRollappStateInfoRequest = {
     return message;
   },
 
-  toJSON(message: QueryGetRollappStateInfoRequest): unknown {
+  toJSON(message: QueryGetStateInfoRequest): unknown {
     const obj: any = {};
     message.rollappId !== undefined && (obj.rollappId = message.rollappId);
     message.stateIndex !== undefined && (obj.stateIndex = message.stateIndex);
@@ -512,11 +509,11 @@ export const QueryGetRollappStateInfoRequest = {
   },
 
   fromPartial(
-    object: DeepPartial<QueryGetRollappStateInfoRequest>
-  ): QueryGetRollappStateInfoRequest {
+    object: DeepPartial<QueryGetStateInfoRequest>
+  ): QueryGetStateInfoRequest {
     const message = {
-      ...baseQueryGetRollappStateInfoRequest,
-    } as QueryGetRollappStateInfoRequest;
+      ...baseQueryGetStateInfoRequest,
+    } as QueryGetStateInfoRequest;
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = object.rollappId;
     } else {
@@ -531,18 +528,15 @@ export const QueryGetRollappStateInfoRequest = {
   },
 };
 
-const baseQueryGetRollappStateInfoResponse: object = {};
+const baseQueryGetStateInfoResponse: object = {};
 
-export const QueryGetRollappStateInfoResponse = {
+export const QueryGetStateInfoResponse = {
   encode(
-    message: QueryGetRollappStateInfoResponse,
+    message: QueryGetStateInfoResponse,
     writer: Writer = Writer.create()
   ): Writer {
-    if (message.rollappStateInfo !== undefined) {
-      RollappStateInfo.encode(
-        message.rollappStateInfo,
-        writer.uint32(10).fork()
-      ).ldelim();
+    if (message.stateInfo !== undefined) {
+      StateInfo.encode(message.stateInfo, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -550,20 +544,17 @@ export const QueryGetRollappStateInfoResponse = {
   decode(
     input: Reader | Uint8Array,
     length?: number
-  ): QueryGetRollappStateInfoResponse {
+  ): QueryGetStateInfoResponse {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = {
-      ...baseQueryGetRollappStateInfoResponse,
-    } as QueryGetRollappStateInfoResponse;
+      ...baseQueryGetStateInfoResponse,
+    } as QueryGetStateInfoResponse;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.rollappStateInfo = RollappStateInfo.decode(
-            reader,
-            reader.uint32()
-          );
+          message.stateInfo = StateInfo.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -573,57 +564,47 @@ export const QueryGetRollappStateInfoResponse = {
     return message;
   },
 
-  fromJSON(object: any): QueryGetRollappStateInfoResponse {
+  fromJSON(object: any): QueryGetStateInfoResponse {
     const message = {
-      ...baseQueryGetRollappStateInfoResponse,
-    } as QueryGetRollappStateInfoResponse;
-    if (
-      object.rollappStateInfo !== undefined &&
-      object.rollappStateInfo !== null
-    ) {
-      message.rollappStateInfo = RollappStateInfo.fromJSON(
-        object.rollappStateInfo
-      );
+      ...baseQueryGetStateInfoResponse,
+    } as QueryGetStateInfoResponse;
+    if (object.stateInfo !== undefined && object.stateInfo !== null) {
+      message.stateInfo = StateInfo.fromJSON(object.stateInfo);
     } else {
-      message.rollappStateInfo = undefined;
+      message.stateInfo = undefined;
     }
     return message;
   },
 
-  toJSON(message: QueryGetRollappStateInfoResponse): unknown {
+  toJSON(message: QueryGetStateInfoResponse): unknown {
     const obj: any = {};
-    message.rollappStateInfo !== undefined &&
-      (obj.rollappStateInfo = message.rollappStateInfo
-        ? RollappStateInfo.toJSON(message.rollappStateInfo)
+    message.stateInfo !== undefined &&
+      (obj.stateInfo = message.stateInfo
+        ? StateInfo.toJSON(message.stateInfo)
         : undefined);
     return obj;
   },
 
   fromPartial(
-    object: DeepPartial<QueryGetRollappStateInfoResponse>
-  ): QueryGetRollappStateInfoResponse {
+    object: DeepPartial<QueryGetStateInfoResponse>
+  ): QueryGetStateInfoResponse {
     const message = {
-      ...baseQueryGetRollappStateInfoResponse,
-    } as QueryGetRollappStateInfoResponse;
-    if (
-      object.rollappStateInfo !== undefined &&
-      object.rollappStateInfo !== null
-    ) {
-      message.rollappStateInfo = RollappStateInfo.fromPartial(
-        object.rollappStateInfo
-      );
+      ...baseQueryGetStateInfoResponse,
+    } as QueryGetStateInfoResponse;
+    if (object.stateInfo !== undefined && object.stateInfo !== null) {
+      message.stateInfo = StateInfo.fromPartial(object.stateInfo);
     } else {
-      message.rollappStateInfo = undefined;
+      message.stateInfo = undefined;
     }
     return message;
   },
 };
 
-const baseQueryAllRollappStateInfoRequest: object = {};
+const baseQueryAllStateInfoRequest: object = {};
 
-export const QueryAllRollappStateInfoRequest = {
+export const QueryAllStateInfoRequest = {
   encode(
-    message: QueryAllRollappStateInfoRequest,
+    message: QueryAllStateInfoRequest,
     writer: Writer = Writer.create()
   ): Writer {
     if (message.pagination !== undefined) {
@@ -635,12 +616,12 @@ export const QueryAllRollappStateInfoRequest = {
   decode(
     input: Reader | Uint8Array,
     length?: number
-  ): QueryAllRollappStateInfoRequest {
+  ): QueryAllStateInfoRequest {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = {
-      ...baseQueryAllRollappStateInfoRequest,
-    } as QueryAllRollappStateInfoRequest;
+      ...baseQueryAllStateInfoRequest,
+    } as QueryAllStateInfoRequest;
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -655,10 +636,10 @@ export const QueryAllRollappStateInfoRequest = {
     return message;
   },
 
-  fromJSON(object: any): QueryAllRollappStateInfoRequest {
+  fromJSON(object: any): QueryAllStateInfoRequest {
     const message = {
-      ...baseQueryAllRollappStateInfoRequest,
-    } as QueryAllRollappStateInfoRequest;
+      ...baseQueryAllStateInfoRequest,
+    } as QueryAllStateInfoRequest;
     if (object.pagination !== undefined && object.pagination !== null) {
       message.pagination = PageRequest.fromJSON(object.pagination);
     } else {
@@ -667,7 +648,7 @@ export const QueryAllRollappStateInfoRequest = {
     return message;
   },
 
-  toJSON(message: QueryAllRollappStateInfoRequest): unknown {
+  toJSON(message: QueryAllStateInfoRequest): unknown {
     const obj: any = {};
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
@@ -677,11 +658,11 @@ export const QueryAllRollappStateInfoRequest = {
   },
 
   fromPartial(
-    object: DeepPartial<QueryAllRollappStateInfoRequest>
-  ): QueryAllRollappStateInfoRequest {
+    object: DeepPartial<QueryAllStateInfoRequest>
+  ): QueryAllStateInfoRequest {
     const message = {
-      ...baseQueryAllRollappStateInfoRequest,
-    } as QueryAllRollappStateInfoRequest;
+      ...baseQueryAllStateInfoRequest,
+    } as QueryAllStateInfoRequest;
     if (object.pagination !== undefined && object.pagination !== null) {
       message.pagination = PageRequest.fromPartial(object.pagination);
     } else {
@@ -691,15 +672,15 @@ export const QueryAllRollappStateInfoRequest = {
   },
 };
 
-const baseQueryAllRollappStateInfoResponse: object = {};
+const baseQueryAllStateInfoResponse: object = {};
 
-export const QueryAllRollappStateInfoResponse = {
+export const QueryAllStateInfoResponse = {
   encode(
-    message: QueryAllRollappStateInfoResponse,
+    message: QueryAllStateInfoResponse,
     writer: Writer = Writer.create()
   ): Writer {
-    for (const v of message.rollappStateInfo) {
-      RollappStateInfo.encode(v!, writer.uint32(10).fork()).ldelim();
+    for (const v of message.stateInfo) {
+      StateInfo.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.pagination !== undefined) {
       PageResponse.encode(
@@ -713,20 +694,18 @@ export const QueryAllRollappStateInfoResponse = {
   decode(
     input: Reader | Uint8Array,
     length?: number
-  ): QueryAllRollappStateInfoResponse {
+  ): QueryAllStateInfoResponse {
     const reader = input instanceof Uint8Array ? new Reader(input) : input;
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = {
-      ...baseQueryAllRollappStateInfoResponse,
-    } as QueryAllRollappStateInfoResponse;
-    message.rollappStateInfo = [];
+      ...baseQueryAllStateInfoResponse,
+    } as QueryAllStateInfoResponse;
+    message.stateInfo = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.rollappStateInfo.push(
-            RollappStateInfo.decode(reader, reader.uint32())
-          );
+          message.stateInfo.push(StateInfo.decode(reader, reader.uint32()));
           break;
         case 2:
           message.pagination = PageResponse.decode(reader, reader.uint32());
@@ -739,17 +718,14 @@ export const QueryAllRollappStateInfoResponse = {
     return message;
   },
 
-  fromJSON(object: any): QueryAllRollappStateInfoResponse {
+  fromJSON(object: any): QueryAllStateInfoResponse {
     const message = {
-      ...baseQueryAllRollappStateInfoResponse,
-    } as QueryAllRollappStateInfoResponse;
-    message.rollappStateInfo = [];
-    if (
-      object.rollappStateInfo !== undefined &&
-      object.rollappStateInfo !== null
-    ) {
-      for (const e of object.rollappStateInfo) {
-        message.rollappStateInfo.push(RollappStateInfo.fromJSON(e));
+      ...baseQueryAllStateInfoResponse,
+    } as QueryAllStateInfoResponse;
+    message.stateInfo = [];
+    if (object.stateInfo !== undefined && object.stateInfo !== null) {
+      for (const e of object.stateInfo) {
+        message.stateInfo.push(StateInfo.fromJSON(e));
       }
     }
     if (object.pagination !== undefined && object.pagination !== null) {
@@ -760,14 +736,14 @@ export const QueryAllRollappStateInfoResponse = {
     return message;
   },
 
-  toJSON(message: QueryAllRollappStateInfoResponse): unknown {
+  toJSON(message: QueryAllStateInfoResponse): unknown {
     const obj: any = {};
-    if (message.rollappStateInfo) {
-      obj.rollappStateInfo = message.rollappStateInfo.map((e) =>
-        e ? RollappStateInfo.toJSON(e) : undefined
+    if (message.stateInfo) {
+      obj.stateInfo = message.stateInfo.map((e) =>
+        e ? StateInfo.toJSON(e) : undefined
       );
     } else {
-      obj.rollappStateInfo = [];
+      obj.stateInfo = [];
     }
     message.pagination !== undefined &&
       (obj.pagination = message.pagination
@@ -777,18 +753,15 @@ export const QueryAllRollappStateInfoResponse = {
   },
 
   fromPartial(
-    object: DeepPartial<QueryAllRollappStateInfoResponse>
-  ): QueryAllRollappStateInfoResponse {
+    object: DeepPartial<QueryAllStateInfoResponse>
+  ): QueryAllStateInfoResponse {
     const message = {
-      ...baseQueryAllRollappStateInfoResponse,
-    } as QueryAllRollappStateInfoResponse;
-    message.rollappStateInfo = [];
-    if (
-      object.rollappStateInfo !== undefined &&
-      object.rollappStateInfo !== null
-    ) {
-      for (const e of object.rollappStateInfo) {
-        message.rollappStateInfo.push(RollappStateInfo.fromPartial(e));
+      ...baseQueryAllStateInfoResponse,
+    } as QueryAllStateInfoResponse;
+    message.stateInfo = [];
+    if (object.stateInfo !== undefined && object.stateInfo !== null) {
+      for (const e of object.stateInfo) {
+        message.stateInfo.push(StateInfo.fromPartial(e));
       }
     }
     if (object.pagination !== undefined && object.pagination !== null) {
@@ -808,14 +781,14 @@ export interface Query {
   Rollapp(request: QueryGetRollappRequest): Promise<QueryGetRollappResponse>;
   /** Queries a list of Rollapp items. */
   RollappAll(request: QueryAllRollappRequest): Promise<QueryAllRollappResponse>;
-  /** Queries a RollappStateInfo by index. */
-  RollappStateInfo(
-    request: QueryGetRollappStateInfoRequest
-  ): Promise<QueryGetRollappStateInfoResponse>;
-  /** Queries a list of RollappStateInfo items. */
-  RollappStateInfoAll(
-    request: QueryAllRollappStateInfoRequest
-  ): Promise<QueryAllRollappStateInfoResponse>;
+  /** Queries a StateInfo by index. */
+  StateInfo(
+    request: QueryGetStateInfoRequest
+  ): Promise<QueryGetStateInfoResponse>;
+  /** Queries a list of StateInfo items. */
+  StateInfoAll(
+    request: QueryAllStateInfoRequest
+  ): Promise<QueryAllStateInfoResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -859,31 +832,31 @@ export class QueryClientImpl implements Query {
     );
   }
 
-  RollappStateInfo(
-    request: QueryGetRollappStateInfoRequest
-  ): Promise<QueryGetRollappStateInfoResponse> {
-    const data = QueryGetRollappStateInfoRequest.encode(request).finish();
+  StateInfo(
+    request: QueryGetStateInfoRequest
+  ): Promise<QueryGetStateInfoResponse> {
+    const data = QueryGetStateInfoRequest.encode(request).finish();
     const promise = this.rpc.request(
       "dymensionxyz.dymension.rollapp.Query",
-      "RollappStateInfo",
+      "StateInfo",
       data
     );
     return promise.then((data) =>
-      QueryGetRollappStateInfoResponse.decode(new Reader(data))
+      QueryGetStateInfoResponse.decode(new Reader(data))
     );
   }
 
-  RollappStateInfoAll(
-    request: QueryAllRollappStateInfoRequest
-  ): Promise<QueryAllRollappStateInfoResponse> {
-    const data = QueryAllRollappStateInfoRequest.encode(request).finish();
+  StateInfoAll(
+    request: QueryAllStateInfoRequest
+  ): Promise<QueryAllStateInfoResponse> {
+    const data = QueryAllStateInfoRequest.encode(request).finish();
     const promise = this.rpc.request(
       "dymensionxyz.dymension.rollapp.Query",
-      "RollappStateInfoAll",
+      "StateInfoAll",
       data
     );
     return promise.then((data) =>
-      QueryAllRollappStateInfoResponse.decode(new Reader(data))
+      QueryAllStateInfoResponse.decode(new Reader(data))
     );
   }
 }

@@ -15,22 +15,22 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNRollappStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.RollappStateInfo {
-	items := make([]types.RollappStateInfo, n)
+func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateInfo {
+	items := make([]types.StateInfo, n)
 	for i := range items {
 		items[i].RollappId = strconv.Itoa(i)
 		items[i].StateIndex = uint64(i)
 
-		keeper.SetRollappStateInfo(ctx, items[i])
+		keeper.SetStateInfo(ctx, items[i])
 	}
 	return items
 }
 
-func TestRollappStateInfoGet(t *testing.T) {
+func TestStateInfoGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollappStateInfo(keeper, ctx, 10)
+	items := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetRollappStateInfo(ctx,
+		rst, found := keeper.GetStateInfo(ctx,
 			item.RollappId,
 			item.StateIndex,
 		)
@@ -41,15 +41,15 @@ func TestRollappStateInfoGet(t *testing.T) {
 		)
 	}
 }
-func TestRollappStateInfoRemove(t *testing.T) {
+func TestStateInfoRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollappStateInfo(keeper, ctx, 10)
+	items := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveRollappStateInfo(ctx,
+		keeper.RemoveStateInfo(ctx,
 			item.RollappId,
 			item.StateIndex,
 		)
-		_, found := keeper.GetRollappStateInfo(ctx,
+		_, found := keeper.GetStateInfo(ctx,
 			item.RollappId,
 			item.StateIndex,
 		)
@@ -57,11 +57,11 @@ func TestRollappStateInfoRemove(t *testing.T) {
 	}
 }
 
-func TestRollappStateInfoGetAll(t *testing.T) {
+func TestStateInfoGetAll(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollappStateInfo(keeper, ctx, 10)
+	items := createNStateInfo(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllRollappStateInfo(ctx)),
+		nullify.Fill(keeper.GetAllStateInfo(ctx)),
 	)
 }

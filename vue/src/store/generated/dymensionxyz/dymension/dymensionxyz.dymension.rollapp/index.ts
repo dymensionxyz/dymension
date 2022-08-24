@@ -4,11 +4,10 @@ import { BlockDescriptor } from "./module/types/rollapp/block_descriptor"
 import { BlockDescriptors } from "./module/types/rollapp/block_descriptor"
 import { Params } from "./module/types/rollapp/params"
 import { Rollapp } from "./module/types/rollapp/rollapp"
-import { RollappStateInfo } from "./module/types/rollapp/rollapp_state_info"
 import { StateInfo } from "./module/types/rollapp/state_info"
 
 
-export { BlockDescriptor, BlockDescriptors, Params, Rollapp, RollappStateInfo, StateInfo };
+export { BlockDescriptor, BlockDescriptors, Params, Rollapp, StateInfo };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -49,15 +48,14 @@ const getDefaultState = () => {
 				Params: {},
 				Rollapp: {},
 				RollappAll: {},
-				RollappStateInfo: {},
-				RollappStateInfoAll: {},
+				StateInfo: {},
+				StateInfoAll: {},
 				
 				_Structure: {
 						BlockDescriptor: getStructure(BlockDescriptor.fromPartial({})),
 						BlockDescriptors: getStructure(BlockDescriptors.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						Rollapp: getStructure(Rollapp.fromPartial({})),
-						RollappStateInfo: getStructure(RollappStateInfo.fromPartial({})),
 						StateInfo: getStructure(StateInfo.fromPartial({})),
 						
 		},
@@ -105,17 +103,17 @@ export default {
 					}
 			return state.RollappAll[JSON.stringify(params)] ?? {}
 		},
-				getRollappStateInfo: (state) => (params = { params: {}}) => {
+				getStateInfo: (state) => (params = { params: {}}) => {
 					if (!(<any> params).query) {
 						(<any> params).query=null
 					}
-			return state.RollappStateInfo[JSON.stringify(params)] ?? {}
+			return state.StateInfo[JSON.stringify(params)] ?? {}
 		},
-				getRollappStateInfoAll: (state) => (params = { params: {}}) => {
+				getStateInfoAll: (state) => (params = { params: {}}) => {
 					if (!(<any> params).query) {
 						(<any> params).query=null
 					}
-			return state.RollappStateInfoAll[JSON.stringify(params)] ?? {}
+			return state.StateInfoAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -226,18 +224,18 @@ export default {
 		 		
 		
 		
-		async QueryRollappStateInfo({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+		async QueryStateInfo({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
 				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryRollappStateInfo( key.rollappId,  key.stateIndex)).data
+				let value= (await queryClient.queryStateInfo( key.rollappId,  key.stateIndex)).data
 				
 					
-				commit('QUERY', { query: 'RollappStateInfo', key: { params: {...key}, query}, value })
-				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRollappStateInfo', payload: { options: { all }, params: {...key},query }})
-				return getters['getRollappStateInfo']( { params: {...key}, query}) ?? {}
+				commit('QUERY', { query: 'StateInfo', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryStateInfo', payload: { options: { all }, params: {...key},query }})
+				return getters['getStateInfo']( { params: {...key}, query}) ?? {}
 			} catch (e) {
-				throw new Error('QueryClient:QueryRollappStateInfo API Node Unavailable. Could not perform query: ' + e.message)
+				throw new Error('QueryClient:QueryStateInfo API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
@@ -248,42 +246,27 @@ export default {
 		 		
 		
 		
-		async QueryRollappStateInfoAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+		async QueryStateInfoAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
 			try {
 				const key = params ?? {};
 				const queryClient=await initQueryClient(rootGetters)
-				let value= (await queryClient.queryRollappStateInfoAll(query)).data
+				let value= (await queryClient.queryStateInfoAll(query)).data
 				
 					
 				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
-					let next_values=(await queryClient.queryRollappStateInfoAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					let next_values=(await queryClient.queryStateInfoAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
 					value = mergeResults(value, next_values);
 				}
-				commit('QUERY', { query: 'RollappStateInfoAll', key: { params: {...key}, query}, value })
-				if (subscribe) commit('SUBSCRIBE', { action: 'QueryRollappStateInfoAll', payload: { options: { all }, params: {...key},query }})
-				return getters['getRollappStateInfoAll']( { params: {...key}, query}) ?? {}
+				commit('QUERY', { query: 'StateInfoAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryStateInfoAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getStateInfoAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
-				throw new Error('QueryClient:QueryRollappStateInfoAll API Node Unavailable. Could not perform query: ' + e.message)
+				throw new Error('QueryClient:QueryStateInfoAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},
 		
 		
-		async sendMsgUpdateState({ rootGetters }, { value, fee = [], memo = '' }) {
-			try {
-				const txClient=await initTxClient(rootGetters)
-				const msg = await txClient.msgUpdateState(value)
-				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
-	gas: "200000" }, memo})
-				return result
-			} catch (e) {
-				if (e == MissingWalletError) {
-					throw new Error('TxClient:MsgUpdateState:Init Could not initialize signing client. Wallet is required.')
-				}else{
-					throw new Error('TxClient:MsgUpdateState:Send Could not broadcast Tx: '+ e.message)
-				}
-			}
-		},
 		async sendMsgCreateRollapp({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
@@ -299,20 +282,22 @@ export default {
 				}
 			}
 		},
-		
-		async MsgUpdateState({ rootGetters }, { value }) {
+		async sendMsgUpdateState({ rootGetters }, { value, fee = [], memo = '' }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
 				const msg = await txClient.msgUpdateState(value)
-				return msg
+				const result = await txClient.signAndBroadcast([msg], {fee: { amount: fee, 
+	gas: "200000" }, memo})
+				return result
 			} catch (e) {
 				if (e == MissingWalletError) {
 					throw new Error('TxClient:MsgUpdateState:Init Could not initialize signing client. Wallet is required.')
-				} else{
-					throw new Error('TxClient:MsgUpdateState:Create Could not create message: ' + e.message)
+				}else{
+					throw new Error('TxClient:MsgUpdateState:Send Could not broadcast Tx: '+ e.message)
 				}
 			}
 		},
+		
 		async MsgCreateRollapp({ rootGetters }, { value }) {
 			try {
 				const txClient=await initTxClient(rootGetters)
@@ -323,6 +308,19 @@ export default {
 					throw new Error('TxClient:MsgCreateRollapp:Init Could not initialize signing client. Wallet is required.')
 				} else{
 					throw new Error('TxClient:MsgCreateRollapp:Create Could not create message: ' + e.message)
+				}
+			}
+		},
+		async MsgUpdateState({ rootGetters }, { value }) {
+			try {
+				const txClient=await initTxClient(rootGetters)
+				const msg = await txClient.msgUpdateState(value)
+				return msg
+			} catch (e) {
+				if (e == MissingWalletError) {
+					throw new Error('TxClient:MsgUpdateState:Init Could not initialize signing client. Wallet is required.')
+				} else{
+					throw new Error('TxClient:MsgUpdateState:Create Could not create message: ' + e.message)
 				}
 			}
 		},

@@ -4,7 +4,7 @@ package dymensionxyz.dymension.rollapp;
 import "gogoproto/gogo.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
-import "rollapp/rollapp_state_info.proto";
+import "rollapp/state_info.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
@@ -13,6 +13,6 @@ option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   repeated Rollapp rollappList = 2 [(gogoproto.nullable) = false];
-  repeated RollappStateInfo rollappStateInfoList = 3 [(gogoproto.nullable) = false];
+  repeated StateInfo stateInfoList = 3 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

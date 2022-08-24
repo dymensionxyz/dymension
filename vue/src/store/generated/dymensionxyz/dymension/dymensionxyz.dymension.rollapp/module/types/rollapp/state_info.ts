@@ -12,13 +12,18 @@ export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
 /** StateInfo defines a rollapps' state. */
 export interface StateInfo {
-  /** sequencer is the bech32-encoded address of the sequencer sent the update */
-  sequencer: string;
   /**
    * rollappId is the rollapp that the sequencer belongs to and asking to update
    * The rollappId follows the same standard as cosmos chain_id
    */
   rollappId: string;
+  /**
+   * stateIndex is a sequential increasing number, updating on each
+   * state update used for indexing to a specific state info
+   */
+  stateIndex: number;
+  /** sequencer is the bech32-encoded address of the sequencer sent the update */
+  sequencer: string;
   /** startHeight is the block height of the first block in the batch */
   startHeight: number;
   /** numBlocks is the number of blocks included in this batch update */
@@ -39,8 +44,9 @@ export interface StateInfo {
 }
 
 const baseStateInfo: object = {
-  sequencer: "",
   rollappId: "",
+  stateIndex: 0,
+  sequencer: "",
   startHeight: 0,
   numBlocks: 0,
   DAPath: "",
@@ -51,32 +57,35 @@ const baseStateInfo: object = {
 
 export const StateInfo = {
   encode(message: StateInfo, writer: Writer = Writer.create()): Writer {
-    if (message.sequencer !== "") {
-      writer.uint32(10).string(message.sequencer);
-    }
     if (message.rollappId !== "") {
-      writer.uint32(18).string(message.rollappId);
+      writer.uint32(10).string(message.rollappId);
+    }
+    if (message.stateIndex !== 0) {
+      writer.uint32(16).uint64(message.stateIndex);
+    }
+    if (message.sequencer !== "") {
+      writer.uint32(26).string(message.sequencer);
     }
     if (message.startHeight !== 0) {
-      writer.uint32(24).uint64(message.startHeight);
+      writer.uint32(32).uint64(message.startHeight);
     }
     if (message.numBlocks !== 0) {
-      writer.uint32(32).uint64(message.numBlocks);
+      writer.uint32(40).uint64(message.numBlocks);
     }
     if (message.DAPath !== "") {
-      writer.uint32(42).string(message.DAPath);
+      writer.uint32(50).string(message.DAPath);
     }
     if (message.version !== 0) {
-      writer.uint32(48).uint64(message.version);
+      writer.uint32(56).uint64(message.version);
     }
     if (message.creationHeight !== 0) {
-      writer.uint32(56).uint64(message.creationHeight);
+      writer.uint32(64).uint64(message.creationHeight);
     }
     if (message.status !== 0) {
-      writer.uint32(64).int32(message.status);
+      writer.uint32(72).int32(message.status);
     }
     if (message.BDs !== undefined) {
-      BlockDescriptors.encode(message.BDs, writer.uint32(74).fork()).ldelim();
+      BlockDescriptors.encode(message.BDs, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -89,30 +98,33 @@ export const StateInfo = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.sequencer = reader.string();
-          break;
-        case 2:
           message.rollappId = reader.string();
           break;
+        case 2:
+          message.stateIndex = longToNumber(reader.uint64() as Long);
+          break;
         case 3:
-          message.startHeight = longToNumber(reader.uint64() as Long);
+          message.sequencer = reader.string();
           break;
         case 4:
-          message.numBlocks = longToNumber(reader.uint64() as Long);
+          message.startHeight = longToNumber(reader.uint64() as Long);
           break;
         case 5:
-          message.DAPath = reader.string();
+          message.numBlocks = longToNumber(reader.uint64() as Long);
           break;
         case 6:
-          message.version = longToNumber(reader.uint64() as Long);
+          message.DAPath = reader.string();
           break;
         case 7:
-          message.creationHeight = longToNumber(reader.uint64() as Long);
+          message.version = longToNumber(reader.uint64() as Long);
           break;
         case 8:
-          message.status = reader.int32() as any;
+          message.creationHeight = longToNumber(reader.uint64() as Long);
           break;
         case 9:
+          message.status = reader.int32() as any;
+          break;
+        case 10:
           message.BDs = BlockDescriptors.decode(reader, reader.uint32());
           break;
         default:
@@ -125,15 +137,20 @@ export const StateInfo = {
 
   fromJSON(object: any): StateInfo {
     const message = { ...baseStateInfo } as StateInfo;
-    if (object.sequencer !== undefined && object.sequencer !== null) {
-      message.sequencer = String(object.sequencer);
-    } else {
-      message.sequencer = "";
-    }
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = String(object.rollappId);
     } else {
       message.rollappId = "";
+    }
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      message.stateIndex = Number(object.stateIndex);
+    } else {
+      message.stateIndex = 0;
+    }
+    if (object.sequencer !== undefined && object.sequencer !== null) {
+      message.sequencer = String(object.sequencer);
+    } else {
+      message.sequencer = "";
     }
     if (object.startHeight !== undefined && object.startHeight !== null) {
       message.startHeight = Number(object.startHeight);
@@ -175,8 +192,9 @@ export const StateInfo = {
 
   toJSON(message: StateInfo): unknown {
     const obj: any = {};
-    message.sequencer !== undefined && (obj.sequencer = message.sequencer);
     message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    message.stateIndex !== undefined && (obj.stateIndex = message.stateIndex);
+    message.sequencer !== undefined && (obj.sequencer = message.sequencer);
     message.startHeight !== undefined &&
       (obj.startHeight = message.startHeight);
     message.numBlocks !== undefined && (obj.numBlocks = message.numBlocks);
@@ -195,15 +213,20 @@ export const StateInfo = {
 
   fromPartial(object: DeepPartial<StateInfo>): StateInfo {
     const message = { ...baseStateInfo } as StateInfo;
-    if (object.sequencer !== undefined && object.sequencer !== null) {
-      message.sequencer = object.sequencer;
-    } else {
-      message.sequencer = "";
-    }
     if (object.rollappId !== undefined && object.rollappId !== null) {
       message.rollappId = object.rollappId;
     } else {
       message.rollappId = "";
+    }
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      message.stateIndex = object.stateIndex;
+    } else {
+      message.stateIndex = 0;
+    }
+    if (object.sequencer !== undefined && object.sequencer !== null) {
+      message.sequencer = object.sequencer;
+    } else {
+      message.sequencer = "";
     }
     if (object.startHeight !== undefined && object.startHeight !== null) {
       message.startHeight = object.startHeight;
