@@ -17,9 +17,9 @@ var _ = strconv.Itoa(0)
 
 func CmdUpdateState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-state [rollapp-id] [start-height] [num-blocks] [da-path] [version] [last-bd] [bds]",
+		Use:   "update-state [rollapp-id] [start-height] [num-blocks] [da-path] [version] [bds]",
 		Short: "Update rollapp state",
-		Args:  cobra.ExactArgs(7),
+		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 			argStartHeight, err := cast.ToUint64E(args[1])
@@ -35,13 +35,8 @@ func CmdUpdateState() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			argLastBD := new(types.BlockDescriptor)
-			err = json.Unmarshal([]byte(args[5]), argLastBD)
-			if err != nil {
-				return err
-			}
 			argBDs := new(types.BlockDescriptors)
-			err = json.Unmarshal([]byte(args[6]), argBDs)
+			err = json.Unmarshal([]byte(args[5]), argBDs)
 			if err != nil {
 				return err
 			}
@@ -58,7 +53,6 @@ func CmdUpdateState() *cobra.Command {
 				argNumBlocks,
 				argDAPath,
 				argVersion,
-				argLastBD,
 				argBDs,
 			)
 			if err := msg.ValidateBasic(); err != nil {

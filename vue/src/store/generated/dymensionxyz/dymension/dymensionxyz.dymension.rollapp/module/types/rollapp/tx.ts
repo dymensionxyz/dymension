@@ -2,7 +2,7 @@
 import { Reader, util, configure, Writer } from "protobufjs/minimal";
 import * as Long from "long";
 import { Sequencers } from "../shared/sequencers";
-import { BlockDescriptor, BlockDescriptors } from "../rollapp/block_descriptor";
+import { BlockDescriptors } from "../rollapp/block_descriptor";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
@@ -57,8 +57,6 @@ export interface MsgUpdateState {
   DAPath: string;
   /** version is the version of the rollapp */
   version: number;
-  /** lastBD is the latest block descriptor of the last state update */
-  lastBD: BlockDescriptor | undefined;
   /**
    * BDs is a list of block description objects (one per block)
    * the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
@@ -341,11 +339,8 @@ export const MsgUpdateState = {
     if (message.version !== 0) {
       writer.uint32(48).uint64(message.version);
     }
-    if (message.lastBD !== undefined) {
-      BlockDescriptor.encode(message.lastBD, writer.uint32(58).fork()).ldelim();
-    }
     if (message.BDs !== undefined) {
-      BlockDescriptors.encode(message.BDs, writer.uint32(66).fork()).ldelim();
+      BlockDescriptors.encode(message.BDs, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -376,9 +371,6 @@ export const MsgUpdateState = {
           message.version = longToNumber(reader.uint64() as Long);
           break;
         case 7:
-          message.lastBD = BlockDescriptor.decode(reader, reader.uint32());
-          break;
-        case 8:
           message.BDs = BlockDescriptors.decode(reader, reader.uint32());
           break;
         default:
@@ -421,11 +413,6 @@ export const MsgUpdateState = {
     } else {
       message.version = 0;
     }
-    if (object.lastBD !== undefined && object.lastBD !== null) {
-      message.lastBD = BlockDescriptor.fromJSON(object.lastBD);
-    } else {
-      message.lastBD = undefined;
-    }
     if (object.BDs !== undefined && object.BDs !== null) {
       message.BDs = BlockDescriptors.fromJSON(object.BDs);
     } else {
@@ -443,10 +430,6 @@ export const MsgUpdateState = {
     message.numBlocks !== undefined && (obj.numBlocks = message.numBlocks);
     message.DAPath !== undefined && (obj.DAPath = message.DAPath);
     message.version !== undefined && (obj.version = message.version);
-    message.lastBD !== undefined &&
-      (obj.lastBD = message.lastBD
-        ? BlockDescriptor.toJSON(message.lastBD)
-        : undefined);
     message.BDs !== undefined &&
       (obj.BDs = message.BDs
         ? BlockDescriptors.toJSON(message.BDs)
@@ -485,11 +468,6 @@ export const MsgUpdateState = {
       message.version = object.version;
     } else {
       message.version = 0;
-    }
-    if (object.lastBD !== undefined && object.lastBD !== null) {
-      message.lastBD = BlockDescriptor.fromPartial(object.lastBD);
-    } else {
-      message.lastBD = undefined;
     }
     if (object.BDs !== undefined && object.BDs !== null) {
       message.BDs = BlockDescriptors.fromPartial(object.BDs);

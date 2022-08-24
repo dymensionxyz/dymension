@@ -9,7 +9,7 @@ const TypeMsgUpdateState = "update_state"
 
 var _ sdk.Msg = &MsgUpdateState{}
 
-func NewMsgUpdateState(creator string, rollappId string, startHeight uint64, numBlocks uint64, dAPath string, version uint64, lastBD *BlockDescriptor, bDs *BlockDescriptors) *MsgUpdateState {
+func NewMsgUpdateState(creator string, rollappId string, startHeight uint64, numBlocks uint64, dAPath string, version uint64, bDs *BlockDescriptors) *MsgUpdateState {
 	return &MsgUpdateState{
 		Creator:     creator,
 		RollappId:   rollappId,
@@ -17,7 +17,6 @@ func NewMsgUpdateState(creator string, rollappId string, startHeight uint64, num
 		NumBlocks:   numBlocks,
 		DAPath:      dAPath,
 		Version:     version,
-		LastBD:      *lastBD,
 		BDs:         *bDs,
 	}
 }
@@ -57,20 +56,6 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 	// check to see that update contains all BDs
 	if len(msg.BDs.BD) != int(msg.NumBlocks) {
 		return sdkerrors.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of block descriptors(%d)", msg.NumBlocks, len(msg.BDs.BD))
-	}
-
-	// check if it's not the first state update for this rollapp
-	if msg.LastBD.Height == 0 {
-		// check to see if this update starts from the first block height
-		if msg.BDs.BD[0].Height != 0 {
-			return sdkerrors.Wrapf(ErrInvalidBlockSequence, "new updated height (%d), but the last reported height indicates it's the first update", msg.BDs.BD[0].Height)
-		}
-	} else {
-		// check to see if this update provides the latest known state
-		// and that it updates start from that height
-		if msg.BDs.BD[0].Height != msg.LastBD.Height+1 {
-			return sdkerrors.Wrapf(ErrInvalidBlockSequence, "new updated height (%d) is not following the last reported height (%d)", msg.BDs.BD[0].Height, msg.LastBD.Height+1)
-		}
 	}
 
 	// check that the blocks are sequential by height

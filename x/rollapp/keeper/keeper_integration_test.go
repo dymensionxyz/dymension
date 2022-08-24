@@ -186,7 +186,6 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     3,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -206,7 +205,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateUnknownRollappId() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     0,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -235,7 +233,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateVersionMismatch() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     0,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -264,7 +261,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateUnknownSequencer() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     3,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -301,7 +297,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateSequencerRollappMismatch() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     3,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -341,7 +336,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogic() {
 		NumBlocks:   3,
 		DAPath:      "",
 		Version:     3,
-		LastBD:      types.BlockDescriptor{Height: 0},
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
 	}
 
