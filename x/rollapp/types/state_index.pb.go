@@ -22,9 +22,17 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// StateIndex defines a rollapps' the current (latest)
+// index of the last UpdateState
+// the index also saved with every UpdateState in StateInfo.
+// the <rollappId, index> pair is used for retrieving a StateInfo
 type StateIndex struct {
+	// rollappId is the rollapp that we save the index for
+	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	Index     uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
+	// index is a sequentially increasing number
+	// the index increases on every state update
+	Index uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 }
 
 func (m *StateIndex) Reset()         { *m = StateIndex{} }

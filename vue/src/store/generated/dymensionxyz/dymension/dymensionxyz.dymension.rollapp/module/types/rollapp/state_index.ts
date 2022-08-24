@@ -4,8 +4,22 @@ import { util, configure, Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
+/**
+ * StateIndex defines a rollapps' the current (latest)
+ * index of the last UpdateState
+ * the index also saved with every UpdateState in StateInfo.
+ * the <rollappId, index> pair is used for retrieving a StateInfo
+ */
 export interface StateIndex {
+  /**
+   * rollappId is the rollapp that we save the index for
+   * The rollappId follows the same standard as cosmos chain_id
+   */
   rollappId: string;
+  /**
+   * index is a sequentially increasing number
+   * the index increases on every state update
+   */
   index: number;
 }
 

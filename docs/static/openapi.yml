@@ -20336,6 +20336,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/rollapp/{rollappId}':
@@ -20454,9 +20464,26 @@ paths:
                   properties:
                     rollappId:
                       type: string
+                      title: >-
+                        rollappId is the rollapp that we save the index for
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id
                     index:
                       type: string
                       format: uint64
+                      title: |-
+                        index is a sequentially increasing number
+                        the index increases on every state update
+                  title: >-
+                    StateIndex defines a rollapps' the current (latest) 
+
+                    index of the last UpdateState 
+
+                    the index also saved with every UpdateState in StateInfo.
+
+                    the <rollappId, index> pair is used for retrieving a
+                    StateInfo
               pagination:
                 type: object
                 properties:
@@ -20549,6 +20576,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/state_index/{rollappId}':
@@ -20566,9 +20603,20 @@ paths:
                 properties:
                   rollappId:
                     type: string
+                    title: |-
+                      rollappId is the rollapp that we save the index for
+                      The rollappId follows the same standard as cosmos chain_id
                   index:
                     type: string
                     format: uint64
+                    title: |-
+                      index is a sequentially increasing number
+                      the index increases on every state update
+                title: |-
+                  StateIndex defines a rollapps' the current (latest) 
+                  index of the last UpdateState 
+                  the index also saved with every UpdateState in StateInfo.
+                  the <rollappId, index> pair is used for retrieving a StateInfo
         default:
           description: An unexpected error response.
           schema:
@@ -20788,6 +20836,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -49762,9 +49820,20 @@ definitions:
           properties:
             rollappId:
               type: string
+              title: |-
+                rollappId is the rollapp that we save the index for
+                The rollappId follows the same standard as cosmos chain_id
             index:
               type: string
               format: uint64
+              title: |-
+                index is a sequentially increasing number
+                the index increases on every state update
+          title: |-
+            StateIndex defines a rollapps' the current (latest) 
+            index of the last UpdateState 
+            the index also saved with every UpdateState in StateInfo.
+            the <rollappId, index> pair is used for retrieving a StateInfo
       pagination:
         type: object
         properties:
@@ -49967,9 +50036,20 @@ definitions:
         properties:
           rollappId:
             type: string
+            title: |-
+              rollappId is the rollapp that we save the index for
+              The rollappId follows the same standard as cosmos chain_id
           index:
             type: string
             format: uint64
+            title: |-
+              index is a sequentially increasing number
+              the index increases on every state update
+        title: |-
+          StateIndex defines a rollapps' the current (latest) 
+          index of the last UpdateState 
+          the index also saved with every UpdateState in StateInfo.
+          the <rollappId, index> pair is used for retrieving a StateInfo
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
@@ -50127,9 +50207,20 @@ definitions:
     properties:
       rollappId:
         type: string
+        title: |-
+          rollappId is the rollapp that we save the index for
+          The rollappId follows the same standard as cosmos chain_id
       index:
         type: string
         format: uint64
+        title: |-
+          index is a sequentially increasing number
+          the index increases on every state update
+    title: |-
+      StateIndex defines a rollapps' the current (latest) 
+      index of the last UpdateState 
+      the index also saved with every UpdateState in StateInfo.
+      the <rollappId, index> pair is used for retrieving a StateInfo
   dymensionxyz.dymension.rollapp.StateInfo:
     type: object
     properties:
