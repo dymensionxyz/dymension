@@ -17,4 +17,5 @@ var (
 	ErrInvalidBlockSequence           = sdkerrors.Register(ModuleName, 1006, "invalid block sequence")
 	ErrUnknownRollappId               = sdkerrors.Register(ModuleName, 1007, "rollapp does not exist")
 	ErrVersionMismatch                = sdkerrors.Register(ModuleName, 1008, "rollapp version mismatch")
+	ErrWrongBlockHeight               = sdkerrors.Register(ModuleName, 1009, "start-height does not match rollapps state")
 )

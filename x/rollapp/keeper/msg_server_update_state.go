@@ -18,8 +18,8 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// check rollapp version
-	if rollapp.GetVersion() != msg.Version {
-		return nil, sdkerrors.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d but got %d", msg.RollappId, rollapp.GetVersion(), msg.Version)
+	if rollapp.Version != msg.Version {
+		return nil, sdkerrors.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", msg.RollappId, rollapp.Version, msg.Version)
 	}
 
 	// call the before-update-state hook
@@ -31,7 +31,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Logig Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
-	permissionedAddresses := rollapp.GetPermissionedAddresses().Addresses
+	permissionedAddresses := rollapp.PermissionedAddresses.Addresses
 	if len(permissionedAddresses) > 0 {
 		bPermissioned := false
 		// check to see if the sequencer is in the permissioned list
@@ -52,6 +52,62 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				msg.Creator, msg.RollappId)
 		}
 	}
+
+	// retrieve last updating index
+	stateIndex, isFound := k.GetStateIndex(ctx, msg.RollappId)
+	var newIndex uint64
+	if !isFound {
+		// check to see if it's the first update
+		if msg.StartHeight != 0 {
+			// if not, it's an error
+			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
+				"expected height 0, but received (%d)",
+				msg.StartHeight)
+		}
+		// else, it's the first update
+		newIndex = 0
+	} else {
+		// retrieve last updating index
+		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, stateIndex.Index)
+		// Check Error: if stateIndex exists, there must me an info for this state
+		if !isFound {
+			// if not, it's a logic error
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				"missing stateInfo for state-index (%d) of rollappId(%s)",
+				stateIndex.Index, msg.RollappId)
+		}
+
+		// check to see if received height is the one we expected
+		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
+		if expectedStartHeight != msg.StartHeight {
+			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
+				"expected height (%d), but received (%d)",
+				expectedStartHeight, msg.StartHeight)
+		}
+
+		// bump state index
+		newIndex = stateIndex.Index + 1
+	}
+
+	// Write new index information to the store
+	k.SetStateIndex(ctx, types.StateIndex{
+		RollappId: msg.RollappId,
+		Index:     newIndex,
+	})
+
+	// Write new state information to the store indexed by <RollappId,StateIndex>
+	k.SetStateInfo(ctx, types.StateInfo{
+		RollappId:      msg.RollappId,
+		StateIndex:     newIndex,
+		Sequencer:      msg.Creator,
+		StartHeight:    msg.StartHeight,
+		NumBlocks:      msg.NumBlocks,
+		DAPath:         msg.DAPath,
+		Version:        msg.Version,
+		CreationHeight: 0, // TODO - have the current block height
+		Status:         types.STATE_STATUS_RECEIVED,
+		BDs:            msg.BDs},
+	)
 
 	return &types.MsgUpdateStateResponse{}, nil
 }
