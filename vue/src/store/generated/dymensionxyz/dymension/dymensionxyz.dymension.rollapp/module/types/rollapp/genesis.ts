@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { Params } from "../rollapp/params";
 import { Rollapp } from "../rollapp/rollapp";
+import { RollappStateInfo } from "../rollapp/rollapp_state_info";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
@@ -8,8 +9,9 @@ export const protobufPackage = "dymensionxyz.dymension.rollapp";
 /** GenesisState defines the rollapp module's genesis state. */
 export interface GenesisState {
   params: Params | undefined;
-  /** this line is used by starport scaffolding # genesis/proto/state */
   rollappList: Rollapp[];
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  rollappStateInfoList: RollappStateInfo[];
 }
 
 const baseGenesisState: object = {};
@@ -22,6 +24,9 @@ export const GenesisState = {
     for (const v of message.rollappList) {
       Rollapp.encode(v!, writer.uint32(18).fork()).ldelim();
     }
+    for (const v of message.rollappStateInfoList) {
+      RollappStateInfo.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -30,6 +35,7 @@ export const GenesisState = {
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
+    message.rollappStateInfoList = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -38,6 +44,11 @@ export const GenesisState = {
           break;
         case 2:
           message.rollappList.push(Rollapp.decode(reader, reader.uint32()));
+          break;
+        case 3:
+          message.rollappStateInfoList.push(
+            RollappStateInfo.decode(reader, reader.uint32())
+          );
           break;
         default:
           reader.skipType(tag & 7);
@@ -50,6 +61,7 @@ export const GenesisState = {
   fromJSON(object: any): GenesisState {
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
+    message.rollappStateInfoList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromJSON(object.params);
     } else {
@@ -58,6 +70,14 @@ export const GenesisState = {
     if (object.rollappList !== undefined && object.rollappList !== null) {
       for (const e of object.rollappList) {
         message.rollappList.push(Rollapp.fromJSON(e));
+      }
+    }
+    if (
+      object.rollappStateInfoList !== undefined &&
+      object.rollappStateInfoList !== null
+    ) {
+      for (const e of object.rollappStateInfoList) {
+        message.rollappStateInfoList.push(RollappStateInfo.fromJSON(e));
       }
     }
     return message;
@@ -74,12 +94,20 @@ export const GenesisState = {
     } else {
       obj.rollappList = [];
     }
+    if (message.rollappStateInfoList) {
+      obj.rollappStateInfoList = message.rollappStateInfoList.map((e) =>
+        e ? RollappStateInfo.toJSON(e) : undefined
+      );
+    } else {
+      obj.rollappStateInfoList = [];
+    }
     return obj;
   },
 
   fromPartial(object: DeepPartial<GenesisState>): GenesisState {
     const message = { ...baseGenesisState } as GenesisState;
     message.rollappList = [];
+    message.rollappStateInfoList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromPartial(object.params);
     } else {
@@ -88,6 +116,14 @@ export const GenesisState = {
     if (object.rollappList !== undefined && object.rollappList !== null) {
       for (const e of object.rollappList) {
         message.rollappList.push(Rollapp.fromPartial(e));
+      }
+    }
+    if (
+      object.rollappStateInfoList !== undefined &&
+      object.rollappStateInfoList !== null
+    ) {
+      for (const e of object.rollappStateInfoList) {
+        message.rollappStateInfoList.push(RollappStateInfo.fromPartial(e));
       }
     }
     return message;

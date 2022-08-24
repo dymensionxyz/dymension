@@ -30,6 +30,16 @@ func TestGenesisState_Validate(t *testing.T) {
 						RollappId: "1",
 					},
 				},
+				RollappStateInfoList: []types.RollappStateInfo{
+					{
+						RollappId:  "0",
+						StateIndex: 0,
+					},
+					{
+						RollappId:  "1",
+						StateIndex: 1,
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -56,6 +66,22 @@ func TestGenesisState_Validate(t *testing.T) {
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated rollappStateInfo",
+			genState: &types.GenesisState{
+				RollappStateInfoList: []types.RollappStateInfo{
+					{
+						RollappId:  "0",
+						StateIndex: 0,
+					},
+					{
+						RollappId:  "0",
+						StateIndex: 0,
 					},
 				},
 			},

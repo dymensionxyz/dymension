@@ -10,7 +10,7 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateRollapp{}, "rollapp/CreateRollapp", nil)
 	cdc.RegisterConcrete(&MsgUpdateState{}, "rollapp/UpdateState", nil)
-// this line is used by starport scaffolding # 2
+	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -18,9 +18,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgCreateRollapp{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgUpdateState{},
-)
-// this line is used by starport scaffolding # 3
+		&MsgUpdateState{},
+	)
+	// this line is used by starport scaffolding # 3
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
