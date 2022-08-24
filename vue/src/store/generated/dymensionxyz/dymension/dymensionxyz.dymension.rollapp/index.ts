@@ -4,10 +4,11 @@ import { BlockDescriptor } from "./module/types/rollapp/block_descriptor"
 import { BlockDescriptors } from "./module/types/rollapp/block_descriptor"
 import { Params } from "./module/types/rollapp/params"
 import { Rollapp } from "./module/types/rollapp/rollapp"
+import { StateIndex } from "./module/types/rollapp/state_index"
 import { StateInfo } from "./module/types/rollapp/state_info"
 
 
-export { BlockDescriptor, BlockDescriptors, Params, Rollapp, StateInfo };
+export { BlockDescriptor, BlockDescriptors, Params, Rollapp, StateIndex, StateInfo };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -50,12 +51,15 @@ const getDefaultState = () => {
 				RollappAll: {},
 				StateInfo: {},
 				StateInfoAll: {},
+				StateIndex: {},
+				StateIndexAll: {},
 				
 				_Structure: {
 						BlockDescriptor: getStructure(BlockDescriptor.fromPartial({})),
 						BlockDescriptors: getStructure(BlockDescriptors.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
 						Rollapp: getStructure(Rollapp.fromPartial({})),
+						StateIndex: getStructure(StateIndex.fromPartial({})),
 						StateInfo: getStructure(StateInfo.fromPartial({})),
 						
 		},
@@ -114,6 +118,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.StateInfoAll[JSON.stringify(params)] ?? {}
+		},
+				getStateIndex: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.StateIndex[JSON.stringify(params)] ?? {}
+		},
+				getStateIndexAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.StateIndexAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -262,6 +278,54 @@ export default {
 				return getters['getStateInfoAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QueryStateInfoAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryStateIndex({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryStateIndex( key.rollappId)).data
+				
+					
+				commit('QUERY', { query: 'StateIndex', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryStateIndex', payload: { options: { all }, params: {...key},query }})
+				return getters['getStateIndex']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryStateIndex API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryStateIndexAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryStateIndexAll(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.queryStateIndexAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'StateIndexAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryStateIndexAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getStateIndexAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryStateIndexAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},

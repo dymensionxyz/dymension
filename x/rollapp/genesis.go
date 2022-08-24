@@ -17,6 +17,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.StateInfoList {
 		k.SetStateInfo(ctx, elem)
 	}
+	// Set all the stateIndex
+	for _, elem := range genState.StateIndexList {
+		k.SetStateIndex(ctx, elem)
+	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -28,6 +32,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	genesis.RollappList = k.GetAllRollapp(ctx)
 	genesis.StateInfoList = k.GetAllStateInfo(ctx)
+	genesis.StateIndexList = k.GetAllStateIndex(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

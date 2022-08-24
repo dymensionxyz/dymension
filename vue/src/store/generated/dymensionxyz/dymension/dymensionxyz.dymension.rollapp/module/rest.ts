@@ -57,6 +57,21 @@ export interface RollappQueryAllRollappResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface RollappQueryAllStateIndexResponse {
+  stateIndex?: RollappStateIndex[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface RollappQueryAllStateInfoResponse {
   stateInfo?: RollappStateInfo[];
 
@@ -74,6 +89,10 @@ export interface RollappQueryAllStateInfoResponse {
 
 export interface RollappQueryGetRollappResponse {
   rollapp?: RollappRollapp;
+}
+
+export interface RollappQueryGetStateIndexResponse {
+  stateIndex?: RollappStateIndex;
 }
 
 export interface RollappQueryGetStateInfoResponse {
@@ -127,6 +146,13 @@ export interface RollappRollapp {
    * In the case of an empty list, the rollapp is considered permissionless.
    */
   permissionedAddresses?: SharedSequencers;
+}
+
+export interface RollappStateIndex {
+  rollappId?: string;
+
+  /** @format uint64 */
+  index?: string;
 }
 
 /**
@@ -481,6 +507,47 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryRollapp = (rollappId: string, params: RequestParams = {}) =>
     this.request<RollappQueryGetRollappResponse, RpcStatus>({
       path: `/dymensionxyz/dymension/rollapp/rollapp/${rollappId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateIndexAll
+   * @summary Queries a list of StateIndex items.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_index
+   */
+  queryStateIndexAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<RollappQueryAllStateIndexResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_index`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateIndex
+   * @summary Queries a StateIndex by index.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_index/{rollappId}
+   */
+  queryStateIndex = (rollappId: string, params: RequestParams = {}) =>
+    this.request<RollappQueryGetStateIndexResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_index/${rollappId}`,
       method: "GET",
       format: "json",
       ...params,

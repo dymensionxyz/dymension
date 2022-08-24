@@ -1,0 +1,11 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+message StateIndex {
+  string rollappId = 1; 
+  uint64 index = 2; 
+  
+}
+

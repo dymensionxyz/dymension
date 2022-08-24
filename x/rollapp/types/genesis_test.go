@@ -40,6 +40,14 @@ func TestGenesisState_Validate(t *testing.T) {
 						StateIndex: 1,
 					},
 				},
+				StateIndexList: []types.StateIndex{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "1",
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -82,6 +90,20 @@ func TestGenesisState_Validate(t *testing.T) {
 					{
 						RollappId:  "0",
 						StateIndex: 0,
+					},
+				},
+			},
+			valid: false,
+		},
+		{
+			desc: "duplicated stateIndex",
+			genState: &types.GenesisState{
+				StateIndexList: []types.StateIndex{
+					{
+						RollappId: "0",
+					},
+					{
+						RollappId: "0",
 					},
 				},
 			},

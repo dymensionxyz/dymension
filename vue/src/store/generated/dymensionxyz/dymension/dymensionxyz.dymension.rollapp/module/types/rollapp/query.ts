@@ -8,6 +8,7 @@ import {
   PageResponse,
 } from "../cosmos/base/query/v1beta1/pagination";
 import { StateInfo } from "../rollapp/state_info";
+import { StateIndex } from "../rollapp/state_index";
 
 export const protobufPackage = "dymensionxyz.dymension.rollapp";
 
@@ -52,6 +53,23 @@ export interface QueryAllStateInfoRequest {
 
 export interface QueryAllStateInfoResponse {
   stateInfo: StateInfo[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetStateIndexRequest {
+  rollappId: string;
+}
+
+export interface QueryGetStateIndexResponse {
+  stateIndex: StateIndex | undefined;
+}
+
+export interface QueryAllStateIndexRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllStateIndexResponse {
+  stateIndex: StateIndex[];
   pagination: PageResponse | undefined;
 }
 
@@ -773,6 +791,320 @@ export const QueryAllStateInfoResponse = {
   },
 };
 
+const baseQueryGetStateIndexRequest: object = { rollappId: "" };
+
+export const QueryGetStateIndexRequest = {
+  encode(
+    message: QueryGetStateIndexRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.rollappId !== "") {
+      writer.uint32(10).string(message.rollappId);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetStateIndexRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetStateIndexRequest,
+    } as QueryGetStateIndexRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.rollappId = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetStateIndexRequest {
+    const message = {
+      ...baseQueryGetStateIndexRequest,
+    } as QueryGetStateIndexRequest;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = String(object.rollappId);
+    } else {
+      message.rollappId = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetStateIndexRequest): unknown {
+    const obj: any = {};
+    message.rollappId !== undefined && (obj.rollappId = message.rollappId);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetStateIndexRequest>
+  ): QueryGetStateIndexRequest {
+    const message = {
+      ...baseQueryGetStateIndexRequest,
+    } as QueryGetStateIndexRequest;
+    if (object.rollappId !== undefined && object.rollappId !== null) {
+      message.rollappId = object.rollappId;
+    } else {
+      message.rollappId = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetStateIndexResponse: object = {};
+
+export const QueryGetStateIndexResponse = {
+  encode(
+    message: QueryGetStateIndexResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.stateIndex !== undefined) {
+      StateIndex.encode(message.stateIndex, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetStateIndexResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetStateIndexResponse,
+    } as QueryGetStateIndexResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.stateIndex = StateIndex.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetStateIndexResponse {
+    const message = {
+      ...baseQueryGetStateIndexResponse,
+    } as QueryGetStateIndexResponse;
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      message.stateIndex = StateIndex.fromJSON(object.stateIndex);
+    } else {
+      message.stateIndex = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetStateIndexResponse): unknown {
+    const obj: any = {};
+    message.stateIndex !== undefined &&
+      (obj.stateIndex = message.stateIndex
+        ? StateIndex.toJSON(message.stateIndex)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetStateIndexResponse>
+  ): QueryGetStateIndexResponse {
+    const message = {
+      ...baseQueryGetStateIndexResponse,
+    } as QueryGetStateIndexResponse;
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      message.stateIndex = StateIndex.fromPartial(object.stateIndex);
+    } else {
+      message.stateIndex = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllStateIndexRequest: object = {};
+
+export const QueryAllStateIndexRequest = {
+  encode(
+    message: QueryAllStateIndexRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllStateIndexRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllStateIndexRequest,
+    } as QueryAllStateIndexRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllStateIndexRequest {
+    const message = {
+      ...baseQueryAllStateIndexRequest,
+    } as QueryAllStateIndexRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllStateIndexRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllStateIndexRequest>
+  ): QueryAllStateIndexRequest {
+    const message = {
+      ...baseQueryAllStateIndexRequest,
+    } as QueryAllStateIndexRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllStateIndexResponse: object = {};
+
+export const QueryAllStateIndexResponse = {
+  encode(
+    message: QueryAllStateIndexResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.stateIndex) {
+      StateIndex.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllStateIndexResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllStateIndexResponse,
+    } as QueryAllStateIndexResponse;
+    message.stateIndex = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.stateIndex.push(StateIndex.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllStateIndexResponse {
+    const message = {
+      ...baseQueryAllStateIndexResponse,
+    } as QueryAllStateIndexResponse;
+    message.stateIndex = [];
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      for (const e of object.stateIndex) {
+        message.stateIndex.push(StateIndex.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllStateIndexResponse): unknown {
+    const obj: any = {};
+    if (message.stateIndex) {
+      obj.stateIndex = message.stateIndex.map((e) =>
+        e ? StateIndex.toJSON(e) : undefined
+      );
+    } else {
+      obj.stateIndex = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllStateIndexResponse>
+  ): QueryAllStateIndexResponse {
+    const message = {
+      ...baseQueryAllStateIndexResponse,
+    } as QueryAllStateIndexResponse;
+    message.stateIndex = [];
+    if (object.stateIndex !== undefined && object.stateIndex !== null) {
+      for (const e of object.stateIndex) {
+        message.stateIndex.push(StateIndex.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -789,6 +1121,14 @@ export interface Query {
   StateInfoAll(
     request: QueryAllStateInfoRequest
   ): Promise<QueryAllStateInfoResponse>;
+  /** Queries a StateIndex by index. */
+  StateIndex(
+    request: QueryGetStateIndexRequest
+  ): Promise<QueryGetStateIndexResponse>;
+  /** Queries a list of StateIndex items. */
+  StateIndexAll(
+    request: QueryAllStateIndexRequest
+  ): Promise<QueryAllStateIndexResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -857,6 +1197,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllStateInfoResponse.decode(new Reader(data))
+    );
+  }
+
+  StateIndex(
+    request: QueryGetStateIndexRequest
+  ): Promise<QueryGetStateIndexResponse> {
+    const data = QueryGetStateIndexRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.rollapp.Query",
+      "StateIndex",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetStateIndexResponse.decode(new Reader(data))
+    );
+  }
+
+  StateIndexAll(
+    request: QueryAllStateIndexRequest
+  ): Promise<QueryAllStateIndexResponse> {
+    const data = QueryAllStateIndexRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.rollapp.Query",
+      "StateIndexAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllStateIndexResponse.decode(new Reader(data))
     );
   }
 }
