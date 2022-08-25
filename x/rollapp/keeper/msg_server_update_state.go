@@ -77,6 +77,12 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				stateIndex.Index, msg.RollappId)
 		}
 
+		// check to see if we have already got an update for current block
+		if stateInfo.CreationHeight == uint64(ctx.BlockHeight()) {
+			// only one update is allowed in a block
+			return nil, types.ErrMultiUpdateStateInBlock
+		}
+
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
@@ -104,7 +110,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		NumBlocks:      msg.NumBlocks,
 		DAPath:         msg.DAPath,
 		Version:        msg.Version,
-		CreationHeight: 0, // TODO - have the current block height
+		CreationHeight: uint64(ctx.BlockHeight()),
 		Status:         types.STATE_STATUS_RECEIVED,
 		BDs:            msg.BDs},
 	)

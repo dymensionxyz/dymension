@@ -236,6 +236,11 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 
 	// test 10 update state
 	for i := 0; i < 10; i++ {
+		// bump block height
+		suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeader().Height + 1)
+		goCtx = sdk.WrapSDKContext(suite.ctx)
+
+		// calc new updateState
 		expectedStateIndex, found := suite.app.RollappKeeper.GetStateIndex(suite.ctx, rollapp.GetRollappId())
 		suite.Require().EqualValues(true, found)
 		expectedStateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, rollapp.GetRollappId(), expectedStateIndex.GetIndex())
@@ -250,6 +255,7 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 			BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: expectedStateInfo.StartHeight}, {Height: expectedStateInfo.StartHeight + 1}}},
 		}
 
+		// update state
 		_, err := suite.msgServer.UpdateState(goCtx, &updateState)
 		suite.Require().Nil(err)
 	}
@@ -488,6 +494,10 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
 	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
 
+	// bump block height
+	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeader().Height + 1)
+	goCtx = sdk.WrapSDKContext(suite.ctx)
+
 	// update state
 	updateState := types.MsgUpdateState{
 		Creator:     bob,
@@ -547,6 +557,67 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
 	suite.ErrorIs(err, sdkerrors.ErrLogic)
+}
+
+func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	// set rollapp
+	rollapp := types.Rollapp{
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       3,
+		MaxSequencers: 1,
+		PermissionedAddresses: sharedtypes.Sequencers{
+			Addresses: []string{},
+		},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	// set sequencer
+	sequencer := sequencertypes.Sequencer{
+		Creator:          alice,
+		SequencerAddress: bob,
+		RollappId:        "rollapp1",
+	}
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+
+	// set initial stateIndex & StateInfo
+	stateIndex := types.StateIndex{
+		RollappId: "rollapp1",
+		Index:     0,
+	}
+	stateInfo := types.StateInfo{
+		RollappId:      "rollapp1",
+		StateIndex:     0,
+		Sequencer:      sequencer.SequencerAddress,
+		StartHeight:    0,
+		NumBlocks:      3,
+		DAPath:         "",
+		Version:        0,
+		CreationHeight: 0,
+		Status:         types.STATE_STATUS_RECEIVED,
+		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
+	}
+	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
+	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
+
+	// we don't bump block height
+
+	// update state
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 3,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 3}, {Height: 4}, {Height: 5}}},
+	}
+
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.ErrorIs(err, types.ErrMultiUpdateStateInBlock)
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------

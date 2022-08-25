@@ -18,4 +18,5 @@ var (
 	ErrUnknownRollappId               = sdkerrors.Register(ModuleName, 1007, "rollapp does not exist")
 	ErrVersionMismatch                = sdkerrors.Register(ModuleName, 1008, "rollapp version mismatch")
 	ErrWrongBlockHeight               = sdkerrors.Register(ModuleName, 1009, "start-height does not match rollapps state")
+	ErrMultiUpdateStateInBlock        = sdkerrors.Register(ModuleName, 1010, "only one state update can take place per block")
 )
