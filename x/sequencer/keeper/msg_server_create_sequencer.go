@@ -15,20 +15,8 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
-
-	seqAddr, err := sdk.AccAddressFromBech32(msg.SequencerAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	seqAddrStr := seqAddr.String()
-
 	// check to see if the sequencer has been registered before
-	if _, found := k.GetSequencer(ctx, seqAddrStr); found {
+	if _, found := k.GetSequencer(ctx, msg.SequencerAddress); found {
 		return nil, types.ErrSequencerExists
 	}
 
@@ -43,7 +31,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			bPermissioned := false
 			// check to see if the sequencer is in the permissioned list
 			for i := range permissionedAddresses {
-				if permissionedAddresses[i] == seqAddrStr {
+				if permissionedAddresses[i] == msg.SequencerAddress {
 					// Found!
 					bPermissioned = true
 					break
@@ -72,11 +60,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrMaxSequencersLimit
 		}
 		// add sequencer to list
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, seqAddrStr)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
 	} else {
 		// should be: return nil, types.XXXX
 		sequencersByRollapp.RollappId = msg.RollappId
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, seqAddrStr)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
 	}
 	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
@@ -95,8 +83,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencer := types.Sequencer{
-		Creator:          creator.String(),
-		SequencerAddress: seqAddrStr,
+		Creator:          msg.Creator,
+		SequencerAddress: msg.SequencerAddress,
 		Pubkey:           pkAny,
 		Description:      msg.Description,
 		RollappId:        msg.RollappId,

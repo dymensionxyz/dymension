@@ -2,6 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
+import "rollapp/block_descriptor.proto";
 import "shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
@@ -11,31 +12,59 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
       rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
+// ===================== MsgCreateRollapp
 message MsgCreateRollapp {
-  // creator is the bech32-encoded address of the rollapp creator.
+  // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id.
+  // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
-  // genesisPath is the description of the genesis file location on the DA.
+  // genesisPath is the description of the genesis file location on the DA
   string codeStamp = 3;
-  // genesisPath is the description of the genesis file location on the DA.
+  // genesisPath is the description of the genesis file location on the DA
   string genesisPath = 4;
   // maxWithholdingBlocks is the maximum number of blocks for
-  // an active sequencer to send a state update (MsgUpdateState). 
+  // an active sequencer to send a state update (MsgUpdateState)
   uint64 maxWithholdingBlocks = 5;   
-  // maxSequencers is the maximum number of sequencers. 
+  // maxSequencers is the maximum number of sequencers
   uint64 maxSequencers = 6;
   // permissionedAddresses is a bech32-encoded address list of the 
-  // sequencers that are allowed to serve this rollappId. 
-  // In the case of an empty list, the rollapp is considered permissionless.
+  // sequencers that are allowed to serve this rollappId.
+  // In the case of an empty list, the rollapp is considered permissionless
   shared.Sequencers permissionedAddresses = 7 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateRollappResponse {
+}
+
+
+// ===================== MsgUpdateState
+// Updating a rollapp state with a block batch
+// a block batch is a list of ordered blocks (by height)
+message MsgUpdateState {
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+  // startHeight is the block height of the first block in the batch
+  uint64 startHeight = 3;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 4;
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 5;
+  // version is the version of the rollapp
+  uint64 version = 6;
+  // BDs is a list of block description objects (one per block)
+  // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateStateResponse {
 }
 
 // this line is used by starport scaffolding # proto/tx/message

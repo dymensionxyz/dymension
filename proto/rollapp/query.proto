@@ -6,8 +6,9 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
+import "rollapp/state_info.proto";
+import "rollapp/state_index.proto";
 // this line is used by starport scaffolding # 1
-import "shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -25,6 +26,26 @@ service Query {
 	// Queries a list of Rollapp items.
 	rpc RollappAll(QueryAllRollappRequest) returns (QueryAllRollappResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
+	}
+
+// Queries a StateInfo by index.
+	rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}";
+	}
+
+	// Queries a list of StateInfo items.
+	rpc StateInfoAll(QueryAllStateInfoRequest) returns (QueryAllStateInfoResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info";
+	}
+
+// Queries a StateIndex by index.
+	rpc StateIndex(QueryGetStateIndexRequest) returns (QueryGetStateIndexResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_index/{rollappId}";
+	}
+
+	// Queries a list of StateIndex items.
+	rpc StateIndexAll(QueryAllStateIndexRequest) returns (QueryAllStateIndexResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_index";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -54,6 +75,42 @@ message QueryAllRollappRequest {
 
 message QueryAllRollappResponse {
 	repeated Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetStateInfoRequest {
+	  string rollappId = 1;
+	  uint64 stateIndex = 2;
+}
+
+message QueryGetStateInfoResponse {
+	StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllStateInfoRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllStateInfoResponse {
+	repeated StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetStateIndexRequest {
+	  string rollappId = 1;
+
+}
+
+message QueryGetStateIndexResponse {
+	StateIndex stateIndex = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllStateIndexRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllStateIndexResponse {
+	repeated StateIndex stateIndex = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

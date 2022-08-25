@@ -376,8 +376,7 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 	}
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
-
+//---------------------------------------
 // vereifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
 func vereifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {

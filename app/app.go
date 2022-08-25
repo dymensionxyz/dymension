@@ -397,13 +397,13 @@ func New(
 	)
 	monitoringModule := monitoringp.NewAppModule(appCodec, app.MonitoringKeeper)
 
+	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 	)
-	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -414,7 +414,17 @@ func New(
 		app.BankKeeper,
 		app.RollappKeeper,
 	)
+
+	// register the rollapp hooks
+	app.RollappKeeper.SetHooks(
+		rollappmoduletypes.NewMultiRollappHooks(
+			// insert rollapp hooks receivers here
+			app.SequencerKeeper.RollappHooks(),
+		),
+	)
+
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
+	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 

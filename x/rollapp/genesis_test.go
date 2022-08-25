@@ -22,6 +22,24 @@ func TestGenesis(t *testing.T) {
 				RollappId: "1",
 			},
 		},
+		StateInfoList: []types.StateInfo{
+			{
+				RollappId:  "0",
+				StateIndex: 0,
+			},
+			{
+				RollappId:  "1",
+				StateIndex: 1,
+			},
+		},
+		StateIndexList: []types.StateIndex{
+			{
+				RollappId: "0",
+			},
+			{
+				RollappId: "1",
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -34,5 +52,7 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
+	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
+	require.ElementsMatch(t, genesisState.StateIndexList, got.StateIndexList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

@@ -1,0 +1,19 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+
+// StateIndex defines a rollapps' the current (latest) 
+// index of the last UpdateState 
+// the index also saved with every UpdateState in StateInfo.
+// the <rollappId, index> pair is used for retrieving a StateInfo
+message StateIndex {
+  // rollappId is the rollapp that we save the index for
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 1; 
+  // index is a sequentially increasing number
+  // the index increases on every state update 
+  uint64 index = 2; 
+  
+}
+

@@ -13,7 +13,26 @@ export interface ProtobufAny {
   "@type"?: string;
 }
 
+/**
+ * BlockDescriptor defines a single rollapp chain block description.
+ */
+export interface RollappBlockDescriptor {
+  /** @format uint64 */
+  height?: string;
+  stateRoot?: string;
+  intermediateStatesRoot?: string;
+}
+
+/**
+ * BlockDescriptors defines list of BlockDescriptor.
+ */
+export interface RollappBlockDescriptors {
+  BD?: RollappBlockDescriptor[];
+}
+
 export type RollappMsgCreateRollappResponse = object;
+
+export type RollappMsgUpdateStateResponse = object;
 
 /**
  * Params defines the parameters for the module.
@@ -38,8 +57,47 @@ export interface RollappQueryAllRollappResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface RollappQueryAllStateIndexResponse {
+  stateIndex?: RollappStateIndex[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
+export interface RollappQueryAllStateInfoResponse {
+  stateInfo?: RollappStateInfo[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
+
 export interface RollappQueryGetRollappResponse {
   rollapp?: RollappRollapp;
+}
+
+export interface RollappQueryGetStateIndexResponse {
+  stateIndex?: RollappStateIndex;
+}
+
+export interface RollappQueryGetStateInfoResponse {
+  /** StateInfo defines a rollapps' state. */
+  stateInfo?: RollappStateInfo;
 }
 
 /**
@@ -88,6 +146,47 @@ export interface RollappRollapp {
    * In the case of an empty list, the rollapp is considered permissionless.
    */
   permissionedAddresses?: SharedSequencers;
+}
+
+export interface RollappStateIndex {
+  rollappId?: string;
+
+  /** @format uint64 */
+  index?: string;
+}
+
+/**
+ * StateInfo defines a rollapps' state.
+ */
+export interface RollappStateInfo {
+  rollappId?: string;
+
+  /** @format uint64 */
+  stateIndex?: string;
+  sequencer?: string;
+
+  /** @format uint64 */
+  startHeight?: string;
+
+  /** @format uint64 */
+  numBlocks?: string;
+  DAPath?: string;
+
+  /** @format uint64 */
+  version?: string;
+
+  /** @format uint64 */
+  creationHeight?: string;
+  status?: RollappStateStatus;
+
+  /** BlockDescriptors defines list of BlockDescriptor. */
+  BDs?: RollappBlockDescriptors;
+}
+
+export enum RollappStateStatus {
+  STATE_STATUS_UNSPECIFIED = "STATE_STATUS_UNSPECIFIED",
+  STATE_STATUS_RECEIVED = "STATE_STATUS_RECEIVED",
+  STATE_STATUS_FINALIZED = "STATE_STATUS_FINALIZED",
 }
 
 export interface RpcStatus {
@@ -141,13 +240,6 @@ export interface V1Beta1PageRequest {
    * is set.
    */
   count_total?: boolean;
-
-  /**
-   * reverse is set to true if results are to be returned in the descending order.
-   *
-   * Since: cosmos-sdk 0.43
-   */
-  reverse?: boolean;
 }
 
 /**
@@ -359,7 +451,7 @@ export class HttpClient<SecurityDataType = unknown> {
 }
 
 /**
- * @title rollapp/genesis.proto
+ * @title rollapp/block_descriptor.proto
  * @version version not set
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -393,7 +485,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
-      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>
@@ -416,6 +507,88 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryRollapp = (rollappId: string, params: RequestParams = {}) =>
     this.request<RollappQueryGetRollappResponse, RpcStatus>({
       path: `/dymensionxyz/dymension/rollapp/rollapp/${rollappId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateIndexAll
+   * @summary Queries a list of StateIndex items.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_index
+   */
+  queryStateIndexAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<RollappQueryAllStateIndexResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_index`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateIndex
+   * @summary Queries a StateIndex by index.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_index/{rollappId}
+   */
+  queryStateIndex = (rollappId: string, params: RequestParams = {}) =>
+    this.request<RollappQueryGetStateIndexResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_index/${rollappId}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateInfoAll
+   * @summary Queries a list of StateInfo items.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_info
+   */
+  queryStateInfoAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<RollappQueryAllStateInfoResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_info`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryStateInfo
+   * @summary Queries a StateInfo by index.
+   * @request GET:/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}
+   */
+  queryStateInfo = (rollappId: string, stateIndex: string, params: RequestParams = {}) =>
+    this.request<RollappQueryGetStateInfoResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/rollapp/state_info/${rollappId}/${stateIndex}`,
       method: "GET",
       format: "json",
       ...params,
