@@ -7,7 +7,9 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "sequencer/params.proto";
 import "sequencer/sequencer.proto";
 import "sequencer/sequencers_by_rollapp.proto";
+import "sequencer/scheduler.proto";
 // this line is used by starport scaffolding # 1
+import "sequencer/operating_status.proto";
 import "shared/sequencers.proto";
 import "sequencer/description.proto";
 
@@ -37,6 +39,16 @@ service Query {
 	// Queries a list of SequencersByRollapp items.
 	rpc SequencersByRollappAll(QueryAllSequencersByRollappRequest) returns (QueryAllSequencersByRollappResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp";
+	}
+
+// Queries a Scheduler by index.
+	rpc Scheduler(QueryGetSchedulerRequest) returns (QueryGetSchedulerResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/scheduler/{sequencerAddress}";
+	}
+
+	// Queries a list of Scheduler items.
+	rpc SchedulerAll(QueryAllSchedulerRequest) returns (QueryAllSchedulerResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/scheduler";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -84,6 +96,24 @@ message QueryAllSequencersByRollappRequest {
 
 message QueryAllSequencersByRollappResponse {
 	repeated SequencersByRollapp sequencersByRollapp = 1 [(gogoproto.nullable) = false];
+	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetSchedulerRequest {
+	  string sequencerAddress = 1;
+
+}
+
+message QueryGetSchedulerResponse {
+	Scheduler scheduler = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllSchedulerRequest {
+	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllSchedulerResponse {
+	repeated Scheduler scheduler = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

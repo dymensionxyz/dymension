@@ -2,11 +2,12 @@ import { txClient, queryClient, MissingWalletError , registry} from './module'
 
 import { Description } from "./module/types/sequencer/description"
 import { Params } from "./module/types/sequencer/params"
+import { Scheduler } from "./module/types/sequencer/scheduler"
 import { Sequencer } from "./module/types/sequencer/sequencer"
 import { SequencersByRollapp } from "./module/types/sequencer/sequencers_by_rollapp"
 
 
-export { Description, Params, Sequencer, SequencersByRollapp };
+export { Description, Params, Scheduler, Sequencer, SequencersByRollapp };
 
 async function initTxClient(vuexGetters) {
 	return await txClient(vuexGetters['common/wallet/signer'], {
@@ -49,10 +50,13 @@ const getDefaultState = () => {
 				SequencerAll: {},
 				SequencersByRollapp: {},
 				SequencersByRollappAll: {},
+				Scheduler: {},
+				SchedulerAll: {},
 				
 				_Structure: {
 						Description: getStructure(Description.fromPartial({})),
 						Params: getStructure(Params.fromPartial({})),
+						Scheduler: getStructure(Scheduler.fromPartial({})),
 						Sequencer: getStructure(Sequencer.fromPartial({})),
 						SequencersByRollapp: getStructure(SequencersByRollapp.fromPartial({})),
 						
@@ -112,6 +116,18 @@ export default {
 						(<any> params).query=null
 					}
 			return state.SequencersByRollappAll[JSON.stringify(params)] ?? {}
+		},
+				getScheduler: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.Scheduler[JSON.stringify(params)] ?? {}
+		},
+				getSchedulerAll: (state) => (params = { params: {}}) => {
+					if (!(<any> params).query) {
+						(<any> params).query=null
+					}
+			return state.SchedulerAll[JSON.stringify(params)] ?? {}
 		},
 				
 		getTypeStructure: (state) => (type) => {
@@ -260,6 +276,54 @@ export default {
 				return getters['getSequencersByRollappAll']( { params: {...key}, query}) ?? {}
 			} catch (e) {
 				throw new Error('QueryClient:QuerySequencersByRollappAll API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QueryScheduler({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.queryScheduler( key.sequencerAddress)).data
+				
+					
+				commit('QUERY', { query: 'Scheduler', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QueryScheduler', payload: { options: { all }, params: {...key},query }})
+				return getters['getScheduler']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QueryScheduler API Node Unavailable. Could not perform query: ' + e.message)
+				
+			}
+		},
+		
+		
+		
+		
+		 		
+		
+		
+		async QuerySchedulerAll({ commit, rootGetters, getters }, { options: { subscribe, all} = { subscribe:false, all:false}, params, query=null }) {
+			try {
+				const key = params ?? {};
+				const queryClient=await initQueryClient(rootGetters)
+				let value= (await queryClient.querySchedulerAll(query)).data
+				
+					
+				while (all && (<any> value).pagination && (<any> value).pagination.next_key!=null) {
+					let next_values=(await queryClient.querySchedulerAll({...query, 'pagination.key':(<any> value).pagination.next_key})).data
+					value = mergeResults(value, next_values);
+				}
+				commit('QUERY', { query: 'SchedulerAll', key: { params: {...key}, query}, value })
+				if (subscribe) commit('SUBSCRIBE', { action: 'QuerySchedulerAll', payload: { options: { all }, params: {...key},query }})
+				return getters['getSchedulerAll']( { params: {...key}, query}) ?? {}
+			} catch (e) {
+				throw new Error('QueryClient:QuerySchedulerAll API Node Unavailable. Could not perform query: ' + e.message)
 				
 			}
 		},

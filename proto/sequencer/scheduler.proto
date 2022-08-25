@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+import "sequencer/operating_status.proto"; 
+
+message Scheduler {
+  string sequencerAddress = 1; 
+  OperatingStatus status = 2; 
+  
+}
+
