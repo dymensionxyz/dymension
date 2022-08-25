@@ -620,8 +620,7 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	suite.ErrorIs(err, types.ErrMultiUpdateStateInBlock)
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------
-
+//---------------------------------------
 // vereifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
 func vereifyAll(suite *IntegrationTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.Rollapp) {

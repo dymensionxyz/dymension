@@ -31,9 +31,8 @@ func (k Keeper) BeforeUpdateStateRecoverable(ctx sdk.Context, seqAddr string, ro
 	return nil
 }
 
-//--------------------------------------------------------------------------------------------------------
-// panicCatchingHook lets us run the hook function hookFn, but if theres an error or panic
-// drop the state machine change, log the error and return it.
+// panicCatchingHook lets us run the hook function hookFn, but if theres an error
+// or panic drop the state machine change, log the error and return it.
 // If there is no error, proceeds as normal (but with some slowdown due to SDK store weirdness)
 func panicCatchingHook(
 	ctx sdk.Context,

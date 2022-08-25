@@ -51,6 +51,7 @@ func (k Keeper) GetAllStateIndex(ctx sdk.Context) (list []types.StateIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateIndexKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
+	// nolint: errcheck
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
