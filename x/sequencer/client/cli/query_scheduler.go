@@ -1,12 +1,12 @@
 package cli
 
 import (
-    "context"
-	
-    "github.com/spf13/cobra"
+	"context"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-    "github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/spf13/cobra"
 )
 
 func CmdListScheduler() *cobra.Command {
@@ -14,32 +14,32 @@ func CmdListScheduler() *cobra.Command {
 		Use:   "list-scheduler",
 		Short: "list all scheduler",
 		RunE: func(cmd *cobra.Command, args []string) error {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            pageReq, err := client.ReadPageRequest(cmd.Flags())
-            if err != nil {
-                return err
-            }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-            params := &types.QueryAllSchedulerRequest{
-                Pagination: pageReq,
-            }
+			params := &types.QueryAllSchedulerRequest{
+				Pagination: pageReq,
+			}
 
-            res, err := queryClient.SchedulerAll(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			res, err := queryClient.SchedulerAll(context.Background(), params)
+			if err != nil {
+				return err
+			}
 
-            return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }
 
 func CmdShowScheduler() *cobra.Command {
@@ -48,27 +48,26 @@ func CmdShowScheduler() *cobra.Command {
 		Short: "shows a scheduler",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-             argSequencerAddress := args[0]
-            
-            params := &types.QueryGetSchedulerRequest{
-                SequencerAddress: argSequencerAddress,
-                
-            }
+			argSequencerAddress := args[0]
 
-            res, err := queryClient.Scheduler(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			params := &types.QueryGetSchedulerRequest{
+				SequencerAddress: argSequencerAddress,
+			}
 
-            return clientCtx.PrintProto(res)
+			res, err := queryClient.Scheduler(context.Background(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

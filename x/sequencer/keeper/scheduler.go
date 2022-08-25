@@ -1,34 +1,34 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 )
 
 // SetScheduler set a specific scheduler in the store from its index
 func (k Keeper) SetScheduler(ctx sdk.Context, scheduler types.Scheduler) {
-	store :=  prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 	b := k.cdc.MustMarshal(&scheduler)
 	store.Set(types.SchedulerKey(
-        scheduler.SequencerAddress,
-    ), b)
+		scheduler.SequencerAddress,
+	), b)
 }
 
 // GetScheduler returns a scheduler from its index
 func (k Keeper) GetScheduler(
-    ctx sdk.Context,
-    sequencerAddress string,
-    
+	ctx sdk.Context,
+	sequencerAddress string,
+
 ) (val types.Scheduler, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 
 	b := store.Get(types.SchedulerKey(
-        sequencerAddress,
-    ))
-    if b == nil {
-        return val, false
-    }
+		sequencerAddress,
+	))
+	if b == nil {
+		return val, false
+	}
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
@@ -36,28 +36,29 @@ func (k Keeper) GetScheduler(
 
 // RemoveScheduler removes a scheduler from the store
 func (k Keeper) RemoveScheduler(
-    ctx sdk.Context,
-    sequencerAddress string,
-    
+	ctx sdk.Context,
+	sequencerAddress string,
+
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 	store.Delete(types.SchedulerKey(
-	    sequencerAddress,
-    ))
+		sequencerAddress,
+	))
 }
 
 // GetAllScheduler returns all scheduler
 func (k Keeper) GetAllScheduler(ctx sdk.Context) (list []types.Scheduler) {
-    store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
+	// nolint: errcheck
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Scheduler
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-        list = append(list, val)
+		list = append(list, val)
 	}
 
-    return
+	return
 }

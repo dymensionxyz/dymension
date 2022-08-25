@@ -12,8 +12,8 @@ func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		SequencerList:           []Sequencer{},
 		SequencersByRollappList: []SequencersByRollapp{},
-		SchedulerList: []Scheduler{},
-// this line is used by starport scaffolding # genesis/types/default
+		SchedulerList:           []Scheduler{},
+		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -42,16 +42,16 @@ func (gs GenesisState) Validate() error {
 		sequencersByRollappIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in scheduler
-schedulerIndexMap := make(map[string]struct{})
+	schedulerIndexMap := make(map[string]struct{})
 
-for _, elem := range gs.SchedulerList {
-	index := string(SchedulerKey(elem.SequencerAddress))
-	if _, ok := schedulerIndexMap[index]; ok {
-		return fmt.Errorf("duplicated index for scheduler")
+	for _, elem := range gs.SchedulerList {
+		index := string(SchedulerKey(elem.SequencerAddress))
+		if _, ok := schedulerIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for scheduler")
+		}
+		schedulerIndexMap[index] = struct{}{}
 	}
-	schedulerIndexMap[index] = struct{}{}
-}
-// this line is used by starport scaffolding # genesis/types/validate
+	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

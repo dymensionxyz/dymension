@@ -46,11 +46,11 @@ func (k Keeper) Scheduler(c context.Context, req *types.QueryGetSchedulerRequest
 	ctx := sdk.UnwrapSDKContext(c)
 
 	val, found := k.GetScheduler(
-	    ctx,
-	    req.SequencerAddress,
-        )
+		ctx,
+		req.SequencerAddress,
+	)
 	if !found {
-	    return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetSchedulerResponse{Scheduler: val}, nil
