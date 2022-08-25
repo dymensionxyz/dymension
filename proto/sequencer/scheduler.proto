@@ -4,8 +4,11 @@ package dymensionxyz.dymension.sequencer;
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 import "sequencer/operating_status.proto"; 
 
+// Scheduler defines the operating status of a sequencer
 message Scheduler {
+    // sequencerAddress is the bech32-encoded address of the sequencer account, identifying the sequencer
   string sequencerAddress = 1; 
+  // status is the operating status of this sequencer
   OperatingStatus status = 2; 
   
 }

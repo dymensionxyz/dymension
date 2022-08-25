@@ -20336,6 +20336,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/rollapp/{rollappId}':
@@ -20563,6 +20573,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -20816,6 +20836,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -21170,7 +21200,11 @@ paths:
                   properties:
                     sequencerAddress:
                       type: string
+                      title: >-
+                        sequencerAddress is the bech32-encoded address of the
+                        sequencer account, identifying the sequencer
                     status:
+                      title: status is the operating status of this sequencer
                       type: string
                       enum:
                         - OPERATING_STATUS_UNSPECIFIED
@@ -21183,9 +21217,7 @@ paths:
                         status ordering
                          - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
                          - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
-                      title: >-
-                        OperatingStatus defines the operating status of a
-                        sequencer
+                  title: Scheduler defines the operating status of a sequencer
               pagination:
                 type: object
                 properties:
@@ -21462,7 +21494,11 @@ paths:
                 properties:
                   sequencerAddress:
                     type: string
+                    title: >-
+                      sequencerAddress is the bech32-encoded address of the
+                      sequencer account, identifying the sequencer
                   status:
+                    title: status is the operating status of this sequencer
                     type: string
                     enum:
                       - OPERATING_STATUS_UNSPECIFIED
@@ -21475,9 +21511,7 @@ paths:
                       ordering
                        - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
                        - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
-                    title: >-
-                      OperatingStatus defines the operating status of a
-                      sequencer
+                title: Scheduler defines the operating status of a sequencer
         default:
           description: An unexpected error response.
           schema:
@@ -50836,7 +50870,11 @@ definitions:
           properties:
             sequencerAddress:
               type: string
+              title: >-
+                sequencerAddress is the bech32-encoded address of the sequencer
+                account, identifying the sequencer
             status:
+              title: status is the operating status of this sequencer
               type: string
               enum:
                 - OPERATING_STATUS_UNSPECIFIED
@@ -50848,7 +50886,7 @@ definitions:
                 defines zero-value for status ordering
                  - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
                  - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
-              title: OperatingStatus defines the operating status of a sequencer
+          title: Scheduler defines the operating status of a sequencer
       pagination:
         type: object
         properties:
@@ -51173,7 +51211,11 @@ definitions:
         properties:
           sequencerAddress:
             type: string
+            title: >-
+              sequencerAddress is the bech32-encoded address of the sequencer
+              account, identifying the sequencer
           status:
+            title: status is the operating status of this sequencer
             type: string
             enum:
               - OPERATING_STATUS_UNSPECIFIED
@@ -51185,7 +51227,7 @@ definitions:
               defines zero-value for status ordering
                - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
                - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
-            title: OperatingStatus defines the operating status of a sequencer
+        title: Scheduler defines the operating status of a sequencer
   dymensionxyz.dymension.sequencer.QueryGetSequencerResponse:
     type: object
     properties:
@@ -51431,7 +51473,11 @@ definitions:
     properties:
       sequencerAddress:
         type: string
+        title: >-
+          sequencerAddress is the bech32-encoded address of the sequencer
+          account, identifying the sequencer
       status:
+        title: status is the operating status of this sequencer
         type: string
         enum:
           - OPERATING_STATUS_UNSPECIFIED
@@ -51443,7 +51489,7 @@ definitions:
           zero-value for status ordering
            - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
            - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
-        title: OperatingStatus defines the operating status of a sequencer
+    title: Scheduler defines the operating status of a sequencer
   dymensionxyz.dymension.sequencer.Sequencer:
     type: object
     properties:

@@ -22,9 +22,12 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Scheduler defines the operating status of a sequencer
 type Scheduler struct {
-	SequencerAddress string          `protobuf:"bytes,1,opt,name=sequencerAddress,proto3" json:"sequencerAddress,omitempty"`
-	Status           OperatingStatus `protobuf:"varint,2,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
+	// sequencerAddress is the bech32-encoded address of the sequencer account, identifying the sequencer
+	SequencerAddress string `protobuf:"bytes,1,opt,name=sequencerAddress,proto3" json:"sequencerAddress,omitempty"`
+	// status is the operating status of this sequencer
+	Status OperatingStatus `protobuf:"varint,2,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
 }
 
 func (m *Scheduler) Reset()         { *m = Scheduler{} }
@@ -71,7 +74,7 @@ func (m *Scheduler) GetStatus() OperatingStatus {
 	if m != nil {
 		return m.Status
 	}
-	return OPERATING_STATUS_UNSPECIFIED
+	return Unspecified
 }
 
 func init() {

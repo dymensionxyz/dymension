@@ -8,8 +8,11 @@ import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
+/** Scheduler defines the operating status of a sequencer */
 export interface Scheduler {
+  /** sequencerAddress is the bech32-encoded address of the sequencer account, identifying the sequencer */
   sequencerAddress: string;
+  /** status is the operating status of this sequencer */
   status: OperatingStatus;
 }
 
