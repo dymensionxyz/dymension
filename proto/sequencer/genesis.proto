@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "sequencer/params.proto";
 import "sequencer/sequencer.proto";
 import "sequencer/sequencers_by_rollapp.proto";
+import "sequencer/scheduler.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
@@ -14,5 +15,6 @@ message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   repeated Sequencer sequencerList = 2 [(gogoproto.nullable) = false];
   repeated SequencersByRollapp sequencersByRollappList = 3 [(gogoproto.nullable) = false];
+  repeated Scheduler schedulerList = 4 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

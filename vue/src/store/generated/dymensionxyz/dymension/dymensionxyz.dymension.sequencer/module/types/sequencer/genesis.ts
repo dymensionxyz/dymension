@@ -2,6 +2,7 @@
 import { Params } from "../sequencer/params";
 import { Sequencer } from "../sequencer/sequencer";
 import { SequencersByRollapp } from "../sequencer/sequencers_by_rollapp";
+import { Scheduler } from "../sequencer/scheduler";
 import { Writer, Reader } from "protobufjs/minimal";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
@@ -10,8 +11,9 @@ export const protobufPackage = "dymensionxyz.dymension.sequencer";
 export interface GenesisState {
   params: Params | undefined;
   sequencerList: Sequencer[];
-  /** this line is used by starport scaffolding # genesis/proto/state */
   sequencersByRollappList: SequencersByRollapp[];
+  /** this line is used by starport scaffolding # genesis/proto/state */
+  schedulerList: Scheduler[];
 }
 
 const baseGenesisState: object = {};
@@ -27,6 +29,9 @@ export const GenesisState = {
     for (const v of message.sequencersByRollappList) {
       SequencersByRollapp.encode(v!, writer.uint32(26).fork()).ldelim();
     }
+    for (const v of message.schedulerList) {
+      Scheduler.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -36,6 +41,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.sequencerList = [];
     message.sequencersByRollappList = [];
+    message.schedulerList = [];
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -50,6 +56,9 @@ export const GenesisState = {
             SequencersByRollapp.decode(reader, reader.uint32())
           );
           break;
+        case 4:
+          message.schedulerList.push(Scheduler.decode(reader, reader.uint32()));
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -62,6 +71,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.sequencerList = [];
     message.sequencersByRollappList = [];
+    message.schedulerList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromJSON(object.params);
     } else {
@@ -78,6 +88,11 @@ export const GenesisState = {
     ) {
       for (const e of object.sequencersByRollappList) {
         message.sequencersByRollappList.push(SequencersByRollapp.fromJSON(e));
+      }
+    }
+    if (object.schedulerList !== undefined && object.schedulerList !== null) {
+      for (const e of object.schedulerList) {
+        message.schedulerList.push(Scheduler.fromJSON(e));
       }
     }
     return message;
@@ -101,6 +116,13 @@ export const GenesisState = {
     } else {
       obj.sequencersByRollappList = [];
     }
+    if (message.schedulerList) {
+      obj.schedulerList = message.schedulerList.map((e) =>
+        e ? Scheduler.toJSON(e) : undefined
+      );
+    } else {
+      obj.schedulerList = [];
+    }
     return obj;
   },
 
@@ -108,6 +130,7 @@ export const GenesisState = {
     const message = { ...baseGenesisState } as GenesisState;
     message.sequencerList = [];
     message.sequencersByRollappList = [];
+    message.schedulerList = [];
     if (object.params !== undefined && object.params !== null) {
       message.params = Params.fromPartial(object.params);
     } else {
@@ -126,6 +149,11 @@ export const GenesisState = {
         message.sequencersByRollappList.push(
           SequencersByRollapp.fromPartial(e)
         );
+      }
+    }
+    if (object.schedulerList !== undefined && object.schedulerList !== null) {
+      for (const e of object.schedulerList) {
+        message.schedulerList.push(Scheduler.fromPartial(e));
       }
     }
     return message;

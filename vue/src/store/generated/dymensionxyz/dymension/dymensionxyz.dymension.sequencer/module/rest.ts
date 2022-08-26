@@ -156,9 +156,35 @@ export interface SequencerDescription {
 export type SequencerMsgCreateSequencerResponse = object;
 
 /**
+* - OPERATING_STATUS_UNSPECIFIED: OPERATING_STATUS_UNSPECIFIED defines zero-value for status ordering
+ - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
+ - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
+*/
+export enum SequencerOperatingStatus {
+  OPERATING_STATUS_UNSPECIFIED = "OPERATING_STATUS_UNSPECIFIED",
+  OPERATING_STATUS_PROPOSER = "OPERATING_STATUS_PROPOSER",
+  OPERATING_STATUS_INACTIVE = "OPERATING_STATUS_INACTIVE",
+}
+
+/**
  * Params defines the parameters for the module.
  */
 export type SequencerParams = object;
+
+export interface SequencerQueryAllSchedulerResponse {
+  scheduler?: SequencerScheduler[];
+
+  /**
+   * PageResponse is to be embedded in gRPC response messages where the
+   * corresponding request message has used PageRequest.
+   *
+   *  message SomeResponse {
+   *          repeated Bar results = 1;
+   *          PageResponse page = 2;
+   *  }
+   */
+  pagination?: V1Beta1PageResponse;
+}
 
 export interface SequencerQueryAllSequencerResponse {
   sequencer?: SequencerSequencer[];
@@ -190,6 +216,10 @@ export interface SequencerQueryAllSequencersByRollappResponse {
   pagination?: V1Beta1PageResponse;
 }
 
+export interface SequencerQueryGetSchedulerResponse {
+  scheduler?: SequencerScheduler;
+}
+
 export interface SequencerQueryGetSequencerResponse {
   /**
    * Sequencer defines a sequencer identified by its' address (sequencerAddress).
@@ -212,6 +242,17 @@ export interface SequencerQueryGetSequencersByRollappResponse {
 export interface SequencerQueryParamsResponse {
   /** params holds all the parameters of this module. */
   params?: SequencerParams;
+}
+
+export interface SequencerScheduler {
+  sequencerAddress?: string;
+
+  /**
+   * - OPERATING_STATUS_UNSPECIFIED: OPERATING_STATUS_UNSPECIFIED defines zero-value for status ordering
+   *  - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
+   *  - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
+   */
+  status?: SequencerOperatingStatus;
 }
 
 /**
@@ -292,6 +333,13 @@ export interface V1Beta1PageRequest {
    * is set.
    */
   count_total?: boolean;
+
+  /**
+   * reverse is set to true if results are to be returned in the descending order.
+   *
+   * Since: cosmos-sdk 0.43
+   */
+  reverse?: boolean;
 }
 
 /**
@@ -527,6 +575,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
    * No description
    *
    * @tags Query
+   * @name QuerySchedulerAll
+   * @summary Queries a list of Scheduler items.
+   * @request GET:/dymensionxyz/dymension/sequencer/scheduler
+   */
+  querySchedulerAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<SequencerQueryAllSchedulerResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/scheduler`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryScheduler
+   * @summary Queries a Scheduler by index.
+   * @request GET:/dymensionxyz/dymension/sequencer/scheduler/{sequencerAddress}
+   */
+  queryScheduler = (sequencerAddress: string, params: RequestParams = {}) =>
+    this.request<SequencerQueryGetSchedulerResponse, RpcStatus>({
+      path: `/dymensionxyz/dymension/sequencer/scheduler/${sequencerAddress}`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
    * @name QuerySequencerAll
    * @summary Queries a list of Sequencer items.
    * @request GET:/dymensionxyz/dymension/sequencer/sequencer
@@ -537,6 +627,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>
@@ -578,6 +669,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       "pagination.offset"?: string;
       "pagination.limit"?: string;
       "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
     },
     params: RequestParams = {},
   ) =>

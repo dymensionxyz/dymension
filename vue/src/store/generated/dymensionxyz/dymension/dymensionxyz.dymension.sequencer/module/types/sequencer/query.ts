@@ -7,6 +7,7 @@ import {
   PageResponse,
 } from "../cosmos/base/query/v1beta1/pagination";
 import { SequencersByRollapp } from "../sequencer/sequencers_by_rollapp";
+import { Scheduler } from "../sequencer/scheduler";
 
 export const protobufPackage = "dymensionxyz.dymension.sequencer";
 
@@ -50,6 +51,23 @@ export interface QueryAllSequencersByRollappRequest {
 
 export interface QueryAllSequencersByRollappResponse {
   sequencersByRollapp: SequencersByRollapp[];
+  pagination: PageResponse | undefined;
+}
+
+export interface QueryGetSchedulerRequest {
+  sequencerAddress: string;
+}
+
+export interface QueryGetSchedulerResponse {
+  scheduler: Scheduler | undefined;
+}
+
+export interface QueryAllSchedulerRequest {
+  pagination: PageRequest | undefined;
+}
+
+export interface QueryAllSchedulerResponse {
+  scheduler: Scheduler[];
   pagination: PageResponse | undefined;
 }
 
@@ -809,6 +827,327 @@ export const QueryAllSequencersByRollappResponse = {
   },
 };
 
+const baseQueryGetSchedulerRequest: object = { sequencerAddress: "" };
+
+export const QueryGetSchedulerRequest = {
+  encode(
+    message: QueryGetSchedulerRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.sequencerAddress !== "") {
+      writer.uint32(10).string(message.sequencerAddress);
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetSchedulerRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetSchedulerRequest,
+    } as QueryGetSchedulerRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.sequencerAddress = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetSchedulerRequest {
+    const message = {
+      ...baseQueryGetSchedulerRequest,
+    } as QueryGetSchedulerRequest;
+    if (
+      object.sequencerAddress !== undefined &&
+      object.sequencerAddress !== null
+    ) {
+      message.sequencerAddress = String(object.sequencerAddress);
+    } else {
+      message.sequencerAddress = "";
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetSchedulerRequest): unknown {
+    const obj: any = {};
+    message.sequencerAddress !== undefined &&
+      (obj.sequencerAddress = message.sequencerAddress);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetSchedulerRequest>
+  ): QueryGetSchedulerRequest {
+    const message = {
+      ...baseQueryGetSchedulerRequest,
+    } as QueryGetSchedulerRequest;
+    if (
+      object.sequencerAddress !== undefined &&
+      object.sequencerAddress !== null
+    ) {
+      message.sequencerAddress = object.sequencerAddress;
+    } else {
+      message.sequencerAddress = "";
+    }
+    return message;
+  },
+};
+
+const baseQueryGetSchedulerResponse: object = {};
+
+export const QueryGetSchedulerResponse = {
+  encode(
+    message: QueryGetSchedulerResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.scheduler !== undefined) {
+      Scheduler.encode(message.scheduler, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryGetSchedulerResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryGetSchedulerResponse,
+    } as QueryGetSchedulerResponse;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.scheduler = Scheduler.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryGetSchedulerResponse {
+    const message = {
+      ...baseQueryGetSchedulerResponse,
+    } as QueryGetSchedulerResponse;
+    if (object.scheduler !== undefined && object.scheduler !== null) {
+      message.scheduler = Scheduler.fromJSON(object.scheduler);
+    } else {
+      message.scheduler = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryGetSchedulerResponse): unknown {
+    const obj: any = {};
+    message.scheduler !== undefined &&
+      (obj.scheduler = message.scheduler
+        ? Scheduler.toJSON(message.scheduler)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryGetSchedulerResponse>
+  ): QueryGetSchedulerResponse {
+    const message = {
+      ...baseQueryGetSchedulerResponse,
+    } as QueryGetSchedulerResponse;
+    if (object.scheduler !== undefined && object.scheduler !== null) {
+      message.scheduler = Scheduler.fromPartial(object.scheduler);
+    } else {
+      message.scheduler = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllSchedulerRequest: object = {};
+
+export const QueryAllSchedulerRequest = {
+  encode(
+    message: QueryAllSchedulerRequest,
+    writer: Writer = Writer.create()
+  ): Writer {
+    if (message.pagination !== undefined) {
+      PageRequest.encode(message.pagination, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllSchedulerRequest {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllSchedulerRequest,
+    } as QueryAllSchedulerRequest;
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.pagination = PageRequest.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllSchedulerRequest {
+    const message = {
+      ...baseQueryAllSchedulerRequest,
+    } as QueryAllSchedulerRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllSchedulerRequest): unknown {
+    const obj: any = {};
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageRequest.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllSchedulerRequest>
+  ): QueryAllSchedulerRequest {
+    const message = {
+      ...baseQueryAllSchedulerRequest,
+    } as QueryAllSchedulerRequest;
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageRequest.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
+const baseQueryAllSchedulerResponse: object = {};
+
+export const QueryAllSchedulerResponse = {
+  encode(
+    message: QueryAllSchedulerResponse,
+    writer: Writer = Writer.create()
+  ): Writer {
+    for (const v of message.scheduler) {
+      Scheduler.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.pagination !== undefined) {
+      PageResponse.encode(
+        message.pagination,
+        writer.uint32(18).fork()
+      ).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: Reader | Uint8Array,
+    length?: number
+  ): QueryAllSchedulerResponse {
+    const reader = input instanceof Uint8Array ? new Reader(input) : input;
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = {
+      ...baseQueryAllSchedulerResponse,
+    } as QueryAllSchedulerResponse;
+    message.scheduler = [];
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.scheduler.push(Scheduler.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.pagination = PageResponse.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): QueryAllSchedulerResponse {
+    const message = {
+      ...baseQueryAllSchedulerResponse,
+    } as QueryAllSchedulerResponse;
+    message.scheduler = [];
+    if (object.scheduler !== undefined && object.scheduler !== null) {
+      for (const e of object.scheduler) {
+        message.scheduler.push(Scheduler.fromJSON(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromJSON(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+
+  toJSON(message: QueryAllSchedulerResponse): unknown {
+    const obj: any = {};
+    if (message.scheduler) {
+      obj.scheduler = message.scheduler.map((e) =>
+        e ? Scheduler.toJSON(e) : undefined
+      );
+    } else {
+      obj.scheduler = [];
+    }
+    message.pagination !== undefined &&
+      (obj.pagination = message.pagination
+        ? PageResponse.toJSON(message.pagination)
+        : undefined);
+    return obj;
+  },
+
+  fromPartial(
+    object: DeepPartial<QueryAllSchedulerResponse>
+  ): QueryAllSchedulerResponse {
+    const message = {
+      ...baseQueryAllSchedulerResponse,
+    } as QueryAllSchedulerResponse;
+    message.scheduler = [];
+    if (object.scheduler !== undefined && object.scheduler !== null) {
+      for (const e of object.scheduler) {
+        message.scheduler.push(Scheduler.fromPartial(e));
+      }
+    }
+    if (object.pagination !== undefined && object.pagination !== null) {
+      message.pagination = PageResponse.fromPartial(object.pagination);
+    } else {
+      message.pagination = undefined;
+    }
+    return message;
+  },
+};
+
 /** Query defines the gRPC querier service. */
 export interface Query {
   /** Parameters queries the parameters of the module. */
@@ -829,6 +1168,14 @@ export interface Query {
   SequencersByRollappAll(
     request: QueryAllSequencersByRollappRequest
   ): Promise<QueryAllSequencersByRollappResponse>;
+  /** Queries a Scheduler by index. */
+  Scheduler(
+    request: QueryGetSchedulerRequest
+  ): Promise<QueryGetSchedulerResponse>;
+  /** Queries a list of Scheduler items. */
+  SchedulerAll(
+    request: QueryAllSchedulerRequest
+  ): Promise<QueryAllSchedulerResponse>;
 }
 
 export class QueryClientImpl implements Query {
@@ -899,6 +1246,34 @@ export class QueryClientImpl implements Query {
     );
     return promise.then((data) =>
       QueryAllSequencersByRollappResponse.decode(new Reader(data))
+    );
+  }
+
+  Scheduler(
+    request: QueryGetSchedulerRequest
+  ): Promise<QueryGetSchedulerResponse> {
+    const data = QueryGetSchedulerRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.sequencer.Query",
+      "Scheduler",
+      data
+    );
+    return promise.then((data) =>
+      QueryGetSchedulerResponse.decode(new Reader(data))
+    );
+  }
+
+  SchedulerAll(
+    request: QueryAllSchedulerRequest
+  ): Promise<QueryAllSchedulerResponse> {
+    const data = QueryAllSchedulerRequest.encode(request).finish();
+    const promise = this.rpc.request(
+      "dymensionxyz.dymension.sequencer.Query",
+      "SchedulerAll",
+      data
+    );
+    return promise.then((data) =>
+      QueryAllSchedulerResponse.decode(new Reader(data))
     );
   }
 }

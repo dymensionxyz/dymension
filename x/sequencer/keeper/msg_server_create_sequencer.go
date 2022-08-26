@@ -26,7 +26,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if found {
 		// check if there are permissionedAddresses.
 		// if the list is not empty, it means that only premissioned sequencers can be added
-		permissionedAddresses := rollapp.GetPermissionedAddresses().Addresses
+		permissionedAddresses := rollapp.PermissionedAddresses.Addresses
 		if len(permissionedAddresses) > 0 {
 			bPermissioned := false
 			// check to see if the sequencer is in the permissioned list
@@ -50,9 +50,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
 	if found {
 		// check to see if we reached maxsimum number of sequeners
-		maxSequencers := int(rollapp.GetMaxSequencers())
-		activeSequencers := sequencersByRollapp.GetSequencers()
-		currentNumOfSequencers := len(activeSequencers.GetAddresses())
+		maxSequencers := int(rollapp.MaxSequencers)
+		activeSequencers := sequencersByRollapp.Sequencers
+		currentNumOfSequencers := len(activeSequencers.Addresses)
 		if maxSequencers < currentNumOfSequencers {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
 		}
@@ -61,10 +61,21 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		}
 		// add sequencer to list
 		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
+		// it's not the first sequencer, make it INACTIVE
+		scheduler := types.Scheduler{
+			SequencerAddress: msg.SequencerAddress,
+			Status:           types.Inactive,
+		}
+		k.SetScheduler(ctx, scheduler)
 	} else {
-		// should be: return nil, types.XXXX
+		// this is the first sequencer, make it a PROPOSER
 		sequencersByRollapp.RollappId = msg.RollappId
 		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
+		scheduler := types.Scheduler{
+			SequencerAddress: msg.SequencerAddress,
+			Status:           types.Proposer,
+		}
+		k.SetScheduler(ctx, scheduler)
 	}
 	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 

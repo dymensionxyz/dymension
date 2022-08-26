@@ -1,0 +1,17 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+import "gogoproto/gogo.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+
+// OperatingStatus defines the operating status of a sequencer
+enum OperatingStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // OPERATING_STATUS_UNSPECIFIED defines zero-value for status ordering
+  OPERATING_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "Unspecified"];
+  // OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
+  OPERATING_STATUS_PROPOSER = 1 [(gogoproto.enumvalue_customname) = "Proposer"]; 
+  // OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
+  OPERATING_STATUS_INACTIVE = 2 [(gogoproto.enumvalue_customname) = "Inactive"];
+}
