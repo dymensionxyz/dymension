@@ -376,6 +376,64 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 	}
 }
 
+func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:            "rollapp1",
+		Creator:              alice,
+		Version:              0,
+		CodeStamp:            "",
+		GenesisPath:          "",
+		MaxWithholdingBlocks: 1,
+		MaxSequencers:        2,
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	rollappId := rollapp.GetRollappId()
+
+	// create first sequencer
+	pubkey1 := secp256k1.GenPrivKey().PubKey()
+	addr1 := sdk.AccAddress(pubkey1.Address())
+	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
+	suite.Require().Nil(err)
+	sequencer1 := types.MsgCreateSequencer{
+		Creator:          alice,
+		SequencerAddress: addr1.String(),
+		Pubkey:           pkAny1,
+		RollappId:        rollappId,
+		Description:      sequencertypes.Description{},
+	}
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer1)
+	suite.Require().Nil(err)
+
+	// create second sequencer
+	pubkey2 := secp256k1.GenPrivKey().PubKey()
+	addr2 := sdk.AccAddress(pubkey2.Address())
+	pkAny2, err := codectypes.NewAnyWithValue(pubkey2)
+	suite.Require().Nil(err)
+	sequencer2 := types.MsgCreateSequencer{
+		Creator:          alice,
+		SequencerAddress: addr2.String(),
+		Pubkey:           pkAny2,
+		RollappId:        rollappId,
+		Description:      sequencertypes.Description{},
+	}
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer2)
+	suite.Require().Nil(err)
+
+	// check scheduler operating status
+	scheduler, found := suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencer1.SequencerAddress)
+	suite.Require().True(found)
+	suite.EqualValues(scheduler.Status, types.Proposer)
+
+	// check scheduler operating status
+	scheduler, found = suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencer2.SequencerAddress)
+	suite.Require().True(found)
+	suite.EqualValues(scheduler.Status, types.Inactive)
+}
+
 //---------------------------------------
 // vereifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
