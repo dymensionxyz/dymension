@@ -15,4 +15,5 @@ var (
 	ErrSequencerNotPermissioned = sdkerrors.Register(ModuleName, 1004, "sequencer is not permissioned for serving the rollapp")
 	ErrUnknownSequencer         = sdkerrors.Register(ModuleName, 1005, "sequencer was not registered")
 	ErrSequencerRollappMismatch = sdkerrors.Register(ModuleName, 1006, "sequencer was not registered for this rollapp")
+	ErrNotActiveSequencer       = sdkerrors.Register(ModuleName, 1007, "sequencer is not active")
 )
