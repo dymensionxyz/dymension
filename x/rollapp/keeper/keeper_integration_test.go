@@ -177,6 +177,12 @@ func (suite *IntegrationTestSuite) TestFirstUpdateState() {
 		RollappId:        rollapp.GetRollappId(),
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+	// register sequncer in sequencer as Proposer
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Proposer,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -213,6 +219,12 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		RollappId:        rollapp.GetRollappId(),
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+	// register sequncer in sequencer as Proposer
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Proposer,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// set initial stateIndex & StateInfo
 	stateIndex := types.StateIndex{
@@ -434,6 +446,12 @@ func (suite *IntegrationTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 		RollappId:        "rollapp1",
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+	// register sequncer in sequencer as Proposer
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Proposer,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -473,6 +491,12 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		RollappId:        "rollapp1",
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+	// register sequncer in sequencer as Proposer
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Proposer,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// set initial stateIndex & StateInfo
 	stateIndex := types.StateIndex{
@@ -582,6 +606,12 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 		RollappId:        "rollapp1",
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+	// register sequncer in sequencer as Proposer
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Proposer,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// set initial stateIndex & StateInfo
 	stateIndex := types.StateIndex{
