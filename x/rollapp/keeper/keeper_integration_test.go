@@ -650,6 +650,92 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	suite.ErrorIs(err, types.ErrMultiUpdateStateInBlock)
 }
 
+func (suite *IntegrationTestSuite) TestUpdateStateErrLogicNotRegisteredInScheduler() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	// set rollapp
+	rollapp := types.Rollapp{
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       3,
+		MaxSequencers: 1,
+		PermissionedAddresses: sharedtypes.Sequencers{
+			Addresses: []string{},
+		},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	// skip register sequncer in sequencer as Proposer
+
+	// set sequencer
+	sequencer := sequencertypes.Sequencer{
+		Creator:          alice,
+		SequencerAddress: bob,
+		RollappId:        "rollapp1",
+	}
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+
+	// update state
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 0,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
+	}
+
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.ErrorIs(err, sdkerrors.ErrLogic)
+}
+
+func (suite *IntegrationTestSuite) TestUpdateStateErrNotActiveSequencer() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.ctx)
+
+	// set rollapp
+	rollapp := types.Rollapp{
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       3,
+		MaxSequencers: 1,
+		PermissionedAddresses: sharedtypes.Sequencers{
+			Addresses: []string{},
+		},
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+
+	// set sequencer
+	sequencer := sequencertypes.Sequencer{
+		Creator:          alice,
+		SequencerAddress: bob,
+		RollappId:        "rollapp1",
+	}
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
+
+	// register sequncer in sequencer as Inactive
+	scheduler := sequencertypes.Scheduler{
+		SequencerAddress: bob,
+		Status:           sequencertypes.Inactive,
+	}
+	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+
+	// update state
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 0,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
+	}
+
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
+}
+
 //---------------------------------------
 // vereifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
