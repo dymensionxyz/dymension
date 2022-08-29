@@ -18,26 +18,26 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 			name: "invalid address",
 			msg: MsgUpdateState{
 				Creator:     "invalid_address",
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   1,
-				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 0}}},
+				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 1}}},
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid initial state",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   1,
-				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 0}}},
+				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 1}}},
 			},
 		}, {
 			name: "valid initial state with 3 blocks",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   3,
-				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 2}}},
+				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 			},
 		}, {
 			name: "valid state from known state",
@@ -59,7 +59,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 			name: "invalid zero blocks initial state",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   0,
 				BDs:         BlockDescriptors{},
 			},
@@ -95,7 +95,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 			name: "initial state error",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   2,
 				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 4}, {Height: 5}}},
 			},
@@ -104,7 +104,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 			name: "initial state error one block",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   1,
 				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 4}}},
 			},
@@ -113,9 +113,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 			name: "illegal sequence initial state",
 			msg: MsgUpdateState{
 				Creator:     sample.AccAddress(),
-				StartHeight: 0,
+				StartHeight: 1,
 				NumBlocks:   3,
-				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 0}, {Height: 1}, {Height: 3}}},
+				BDs:         BlockDescriptors{BD: []BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 4}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {

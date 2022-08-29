@@ -58,6 +58,11 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of block descriptors(%d)", msg.NumBlocks, len(msg.BDs.BD))
 	}
 
+	// check to see that startHeight is not zaro
+	if msg.StartHeight == 0 {
+		return sdkerrors.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
+	}
+
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
