@@ -1,6 +1,5 @@
 dymension-testnet.pem
-vue/node_modules
-vue/dist
+vue/
 release/
 .idea/
 .vscode/
