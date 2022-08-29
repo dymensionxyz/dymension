@@ -58,14 +58,14 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	var newIndex uint64
 	if !isFound {
 		// check to see if it's the first update
-		if msg.StartHeight != 0 {
+		if msg.StartHeight != 1 {
 			// if not, it's an error
 			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
-				"expected height 0, but received (%d)",
+				"expected height 1, but received (%d)",
 				msg.StartHeight)
 		}
 		// else, it's the first update
-		newIndex = 0
+		newIndex = 1
 	} else {
 		// retrieve last updating index
 		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, stateIndex.Index)
