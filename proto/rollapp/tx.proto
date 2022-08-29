@@ -23,7 +23,7 @@ message MsgCreateRollapp {
   // rollappId is the unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
-  // genesisPath is the description of the genesis file location on the DA
+  // codeStamp is the description of the genesis file location on the DA
   string codeStamp = 3;
   // genesisPath is the description of the genesis file location on the DA
   string genesisPath = 4;

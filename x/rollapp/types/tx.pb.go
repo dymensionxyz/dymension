@@ -36,7 +36,7 @@ type MsgCreateRollapp struct {
 	// rollappId is the unique identifier of the rollapp chain.
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,2,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// genesisPath is the description of the genesis file location on the DA
+	// codeStamp is the description of the genesis file location on the DA
 	CodeStamp string `protobuf:"bytes,3,opt,name=codeStamp,proto3" json:"codeStamp,omitempty"`
 	// genesisPath is the description of the genesis file location on the DA
 	GenesisPath string `protobuf:"bytes,4,opt,name=genesisPath,proto3" json:"genesisPath,omitempty"`
