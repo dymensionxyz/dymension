@@ -68,6 +68,16 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
 			return ErrInvalidBlockSequence
 		}
+		// check to see stateRoot is a 32 byte array
+		if len(msg.BDs.BD[bdIndex].StateRoot) != 32 {
+			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+				msg.BDs.BD[bdIndex].Height, len(msg.BDs.BD[bdIndex].StateRoot))
+		}
+		// check to see IntermediateStatesRoot is a 32 byte array
+		if len(msg.BDs.BD[bdIndex].IntermediateStatesRoot) != 32 {
+			return sdkerrors.Wrapf(ErrInvalidIntermediateStatesRoot, "IntermediateStatesRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+				msg.BDs.BD[bdIndex].Height, len(msg.BDs.BD[bdIndex].IntermediateStatesRoot))
+		}
 	}
 
 	return nil
