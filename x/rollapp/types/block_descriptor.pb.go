@@ -27,11 +27,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type BlockDescriptor struct {
 	// height is the height of the block
 	Height uint64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	// stateRoot is the state root of the block
-	StateRoot string `protobuf:"bytes,2,opt,name=stateRoot,proto3" json:"stateRoot,omitempty"`
-	// intermediateStatesRoot is is the root of a Merkle tree built
-	// from the ISRs of the block (Intermediate State Roots)
-	IntermediateStatesRoot string `protobuf:"bytes,3,opt,name=intermediateStatesRoot,proto3" json:"intermediateStatesRoot,omitempty"`
+	// stateRoot is a 32 byte array of the hash of the block (state root of the block)
+	StateRoot []byte `protobuf:"bytes,2,opt,name=stateRoot,proto3" json:"stateRoot,omitempty"`
+	// intermediateStatesRoot is a 32 byte array representing
+	// the root of a Merkle tree built from the ISRs of the block (Intermediate State Roots)
+	IntermediateStatesRoot []byte `protobuf:"bytes,3,opt,name=intermediateStatesRoot,proto3" json:"intermediateStatesRoot,omitempty"`
 }
 
 func (m *BlockDescriptor) Reset()         { *m = BlockDescriptor{} }
@@ -74,18 +74,18 @@ func (m *BlockDescriptor) GetHeight() uint64 {
 	return 0
 }
 
-func (m *BlockDescriptor) GetStateRoot() string {
+func (m *BlockDescriptor) GetStateRoot() []byte {
 	if m != nil {
 		return m.StateRoot
 	}
-	return ""
+	return nil
 }
 
-func (m *BlockDescriptor) GetIntermediateStatesRoot() string {
+func (m *BlockDescriptor) GetIntermediateStatesRoot() []byte {
 	if m != nil {
 		return m.IntermediateStatesRoot
 	}
-	return ""
+	return nil
 }
 
 // BlockDescriptors defines list of BlockDescriptor.
@@ -149,7 +149,7 @@ var fileDescriptor_131db91bcb56d35a = []byte{
 	0xd2, 0xf3, 0xd3, 0xf3, 0xc1, 0x4a, 0xf5, 0x41, 0x2c, 0x88, 0x2e, 0xa5, 0x7a, 0x2e, 0x7e, 0x27,
 	0x90, 0x79, 0x2e, 0x70, 0xe3, 0x84, 0xc4, 0xb8, 0xd8, 0x32, 0x52, 0x33, 0xd3, 0x33, 0x4a, 0x24,
 	0x18, 0x15, 0x18, 0x35, 0x58, 0x82, 0xa0, 0x3c, 0x21, 0x19, 0x2e, 0xce, 0xe2, 0x92, 0xc4, 0x92,
-	0xd4, 0xa0, 0xfc, 0xfc, 0x12, 0x09, 0x26, 0x05, 0x46, 0x0d, 0xce, 0x20, 0x84, 0x80, 0x90, 0x19,
+	0xd4, 0xa0, 0xfc, 0xfc, 0x12, 0x09, 0x26, 0x05, 0x46, 0x0d, 0x9e, 0x20, 0x84, 0x80, 0x90, 0x19,
 	0x97, 0x58, 0x66, 0x5e, 0x49, 0x6a, 0x51, 0x6e, 0x6a, 0x4a, 0x66, 0x62, 0x49, 0x6a, 0x30, 0x48,
 	0xa2, 0x18, 0xac, 0x94, 0x19, 0xac, 0x14, 0x87, 0xac, 0x52, 0x24, 0x97, 0x00, 0x9a, 0x03, 0x8a,
 	0x85, 0x5c, 0xb9, 0x98, 0x9c, 0x5c, 0x24, 0x18, 0x15, 0x98, 0x35, 0xb8, 0x8d, 0xf4, 0xf5, 0xf0,
@@ -158,7 +158,7 @@ var fileDescriptor_131db91bcb56d35a = []byte{
 	0x72, 0x0c, 0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x10, 0x65, 0x98, 0x9e, 0x59, 0x92,
 	0x51, 0x9a, 0xa4, 0x97, 0x9c, 0x9f, 0xab, 0x8f, 0x6c, 0x3c, 0x82, 0xa3, 0x5f, 0xa1, 0x0f, 0x0b,
 	0xef, 0x92, 0xca, 0x82, 0xd4, 0xe2, 0x24, 0x36, 0x70, 0x78, 0x19, 0x03, 0x02, 0x00, 0x00, 0xff,
-	0xff, 0x74, 0x9c, 0x43, 0x88, 0x87, 0x01, 0x00, 0x00,
+	0xff, 0x37, 0xd1, 0xa8, 0x22, 0x87, 0x01, 0x00, 0x00,
 }
 
 func (m *BlockDescriptor) Marshal() (dAtA []byte, err error) {
@@ -344,7 +344,7 @@ func (m *BlockDescriptor) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StateRoot", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBlockDescriptor
@@ -354,29 +354,31 @@ func (m *BlockDescriptor) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthBlockDescriptor
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBlockDescriptor
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.StateRoot = string(dAtA[iNdEx:postIndex])
+			m.StateRoot = append(m.StateRoot[:0], dAtA[iNdEx:postIndex]...)
+			if m.StateRoot == nil {
+				m.StateRoot = []byte{}
+			}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IntermediateStatesRoot", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowBlockDescriptor
@@ -386,23 +388,25 @@ func (m *BlockDescriptor) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthBlockDescriptor
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthBlockDescriptor
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IntermediateStatesRoot = string(dAtA[iNdEx:postIndex])
+			m.IntermediateStatesRoot = append(m.IntermediateStatesRoot[:0], dAtA[iNdEx:postIndex]...)
+			if m.IntermediateStatesRoot == nil {
+				m.IntermediateStatesRoot = []byte{}
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

@@ -38,7 +38,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				MaxSequencers:        0,
 				MaxWithholdingBlocks: 1,
 			},
-			err: ErrInvalidwMaxSequencers,
+			err: ErrInvalidMaxSequencers,
 		}, {
 			name: "invalid max withholding blocks",
 			msg: MsgCreateRollapp{
@@ -46,7 +46,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				MaxSequencers:        1,
 				MaxWithholdingBlocks: 0,
 			},
-			err: ErrInvalidwMaxWithholding,
+			err: ErrInvalidMaxWithholding,
 		}, {
 			name: "valid permissioned addresses",
 			msg: MsgCreateRollapp{
