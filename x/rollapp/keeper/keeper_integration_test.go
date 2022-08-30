@@ -235,24 +235,20 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 	}
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
-	// set initial latestStateInfoIndex & StateInfo
-	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: "rollapp1",
-		Index:     1,
+	// create new update
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 1,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
-	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
-		StartHeight:    1,
-		NumBlocks:      3,
-		DAPath:         "",
-		Version:        3,
-		CreationHeight: 0,
-		Status:         types.STATE_STATUS_RECEIVED,
-		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
-	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
+
+	// update state
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.Require().Nil(err)
 
 	// test 10 update state
 	for i := 0; i < 10; i++ {
@@ -268,6 +264,16 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		// load last state info
 		expectedStateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, rollapp.GetRollappId(), expectedLatestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
+
+		// verify finalization queue
+		expectedFinalization := expectedStateInfo.CreationHeight + suite.app.RollappKeeper.DisputePeriodInBlocks(suite.ctx)
+		expectedFinalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, expectedFinalization)
+		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
+			FinalizationHeight: expectedFinalization,
+			FinalizationQueue:  []types.StateInfoIndex{expectedLatestStateInfoIndex},
+		})
+
+		// create new update
 		updateState := types.MsgUpdateState{
 			Creator:     bob,
 			RollappId:   rollapp.GetRollappId(),
