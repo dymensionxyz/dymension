@@ -50,10 +50,10 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if msg.GetMaxSequencers() == 0 {
-		return sdkerrors.Wrap(ErrInvalidwMaxSequencers, "max-sequencers must be greater than 0")
+		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
 	}
 	if msg.GetMaxWithholdingBlocks() == 0 {
-		return sdkerrors.Wrap(ErrInvalidwMaxWithholding, "max-withholding-blocks must be greater than 0")
+		return sdkerrors.Wrap(ErrInvalidMaxWithholding, "max-withholding-blocks must be greater than 0")
 	}
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
