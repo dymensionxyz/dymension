@@ -20122,6 +20122,265 @@ paths:
           format: int64
       tags:
         - Query
+  /dymensionxyz/dymension/rollapp/block_height_to_finalization_queue:
+    get:
+      summary: Queries a list of BlockHeightToFinalizationQueue items.
+      operationId: DymensionxyzDymensionRollappBlockHeightToFinalizationQueueAll
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              blockHeightToFinalizationQueue:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    finalizationHeight:
+                      type: string
+                      format: uint64
+                      title: >-
+                        finalizationHeight is the block height that the state
+                        should be finalized
+                    finalizationQueue:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          rollappId:
+                            type: string
+                            title: >-
+                              rollappId is the rollapp that the sequencer
+                              belongs to and asking to update
+
+                              it used to identify the what rollapp a StateInfo
+                              belongs
+
+                              The rollappId follows the same standard as cosmos
+                              chain_id
+                          index:
+                            type: string
+                            format: uint64
+                            title: >-
+                              latestStateInfoIndex is a sequential increasing
+                              number, updating on each
+
+                              state update used for indexing to a specific state
+                              info
+                        title: >-
+                          StateInfoIndex is the data used for indexing and
+                          retrieving a StateInfo 
+
+                          it updated and saved with every UpdateState in
+                          StateInfo.
+
+                          We use the this structure also for
+                          LatestStateInfoIndex which defines the rollapps'
+                          current (latest) 
+
+                          index of the last UpdateState
+                      title: >-
+                        finalizationQueue is a list of states that are waiting
+                        to be finalized
+
+                        when the block height becomes finalizationHeight
+                  title: >-
+                    BlockHeightToFinalizationQueue defines a map from block
+                    height to list of states to finalized
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  '/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}':
+    get:
+      summary: Queries a BlockHeightToFinalizationQueue by index.
+      operationId: DymensionxyzDymensionRollappBlockHeightToFinalizationQueue
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              blockHeightToFinalizationQueue:
+                type: object
+                properties:
+                  finalizationHeight:
+                    type: string
+                    format: uint64
+                    title: >-
+                      finalizationHeight is the block height that the state
+                      should be finalized
+                  finalizationQueue:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rollappId:
+                          type: string
+                          title: >-
+                            rollappId is the rollapp that the sequencer belongs
+                            to and asking to update
+
+                            it used to identify the what rollapp a StateInfo
+                            belongs
+
+                            The rollappId follows the same standard as cosmos
+                            chain_id
+                        index:
+                          type: string
+                          format: uint64
+                          title: >-
+                            latestStateInfoIndex is a sequential increasing
+                            number, updating on each
+
+                            state update used for indexing to a specific state
+                            info
+                      title: >-
+                        StateInfoIndex is the data used for indexing and
+                        retrieving a StateInfo 
+
+                        it updated and saved with every UpdateState in
+                        StateInfo.
+
+                        We use the this structure also for LatestStateInfoIndex
+                        which defines the rollapps' current (latest) 
+
+                        index of the last UpdateState
+                    title: >-
+                      finalizationQueue is a list of states that are waiting to
+                      be finalized
+
+                      when the block height becomes finalizationHeight
+                title: >-
+                  BlockHeightToFinalizationQueue defines a map from block height
+                  to list of states to finalized
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: finalizationHeight
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
   /dymensionxyz/dymension/rollapp/latest_state_info_index:
     get:
       summary: Queries a list of LatestStateInfoIndex items.
@@ -20254,6 +20513,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -20535,6 +20804,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -20851,6 +21130,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -50263,6 +50552,53 @@ definitions:
                 from the ISRs of the block (Intermediate State Roots)
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
+  dymensionxyz.dymension.rollapp.BlockHeightToFinalizationQueue:
+    type: object
+    properties:
+      finalizationHeight:
+        type: string
+        format: uint64
+        title: >-
+          finalizationHeight is the block height that the state should be
+          finalized
+      finalizationQueue:
+        type: array
+        items:
+          type: object
+          properties:
+            rollappId:
+              type: string
+              title: >-
+                rollappId is the rollapp that the sequencer belongs to and
+                asking to update
+
+                it used to identify the what rollapp a StateInfo belongs
+
+                The rollappId follows the same standard as cosmos chain_id
+            index:
+              type: string
+              format: uint64
+              title: >-
+                latestStateInfoIndex is a sequential increasing number, updating
+                on each
+
+                state update used for indexing to a specific state info
+          title: >-
+            StateInfoIndex is the data used for indexing and retrieving a
+            StateInfo 
+
+            it updated and saved with every UpdateState in StateInfo.
+
+            We use the this structure also for LatestStateInfoIndex which
+            defines the rollapps' current (latest) 
+
+            index of the last UpdateState
+        title: |-
+          finalizationQueue is a list of states that are waiting to be finalized
+          when the block height becomes finalizationHeight
+    title: >-
+      BlockHeightToFinalizationQueue defines a map from block height to list of
+      states to finalized
   dymensionxyz.dymension.rollapp.MsgCreateRollappResponse:
     type: object
   dymensionxyz.dymension.rollapp.MsgUpdateStateResponse:
@@ -50278,6 +50614,85 @@ definitions:
           to change a status of a state from received to finalized.
           during that period, any user could submit fraud proof
     description: Params defines the parameters for the module.
+  dymensionxyz.dymension.rollapp.QueryAllBlockHeightToFinalizationQueueResponse:
+    type: object
+    properties:
+      blockHeightToFinalizationQueue:
+        type: array
+        items:
+          type: object
+          properties:
+            finalizationHeight:
+              type: string
+              format: uint64
+              title: >-
+                finalizationHeight is the block height that the state should be
+                finalized
+            finalizationQueue:
+              type: array
+              items:
+                type: object
+                properties:
+                  rollappId:
+                    type: string
+                    title: >-
+                      rollappId is the rollapp that the sequencer belongs to and
+                      asking to update
+
+                      it used to identify the what rollapp a StateInfo belongs
+
+                      The rollappId follows the same standard as cosmos chain_id
+                  index:
+                    type: string
+                    format: uint64
+                    title: >-
+                      latestStateInfoIndex is a sequential increasing number,
+                      updating on each
+
+                      state update used for indexing to a specific state info
+                title: >-
+                  StateInfoIndex is the data used for indexing and retrieving a
+                  StateInfo 
+
+                  it updated and saved with every UpdateState in StateInfo.
+
+                  We use the this structure also for LatestStateInfoIndex which
+                  defines the rollapps' current (latest) 
+
+                  index of the last UpdateState
+              title: >-
+                finalizationQueue is a list of states that are waiting to be
+                finalized
+
+                when the block height becomes finalizationHeight
+          title: >-
+            BlockHeightToFinalizationQueue defines a map from block height to
+            list of states to finalized
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   dymensionxyz.dymension.rollapp.QueryAllLatestStateInfoIndexResponse:
     type: object
     properties:
@@ -50551,6 +50966,58 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  dymensionxyz.dymension.rollapp.QueryGetBlockHeightToFinalizationQueueResponse:
+    type: object
+    properties:
+      blockHeightToFinalizationQueue:
+        type: object
+        properties:
+          finalizationHeight:
+            type: string
+            format: uint64
+            title: >-
+              finalizationHeight is the block height that the state should be
+              finalized
+          finalizationQueue:
+            type: array
+            items:
+              type: object
+              properties:
+                rollappId:
+                  type: string
+                  title: >-
+                    rollappId is the rollapp that the sequencer belongs to and
+                    asking to update
+
+                    it used to identify the what rollapp a StateInfo belongs
+
+                    The rollappId follows the same standard as cosmos chain_id
+                index:
+                  type: string
+                  format: uint64
+                  title: >-
+                    latestStateInfoIndex is a sequential increasing number,
+                    updating on each
+
+                    state update used for indexing to a specific state info
+              title: >-
+                StateInfoIndex is the data used for indexing and retrieving a
+                StateInfo 
+
+                it updated and saved with every UpdateState in StateInfo.
+
+                We use the this structure also for LatestStateInfoIndex which
+                defines the rollapps' current (latest) 
+
+                index of the last UpdateState
+            title: >-
+              finalizationQueue is a list of states that are waiting to be
+              finalized
+
+              when the block height becomes finalizationHeight
+        title: >-
+          BlockHeightToFinalizationQueue defines a map from block height to list
+          of states to finalized
   dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexResponse:
     type: object
     properties:

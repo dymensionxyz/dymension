@@ -5,7 +5,6 @@ import "gogoproto/gogo.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
 import "rollapp/state_info.proto";
-import "rollapp/block_height_to_finalization_queue.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
