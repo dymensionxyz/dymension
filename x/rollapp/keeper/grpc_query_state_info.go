@@ -48,7 +48,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 	val, found := k.GetStateInfo(
 		ctx,
 		req.RollappId,
-		req.StateIndex,
+		req.Index,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

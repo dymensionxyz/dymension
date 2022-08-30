@@ -14,16 +14,15 @@ const (
 
 // StateInfoKey returns the store key to retrieve a StateInfo from the index fields
 func StateInfoKey(
-	rollappId string,
-	stateIndex uint64,
+	stateInfoIndex StateInfoIndex,
 ) []byte {
 	var key []byte
 
-	rollappIdBytes := []byte(rollappId)
+	rollappIdBytes := []byte(stateInfoIndex.RollappId)
 	key = append(key, rollappIdBytes...)
 	key = append(key, []byte("/")...)
-	stateIndexBytes := []byte(fmt.Sprint(stateIndex))
-	key = append(key, stateIndexBytes...)
+	stateInfoIndexBytes := []byte(fmt.Sprint(stateInfoIndex.Index))
+	key = append(key, stateInfoIndexBytes...)
 	key = append(key, []byte("/")...)
 
 	return key

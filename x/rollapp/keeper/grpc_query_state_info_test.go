@@ -31,32 +31,32 @@ func TestStateInfoQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId:  msgs[0].RollappId,
-				StateIndex: msgs[0].StateIndex,
+				RollappId: msgs[0].StateInfoIndex.RollappId,
+				Index:     msgs[0].StateInfoIndex.Index,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: msgs[0]},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId:  msgs[1].RollappId,
-				StateIndex: msgs[1].StateIndex,
+				RollappId: msgs[1].StateInfoIndex.RollappId,
+				Index:     msgs[1].StateInfoIndex.Index,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId:  strconv.Itoa(100000),
-				StateIndex: msgs[0].StateIndex,
+				RollappId: strconv.Itoa(100000),
+				Index:     msgs[0].StateInfoIndex.Index,
 			},
 			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetStateInfoRequest{
-				RollappId:  msgs[1].RollappId,
-				StateIndex: 100000,
+				RollappId: msgs[1].StateInfoIndex.RollappId,
+				Index:     100000,
 			},
 			err: status.Error(codes.NotFound, "not found"),
 		},

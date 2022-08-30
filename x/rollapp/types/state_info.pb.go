@@ -23,38 +23,96 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// StateInfo defines a rollapps' state.
-type StateInfo struct {
+// StateInfoIndex is the data used for indexing and retrieving a StateInfo
+// it updated and saved with every UpdateState in StateInfo.
+// We use the this structure also for LatestStateInfoIndex which defines the rollapps' current (latest)
+// index of the last UpdateState
+type StateInfoIndex struct {
 	// rollappId is the rollapp that the sequencer belongs to and asking to update
+	// it used to identify the what rollapp a StateInfo belongs
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// stateIndex is a sequential increasing number, updating on each
+	// latestStateInfoIndex is a sequential increasing number, updating on each
 	// state update used for indexing to a specific state info
-	StateIndex uint64 `protobuf:"varint,2,opt,name=stateIndex,proto3" json:"stateIndex,omitempty"`
+	Index uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
+}
+
+func (m *StateInfoIndex) Reset()         { *m = StateInfoIndex{} }
+func (m *StateInfoIndex) String() string { return proto.CompactTextString(m) }
+func (*StateInfoIndex) ProtoMessage()    {}
+func (*StateInfoIndex) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0f682a28ae3061a0, []int{0}
+}
+func (m *StateInfoIndex) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *StateInfoIndex) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_StateInfoIndex.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *StateInfoIndex) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StateInfoIndex.Merge(m, src)
+}
+func (m *StateInfoIndex) XXX_Size() int {
+	return m.Size()
+}
+func (m *StateInfoIndex) XXX_DiscardUnknown() {
+	xxx_messageInfo_StateInfoIndex.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StateInfoIndex proto.InternalMessageInfo
+
+func (m *StateInfoIndex) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *StateInfoIndex) GetIndex() uint64 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+// StateInfo defines a rollapps' state.
+type StateInfo struct {
+	// stateInfoIndex defines what rollapp the state belongs to
+	// and in which index it can be referenced
+	StateInfoIndex StateInfoIndex `protobuf:"bytes,1,opt,name=stateInfoIndex,proto3" json:"stateInfoIndex"`
 	// sequencer is the bech32-encoded address of the sequencer sent the update
-	Sequencer string `protobuf:"bytes,3,opt,name=sequencer,proto3" json:"sequencer,omitempty"`
+	Sequencer string `protobuf:"bytes,2,opt,name=sequencer,proto3" json:"sequencer,omitempty"`
 	// startHeight is the block height of the first block in the batch
-	StartHeight uint64 `protobuf:"varint,4,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
+	StartHeight uint64 `protobuf:"varint,3,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
 	// numBlocks is the number of blocks included in this batch update
-	NumBlocks uint64 `protobuf:"varint,5,opt,name=numBlocks,proto3" json:"numBlocks,omitempty"`
+	NumBlocks uint64 `protobuf:"varint,4,opt,name=numBlocks,proto3" json:"numBlocks,omitempty"`
 	// DAPath is the description of the location on the DA layer
-	DAPath string `protobuf:"bytes,6,opt,name=DAPath,proto3" json:"DAPath,omitempty"`
+	DAPath string `protobuf:"bytes,5,opt,name=DAPath,proto3" json:"DAPath,omitempty"`
 	// version is the version of the rollapp
-	Version uint64 `protobuf:"varint,7,opt,name=version,proto3" json:"version,omitempty"`
+	Version uint64 `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
 	// creationHeight is the height at which the UpdateState took place
-	CreationHeight uint64 `protobuf:"varint,8,opt,name=creationHeight,proto3" json:"creationHeight,omitempty"`
+	CreationHeight uint64 `protobuf:"varint,7,opt,name=creationHeight,proto3" json:"creationHeight,omitempty"`
 	// status is the status of the state update
-	Status StateStatus `protobuf:"varint,9,opt,name=status,proto3,enum=dymensionxyz.dymension.rollapp.StateStatus" json:"status,omitempty"`
+	Status StateStatus `protobuf:"varint,8,opt,name=status,proto3,enum=dymensionxyz.dymension.rollapp.StateStatus" json:"status,omitempty"`
 	// BDs is a list of block description objects (one per block)
 	// the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-	BDs BlockDescriptors `protobuf:"bytes,10,opt,name=BDs,proto3" json:"BDs"`
+	BDs BlockDescriptors `protobuf:"bytes,9,opt,name=BDs,proto3" json:"BDs"`
 }
 
 func (m *StateInfo) Reset()         { *m = StateInfo{} }
 func (m *StateInfo) String() string { return proto.CompactTextString(m) }
 func (*StateInfo) ProtoMessage()    {}
 func (*StateInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0f682a28ae3061a0, []int{0}
+	return fileDescriptor_0f682a28ae3061a0, []int{1}
 }
 func (m *StateInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -83,18 +141,11 @@ func (m *StateInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StateInfo proto.InternalMessageInfo
 
-func (m *StateInfo) GetRollappId() string {
+func (m *StateInfo) GetStateInfoIndex() StateInfoIndex {
 	if m != nil {
-		return m.RollappId
+		return m.StateInfoIndex
 	}
-	return ""
-}
-
-func (m *StateInfo) GetStateIndex() uint64 {
-	if m != nil {
-		return m.StateIndex
-	}
-	return 0
+	return StateInfoIndex{}
 }
 
 func (m *StateInfo) GetSequencer() string {
@@ -154,37 +205,74 @@ func (m *StateInfo) GetBDs() BlockDescriptors {
 }
 
 func init() {
+	proto.RegisterType((*StateInfoIndex)(nil), "dymensionxyz.dymension.rollapp.StateInfoIndex")
 	proto.RegisterType((*StateInfo)(nil), "dymensionxyz.dymension.rollapp.StateInfo")
 }
 
 func init() { proto.RegisterFile("rollapp/state_info.proto", fileDescriptor_0f682a28ae3061a0) }
 
 var fileDescriptor_0f682a28ae3061a0 = []byte{
-	// 373 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x91, 0xcf, 0x4e, 0xea, 0x40,
-	0x14, 0xc6, 0x3b, 0x17, 0x6e, 0xb9, 0x1d, 0x12, 0x16, 0x93, 0x1b, 0x33, 0x21, 0x66, 0x6c, 0x5c,
-	0x98, 0x26, 0x26, 0xad, 0xe2, 0x13, 0x58, 0x59, 0x40, 0xdc, 0x98, 0xb2, 0x73, 0x43, 0x4a, 0x3b,
-	0x94, 0x46, 0xe8, 0xd4, 0x99, 0xa9, 0x01, 0x9f, 0x82, 0xc7, 0x62, 0xc9, 0xd2, 0x95, 0x31, 0xf0,
-	0x22, 0x66, 0xa6, 0xe5, 0x8f, 0x2e, 0x74, 0xd3, 0xf4, 0x7c, 0xe7, 0xfc, 0xbe, 0x93, 0x39, 0x1f,
-	0xc4, 0x9c, 0x4d, 0xa7, 0x61, 0x9e, 0x7b, 0x42, 0x86, 0x92, 0x0e, 0xd3, 0x6c, 0xcc, 0xdc, 0x9c,
-	0x33, 0xc9, 0x10, 0x89, 0x17, 0x33, 0x9a, 0x89, 0x94, 0x65, 0xf3, 0xc5, 0xab, 0xbb, 0x2f, 0xdc,
-	0x0a, 0x68, 0xff, 0x4f, 0x58, 0xc2, 0xf4, 0xa8, 0xa7, 0xfe, 0x4a, 0xaa, 0x4d, 0x76, 0x7e, 0xa3,
-	0x29, 0x8b, 0x9e, 0x86, 0x31, 0x15, 0x11, 0x4f, 0x73, 0xc9, 0x78, 0xd5, 0x6f, 0x7f, 0xdd, 0xa7,
-	0xbe, 0x85, 0x28, 0x7b, 0xe7, 0xcb, 0x1a, 0xb4, 0x06, 0x4a, 0xee, 0x67, 0x63, 0x86, 0x4e, 0xa1,
-	0x55, 0xcd, 0xf6, 0x63, 0x0c, 0x6c, 0xe0, 0x58, 0xc1, 0x41, 0x40, 0x04, 0x42, 0x51, 0x8e, 0xc6,
-	0x74, 0x8e, 0xff, 0xd8, 0xc0, 0xa9, 0x07, 0x47, 0x8a, 0xa2, 0x05, 0x7d, 0x2e, 0x68, 0x16, 0x51,
-	0x8e, 0x6b, 0x25, 0xbd, 0x17, 0x90, 0x0d, 0x9b, 0x42, 0x86, 0x5c, 0xf6, 0x68, 0x9a, 0x4c, 0x24,
-	0xae, 0x6b, 0xfc, 0x58, 0x52, 0x7c, 0x56, 0xcc, 0x7c, 0xf5, 0x08, 0x81, 0xff, 0xea, 0xfe, 0x41,
-	0x40, 0x27, 0xd0, 0xec, 0xde, 0x3e, 0x84, 0x72, 0x82, 0x4d, 0x6d, 0x5d, 0x55, 0x08, 0xc3, 0xc6,
-	0x0b, 0xe5, 0xea, 0x4c, 0xb8, 0xa1, 0x99, 0x5d, 0x89, 0x2e, 0x60, 0x2b, 0xe2, 0x34, 0x94, 0x29,
-	0xcb, 0xaa, 0xa5, 0xff, 0xf4, 0xc0, 0x37, 0x15, 0xdd, 0x41, 0xb3, 0xbc, 0x09, 0xb6, 0x6c, 0xe0,
-	0xb4, 0x3a, 0x97, 0xee, 0xcf, 0x31, 0xb8, 0xfa, 0x60, 0x03, 0x8d, 0x04, 0x15, 0x8a, 0x7a, 0xb0,
-	0xe6, 0x77, 0x05, 0x86, 0x36, 0x70, 0x9a, 0x9d, 0xab, 0xdf, 0x1c, 0xf4, 0x9b, 0xba, 0xfb, 0xa0,
-	0x84, 0x5f, 0x5f, 0xbd, 0x9f, 0x19, 0x81, 0xb2, 0xf0, 0xef, 0x57, 0x1b, 0x02, 0xd6, 0x1b, 0x02,
-	0x3e, 0x36, 0x04, 0x2c, 0xb7, 0xc4, 0x58, 0x6f, 0x89, 0xf1, 0xb6, 0x25, 0xc6, 0xe3, 0x75, 0x92,
-	0xca, 0x49, 0x31, 0x72, 0x23, 0x36, 0xf3, 0x8e, 0x17, 0x1c, 0x0a, 0x6f, 0xee, 0xed, 0xc2, 0x96,
-	0x8b, 0x9c, 0x8a, 0x91, 0xa9, 0x63, 0xbe, 0xf9, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x34, 0x8f, 0x06,
-	0x16, 0x74, 0x02, 0x00, 0x00,
+	// 399 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xc1, 0xaa, 0xda, 0x40,
+	0x14, 0x4d, 0xaa, 0xc6, 0x66, 0x84, 0x2c, 0x06, 0x29, 0x83, 0x94, 0x69, 0x70, 0x51, 0x84, 0x42,
+	0xd2, 0xda, 0x2f, 0x68, 0x9a, 0x85, 0xd2, 0x4d, 0x89, 0xbb, 0x52, 0x90, 0x98, 0x8c, 0x31, 0x54,
+	0x67, 0xd2, 0x99, 0x49, 0xd1, 0x7e, 0x45, 0x3f, 0xa5, 0x9f, 0xe1, 0xd2, 0x65, 0x57, 0xa5, 0xe8,
+	0x8f, 0x94, 0x99, 0x44, 0xa3, 0x2e, 0xde, 0x7b, 0x9b, 0x90, 0x7b, 0xee, 0x3d, 0xe7, 0x9e, 0x39,
+	0x5c, 0x80, 0x38, 0x5b, 0xaf, 0xe3, 0xa2, 0xf0, 0x85, 0x8c, 0x25, 0x99, 0xe7, 0x74, 0xc9, 0xbc,
+	0x82, 0x33, 0xc9, 0x20, 0x4e, 0x77, 0x1b, 0x42, 0x45, 0xce, 0xe8, 0x76, 0xf7, 0xd3, 0xbb, 0x14,
+	0x5e, 0x4d, 0x18, 0xf4, 0x33, 0x96, 0x31, 0x3d, 0xea, 0xab, 0xbf, 0x8a, 0x35, 0xc0, 0x67, 0xbd,
+	0xc5, 0x9a, 0x25, 0xdf, 0xe6, 0x29, 0x11, 0x09, 0xcf, 0x0b, 0xc9, 0x78, 0xdd, 0x1f, 0xdc, 0xee,
+	0x53, 0xdf, 0x52, 0x54, 0xbd, 0x61, 0x08, 0x9c, 0x99, 0x42, 0xa7, 0x74, 0xc9, 0xa6, 0x34, 0x25,
+	0x5b, 0xf8, 0x12, 0xd8, 0xf5, 0xfc, 0x34, 0x45, 0xa6, 0x6b, 0x8e, 0xec, 0xa8, 0x01, 0x60, 0x1f,
+	0x74, 0x72, 0x35, 0x86, 0x9e, 0xb9, 0xe6, 0xa8, 0x1d, 0x55, 0xc5, 0xf0, 0x77, 0x0b, 0xd8, 0x17,
+	0x19, 0xf8, 0x15, 0x38, 0xe2, 0x46, 0x53, 0xcb, 0xf4, 0xc6, 0x9e, 0xf7, 0xf0, 0xf3, 0xbc, 0x5b,
+	0x27, 0x41, 0x7b, 0xff, 0xf7, 0x95, 0x11, 0xdd, 0x69, 0x29, 0x7f, 0x82, 0x7c, 0x2f, 0x09, 0x4d,
+	0x08, 0xd7, 0x2e, 0xec, 0xa8, 0x01, 0xa0, 0x0b, 0x7a, 0x42, 0xc6, 0x5c, 0x4e, 0x48, 0x9e, 0xad,
+	0x24, 0x6a, 0x69, 0x97, 0xd7, 0x90, 0xe2, 0xd3, 0x72, 0x13, 0xa8, 0xa8, 0x04, 0x6a, 0xeb, 0x7e,
+	0x03, 0xc0, 0x17, 0xc0, 0x0a, 0x3f, 0x7c, 0x8e, 0xe5, 0x0a, 0x75, 0xb4, 0x74, 0x5d, 0x41, 0x04,
+	0xba, 0x3f, 0x08, 0x57, 0x6e, 0x91, 0xa5, 0x39, 0xe7, 0x12, 0xbe, 0x06, 0x4e, 0xc2, 0x49, 0x2c,
+	0x73, 0x46, 0xeb, 0xa5, 0x5d, 0x3d, 0x70, 0x87, 0xc2, 0x8f, 0xc0, 0xaa, 0x92, 0x47, 0xcf, 0x5d,
+	0x73, 0xe4, 0x8c, 0xdf, 0x3c, 0x29, 0x8d, 0x99, 0xa6, 0x44, 0x35, 0x15, 0x4e, 0x40, 0x2b, 0x08,
+	0x05, 0xb2, 0x75, 0x9e, 0x6f, 0x1f, 0x53, 0xd0, 0x6f, 0x0a, 0x2f, 0xe7, 0x20, 0xea, 0x44, 0x95,
+	0x44, 0xf0, 0x69, 0x7f, 0xc4, 0xe6, 0xe1, 0x88, 0xcd, 0x7f, 0x47, 0x6c, 0xfe, 0x3a, 0x61, 0xe3,
+	0x70, 0xc2, 0xc6, 0x9f, 0x13, 0x36, 0xbe, 0xbc, 0xcb, 0x72, 0xb9, 0x2a, 0x17, 0x5e, 0xc2, 0x36,
+	0xfe, 0xf5, 0x82, 0xa6, 0xf0, 0xb7, 0xfe, 0xf9, 0xa4, 0xe4, 0xae, 0x20, 0x62, 0x61, 0xe9, 0x63,
+	0x7a, 0xff, 0x3f, 0x00, 0x00, 0xff, 0xff, 0x90, 0x7a, 0x4f, 0xad, 0xda, 0x02, 0x00, 0x00,
+}
+
+func (m *StateInfoIndex) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *StateInfoIndex) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *StateInfoIndex) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Index != 0 {
+		i = encodeVarintStateInfo(dAtA, i, uint64(m.Index))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintStateInfo(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *StateInfo) Marshal() (dAtA []byte, err error) {
@@ -216,58 +304,56 @@ func (m *StateInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintStateInfo(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x52
+	dAtA[i] = 0x4a
 	if m.Status != 0 {
 		i = encodeVarintStateInfo(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x40
 	}
 	if m.CreationHeight != 0 {
 		i = encodeVarintStateInfo(dAtA, i, uint64(m.CreationHeight))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x38
 	}
 	if m.Version != 0 {
 		i = encodeVarintStateInfo(dAtA, i, uint64(m.Version))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x30
 	}
 	if len(m.DAPath) > 0 {
 		i -= len(m.DAPath)
 		copy(dAtA[i:], m.DAPath)
 		i = encodeVarintStateInfo(dAtA, i, uint64(len(m.DAPath)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x2a
 	}
 	if m.NumBlocks != 0 {
 		i = encodeVarintStateInfo(dAtA, i, uint64(m.NumBlocks))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x20
 	}
 	if m.StartHeight != 0 {
 		i = encodeVarintStateInfo(dAtA, i, uint64(m.StartHeight))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x18
 	}
 	if len(m.Sequencer) > 0 {
 		i -= len(m.Sequencer)
 		copy(dAtA[i:], m.Sequencer)
 		i = encodeVarintStateInfo(dAtA, i, uint64(len(m.Sequencer)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x12
 	}
-	if m.StateIndex != 0 {
-		i = encodeVarintStateInfo(dAtA, i, uint64(m.StateIndex))
-		i--
-		dAtA[i] = 0x10
+	{
+		size, err := m.StateInfoIndex.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintStateInfo(dAtA, i, uint64(size))
 	}
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintStateInfo(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0xa
-	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -282,7 +368,7 @@ func encodeVarintStateInfo(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *StateInfo) Size() (n int) {
+func (m *StateInfoIndex) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -292,9 +378,20 @@ func (m *StateInfo) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovStateInfo(uint64(l))
 	}
-	if m.StateIndex != 0 {
-		n += 1 + sovStateInfo(uint64(m.StateIndex))
+	if m.Index != 0 {
+		n += 1 + sovStateInfo(uint64(m.Index))
 	}
+	return n
+}
+
+func (m *StateInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.StateInfoIndex.Size()
+	n += 1 + l + sovStateInfo(uint64(l))
 	l = len(m.Sequencer)
 	if l > 0 {
 		n += 1 + l + sovStateInfo(uint64(l))
@@ -329,7 +426,7 @@ func sovStateInfo(x uint64) (n int) {
 func sozStateInfo(x uint64) (n int) {
 	return sovStateInfo(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *StateInfo) Unmarshal(dAtA []byte) error {
+func (m *StateInfoIndex) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -352,10 +449,10 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: StateInfo: wiretype end group for non-group")
+			return fmt.Errorf("proto: StateInfoIndex: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: StateInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: StateInfoIndex: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -392,9 +489,9 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StateIndex", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
 			}
-			m.StateIndex = 0
+			m.Index = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowStateInfo
@@ -404,12 +501,95 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.StateIndex |= uint64(b&0x7F) << shift
+				m.Index |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		case 3:
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStateInfo(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStateInfo
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *StateInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStateInfo
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: StateInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: StateInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StateInfoIndex", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStateInfo
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStateInfo
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStateInfo
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StateInfoIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
 			}
@@ -441,7 +621,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 			}
 			m.Sequencer = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StartHeight", wireType)
 			}
@@ -460,7 +640,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 5:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NumBlocks", wireType)
 			}
@@ -479,7 +659,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DAPath", wireType)
 			}
@@ -511,7 +691,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 			}
 			m.DAPath = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
 			}
@@ -530,7 +710,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 8:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreationHeight", wireType)
 			}
@@ -549,7 +729,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -568,7 +748,7 @@ func (m *StateInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 10:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BDs", wireType)
 			}

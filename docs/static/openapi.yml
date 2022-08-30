@@ -20122,6 +20122,218 @@ paths:
           format: int64
       tags:
         - Query
+  /dymensionxyz/dymension/rollapp/latest_state_info_index:
+    get:
+      summary: Queries a list of LatestStateInfoIndex items.
+      operationId: DymensionxyzDymensionRollappLatestStateInfoIndexAll
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              latestStateInfoIndex:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rollappId:
+                      type: string
+                      title: >-
+                        rollappId is the rollapp that the sequencer belongs to
+                        and asking to update
+
+                        it used to identify the what rollapp a StateInfo belongs
+
+                        The rollappId follows the same standard as cosmos
+                        chain_id
+                    index:
+                      type: string
+                      format: uint64
+                      title: >-
+                        latestStateInfoIndex is a sequential increasing number,
+                        updating on each
+
+                        state update used for indexing to a specific state info
+                  title: >-
+                    StateInfoIndex is the data used for indexing and retrieving
+                    a StateInfo 
+
+                    it updated and saved with every UpdateState in StateInfo.
+
+                    We use the this structure also for LatestStateInfoIndex
+                    which defines the rollapps' current (latest) 
+
+                    index of the last UpdateState
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  '/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}':
+    get:
+      summary: Queries a LatestStateInfoIndex by index.
+      operationId: DymensionxyzDymensionRollappLatestStateInfoIndex
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              latestStateInfoIndex:
+                type: object
+                properties:
+                  rollappId:
+                    type: string
+                    title: >-
+                      rollappId is the rollapp that the sequencer belongs to and
+                      asking to update
+
+                      it used to identify the what rollapp a StateInfo belongs
+
+                      The rollappId follows the same standard as cosmos chain_id
+                  index:
+                    type: string
+                    format: uint64
+                    title: >-
+                      latestStateInfoIndex is a sequential increasing number,
+                      updating on each
+
+                      state update used for indexing to a specific state info
+                title: >-
+                  StateInfoIndex is the data used for indexing and retrieving a
+                  StateInfo 
+
+                  it updated and saved with every UpdateState in StateInfo.
+
+                  We use the this structure also for LatestStateInfoIndex which
+                  defines the rollapps' current (latest) 
+
+                  index of the last UpdateState
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: rollappId
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /dymensionxyz/dymension/rollapp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -20336,6 +20548,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/rollapp/{rollappId}':
@@ -20437,191 +20659,6 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/state_index:
-    get:
-      summary: Queries a list of StateIndex items.
-      operationId: DymensionxyzDymensionRollappStateIndexAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              stateIndex:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    rollappId:
-                      type: string
-                      title: >-
-                        rollappId is the rollapp that we save the index for
-
-                        The rollappId follows the same standard as cosmos
-                        chain_id
-                    index:
-                      type: string
-                      format: uint64
-                      title: |-
-                        index is a sequentially increasing number
-                        the index increases on every state update
-                  title: >-
-                    StateIndex defines a rollapps' the current (latest) 
-
-                    index of the last UpdateState 
-
-                    the index also saved with every UpdateState in StateInfo.
-
-                    the <rollappId, index> pair is used for retrieving a
-                    StateInfo
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    title: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  '/dymensionxyz/dymension/rollapp/state_index/{rollappId}':
-    get:
-      summary: Queries a StateIndex by index.
-      operationId: DymensionxyzDymensionRollappStateIndex
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              stateIndex:
-                type: object
-                properties:
-                  rollappId:
-                    type: string
-                    title: |-
-                      rollappId is the rollapp that we save the index for
-                      The rollappId follows the same standard as cosmos chain_id
-                  index:
-                    type: string
-                    format: uint64
-                    title: |-
-                      index is a sequentially increasing number
-                      the index increases on every state update
-                title: |-
-                  StateIndex defines a rollapps' the current (latest) 
-                  index of the last UpdateState 
-                  the index also saved with every UpdateState in StateInfo.
-                  the <rollappId, index> pair is used for retrieving a StateInfo
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      parameters:
-        - name: rollappId
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /dymensionxyz/dymension/rollapp/state_info:
     get:
       summary: Queries a list of StateInfo items.
@@ -20637,22 +20674,40 @@ paths:
                 items:
                   type: object
                   properties:
-                    rollappId:
-                      type: string
-                      title: >-
-                        rollappId is the rollapp that the sequencer belongs to
-                        and asking to update
+                    stateInfoIndex:
+                      type: object
+                      properties:
+                        rollappId:
+                          type: string
+                          title: >-
+                            rollappId is the rollapp that the sequencer belongs
+                            to and asking to update
 
-                        The rollappId follows the same standard as cosmos
-                        chain_id
-                    stateIndex:
-                      type: string
-                      format: uint64
-                      title: >-
-                        stateIndex is a sequential increasing number, updating
-                        on each
+                            it used to identify the what rollapp a StateInfo
+                            belongs
 
-                        state update used for indexing to a specific state info
+                            The rollappId follows the same standard as cosmos
+                            chain_id
+                        index:
+                          type: string
+                          format: uint64
+                          title: >-
+                            latestStateInfoIndex is a sequential increasing
+                            number, updating on each
+
+                            state update used for indexing to a specific state
+                            info
+                      title: >-
+                        StateInfoIndex is the data used for indexing and
+                        retrieving a StateInfo 
+
+                        it updated and saved with every UpdateState in
+                        StateInfo.
+
+                        We use the this structure also for LatestStateInfoIndex
+                        which defines the rollapps' current (latest) 
+
+                        index of the last UpdateState
                     sequencer:
                       type: string
                       title: >-
@@ -20819,9 +20874,19 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
-  '/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{stateIndex}':
+  '/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}':
     get:
       summary: Queries a StateInfo by index.
       operationId: DymensionxyzDymensionRollappStateInfo
@@ -20834,21 +20899,39 @@ paths:
               stateInfo:
                 type: object
                 properties:
-                  rollappId:
-                    type: string
-                    title: >-
-                      rollappId is the rollapp that the sequencer belongs to and
-                      asking to update
+                  stateInfoIndex:
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
 
-                      The rollappId follows the same standard as cosmos chain_id
-                  stateIndex:
-                    type: string
-                    format: uint64
-                    title: >-
-                      stateIndex is a sequential increasing number, updating on
-                      each
+                          it used to identify the what rollapp a StateInfo
+                          belongs
 
-                      state update used for indexing to a specific state info
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          latestStateInfoIndex is a sequential increasing
+                          number, updating on each
+
+                          state update used for indexing to a specific state
+                          info
+                    title: >-
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
+
+                      it updated and saved with every UpdateState in StateInfo.
+
+                      We use the this structure also for LatestStateInfoIndex
+                      which defines the rollapps' current (latest) 
+
+                      index of the last UpdateState
                   sequencer:
                     type: string
                     title: >-
@@ -20943,7 +21026,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: stateIndex
+        - name: index
           in: path
           required: true
           type: string
@@ -21444,16 +21527,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -22181,16 +22254,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}':
@@ -22911,16 +22974,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -50225,6 +50278,66 @@ definitions:
           to change a status of a state from received to finalized.
           during that period, any user could submit fraud proof
     description: Params defines the parameters for the module.
+  dymensionxyz.dymension.rollapp.QueryAllLatestStateInfoIndexResponse:
+    type: object
+    properties:
+      latestStateInfoIndex:
+        type: array
+        items:
+          type: object
+          properties:
+            rollappId:
+              type: string
+              title: >-
+                rollappId is the rollapp that the sequencer belongs to and
+                asking to update
+
+                it used to identify the what rollapp a StateInfo belongs
+
+                The rollappId follows the same standard as cosmos chain_id
+            index:
+              type: string
+              format: uint64
+              title: >-
+                latestStateInfoIndex is a sequential increasing number, updating
+                on each
+
+                state update used for indexing to a specific state info
+          title: >-
+            StateInfoIndex is the data used for indexing and retrieving a
+            StateInfo 
+
+            it updated and saved with every UpdateState in StateInfo.
+
+            We use the this structure also for LatestStateInfoIndex which
+            defines the rollapps' current (latest) 
+
+            index of the last UpdateState
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
     properties:
@@ -50311,55 +50424,6 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  dymensionxyz.dymension.rollapp.QueryAllStateIndexResponse:
-    type: object
-    properties:
-      stateIndex:
-        type: array
-        items:
-          type: object
-          properties:
-            rollappId:
-              type: string
-              title: |-
-                rollappId is the rollapp that we save the index for
-                The rollappId follows the same standard as cosmos chain_id
-            index:
-              type: string
-              format: uint64
-              title: |-
-                index is a sequentially increasing number
-                the index increases on every state update
-          title: |-
-            StateIndex defines a rollapps' the current (latest) 
-            index of the last UpdateState 
-            the index also saved with every UpdateState in StateInfo.
-            the <rollappId, index> pair is used for retrieving a StateInfo
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            title: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
   dymensionxyz.dymension.rollapp.QueryAllStateInfoResponse:
     type: object
     properties:
@@ -50368,19 +50432,36 @@ definitions:
         items:
           type: object
           properties:
-            rollappId:
-              type: string
-              title: >-
-                rollappId is the rollapp that the sequencer belongs to and
-                asking to update
+            stateInfoIndex:
+              type: object
+              properties:
+                rollappId:
+                  type: string
+                  title: >-
+                    rollappId is the rollapp that the sequencer belongs to and
+                    asking to update
 
-                The rollappId follows the same standard as cosmos chain_id
-            stateIndex:
-              type: string
-              format: uint64
-              title: |-
-                stateIndex is a sequential increasing number, updating on each
-                state update used for indexing to a specific state info
+                    it used to identify the what rollapp a StateInfo belongs
+
+                    The rollappId follows the same standard as cosmos chain_id
+                index:
+                  type: string
+                  format: uint64
+                  title: >-
+                    latestStateInfoIndex is a sequential increasing number,
+                    updating on each
+
+                    state update used for indexing to a specific state info
+              title: >-
+                StateInfoIndex is the data used for indexing and retrieving a
+                StateInfo 
+
+                it updated and saved with every UpdateState in StateInfo.
+
+                We use the this structure also for LatestStateInfoIndex which
+                defines the rollapps' current (latest) 
+
+                index of the last UpdateState
             sequencer:
               type: string
               title: >-
@@ -50470,6 +50551,39 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexResponse:
+    type: object
+    properties:
+      latestStateInfoIndex:
+        type: object
+        properties:
+          rollappId:
+            type: string
+            title: >-
+              rollappId is the rollapp that the sequencer belongs to and asking
+              to update
+
+              it used to identify the what rollapp a StateInfo belongs
+
+              The rollappId follows the same standard as cosmos chain_id
+          index:
+            type: string
+            format: uint64
+            title: >-
+              latestStateInfoIndex is a sequential increasing number, updating
+              on each
+
+              state update used for indexing to a specific state info
+        title: >-
+          StateInfoIndex is the data used for indexing and retrieving a
+          StateInfo 
+
+          it updated and saved with every UpdateState in StateInfo.
+
+          We use the this structure also for LatestStateInfoIndex which defines
+          the rollapps' current (latest) 
+
+          index of the last UpdateState
   dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
     type: object
     properties:
@@ -50529,47 +50643,42 @@ definitions:
 
           sequencers can be create and attach to it. Rollapp is identified by
           rollappId
-  dymensionxyz.dymension.rollapp.QueryGetStateIndexResponse:
-    type: object
-    properties:
-      stateIndex:
-        type: object
-        properties:
-          rollappId:
-            type: string
-            title: |-
-              rollappId is the rollapp that we save the index for
-              The rollappId follows the same standard as cosmos chain_id
-          index:
-            type: string
-            format: uint64
-            title: |-
-              index is a sequentially increasing number
-              the index increases on every state update
-        title: |-
-          StateIndex defines a rollapps' the current (latest) 
-          index of the last UpdateState 
-          the index also saved with every UpdateState in StateInfo.
-          the <rollappId, index> pair is used for retrieving a StateInfo
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
       stateInfo:
         type: object
         properties:
-          rollappId:
-            type: string
-            title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
+          stateInfoIndex:
+            type: object
+            properties:
+              rollappId:
+                type: string
+                title: >-
+                  rollappId is the rollapp that the sequencer belongs to and
+                  asking to update
 
-              The rollappId follows the same standard as cosmos chain_id
-          stateIndex:
-            type: string
-            format: uint64
-            title: |-
-              stateIndex is a sequential increasing number, updating on each
-              state update used for indexing to a specific state info
+                  it used to identify the what rollapp a StateInfo belongs
+
+                  The rollappId follows the same standard as cosmos chain_id
+              index:
+                type: string
+                format: uint64
+                title: >-
+                  latestStateInfoIndex is a sequential increasing number,
+                  updating on each
+
+                  state update used for indexing to a specific state info
+            title: >-
+              StateInfoIndex is the data used for indexing and retrieving a
+              StateInfo 
+
+              it updated and saved with every UpdateState in StateInfo.
+
+              We use the this structure also for LatestStateInfoIndex which
+              defines the rollapps' current (latest) 
+
+              index of the last UpdateState
           sequencer:
             type: string
             title: >-
@@ -50703,41 +50812,39 @@ definitions:
 
       sequencers can be create and attach to it. Rollapp is identified by
       rollappId
-  dymensionxyz.dymension.rollapp.StateIndex:
-    type: object
-    properties:
-      rollappId:
-        type: string
-        title: |-
-          rollappId is the rollapp that we save the index for
-          The rollappId follows the same standard as cosmos chain_id
-      index:
-        type: string
-        format: uint64
-        title: |-
-          index is a sequentially increasing number
-          the index increases on every state update
-    title: |-
-      StateIndex defines a rollapps' the current (latest) 
-      index of the last UpdateState 
-      the index also saved with every UpdateState in StateInfo.
-      the <rollappId, index> pair is used for retrieving a StateInfo
   dymensionxyz.dymension.rollapp.StateInfo:
     type: object
     properties:
-      rollappId:
-        type: string
-        title: >-
-          rollappId is the rollapp that the sequencer belongs to and asking to
-          update
+      stateInfoIndex:
+        type: object
+        properties:
+          rollappId:
+            type: string
+            title: >-
+              rollappId is the rollapp that the sequencer belongs to and asking
+              to update
 
-          The rollappId follows the same standard as cosmos chain_id
-      stateIndex:
-        type: string
-        format: uint64
-        title: |-
-          stateIndex is a sequential increasing number, updating on each
-          state update used for indexing to a specific state info
+              it used to identify the what rollapp a StateInfo belongs
+
+              The rollappId follows the same standard as cosmos chain_id
+          index:
+            type: string
+            format: uint64
+            title: >-
+              latestStateInfoIndex is a sequential increasing number, updating
+              on each
+
+              state update used for indexing to a specific state info
+        title: >-
+          StateInfoIndex is the data used for indexing and retrieving a
+          StateInfo 
+
+          it updated and saved with every UpdateState in StateInfo.
+
+          We use the this structure also for LatestStateInfoIndex which defines
+          the rollapps' current (latest) 
+
+          index of the last UpdateState
       sequencer:
         type: string
         title: >-
@@ -50802,6 +50909,35 @@ definitions:
                 description.
         description: BlockDescriptors defines list of BlockDescriptor.
     description: StateInfo defines a rollapps' state.
+  dymensionxyz.dymension.rollapp.StateInfoIndex:
+    type: object
+    properties:
+      rollappId:
+        type: string
+        title: >-
+          rollappId is the rollapp that the sequencer belongs to and asking to
+          update
+
+          it used to identify the what rollapp a StateInfo belongs
+
+          The rollappId follows the same standard as cosmos chain_id
+      index:
+        type: string
+        format: uint64
+        title: >-
+          latestStateInfoIndex is a sequential increasing number, updating on
+          each
+
+          state update used for indexing to a specific state info
+    title: >-
+      StateInfoIndex is the data used for indexing and retrieving a StateInfo 
+
+      it updated and saved with every UpdateState in StateInfo.
+
+      We use the this structure also for LatestStateInfoIndex which defines the
+      rollapps' current (latest) 
+
+      index of the last UpdateState
   dymensionxyz.dymension.rollapp.StateStatus:
     type: string
     enum:

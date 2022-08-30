@@ -8,29 +8,41 @@ import "gogoproto/gogo.proto";
 import "rollapp/block_descriptor.proto"; 
 import "rollapp/state_status.proto"; 
 
+// StateInfoIndex is the data used for indexing and retrieving a StateInfo 
+// it updated and saved with every UpdateState in StateInfo.
+// We use the this structure also for LatestStateInfoIndex which defines the rollapps' current (latest) 
+// index of the last UpdateState 
+message StateInfoIndex {
+    // rollappId is the rollapp that the sequencer belongs to and asking to update
+    // it used to identify the what rollapp a StateInfo belongs
+    // The rollappId follows the same standard as cosmos chain_id
+    string rollappId = 1; 
+    // latestStateInfoIndex is a sequential increasing number, updating on each
+    // state update used for indexing to a specific state info 
+    uint64 index = 2; 
+    
+}
+
 // StateInfo defines a rollapps' state.
 message StateInfo {
-    // rollappId is the rollapp that the sequencer belongs to and asking to update
-    // The rollappId follows the same standard as cosmos chain_id
-    string rollappId = 1;
-    // stateIndex is a sequential increasing number, updating on each
-    // state update used for indexing to a specific state info 
-    uint64 stateIndex = 2; 
+    // stateInfoIndex defines what rollapp the state belongs to
+    // and in which index it can be referenced
+    StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
     // sequencer is the bech32-encoded address of the sequencer sent the update
-    string sequencer = 3;
+    string sequencer = 2;
     // startHeight is the block height of the first block in the batch
-    uint64 startHeight = 4;
+    uint64 startHeight = 3;
     // numBlocks is the number of blocks included in this batch update
-    uint64 numBlocks = 5;
+    uint64 numBlocks = 4;
     // DAPath is the description of the location on the DA layer
-    string DAPath = 6;
+    string DAPath = 5;
     // version is the version of the rollapp
-    uint64 version = 7;
+    uint64 version = 6;
     // creationHeight is the height at which the UpdateState took place
-    uint64 creationHeight = 8; 
+    uint64 creationHeight = 7; 
     // status is the status of the state update
-    StateStatus status = 9; 
+    StateStatus status = 8; 
     // BDs is a list of block description objects (one per block)
     // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-    BlockDescriptors BDs = 10 [(gogoproto.nullable) = false];
+    BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
 }

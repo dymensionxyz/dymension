@@ -5,12 +5,12 @@ import "encoding/binary"
 var _ binary.ByteOrder
 
 const (
-	// StateIndexKeyPrefix is the prefix to retrieve all StateIndex
-	StateIndexKeyPrefix = "StateIndex/value/"
+	// LatestStateInfoIndexKeyPrefix is the prefix to retrieve all LatestStateInfoIndex
+	LatestStateInfoIndexKeyPrefix = "LatestStateInfoIndex/value/"
 )
 
-// StateIndexKey returns the store key to retrieve a StateIndex from the index fields
-func StateIndexKey(
+// LatestStateInfoIndexKey returns the store key to retrieve a LatestStateInfoIndex from the index fields
+func LatestStateInfoIndexKey(
 	rollappId string,
 ) []byte {
 	var key []byte

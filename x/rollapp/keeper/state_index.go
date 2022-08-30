@@ -6,24 +6,26 @@ import (
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
-// SetStateIndex set a specific stateIndex in the store from its index
-func (k Keeper) SetStateIndex(ctx sdk.Context, stateIndex types.StateIndex) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateIndexKeyPrefix))
-	b := k.cdc.MustMarshal(&stateIndex)
-	store.Set(types.StateIndexKey(
-		stateIndex.RollappId,
+// LatestStateInfoIndex defines the rollapps' current (latest) index of the last UpdateState
+
+// SetLatestStateInfoIndex set a specific latestStateInfoIndex in the store from its index
+func (k Keeper) SetLatestStateInfoIndex(ctx sdk.Context, latestStateInfoIndex types.StateInfoIndex) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
+	b := k.cdc.MustMarshal(&latestStateInfoIndex)
+	store.Set(types.LatestStateInfoIndexKey(
+		latestStateInfoIndex.RollappId,
 	), b)
 }
 
-// GetStateIndex returns a stateIndex from its index
-func (k Keeper) GetStateIndex(
+// GetLatestStateInfoIndex returns a latestStateInfoIndex from its index
+func (k Keeper) GetLatestStateInfoIndex(
 	ctx sdk.Context,
 	rollappId string,
 
-) (val types.StateIndex, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateIndexKeyPrefix))
+) (val types.StateInfoIndex, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 
-	b := store.Get(types.StateIndexKey(
+	b := store.Get(types.LatestStateInfoIndexKey(
 		rollappId,
 	))
 	if b == nil {
@@ -34,28 +36,28 @@ func (k Keeper) GetStateIndex(
 	return val, true
 }
 
-// RemoveStateIndex removes a stateIndex from the store
-func (k Keeper) RemoveStateIndex(
+// RemoveLatestStateInfoIndex removes a latestStateInfoIndex from the store
+func (k Keeper) RemoveLatestStateInfoIndex(
 	ctx sdk.Context,
 	rollappId string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateIndexKeyPrefix))
-	store.Delete(types.StateIndexKey(
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
+	store.Delete(types.LatestStateInfoIndexKey(
 		rollappId,
 	))
 }
 
-// GetAllStateIndex returns all stateIndex
-func (k Keeper) GetAllStateIndex(ctx sdk.Context) (list []types.StateIndex) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateIndexKeyPrefix))
+// GetAllLatestStateInfoIndex returns all latestStateInfoIndex
+func (k Keeper) GetAllLatestStateInfoIndex(ctx sdk.Context) (list []types.StateInfoIndex) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	// nolint: errcheck
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.StateIndex
+		var val types.StateInfoIndex
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}

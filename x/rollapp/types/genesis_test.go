@@ -32,15 +32,19 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				StateInfoList: []types.StateInfo{
 					{
-						RollappId:  "0",
-						StateIndex: 0,
+						StateInfoIndex: types.StateInfoIndex{
+							RollappId: "0",
+							Index:     0,
+						},
 					},
 					{
-						RollappId:  "1",
-						StateIndex: 1,
+						StateInfoIndex: types.StateInfoIndex{
+							RollappId: "1",
+							Index:     1,
+						},
 					},
 				},
-				StateIndexList: []types.StateIndex{
+				LatestStateInfoIndexList: []types.StateInfoIndex{
 					{
 						RollappId: "0",
 					},
@@ -84,21 +88,25 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				StateInfoList: []types.StateInfo{
 					{
-						RollappId:  "0",
-						StateIndex: 0,
+						StateInfoIndex: types.StateInfoIndex{
+							RollappId: "0",
+							Index:     0,
+						},
 					},
 					{
-						RollappId:  "0",
-						StateIndex: 0,
+						StateInfoIndex: types.StateInfoIndex{
+							RollappId: "0",
+							Index:     0,
+						},
 					},
 				},
 			},
 			valid: false,
 		},
 		{
-			desc: "duplicated stateIndex",
+			desc: "duplicated latestStateInfoIndex",
 			genState: &types.GenesisState{
-				StateIndexList: []types.StateIndex{
+				LatestStateInfoIndexList: []types.StateInfoIndex{
 					{
 						RollappId: "0",
 					},

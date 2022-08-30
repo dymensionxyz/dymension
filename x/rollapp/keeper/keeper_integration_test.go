@@ -185,7 +185,7 @@ func (suite *IntegrationTestSuite) TestFirstUpdateState() {
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// check no index exists
-	expectedStateIndex, found := suite.app.RollappKeeper.GetStateIndex(suite.ctx, rollapp.GetRollappId())
+	expectedLatestStateInfoIndex, found := suite.app.RollappKeeper.GetLatestStateInfoIndex(suite.ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(false, found)
 
 	// update state
@@ -203,9 +203,9 @@ func (suite *IntegrationTestSuite) TestFirstUpdateState() {
 	suite.Require().Nil(err)
 
 	// check first index is 1
-	expectedStateIndex, found = suite.app.RollappKeeper.GetStateIndex(suite.ctx, rollapp.GetRollappId())
+	expectedLatestStateInfoIndex, found = suite.app.RollappKeeper.GetLatestStateInfoIndex(suite.ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(true, found)
-	suite.Require().EqualValues(expectedStateIndex.Index, 1)
+	suite.Require().EqualValues(expectedLatestStateInfoIndex.Index, 1)
 }
 
 func (suite *IntegrationTestSuite) TestUpdateState() {
@@ -235,14 +235,13 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 	}
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
-	// set initial stateIndex & StateInfo
-	stateIndex := types.StateIndex{
+	// set initial latestStateInfoIndex & StateInfo
+	latestStateInfoIndex := types.StateInfoIndex{
 		RollappId: "rollapp1",
 		Index:     1,
 	}
 	stateInfo := types.StateInfo{
-		RollappId:      "rollapp1",
-		StateIndex:     1,
+		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
 		Sequencer:      sequencer.SequencerAddress,
 		StartHeight:    1,
 		NumBlocks:      3,
@@ -252,7 +251,7 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		Status:         types.STATE_STATUS_RECEIVED,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
-	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
+	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
 	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
 
 	// test 10 update state
@@ -262,12 +261,12 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		goCtx = sdk.WrapSDKContext(suite.ctx)
 
 		// calc new updateState
-		expectedStateIndex, found := suite.app.RollappKeeper.GetStateIndex(suite.ctx, rollapp.GetRollappId())
+		expectedLatestStateInfoIndex, found := suite.app.RollappKeeper.GetLatestStateInfoIndex(suite.ctx, rollapp.GetRollappId())
 		suite.Require().EqualValues(true, found)
 		// verify index
-		suite.Require().EqualValues(i+1, expectedStateIndex.Index)
+		suite.Require().EqualValues(i+1, expectedLatestStateInfoIndex.Index)
 		// load last state info
-		expectedStateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, rollapp.GetRollappId(), expectedStateIndex.GetIndex())
+		expectedStateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, rollapp.GetRollappId(), expectedLatestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
 		updateState := types.MsgUpdateState{
 			Creator:     bob,
@@ -555,14 +554,13 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	}
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
-	// set initial stateIndex & StateInfo
-	stateIndex := types.StateIndex{
+	// set initial latestStateInfoIndex & StateInfo
+	latestStateInfoIndex := types.StateInfoIndex{
 		RollappId: "rollapp1",
 		Index:     1,
 	}
 	stateInfo := types.StateInfo{
-		RollappId:      "rollapp1",
-		StateIndex:     1,
+		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
 		Sequencer:      sequencer.SequencerAddress,
 		StartHeight:    1,
 		NumBlocks:      3,
@@ -572,7 +570,7 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		Status:         types.STATE_STATUS_RECEIVED,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
-	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
+	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
 	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
 
 	// bump block height
@@ -618,12 +616,12 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
-	// set initial stateIndex
-	stateIndex := types.StateIndex{
+	// set initial latestStateInfoIndex
+	latestStateInfoIndex := types.StateInfoIndex{
 		RollappId: "rollapp1",
 		Index:     1,
 	}
-	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
+	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -670,14 +668,13 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	}
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
-	// set initial stateIndex & StateInfo
-	stateIndex := types.StateIndex{
+	// set initial latestStateInfoIndex & StateInfo
+	latestStateInfoIndex := types.StateInfoIndex{
 		RollappId: "rollapp1",
 		Index:     1,
 	}
 	stateInfo := types.StateInfo{
-		RollappId:      "rollapp1",
-		StateIndex:     1,
+		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
 		Sequencer:      sequencer.SequencerAddress,
 		StartHeight:    1,
 		NumBlocks:      3,
@@ -687,7 +684,7 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 		Status:         types.STATE_STATUS_RECEIVED,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
-	suite.app.RollappKeeper.SetStateIndex(suite.ctx, stateIndex)
+	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
 	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
 
 	// we don't bump block height

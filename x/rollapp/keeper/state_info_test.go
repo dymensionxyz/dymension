@@ -18,8 +18,8 @@ var _ = strconv.IntSize
 func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateInfo {
 	items := make([]types.StateInfo, n)
 	for i := range items {
-		items[i].RollappId = strconv.Itoa(i)
-		items[i].StateIndex = uint64(i)
+		items[i].StateInfoIndex.RollappId = strconv.Itoa(i)
+		items[i].StateInfoIndex.Index = uint64(i)
 
 		keeper.SetStateInfo(ctx, items[i])
 	}
@@ -31,8 +31,8 @@ func TestStateInfoGet(t *testing.T) {
 	items := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetStateInfo(ctx,
-			item.RollappId,
-			item.StateIndex,
+			item.StateInfoIndex.RollappId,
+			item.StateInfoIndex.Index,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -46,12 +46,12 @@ func TestStateInfoRemove(t *testing.T) {
 	items := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveStateInfo(ctx,
-			item.RollappId,
-			item.StateIndex,
+			item.StateInfoIndex.RollappId,
+			item.StateInfoIndex.Index,
 		)
 		_, found := keeper.GetStateInfo(ctx,
-			item.RollappId,
-			item.StateIndex,
+			item.StateInfoIndex.RollappId,
+			item.StateInfoIndex.Index,
 		)
 		require.False(t, found)
 	}

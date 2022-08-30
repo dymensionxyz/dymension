@@ -11,24 +11,24 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) StateIndexAll(c context.Context, req *types.QueryAllStateIndexRequest) (*types.QueryAllStateIndexResponse, error) {
+func (k Keeper) LatestStateInfoIndexAll(c context.Context, req *types.QueryAllLatestStateInfoIndexRequest) (*types.QueryAllLatestStateInfoIndexResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var stateIndexs []types.StateIndex
+	var latestStateInfoIndexs []types.StateInfoIndex
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	stateIndexStore := prefix.NewStore(store, types.KeyPrefix(types.StateIndexKeyPrefix))
+	latestStateInfoIndexStore := prefix.NewStore(store, types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 
-	pageRes, err := query.Paginate(stateIndexStore, req.Pagination, func(key []byte, value []byte) error {
-		var stateIndex types.StateIndex
-		if err := k.cdc.Unmarshal(value, &stateIndex); err != nil {
+	pageRes, err := query.Paginate(latestStateInfoIndexStore, req.Pagination, func(key []byte, value []byte) error {
+		var latestStateInfoIndex types.StateInfoIndex
+		if err := k.cdc.Unmarshal(value, &latestStateInfoIndex); err != nil {
 			return err
 		}
 
-		stateIndexs = append(stateIndexs, stateIndex)
+		latestStateInfoIndexs = append(latestStateInfoIndexs, latestStateInfoIndex)
 		return nil
 	})
 
@@ -36,16 +36,16 @@ func (k Keeper) StateIndexAll(c context.Context, req *types.QueryAllStateIndexRe
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllStateIndexResponse{StateIndex: stateIndexs, Pagination: pageRes}, nil
+	return &types.QueryAllLatestStateInfoIndexResponse{LatestStateInfoIndex: latestStateInfoIndexs, Pagination: pageRes}, nil
 }
 
-func (k Keeper) StateIndex(c context.Context, req *types.QueryGetStateIndexRequest) (*types.QueryGetStateIndexResponse, error) {
+func (k Keeper) LatestStateInfoIndex(c context.Context, req *types.QueryGetLatestStateInfoIndexRequest) (*types.QueryGetLatestStateInfoIndexResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetStateIndex(
+	val, found := k.GetLatestStateInfoIndex(
 		ctx,
 		req.RollappId,
 	)
@@ -53,5 +53,5 @@ func (k Keeper) StateIndex(c context.Context, req *types.QueryGetStateIndexReque
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetStateIndexResponse{StateIndex: val}, nil
+	return &types.QueryGetLatestStateInfoIndexResponse{LatestStateInfoIndex: val}, nil
 }

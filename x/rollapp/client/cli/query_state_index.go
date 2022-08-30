@@ -9,10 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListStateIndex() *cobra.Command {
+func CmdListLatestStateInfoIndex() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-state-index",
-		Short: "list all state_index",
+		Short: "list all latest_state_info_index",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -23,11 +23,11 @@ func CmdListStateIndex() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllStateIndexRequest{
+			params := &types.QueryAllLatestStateInfoIndexRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.StateIndexAll(context.Background(), params)
+			res, err := queryClient.LatestStateInfoIndexAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -42,10 +42,10 @@ func CmdListStateIndex() *cobra.Command {
 	return cmd
 }
 
-func CmdShowStateIndex() *cobra.Command {
+func CmdShowLatestStateInfoIndex() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-state-index [rollapp-id]",
-		Short: "shows a state_index",
+		Short: "shows a latest_state_info_index",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -54,11 +54,11 @@ func CmdShowStateIndex() *cobra.Command {
 
 			argRollappId := args[0]
 
-			params := &types.QueryGetStateIndexRequest{
+			params := &types.QueryGetLatestStateInfoIndexRequest{
 				RollappId: argRollappId,
 			}
 
-			res, err := queryClient.StateIndex(context.Background(), params)
+			res, err := queryClient.LatestStateInfoIndex(context.Background(), params)
 			if err != nil {
 				return err
 			}
