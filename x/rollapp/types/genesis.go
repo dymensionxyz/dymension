@@ -13,7 +13,8 @@ func DefaultGenesis() *GenesisState {
 		RollappList:              []Rollapp{},
 		StateInfoList:            []StateInfo{},
 		LatestStateInfoIndexList: []StateInfoIndex{},
-		// this line is used by starport scaffolding # genesis/types/default
+		BlockHeightToFinalizationQueueList: []BlockHeightToFinalizationQueue{},
+// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -51,7 +52,17 @@ func (gs GenesisState) Validate() error {
 		}
 		latestStateInfoIndexIndexMap[index] = struct{}{}
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
+	// Check for duplicated index in blockHeightToFinalizationQueue
+blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
+
+for _, elem := range gs.BlockHeightToFinalizationQueueList {
+	index := string(BlockHeightToFinalizationQueueKey(elem.FinalizationHeight))
+	if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
+		return fmt.Errorf("duplicated index for blockHeightToFinalizationQueue")
+	}
+	blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
+}
+// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

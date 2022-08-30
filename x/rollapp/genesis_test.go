@@ -44,7 +44,15 @@ func TestGenesis(t *testing.T) {
 				RollappId: "1",
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
+		BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
+		{
+			FinalizationHeight: 0,
+},
+		{
+			FinalizationHeight: 1,
+},
+	},
+	// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.RollappKeeper(t)
@@ -58,5 +66,6 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
-	// this line is used by starport scaffolding # genesis/test/assert
+	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+// this line is used by starport scaffolding # genesis/test/assert
 }

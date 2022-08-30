@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
 import "rollapp/state_info.proto";
+import "rollapp/block_height_to_finalization_queue.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
@@ -15,5 +16,6 @@ message GenesisState {
   repeated Rollapp rollappList = 2 [(gogoproto.nullable) = false];
   repeated StateInfo stateInfoList = 3 [(gogoproto.nullable) = false];
   repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
+  repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 5 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }
