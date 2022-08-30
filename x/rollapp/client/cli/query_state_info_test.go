@@ -29,8 +29,9 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 
 	for i := 0; i < n; i++ {
 		stateInfo := types.StateInfo{
-			RollappId:  strconv.Itoa(i),
-			StateIndex: uint64(i),
+			StateInfoIndex: types.StateInfoIndex{
+				RollappId: strconv.Itoa(i),
+				Index:     uint64(i)},
 		}
 		nullify.Fill(&stateInfo)
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
@@ -59,8 +60,8 @@ func TestShowStateInfo(t *testing.T) {
 	}{
 		{
 			desc:         "found",
-			idRollappId:  objs[0].RollappId,
-			idStateIndex: objs[0].StateIndex,
+			idRollappId:  objs[0].StateInfoIndex.RollappId,
+			idStateIndex: objs[0].StateInfoIndex.Index,
 
 			args: common,
 			obj:  objs[0],
@@ -68,14 +69,14 @@ func TestShowStateInfo(t *testing.T) {
 		{
 			desc:         "not found",
 			idRollappId:  strconv.Itoa(100000),
-			idStateIndex: objs[0].StateIndex,
+			idStateIndex: objs[0].StateInfoIndex.Index,
 
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc:         "not found",
-			idRollappId:  objs[0].RollappId,
+			idRollappId:  objs[0].StateInfoIndex.RollappId,
 			idStateIndex: 1000,
 
 			args: common,

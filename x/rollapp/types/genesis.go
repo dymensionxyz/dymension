@@ -10,9 +10,9 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		RollappList:    []Rollapp{},
-		StateInfoList:  []StateInfo{},
-		StateIndexList: []StateIndex{},
+		RollappList:              []Rollapp{},
+		StateInfoList:            []StateInfo{},
+		LatestStateInfoIndexList: []StateInfoIndex{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -35,21 +35,21 @@ func (gs GenesisState) Validate() error {
 	stateInfoIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.StateInfoList {
-		index := string(StateInfoKey(elem.RollappId, elem.StateIndex))
+		index := string(StateInfoKey(elem.StateInfoIndex))
 		if _, ok := stateInfoIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for stateInfo")
 		}
 		stateInfoIndexMap[index] = struct{}{}
 	}
-	// Check for duplicated index in stateIndex
-	stateIndexIndexMap := make(map[string]struct{})
+	// Check for duplicated index in latestStateInfoIndex
+	latestStateInfoIndexIndexMap := make(map[string]struct{})
 
-	for _, elem := range gs.StateIndexList {
-		index := string(StateIndexKey(elem.RollappId))
-		if _, ok := stateIndexIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for stateIndex")
+	for _, elem := range gs.LatestStateInfoIndexList {
+		index := string(LatestStateInfoIndexKey(elem.RollappId))
+		if _, ok := latestStateInfoIndexIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for latestStateInfoIndex")
 		}
-		stateIndexIndexMap[index] = struct{}{}
+		latestStateInfoIndexIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

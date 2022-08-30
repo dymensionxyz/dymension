@@ -54,7 +54,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// retrieve last updating index
-	stateIndex, isFound := k.GetStateIndex(ctx, msg.RollappId)
+	latestStateInfoIndex, isFound := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
 	var newIndex uint64
 	if !isFound {
 		// check to see if it's the first update
@@ -68,13 +68,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		newIndex = 1
 	} else {
 		// retrieve last updating index
-		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, stateIndex.Index)
-		// Check Error: if stateIndex exists, there must me an info for this state
+		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
+		// Check Error: if latestStateInfoIndex exists, there must me an info for this state
 		if !isFound {
 			// if not, it's a logic error
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
-				stateIndex.Index, msg.RollappId)
+				latestStateInfoIndex.Index, msg.RollappId)
 		}
 
 		// check to see if we have already got an update for current block
@@ -92,19 +92,18 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// bump state index
-		newIndex = stateIndex.Index + 1
+		newIndex = latestStateInfoIndex.Index + 1
 	}
 
 	// Write new index information to the store
-	k.SetStateIndex(ctx, types.StateIndex{
+	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: msg.RollappId,
 		Index:     newIndex,
 	})
 
-	// Write new state information to the store indexed by <RollappId,StateIndex>
+	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, types.StateInfo{
-		RollappId:      msg.RollappId,
-		StateIndex:     newIndex,
+		StateInfoIndex: types.StateInfoIndex{RollappId: msg.RollappId, Index: newIndex},
 		Sequencer:      msg.Creator,
 		StartHeight:    msg.StartHeight,
 		NumBlocks:      msg.NumBlocks,

@@ -54,15 +54,12 @@ func CmdShowStateInfo() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			argRollappId := args[0]
-			argStateIndex, err := cast.ToUint64E(args[1])
+			argIndex, err := cast.ToUint64E(args[1])
 			if err != nil {
 				return err
 			}
 
-			params := &types.QueryGetStateInfoRequest{
-				RollappId:  argRollappId,
-				StateIndex: argStateIndex,
-			}
+			params := &types.QueryGetStateInfoRequest{RollappId: argRollappId, Index: argIndex}
 
 			res, err := queryClient.StateInfo(context.Background(), params)
 			if err != nil {

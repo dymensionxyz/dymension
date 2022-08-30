@@ -11,8 +11,7 @@ func (k Keeper) SetStateInfo(ctx sdk.Context, stateInfo types.StateInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	b := k.cdc.MustMarshal(&stateInfo)
 	store.Set(types.StateInfoKey(
-		stateInfo.RollappId,
-		stateInfo.StateIndex,
+		stateInfo.StateInfoIndex,
 	), b)
 }
 
@@ -20,14 +19,13 @@ func (k Keeper) SetStateInfo(ctx sdk.Context, stateInfo types.StateInfo) {
 func (k Keeper) GetStateInfo(
 	ctx sdk.Context,
 	rollappId string,
-	stateIndex uint64,
+	index uint64,
 
 ) (val types.StateInfo, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 
 	b := store.Get(types.StateInfoKey(
-		rollappId,
-		stateIndex,
+		types.StateInfoIndex{RollappId: rollappId, Index: index},
 	))
 	if b == nil {
 		return val, false
@@ -41,13 +39,12 @@ func (k Keeper) GetStateInfo(
 func (k Keeper) RemoveStateInfo(
 	ctx sdk.Context,
 	rollappId string,
-	stateIndex uint64,
+	index uint64,
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	store.Delete(types.StateInfoKey(
-		rollappId,
-		stateIndex,
+		types.StateInfoIndex{RollappId: rollappId, Index: index},
 	))
 }
 

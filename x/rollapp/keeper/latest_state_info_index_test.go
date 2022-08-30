@@ -15,21 +15,21 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNStateIndex(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateIndex {
-	items := make([]types.StateIndex, n)
+func createNLatestStateInfoIndex(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.StateInfoIndex {
+	items := make([]types.StateInfoIndex, n)
 	for i := range items {
 		items[i].RollappId = strconv.Itoa(i)
 
-		keeper.SetStateIndex(ctx, items[i])
+		keeper.SetLatestStateInfoIndex(ctx, items[i])
 	}
 	return items
 }
 
-func TestStateIndexGet(t *testing.T) {
+func TestLatestStateInfoIndexGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNStateIndex(keeper, ctx, 10)
+	items := createNLatestStateInfoIndex(keeper, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetStateIndex(ctx,
+		rst, found := keeper.GetLatestStateInfoIndex(ctx,
 			item.RollappId,
 		)
 		require.True(t, found)
@@ -39,25 +39,25 @@ func TestStateIndexGet(t *testing.T) {
 		)
 	}
 }
-func TestStateIndexRemove(t *testing.T) {
+func TestLatestStateInfoIndexRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNStateIndex(keeper, ctx, 10)
+	items := createNLatestStateInfoIndex(keeper, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveStateIndex(ctx,
+		keeper.RemoveLatestStateInfoIndex(ctx,
 			item.RollappId,
 		)
-		_, found := keeper.GetStateIndex(ctx,
+		_, found := keeper.GetLatestStateInfoIndex(ctx,
 			item.RollappId,
 		)
 		require.False(t, found)
 	}
 }
 
-func TestStateIndexGetAll(t *testing.T) {
+func TestLatestStateInfoIndexGetAll(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNStateIndex(keeper, ctx, 10)
+	items := createNLatestStateInfoIndex(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllStateIndex(ctx)),
+		nullify.Fill(keeper.GetAllLatestStateInfoIndex(ctx)),
 	)
 }
