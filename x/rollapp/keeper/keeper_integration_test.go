@@ -19,6 +19,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -66,6 +67,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	app.RollappKeeper.SetParams(ctx, types.NewParams(2))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -212,6 +214,9 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
+	// parameters
+	disputePeriodInBlocks := suite.app.RollappKeeper.DisputePeriodInBlocks(suite.ctx)
+
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:     "rollapp1",
@@ -235,24 +240,20 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 	}
 	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
-	// set initial latestStateInfoIndex & StateInfo
-	latestStateInfoIndex := types.StateInfoIndex{
-		RollappId: "rollapp1",
-		Index:     1,
+	// create new update
+	updateState := types.MsgUpdateState{
+		Creator:     bob,
+		RollappId:   rollapp.GetRollappId(),
+		StartHeight: 1,
+		NumBlocks:   3,
+		DAPath:      "",
+		Version:     3,
+		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
-	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
-		StartHeight:    1,
-		NumBlocks:      3,
-		DAPath:         "",
-		Version:        3,
-		CreationHeight: 0,
-		Status:         types.STATE_STATUS_RECEIVED,
-		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-	suite.app.RollappKeeper.SetLatestStateInfoIndex(suite.ctx, latestStateInfoIndex)
-	suite.app.RollappKeeper.SetStateInfo(suite.ctx, stateInfo)
+
+	// update state
+	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
+	suite.Require().Nil(err)
 
 	// test 10 update state
 	for i := 0; i < 10; i++ {
@@ -268,6 +269,16 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		// load last state info
 		expectedStateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, rollapp.GetRollappId(), expectedLatestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
+
+		// verify finalization queue
+		expectedFinalization := expectedStateInfo.CreationHeight + disputePeriodInBlocks
+		expectedFinalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, expectedFinalization)
+		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
+			FinalizationHeight: expectedFinalization,
+			FinalizationQueue:  []types.StateInfoIndex{expectedLatestStateInfoIndex},
+		})
+
+		// create new update
 		updateState := types.MsgUpdateState{
 			Creator:     bob,
 			RollappId:   rollapp.GetRollappId(),
@@ -281,6 +292,23 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		// update state
 		_, err := suite.msgServer.UpdateState(goCtx, &updateState)
 		suite.Require().Nil(err)
+
+		// end block
+		suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+
+		// check finalization status change
+		finalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, uint64(suite.ctx.BlockHeader().Height))
+		if found {
+			//fmt.Printf("finalizationQueue: %s\n", finalizationQueue.String())
+			stateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
+			suite.Require().True(found)
+			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
+			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.ctx.BlockHeader().Height)-disputePeriodInBlocks)
+			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+		} else {
+			suite.Require().LessOrEqualf(uint64(suite.ctx.BlockHeader().Height), disputePeriodInBlocks,
+				"no finalization for currHeight(%d), disputePeriodInBlocks(%d)", suite.ctx.BlockHeader().Height, disputePeriodInBlocks)
+		}
 	}
 }
 
