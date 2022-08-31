@@ -46,11 +46,11 @@ func (k Keeper) BlockHeightToFinalizationQueue(c context.Context, req *types.Que
 	ctx := sdk.UnwrapSDKContext(c)
 
 	val, found := k.GetBlockHeightToFinalizationQueue(
-	    ctx,
-	    req.FinalizationHeight,
-        )
+		ctx,
+		req.FinalizationHeight,
+	)
 	if !found {
-	    return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetBlockHeightToFinalizationQueueResponse{BlockHeightToFinalizationQueue: val}, nil

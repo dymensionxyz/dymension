@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
+	"github.com/dymensionxyz/dymension/testutil/nullify"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 // Prevent strconv unused error
@@ -29,28 +29,25 @@ func TestBlockHeightToFinalizationQueueQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetBlockHeightToFinalizationQueueRequest{
-			    FinalizationHeight: msgs[0].FinalizationHeight,
-                
+			desc: "First",
+			request: &types.QueryGetBlockHeightToFinalizationQueueRequest{
+				FinalizationHeight: msgs[0].FinalizationHeight,
 			},
 			response: &types.QueryGetBlockHeightToFinalizationQueueResponse{BlockHeightToFinalizationQueue: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetBlockHeightToFinalizationQueueRequest{
-			    FinalizationHeight: msgs[1].FinalizationHeight,
-                
+			desc: "Second",
+			request: &types.QueryGetBlockHeightToFinalizationQueueRequest{
+				FinalizationHeight: msgs[1].FinalizationHeight,
 			},
 			response: &types.QueryGetBlockHeightToFinalizationQueueResponse{BlockHeightToFinalizationQueue: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetBlockHeightToFinalizationQueueRequest{
-			    FinalizationHeight:100000,
-                
+				FinalizationHeight: 100000,
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -94,9 +91,9 @@ func TestBlockHeightToFinalizationQueueQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.BlockHeightToFinalizationQueue), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.BlockHeightToFinalizationQueue),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.BlockHeightToFinalizationQueue),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -107,9 +104,9 @@ func TestBlockHeightToFinalizationQueueQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.BlockHeightToFinalizationQueue), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.BlockHeightToFinalizationQueue),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.BlockHeightToFinalizationQueue),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

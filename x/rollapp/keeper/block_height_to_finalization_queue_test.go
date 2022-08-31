@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +19,7 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 	items := make([]types.BlockHeightToFinalizationQueue, n)
 	for i := range items {
 		items[i].FinalizationHeight = uint64(i)
-        
+
 		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
 	}
 	return items
@@ -30,8 +30,7 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
-		    item.FinalizationHeight,
-            
+			item.FinalizationHeight,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -45,12 +44,10 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveBlockHeightToFinalizationQueue(ctx,
-		    item.FinalizationHeight,
-            
+			item.FinalizationHeight,
 		)
 		_, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
-		    item.FinalizationHeight,
-            
+			item.FinalizationHeight,
 		)
 		require.False(t, found)
 	}

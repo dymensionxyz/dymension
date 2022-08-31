@@ -300,7 +300,8 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		finalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, uint64(suite.ctx.BlockHeader().Height))
 		if found {
 			//fmt.Printf("finalizationQueue: %s\n", finalizationQueue.String())
-			stateInfo, _ := suite.app.RollappKeeper.GetStateInfo(suite.ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
+			stateInfo, found := suite.app.RollappKeeper.GetStateInfo(suite.ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
+			suite.Require().True(found)
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
 			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.ctx.BlockHeader().Height)-disputePeriodInBlocks)
 			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
