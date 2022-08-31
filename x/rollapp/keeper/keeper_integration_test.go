@@ -19,6 +19,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -66,6 +67,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	app.RollappKeeper.SetParams(ctx, types.NewParams(2))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -212,6 +214,9 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
+	// parameters
+	disputePeriodInBlocks := suite.app.RollappKeeper.DisputePeriodInBlocks(suite.ctx)
+
 	// set rollapp
 	rollapp := types.Rollapp{
 		RollappId:     "rollapp1",
@@ -266,7 +271,7 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
-		expectedFinalization := expectedStateInfo.CreationHeight + suite.app.RollappKeeper.DisputePeriodInBlocks(suite.ctx)
+		expectedFinalization := expectedStateInfo.CreationHeight + disputePeriodInBlocks
 		expectedFinalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, expectedFinalization)
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
 			FinalizationHeight: expectedFinalization,
@@ -287,6 +292,22 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		// update state
 		_, err := suite.msgServer.UpdateState(goCtx, &updateState)
 		suite.Require().Nil(err)
+
+		// end block
+		suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+
+		// check finalization status change
+		finalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, uint64(suite.ctx.BlockHeader().Height))
+		if found {
+			//fmt.Printf("finalizationQueue: %s\n", finalizationQueue.String())
+			stateInfo, _ := suite.app.RollappKeeper.GetStateInfo(suite.ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
+			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
+			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.ctx.BlockHeader().Height)-disputePeriodInBlocks)
+			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+		} else {
+			suite.Require().LessOrEqualf(uint64(suite.ctx.BlockHeader().Height), disputePeriodInBlocks,
+				"no finalization for currHeight(%d), disputePeriodInBlocks(%d)", suite.ctx.BlockHeader().Height, disputePeriodInBlocks)
+		}
 	}
 }
 
