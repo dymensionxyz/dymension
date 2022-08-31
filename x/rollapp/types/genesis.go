@@ -10,9 +10,10 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		RollappList:              []Rollapp{},
-		StateInfoList:            []StateInfo{},
-		LatestStateInfoIndexList: []StateInfoIndex{},
+		RollappList:                        []Rollapp{},
+		StateInfoList:                      []StateInfo{},
+		LatestStateInfoIndexList:           []StateInfoIndex{},
+		BlockHeightToFinalizationQueueList: []BlockHeightToFinalizationQueue{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -50,6 +51,16 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for latestStateInfoIndex")
 		}
 		latestStateInfoIndexIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated index in blockHeightToFinalizationQueue
+	blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.BlockHeightToFinalizationQueueList {
+		index := string(BlockHeightToFinalizationQueueKey(elem.FinalizationHeight))
+		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for blockHeightToFinalizationQueue")
+		}
+		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

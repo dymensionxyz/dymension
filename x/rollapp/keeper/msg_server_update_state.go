@@ -102,8 +102,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	})
 
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
+	stateInfoIndex := types.StateInfoIndex{RollappId: msg.RollappId, Index: newIndex}
 	k.SetStateInfo(ctx, types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: msg.RollappId, Index: newIndex},
+		StateInfoIndex: stateInfoIndex,
 		Sequencer:      msg.Creator,
 		StartHeight:    msg.StartHeight,
 		NumBlocks:      msg.NumBlocks,
@@ -113,6 +114,22 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		Status:         types.STATE_STATUS_RECEIVED,
 		BDs:            msg.BDs},
 	)
+
+	// calculate finalization
+	finalizationHeight := uint64(ctx.BlockHeight()) + k.DisputePeriodInBlocks(ctx)
+	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
+
+	// load FinalizationQueue and update
+	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, finalizationHeight)
+	if found {
+		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
+	}
+
+	// Write new BlockHeightToFinalizationQueue
+	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+		FinalizationHeight: finalizationHeight,
+		FinalizationQueue:  newFinalizationQueue,
+	})
 
 	return &types.MsgUpdateStateResponse{}, nil
 }
