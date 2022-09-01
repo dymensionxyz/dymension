@@ -10,4 +10,11 @@ type SimRollapp struct {
 	// sequencers that are allowed to serve this rollappId.
 	// In the case of an empty list, the rollapp is considered permissionless.
 	PermissionedAddresses []string
+	// Sequencers is a list of indexes of sequencers in
+	// GlobalSequencerAddressesList by joining order
+	Sequencers []int
+	// LastHeight is the last updated rollapp height
+	LastHeight uint64
+	// LastCreationHeight is the last block height that an update was created in
+	LastCreationHeight uint64
 }

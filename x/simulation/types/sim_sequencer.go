@@ -1,10 +1,12 @@
 package types
 
+import simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
 type SimSequencer struct {
-	// sequencerAddress is the bech32-encoded address of the sequencer account.
-	SequencerAddress string
+	// Account is the account of the sequencer account.
+	Account simtypes.Account
 	// creator is the bech32-encoded address of the account sent the transaction (sequencer creator)
 	Creator string
-	// rollappId defines the rollapp to which the sequencer belongs.
-	RollappId string `protobuf:"bytes,4,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	// RollappIndex is the index of the rollapp in GlobalRollappList
+	RollappIndex int
 }

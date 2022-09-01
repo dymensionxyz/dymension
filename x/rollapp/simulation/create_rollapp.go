@@ -81,6 +81,9 @@ func SimulateMsgCreateRollapp(
 				RollappId:             rollappId,
 				MaxSequencers:         maxSequencers,
 				PermissionedAddresses: permissionedAddresses,
+				Sequencers:            []int{},
+				LastHeight:            0,
+				LastCreationHeight:    0,
 			})
 		}
 

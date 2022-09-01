@@ -26,11 +26,18 @@ func FindAccount(accs []simtypes.Account, address string) (simtypes.Account, boo
 	return simtypes.FindAccount(accs, creator)
 }
 
-// RandomRollappId picks and returns a random rollappId from an array and returs its
+// RandomRollapp picks and returns a random rollapp from an array and returs its
 // position in the array.
-func RandomRollapp(r *rand.Rand, rollappIdList []types.SimRollapp) (types.SimRollapp, int) {
-	idx := r.Intn(len(rollappIdList))
-	return rollappIdList[idx], idx
+func RandomRollapp(r *rand.Rand, rollappList []types.SimRollapp) (types.SimRollapp, int) {
+	idx := r.Intn(len(rollappList))
+	return rollappList[idx], idx
+}
+
+// RandomSequencer picks and returns a random sequencer from an array and returs its
+// position in the array.
+func RandomSequencer(r *rand.Rand, sequencerList []types.SimSequencer) (types.SimSequencer, int) {
+	idx := r.Intn(len(sequencerList))
+	return sequencerList[idx], idx
 }
 
 func GenAndDeliverMsgWithRandFees(
@@ -71,6 +78,9 @@ func GenAndDeliverMsgWithRandFees(
 
 	futureOperation = append(futureOperation, additionalFutureOperation...)
 	if bExpectedError {
+		if err == nil {
+			panic(err)
+		}
 		err = nil
 	} else {
 		if err != nil {

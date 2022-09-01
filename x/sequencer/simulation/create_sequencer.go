@@ -26,10 +26,11 @@ func SimulateMsgCreateSequencer(
 
 		// choose rollappID and whether or not to fail the transaction
 		rollappId := "NoSuchRollapp"
-		bFailNoRollapp := r.Int()%2 == 0 || len(simulation.GlobalRollappList) == 0
+		rollappIndex := -1
+		bFailNoRollapp := r.Int()%5 == 0 || len(simulation.GlobalRollappList) == 0
 		var rollapp simulationtypes.SimRollapp
 		if !bFailNoRollapp {
-			rollapp, _ = simulation.RandomRollapp(r, simulation.GlobalRollappList)
+			rollapp, rollappIndex = simulation.RandomRollapp(r, simulation.GlobalRollappList)
 			rollappId = rollapp.RollappId
 		}
 
@@ -60,26 +61,29 @@ func SimulateMsgCreateSequencer(
 		bAlreadyExists := false
 		if !bExpectedError {
 			for _, item := range simulation.GlobalSequencerAddressesList {
-				if item.RollappId == rollappId {
+				// check how many sequencers already attached to this rollapp
+				if item.RollappIndex == rollappIndex {
 					rollappSeqNum += 1
 				}
 				// check if we already created it
-				if item.SequencerAddress == seqAddress {
+				if item.Account.Address.String() == seqAddress {
 					bAlreadyExists = true
 				}
 			}
 		}
 
-		bMaxSequencersFailure := rollapp.MaxSequencers >= rollappSeqNum
+		bMaxSequencersFailure := rollapp.MaxSequencers <= rollappSeqNum
 
 		bExpectedError = bExpectedError || bAlreadyExists || bMaxSequencersFailure
 
 		if !bExpectedError {
-			simulation.GlobalSequencerAddressesList = append(simulation.GlobalSequencerAddressesList, simulationtypes.SimSequencer{
-				SequencerAddress: seqAddress,
-				Creator:          msg.Creator,
-				RollappId:        rollappId,
-			})
+			sequencer := simulationtypes.SimSequencer{
+				Account:      seqAccount,
+				Creator:      msg.Creator,
+				RollappIndex: rollappIndex,
+			}
+			simulation.GlobalSequencerAddressesList = append(simulation.GlobalSequencerAddressesList, sequencer)
+			simulation.GlobalRollappList[rollappIndex].Sequencers = append(rollapp.Sequencers, len(simulation.GlobalSequencerAddressesList)-1)
 		}
 
 		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &creatorAccount, bk, ak, nil, bExpectedError)
