@@ -10,6 +10,8 @@ import (
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/x/simulation"
+	simulationtypes "github.com/dymensionxyz/dymension/x/simulation/types"
 )
 
 func SimulateMsgCreateRollapp(
@@ -25,8 +27,8 @@ func SimulateMsgCreateRollapp(
 
 		// check if we already created it
 		bAlreadyExists := false
-		for _, item := range globalRollappIdList {
-			if item == rollappId {
+		for _, item := range simulation.GlobalRollappList {
+			if item.RollappId == rollappId {
 				bAlreadyExists = true
 			}
 		}
@@ -75,9 +77,13 @@ func SimulateMsgCreateRollapp(
 		bExpectedError := bFailMaxSequencers || bFailMaxWithholdingBlocks || bFailDuplicateSequencer || bAlreadyExists
 
 		if !bExpectedError {
-			globalRollappIdList = append(globalRollappIdList, msg.RollappId)
+			simulation.GlobalRollappList = append(simulation.GlobalRollappList, simulationtypes.SimRollapp{
+				RollappId:             rollappId,
+				MaxSequencers:         maxSequencers,
+				PermissionedAddresses: permissionedAddresses,
+			})
 		}
 
-		return GenAndDeliverMsgWithRandFees(msg, msg.Type(), r, app, &ctx, &simAccount, &bk, &ak, nil, bExpectedError)
+		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &simAccount, bk, ak, nil, bExpectedError)
 	}
 }

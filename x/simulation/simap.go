@@ -8,11 +8,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/x/simulation/types"
 )
 
-// list of created rollapps
-var globalRollappIdList []string = []string{}
+// GlobalRollappIdList is a list of created rollapps
+var GlobalRollappList []types.SimRollapp = []types.SimRollapp{}
+
+// GlobalSequencerAddressesList is a list of created sequencers
+var GlobalSequencerAddressesList []types.SimSequencer = []types.SimSequencer{}
 
 // FindAccount find a specific address from an account list
 func FindAccount(accs []simtypes.Account, address string) (simtypes.Account, bool) {
@@ -23,22 +26,30 @@ func FindAccount(accs []simtypes.Account, address string) (simtypes.Account, boo
 	return simtypes.FindAccount(accs, creator)
 }
 
+// RandomRollappId picks and returns a random rollappId from an array and returs its
+// position in the array.
+func RandomRollapp(r *rand.Rand, rollappIdList []types.SimRollapp) (types.SimRollapp, int) {
+	idx := r.Intn(len(rollappIdList))
+	return rollappIdList[idx], idx
+}
+
 func GenAndDeliverMsgWithRandFees(
 	msg sdk.Msg,
 	msgType string,
+	moduleName string,
 	r *rand.Rand,
 	app *baseapp.BaseApp,
 	ctx *sdk.Context,
 	simAccount *simtypes.Account,
-	bk *types.BankKeeper,
-	ak *types.AccountKeeper,
+	bk types.BankKeeper,
+	ak types.AccountKeeper,
 	futureOperation []simtypes.FutureOperation,
 	bExpectedError bool) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 
-	spendableCoins := (*bk).SpendableCoins(*ctx, simAccount.Address)
+	spendableCoins := bk.SpendableCoins(*ctx, simAccount.Address)
 
 	if spendableCoins.Empty() {
-		return simtypes.NoOpMsg(types.ModuleName, msgType, "unable to grant empty coins as SpendLimit"), nil, nil
+		return simtypes.NoOpMsg(moduleName, msgType, "unable to grant empty coins as SpendLimit"), nil, nil
 	}
 
 	txCtx := simulation.OperationInput{
@@ -51,9 +62,9 @@ func GenAndDeliverMsgWithRandFees(
 		CoinsSpentInMsg: spendableCoins,
 		Context:         *ctx,
 		SimAccount:      *simAccount,
-		AccountKeeper:   *ak,
-		Bankkeeper:      *bk,
-		ModuleName:      types.ModuleName,
+		AccountKeeper:   ak,
+		Bankkeeper:      bk,
+		ModuleName:      moduleName,
 	}
 
 	operationMsg, additionalFutureOperation, err := simulation.GenAndDeliverTxWithRandFees(txCtx)

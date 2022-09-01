@@ -47,17 +47,11 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidSequencerAddress,
 		}, {
-			name: "empty pubkey",
-			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-			},
-			err: sdkerrors.ErrInvalidPubKey,
-		}, {
 			name: "invalid pubkey",
 			msg: MsgCreateSequencer{
 				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
+				SequencerAddress: sample.AccAddress(),
+				Pubkey:           pkAny,
 			},
 			err: sdkerrors.ErrInvalidPubKey,
 		}, {
