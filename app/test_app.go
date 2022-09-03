@@ -62,7 +62,7 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 
 	encoding := cosmoscmd.MakeEncodingConfig(ModuleBasics)
 
-	myApp := New(
+	myApp := NewSim(
 		logger,
 		db,
 		nil,
