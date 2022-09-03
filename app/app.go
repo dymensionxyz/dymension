@@ -134,6 +134,9 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 }
 
 var (
+	// bSimulation whether the blockchain is in simulation mode
+	bSimulation = false
+
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
@@ -194,6 +197,10 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
 
+func isSimulation() bool {
+	return bSimulation
+}
+
 // App extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -245,6 +252,23 @@ type App struct {
 
 	// sm is the simulation manager
 	sm *module.SimulationManager
+}
+
+// NewSim returns a reference to an initialized blockchain app in simulation mode
+func NewSim(
+	logger log.Logger,
+	db dbm.DB,
+	traceStore io.Writer,
+	loadLatest bool,
+	skipUpgradeHeights map[int64]bool,
+	homePath string,
+	invCheckPeriod uint,
+	encodingConfig cosmoscmd.EncodingConfig,
+	appOpts servertypes.AppOptions,
+	baseAppOptions ...func(*baseapp.BaseApp),
+) cosmoscmd.App {
+	bSimulation = true
+	return New(logger, db, traceStore, loadLatest, skipUpgradeHeights, homePath, invCheckPeriod, encodingConfig, appOpts, baseAppOptions...)
 }
 
 // New returns a reference to an initialized blockchain app
@@ -413,6 +437,8 @@ func New(
 
 		app.BankKeeper,
 		app.RollappKeeper,
+
+		isSimulation(),
 	)
 
 	// register the rollapp hooks

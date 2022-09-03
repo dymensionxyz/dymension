@@ -6,14 +6,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Pubkey can be nil only in simulation mode
+	if !k.isSimulation {
+		if msg.Pubkey == nil {
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+		}
+	}
 
 	// check to see if the sequencer has been registered before
 	if _, found := k.GetSequencer(ctx, msg.SequencerAddress); found {
@@ -79,16 +84,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
-	pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
-	}
-
-	pkAny, err := codectypes.NewAnyWithValue(pk)
-	if err != nil {
-		return nil, err
-	}
-
 	if _, err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
@@ -96,7 +91,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	sequencer := types.Sequencer{
 		Creator:          msg.Creator,
 		SequencerAddress: msg.SequencerAddress,
-		Pubkey:           pkAny,
+		Pubkey:           msg.Pubkey,
 		Description:      msg.Description,
 		RollappId:        msg.RollappId,
 	}

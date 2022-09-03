@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,11 +73,27 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 	// public key also checked by the application logic
 	if msg.Pubkey != nil {
+		// check it is a pubkey
 		if _, err = codectypes.NewAnyWithValue(msg.Pubkey); err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
 		}
-	} else {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+
+		// cast to cryptotypes.PubKey type
+		pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
+		if !ok {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		}
+
+		// get Bech32 format
+		sequencerAddress, err := sdk.AccAddressFromBech32(msg.SequencerAddress)
+		if err != nil {
+			return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
+		}
+
+		// verify pubkey match the address
+		if !bytes.Equal(pk.Address().Bytes(), sequencerAddress.Bytes()) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "account address and pubkey address do not match")
+		}
 	}
 
 	if _, err := msg.Description.EnsureLength(); err != nil {
