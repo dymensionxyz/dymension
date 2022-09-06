@@ -62,8 +62,8 @@ func SimulateMsgUpdateState(
 		for i := uint64(0); i < numBlocks; i++ {
 			bds.BD = append(bds.BD, types.BlockDescriptor{
 				Height:                 startHeight + i,
-				StateRoot:              "",
-				IntermediateStatesRoot: "",
+				StateRoot:              make([]byte, 32),
+				IntermediateStatesRoot: make([]byte, 32),
 			})
 		}
 
