@@ -20997,15 +20997,19 @@ paths:
                                 title: height is the height of the block
                               stateRoot:
                                 type: string
-                                title: stateRoot is the state root of the block
+                                format: byte
+                                title: >-
+                                  stateRoot is a 32 byte array of the hash of
+                                  the block (state root of the block)
                               intermediateStatesRoot:
                                 type: string
+                                format: byte
                                 title: >-
-                                  intermediateStatesRoot is is the root of a
-                                  Merkle tree built 
+                                  intermediateStatesRoot is a 32 byte array
+                                  representing 
 
-                                  from the ISRs of the block (Intermediate State
-                                  Roots)
+                                  the root of a Merkle tree built from the ISRs
+                                  of the block (Intermediate State Roots)
                             description: >-
                               BlockDescriptor defines a single rollapp chain
                               block description.
@@ -21208,15 +21212,19 @@ paths:
                               title: height is the height of the block
                             stateRoot:
                               type: string
-                              title: stateRoot is the state root of the block
+                              format: byte
+                              title: >-
+                                stateRoot is a 32 byte array of the hash of the
+                                block (state root of the block)
                             intermediateStatesRoot:
                               type: string
+                              format: byte
                               title: >-
-                                intermediateStatesRoot is is the root of a
-                                Merkle tree built 
+                                intermediateStatesRoot is a 32 byte array
+                                representing 
 
-                                from the ISRs of the block (Intermediate State
-                                Roots)
+                                the root of a Merkle tree built from the ISRs of
+                                the block (Intermediate State Roots)
                           description: >-
                             BlockDescriptor defines a single rollapp chain block
                             description.
@@ -21746,6 +21754,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -22473,6 +22491,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/sequencer/{sequencerAddress}':
@@ -23193,6 +23221,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -50453,12 +50491,18 @@ definitions:
         title: height is the height of the block
       stateRoot:
         type: string
-        title: stateRoot is the state root of the block
+        format: byte
+        title: >-
+          stateRoot is a 32 byte array of the hash of the block (state root of
+          the block)
       intermediateStatesRoot:
         type: string
-        title: |-
-          intermediateStatesRoot is is the root of a Merkle tree built 
-          from the ISRs of the block (Intermediate State Roots)
+        format: byte
+        title: >-
+          intermediateStatesRoot is a 32 byte array representing 
+
+          the root of a Merkle tree built from the ISRs of the block
+          (Intermediate State Roots)
     description: BlockDescriptor defines a single rollapp chain block description.
   dymensionxyz.dymension.rollapp.BlockDescriptors:
     type: object
@@ -50474,12 +50518,18 @@ definitions:
               title: height is the height of the block
             stateRoot:
               type: string
-              title: stateRoot is the state root of the block
+              format: byte
+              title: >-
+                stateRoot is a 32 byte array of the hash of the block (state
+                root of the block)
             intermediateStatesRoot:
               type: string
-              title: |-
-                intermediateStatesRoot is is the root of a Merkle tree built 
-                from the ISRs of the block (Intermediate State Roots)
+              format: byte
+              title: >-
+                intermediateStatesRoot is a 32 byte array representing 
+
+                the root of a Merkle tree built from the ISRs of the block
+                (Intermediate State Roots)
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
   dymensionxyz.dymension.rollapp.BlockHeightToFinalizationQueue:
@@ -50858,14 +50908,19 @@ definitions:
                         title: height is the height of the block
                       stateRoot:
                         type: string
-                        title: stateRoot is the state root of the block
+                        format: byte
+                        title: >-
+                          stateRoot is a 32 byte array of the hash of the block
+                          (state root of the block)
                       intermediateStatesRoot:
                         type: string
+                        format: byte
                         title: >-
-                          intermediateStatesRoot is is the root of a Merkle tree
-                          built 
+                          intermediateStatesRoot is a 32 byte array
+                          representing 
 
-                          from the ISRs of the block (Intermediate State Roots)
+                          the root of a Merkle tree built from the ISRs of the
+                          block (Intermediate State Roots)
                     description: >-
                       BlockDescriptor defines a single rollapp chain block
                       description.
@@ -51127,14 +51182,18 @@ definitions:
                       title: height is the height of the block
                     stateRoot:
                       type: string
-                      title: stateRoot is the state root of the block
+                      format: byte
+                      title: >-
+                        stateRoot is a 32 byte array of the hash of the block
+                        (state root of the block)
                     intermediateStatesRoot:
                       type: string
+                      format: byte
                       title: >-
-                        intermediateStatesRoot is is the root of a Merkle tree
-                        built 
+                        intermediateStatesRoot is a 32 byte array representing 
 
-                        from the ISRs of the block (Intermediate State Roots)
+                        the root of a Merkle tree built from the ISRs of the
+                        block (Intermediate State Roots)
                   description: >-
                     BlockDescriptor defines a single rollapp chain block
                     description.
@@ -51293,14 +51352,18 @@ definitions:
                   title: height is the height of the block
                 stateRoot:
                   type: string
-                  title: stateRoot is the state root of the block
+                  format: byte
+                  title: >-
+                    stateRoot is a 32 byte array of the hash of the block (state
+                    root of the block)
                 intermediateStatesRoot:
                   type: string
+                  format: byte
                   title: >-
-                    intermediateStatesRoot is is the root of a Merkle tree
-                    built 
+                    intermediateStatesRoot is a 32 byte array representing 
 
-                    from the ISRs of the block (Intermediate State Roots)
+                    the root of a Merkle tree built from the ISRs of the block
+                    (Intermediate State Roots)
               description: >-
                 BlockDescriptor defines a single rollapp chain block
                 description.
