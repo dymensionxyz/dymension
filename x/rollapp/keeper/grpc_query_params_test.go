@@ -17,5 +17,9 @@ func TestParamsQuery(t *testing.T) {
 
 	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
+	require.EqualValues(t, params.DisputePeriodInBlocks, response.Params.DisputePeriodInBlocks)
+	require.EqualValues(t, len(params.DeployerWhitelist), len(response.Params.DeployerWhitelist))
+	for i, _ := range params.DeployerWhitelist {
+		require.EqualValues(t, params.DeployerWhitelist[i], response.Params.DeployerWhitelist[i])
+	}
 }

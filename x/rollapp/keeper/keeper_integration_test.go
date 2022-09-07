@@ -61,13 +61,13 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
-func (suite *IntegrationTestSuite) SetupTest() {
+func (suite *IntegrationTestSuite) SetupTest(deployerWhitelist ...string) {
 	app := dymensionapp.Setup(false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2, []string{}))
+	app.RollappKeeper.SetParams(ctx, types.NewParams(2, deployerWhitelist))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
@@ -80,8 +80,8 @@ func (suite *IntegrationTestSuite) SetupTest() {
 	suite.queryClient = queryClient
 }
 
-func (suite *IntegrationTestSuite) TestCreateRollapp() {
-	suite.SetupTest()
+func (suite *IntegrationTestSuite) createRollappFromWhitelist(expectedErr error, deployerWhitelist []string) {
+	suite.SetupTest(deployerWhitelist...)
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
 	// rollappsExpect is the expected result of query all
@@ -114,6 +114,10 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 		}
 		// create rollapp
 		createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+		if expectedErr != nil {
+			suite.EqualError(err, expectedErr.Error())
+			continue
+		}
 		suite.Require().Nil(err)
 		suite.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
 
@@ -136,6 +140,18 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 
 	}
 
+}
+
+func (suite *IntegrationTestSuite) TestCreateRollapp() {
+	suite.createRollappFromWhitelist(nil, nil)
+}
+
+func (suite *IntegrationTestSuite) TestCreateRollappFromWhitelist() {
+	suite.createRollappFromWhitelist(nil, []string{alice})
+}
+
+func (suite *IntegrationTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
+	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []string{bob})
 }
 
 func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {
