@@ -14,4 +14,10 @@ message Params {
   // during that period, any user could submit fraud proof
   uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
+
+  // deployer_whitelist is a bech32-encoded address list of the 
+  // accounts that are allowed to create a rollapp.
+  // In the case of an empty list, there are no restrictions
+  repeated string deployer_whitelist = 2
+      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" ];
 }

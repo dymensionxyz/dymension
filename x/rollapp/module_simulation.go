@@ -1,6 +1,7 @@
 package rollapp
 
 import (
+	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -55,12 +56,20 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 }
 
 // RandomizedParams creates randomized  param changes for the simulator
-func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
+	_ = r
 	rollappParams := types.DefaultParams()
 	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDisputePeriodInBlocks), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(rollappParams.DisputePeriodInBlocks))
-		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDisputePeriodInBlocks),
+			func(r *rand.Rand) string {
+				return string(types.Amino.MustMarshalJSON(rollappParams.DisputePeriodInBlocks))
+			},
+		),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDeployerWhitelist),
+			func(r *rand.Rand) string {
+				return fmt.Sprintf("%v", []string{})
+			},
+		),
 	}
 }
 

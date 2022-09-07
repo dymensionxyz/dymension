@@ -15,6 +15,22 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappExists
 	}
 
+	// check to see if there is an active whitelist
+	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
+		bInWhitelist := false
+		// check to see if the creator is in whitelist
+		for _, item := range whitelist {
+			if item == msg.Creator {
+				// Found!
+				bInWhitelist = true
+				break
+			}
+		}
+		if !bInWhitelist {
+			return nil, types.ErrUnauthorizedRollappCreator
+		}
+	}
+
 	// Create an updated rollapp record
 	rollapp := types.Rollapp{
 		RollappId:             msg.RollappId,

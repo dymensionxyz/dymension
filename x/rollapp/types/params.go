@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -10,6 +11,9 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
+	// DeployerWhitelist is store's key for DeployerWhitelist Params
+	KeyDeployerWhitelist = []byte("DeployerWhitelist")
+	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 	// default value
 	DefaultDisputePeriodInBlocks uint64 = 100
@@ -25,16 +29,18 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
+	deployerWhitelist []string,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
+		DeployerWhitelist:     deployerWhitelist,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		DefaultDisputePeriodInBlocks,
+		DefaultDisputePeriodInBlocks, []string{},
 	)
 }
 
@@ -42,6 +48,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
+		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
 	}
 }
 
@@ -51,7 +58,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return nil
+	return validateDeployerWhitelist(p.DeployerWhitelist)
 }
 
 // String implements the Stringer interface.
@@ -69,6 +76,23 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return fmt.Errorf("dispute period cannot be lower than 1 block")
+	}
+
+	return nil
+}
+
+// validateDeployerWhitelist validates the DeployerWhitelist param
+func validateDeployerWhitelist(v interface{}) error {
+	deployerWhitelist, ok := v.([]string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	for i, item := range deployerWhitelist {
+		// check Bech32 format
+		if _, err := sdk.AccAddressFromBech32(item); err != nil {
+			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
+		}
 	}
 
 	return nil

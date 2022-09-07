@@ -21,4 +21,5 @@ var (
 	ErrMultiUpdateStateInBlock        = sdkerrors.Register(ModuleName, 1010, "only one state update can take place per block")
 	ErrInvalidStateRoot               = sdkerrors.Register(ModuleName, 1011, "invalid blocks state root")
 	ErrInvalidIntermediateStatesRoot  = sdkerrors.Register(ModuleName, 1012, "invalid blocks intermediate states root")
+	ErrUnauthorizedRollappCreator     = sdkerrors.Register(ModuleName, 1013, "rollapp creator not register in whitelist")
 )
