@@ -20280,6 +20280,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}':
@@ -20506,6 +20516,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}':
@@ -20594,6 +20614,17 @@ paths:
                       dispute_period_in_blocks the number of blocks it takes
                       to change a status of a state from received to finalized.
                       during that period, any user could submit fraud proof
+                  deployer_whitelist:
+                    type: array
+                    items:
+                      type: string
+                    title: >-
+                      deployer_whitelist is a bech32-encoded address list of
+                      the 
+
+                      accounts that are allowed to create a rollapp.
+
+                      In the case of an empty list, there are no restrictions
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -20784,6 +20815,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -21104,6 +21145,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -50593,6 +50644,14 @@ definitions:
           dispute_period_in_blocks the number of blocks it takes
           to change a status of a state from received to finalized.
           during that period, any user could submit fraud proof
+      deployer_whitelist:
+        type: array
+        items:
+          type: string
+        title: |-
+          deployer_whitelist is a bech32-encoded address list of the 
+          accounts that are allowed to create a rollapp.
+          In the case of an empty list, there are no restrictions
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllBlockHeightToFinalizationQueueResponse:
     type: object
@@ -51213,6 +51272,14 @@ definitions:
               dispute_period_in_blocks the number of blocks it takes
               to change a status of a state from received to finalized.
               during that period, any user could submit fraud proof
+          deployer_whitelist:
+            type: array
+            items:
+              type: string
+            title: |-
+              deployer_whitelist is a bech32-encoded address list of the 
+              accounts that are allowed to create a rollapp.
+              In the case of an empty list, there are no restrictions
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object

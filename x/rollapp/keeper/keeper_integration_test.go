@@ -67,7 +67,7 @@ func (suite *IntegrationTestSuite) SetupTest() {
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2))
+	app.RollappKeeper.SetParams(ctx, types.NewParams(2, []string{}))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
