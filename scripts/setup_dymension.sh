@@ -14,7 +14,6 @@ TOKEN=${TOKEN:-""}
 STATE_SYNC=${STATE_SYNC:-false}
 CHAIN_REPO=https://$([ -z "$TOKEN" ] && echo "" || echo "$TOKEN@")raw.githubusercontent.com/dymensionxyz/networks/main
 
-echo "$CHAIN_ID"
 if [ -z "$CHAIN_ID" ]; then
   echo "Missing CHAIN_ID."
   exit 1
