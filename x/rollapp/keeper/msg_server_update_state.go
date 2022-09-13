@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -131,14 +132,15 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue:  newFinalizationQueue,
 	})
 
-	// nolint: errcheck, gosec
-	ctx.EventManager().EmitTypedEvent(&types.EventStateUpdate{
-		RollappId:   msg.RollappId,
-		Index:       newIndex,
-		StartHeight: msg.StartHeight,
-		NumBlocks:   msg.NumBlocks,
-		DAPath:      msg.DAPath,
-	})
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeStateUpdate,
+			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
+			sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
+			sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(msg.StartHeight, 10)),
+			sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(msg.NumBlocks, 10)),
+			sdk.NewAttribute(types.AttributeKeyDAPath, msg.DAPath),
+		),
+	)
 
 	return &types.MsgUpdateStateResponse{}, nil
 }
