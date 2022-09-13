@@ -16,8 +16,12 @@ P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:26656"}
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
 if ! command -v dymd; then
-  echo "dYmension binary not found, call \"make install\"."
-  exit 1
+  make install
+
+  if ! command -v dymd; then
+    echo "dYmension binary not found"
+    exit 1
+  fi
 fi
 
 # Create and init dymension chain if need
