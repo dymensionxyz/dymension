@@ -26,7 +26,7 @@ fi
 
 # Verify that a genesis file doesn't exists for the dymension chain
 if [ -f "$GENESIS_FILE" ]; then
-  echo "\n======================================================================================================"
+  printf "\n======================================================================================================"
   echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
   read -r answer
   if [ "$answer" != "${answer#[Yy]}" ]; then
