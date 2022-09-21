@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/dymensionxyz/dymension/x/simulation/types"
+	"github.com/dymensionxyz/dymension/simulation/types"
 )
 
 // GlobalRollappIdList is a list of created rollapps

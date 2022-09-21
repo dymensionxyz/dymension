@@ -6,9 +6,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/dymensionxyz/dymension/simulation"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/x/simulation"
 )
 
 func SimulateMsgUpdateState(
