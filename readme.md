@@ -30,20 +30,20 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 ### Step 3: Initializing `dymd`
 
-Set the following variables:
-
-```sh
-export CHAIN_ID="local-testnet"
-export KEY_NAME="local-user"
-export MONIKER_NAME="local"
-```
-
 Occasionally you may need to perform a comlpete reset of your node due to data corruption or misconfiguration. Resetting will remove all data in ~/.dymension/data and the addressbook in ~/.dymension/config/addrbook.json and reset the node to genesis state.
 
 Perform a complete reset of your dymd:
 
 ```sh
   dymd tendermint unsafe-reset-all
+```
+
+Set the following variables:
+
+```sh
+export CHAIN_ID="local-testnet"
+export KEY_NAME="local-user"
+export MONIKER_NAME="local"
 ```
 
 When starting a node you need to initialize a chain with a user:
