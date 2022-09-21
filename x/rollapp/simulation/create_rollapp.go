@@ -8,10 +8,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
+	"github.com/dymensionxyz/dymension/simulation"
+	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/x/simulation"
-	simulationtypes "github.com/dymensionxyz/dymension/x/simulation/types"
 )
 
 func SimulateMsgCreateRollapp(

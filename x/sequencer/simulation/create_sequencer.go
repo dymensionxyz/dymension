@@ -6,10 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/dymensionxyz/dymension/simulation"
+	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
-	"github.com/dymensionxyz/dymension/x/simulation"
-	simulationtypes "github.com/dymensionxyz/dymension/x/simulation/types"
 )
 
 func SimulateMsgCreateSequencer(
