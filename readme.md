@@ -1,8 +1,8 @@
-# dYmension
+# Dymension
 
 <img src="docs/dymension.png" alt="banner" width="830"/>
 
-## Settlement layer client of the dYmension network
+## The Settlement layer of the dYmension protocol
 
 ![license](https://img.shields.io/github/license/dymensionxyz/dymension)
 ![Go](https://img.shields.io/badge/go-1.18-blue.svg)
