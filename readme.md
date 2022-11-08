@@ -1,6 +1,14 @@
 # dYmension
 
+<img src="docs/dymension.png" alt="banner" width="830"/>
+
 ## Settlement layer client of the dYmension network
+
+![license](https://img.shields.io/github/license/dymensionxyz/dymension)
+![Go](https://img.shields.io/badge/go-1.18-blue.svg)
+![issues](https://img.shields.io/github/issues/dymensionxyz/dymension)
+![tests](https://github.com/dymensionxyz/dymint/actions/workflows/test.yml/badge.svg?branch=main)
+![lint](https://github.com/dymensionxyz/dymint/actions/workflows/lint.yml/badge.svg?branch=main)
 
 ## Step 1: Install Go
 
