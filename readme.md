@@ -1,8 +1,8 @@
-# Dymension
+# Dymension Hub
 
 <img src="docs/dymension.png" alt="banner" width="830"/>
 
-## The Settlement layer of the dYmension protocol
+## The Settlement Layer of the Dymension protocol
 
 ![license](https://img.shields.io/github/license/dymensionxyz/dymension)
 ![Go](https://img.shields.io/badge/go-1.18-blue.svg)
@@ -10,7 +10,7 @@
 ![tests](https://github.com/dymensionxyz/dymint/actions/workflows/test.yml/badge.svg?branch=main)
 ![lint](https://github.com/dymensionxyz/dymint/actions/workflows/lint.yml/badge.svg?branch=main)
 
-## Step 1: Install Go
+### Step 1: Install Go
 
 Installing Go is a pre-requisite for running a dYmension full node. If you still need to install Go on your system, head to the [Go download and install page](https://go.dev/doc/install).
 
@@ -30,7 +30,7 @@ Check that the dymd binaries have been successfully installed:
 dymd version
 ```
 
-Should return "latest". If the dymd command is not found an error message is returned, confirm that your [GOPATH](https://go.dev/doc/gopath_code#GOPATH) is correctly configured by running the following command:
+If the dymd command is not found an error message is returned, confirm that your [GOPATH](https://go.dev/doc/gopath_code#GOPATH) is correctly configured by running the following command:
 
 ```sh
 export PATH=$PATH:$(go env GOPATH)/bin
@@ -80,6 +80,6 @@ Keep the node running and open a new tab in the terminal. Let's get your validat
 dymd tendermint show-address
 ```
 
-This returns an address with the prefix "dymvalcons" or the dYmension validator consensus address.
+This returns an address with the prefix "dymvalcons" or the Dymension validator consensus address.
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
