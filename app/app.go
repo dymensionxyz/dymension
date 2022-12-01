@@ -369,6 +369,37 @@ func New(
 		stakingtypes.NewMultiStakingHooks(app.DistrKeeper.Hooks(), app.SlashingKeeper.Hooks()),
 	)
 
+	//--------------- dYmension specific modules
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		keys[rollappmoduletypes.MemStoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+	)
+
+	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		keys[sequencermoduletypes.StoreKey],
+		keys[sequencermoduletypes.MemStoreKey],
+		app.GetSubspace(sequencermoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.RollappKeeper,
+
+		isSimulation(),
+	)
+
+	// register the rollapp hooks
+	app.RollappKeeper.SetHooks(
+		rollappmoduletypes.NewMultiRollappHooks(
+			// insert rollapp hooks receivers here
+			app.SequencerKeeper.RollappHooks(),
+		),
+	)
+
+	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
+	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// ... other modules keepers
 
 	// Create IBC Keeper
@@ -380,7 +411,7 @@ func New(
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
 		ibctmtypes.NewSelfClient(),
-		nil,
+		rollappmodule.NewRollappClientHooks(&app.RollappKeeper),
 	)
 
 	// register the proposal types
@@ -428,37 +459,6 @@ func New(
 		scopedMonitoringKeeper,
 	)
 	monitoringModule := monitoringp.NewAppModule(appCodec, app.MonitoringKeeper)
-
-	//--------------- dYmension specific modules
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-	)
-
-	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
-		appCodec,
-		keys[sequencermoduletypes.StoreKey],
-		keys[sequencermoduletypes.MemStoreKey],
-		app.GetSubspace(sequencermoduletypes.ModuleName),
-
-		app.BankKeeper,
-		app.RollappKeeper,
-
-		isSimulation(),
-	)
-
-	// register the rollapp hooks
-	app.RollappKeeper.SetHooks(
-		rollappmoduletypes.NewMultiRollappHooks(
-			// insert rollapp hooks receivers here
-			app.SequencerKeeper.RollappHooks(),
-		),
-	)
-
-	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
-	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
