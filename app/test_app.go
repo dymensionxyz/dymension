@@ -4,31 +4,18 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
-)
 
-type SimApp interface {
-	cosmoscmd.App
-	GetBaseApp() *baseapp.BaseApp
-	AppCodec() codec.Codec
-	SimulationManager() *module.SimulationManager
-	ModuleAccountAddrs() map[string]bool
-	Name() string
-	LegacyAmino() *codec.LegacyAmino
-	BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock
-	EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock
-	InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain
-}
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/tendermint/tendermint/libs/log"
+	dbm "github.com/tendermint/tm-db"
+)
 
 var defaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
@@ -47,18 +34,14 @@ var defaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
+func SetupTestApp(withGenesis bool) (*App, GenesisState, simtypes.Config, dbm.DB, string, log.Logger) {
 	simapp.FlagEnabledValue = true
 	simapp.FlagCommitValue = true
 
-	_, db, _, logger, _, _ := simapp.SetupSimulation("goleveldb-app-sim", "Simulation")
-	// require.NoError(b, err, "simulation setup failed")
-
-	// b.Cleanup(func() {
-	// 	db.Close()
-	// 	err = os.RemoveAll(dir)
-	// 	require.NoError(b, err)
-	// })
+	config, db, dir, logger, _, err := simapp.SetupSimulation("goleveldb-app-sim", "Simulation")
+	if err != nil {
+		panic(err)
+	}
 
 	encoding := cosmoscmd.MakeEncodingConfig(ModuleBasics)
 
@@ -74,23 +57,22 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 		simapp.EmptyAppOptions{},
 	)
 
-	newApp, ok := myApp.(*App)
-	_ = ok
-	//require.True(b, ok, "can't use simapp")
-
-	if withGenesis {
-		return newApp, NewDefaultGenesisState(newApp.AppCodec())
+	simApp, ok := myApp.(*App)
+	if !ok {
+		panic(err)
 	}
-	return newApp, GenesisState{}
+
+	genesisState := GenesisState{}
+	if withGenesis {
+		genesisState = NewDefaultGenesisState(simApp.AppCodec())
+	}
+
+	return simApp, genesisState, config, db, dir, logger
 }
 
-func AppCodec() {
-	panic("unimplemented")
-}
-
-// Setup initializes a new SimApp. A Nop logger is set in SimApp.
+// Setup initializes a new test App. A Nop logger is set in App.
 func Setup(isCheckTx bool) *App {
-	dymSimApp, genesisState := setup(!isCheckTx, 5)
+	simApp, genesisState, _, _, _, _ := SetupTestApp(!isCheckTx)
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -99,7 +81,7 @@ func Setup(isCheckTx bool) *App {
 		}
 
 		// Initialize the chain
-		(*dymSimApp).InitChain(
+		(*simApp).InitChain(
 			abci.RequestInitChain{
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: defaultConsensusParams,
@@ -108,5 +90,5 @@ func Setup(isCheckTx bool) *App {
 		)
 	}
 
-	return dymSimApp
+	return simApp
 }
