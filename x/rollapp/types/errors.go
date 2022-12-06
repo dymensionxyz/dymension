@@ -22,4 +22,8 @@ var (
 	ErrInvalidStateRoot               = sdkerrors.Register(ModuleName, 1011, "invalid blocks state root")
 	ErrInvalidIntermediateStatesRoot  = sdkerrors.Register(ModuleName, 1012, "invalid blocks intermediate states root")
 	ErrUnauthorizedRollappCreator     = sdkerrors.Register(ModuleName, 1013, "rollapp creator not register in whitelist")
+	ErrInvalidClientType              = sdkerrors.Register(ModuleName, 1014, "client type of the rollapp isn't dymint")
+	ErrHeightStateNotFainalized       = sdkerrors.Register(ModuleName, 1015, "rollapp block on this height was not finalized yet")
+	ErrInvalidAppHash                 = sdkerrors.Register(ModuleName, 1016, "the app hash is different from the finalized state root")
+	ErrStateNotExists                 = sdkerrors.Register(ModuleName, 1017, "state of this height doesn't exist")
 )
