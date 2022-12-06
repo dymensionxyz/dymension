@@ -92,6 +92,8 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 
@@ -253,6 +255,26 @@ type App struct {
 
 	// sm is the simulation manager
 	sm *module.SimulationManager
+}
+
+// GetIBCKeeper implements ibctesting.TestingApp
+func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
+	return app.IBCKeeper
+}
+
+// GetScopedIBCKeeper implements ibctesting.TestingApp
+func (app *App) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return app.ScopedIBCKeeper
+}
+
+// GetStakingKeeper implements ibctesting.TestingApp
+func (app *App) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.StakingKeeper
+}
+
+// GetTxConfig implements ibctesting.TestingApp
+func (app *App) GetTxConfig() client.TxConfig {
+	return simappparams.MakeTestEncodingConfig().TxConfig
 }
 
 // NewSim returns a reference to an initialized blockchain app in simulation mode

@@ -15,6 +15,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+
+	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 var defaultConsensusParams = &abci.ConsensusParams{
@@ -57,6 +59,10 @@ func SetupTestApp(withGenesis bool) (*App, GenesisState, simtypes.Config, dbm.DB
 		simapp.EmptyAppOptions{},
 	)
 
+	_, ok := myApp.(ibctesting.TestingApp)
+	if !ok {
+		panic(err)
+	}
 	simApp, ok := myApp.(*App)
 	if !ok {
 		panic(err)

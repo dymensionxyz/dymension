@@ -172,7 +172,7 @@ require (
 )
 
 replace (
-	github.com/cosmos/ibc-go/v3 => github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20221130123724-78f09f4dbaeb
+	github.com/cosmos/ibc-go/v3 => github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20221206130541-2bdb22ed9dc4
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/keybase/go-keychain => github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
