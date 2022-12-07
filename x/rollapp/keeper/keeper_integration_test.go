@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strconv"
 
 	"testing"
 
@@ -310,7 +311,7 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 		suite.Require().Nil(err)
 
 		// end block
-		suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
+		responseEndBlock := suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{Height: suite.ctx.BlockHeight()})
 
 		// check finalization status change
 		finalizationQueue, found := suite.app.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.ctx, uint64(suite.ctx.BlockHeader().Height))
@@ -321,6 +322,33 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
 			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.ctx.BlockHeader().Height)-disputePeriodInBlocks)
 			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+			// use a boolean to ensure the event exists
+			contains := false
+			for _, event := range responseEndBlock.Events {
+				if event.Type == types.EventTypeStatusChange {
+					contains = true
+					// there are 5 attributes in the event
+					suite.Require().EqualValues(5, len(event.Attributes))
+					for _, attr := range event.Attributes {
+						switch string(attr.Key) {
+						case types.AttributeKeyRollappId:
+							suite.Require().EqualValues(string(attr.Value), rollapp.RollappId)
+						case types.AttributeKeyStateInfoIndex:
+							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.StateInfoIndex.Index, 10))
+						case types.AttributeKeyStartHeight:
+							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.StartHeight, 10))
+						case types.AttributeKeyNumBlocks:
+							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.NumBlocks, 10))
+						case types.AttributeKeyStatus:
+							suite.Require().EqualValues(string(attr.Value), stateInfo.Status.String())
+						default:
+							suite.Fail("unexpected attribute in event: %s", event.String())
+						}
+					}
+				}
+
+			}
+			suite.Require().True(contains)
 		} else {
 			suite.Require().LessOrEqualf(uint64(suite.ctx.BlockHeader().Height), disputePeriodInBlocks,
 				"no finalization for currHeight(%d), disputePeriodInBlocks(%d)", suite.ctx.BlockHeader().Height, disputePeriodInBlocks)

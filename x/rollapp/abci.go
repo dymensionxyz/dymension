@@ -2,6 +2,7 @@ package rollapp
 
 import (
 	"fmt"
+	"strconv"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -31,6 +32,17 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			stateInfo.Status = types.STATE_STATUS_FINALIZED
 			// write the new status
 			k.SetStateInfo(ctx, stateInfo)
+
+			// emit event
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeStatusChange,
+					sdk.NewAttribute(types.AttributeKeyRollappId, stateInfoIndex.RollappId),
+					sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
+					sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(stateInfo.StartHeight, 10)),
+					sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(stateInfo.NumBlocks, 10)),
+					sdk.NewAttribute(types.AttributeKeyStatus, stateInfo.Status.String()),
+				),
+			)
 		}
 	}
 }
