@@ -7,7 +7,6 @@ import (
 	context "context"
 	fmt "fmt"
 	query "github.com/cosmos/cosmos-sdk/types/query"
-	_ "github.com/dymensionxyz/dymension/shared/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -31,6 +30,61 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// SequencerInfo holds information for user query.
+type SequencerInfo struct {
+	// basic sequencer info
+	Sequencer Sequencer `protobuf:"bytes,1,opt,name=sequencer,proto3" json:"sequencer"`
+	// sequencers' operating status
+	Status OperatingStatus `protobuf:"varint,2,opt,name=status,proto3,enum=dymensionxyz.dymension.sequencer.OperatingStatus" json:"status,omitempty"`
+}
+
+func (m *SequencerInfo) Reset()         { *m = SequencerInfo{} }
+func (m *SequencerInfo) String() string { return proto.CompactTextString(m) }
+func (*SequencerInfo) ProtoMessage()    {}
+func (*SequencerInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_542ee756da0a7319, []int{0}
+}
+func (m *SequencerInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SequencerInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SequencerInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SequencerInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SequencerInfo.Merge(m, src)
+}
+func (m *SequencerInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *SequencerInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_SequencerInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SequencerInfo proto.InternalMessageInfo
+
+func (m *SequencerInfo) GetSequencer() Sequencer {
+	if m != nil {
+		return m.Sequencer
+	}
+	return Sequencer{}
+}
+
+func (m *SequencerInfo) GetStatus() OperatingStatus {
+	if m != nil {
+		return m.Status
+	}
+	return Unspecified
+}
+
 // QueryParamsRequest is request type for the Query/Params RPC method.
 type QueryParamsRequest struct {
 }
@@ -39,7 +93,7 @@ func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
 func (m *QueryParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsRequest) ProtoMessage()    {}
 func (*QueryParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{0}
+	return fileDescriptor_542ee756da0a7319, []int{1}
 }
 func (m *QueryParamsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -78,7 +132,7 @@ func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
 func (m *QueryParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsResponse) ProtoMessage()    {}
 func (*QueryParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{1}
+	return fileDescriptor_542ee756da0a7319, []int{2}
 }
 func (m *QueryParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -122,7 +176,7 @@ func (m *QueryGetSequencerRequest) Reset()         { *m = QueryGetSequencerReque
 func (m *QueryGetSequencerRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSequencerRequest) ProtoMessage()    {}
 func (*QueryGetSequencerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{2}
+	return fileDescriptor_542ee756da0a7319, []int{3}
 }
 func (m *QueryGetSequencerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -159,14 +213,14 @@ func (m *QueryGetSequencerRequest) GetSequencerAddress() string {
 }
 
 type QueryGetSequencerResponse struct {
-	Sequencer Sequencer `protobuf:"bytes,1,opt,name=sequencer,proto3" json:"sequencer"`
+	SequencerInfo SequencerInfo `protobuf:"bytes,1,opt,name=sequencerInfo,proto3" json:"sequencerInfo"`
 }
 
 func (m *QueryGetSequencerResponse) Reset()         { *m = QueryGetSequencerResponse{} }
 func (m *QueryGetSequencerResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSequencerResponse) ProtoMessage()    {}
 func (*QueryGetSequencerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{3}
+	return fileDescriptor_542ee756da0a7319, []int{4}
 }
 func (m *QueryGetSequencerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -195,11 +249,11 @@ func (m *QueryGetSequencerResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetSequencerResponse proto.InternalMessageInfo
 
-func (m *QueryGetSequencerResponse) GetSequencer() Sequencer {
+func (m *QueryGetSequencerResponse) GetSequencerInfo() SequencerInfo {
 	if m != nil {
-		return m.Sequencer
+		return m.SequencerInfo
 	}
-	return Sequencer{}
+	return SequencerInfo{}
 }
 
 type QueryAllSequencerRequest struct {
@@ -210,7 +264,7 @@ func (m *QueryAllSequencerRequest) Reset()         { *m = QueryAllSequencerReque
 func (m *QueryAllSequencerRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSequencerRequest) ProtoMessage()    {}
 func (*QueryAllSequencerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{4}
+	return fileDescriptor_542ee756da0a7319, []int{5}
 }
 func (m *QueryAllSequencerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -247,15 +301,15 @@ func (m *QueryAllSequencerRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryAllSequencerResponse struct {
-	Sequencer  []Sequencer         `protobuf:"bytes,1,rep,name=sequencer,proto3" json:"sequencer"`
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	SequencerInfoList []SequencerInfo     `protobuf:"bytes,1,rep,name=sequencerInfoList,proto3" json:"sequencerInfoList"`
+	Pagination        *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllSequencerResponse) Reset()         { *m = QueryAllSequencerResponse{} }
 func (m *QueryAllSequencerResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSequencerResponse) ProtoMessage()    {}
 func (*QueryAllSequencerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{5}
+	return fileDescriptor_542ee756da0a7319, []int{6}
 }
 func (m *QueryAllSequencerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -284,9 +338,9 @@ func (m *QueryAllSequencerResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllSequencerResponse proto.InternalMessageInfo
 
-func (m *QueryAllSequencerResponse) GetSequencer() []Sequencer {
+func (m *QueryAllSequencerResponse) GetSequencerInfoList() []SequencerInfo {
 	if m != nil {
-		return m.Sequencer
+		return m.SequencerInfoList
 	}
 	return nil
 }
@@ -306,7 +360,7 @@ func (m *QueryGetSequencersByRollappRequest) Reset()         { *m = QueryGetSequ
 func (m *QueryGetSequencersByRollappRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSequencersByRollappRequest) ProtoMessage()    {}
 func (*QueryGetSequencersByRollappRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{6}
+	return fileDescriptor_542ee756da0a7319, []int{7}
 }
 func (m *QueryGetSequencersByRollappRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -343,14 +397,15 @@ func (m *QueryGetSequencersByRollappRequest) GetRollappId() string {
 }
 
 type QueryGetSequencersByRollappResponse struct {
-	SequencersByRollapp SequencersByRollapp `protobuf:"bytes,1,opt,name=sequencersByRollapp,proto3" json:"sequencersByRollapp"`
+	RollappId         string          `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	SequencerInfoList []SequencerInfo `protobuf:"bytes,2,rep,name=sequencerInfoList,proto3" json:"sequencerInfoList"`
 }
 
 func (m *QueryGetSequencersByRollappResponse) Reset()         { *m = QueryGetSequencersByRollappResponse{} }
 func (m *QueryGetSequencersByRollappResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSequencersByRollappResponse) ProtoMessage()    {}
 func (*QueryGetSequencersByRollappResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{7}
+	return fileDescriptor_542ee756da0a7319, []int{8}
 }
 func (m *QueryGetSequencersByRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -379,11 +434,18 @@ func (m *QueryGetSequencersByRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGetSequencersByRollappResponse proto.InternalMessageInfo
 
-func (m *QueryGetSequencersByRollappResponse) GetSequencersByRollapp() SequencersByRollapp {
+func (m *QueryGetSequencersByRollappResponse) GetRollappId() string {
 	if m != nil {
-		return m.SequencersByRollapp
+		return m.RollappId
 	}
-	return SequencersByRollapp{}
+	return ""
+}
+
+func (m *QueryGetSequencersByRollappResponse) GetSequencerInfoList() []SequencerInfo {
+	if m != nil {
+		return m.SequencerInfoList
+	}
+	return nil
 }
 
 type QueryAllSequencersByRollappRequest struct {
@@ -394,7 +456,7 @@ func (m *QueryAllSequencersByRollappRequest) Reset()         { *m = QueryAllSequ
 func (m *QueryAllSequencersByRollappRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSequencersByRollappRequest) ProtoMessage()    {}
 func (*QueryAllSequencersByRollappRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{8}
+	return fileDescriptor_542ee756da0a7319, []int{9}
 }
 func (m *QueryAllSequencersByRollappRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -431,15 +493,15 @@ func (m *QueryAllSequencersByRollappRequest) GetPagination() *query.PageRequest 
 }
 
 type QueryAllSequencersByRollappResponse struct {
-	SequencersByRollapp []SequencersByRollapp `protobuf:"bytes,1,rep,name=sequencersByRollapp,proto3" json:"sequencersByRollapp"`
-	Pagination          *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	SequencersByRollapp []QueryGetSequencersByRollappResponse `protobuf:"bytes,1,rep,name=sequencersByRollapp,proto3" json:"sequencersByRollapp"`
+	Pagination          *query.PageResponse                   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllSequencersByRollappResponse) Reset()         { *m = QueryAllSequencersByRollappResponse{} }
 func (m *QueryAllSequencersByRollappResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSequencersByRollappResponse) ProtoMessage()    {}
 func (*QueryAllSequencersByRollappResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{9}
+	return fileDescriptor_542ee756da0a7319, []int{10}
 }
 func (m *QueryAllSequencersByRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -468,7 +530,7 @@ func (m *QueryAllSequencersByRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllSequencersByRollappResponse proto.InternalMessageInfo
 
-func (m *QueryAllSequencersByRollappResponse) GetSequencersByRollapp() []SequencersByRollapp {
+func (m *QueryAllSequencersByRollappResponse) GetSequencersByRollapp() []QueryGetSequencersByRollappResponse {
 	if m != nil {
 		return m.SequencersByRollapp
 	}
@@ -490,7 +552,7 @@ func (m *QueryGetSchedulerRequest) Reset()         { *m = QueryGetSchedulerReque
 func (m *QueryGetSchedulerRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSchedulerRequest) ProtoMessage()    {}
 func (*QueryGetSchedulerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{10}
+	return fileDescriptor_542ee756da0a7319, []int{11}
 }
 func (m *QueryGetSchedulerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -534,7 +596,7 @@ func (m *QueryGetSchedulerResponse) Reset()         { *m = QueryGetSchedulerResp
 func (m *QueryGetSchedulerResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetSchedulerResponse) ProtoMessage()    {}
 func (*QueryGetSchedulerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{11}
+	return fileDescriptor_542ee756da0a7319, []int{12}
 }
 func (m *QueryGetSchedulerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -578,7 +640,7 @@ func (m *QueryAllSchedulerRequest) Reset()         { *m = QueryAllSchedulerReque
 func (m *QueryAllSchedulerRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSchedulerRequest) ProtoMessage()    {}
 func (*QueryAllSchedulerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{12}
+	return fileDescriptor_542ee756da0a7319, []int{13}
 }
 func (m *QueryAllSchedulerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -623,7 +685,7 @@ func (m *QueryAllSchedulerResponse) Reset()         { *m = QueryAllSchedulerResp
 func (m *QueryAllSchedulerResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllSchedulerResponse) ProtoMessage()    {}
 func (*QueryAllSchedulerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_542ee756da0a7319, []int{13}
+	return fileDescriptor_542ee756da0a7319, []int{14}
 }
 func (m *QueryAllSchedulerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -667,6 +729,7 @@ func (m *QueryAllSchedulerResponse) GetPagination() *query.PageResponse {
 }
 
 func init() {
+	proto.RegisterType((*SequencerInfo)(nil), "dymensionxyz.dymension.sequencer.SequencerInfo")
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.sequencer.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.sequencer.QueryParamsResponse")
 	proto.RegisterType((*QueryGetSequencerRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencerRequest")
@@ -686,57 +749,60 @@ func init() {
 func init() { proto.RegisterFile("sequencer/query.proto", fileDescriptor_542ee756da0a7319) }
 
 var fileDescriptor_542ee756da0a7319 = []byte{
-	// 788 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0x41, 0x4f, 0xd4, 0x4c,
-	0x18, 0xde, 0xc2, 0xf7, 0x91, 0xec, 0xe0, 0xc1, 0x0c, 0x88, 0xb0, 0x92, 0x95, 0x8c, 0x51, 0x09,
-	0xc4, 0x56, 0x40, 0x62, 0xd4, 0x44, 0x05, 0x61, 0x89, 0x31, 0x46, 0x5c, 0x6f, 0x26, 0x86, 0xcc,
-	0x6e, 0x27, 0xa5, 0x49, 0xb7, 0x53, 0x3a, 0x5d, 0xc3, 0x4a, 0xb8, 0xf8, 0x0b, 0x4c, 0xf4, 0x3f,
-	0xe8, 0x1f, 0xf0, 0xe6, 0x0f, 0xe0, 0xe0, 0x81, 0xc4, 0x8b, 0x17, 0x8d, 0x01, 0xe3, 0xd5, 0xbf,
-	0x60, 0xb6, 0x33, 0x9d, 0xe9, 0x6e, 0x0b, 0xa5, 0xbb, 0x70, 0xeb, 0xce, 0xcc, 0xfb, 0xbc, 0xcf,
-	0xf3, 0xce, 0xfb, 0xcc, 0x0b, 0xe0, 0x02, 0x23, 0x5b, 0x4d, 0xe2, 0xd6, 0x89, 0x6f, 0x6c, 0x35,
-	0x89, 0xdf, 0xd2, 0x3d, 0x9f, 0x06, 0x14, 0x4e, 0x99, 0xad, 0x06, 0x71, 0x99, 0x4d, 0xdd, 0xed,
-	0xd6, 0x1b, 0x5d, 0xfe, 0xd0, 0xe5, 0xe9, 0xd2, 0xa8, 0x45, 0x2d, 0x1a, 0x1e, 0x36, 0xda, 0x5f,
-	0x3c, 0xae, 0x34, 0x69, 0x51, 0x6a, 0x39, 0xc4, 0xc0, 0x9e, 0x6d, 0x60, 0xd7, 0xa5, 0x01, 0x0e,
-	0x6c, 0xea, 0x32, 0xb1, 0x3b, 0x53, 0xa7, 0xac, 0x41, 0x99, 0x51, 0xc3, 0x8c, 0xf0, 0x74, 0xc6,
-	0xeb, 0xb9, 0x1a, 0x09, 0xf0, 0x9c, 0xe1, 0x61, 0xcb, 0x76, 0xc3, 0xc3, 0xe2, 0xec, 0x98, 0x22,
-	0xe6, 0x61, 0x1f, 0x37, 0x22, 0x8c, 0x09, 0xb5, 0x2e, 0xbf, 0xc4, 0xd6, 0xd5, 0x94, 0x2d, 0xb6,
-	0x51, 0x6b, 0x6d, 0xf8, 0xd4, 0x71, 0xb0, 0xe7, 0xa5, 0x20, 0xd4, 0x37, 0x89, 0xd9, 0x74, 0x24,
-	0xc2, 0x94, 0xda, 0xa2, 0x1e, 0xf1, 0x71, 0x60, 0xbb, 0xd6, 0x06, 0x0b, 0x70, 0xd0, 0x8c, 0xd2,
-	0x5f, 0x64, 0x9b, 0xd8, 0x27, 0x66, 0x2c, 0x81, 0xd8, 0xb8, 0xa4, 0x42, 0x4d, 0xc2, 0xea, 0xbe,
-	0xed, 0x29, 0x31, 0x68, 0x14, 0xc0, 0xe7, 0x6d, 0xb9, 0xeb, 0xa1, 0x92, 0x6a, 0xfb, 0x24, 0x0b,
-	0xd0, 0x2b, 0x30, 0xd2, 0xb1, 0xca, 0x3c, 0xea, 0x32, 0x02, 0x2b, 0x60, 0x88, 0x2b, 0x1e, 0xd7,
-	0xa6, 0xb4, 0xe9, 0xe1, 0xf9, 0x69, 0x3d, 0xeb, 0x32, 0x74, 0x8e, 0xb0, 0xfc, 0xdf, 0xde, 0xcf,
-	0xcb, 0x85, 0xaa, 0x88, 0x46, 0x15, 0x30, 0x1e, 0xc2, 0xaf, 0x91, 0xe0, 0x45, 0x74, 0x52, 0xa4,
-	0x86, 0x33, 0xe0, 0xbc, 0x8c, 0x5e, 0x32, 0x4d, 0x9f, 0x30, 0x9e, 0xad, 0x58, 0x4d, 0xac, 0x23,
-	0x07, 0x4c, 0xa4, 0xe0, 0x08, 0xb2, 0xcf, 0x40, 0x51, 0x06, 0x08, 0xbe, 0xb3, 0xd9, 0x7c, 0x25,
-	0x8e, 0xa0, 0xac, 0x30, 0x50, 0x4d, 0xb0, 0x5e, 0x72, 0x9c, 0x04, 0xeb, 0x0a, 0x00, 0xaa, 0x4f,
-	0x44, 0xb6, 0x6b, 0x3a, 0x6f, 0x2a, 0xbd, 0xdd, 0x54, 0x3a, 0xef, 0x61, 0xd1, 0x54, 0xfa, 0x3a,
-	0xb6, 0x88, 0x88, 0xad, 0xc6, 0x22, 0xd1, 0x67, 0x4d, 0x48, 0xea, 0x4c, 0x92, 0x2e, 0x69, 0xb0,
-	0x5f, 0x49, 0x70, 0xad, 0x83, 0xf6, 0x40, 0x48, 0xfb, 0x7a, 0x26, 0x6d, 0xce, 0xa6, 0x83, 0xf7,
-	0x32, 0x40, 0x89, 0x9b, 0x60, 0xcb, 0xad, 0x2a, 0x6f, 0xef, 0xa8, 0x4a, 0x93, 0xa0, 0x28, 0x1a,
-	0xfe, 0xb1, 0x29, 0x2e, 0x55, 0x2d, 0xa0, 0x0f, 0x1a, 0xb8, 0x72, 0x2c, 0x88, 0xa8, 0x42, 0x03,
-	0x8c, 0xb0, 0xe4, 0xb6, 0x28, 0xfa, 0x62, 0x8e, 0x7a, 0xa8, 0x60, 0x51, 0x99, 0x34, 0x5c, 0xe4,
-	0x08, 0x69, 0xf1, 0x1b, 0x49, 0x4a, 0x3b, 0xad, 0x06, 0xf8, 0x11, 0x15, 0xe1, 0xa8, 0x74, 0x59,
-	0x45, 0x18, 0x3c, 0x8b, 0x22, 0x9c, 0x5e, 0xa3, 0xc4, 0xad, 0x1f, 0x3d, 0x71, 0xfd, 0x5a, 0x5f,
-	0xe1, 0xc4, 0x7c, 0x12, 0x2d, 0xe6, 0xb0, 0x7e, 0x14, 0x22, 0x7d, 0x12, 0x2d, 0x74, 0x58, 0xbf,
-	0x9b, 0xf5, 0x99, 0x58, 0x3f, 0x4b, 0xd2, 0x60, 0xbf, 0x92, 0x4e, 0xed, 0x46, 0xe7, 0x3f, 0x0d,
-	0x83, 0xff, 0x43, 0xde, 0xf0, 0xa3, 0x06, 0x86, 0xf8, 0x7b, 0x0f, 0x6f, 0x65, 0x73, 0x4b, 0x8e,
-	0x9d, 0xd2, 0x62, 0xce, 0x28, 0xce, 0x06, 0xdd, 0x7c, 0xfb, 0xed, 0xf7, 0xfb, 0x81, 0x19, 0x38,
-	0x6d, 0xc4, 0xc3, 0xd5, 0x0f, 0xa3, 0x7b, 0x60, 0xc3, 0xaf, 0x1a, 0x28, 0x4a, 0x07, 0xc0, 0xbb,
-	0x27, 0x4c, 0x9b, 0x32, 0xae, 0x4a, 0xf7, 0x7a, 0x8a, 0x15, 0xc4, 0x2b, 0x21, 0xf1, 0x87, 0xf0,
-	0x7e, 0x36, 0x71, 0xf5, 0xb5, 0xd3, 0xed, 0x85, 0x5d, 0xf8, 0x45, 0x03, 0xe7, 0x24, 0xfa, 0x92,
-	0xe3, 0x9c, 0x58, 0x51, 0xca, 0x28, 0x3b, 0xb1, 0xa2, 0xb4, 0x09, 0x85, 0x16, 0x42, 0x45, 0x37,
-	0xe0, 0x6c, 0x0e, 0x45, 0xf0, 0xaf, 0x06, 0x46, 0x52, 0xde, 0x23, 0xb8, 0xd2, 0x43, 0x6d, 0x13,
-	0x2f, 0x73, 0x69, 0xb5, 0x4f, 0x14, 0xa1, 0xec, 0x49, 0xa8, 0x6c, 0x15, 0x3e, 0xca, 0xa1, 0x2c,
-	0xfe, 0x27, 0x9e, 0xb1, 0x23, 0x27, 0xdd, 0x2e, 0xfc, 0xa3, 0x81, 0xb1, 0x94, 0x64, 0xed, 0xab,
-	0x5b, 0xe9, 0xa1, 0xfc, 0xbd, 0x8b, 0x3e, 0x7e, 0xca, 0xa0, 0x07, 0xa1, 0xe8, 0x3b, 0xf0, 0x76,
-	0x8f, 0xa2, 0xb9, 0xd1, 0xe4, 0x9b, 0x93, 0xc7, 0x68, 0x5d, 0xcf, 0x6c, 0x2e, 0xa3, 0x75, 0xbf,
-	0x9e, 0xb9, 0x8c, 0x16, 0x05, 0x1f, 0x69, 0xb4, 0xe8, 0x40, 0x5e, 0xa3, 0xf5, 0xaa, 0x28, 0x6d,
-	0x1e, 0xe4, 0x32, 0x9a, 0x1c, 0x02, 0x4f, 0xf7, 0x0e, 0xca, 0xda, 0xfe, 0x41, 0x59, 0xfb, 0x75,
-	0x50, 0xd6, 0xde, 0x1d, 0x96, 0x0b, 0xfb, 0x87, 0xe5, 0xc2, 0xf7, 0xc3, 0x72, 0xe1, 0xe5, 0x82,
-	0x65, 0x07, 0x9b, 0xcd, 0x9a, 0x5e, 0xa7, 0x8d, 0xa3, 0x00, 0xb7, 0x63, 0x90, 0x41, 0xcb, 0x23,
-	0xac, 0x36, 0x14, 0xfe, 0x0b, 0xb1, 0xf0, 0x2f, 0x00, 0x00, 0xff, 0xff, 0x86, 0xef, 0xb9, 0x9f,
-	0xaa, 0x0d, 0x00, 0x00,
+	// 835 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0x41, 0x4f, 0x13, 0x4f,
+	0x14, 0xef, 0x94, 0xff, 0xbf, 0x49, 0x07, 0x31, 0x3a, 0x20, 0x29, 0x84, 0xd4, 0x66, 0x4c, 0xb4,
+	0x81, 0xb8, 0x2b, 0xa0, 0x31, 0x6a, 0xa2, 0x82, 0x50, 0x42, 0xd4, 0x80, 0xe5, 0xa6, 0x31, 0x64,
+	0xdb, 0x8e, 0x4b, 0x93, 0xed, 0xce, 0xd2, 0xd9, 0x1a, 0x2a, 0xe1, 0xe2, 0x27, 0x30, 0xf1, 0x43,
+	0x48, 0xe2, 0xd9, 0x9b, 0x1f, 0x00, 0x13, 0x0f, 0x24, 0x5e, 0x3c, 0x19, 0x03, 0xc6, 0x9b, 0xf1,
+	0x2b, 0x98, 0xee, 0xcc, 0xce, 0xee, 0xb6, 0x0b, 0xdb, 0x5d, 0x7a, 0xdb, 0xce, 0xbc, 0xf7, 0x7b,
+	0xef, 0xf7, 0xe6, 0xbd, 0xdf, 0x03, 0x78, 0x89, 0x91, 0xed, 0x16, 0x31, 0xab, 0xa4, 0xa9, 0x6e,
+	0xb7, 0x48, 0xb3, 0xad, 0x58, 0x4d, 0x6a, 0x53, 0x54, 0xa8, 0xb5, 0x1b, 0xc4, 0x64, 0x75, 0x6a,
+	0xee, 0xb4, 0xdf, 0x28, 0xf2, 0x87, 0x22, 0xad, 0x27, 0xc7, 0x74, 0xaa, 0x53, 0xc7, 0x58, 0xed,
+	0x7c, 0x71, 0xbf, 0xc9, 0x29, 0x9d, 0x52, 0xdd, 0x20, 0xaa, 0x66, 0xd5, 0x55, 0xcd, 0x34, 0xa9,
+	0xad, 0xd9, 0x75, 0x6a, 0x32, 0x71, 0x3b, 0x5d, 0xa5, 0xac, 0x41, 0x99, 0x5a, 0xd1, 0x18, 0xe1,
+	0xe1, 0xd4, 0xd7, 0xb3, 0x15, 0x62, 0x6b, 0xb3, 0xaa, 0xa5, 0xe9, 0x75, 0xd3, 0x31, 0x16, 0xb6,
+	0xe3, 0x5e, 0x62, 0x96, 0xd6, 0xd4, 0x1a, 0x2e, 0xc6, 0x84, 0x77, 0x2e, 0xbf, 0x42, 0xae, 0xaa,
+	0x5b, 0xa4, 0xd6, 0x32, 0xe4, 0x55, 0xc1, 0xbb, 0xa2, 0x16, 0x69, 0x6a, 0x76, 0xdd, 0xd4, 0x37,
+	0x99, 0xad, 0xd9, 0x2d, 0x81, 0x8b, 0x3f, 0x02, 0x38, 0xb2, 0xe1, 0x1a, 0xad, 0x9a, 0xaf, 0x28,
+	0x5a, 0x83, 0x59, 0xe9, 0x95, 0x03, 0x05, 0x50, 0x1c, 0x9e, 0x9b, 0x51, 0xa2, 0xea, 0xa2, 0x48,
+	0x8c, 0xc5, 0xff, 0x0e, 0x7e, 0x5c, 0x4e, 0x95, 0x3d, 0x0c, 0xb4, 0x0a, 0x33, 0x3c, 0x64, 0x2e,
+	0x5d, 0x00, 0xc5, 0xf3, 0x73, 0xb3, 0xd1, 0x68, 0x6b, 0x6e, 0xb2, 0x1b, 0x8e, 0x63, 0x59, 0x00,
+	0xe0, 0x31, 0x88, 0x9e, 0x75, 0xea, 0xb7, 0xee, 0x94, 0xa6, 0xdc, 0xb1, 0x67, 0x36, 0x7e, 0x09,
+	0x47, 0x03, 0xa7, 0xcc, 0xa2, 0x26, 0x23, 0xa8, 0x04, 0x33, 0xbc, 0x84, 0x82, 0x45, 0x31, 0x3a,
+	0x2e, 0x47, 0x10, 0x14, 0x84, 0x37, 0x2e, 0xc1, 0x9c, 0x03, 0xbf, 0x42, 0x6c, 0xc9, 0x52, 0x84,
+	0x46, 0xd3, 0xf0, 0x82, 0xf4, 0x5e, 0xa8, 0xd5, 0x9a, 0x84, 0xf1, 0x68, 0xd9, 0x72, 0xcf, 0x39,
+	0xde, 0x81, 0x13, 0x21, 0x38, 0x22, 0xd9, 0x17, 0x70, 0x84, 0xf9, 0x9f, 0x41, 0xe4, 0xac, 0xc6,
+	0xa8, 0x7c, 0xc7, 0x4d, 0xa4, 0x1e, 0xc4, 0xc2, 0x15, 0xc1, 0x60, 0xc1, 0x30, 0x7a, 0x18, 0x94,
+	0x20, 0xf4, 0x9a, 0x50, 0x44, 0xbd, 0xaa, 0xf0, 0x8e, 0x55, 0x3a, 0x1d, 0xab, 0xf0, 0x01, 0x11,
+	0x1d, 0xab, 0xac, 0x6b, 0x3a, 0x11, 0xbe, 0x65, 0x9f, 0x27, 0xfe, 0x02, 0x04, 0xbd, 0x60, 0x10,
+	0x41, 0xaf, 0x0a, 0x2f, 0x06, 0x52, 0x7a, 0x52, 0x67, 0x76, 0x0e, 0x14, 0x86, 0x92, 0x53, 0xec,
+	0xc5, 0x43, 0x2b, 0x01, 0x2a, 0x69, 0x87, 0xca, 0xb5, 0x48, 0x2a, 0x3c, 0xc3, 0x00, 0x97, 0x45,
+	0x88, 0x7b, 0x5e, 0x8a, 0x2d, 0xb6, 0xcb, 0xd4, 0x30, 0x34, 0xcb, 0x72, 0x2b, 0x37, 0x05, 0xb3,
+	0x4d, 0x7e, 0xb2, 0x5a, 0x13, 0x8f, 0xee, 0x1d, 0xe0, 0x7d, 0x00, 0xaf, 0x9c, 0x0a, 0x22, 0x2a,
+	0x73, 0x2a, 0x4a, 0x78, 0xdd, 0xd2, 0x83, 0xad, 0x1b, 0x36, 0x04, 0x5d, 0xff, 0xcb, 0xf5, 0xd2,
+	0x1d, 0x54, 0xa3, 0xfc, 0x71, 0x0b, 0x73, 0x52, 0x38, 0x51, 0x98, 0x3d, 0x38, 0xca, 0x7a, 0xaf,
+	0x45, 0xd3, 0x2c, 0x47, 0x93, 0xef, 0xa3, 0xf8, 0xa2, 0x24, 0x61, 0x71, 0x06, 0xd7, 0x4c, 0x7e,
+	0xf9, 0x70, 0xe5, 0x39, 0x89, 0x7c, 0x18, 0x3e, 0xf9, 0xf0, 0x70, 0x44, 0xb1, 0x3a, 0xa2, 0xed,
+	0x1e, 0xc6, 0x10, 0x6d, 0xd7, 0x45, 0x8a, 0xb6, 0x7b, 0x10, 0x90, 0x8c, 0xee, 0xac, 0x07, 0xd5,
+	0x09, 0x9f, 0xfc, 0x92, 0x11, 0x45, 0x69, 0xe8, 0xac, 0x94, 0x06, 0xf6, 0xa2, 0x73, 0xfb, 0xc3,
+	0xf0, 0x7f, 0x27, 0x6f, 0xf4, 0x01, 0xc0, 0x0c, 0xdf, 0x19, 0xe8, 0x66, 0x9f, 0x1d, 0x19, 0x58,
+	0x5d, 0x93, 0xb7, 0x62, 0x7a, 0xf1, 0x6c, 0xf0, 0x8d, 0xb7, 0xdf, 0x7e, 0xbd, 0x4f, 0x4f, 0xa3,
+	0xa2, 0xea, 0x77, 0xf7, 0x7e, 0xa8, 0xdd, 0x7f, 0x45, 0xa0, 0xaf, 0x00, 0x66, 0xe5, 0x24, 0xa0,
+	0xbb, 0x09, 0xc6, 0xc7, 0x4d, 0xf9, 0x5e, 0x22, 0x5f, 0x91, 0x78, 0xc9, 0x49, 0xfc, 0x21, 0xba,
+	0x1f, 0x9d, 0xb8, 0xf7, 0xb5, 0xdb, 0x3d, 0x0b, 0x7b, 0xe8, 0x33, 0x80, 0xe7, 0x24, 0xfa, 0x82,
+	0x61, 0xf4, 0xcd, 0x28, 0x64, 0x05, 0xf6, 0xcd, 0x28, 0x6c, 0xb3, 0xe1, 0x79, 0x87, 0xd1, 0x75,
+	0x34, 0x13, 0x83, 0x11, 0xfa, 0x0b, 0xe0, 0x68, 0x88, 0x2e, 0xa1, 0xa5, 0x33, 0xca, 0x1a, 0xe7,
+	0x33, 0x18, 0x71, 0xc4, 0x8f, 0x1d, 0x66, 0xcb, 0xe8, 0x51, 0x0c, 0x66, 0x6c, 0xb3, 0xd2, 0xde,
+	0x14, 0xeb, 0x4b, 0xdd, 0x95, 0x7b, 0x6c, 0x0f, 0xfd, 0x06, 0x70, 0x3c, 0x24, 0x58, 0xe7, 0xe9,
+	0x96, 0x12, 0x94, 0x3f, 0x39, 0xe9, 0xd3, 0xb7, 0x0e, 0x7e, 0xe0, 0x90, 0xbe, 0x83, 0x6e, 0x27,
+	0x24, 0xcd, 0x07, 0x4d, 0x6a, 0x4e, 0x9c, 0x41, 0xeb, 0x92, 0xd9, 0x58, 0x83, 0xd6, 0xad, 0x9e,
+	0xb1, 0x06, 0xcd, 0x75, 0x3e, 0x71, 0xd0, 0x5c, 0x83, 0xb8, 0x83, 0x96, 0x94, 0x51, 0xd8, 0x3e,
+	0x88, 0x35, 0x68, 0x72, 0x09, 0x3c, 0x3d, 0x38, 0xca, 0x83, 0xc3, 0xa3, 0x3c, 0xf8, 0x79, 0x94,
+	0x07, 0xef, 0x8e, 0xf3, 0xa9, 0xc3, 0xe3, 0x7c, 0xea, 0xfb, 0x71, 0x3e, 0xf5, 0x7c, 0x5e, 0xaf,
+	0xdb, 0x5b, 0xad, 0x8a, 0x52, 0xa5, 0x8d, 0x93, 0x00, 0x77, 0x7c, 0x90, 0x76, 0xdb, 0x22, 0xac,
+	0x92, 0x71, 0xfe, 0x69, 0x9a, 0xff, 0x17, 0x00, 0x00, 0xff, 0xff, 0x5b, 0x37, 0xef, 0x18, 0x3f,
+	0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1049,6 +1115,44 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	Metadata: "sequencer/query.proto",
 }
 
+func (m *SequencerInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SequencerInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SequencerInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Status != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x10
+	}
+	{
+		size, err := m.Sequencer.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryParamsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1156,7 +1260,7 @@ func (m *QueryGetSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	var l int
 	_ = l
 	{
-		size, err := m.Sequencer.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.SequencerInfo.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -1235,10 +1339,10 @@ func (m *QueryAllSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Sequencer) > 0 {
-		for iNdEx := len(m.Sequencer) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.SequencerInfoList) > 0 {
+		for iNdEx := len(m.SequencerInfoList) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Sequencer[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.SequencerInfoList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1302,16 +1406,27 @@ func (m *QueryGetSequencersByRollappResponse) MarshalToSizedBuffer(dAtA []byte) 
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.SequencersByRollapp.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if len(m.SequencerInfoList) > 0 {
+		for iNdEx := len(m.SequencerInfoList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SequencerInfoList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
 		}
-		i -= size
-		i = encodeVarintQuery(dAtA, i, uint64(size))
 	}
-	i--
-	dAtA[i] = 0xa
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -1557,6 +1672,20 @@ func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *SequencerInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Sequencer.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	if m.Status != 0 {
+		n += 1 + sovQuery(uint64(m.Status))
+	}
+	return n
+}
+
 func (m *QueryParamsRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1596,7 +1725,7 @@ func (m *QueryGetSequencerResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Sequencer.Size()
+	l = m.SequencerInfo.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
@@ -1620,8 +1749,8 @@ func (m *QueryAllSequencerResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Sequencer) > 0 {
-		for _, e := range m.Sequencer {
+	if len(m.SequencerInfoList) > 0 {
+		for _, e := range m.SequencerInfoList {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -1652,8 +1781,16 @@ func (m *QueryGetSequencersByRollappResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.SequencersByRollapp.Size()
-	n += 1 + l + sovQuery(uint64(l))
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if len(m.SequencerInfoList) > 0 {
+		for _, e := range m.SequencerInfoList {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -1750,6 +1887,108 @@ func sovQuery(x uint64) (n int) {
 }
 func sozQuery(x uint64) (n int) {
 	return sovQuery(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *SequencerInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SequencerInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SequencerInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Sequencer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= OperatingStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *QueryParamsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
@@ -1997,7 +2236,7 @@ func (m *QueryGetSequencerResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SequencerInfo", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2024,7 +2263,7 @@ func (m *QueryGetSequencerResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.Sequencer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.SequencerInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2166,7 +2405,7 @@ func (m *QueryAllSequencerResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sequencer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SequencerInfoList", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2193,8 +2432,8 @@ func (m *QueryAllSequencerResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sequencer = append(m.Sequencer, Sequencer{})
-			if err := m.Sequencer[len(m.Sequencer)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.SequencerInfoList = append(m.SequencerInfoList, SequencerInfo{})
+			if err := m.SequencerInfoList[len(m.SequencerInfoList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2368,7 +2607,39 @@ func (m *QueryGetSequencersByRollappResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SequencersByRollapp", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SequencerInfoList", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2395,7 +2666,8 @@ func (m *QueryGetSequencersByRollappResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.SequencersByRollapp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.SequencerInfoList = append(m.SequencerInfoList, SequencerInfo{})
+			if err := m.SequencerInfoList[len(m.SequencerInfoList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2564,7 +2836,7 @@ func (m *QueryAllSequencersByRollappResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.SequencersByRollapp = append(m.SequencersByRollapp, SequencersByRollapp{})
+			m.SequencersByRollapp = append(m.SequencersByRollapp, QueryGetSequencersByRollappResponse{})
 			if err := m.SequencersByRollapp[len(m.SequencersByRollapp)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

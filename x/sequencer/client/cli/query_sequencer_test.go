@@ -33,7 +33,13 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 		}
 		nullify.Fill(&sequencer)
 		state.SequencerList = append(state.SequencerList, sequencer)
+		scheduler := types.Scheduler{
+			SequencerAddress: sequencer.SequencerAddress,
+		}
+		nullify.Fill(&scheduler)
+		state.SchedulerList = append(state.SchedulerList, scheduler)
 	}
+
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
@@ -53,14 +59,17 @@ func TestShowSequencer(t *testing.T) {
 
 		args []string
 		err  error
-		obj  types.Sequencer
+		obj  types.SequencerInfo
 	}{
 		{
 			desc:               "found",
 			idSequencerAddress: objs[0].SequencerAddress,
 
 			args: common,
-			obj:  objs[0],
+			obj: types.SequencerInfo{
+				Sequencer: objs[0],
+				Status:    0,
+			},
 		},
 		{
 			desc:               "not found",
@@ -84,10 +93,10 @@ func TestShowSequencer(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencerResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.Sequencer)
+				require.NotNil(t, resp.SequencerInfo)
 				require.Equal(t,
-					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.Sequencer),
+					&tc.obj,
+					&resp.SequencerInfo,
 				)
 			}
 		})
@@ -96,6 +105,14 @@ func TestShowSequencer(t *testing.T) {
 
 func TestListSequencer(t *testing.T) {
 	net, objs := networkWithSequencerObjects(t, 5)
+
+	var sequencerInfoList []types.SequencerInfo
+	for _, obj := range objs {
+		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
+			Sequencer: obj,
+			Status:    0,
+		})
+	}
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -121,10 +138,10 @@ func TestListSequencer(t *testing.T) {
 			require.NoError(t, err)
 			var resp types.QueryAllSequencerResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.Sequencer), step)
+			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
 			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.Sequencer),
+				sequencerInfoList,
+				resp.SequencerInfoList,
 			)
 		}
 	})
@@ -137,10 +154,10 @@ func TestListSequencer(t *testing.T) {
 			require.NoError(t, err)
 			var resp types.QueryAllSequencerResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.Sequencer), step)
+			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
 			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.Sequencer),
+				sequencerInfoList,
+				resp.SequencerInfoList,
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -154,8 +171,8 @@ func TestListSequencer(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
-			nullify.Fill(objs),
-			nullify.Fill(resp.Sequencer),
+			sequencerInfoList,
+			resp.SequencerInfoList,
 		)
 	})
 }

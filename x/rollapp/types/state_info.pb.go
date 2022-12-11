@@ -33,7 +33,7 @@ type StateInfoIndex struct {
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	// latestStateInfoIndex is a sequential increasing number, updating on each
-	// state update used for indexing to a specific state info
+	// state update used for indexing to a specific state info, the first index is 1
 	Index uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 }
 

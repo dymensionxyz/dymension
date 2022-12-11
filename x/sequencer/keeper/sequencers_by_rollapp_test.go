@@ -19,6 +19,10 @@ func createNSequencersByRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) [
 	items := make([]types.SequencersByRollapp, n)
 	for i := range items {
 		items[i].RollappId = strconv.Itoa(i)
+		sequencers := createNSequencer(keeper, ctx, n)
+		for _, sequencer := range sequencers {
+			items[i].Sequencers.Addresses = append(items[i].Sequencers.Addresses, sequencer.SequencerAddress)
+		}
 
 		keeper.SetSequencersByRollapp(ctx, items[i])
 	}

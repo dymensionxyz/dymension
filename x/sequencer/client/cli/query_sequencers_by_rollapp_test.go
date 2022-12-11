@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/network"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
 	"github.com/dymensionxyz/dymension/x/sequencer/client/cli"
@@ -21,27 +22,52 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, []types.SequencersByRollapp) {
+func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, []types.QueryGetSequencersByRollappResponse) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
+	var allSequencersByRollappResponse []types.QueryGetSequencersByRollappResponse
+
 	for i := 0; i < n; i++ {
+		sequencer := types.Sequencer{
+			SequencerAddress: strconv.Itoa(i),
+		}
+		nullify.Fill(&sequencer)
+		state.SequencerList = append(state.SequencerList, sequencer)
+
+		scheduler := types.Scheduler{
+			SequencerAddress: sequencer.SequencerAddress,
+		}
+		nullify.Fill(&scheduler)
+		state.SchedulerList = append(state.SchedulerList, scheduler)
+
 		sequencersByRollapp := types.SequencersByRollapp{
 			RollappId: strconv.Itoa(i),
+			Sequencers: sharedtypes.Sequencers{
+				Addresses: []string{sequencer.SequencerAddress},
+			},
 		}
-		nullify.Fill(&sequencersByRollapp)
 		state.SequencersByRollappList = append(state.SequencersByRollappList, sequencersByRollapp)
+
+		sequencersByRollappResponse := types.QueryGetSequencersByRollappResponse{
+			RollappId: sequencersByRollapp.RollappId,
+			SequencerInfoList: []types.SequencerInfo{{
+				Sequencer: sequencer,
+				Status:    0,
+			}},
+		}
+		allSequencersByRollappResponse = append(allSequencersByRollappResponse, sequencersByRollappResponse)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.SequencersByRollappList
+	return network.New(t, cfg), allSequencersByRollappResponse
 }
 
 func TestShowSequencersByRollapp(t *testing.T) {
-	net, objs := networkWithSequencersByRollappObjects(t, 2)
+	net, allSequencersByRollappResponse := networkWithSequencersByRollappObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
@@ -53,14 +79,14 @@ func TestShowSequencersByRollapp(t *testing.T) {
 
 		args []string
 		err  error
-		obj  types.SequencersByRollapp
+		obj  types.QueryGetSequencersByRollappResponse
 	}{
 		{
 			desc:        "found",
-			idRollappId: objs[0].RollappId,
+			idRollappId: allSequencersByRollappResponse[0].RollappId,
 
 			args: common,
-			obj:  objs[0],
+			obj:  allSequencersByRollappResponse[0],
 		},
 		{
 			desc:        "not found",
@@ -84,10 +110,10 @@ func TestShowSequencersByRollapp(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencersByRollappResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.SequencersByRollapp)
+				require.NotNil(t, resp.SequencerInfoList)
 				require.Equal(t,
-					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.SequencersByRollapp),
+					tc.obj,
+					resp,
 				)
 			}
 		})
@@ -95,7 +121,7 @@ func TestShowSequencersByRollapp(t *testing.T) {
 }
 
 func TestListSequencersByRollapp(t *testing.T) {
-	net, objs := networkWithSequencersByRollappObjects(t, 5)
+	net, allSequencersByRollappResponse := networkWithSequencersByRollappObjects(t, 5)
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -115,7 +141,7 @@ func TestListSequencersByRollapp(t *testing.T) {
 	}
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
-		for i := 0; i < len(objs); i += step {
+		for i := 0; i < len(allSequencersByRollappResponse); i += step {
 			args := request(nil, uint64(i), uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
 			require.NoError(t, err)
@@ -123,15 +149,15 @@ func TestListSequencersByRollapp(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
 			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.SequencersByRollapp),
+				allSequencersByRollappResponse,
+				resp.SequencersByRollapp,
 			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
 		step := 2
 		var next []byte
-		for i := 0; i < len(objs); i += step {
+		for i := 0; i < len(allSequencersByRollappResponse); i += step {
 			args := request(next, 0, uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
 			require.NoError(t, err)
@@ -139,23 +165,22 @@ func TestListSequencersByRollapp(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
 			require.Subset(t,
-				nullify.Fill(objs),
-				nullify.Fill(resp.SequencersByRollapp),
+				allSequencersByRollappResponse,
+				resp.SequencersByRollapp,
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		args := request(nil, 0, uint64(len(objs)), true)
+		args := request(nil, 0, uint64(len(allSequencersByRollappResponse)), true)
 		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
 		require.NoError(t, err)
 		var resp types.QueryAllSequencersByRollappResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-		require.NoError(t, err)
-		require.Equal(t, len(objs), int(resp.Pagination.Total))
+		require.Equal(t, len(allSequencersByRollappResponse), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
-			nullify.Fill(objs),
-			nullify.Fill(resp.SequencersByRollapp),
+			allSequencersByRollappResponse,
+			resp.SequencersByRollapp,
 		)
 	})
 }
