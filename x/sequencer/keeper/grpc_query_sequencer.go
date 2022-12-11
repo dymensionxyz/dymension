@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	"google.golang.org/grpc/codes"
@@ -16,11 +17,12 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var sequencers []types.Sequencer
+	var sequencerInfoList []types.SequencerInfo
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
 	sequencerStore := prefix.NewStore(store, types.KeyPrefix(types.SequencerKeyPrefix))
+	schedulerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		var sequencer types.Sequencer
@@ -28,7 +30,21 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 			return err
 		}
 
-		sequencers = append(sequencers, sequencer)
+		var scheduler types.Scheduler
+		schedulerVal := schedulerStore.Get(types.SchedulerKey(
+			sequencer.SequencerAddress,
+		))
+		if schedulerVal == nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
+		}
+		k.cdc.MustUnmarshal(schedulerVal, &scheduler)
+
+		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
+			Sequencer: sequencer,
+			Status:    scheduler.Status,
+		})
+
 		return nil
 	})
 
@@ -36,7 +52,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllSequencerResponse{Sequencer: sequencers, Pagination: pageRes}, nil
+	return &types.QueryAllSequencerResponse{SequencerInfoList: sequencerInfoList, Pagination: pageRes}, nil
 }
 
 func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest) (*types.QueryGetSequencerResponse, error) {
@@ -53,5 +69,18 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetSequencerResponse{Sequencer: val}, nil
+	scheduler, found := k.GetScheduler(
+		ctx,
+		req.SequencerAddress,
+	)
+	if !found {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			"scheduler was not found for sequencer %s", req.SequencerAddress)
+	}
+
+	sequencerInfo := types.SequencerInfo{
+		Sequencer: val,
+		Status:    scheduler.Status,
+	}
+	return &types.QueryGetSequencerResponse{SequencerInfo: sequencerInfo}, nil
 }

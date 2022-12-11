@@ -6,12 +6,9 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "sequencer/params.proto";
 import "sequencer/sequencer.proto";
-import "sequencer/sequencers_by_rollapp.proto";
 import "sequencer/scheduler.proto";
 // this line is used by starport scaffolding # 1
 import "sequencer/operating_status.proto";
-import "shared/sequencers.proto";
-import "sequencer/description.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 
@@ -54,6 +51,14 @@ service Query {
 // this line is used by starport scaffolding # 2
 }
 
+// SequencerInfo holds information for user query.
+message SequencerInfo {
+  // basic sequencer info
+  Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+  // sequencers' operating status
+  OperatingStatus status = 2;
+}
+  
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
@@ -69,7 +74,7 @@ message QueryGetSequencerRequest {
 }
 
 message QueryGetSequencerResponse {
-	Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+	SequencerInfo sequencerInfo = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllSequencerRequest {
@@ -77,7 +82,7 @@ message QueryAllSequencerRequest {
 }
 
 message QueryAllSequencerResponse {
-	repeated Sequencer sequencer = 1 [(gogoproto.nullable) = false];
+	repeated SequencerInfo sequencerInfoList = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -87,7 +92,8 @@ message QueryGetSequencersByRollappRequest {
 }
 
 message QueryGetSequencersByRollappResponse {
-	SequencersByRollapp sequencersByRollapp = 1 [(gogoproto.nullable) = false];
+	string rollappId = 1;
+	repeated SequencerInfo sequencerInfoList = 2 [(gogoproto.nullable) = false];
 }
 
 message QueryAllSequencersByRollappRequest {
@@ -95,7 +101,7 @@ message QueryAllSequencersByRollappRequest {
 }
 
 message QueryAllSequencersByRollappResponse {
-	repeated SequencersByRollapp sequencersByRollapp = 1 [(gogoproto.nullable) = false];
+	repeated QueryGetSequencersByRollappResponse sequencersByRollapp = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 

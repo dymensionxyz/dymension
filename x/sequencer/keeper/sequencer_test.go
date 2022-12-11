@@ -21,6 +21,13 @@ func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Seq
 		items[i].SequencerAddress = strconv.Itoa(i)
 
 		keeper.SetSequencer(ctx, items[i])
+
+		scheduler := types.Scheduler{
+			SequencerAddress: items[i].SequencerAddress,
+			Status:           types.Unspecified,
+		}
+
+		keeper.SetScheduler(ctx, scheduler)
 	}
 	return items
 }
@@ -47,6 +54,14 @@ func TestSequencerRemove(t *testing.T) {
 			item.SequencerAddress,
 		)
 		_, found := keeper.GetSequencer(ctx,
+			item.SequencerAddress,
+		)
+		require.False(t, found)
+
+		keeper.RemoveScheduler(ctx,
+			item.SequencerAddress,
+		)
+		_, found = keeper.GetScheduler(ctx,
 			item.SequencerAddress,
 		)
 		require.False(t, found)

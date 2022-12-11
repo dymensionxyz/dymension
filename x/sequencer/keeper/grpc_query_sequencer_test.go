@@ -21,7 +21,7 @@ var _ = strconv.IntSize
 func TestSequencerQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNSequencer(keeper, ctx, 2)
+	sequencers := createNSequencer(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetSequencerRequest
@@ -31,16 +31,25 @@ func TestSequencerQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetSequencerRequest{
-				SequencerAddress: msgs[0].SequencerAddress,
+				SequencerAddress: sequencers[0].SequencerAddress,
 			},
-			response: &types.QueryGetSequencerResponse{Sequencer: msgs[0]},
-		},
+			response: &types.QueryGetSequencerResponse{
+				SequencerInfo: types.SequencerInfo{
+					Sequencer: sequencers[0],
+					Status:    0,
+				},
+			}},
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencerRequest{
-				SequencerAddress: msgs[1].SequencerAddress,
+				SequencerAddress: sequencers[1].SequencerAddress,
 			},
-			response: &types.QueryGetSequencerResponse{Sequencer: msgs[1]},
+			response: &types.QueryGetSequencerResponse{
+				SequencerInfo: types.SequencerInfo{
+					Sequencer: sequencers[1],
+					Status:    0,
+				},
+			},
 		},
 		{
 			desc: "KeyNotFound",
@@ -72,7 +81,14 @@ func TestSequencerQuerySingle(t *testing.T) {
 func TestSequencerQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNSequencer(keeper, ctx, 5)
+	sequencers := createNSequencer(keeper, ctx, 5)
+	var sequencerInfoList []types.SequencerInfo
+	for _, sequencer := range sequencers {
+		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
+			Sequencer: sequencer,
+			Status:    types.Unspecified,
+		})
+	}
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllSequencerRequest {
 		return &types.QueryAllSequencerRequest{
@@ -86,26 +102,26 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	}
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
-		for i := 0; i < len(msgs); i += step {
+		for i := 0; i < len(sequencerInfoList); i += step {
 			resp, err := keeper.SequencerAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.Sequencer), step)
+			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
 			require.Subset(t,
-				nullify.Fill(msgs),
-				nullify.Fill(resp.Sequencer),
+				nullify.Fill(sequencerInfoList),
+				nullify.Fill(resp.SequencerInfoList),
 			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
 		step := 2
 		var next []byte
-		for i := 0; i < len(msgs); i += step {
+		for i := 0; i < len(sequencerInfoList); i += step {
 			resp, err := keeper.SequencerAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.Sequencer), step)
+			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
 			require.Subset(t,
-				nullify.Fill(msgs),
-				nullify.Fill(resp.Sequencer),
+				nullify.Fill(sequencerInfoList),
+				nullify.Fill(resp.SequencerInfoList),
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -113,10 +129,10 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	t.Run("Total", func(t *testing.T) {
 		resp, err := keeper.SequencerAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
-		require.Equal(t, len(msgs), int(resp.Pagination.Total))
+		require.Equal(t, len(sequencerInfoList), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
-			nullify.Fill(msgs),
-			nullify.Fill(resp.Sequencer),
+			nullify.Fill(sequencerInfoList),
+			nullify.Fill(resp.SequencerInfoList),
 		)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
