@@ -58,7 +58,7 @@ service Query {
 	}
 
 // Queries a list of LatestFinalizedStateInfo items.
-	rpc LatestFinalizedStateInfo(QueryLatestFinalizedStateInfoRequest) returns (QueryLatestFinalizedStateInfoResponse) {
+	rpc LatestFinalizedStateInfo(QueryGetLatestFinalizedStateInfoRequest) returns (QueryGetLatestFinalizedStateInfoResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_finalized_state_info/{rollappId}";
 	}
 
@@ -146,12 +146,12 @@ message QueryAllBlockHeightToFinalizationQueueResponse {
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryLatestFinalizedStateInfoRequest {
+message QueryGetLatestFinalizedStateInfoRequest {
   string rollappId = 1;
 }
 
-message QueryLatestFinalizedStateInfoResponse {
-  StateInfo stateInfo = 1;
+message QueryGetLatestFinalizedStateInfoResponse {
+  StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3

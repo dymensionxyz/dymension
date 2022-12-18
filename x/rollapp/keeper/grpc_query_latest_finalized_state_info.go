@@ -9,15 +9,31 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) LatestFinalizedStateInfo(goCtx context.Context, req *types.QueryLatestFinalizedStateInfoRequest) (*types.QueryLatestFinalizedStateInfoResponse, error) {
+func (k Keeper) LatestFinalizedStateInfo(goCtx context.Context, req *types.QueryGetLatestFinalizedStateInfoRequest) (*types.QueryGetLatestFinalizedStateInfoResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: Process the query
-	_ = ctx
+	stateInfoIndex, found := k.GetLatestFinalizedStateIndex(
+		ctx,
+		req.RollappId,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "LatestFinalizedStateIndex not found")
+	}
 
-	return &types.QueryLatestFinalizedStateInfoResponse{}, nil
+	stateInfo, found := k.GetStateInfo(
+		ctx,
+		stateInfoIndex.RollappId,
+		stateInfoIndex.Index,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "StateInfo not found")
+	}
+
+	return &types.QueryGetLatestFinalizedStateInfoResponse{
+		StateInfo: stateInfo,
+	}, nil
 }

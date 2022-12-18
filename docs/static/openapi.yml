@@ -51712,102 +51712,7 @@ definitions:
         title: >-
           BlockHeightToFinalizationQueue defines a map from block height to list
           of states to finalized
-  dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexResponse:
-    type: object
-    properties:
-      latestStateInfoIndex:
-        type: object
-        properties:
-          rollappId:
-            type: string
-            title: >-
-              rollappId is the rollapp that the sequencer belongs to and asking
-              to update
-
-              it used to identify the what rollapp a StateInfo belongs
-
-              The rollappId follows the same standard as cosmos chain_id
-          index:
-            type: string
-            format: uint64
-            title: >-
-              index is a sequential increasing number, updating on each
-
-              state update used for indexing to a specific state info, the first
-              index is 1
-        title: >-
-          StateInfoIndex is the data used for indexing and retrieving a
-          StateInfo 
-
-          it updated and saved with every UpdateState in StateInfo.
-
-          We use the this structure also for:
-
-          1. LatestStateInfoIndex which defines the rollapps' current (latest)
-          index of the last UpdateState 
-
-          2. LatestFinalizedStateIndex which defines the rollapps' current
-          (latest) index of the latest StateInfo that was finalized
-  dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
-    type: object
-    properties:
-      rollapp:
-        type: object
-        properties:
-          rollappId:
-            type: string
-            description: |-
-              rollappId is the unique identifier of the rollapp chain.
-              The rollappId follows the same standard as cosmos chain_id.
-          creator:
-            type: string
-            description: creator is the bech32-encoded address of the rollapp creator.
-          version:
-            type: string
-            format: uint64
-            title: |-
-              version is the software and configuration version.
-              starts from 1 and increases by one on every MsgUpdateState
-          codeStamp:
-            type: string
-            description: >-
-              codeStamp is a generated hash for unique identification of the
-              rollapp code.
-          genesisPath:
-            type: string
-            description: >-
-              genesisPath is the description of the genesis file location on the
-              DA.
-          maxWithholdingBlocks:
-            type: string
-            format: uint64
-            description: |-
-              maxWithholdingBlocks is the maximum number of blocks for
-              an active sequencer to send a state update (MsgUpdateState).
-          maxSequencers:
-            type: string
-            format: uint64
-            description: maxSequencers is the maximum number of sequencers.
-          permissionedAddresses:
-            description: >-
-              permissionedAddresses is a bech32-encoded address list of the 
-
-              sequencers that are allowed to serve this rollappId. 
-
-              In the case of an empty list, the rollapp is considered
-              permissionless.
-            type: object
-            properties:
-              addresses:
-                type: array
-                items:
-                  type: string
-        title: >-
-          Rollapp defines a rollapp object. First rollapp is create and then
-
-          sequencers can be create and attach to it. Rollapp is identified by
-          rollappId
-  dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
+  dymensionxyz.dymension.rollapp.QueryGetLatestFinalizedStateInfoResponse:
     type: object
     properties:
       stateInfo:
@@ -51914,7 +51819,102 @@ definitions:
                     description.
             description: BlockDescriptors defines list of BlockDescriptor.
         description: StateInfo defines a rollapps' state.
-  dymensionxyz.dymension.rollapp.QueryLatestFinalizedStateInfoResponse:
+  dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexResponse:
+    type: object
+    properties:
+      latestStateInfoIndex:
+        type: object
+        properties:
+          rollappId:
+            type: string
+            title: >-
+              rollappId is the rollapp that the sequencer belongs to and asking
+              to update
+
+              it used to identify the what rollapp a StateInfo belongs
+
+              The rollappId follows the same standard as cosmos chain_id
+          index:
+            type: string
+            format: uint64
+            title: >-
+              index is a sequential increasing number, updating on each
+
+              state update used for indexing to a specific state info, the first
+              index is 1
+        title: >-
+          StateInfoIndex is the data used for indexing and retrieving a
+          StateInfo 
+
+          it updated and saved with every UpdateState in StateInfo.
+
+          We use the this structure also for:
+
+          1. LatestStateInfoIndex which defines the rollapps' current (latest)
+          index of the last UpdateState 
+
+          2. LatestFinalizedStateIndex which defines the rollapps' current
+          (latest) index of the latest StateInfo that was finalized
+  dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
+    type: object
+    properties:
+      rollapp:
+        type: object
+        properties:
+          rollappId:
+            type: string
+            description: |-
+              rollappId is the unique identifier of the rollapp chain.
+              The rollappId follows the same standard as cosmos chain_id.
+          creator:
+            type: string
+            description: creator is the bech32-encoded address of the rollapp creator.
+          version:
+            type: string
+            format: uint64
+            title: |-
+              version is the software and configuration version.
+              starts from 1 and increases by one on every MsgUpdateState
+          codeStamp:
+            type: string
+            description: >-
+              codeStamp is a generated hash for unique identification of the
+              rollapp code.
+          genesisPath:
+            type: string
+            description: >-
+              genesisPath is the description of the genesis file location on the
+              DA.
+          maxWithholdingBlocks:
+            type: string
+            format: uint64
+            description: |-
+              maxWithholdingBlocks is the maximum number of blocks for
+              an active sequencer to send a state update (MsgUpdateState).
+          maxSequencers:
+            type: string
+            format: uint64
+            description: maxSequencers is the maximum number of sequencers.
+          permissionedAddresses:
+            description: >-
+              permissionedAddresses is a bech32-encoded address list of the 
+
+              sequencers that are allowed to serve this rollappId. 
+
+              In the case of an empty list, the rollapp is considered
+              permissionless.
+            type: object
+            properties:
+              addresses:
+                type: array
+                items:
+                  type: string
+        title: >-
+          Rollapp defines a rollapp object. First rollapp is create and then
+
+          sequencers can be create and attach to it. Rollapp is identified by
+          rollappId
+  dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
       stateInfo:

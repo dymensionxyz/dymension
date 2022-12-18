@@ -434,7 +434,7 @@ func local_request_Query_BlockHeightToFinalizationQueueAll_0(ctx context.Context
 }
 
 func request_Query_LatestFinalizedStateInfo_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryLatestFinalizedStateInfoRequest
+	var protoReq QueryGetLatestFinalizedStateInfoRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -461,7 +461,7 @@ func request_Query_LatestFinalizedStateInfo_0(ctx context.Context, marshaler run
 }
 
 func local_request_Query_LatestFinalizedStateInfo_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryLatestFinalizedStateInfoRequest
+	var protoReq QueryGetLatestFinalizedStateInfoRequest
 	var metadata runtime.ServerMetadata
 
 	var (
