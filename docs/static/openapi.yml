@@ -20163,8 +20163,8 @@ paths:
                             type: string
                             format: uint64
                             title: >-
-                              latestStateInfoIndex is a sequential increasing
-                              number, updating on each
+                              index is a sequential increasing number, updating
+                              on each
 
                               state update used for indexing to a specific state
                               info, the first index is 1
@@ -20175,11 +20175,14 @@ paths:
                           it updated and saved with every UpdateState in
                           StateInfo.
 
-                          We use the this structure also for
-                          LatestStateInfoIndex which defines the rollapps'
-                          current (latest) 
+                          We use the this structure also for:
 
-                          index of the last UpdateState
+                          1. LatestStateInfoIndex which defines the rollapps'
+                          current (latest) index of the last UpdateState 
+
+                          2. LatestFinalizedStateIndex which defines the
+                          rollapps' current (latest) index of the latest
+                          StateInfo that was finalized
                       title: >-
                         finalizationQueue is a list of states that are waiting
                         to be finalized
@@ -20331,8 +20334,8 @@ paths:
                           type: string
                           format: uint64
                           title: >-
-                            latestStateInfoIndex is a sequential increasing
-                            number, updating on each
+                            index is a sequential increasing number, updating on
+                            each
 
                             state update used for indexing to a specific state
                             info, the first index is 1
@@ -20343,10 +20346,14 @@ paths:
                         it updated and saved with every UpdateState in
                         StateInfo.
 
-                        We use the this structure also for LatestStateInfoIndex
-                        which defines the rollapps' current (latest) 
+                        We use the this structure also for:
 
-                        index of the last UpdateState
+                        1. LatestStateInfoIndex which defines the rollapps'
+                        current (latest) index of the last UpdateState 
+
+                        2. LatestFinalizedStateIndex which defines the rollapps'
+                        current (latest) index of the latest StateInfo that was
+                        finalized
                     title: >-
                       finalizationQueue is a list of states that are waiting to
                       be finalized
@@ -20410,8 +20417,8 @@ paths:
                       type: string
                       format: uint64
                       title: >-
-                        latestStateInfoIndex is a sequential increasing number,
-                        updating on each
+                        index is a sequential increasing number, updating on
+                        each
 
                         state update used for indexing to a specific state info,
                         the first index is 1
@@ -20421,10 +20428,14 @@ paths:
 
                     it updated and saved with every UpdateState in StateInfo.
 
-                    We use the this structure also for LatestStateInfoIndex
-                    which defines the rollapps' current (latest) 
+                    We use the this structure also for:
 
-                    index of the last UpdateState
+                    1. LatestStateInfoIndex which defines the rollapps' current
+                    (latest) index of the last UpdateState 
+
+                    2. LatestFinalizedStateIndex which defines the rollapps'
+                    current (latest) index of the latest StateInfo that was
+                    finalized
               pagination:
                 type: object
                 properties:
@@ -20555,8 +20566,7 @@ paths:
                     type: string
                     format: uint64
                     title: >-
-                      latestStateInfoIndex is a sequential increasing number,
-                      updating on each
+                      index is a sequential increasing number, updating on each
 
                       state update used for indexing to a specific state info,
                       the first index is 1
@@ -20566,10 +20576,14 @@ paths:
 
                   it updated and saved with every UpdateState in StateInfo.
 
-                  We use the this structure also for LatestStateInfoIndex which
-                  defines the rollapps' current (latest) 
+                  We use the this structure also for:
 
-                  index of the last UpdateState
+                  1. LatestStateInfoIndex which defines the rollapps' current
+                  (latest) index of the last UpdateState 
+
+                  2. LatestFinalizedStateIndex which defines the rollapps'
+                  current (latest) index of the latest StateInfo that was
+                  finalized
         default:
           description: An unexpected error response.
           schema:
@@ -20964,8 +20978,8 @@ paths:
                           type: string
                           format: uint64
                           title: >-
-                            latestStateInfoIndex is a sequential increasing
-                            number, updating on each
+                            index is a sequential increasing number, updating on
+                            each
 
                             state update used for indexing to a specific state
                             info, the first index is 1
@@ -20976,10 +20990,14 @@ paths:
                         it updated and saved with every UpdateState in
                         StateInfo.
 
-                        We use the this structure also for LatestStateInfoIndex
-                        which defines the rollapps' current (latest) 
+                        We use the this structure also for:
 
-                        index of the last UpdateState
+                        1. LatestStateInfoIndex which defines the rollapps'
+                        current (latest) index of the last UpdateState 
+
+                        2. LatestFinalizedStateIndex which defines the rollapps'
+                        current (latest) index of the latest StateInfo that was
+                        finalized
                     sequencer:
                       type: string
                       title: >-
@@ -21193,8 +21211,8 @@ paths:
                         type: string
                         format: uint64
                         title: >-
-                          latestStateInfoIndex is a sequential increasing
-                          number, updating on each
+                          index is a sequential increasing number, updating on
+                          each
 
                           state update used for indexing to a specific state
                           info, the first index is 1
@@ -21204,10 +21222,14 @@ paths:
 
                       it updated and saved with every UpdateState in StateInfo.
 
-                      We use the this structure also for LatestStateInfoIndex
-                      which defines the rollapps' current (latest) 
+                      We use the this structure also for:
 
-                      index of the last UpdateState
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
                   sequencer:
                     type: string
                     title: >-
@@ -51112,8 +51134,7 @@ definitions:
               type: string
               format: uint64
               title: >-
-                latestStateInfoIndex is a sequential increasing number, updating
-                on each
+                index is a sequential increasing number, updating on each
 
                 state update used for indexing to a specific state info, the
                 first index is 1
@@ -51123,10 +51144,13 @@ definitions:
 
             it updated and saved with every UpdateState in StateInfo.
 
-            We use the this structure also for LatestStateInfoIndex which
-            defines the rollapps' current (latest) 
+            We use the this structure also for:
 
-            index of the last UpdateState
+            1. LatestStateInfoIndex which defines the rollapps' current (latest)
+            index of the last UpdateState 
+
+            2. LatestFinalizedStateIndex which defines the rollapps' current
+            (latest) index of the latest StateInfo that was finalized
         title: |-
           finalizationQueue is a list of states that are waiting to be finalized
           when the block height becomes finalizationHeight
@@ -51188,8 +51212,7 @@ definitions:
                     type: string
                     format: uint64
                     title: >-
-                      latestStateInfoIndex is a sequential increasing number,
-                      updating on each
+                      index is a sequential increasing number, updating on each
 
                       state update used for indexing to a specific state info,
                       the first index is 1
@@ -51199,10 +51222,14 @@ definitions:
 
                   it updated and saved with every UpdateState in StateInfo.
 
-                  We use the this structure also for LatestStateInfoIndex which
-                  defines the rollapps' current (latest) 
+                  We use the this structure also for:
 
-                  index of the last UpdateState
+                  1. LatestStateInfoIndex which defines the rollapps' current
+                  (latest) index of the last UpdateState 
+
+                  2. LatestFinalizedStateIndex which defines the rollapps'
+                  current (latest) index of the latest StateInfo that was
+                  finalized
               title: >-
                 finalizationQueue is a list of states that are waiting to be
                 finalized
@@ -51257,8 +51284,7 @@ definitions:
               type: string
               format: uint64
               title: >-
-                latestStateInfoIndex is a sequential increasing number, updating
-                on each
+                index is a sequential increasing number, updating on each
 
                 state update used for indexing to a specific state info, the
                 first index is 1
@@ -51268,10 +51294,13 @@ definitions:
 
             it updated and saved with every UpdateState in StateInfo.
 
-            We use the this structure also for LatestStateInfoIndex which
-            defines the rollapps' current (latest) 
+            We use the this structure also for:
 
-            index of the last UpdateState
+            1. LatestStateInfoIndex which defines the rollapps' current (latest)
+            index of the last UpdateState 
+
+            2. LatestFinalizedStateIndex which defines the rollapps' current
+            (latest) index of the latest StateInfo that was finalized
       pagination:
         type: object
         properties:
@@ -51407,8 +51436,7 @@ definitions:
                   type: string
                   format: uint64
                   title: >-
-                    latestStateInfoIndex is a sequential increasing number,
-                    updating on each
+                    index is a sequential increasing number, updating on each
 
                     state update used for indexing to a specific state info, the
                     first index is 1
@@ -51418,10 +51446,13 @@ definitions:
 
                 it updated and saved with every UpdateState in StateInfo.
 
-                We use the this structure also for LatestStateInfoIndex which
-                defines the rollapps' current (latest) 
+                We use the this structure also for:
 
-                index of the last UpdateState
+                1. LatestStateInfoIndex which defines the rollapps' current
+                (latest) index of the last UpdateState 
+
+                2. LatestFinalizedStateIndex which defines the rollapps' current
+                (latest) index of the latest StateInfo that was finalized
             sequencer:
               type: string
               title: >-
@@ -51546,8 +51577,7 @@ definitions:
                   type: string
                   format: uint64
                   title: >-
-                    latestStateInfoIndex is a sequential increasing number,
-                    updating on each
+                    index is a sequential increasing number, updating on each
 
                     state update used for indexing to a specific state info, the
                     first index is 1
@@ -51557,10 +51587,13 @@ definitions:
 
                 it updated and saved with every UpdateState in StateInfo.
 
-                We use the this structure also for LatestStateInfoIndex which
-                defines the rollapps' current (latest) 
+                We use the this structure also for:
 
-                index of the last UpdateState
+                1. LatestStateInfoIndex which defines the rollapps' current
+                (latest) index of the last UpdateState 
+
+                2. LatestFinalizedStateIndex which defines the rollapps' current
+                (latest) index of the latest StateInfo that was finalized
             title: >-
               finalizationQueue is a list of states that are waiting to be
               finalized
@@ -51588,8 +51621,7 @@ definitions:
             type: string
             format: uint64
             title: >-
-              latestStateInfoIndex is a sequential increasing number, updating
-              on each
+              index is a sequential increasing number, updating on each
 
               state update used for indexing to a specific state info, the first
               index is 1
@@ -51599,10 +51631,13 @@ definitions:
 
           it updated and saved with every UpdateState in StateInfo.
 
-          We use the this structure also for LatestStateInfoIndex which defines
-          the rollapps' current (latest) 
+          We use the this structure also for:
 
-          index of the last UpdateState
+          1. LatestStateInfoIndex which defines the rollapps' current (latest)
+          index of the last UpdateState 
+
+          2. LatestFinalizedStateIndex which defines the rollapps' current
+          (latest) index of the latest StateInfo that was finalized
   dymensionxyz.dymension.rollapp.QueryGetRollappResponse:
     type: object
     properties:
@@ -51684,8 +51719,7 @@ definitions:
                 type: string
                 format: uint64
                 title: >-
-                  latestStateInfoIndex is a sequential increasing number,
-                  updating on each
+                  index is a sequential increasing number, updating on each
 
                   state update used for indexing to a specific state info, the
                   first index is 1
@@ -51695,10 +51729,13 @@ definitions:
 
               it updated and saved with every UpdateState in StateInfo.
 
-              We use the this structure also for LatestStateInfoIndex which
-              defines the rollapps' current (latest) 
+              We use the this structure also for:
 
-              index of the last UpdateState
+              1. LatestStateInfoIndex which defines the rollapps' current
+              (latest) index of the last UpdateState 
+
+              2. LatestFinalizedStateIndex which defines the rollapps' current
+              (latest) index of the latest StateInfo that was finalized
           sequencer:
             type: string
             title: >-
@@ -51863,8 +51900,7 @@ definitions:
             type: string
             format: uint64
             title: >-
-              latestStateInfoIndex is a sequential increasing number, updating
-              on each
+              index is a sequential increasing number, updating on each
 
               state update used for indexing to a specific state info, the first
               index is 1
@@ -51874,10 +51910,13 @@ definitions:
 
           it updated and saved with every UpdateState in StateInfo.
 
-          We use the this structure also for LatestStateInfoIndex which defines
-          the rollapps' current (latest) 
+          We use the this structure also for:
 
-          index of the last UpdateState
+          1. LatestStateInfoIndex which defines the rollapps' current (latest)
+          index of the last UpdateState 
+
+          2. LatestFinalizedStateIndex which defines the rollapps' current
+          (latest) index of the latest StateInfo that was finalized
       sequencer:
         type: string
         title: >-
@@ -51962,8 +52001,7 @@ definitions:
         type: string
         format: uint64
         title: >-
-          latestStateInfoIndex is a sequential increasing number, updating on
-          each
+          index is a sequential increasing number, updating on each
 
           state update used for indexing to a specific state info, the first
           index is 1
@@ -51972,10 +52010,13 @@ definitions:
 
       it updated and saved with every UpdateState in StateInfo.
 
-      We use the this structure also for LatestStateInfoIndex which defines the
-      rollapps' current (latest) 
+      We use the this structure also for:
 
-      index of the last UpdateState
+      1. LatestStateInfoIndex which defines the rollapps' current (latest) index
+      of the last UpdateState 
+
+      2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
+      index of the latest StateInfo that was finalized
   dymensionxyz.dymension.rollapp.StateStatus:
     type: string
     enum:
