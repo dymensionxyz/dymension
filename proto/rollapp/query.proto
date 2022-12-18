@@ -6,8 +6,8 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "rollapp/params.proto";
 import "rollapp/rollapp.proto";
-import "rollapp/state_info.proto";
 // this line is used by starport scaffolding # 1
+import "rollapp/state_info.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -55,6 +55,11 @@ service Query {
 	// Queries a list of BlockHeightToFinalizationQueue items.
 	rpc BlockHeightToFinalizationQueueAll(QueryAllBlockHeightToFinalizationQueueRequest) returns (QueryAllBlockHeightToFinalizationQueueResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue";
+	}
+
+// Queries a list of LatestFinalizedStateInfo items.
+	rpc LatestFinalizedStateInfo(QueryLatestFinalizedStateInfoRequest) returns (QueryLatestFinalizedStateInfoResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_finalized_state_info/{rollappId}";
 	}
 
 // this line is used by starport scaffolding # 2
@@ -139,6 +144,14 @@ message QueryAllBlockHeightToFinalizationQueueRequest {
 message QueryAllBlockHeightToFinalizationQueueResponse {
 	repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueue = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryLatestFinalizedStateInfoRequest {
+  string rollappId = 1;
+}
+
+message QueryLatestFinalizedStateInfoResponse {
+  StateInfo stateInfo = 1;
 }
 
 // this line is used by starport scaffolding # 3
