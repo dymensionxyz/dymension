@@ -15,7 +15,7 @@ import (
 	"github.com/dymensionxyz/dymension/testutil/network"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
 	"github.com/dymensionxyz/dymension/x/sequencer/client/cli"
-    "github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
 )
 
 // Prevent strconv unused error
@@ -25,12 +25,11 @@ func networkWithSchedulerObjects(t *testing.T, n int) (*network.Network, []types
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		scheduler := types.Scheduler{
 			SequencerAddress: strconv.Itoa(i),
-			
 		}
 		nullify.Fill(&scheduler)
 		state.SchedulerList = append(state.SchedulerList, scheduler)
@@ -49,32 +48,31 @@ func TestShowScheduler(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
+		desc               string
 		idSequencerAddress string
-        
+
 		args []string
 		err  error
 		obj  types.Scheduler
 	}{
 		{
-			desc: "found",
+			desc:               "found",
 			idSequencerAddress: objs[0].SequencerAddress,
-            
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:               "not found",
 			idSequencerAddress: strconv.Itoa(100000),
-            
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    tc.idSequencerAddress,
-                
+				tc.idSequencerAddress,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowScheduler(), args)
@@ -125,9 +123,9 @@ func TestListScheduler(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.Scheduler), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.Scheduler),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.Scheduler),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -141,9 +139,9 @@ func TestListScheduler(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.Scheduler), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.Scheduler),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.Scheduler),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

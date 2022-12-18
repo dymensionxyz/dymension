@@ -39,14 +39,14 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				SchedulerList: []types.Scheduler{
-	{
-		SequencerAddress: "0",
-},
-	{
-		SequencerAddress: "1",
-},
-},
-// this line is used by starport scaffolding # types/genesis/validField
+					{
+						SequencerAddress: "0",
+					},
+					{
+						SequencerAddress: "1",
+					},
+				},
+				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
 		},
@@ -79,20 +79,20 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-	desc:     "duplicated scheduler",
-	genState: &types.GenesisState{
-		SchedulerList: []types.Scheduler{
-			{
-				SequencerAddress: "0",
-},
-			{
-				SequencerAddress: "0",
-},
+			desc: "duplicated scheduler",
+			genState: &types.GenesisState{
+				SchedulerList: []types.Scheduler{
+					{
+						SequencerAddress: "0",
+					},
+					{
+						SequencerAddress: "0",
+					},
+				},
+			},
+			valid: false,
 		},
-	},
-	valid:    false,
-},
-// this line is used by starport scaffolding # types/genesis/testcase
+		// this line is used by starport scaffolding # types/genesis/testcase
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()
