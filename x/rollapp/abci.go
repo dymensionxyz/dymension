@@ -30,8 +30,10 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 					stateInfoIndex.RollappId, ctx.BlockHeight(), stateInfoIndex.Index))
 			}
 			stateInfo.Status = types.STATE_STATUS_FINALIZED
-			// write the new status
+			// update the status of the stateInfo
 			k.SetStateInfo(ctx, stateInfo)
+			// uppdate the LatestStateInfoIndex of the rollapp
+			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
 
 			// emit event
 			ctx.EventManager().EmitEvent(
