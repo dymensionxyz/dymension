@@ -13,13 +13,6 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Pubkey can be nil only in simulation mode
-	if !k.isSimulation {
-		if msg.Pubkey == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
-		}
-	}
-
 	// check to see if the sequencer has been registered before
 	if _, found := k.GetSequencer(ctx, msg.SequencerAddress); found {
 		return nil, types.ErrSequencerExists
@@ -91,7 +84,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	sequencer := types.Sequencer{
 		Creator:          msg.Creator,
 		SequencerAddress: msg.SequencerAddress,
-		Pubkey:           msg.Pubkey,
+		DymintPubKey:     msg.DymintPubKey,
 		Description:      msg.Description,
 		RollappId:        msg.RollappId,
 	}

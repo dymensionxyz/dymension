@@ -10,6 +10,8 @@ import (
 	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	ce "github.com/tendermint/tendermint/crypto/encoding"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func SimulateMsgCreateSequencer(
@@ -24,6 +26,10 @@ func SimulateMsgCreateSequencer(
 		seqAccount, _ := simtypes.RandomAcc(r, accs)
 		seqAddress := seqAccount.Address.String()
 
+		// generate dymint public key
+		pk := tmtypes.NewMockPV().PrivKey.PubKey()
+		pubkey, _ := ce.PubKeyToProto(pk)
+
 		// choose rollappID and whether or not to fail the transaction
 		rollappId := "NoSuchRollapp"
 		rollappIndex := -1
@@ -37,9 +43,9 @@ func SimulateMsgCreateSequencer(
 		msg := &types.MsgCreateSequencer{
 			Creator:          creatorAccount.Address.String(),
 			SequencerAddress: seqAddress,
-			Pubkey:           nil,
 			RollappId:        rollappId,
 			Description:      types.Description{},
+			DymintPubKey:     pubkey,
 		}
 
 		bNotPermissioned := false

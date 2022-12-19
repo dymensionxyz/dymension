@@ -200,10 +200,6 @@ func init() {
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 }
 
-func isSimulation() bool {
-	return bSimulation
-}
-
 // App extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -407,8 +403,6 @@ func New(
 
 		app.BankKeeper,
 		app.RollappKeeper,
-
-		isSimulation(),
 	)
 
 	// register the rollapp hooks

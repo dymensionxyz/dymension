@@ -1,39 +1,24 @@
 package types
 
 import (
-	"bytes"
+	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ce "github.com/tendermint/tendermint/crypto/encoding"
 )
 
 const TypeMsgCreateSequencer = "create_sequencer"
 
 var (
-	_ sdk.Msg                            = &MsgCreateSequencer{}
-	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
+	_ sdk.Msg = &MsgCreateSequencer{}
 )
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(msg.Pubkey, &pubKey)
-}
-
-func NewMsgCreateSequencer(creator string, sequencerAddress string, pubkey cryptotypes.PubKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
-	var pkAny *codectypes.Any
-	if pubkey != nil {
-		var err error
-		if pkAny, err = codectypes.NewAnyWithValue(pubkey); err != nil {
-			return nil, err
-		}
-	}
+func NewMsgCreateSequencer(creator string, sequencerAddress string, pubkey crypto.PublicKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
 	return &MsgCreateSequencer{
 		Creator:          creator,
 		SequencerAddress: sequencerAddress,
-		Pubkey:           pkAny,
+		DymintPubKey:     pubkey,
 		RollappId:        rollappId,
 		Description:      *description,
 	}, nil
@@ -71,29 +56,15 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
 	}
 
-	// public key also checked by the application logic
-	if msg.Pubkey != nil {
-		// check it is a pubkey
-		if _, err = codectypes.NewAnyWithValue(msg.Pubkey); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
-		}
+	_, err = ce.PubKeyFromProto(msg.DymintPubKey)
+	if err != nil {
+		return err
+	}
 
-		// cast to cryptotypes.PubKey type
-		pk, ok := msg.Pubkey.GetCachedValue().(cryptotypes.PubKey)
-		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
-		}
-
-		// get Bech32 format
-		sequencerAddress, err := sdk.AccAddressFromBech32(msg.SequencerAddress)
-		if err != nil {
-			return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
-		}
-
-		// verify pubkey match the address
-		if !bytes.Equal(pk.Address().Bytes(), sequencerAddress.Bytes()) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "account address and pubkey address do not match")
-		}
+	// get Bech32 format
+	_, err = sdk.AccAddressFromBech32(msg.SequencerAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
 	}
 
 	if _, err := msg.Description.EnsureLength(); err != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	"github.com/spf13/cobra"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	crypto "github.com/tendermint/tendermint/proto/tendermint/crypto"
 )
 
 var _ = strconv.Itoa(0)
@@ -36,7 +36,7 @@ func CmdCreateSequencer() *cobra.Command {
 				return err
 			}
 
-			var pk cryptotypes.PubKey
+			var pk crypto.PublicKey
 			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(argPubkey), &pk); err != nil {
 				return err
 			}
