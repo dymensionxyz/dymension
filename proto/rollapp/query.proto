@@ -27,7 +27,7 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
 	}
 
-// Queries a StateInfo by index.
+	// Queries a StateInfo by index.
 	rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
 	}
@@ -37,7 +37,7 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info";
 	}
 
-// Queries a LatestStateInfoIndex by index.
+	// Queries a LatestStateInfoIndex by index.
 	rpc LatestStateInfoIndex(QueryGetLatestStateInfoIndexRequest) returns (QueryGetLatestStateInfoIndexResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}";
 	}
@@ -47,7 +47,7 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_info_index";
 	}
 
-// Queries a BlockHeightToFinalizationQueue by index.
+	// Queries a BlockHeightToFinalizationQueue by index.
 	rpc BlockHeightToFinalizationQueue(QueryGetBlockHeightToFinalizationQueueRequest) returns (QueryGetBlockHeightToFinalizationQueueResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}";
 	}
@@ -57,7 +57,7 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue";
 	}
 
-// Queries a list of LatestFinalizedStateInfo items.
+	// Queries a list of LatestFinalizedStateInfo items.
 	rpc LatestFinalizedStateInfo(QueryGetLatestFinalizedStateInfoRequest) returns (QueryGetLatestFinalizedStateInfoResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_finalized_state_info/{rollappId}";
 	}
@@ -130,7 +130,6 @@ message QueryAllLatestStateInfoIndexResponse {
 
 message QueryGetBlockHeightToFinalizationQueueRequest {
 	  uint64 finalizationHeight = 1;
-
 }
 
 message QueryGetBlockHeightToFinalizationQueueResponse {
@@ -147,11 +146,11 @@ message QueryAllBlockHeightToFinalizationQueueResponse {
 }
 
 message QueryGetLatestFinalizedStateInfoRequest {
-  string rollappId = 1;
+	string rollappId = 1;
 }
 
 message QueryGetLatestFinalizedStateInfoResponse {
-  StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+	StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3
