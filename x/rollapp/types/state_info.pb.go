@@ -25,14 +25,15 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo
 // it updated and saved with every UpdateState in StateInfo.
-// We use the this structure also for LatestStateInfoIndex which defines the rollapps' current (latest)
-// index of the last UpdateState
+// We use the this structure also for:
+// 1. LatestStateInfoIndex which defines the rollapps' current (latest) index of the last UpdateState
+// 2. LatestFinalizedStateIndex which defines the rollapps' current (latest) index of the latest StateInfo that was finalized
 type StateInfoIndex struct {
 	// rollappId is the rollapp that the sequencer belongs to and asking to update
 	// it used to identify the what rollapp a StateInfo belongs
 	// The rollappId follows the same standard as cosmos chain_id
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	// latestStateInfoIndex is a sequential increasing number, updating on each
+	// index is a sequential increasing number, updating on each
 	// state update used for indexing to a specific state info, the first index is 1
 	Index uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
 }

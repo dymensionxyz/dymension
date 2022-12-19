@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,7 +19,7 @@ func createNScheduler(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sch
 	items := make([]types.Scheduler, n)
 	for i := range items {
 		items[i].SequencerAddress = strconv.Itoa(i)
-        
+
 		keeper.SetScheduler(ctx, items[i])
 	}
 	return items
@@ -30,8 +30,7 @@ func TestSchedulerGet(t *testing.T) {
 	items := createNScheduler(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetScheduler(ctx,
-		    item.SequencerAddress,
-            
+			item.SequencerAddress,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -45,12 +44,10 @@ func TestSchedulerRemove(t *testing.T) {
 	items := createNScheduler(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveScheduler(ctx,
-		    item.SequencerAddress,
-            
+			item.SequencerAddress,
 		)
 		_, found := keeper.GetScheduler(ctx,
-		    item.SequencerAddress,
-            
+			item.SequencerAddress,
 		)
 		require.False(t, found)
 	}

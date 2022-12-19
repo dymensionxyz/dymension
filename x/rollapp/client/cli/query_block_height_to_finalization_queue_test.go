@@ -15,7 +15,7 @@ import (
 	"github.com/dymensionxyz/dymension/testutil/network"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
 	"github.com/dymensionxyz/dymension/x/rollapp/client/cli"
-    "github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 // Prevent strconv unused error
@@ -25,12 +25,11 @@ func networkWithBlockHeightToFinalizationQueueObjects(t *testing.T, n int) (*net
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		blockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
 			FinalizationHeight: uint64(i),
-			
 		}
 		nullify.Fill(&blockHeightToFinalizationQueue)
 		state.BlockHeightToFinalizationQueueList = append(state.BlockHeightToFinalizationQueueList, blockHeightToFinalizationQueue)
@@ -49,32 +48,31 @@ func TestShowBlockHeightToFinalizationQueue(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
+		desc                 string
 		idFinalizationHeight uint64
-        
+
 		args []string
 		err  error
 		obj  types.BlockHeightToFinalizationQueue
 	}{
 		{
-			desc: "found",
+			desc:                 "found",
 			idFinalizationHeight: objs[0].FinalizationHeight,
-            
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:                 "not found",
 			idFinalizationHeight: 100000,
-            
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    strconv.Itoa(int(tc.idFinalizationHeight)),
-                
+				strconv.Itoa(int(tc.idFinalizationHeight)),
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowBlockHeightToFinalizationQueue(), args)
@@ -125,9 +123,9 @@ func TestListBlockHeightToFinalizationQueue(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.BlockHeightToFinalizationQueue), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.BlockHeightToFinalizationQueue),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.BlockHeightToFinalizationQueue),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -141,9 +139,9 @@ func TestListBlockHeightToFinalizationQueue(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.BlockHeightToFinalizationQueue), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.BlockHeightToFinalizationQueue),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.BlockHeightToFinalizationQueue),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

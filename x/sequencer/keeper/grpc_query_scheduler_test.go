@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
+	"github.com/dymensionxyz/dymension/testutil/nullify"
+	"github.com/dymensionxyz/dymension/x/sequencer/types"
 )
 
 // Prevent strconv unused error
@@ -29,28 +29,25 @@ func TestSchedulerQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetSchedulerRequest{
-			    SequencerAddress: msgs[0].SequencerAddress,
-                
+			desc: "First",
+			request: &types.QueryGetSchedulerRequest{
+				SequencerAddress: msgs[0].SequencerAddress,
 			},
 			response: &types.QueryGetSchedulerResponse{Scheduler: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetSchedulerRequest{
-			    SequencerAddress: msgs[1].SequencerAddress,
-                
+			desc: "Second",
+			request: &types.QueryGetSchedulerRequest{
+				SequencerAddress: msgs[1].SequencerAddress,
 			},
 			response: &types.QueryGetSchedulerResponse{Scheduler: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetSchedulerRequest{
-			    SequencerAddress:strconv.Itoa(100000),
-                
+				SequencerAddress: strconv.Itoa(100000),
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -94,9 +91,9 @@ func TestSchedulerQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Scheduler), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.Scheduler),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.Scheduler),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -107,9 +104,9 @@ func TestSchedulerQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Scheduler), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.Scheduler),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.Scheduler),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})
