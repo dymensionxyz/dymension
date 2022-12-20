@@ -137,6 +137,12 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 			}, types.ErrUnknownRollappId,
 		},
 		{
+			"invalid height=0", func() {
+				height = 0
+				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+			}, types.ErrInvalidHeight,
+		},
+		{
 			"state not fainalized", func() {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
