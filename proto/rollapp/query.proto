@@ -62,6 +62,11 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_finalized_state_info/{rollappId}";
 	}
 
+// Queries a list of GetStateInfoByHeight items.
+	rpc GetStateInfoByHeight(QueryGetStateInfoByHeightRequest) returns (QueryGetStateInfoByHeightResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/get_state_info_by_height/{rollappId}/{height}";
+	}
+
 // this line is used by starport scaffolding # 2
 }
 
@@ -151,6 +156,15 @@ message QueryGetLatestFinalizedStateInfoRequest {
 
 message QueryGetLatestFinalizedStateInfoResponse {
 	StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetStateInfoByHeightRequest {
+  string rollappId = 1;
+  uint64 height = 2;
+}
+
+message QueryGetStateInfoByHeightResponse {
+  StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3
