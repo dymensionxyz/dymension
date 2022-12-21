@@ -20283,16 +20283,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}':
@@ -20382,6 +20372,161 @@ paths:
                   additionalProperties: {}
       parameters:
         - name: finalizationHeight
+          in: path
+          required: true
+          type: string
+          format: uint64
+      tags:
+        - Query
+  '/dymensionxyz/dymension/rollapp/get_state_info_by_height/{rollappId}/{height}':
+    get:
+      summary: Queries a list of GetStateInfoByHeight items.
+      operationId: DymensionxyzDymensionRollappGetStateInfoByHeight
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              stateInfo:
+                type: object
+                properties:
+                  stateInfoIndex:
+                    type: object
+                    properties:
+                      rollappId:
+                        type: string
+                        title: >-
+                          rollappId is the rollapp that the sequencer belongs to
+                          and asking to update
+
+                          it used to identify the what rollapp a StateInfo
+                          belongs
+
+                          The rollappId follows the same standard as cosmos
+                          chain_id
+                      index:
+                        type: string
+                        format: uint64
+                        title: >-
+                          index is a sequential increasing number, updating on
+                          each
+
+                          state update used for indexing to a specific state
+                          info, the first index is 1
+                    title: >-
+                      StateInfoIndex is the data used for indexing and
+                      retrieving a StateInfo 
+
+                      it updated and saved with every UpdateState in StateInfo.
+
+                      We use the this structure also for:
+
+                      1. LatestStateInfoIndex which defines the rollapps'
+                      current (latest) index of the last UpdateState 
+
+                      2. LatestFinalizedStateIndex which defines the rollapps'
+                      current (latest) index of the latest StateInfo that was
+                      finalized
+                  sequencer:
+                    type: string
+                    title: >-
+                      sequencer is the bech32-encoded address of the sequencer
+                      sent the update
+                  startHeight:
+                    type: string
+                    format: uint64
+                    title: >-
+                      startHeight is the block height of the first block in the
+                      batch
+                  numBlocks:
+                    type: string
+                    format: uint64
+                    title: >-
+                      numBlocks is the number of blocks included in this batch
+                      update
+                  DAPath:
+                    type: string
+                    title: DAPath is the description of the location on the DA layer
+                  version:
+                    type: string
+                    format: uint64
+                    title: version is the version of the rollapp
+                  creationHeight:
+                    type: string
+                    format: uint64
+                    title: >-
+                      creationHeight is the height at which the UpdateState took
+                      place
+                  status:
+                    title: status is the status of the state update
+                    type: string
+                    enum:
+                      - STATE_STATUS_UNSPECIFIED
+                      - STATE_STATUS_RECEIVED
+                      - STATE_STATUS_FINALIZED
+                    default: STATE_STATUS_UNSPECIFIED
+                  BDs:
+                    title: >-
+                      BDs is a list of block description objects (one per block)
+
+                      the list must be ordered by height, starting from
+                      startHeight to startHeight+numBlocks-1
+                    type: object
+                    properties:
+                      BD:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            height:
+                              type: string
+                              format: uint64
+                              title: height is the height of the block
+                            stateRoot:
+                              type: string
+                              format: byte
+                              title: >-
+                                stateRoot is a 32 byte array of the hash of the
+                                block (state root of the block)
+                            intermediateStatesRoot:
+                              type: string
+                              format: byte
+                              title: >-
+                                intermediateStatesRoot is a 32 byte array
+                                representing 
+
+                                the root of a Merkle tree built from the ISRs of
+                                the block (Intermediate State Roots)
+                          description: >-
+                            BlockDescriptor defines a single rollapp chain block
+                            description.
+                    description: BlockDescriptors defines list of BlockDescriptor.
+                description: StateInfo defines a rollapps' state.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      parameters:
+        - name: rollappId
+          in: path
+          required: true
+          type: string
+        - name: height
           in: path
           required: true
           type: string
@@ -20678,16 +20823,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}':
@@ -20981,16 +21116,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -21315,16 +21440,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -50139,6 +50254,113 @@ definitions:
 
           sequencers can be create and attach to it. Rollapp is identified by
           rollappId
+  dymensionxyz.dymension.rollapp.QueryGetStateInfoByHeightResponse:
+    type: object
+    properties:
+      stateInfo:
+        type: object
+        properties:
+          stateInfoIndex:
+            type: object
+            properties:
+              rollappId:
+                type: string
+                title: >-
+                  rollappId is the rollapp that the sequencer belongs to and
+                  asking to update
+
+                  it used to identify the what rollapp a StateInfo belongs
+
+                  The rollappId follows the same standard as cosmos chain_id
+              index:
+                type: string
+                format: uint64
+                title: >-
+                  index is a sequential increasing number, updating on each
+
+                  state update used for indexing to a specific state info, the
+                  first index is 1
+            title: >-
+              StateInfoIndex is the data used for indexing and retrieving a
+              StateInfo 
+
+              it updated and saved with every UpdateState in StateInfo.
+
+              We use the this structure also for:
+
+              1. LatestStateInfoIndex which defines the rollapps' current
+              (latest) index of the last UpdateState 
+
+              2. LatestFinalizedStateIndex which defines the rollapps' current
+              (latest) index of the latest StateInfo that was finalized
+          sequencer:
+            type: string
+            title: >-
+              sequencer is the bech32-encoded address of the sequencer sent the
+              update
+          startHeight:
+            type: string
+            format: uint64
+            title: startHeight is the block height of the first block in the batch
+          numBlocks:
+            type: string
+            format: uint64
+            title: numBlocks is the number of blocks included in this batch update
+          DAPath:
+            type: string
+            title: DAPath is the description of the location on the DA layer
+          version:
+            type: string
+            format: uint64
+            title: version is the version of the rollapp
+          creationHeight:
+            type: string
+            format: uint64
+            title: creationHeight is the height at which the UpdateState took place
+          status:
+            title: status is the status of the state update
+            type: string
+            enum:
+              - STATE_STATUS_UNSPECIFIED
+              - STATE_STATUS_RECEIVED
+              - STATE_STATUS_FINALIZED
+            default: STATE_STATUS_UNSPECIFIED
+          BDs:
+            title: >-
+              BDs is a list of block description objects (one per block)
+
+              the list must be ordered by height, starting from startHeight to
+              startHeight+numBlocks-1
+            type: object
+            properties:
+              BD:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    height:
+                      type: string
+                      format: uint64
+                      title: height is the height of the block
+                    stateRoot:
+                      type: string
+                      format: byte
+                      title: >-
+                        stateRoot is a 32 byte array of the hash of the block
+                        (state root of the block)
+                    intermediateStatesRoot:
+                      type: string
+                      format: byte
+                      title: >-
+                        intermediateStatesRoot is a 32 byte array representing 
+
+                        the root of a Merkle tree built from the ISRs of the
+                        block (Intermediate State Roots)
+                  description: >-
+                    BlockDescriptor defines a single rollapp chain block
+                    description.
+            description: BlockDescriptors defines list of BlockDescriptor.
+        description: StateInfo defines a rollapps' state.
   dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse:
     type: object
     properties:
