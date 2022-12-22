@@ -26,4 +26,5 @@ var (
 	ErrHeightStateNotFainalized       = sdkerrors.Register(ModuleName, 1015, "rollapp block on this height was not finalized yet")
 	ErrInvalidAppHash                 = sdkerrors.Register(ModuleName, 1016, "the app hash is different from the finalized state root")
 	ErrStateNotExists                 = sdkerrors.Register(ModuleName, 1017, "state of this height doesn't exist")
+	ErrInvalidHeight                  = sdkerrors.Register(ModuleName, 1018, "invalid rollapp height")
 )

@@ -169,41 +169,12 @@ func (ch RollappClientHooks) validateStateRoot(ctx sdk.Context, rollappId string
 }
 
 func (ch RollappClientHooks) getStateInfo(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
-	k := ch.k
-	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
-	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-			"LatestStateInfoIndex wasn't found for rollappId=%s",
-			rollappId)
+	queryGetStateInfoByHeightResponse, err := ch.k.GetStateInfoByHeight(sdk.WrapSDKContext(ctx), &types.QueryGetStateInfoByHeightRequest{
+		RollappId: rollappId,
+		Height:    height,
+	})
+	if queryGetStateInfoByHeightResponse != nil {
+		return &queryGetStateInfoByHeightResponse.StateInfo, err
 	}
-	// start from the latest index
-	stateIndex := stateInfoIndex.Index
-	// get state info
-	stateInfo, found := k.GetStateInfo(ctx, rollappId, stateIndex)
-	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-			"StateInfo wasn't found for rollappId=%s, index=%d, startIndex=%d",
-			rollappId, stateIndex, stateInfoIndex.Index)
-	}
-
-	// check that height exists
-	if height >= stateInfo.StartHeight+stateInfo.NumBlocks {
-		return nil, types.ErrStateNotExists
-	}
-
-	// iterate over state info
-	for height < stateInfo.StartHeight && stateIndex > 0 {
-		stateIndex -= 1
-		stateInfo, found = k.GetStateInfo(ctx, rollappId, stateIndex)
-		// if stateIndex==0 the stateInfo is missing
-		// TODO:
-		// if stateIndex>0 and stateInfo is missing it won't be logic error if there will be deletion of history
-		if !found {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"StateInfo wasn't found for rollappId=%s, currentIndex=%d, startIndex=%d",
-				rollappId, stateIndex, stateInfoIndex.Index)
-		}
-	}
-
-	return &stateInfo, nil
+	return nil, err
 }
