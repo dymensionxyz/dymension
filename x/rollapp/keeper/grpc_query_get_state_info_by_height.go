@@ -22,6 +22,11 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 		return nil, types.ErrInvalidHeight
 	}
 
+	_, found := k.GetRollapp(ctx, req.RollappId)
+	if !found {
+		return nil, types.ErrUnknownRollappId
+	}
+
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
 	if !found {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
@@ -79,7 +84,19 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 		startHeight := startStateInfo.StartHeight
 		endHeight := endStateInfo.StartHeight + endStateInfo.NumBlocks - 1
 
-		// 2. calculate the average blocks per batch
+		// 2. check startStateInfo
+		if req.Height >= startStateInfo.StartHeight &&
+			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > req.Height {
+			return &types.QueryGetStateInfoByHeightResponse{StateInfo: startStateInfo}, nil
+		}
+
+		// 3. check endStateInfo
+		if req.Height >= endStateInfo.StartHeight &&
+			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > req.Height {
+			return &types.QueryGetStateInfoByHeightResponse{StateInfo: endStateInfo}, nil
+		}
+
+		// 4. calculate the average blocks per batch
 		avgBlocksPerBatch := (endHeight - startHeight + 1) / (endInfoIndex - startInfoIndex + 1)
 		if avgBlocksPerBatch == 0 {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
@@ -87,7 +104,7 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 				req.RollappId, endHeight, startHeight, endInfoIndex, startInfoIndex)
 		}
 
-		// 3. load the candidate block batch
+		// 5. load the candidate block batch
 		infoIndexStep := (req.Height - startHeight) / avgBlocksPerBatch
 		if infoIndexStep == 0 {
 			infoIndexStep = 1
@@ -108,12 +125,12 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 				req.RollappId, candidateInfoIndex)
 		}
 
-		// 4. check the candidate
+		// 6. check the candidate
 		if candidateStateInfo.StartHeight > req.Height {
-			startInfoIndex = candidateInfoIndex
+			endInfoIndex = candidateInfoIndex - 1
 		} else {
 			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < req.Height {
-				endInfoIndex = candidateInfoIndex
+				startInfoIndex = candidateInfoIndex + 1
 			} else {
 				return &types.QueryGetStateInfoByHeightResponse{StateInfo: candidateStateInfo}, nil
 			}
