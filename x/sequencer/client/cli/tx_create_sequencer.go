@@ -23,8 +23,18 @@ func CmdCreateSequencer() *cobra.Command {
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSequencerAddress := args[0]
-			argPubkey := args[1]
+			argPubKey := args[1]
 			argRollappId := args[2]
+
+			var pk crypto.PublicKey
+			fixedArgPubKey := make([]byte, 32)
+			if err = json.Unmarshal([]byte(argPubKey), &fixedArgPubKey); err != nil {
+				return err
+			}
+			if err = pk.Unmarshal(fixedArgPubKey); err != nil {
+				return err
+			}
+
 			argDescription := new(types.Description)
 			err = json.Unmarshal([]byte(args[3]), argDescription)
 			if err != nil {
@@ -33,11 +43,6 @@ func CmdCreateSequencer() *cobra.Command {
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
-				return err
-			}
-
-			var pk crypto.PublicKey
-			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(argPubkey), &pk); err != nil {
 				return err
 			}
 
