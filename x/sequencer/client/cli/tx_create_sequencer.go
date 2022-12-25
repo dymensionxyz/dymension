@@ -18,9 +18,9 @@ var _ = strconv.Itoa(0)
 
 func CmdCreateSequencer() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-sequencer [sequencer-address] [pubkey] [rollapp-id] [description]",
+		Use:   "create-sequencer [pubkey] [rollapp-id] [description]",
 		Short: "Create a new sequencer for a rollapp",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argPubkey := args[0]
 			argRollappId := args[1]
