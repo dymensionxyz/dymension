@@ -10,8 +10,6 @@ import (
 	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
-	ce "github.com/tendermint/tendermint/crypto/encoding"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func SimulateMsgCreateSequencer(
@@ -23,12 +21,7 @@ func SimulateMsgCreateSequencer(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// choose creator and rollappId
 		creatorAccount, _ := simtypes.RandomAcc(r, accs)
-		seqAccount, _ := simtypes.RandomAcc(r, accs)
-		seqAddress := seqAccount.Address.String()
-
-		// generate dymint public key
-		pk := tmtypes.NewMockPV().PrivKey.PubKey()
-		pubkey, _ := ce.PubKeyToProto(pk)
+		seqAddress := creatorAccount.Address.String()
 
 		// choose rollappID and whether or not to fail the transaction
 		rollappId := "NoSuchRollapp"
@@ -41,11 +34,10 @@ func SimulateMsgCreateSequencer(
 		}
 
 		msg := &types.MsgCreateSequencer{
-			Creator:          creatorAccount.Address.String(),
-			SequencerAddress: seqAddress,
-			RollappId:        rollappId,
-			Description:      types.Description{},
-			DymintPubKey:     pubkey,
+			Creator:      seqAddress,
+			DymintPubKey: nil,
+			RollappId:    rollappId,
+			Description:  types.Description{},
 		}
 
 		bNotPermissioned := false
@@ -84,7 +76,7 @@ func SimulateMsgCreateSequencer(
 
 		if !bExpectedError {
 			sequencer := simulationtypes.SimSequencer{
-				Account:      seqAccount,
+				Account:      creatorAccount,
 				Creator:      msg.Creator,
 				RollappIndex: rollappIndex,
 			}

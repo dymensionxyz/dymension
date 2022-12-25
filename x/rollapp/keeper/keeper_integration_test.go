@@ -191,7 +191,6 @@ func (suite *IntegrationTestSuite) TestFirstUpdateState() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        rollapp.GetRollappId(),
 	}
@@ -245,7 +244,6 @@ func (suite *IntegrationTestSuite) TestUpdateState() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        rollapp.GetRollappId(),
 	}
@@ -446,7 +444,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateSequencerRollappMismatch() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp2",
 	}
@@ -485,7 +482,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 
 	// set unpermissioned sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -524,7 +520,6 @@ func (suite *IntegrationTestSuite) TestFirstUpdateStateErrWrongBlockHeightInitia
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -569,7 +564,6 @@ func (suite *IntegrationTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -614,7 +608,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -682,7 +675,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -728,7 +720,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -795,7 +786,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrLogicNotRegisteredInSchedul
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
@@ -834,7 +824,6 @@ func (suite *IntegrationTestSuite) TestUpdateStateErrNotActiveSequencer() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		Creator:          alice,
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 	}
