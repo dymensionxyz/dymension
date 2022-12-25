@@ -22,11 +22,10 @@ func CmdCreateSequencer() *cobra.Command {
 		Short: "Create a new sequencer for a rollapp",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argSequencerAddress := args[0]
-			argPubkey := args[1]
-			argRollappId := args[2]
+			argPubkey := args[0]
+			argRollappId := args[1]
 			argDescription := new(types.Description)
-			err = json.Unmarshal([]byte(args[3]), argDescription)
+			err = json.Unmarshal([]byte(args[2]), argDescription)
 			if err != nil {
 				return err
 			}
@@ -43,7 +42,6 @@ func CmdCreateSequencer() *cobra.Command {
 
 			msg, err := types.NewMsgCreateSequencer(
 				clientCtx.GetFromAddress().String(),
-				argSequencerAddress,
 				pk,
 				argRollappId,
 				argDescription,

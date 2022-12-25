@@ -21,7 +21,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	// check to see if the sequencer has been registered before
-	if _, found := k.GetSequencer(ctx, msg.SequencerAddress); found {
+	if _, found := k.GetSequencer(ctx, msg.Creator); found {
 		return nil, types.ErrSequencerExists
 	}
 
@@ -36,7 +36,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			bPermissioned := false
 			// check to see if the sequencer is in the permissioned list
 			for i := range permissionedAddresses {
-				if permissionedAddresses[i] == msg.SequencerAddress {
+				if permissionedAddresses[i] == msg.Creator {
 					// Found!
 					bPermissioned = true
 					break
@@ -65,19 +65,19 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrMaxSequencersLimit
 		}
 		// add sequencer to list
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
 		// it's not the first sequencer, make it INACTIVE
 		scheduler := types.Scheduler{
-			SequencerAddress: msg.SequencerAddress,
+			SequencerAddress: msg.Creator,
 			Status:           types.Inactive,
 		}
 		k.SetScheduler(ctx, scheduler)
 	} else {
 		// this is the first sequencer, make it a PROPOSER
 		sequencersByRollapp.RollappId = msg.RollappId
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.SequencerAddress)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
 		scheduler := types.Scheduler{
-			SequencerAddress: msg.SequencerAddress,
+			SequencerAddress: msg.Creator,
 			Status:           types.Proposer,
 		}
 		k.SetScheduler(ctx, scheduler)
@@ -89,8 +89,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencer := types.Sequencer{
-		Creator:          msg.Creator,
-		SequencerAddress: msg.SequencerAddress,
+		SequencerAddress: msg.Creator,
 		DymintPubKey:     msg.DymintPubKey,
 		Description:      msg.Description,
 		RollappId:        msg.RollappId,

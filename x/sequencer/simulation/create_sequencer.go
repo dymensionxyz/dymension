@@ -21,8 +21,7 @@ func SimulateMsgCreateSequencer(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// choose creator and rollappId
 		creatorAccount, _ := simtypes.RandomAcc(r, accs)
-		seqAccount, _ := simtypes.RandomAcc(r, accs)
-		seqAddress := seqAccount.Address.String()
+		seqAddress := creatorAccount.Address.String()
 
 		// choose rollappID and whether or not to fail the transaction
 		rollappId := "NoSuchRollapp"
@@ -35,11 +34,10 @@ func SimulateMsgCreateSequencer(
 		}
 
 		msg := &types.MsgCreateSequencer{
-			Creator:          creatorAccount.Address.String(),
-			SequencerAddress: seqAddress,
-			DymintPubKey:     nil,
-			RollappId:        rollappId,
-			Description:      types.Description{},
+			Creator:      seqAddress,
+			DymintPubKey: nil,
+			RollappId:    rollappId,
+			Description:  types.Description{},
 		}
 
 		bNotPermissioned := false
@@ -78,7 +76,7 @@ func SimulateMsgCreateSequencer(
 
 		if !bExpectedError {
 			sequencer := simulationtypes.SimSequencer{
-				Account:      seqAccount,
+				Account:      creatorAccount,
 				Creator:      msg.Creator,
 				RollappIndex: rollappIndex,
 			}

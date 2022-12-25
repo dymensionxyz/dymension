@@ -11,14 +11,12 @@ import "gogoproto/gogo.proto";
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
 message Sequencer {
-  // sequencerAddress is the bech32-encoded address of the sequencer account.
+  // sequencerAddress is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
   string sequencerAddress = 1;
-  // creator is the bech32-encoded address of the account sent the transaction (sequencer creator)
-  string creator = 2;
   // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
-  google.protobuf.Any dymintPubKey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
+  google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
   // rollappId defines the rollapp to which the sequencer belongs.
-  string rollappId = 4;
+  string rollappId = 3;
   // description defines the descriptive terms for the sequencer.
-  Description description = 5 [(gogoproto.nullable) = false];
+  Description description = 4 [(gogoproto.nullable) = false];
 }

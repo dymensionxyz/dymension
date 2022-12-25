@@ -20360,16 +20360,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}':
@@ -20910,16 +20900,6 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}':
@@ -21213,16 +21193,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -21547,16 +21517,6 @@ paths:
             when key
 
             is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -22464,12 +22424,8 @@ paths:
                           type: string
                           description: >-
                             sequencerAddress is the bech32-encoded address of
-                            the sequencer account.
-                        creator:
-                          type: string
-                          title: >-
-                            creator is the bech32-encoded address of the account
-                            sent the transaction (sequencer creator)
+                            the sequencer account which is the account that the
+                            message was sent from.
                         dymintPubKey:
                           type: object
                           properties:
@@ -22981,12 +22937,8 @@ paths:
                         type: string
                         description: >-
                           sequencerAddress is the bech32-encoded address of the
-                          sequencer account.
-                      creator:
-                        type: string
-                        title: >-
-                          creator is the bech32-encoded address of the account
-                          sent the transaction (sequencer creator)
+                          sequencer account which is the account that the
+                          message was sent from.
                       dymintPubKey:
                         type: object
                         properties:
@@ -23437,13 +23389,8 @@ paths:
                                 type: string
                                 description: >-
                                   sequencerAddress is the bech32-encoded address
-                                  of the sequencer account.
-                              creator:
-                                type: string
-                                title: >-
-                                  creator is the bech32-encoded address of the
-                                  account sent the transaction (sequencer
-                                  creator)
+                                  of the sequencer account which is the account
+                                  that the message was sent from.
                               dymintPubKey:
                                 type: object
                                 properties:
@@ -23962,12 +23909,8 @@ paths:
                           type: string
                           description: >-
                             sequencerAddress is the bech32-encoded address of
-                            the sequencer account.
-                        creator:
-                          type: string
-                          title: >-
-                            creator is the bech32-encoded address of the account
-                            sent the transaction (sequencer creator)
+                            the sequencer account which is the account that the
+                            message was sent from.
                         dymintPubKey:
                           type: object
                           properties:
@@ -52917,12 +52860,8 @@ definitions:
                   type: string
                   description: >-
                     sequencerAddress is the bech32-encoded address of the
-                    sequencer account.
-                creator:
-                  type: string
-                  title: >-
-                    creator is the bech32-encoded address of the account sent
-                    the transaction (sequencer creator)
+                    sequencer account which is the account that the message was
+                    sent from.
                 dymintPubKey:
                   type: object
                   properties:
@@ -53191,12 +53130,8 @@ definitions:
                         type: string
                         description: >-
                           sequencerAddress is the bech32-encoded address of the
-                          sequencer account.
-                      creator:
-                        type: string
-                        title: >-
-                          creator is the bech32-encoded address of the account
-                          sent the transaction (sequencer creator)
+                          sequencer account which is the account that the
+                          message was sent from.
                       dymintPubKey:
                         type: object
                         properties:
@@ -53489,12 +53424,8 @@ definitions:
                 type: string
                 description: >-
                   sequencerAddress is the bech32-encoded address of the
-                  sequencer account.
-              creator:
-                type: string
-                title: >-
-                  creator is the bech32-encoded address of the account sent the
-                  transaction (sequencer creator)
+                  sequencer account which is the account that the message was
+                  sent from.
               dymintPubKey:
                 type: object
                 properties:
@@ -53727,12 +53658,8 @@ definitions:
                   type: string
                   description: >-
                     sequencerAddress is the bech32-encoded address of the
-                    sequencer account.
-                creator:
-                  type: string
-                  title: >-
-                    creator is the bech32-encoded address of the account sent
-                    the transaction (sequencer creator)
+                    sequencer account which is the account that the message was
+                    sent from.
                 dymintPubKey:
                   type: object
                   properties:
@@ -53989,12 +53916,7 @@ definitions:
         type: string
         description: >-
           sequencerAddress is the bech32-encoded address of the sequencer
-          account.
-      creator:
-        type: string
-        title: >-
-          creator is the bech32-encoded address of the account sent the
-          transaction (sequencer creator)
+          account which is the account that the message was sent from.
       dymintPubKey:
         type: object
         properties:
@@ -54192,12 +54114,7 @@ definitions:
             type: string
             description: >-
               sequencerAddress is the bech32-encoded address of the sequencer
-              account.
-          creator:
-            type: string
-            title: >-
-              creator is the bech32-encoded address of the account sent the
-              transaction (sequencer creator)
+              account which is the account that the message was sent from.
           dymintPubKey:
             type: object
             properties:

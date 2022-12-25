@@ -122,29 +122,27 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			suite.Require().Nil(err)
 
 			// sequencer is the sequencer to create
-			sequencer := types.MsgCreateSequencer{
-				Creator:          alice,
-				SequencerAddress: addr.String(),
-				DymintPubKey:     pkAny,
-				RollappId:        rollappId,
-				Description:      sequencertypes.Description{},
+			sequencerMsg := types.MsgCreateSequencer{
+				Creator:      addr.String(),
+				DymintPubKey: pkAny,
+				RollappId:    rollappId,
+				Description:  sequencertypes.Description{},
 			}
 			// sequencerExpect is the expected result of creating a sequencer
 			sequencerExpect := types.Sequencer{
-				SequencerAddress: sequencer.GetSequencerAddress(),
-				Creator:          sequencer.GetCreator(),
-				DymintPubKey:     sequencer.GetDymintPubKey(),
+				SequencerAddress: sequencerMsg.GetCreator(),
+				DymintPubKey:     sequencerMsg.GetDymintPubKey(),
 				RollappId:        rollappId,
-				Description:      sequencer.GetDescription(),
+				Description:      sequencerMsg.GetDescription(),
 			}
 			// create sequencer
-			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencer)
+			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().Nil(err)
 			suite.Require().EqualValues(types.MsgCreateSequencerResponse{}, *createResponse)
 
 			// query the spesific sequencer
 			queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
-				SequencerAddress: sequencer.GetSequencerAddress(),
+				SequencerAddress: sequencerMsg.GetCreator(),
 			})
 			suite.Require().Nil(err)
 			equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
@@ -203,17 +201,16 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 	addr := sdk.AccAddress(pubkey.Address())
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
-	sequencer := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: addr.String(),
-		DymintPubKey:     pkAny,
-		RollappId:        rollappId,
-		Description:      sequencertypes.Description{},
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
 	}
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
 
@@ -225,15 +222,14 @@ func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
 	addr := sdk.AccAddress(pubkey.Address())
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
-	sequencer := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: addr.String(),
-		DymintPubKey:     pkAny,
-		RollappId:        "rollappId",
-		Description:      sequencertypes.Description{},
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		RollappId:    "rollappId",
+		Description:  sequencertypes.Description{},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrUnknownRollappId.Error())
 }
 
@@ -261,30 +257,28 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
-	sequencer := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: sequencerAddress,
-		DymintPubKey:     pkAny,
-		RollappId:        rollappId,
-		Description:      sequencertypes.Description{},
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      sequencerAddress,
+		DymintPubKey: pkAny,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
 	// query the spesific sequencer
 	queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
-		SequencerAddress: sequencer.GetSequencerAddress(),
+		SequencerAddress: sequencerMsg.GetCreator(),
 	})
 	suite.Require().Nil(err)
 
 	// sequencerExpect is the expected result of creating a sequencer
 	sequencerExpect := types.Sequencer{
-		SequencerAddress: sequencer.GetSequencerAddress(),
-		Creator:          sequencer.GetCreator(),
-		DymintPubKey:     sequencer.GetDymintPubKey(),
+		SequencerAddress: sequencerMsg.GetCreator(),
+		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
 		RollappId:        rollappId,
-		Description:      sequencer.GetDescription(),
+		Description:      sequencerMsg.GetDescription(),
 	}
 	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 }
@@ -311,15 +305,14 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 	addr := sdk.AccAddress(pubkey.Address())
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
-	sequencer := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: addr.String(),
-		DymintPubKey:     pkAny,
-		RollappId:        rollappId,
-		Description:      sequencertypes.Description{},
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
 	}
 
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrSequencerNotPermissioned.Error())
 }
 
@@ -348,14 +341,13 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 		addr := sdk.AccAddress(pubkey.Address())
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
-		sequencer := types.MsgCreateSequencer{
-			Creator:          alice,
-			SequencerAddress: addr.String(),
-			DymintPubKey:     pkAny,
-			RollappId:        rollappId,
-			Description:      sequencertypes.Description{},
+		sequencerMsg := types.MsgCreateSequencer{
+			Creator:      addr.String(),
+			DymintPubKey: pkAny,
+			RollappId:    rollappId,
+			Description:  sequencertypes.Description{},
 		}
-		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.Require().Nil(err)
 	}
 
@@ -365,14 +357,13 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 		addr := sdk.AccAddress(pubkey.Address())
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
-		sequencer := types.MsgCreateSequencer{
-			Creator:          alice,
-			SequencerAddress: addr.String(),
-			DymintPubKey:     pkAny,
-			RollappId:        rollappId,
-			Description:      sequencertypes.Description{},
+		sequencerMsg := types.MsgCreateSequencer{
+			Creator:      addr.String(),
+			DymintPubKey: pkAny,
+			RollappId:    rollappId,
+			Description:  sequencertypes.Description{},
 		}
-		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer)
+		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
 	}
 }
@@ -399,14 +390,13 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 	suite.Require().Nil(err)
-	sequencer1 := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: addr1.String(),
-		DymintPubKey:     pkAny1,
-		RollappId:        rollappId,
-		Description:      sequencertypes.Description{},
+	sequencerMsg1 := types.MsgCreateSequencer{
+		Creator:      addr1.String(),
+		DymintPubKey: pkAny1,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
 	}
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer1)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg1)
 	suite.Require().Nil(err)
 
 	// create second sequencer
@@ -414,23 +404,22 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	addr2 := sdk.AccAddress(pubkey2.Address())
 	pkAny2, err := codectypes.NewAnyWithValue(pubkey2)
 	suite.Require().Nil(err)
-	sequencer2 := types.MsgCreateSequencer{
-		Creator:          alice,
-		SequencerAddress: addr2.String(),
-		DymintPubKey:     pkAny2,
-		RollappId:        rollappId,
-		Description:      sequencertypes.Description{},
+	sequencerMsg2 := types.MsgCreateSequencer{
+		Creator:      addr2.String(),
+		DymintPubKey: pkAny2,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
 	}
-	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencer2)
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg2)
 	suite.Require().Nil(err)
 
 	// check scheduler operating status
-	scheduler, found := suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencer1.SequencerAddress)
+	scheduler, found := suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencerMsg1.GetCreator())
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Proposer)
 
 	// check scheduler operating status
-	scheduler, found = suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencer2.SequencerAddress)
+	scheduler, found = suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencerMsg2.GetCreator())
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Inactive)
 }

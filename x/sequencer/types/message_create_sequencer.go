@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,7 +20,7 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
 }
 
-func NewMsgCreateSequencer(creator string, sequencerAddress string, pubkey cryptotypes.PubKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -31,11 +29,10 @@ func NewMsgCreateSequencer(creator string, sequencerAddress string, pubkey crypt
 		}
 	}
 	return &MsgCreateSequencer{
-		Creator:          creator,
-		SequencerAddress: sequencerAddress,
-		DymintPubKey:     pkAny,
-		RollappId:        rollappId,
-		Description:      *description,
+		Creator:      creator,
+		DymintPubKey: pkAny,
+		RollappId:    rollappId,
+		Description:  *description,
 	}, nil
 }
 
@@ -66,11 +63,6 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	// check Bech32 format
-	if _, err := sdk.AccAddressFromBech32(msg.SequencerAddress); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
-	}
-
 	// public key also checked by the application logic
 	if msg.DymintPubKey != nil {
 		// check it is a pubkey
@@ -82,17 +74,6 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
 		if !ok {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
-		}
-
-		// get Bech32 format
-		sequencerAddress, err := sdk.AccAddressFromBech32(msg.SequencerAddress)
-		if err != nil {
-			return sdkerrors.Wrapf(ErrInvalidSequencerAddress, "invalid permissioned address: %s", err)
-		}
-
-		// verify pubkey match the address
-		if !bytes.Equal(pk.Address().Bytes(), sequencerAddress.Bytes()) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "account address and pubkey address do not match")
 		}
 	}
 

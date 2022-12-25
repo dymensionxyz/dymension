@@ -210,7 +210,6 @@ func CreateSequencer(dymHubChain *ibctesting.TestChain, rollapId string) (err er
 
 	msg, err := sequencertypes.NewMsgCreateSequencer(
 		dymHubChain.SenderAccount.GetAddress().String(),
-		dymHubChain.SenderAccount.GetAddress().String(),
 		dymHubChain.SenderAccount.GetPubKey(),
 		rollapId,
 		new(sequencertypes.Description),

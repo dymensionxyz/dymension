@@ -6,7 +6,6 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/stretchr/testify/require"
@@ -14,7 +13,6 @@ import (
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 	pubkey := secp256k1.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address()).String()
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	require.NoError(t, err)
 
@@ -26,40 +24,21 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgCreateSequencer{
-				Creator:          "invalid_address",
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      "invalid_address",
+				DymintPubKey: pkAny,
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 			},
-		}, {
-			name: "invalid sequencer address",
-			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: "invalid_address",
-				DymintPubKey:     pkAny,
-			},
-			err: ErrInvalidSequencerAddress,
-		}, {
-			name: "invalid pubkey",
-			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: sample.AccAddress(),
-				DymintPubKey:     pkAny,
-			},
-			err: sdkerrors.ErrInvalidPubKey,
 		}, {
 			name: "valid description",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					Moniker:         strings.Repeat("a", MaxMonikerLength),
 					Identity:        strings.Repeat("a", MaxIdentityLength),
@@ -70,9 +49,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid moniker length",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					Moniker: strings.Repeat("a", MaxMonikerLength+1)},
 			},
@@ -80,9 +58,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid identity length",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					Identity: strings.Repeat("a", MaxIdentityLength+1)},
 			},
@@ -90,9 +67,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid website length",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					Website: strings.Repeat("a", MaxWebsiteLength+1)},
 			},
@@ -100,9 +76,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid security contact length",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1)},
 			},
@@ -110,9 +85,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid details length",
 			msg: MsgCreateSequencer{
-				Creator:          sample.AccAddress(),
-				SequencerAddress: addr,
-				DymintPubKey:     pkAny,
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
 				Description: Description{
 					Details: strings.Repeat("a", MaxDetailsLength+1)},
 			},
