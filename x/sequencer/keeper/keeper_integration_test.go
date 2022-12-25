@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+
 	dymensionapp "github.com/dymensionxyz/dymension/app"
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
@@ -20,9 +22,8 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
-	ce "github.com/tendermint/tendermint/crypto/encoding"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (
@@ -115,16 +116,16 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 		rollappId := rollapp.GetRollappId()
 
 		for i := 0; i < 10; i++ {
-			pk := tmtypes.NewMockPV().PrivKey.PubKey()
-			pubkey, err := ce.PubKeyToProto(pk)
-			addr := sdk.AccAddress(pk.Address())
+			pubkey := secp256k1.GenPrivKey().PubKey()
+			addr := sdk.AccAddress(pubkey.Address())
+			pkAny, err := codectypes.NewAnyWithValue(pubkey)
 			suite.Require().Nil(err)
 
 			// sequencer is the sequencer to create
 			sequencer := types.MsgCreateSequencer{
 				Creator:          alice,
 				SequencerAddress: addr.String(),
-				DymintPubKey:     pubkey,
+				DymintPubKey:     pkAny,
 				RollappId:        rollappId,
 				Description:      sequencertypes.Description{},
 			}
@@ -146,7 +147,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 				SequencerAddress: sequencer.GetSequencerAddress(),
 			})
 			suite.Require().Nil(err)
-			suite.Require().EqualValues(sequencerExpect, queryResponse.SequencerInfo.Sequencer)
+			equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
@@ -198,14 +199,14 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 
 	rollappId := rollapp.GetRollappId()
 
-	pk := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey, err := ce.PubKeyToProto(pk)
-	addr := sdk.AccAddress(pk.Address())
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
 	sequencer := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: addr.String(),
-		DymintPubKey:     pubkey,
+		DymintPubKey:     pkAny,
 		RollappId:        rollappId,
 		Description:      sequencertypes.Description{},
 	}
@@ -220,14 +221,14 @@ func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
-	pk := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey, err := ce.PubKeyToProto(pk)
-	addr := sdk.AccAddress(pk.Address())
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
 	sequencer := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: addr.String(),
-		DymintPubKey:     pubkey,
+		DymintPubKey:     pkAny,
 		RollappId:        "rollappId",
 		Description:      sequencertypes.Description{},
 	}
@@ -240,11 +241,8 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
-	pk := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey, err := ce.PubKeyToProto(pk)
-	addr := sdk.AccAddress(pk.Address())
-	suite.Require().Nil(err)
-
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
 	sequencerAddress := addr.String()
 
 	rollapp := rollapptypes.Rollapp{
@@ -261,11 +259,12 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 
 	rollappId := rollapp.GetRollappId()
 
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
 	sequencer := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: sequencerAddress,
-		DymintPubKey:     pubkey,
+		DymintPubKey:     pkAny,
 		RollappId:        rollappId,
 		Description:      sequencertypes.Description{},
 	}
@@ -287,7 +286,7 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 		RollappId:        rollappId,
 		Description:      sequencer.GetDescription(),
 	}
-	suite.Require().EqualValues(sequencerExpect, queryResponse.SequencerInfo.Sequencer)
+	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 }
 
 func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
@@ -308,15 +307,14 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 
 	rollappId := rollapp.GetRollappId()
 
-	pk := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey, err := ce.PubKeyToProto(pk)
-	addr := sdk.AccAddress(pk.Address())
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
-
 	sequencer := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: addr.String(),
-		DymintPubKey:     pubkey,
+		DymintPubKey:     pkAny,
 		RollappId:        rollappId,
 		Description:      sequencertypes.Description{},
 	}
@@ -346,15 +344,14 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 
 	// create MaxSequencers
 	for i := 0; i < maxSequencers; i++ {
-		pk := tmtypes.NewMockPV().PrivKey.PubKey()
-		pubkey, err := ce.PubKeyToProto(pk)
-		addr := sdk.AccAddress(pk.Address())
+		pubkey := secp256k1.GenPrivKey().PubKey()
+		addr := sdk.AccAddress(pubkey.Address())
+		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
-
 		sequencer := types.MsgCreateSequencer{
 			Creator:          alice,
 			SequencerAddress: addr.String(),
-			DymintPubKey:     pubkey,
+			DymintPubKey:     pkAny,
 			RollappId:        rollappId,
 			Description:      sequencertypes.Description{},
 		}
@@ -364,15 +361,14 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 
 	// add more to be failed
 	for i := 0; i < 2; i++ {
-		pk := tmtypes.NewMockPV().PrivKey.PubKey()
-		pubkey, err := ce.PubKeyToProto(pk)
-		addr := sdk.AccAddress(pk.Address())
+		pubkey := secp256k1.GenPrivKey().PubKey()
+		addr := sdk.AccAddress(pubkey.Address())
+		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
-
 		sequencer := types.MsgCreateSequencer{
 			Creator:          alice,
 			SequencerAddress: addr.String(),
-			DymintPubKey:     pubkey,
+			DymintPubKey:     pkAny,
 			RollappId:        rollappId,
 			Description:      sequencertypes.Description{},
 		}
@@ -399,16 +395,14 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	rollappId := rollapp.GetRollappId()
 
 	// create first sequencer
-	pk1 := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey1, err := ce.PubKeyToProto(pk1)
-	addr1 := sdk.AccAddress(pk1.Address())
-	suite.Require().Nil(err)
-
+	pubkey1 := secp256k1.GenPrivKey().PubKey()
+	addr1 := sdk.AccAddress(pubkey1.Address())
+	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 	suite.Require().Nil(err)
 	sequencer1 := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: addr1.String(),
-		DymintPubKey:     pubkey1,
+		DymintPubKey:     pkAny1,
 		RollappId:        rollappId,
 		Description:      sequencertypes.Description{},
 	}
@@ -416,14 +410,14 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	suite.Require().Nil(err)
 
 	// create second sequencer
-	pk2 := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey2, err := ce.PubKeyToProto(pk2)
-	addr2 := sdk.AccAddress(pk2.Address())
+	pubkey2 := secp256k1.GenPrivKey().PubKey()
+	addr2 := sdk.AccAddress(pubkey2.Address())
+	pkAny2, err := codectypes.NewAnyWithValue(pubkey2)
 	suite.Require().Nil(err)
 	sequencer2 := types.MsgCreateSequencer{
 		Creator:          alice,
 		SequencerAddress: addr2.String(),
-		DymintPubKey:     pubkey2,
+		DymintPubKey:     pkAny2,
 		RollappId:        rollappId,
 		Description:      sequencertypes.Description{},
 	}
@@ -450,7 +444,7 @@ func vereifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer
 	for i := 0; i < len(sequencersExpect); i++ {
 		sequencerExpect := sequencersExpect[i]
 		sequencerRes := sequencersRes[sequencerExpect.GetSequencerAddress()]
-		suite.Require().EqualValues(sequencerExpect, sequencerRes)
+		equalSequencer(suite, sequencerExpect, sequencerRes)
 	}
 }
 
@@ -490,4 +484,19 @@ func getAll(suite *IntegrationTestSuite) (map[string]*types.Sequencer, int) {
 	}
 
 	return sequencersRes, totalRes
+}
+
+// equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
+func equalSequencer(suite *IntegrationTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
+	// Pubkey does not pass standard equality checks, check it separately
+	s1Pubkey := s1.DymintPubKey
+	s2Pubkey := s2.DymintPubKey
+	suite.Require().True(s1Pubkey.Equal(s2Pubkey))
+	// Pubkey does not pass standard equality checks, compare Sequencer without it
+	s1.DymintPubKey = nil
+	s2.DymintPubKey = nil
+	suite.Require().EqualValues(s1, s2)
+	// restore pubkey
+	s1.DymintPubKey = s1Pubkey
+	s2.DymintPubKey = s2Pubkey
 }

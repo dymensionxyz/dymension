@@ -16,9 +16,6 @@ import (
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
-
-	ce "github.com/tendermint/tendermint/crypto/encoding"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type IrcTestSuite struct {
@@ -210,13 +207,11 @@ func CreateRollapp(dymHubChain *ibctesting.TestChain, rollapId string) (err erro
 
 // CreateSequencer creates a sequencer on the hub
 func CreateSequencer(dymHubChain *ibctesting.TestChain, rollapId string) (err error) {
-	pk := tmtypes.NewMockPV().PrivKey.PubKey()
-	pubkey, err := ce.PubKeyToProto(pk)
 
 	msg, err := sequencertypes.NewMsgCreateSequencer(
 		dymHubChain.SenderAccount.GetAddress().String(),
 		dymHubChain.SenderAccount.GetAddress().String(),
-		pubkey,
+		dymHubChain.SenderAccount.GetPubKey(),
 		rollapId,
 		new(sequencertypes.Description),
 	)

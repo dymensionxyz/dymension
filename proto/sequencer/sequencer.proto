@@ -4,7 +4,8 @@ package dymensionxyz.dymension.sequencer;
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 import "sequencer/description.proto"; 
 
-import "tendermint/crypto/keys.proto";
+import "cosmos_proto/cosmos.proto";
+import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
@@ -14,8 +15,8 @@ message Sequencer {
   string sequencerAddress = 1;
   // creator is the bech32-encoded address of the account sent the transaction (sequencer creator)
   string creator = 2;
-  // dymintPubKey is the public key of the sequencer dymint client.
-  tendermint.crypto.PublicKey dymintPubKey = 3 [(gogoproto.nullable) = false];
+  // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+  google.protobuf.Any dymintPubKey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
   // rollappId defines the rollapp to which the sequencer belongs.
   string rollappId = 4;
   // description defines the descriptive terms for the sequencer.

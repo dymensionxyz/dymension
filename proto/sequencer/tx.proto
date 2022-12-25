@@ -4,7 +4,8 @@ package dymensionxyz.dymension.sequencer;
 // this line is used by starport scaffolding # proto/tx/import
 import "sequencer/description.proto";
 
-import "tendermint/crypto/keys.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
@@ -21,8 +22,8 @@ message MsgCreateSequencer {
   string creator = 1;
   // sequencerAddress is the bech32-encoded address of the sequencer account.
   string sequencerAddress = 2;
-  // dymintPubKey is the public key of the sequencer dymint client.
-  tendermint.crypto.PublicKey dymintPubKey = 3 [(gogoproto.nullable) = false];
+  // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
+  google.protobuf.Any dymintPubKey = 3 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
   // rollappId defines the rollapp to which the sequencer belongs.
   string rollappId = 4;
   // description defines the descriptive terms for the sequencer.
