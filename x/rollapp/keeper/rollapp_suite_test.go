@@ -1,14 +1,11 @@
 package keeper_test
 
 import (
-	fmt "fmt"
 	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymensionapp "github.com/dymensionxyz/dymension/app"
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
-	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
@@ -73,68 +70,6 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
 	suite.ctx = ctx
 	suite.queryClient = queryClient
-}
-
-func (suite *RollappTestSuite) createRollappFromWhitelist(expectedErr error, deployerWhitelist []types.DeployerParams) {
-	suite.SetupTest(deployerWhitelist...)
-	goCtx := sdk.WrapSDKContext(suite.ctx)
-
-	// rollappsExpect is the expected result of query all
-	rollappsExpect := []*types.Rollapp{}
-
-	// test 10 rollap creations
-	for i := 0; i < 10; i++ {
-		// generate sequences address
-		addresses := sample.GenerateAddresses(i)
-		// rollapp is the rollapp to create
-		rollapp := types.MsgCreateRollapp{
-			Creator:               alice,
-			RollappId:             fmt.Sprintf("%s%d", "rollapp", i),
-			CodeStamp:             "",
-			GenesisPath:           "",
-			MaxWithholdingBlocks:  1,
-			MaxSequencers:         1,
-			PermissionedAddresses: sharedtypes.Sequencers{Addresses: addresses},
-		}
-		// rollappExpect is the expected result of creating rollapp
-		rollappExpect := types.Rollapp{
-			RollappId:             rollapp.GetRollappId(),
-			Creator:               rollapp.GetCreator(),
-			Version:               0,
-			CodeStamp:             rollapp.GetCodeStamp(),
-			GenesisPath:           rollapp.GetGenesisPath(),
-			MaxWithholdingBlocks:  rollapp.GetMaxWithholdingBlocks(),
-			MaxSequencers:         rollapp.GetMaxSequencers(),
-			PermissionedAddresses: rollapp.GetPermissionedAddresses(),
-		}
-		// create rollapp
-		createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-		if expectedErr != nil {
-			suite.EqualError(err, expectedErr.Error())
-			continue
-		}
-		suite.Require().Nil(err)
-		suite.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
-
-		// query the specific rollapp
-		queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
-			RollappId: rollapp.GetRollappId(),
-		})
-		if queryResponse.Rollapp.PermissionedAddresses.Addresses == nil {
-			queryResponse.Rollapp.PermissionedAddresses.Addresses = []string{}
-		}
-		suite.Require().Nil(err)
-		suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
-
-		// add the rollapp to the list of get all expected list
-		rollappsExpect = append(rollappsExpect, &rollappExpect)
-		// verify that query all contains all the rollapps that were created
-		rollappsRes, totalRes := getAll(suite)
-		suite.Require().EqualValues(totalRes, i+1)
-		vereifyAll(suite, rollappsExpect, rollappsRes)
-
-	}
-
 }
 
 func TestRollappKeeperTestSuite(t *testing.T) {
