@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	seqAddr1 = sample.AccAddress()
-	seqAddr2 = sample.AccAddress()
+	deployerAddr1 = sample.AccAddress()
+	deployerAddr2 = sample.AccAddress()
 )
 
 func TestGenesisState_Validate(t *testing.T) {
@@ -29,7 +29,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{seqAddr1, seqAddr2},
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr2, 0}},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -123,11 +123,25 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: true,
 		},
 		{
+			desc: "duplicated deployer in whitelist",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr1, 0}},
+				},
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
+		},
+		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -141,7 +155,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -155,7 +169,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
-					DeployerWhitelist:     []string{"asdad"},
+					DeployerWhitelist:     []types.DeployerParams{{"asdad", 0}},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},

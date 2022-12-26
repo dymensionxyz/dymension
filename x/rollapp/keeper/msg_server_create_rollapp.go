@@ -19,8 +19,9 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
 		bInWhitelist := false
 		// check to see if the creator is in whitelist
-		for _, item := range whitelist {
-			if item == msg.Creator {
+		var item types.DeployerParams
+		for _, item = range whitelist {
+			if item.Address == msg.Creator {
 				// Found!
 				bInWhitelist = true
 				break
@@ -28,6 +29,20 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 		if !bInWhitelist {
 			return nil, types.ErrUnauthorizedRollappCreator
+		} else if item.MaxRollapps > 0 {
+			// if MaxRollapps, it means there is a limit for this creator
+			// count how many rollapps he created
+			rollappsNumOfCreator := uint64(0)
+			for _, r := range k.GetAllRollapp(ctx) {
+				if r.Creator == msg.Creator {
+					rollappsNumOfCreator += 1
+				}
+			}
+			// check the creator didn't hit the maximum
+			if rollappsNumOfCreator >= item.MaxRollapps {
+				// check the deployer max rollapps limitation
+				return nil, types.ErrRollappCreatorExceedMaximumRollapps
+			}
 		}
 	}
 

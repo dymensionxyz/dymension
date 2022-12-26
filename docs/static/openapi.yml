@@ -20995,12 +20995,24 @@ paths:
                   deployer_whitelist:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                          description: |-
+                            address is a bech32-encoded address of the 
+                            accounts that are allowed to create a rollapp.
+                        max_rollapps:
+                          type: string
+                          format: uint64
+                          title: >-
+                            max_rollapps is the maximum number of rollapps that
+                            address allowed to deploy
                     title: >-
-                      deployer_whitelist is a bech32-encoded address list of
-                      the 
+                      deployer_whitelist is a list of the 
 
-                      accounts that are allowed to create a rollapp.
+                      accounts that are allowed to create a rollapp and maximum
+                      number of rollapps.
 
                       In the case of an empty list, there are no restrictions
             description: >-
@@ -22174,6 +22186,16 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   '/dymensionxyz/dymension/sequencer/scheduler/{sequencerAddress}':
@@ -22911,6 +22933,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -23879,6 +23911,16 @@ paths:
             when key
 
             is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
           in: query
           required: false
           type: boolean
@@ -51660,6 +51702,20 @@ definitions:
     title: >-
       BlockHeightToFinalizationQueue defines a map from block height to list of
       states to finalized
+  dymensionxyz.dymension.rollapp.DeployerParams:
+    type: object
+    properties:
+      address:
+        type: string
+        description: |-
+          address is a bech32-encoded address of the 
+          accounts that are allowed to create a rollapp.
+      max_rollapps:
+        type: string
+        format: uint64
+        title: >-
+          max_rollapps is the maximum number of rollapps that address allowed to
+          deploy
   dymensionxyz.dymension.rollapp.MsgCreateRollappResponse:
     type: object
   dymensionxyz.dymension.rollapp.MsgUpdateStateResponse:
@@ -51677,10 +51733,25 @@ definitions:
       deployer_whitelist:
         type: array
         items:
-          type: string
-        title: |-
-          deployer_whitelist is a bech32-encoded address list of the 
-          accounts that are allowed to create a rollapp.
+          type: object
+          properties:
+            address:
+              type: string
+              description: |-
+                address is a bech32-encoded address of the 
+                accounts that are allowed to create a rollapp.
+            max_rollapps:
+              type: string
+              format: uint64
+              title: >-
+                max_rollapps is the maximum number of rollapps that address
+                allowed to deploy
+        title: >-
+          deployer_whitelist is a list of the 
+
+          accounts that are allowed to create a rollapp and maximum number of
+          rollapps.
+
           In the case of an empty list, there are no restrictions
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllBlockHeightToFinalizationQueueResponse:
@@ -52538,10 +52609,25 @@ definitions:
           deployer_whitelist:
             type: array
             items:
-              type: string
-            title: |-
-              deployer_whitelist is a bech32-encoded address list of the 
-              accounts that are allowed to create a rollapp.
+              type: object
+              properties:
+                address:
+                  type: string
+                  description: |-
+                    address is a bech32-encoded address of the 
+                    accounts that are allowed to create a rollapp.
+                max_rollapps:
+                  type: string
+                  format: uint64
+                  title: >-
+                    max_rollapps is the maximum number of rollapps that address
+                    allowed to deploy
+            title: >-
+              deployer_whitelist is a list of the 
+
+              accounts that are allowed to create a rollapp and maximum number
+              of rollapps.
+
               In the case of an empty list, there are no restrictions
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:

@@ -29,7 +29,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
-	deployerWhitelist []string,
+	deployerWhitelist []DeployerParams,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
@@ -40,7 +40,7 @@ func NewParams(
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		DefaultDisputePeriodInBlocks, []string{},
+		DefaultDisputePeriodInBlocks, []DeployerParams{},
 	)
 }
 
@@ -83,16 +83,25 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 // validateDeployerWhitelist validates the DeployerWhitelist param
 func validateDeployerWhitelist(v interface{}) error {
-	deployerWhitelist, ok := v.([]string)
+	deployerWhitelist, ok := v.([]DeployerParams)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	// Check for duplicated index in deployer address
+	rollappDeployerIndexMap := make(map[string]struct{})
+
 	for i, item := range deployerWhitelist {
 		// check Bech32 format
-		if _, err := sdk.AccAddressFromBech32(item); err != nil {
+		if _, err := sdk.AccAddressFromBech32(item.Address); err != nil {
 			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
 		}
+
+		// check duplicate
+		if _, ok := rollappDeployerIndexMap[item.Address]; ok {
+			return fmt.Errorf("duplicated deployer address in deployerWhitelist")
+		}
+		rollappDeployerIndexMap[item.Address] = struct{}{}
 	}
 
 	return nil
