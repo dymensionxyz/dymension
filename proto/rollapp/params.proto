@@ -5,6 +5,14 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
+message DeployerParams {
+  // address is a bech32-encoded address of the 
+  // accounts that are allowed to create a rollapp.  
+  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  // max_rollapps is the maximum number of rollapps that address allowed to deploy
+  uint64 max_rollapps =2 [ (gogoproto.moretags) = "yaml:\"max_rollapps\"" ];
+}
+
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
@@ -15,9 +23,9 @@ message Params {
   uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
-  // deployer_whitelist is a bech32-encoded address list of the 
-  // accounts that are allowed to create a rollapp.
+  // deployer_whitelist is a list of the 
+  // accounts that are allowed to create a rollapp and maximum number of rollapps.
   // In the case of an empty list, there are no restrictions
-  repeated string deployer_whitelist = 2
-      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" ];
+  repeated DeployerParams deployer_whitelist = 2
+      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" , (gogoproto.nullable) = false];
 }

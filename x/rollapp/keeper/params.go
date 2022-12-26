@@ -25,7 +25,7 @@ func (k Keeper) DisputePeriodInBlocks(ctx sdk.Context) (res uint64) {
 }
 
 // DeployerWhitelist returns the DeployerWhitelist param
-func (k Keeper) DeployerWhitelist(ctx sdk.Context) (res []string) {
+func (k Keeper) DeployerWhitelist(ctx sdk.Context) (res []types.DeployerParams) {
 	k.paramstore.Get(ctx, types.KeyDeployerWhitelist, &res)
 	return
 }

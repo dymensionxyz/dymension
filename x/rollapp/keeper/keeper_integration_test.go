@@ -62,7 +62,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(IntegrationTestSuite))
 }
 
-func (suite *IntegrationTestSuite) SetupTest(deployerWhitelist ...string) {
+func (suite *IntegrationTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
 	app := dymensionapp.Setup(false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
@@ -81,7 +81,7 @@ func (suite *IntegrationTestSuite) SetupTest(deployerWhitelist ...string) {
 	suite.queryClient = queryClient
 }
 
-func (suite *IntegrationTestSuite) createRollappFromWhitelist(expectedErr error, deployerWhitelist []string) {
+func (suite *IntegrationTestSuite) createRollappFromWhitelist(expectedErr error, deployerWhitelist []types.DeployerParams) {
 	suite.SetupTest(deployerWhitelist...)
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -148,11 +148,11 @@ func (suite *IntegrationTestSuite) TestCreateRollapp() {
 }
 
 func (suite *IntegrationTestSuite) TestCreateRollappFromWhitelist() {
-	suite.createRollappFromWhitelist(nil, []string{alice})
+	suite.createRollappFromWhitelist(nil, []types.DeployerParams{{Address: alice, MaxRollapps: 0}})
 }
 
 func (suite *IntegrationTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []string{bob})
+	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []types.DeployerParams{{Address: bob, MaxRollapps: 0}})
 }
 
 func (suite *IntegrationTestSuite) TestCreateRollappAlreadyExists() {

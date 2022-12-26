@@ -26,7 +26,7 @@ func TestGetParamsWithDeployerWhitelist(t *testing.T) {
 	k, ctx := testkeeper.RollappKeeper(t)
 
 	params := types.DefaultParams()
-	params.DeployerWhitelist = []string{sample.AccAddress(), sample.AccAddress()}
+	params.DeployerWhitelist = []types.DeployerParams{{Address: sample.AccAddress(), MaxRollapps: 0}, {Address: sample.AccAddress(), MaxRollapps: 0}}
 
 	k.SetParams(ctx, params)
 

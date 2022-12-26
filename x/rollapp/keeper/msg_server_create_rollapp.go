@@ -20,7 +20,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		bInWhitelist := false
 		// check to see if the creator is in whitelist
 		for _, item := range whitelist {
-			if item == msg.Creator {
+			if item.Address == msg.Creator {
 				// Found!
 				bInWhitelist = true
 				break

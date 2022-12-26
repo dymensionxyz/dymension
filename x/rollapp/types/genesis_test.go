@@ -29,7 +29,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{seqAddr1, seqAddr2},
+					DeployerWhitelist:     []types.DeployerParams{{seqAddr1, 0}, {seqAddr2, 0}},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -127,7 +127,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -141,7 +141,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					DeployerWhitelist:     []string{},
+					DeployerWhitelist:     []types.DeployerParams{},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -155,7 +155,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
-					DeployerWhitelist:     []string{"asdad"},
+					DeployerWhitelist:     []types.DeployerParams{{"asdad", 0}},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
