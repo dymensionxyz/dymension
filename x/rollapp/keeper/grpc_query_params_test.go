@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/testutil/keeper"
+	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +14,7 @@ func TestParamsQuery(t *testing.T) {
 	keeper, ctx := testkeeper.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	params := types.DefaultParams()
-	params.DeployerWhitelist = []types.DeployerParams{{Address: "cosmos1jmjfq0tplp9tmx4v9uemw72y4d2wa5nr3xn9d3", MaxRollapps: 0}, {Address: "cosmos1jmjfq0tplp9tmx4v9uemw72y4d2wa5nr3xn9d3", MaxRollapps: 100}}
+	params.DeployerWhitelist = []types.DeployerParams{{Address: sample.AccAddress(), MaxRollapps: 0}, {Address: sample.AccAddress(), MaxRollapps: 100}}
 	keeper.SetParams(ctx, params)
 
 	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})

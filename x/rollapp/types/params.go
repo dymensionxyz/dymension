@@ -88,11 +88,20 @@ func validateDeployerWhitelist(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	// Check for duplicated index in deployer address
+	rollappDeployerIndexMap := make(map[string]struct{})
+
 	for i, item := range deployerWhitelist {
 		// check Bech32 format
 		if _, err := sdk.AccAddressFromBech32(item.Address); err != nil {
 			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
 		}
+
+		// check duplicate
+		if _, ok := rollappDeployerIndexMap[item.Address]; ok {
+			return fmt.Errorf("duplicated deployer address in deployerWhitelist")
+		}
+		rollappDeployerIndexMap[item.Address] = struct{}{}
 	}
 
 	return nil

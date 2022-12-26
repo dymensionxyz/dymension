@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	seqAddr1 = sample.AccAddress()
-	seqAddr2 = sample.AccAddress()
+	deployerAddr1 = sample.AccAddress()
+	deployerAddr2 = sample.AccAddress()
 )
 
 func TestGenesisState_Validate(t *testing.T) {
@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{seqAddr1, 0}, {seqAddr2, 0}},
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr2, 0}},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -121,6 +121,20 @@ func TestGenesisState_Validate(t *testing.T) {
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
+		},
+		{
+			desc: "duplicated deployer in whitelist",
+			genState: &types.GenesisState{
+				Params: types.Params{
+					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr1, 0}},
+				},
+				RollappList:                        []types.Rollapp{},
+				StateInfoList:                      []types.StateInfo{},
+				LatestStateInfoIndexList:           []types.StateInfoIndex{},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+			},
+			valid: false,
 		},
 		{
 			desc: "duplicated rollapp",
