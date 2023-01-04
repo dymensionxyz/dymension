@@ -33,7 +33,8 @@ func TestSequencersByRollappQuerySingle(t *testing.T) {
 				Status:    types.Unspecified,
 			})
 		}
-		SequencersByRollappResponseList = append(SequencersByRollappResponseList, types.QueryGetSequencersByRollappResponse{sequencerByRollapp.RollappId, sequencerInfoList})
+		SequencersByRollappResponseList = append(SequencersByRollappResponseList,
+			types.QueryGetSequencersByRollappResponse{RollappId: sequencerByRollapp.RollappId, SequencerInfoList: sequencerInfoList})
 	}
 	for _, tc := range []struct {
 		desc     string
@@ -97,7 +98,8 @@ func TestSequencersByRollappQueryPaginated(t *testing.T) {
 				Status:    types.Unspecified,
 			})
 		}
-		SequencersByRollappResponseList = append(SequencersByRollappResponseList, types.QueryGetSequencersByRollappResponse{sequencerByRollapp.RollappId, sequencerInfoList})
+		SequencersByRollappResponseList = append(SequencersByRollappResponseList,
+			types.QueryGetSequencersByRollappResponse{RollappId: sequencerByRollapp.RollappId, SequencerInfoList: sequencerInfoList})
 	}
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllSequencersByRollappRequest {
 		return &types.QueryAllSequencersByRollappRequest{

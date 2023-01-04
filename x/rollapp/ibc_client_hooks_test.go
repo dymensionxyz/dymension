@@ -292,7 +292,7 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 					RevisionNumber: 0,
 					RevisionHeight: height,
 				},
-				nil, nil, false, false,
+				nil, nil,
 			)
 
 			// build consensus state

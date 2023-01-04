@@ -17,7 +17,7 @@ func TestGetParams(t *testing.T) {
 
 	require.EqualValues(t, params.DisputePeriodInBlocks, k.DisputePeriodInBlocks(ctx))
 	require.EqualValues(t, len(params.DeployerWhitelist), len(k.DeployerWhitelist(ctx)))
-	for i, _ := range params.DeployerWhitelist {
+	for i := range params.DeployerWhitelist {
 		require.EqualValues(t, params.DeployerWhitelist[i], k.DeployerWhitelist(ctx)[i])
 	}
 }
@@ -32,7 +32,7 @@ func TestGetParamsWithDeployerWhitelist(t *testing.T) {
 
 	require.EqualValues(t, params.DisputePeriodInBlocks, k.DisputePeriodInBlocks(ctx))
 	require.EqualValues(t, len(params.DeployerWhitelist), len(k.DeployerWhitelist(ctx)))
-	for i, _ := range params.DeployerWhitelist {
+	for i := range params.DeployerWhitelist {
 		require.EqualValues(t, params.DeployerWhitelist[i], k.DeployerWhitelist(ctx)[i])
 	}
 }
