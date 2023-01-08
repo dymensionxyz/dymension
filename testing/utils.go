@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
+	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v3/modules/core/exported"
 	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 	"github.com/cosmos/ibc-go/v3/testing/simapp"
@@ -30,14 +32,9 @@ type IrcTestSuite struct {
 	coordinator *ibctesting.Coordinator
 
 	// testing chains used for convenience and readability
-	chainA *ibctesting.TestChain
-	chainB *ibctesting.TestChain
-	chainC *ibctesting.TestChain
-
-	// consensus setup
-	chainAConsensusType string
-	chainBConsensusType string
-	chainCConsensusType string
+	rollapp1 *ibctesting.TestChain
+	hubChain *ibctesting.TestChain
+	rollapp2 *ibctesting.TestChain
 
 	// sequencers account
 	rollappToSeqAccount map[string]ibctesting.SenderAccount
@@ -67,16 +64,16 @@ func (suite *IrcTestSuite) SetupTest() {
 	ibctesting.DefaultTestingAppInit = SetupTestingApp
 	// setup endpoints
 
-	suite.coordinator = ibctesting.NewCoordinatorWithConsensusType(suite.T(), []string{suite.chainAConsensusType,
-		suite.chainBConsensusType,
-		suite.chainCConsensusType})
+	suite.coordinator = ibctesting.NewCoordinatorWithConsensusType(suite.T(), []string{exported.Dymint,
+		exported.Tendermint,
+		exported.Dymint})
 
 	// dymension hub chain
-	suite.chainB = suite.coordinator.GetChain(ibctesting.GetChainID(2))
+	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(2))
 
 	// fill missing bds
 	bds := rollapptypes.BlockDescriptors{}
-	for height := uint64(1); height <= uint64(suite.chainB.GetContext().BlockHeader().Height); {
+	for height := uint64(1); height <= uint64(suite.hubChain.GetContext().BlockHeader().Height); {
 		bd := rollapptypes.BlockDescriptor{
 			Height:                 height,
 			StateRoot:              hash32,
@@ -87,39 +84,39 @@ func (suite *IrcTestSuite) SetupTest() {
 	}
 
 	// rollapp1 dymint chain
-	suite.chainA = suite.coordinator.GetChain(ibctesting.GetChainID(1))
+	suite.rollapp1 = suite.coordinator.GetChain(ibctesting.GetChainID(1))
 	// replace the TestChainClient to be DymintTestChainClient
-	suite.chainA.TestChainClient = &DymintTestChainClient{
-		baseTestChainClient: suite.chainA.TestChainClient,
-		baseTestChain:       suite.chainA,
+	suite.rollapp1.TestChainClient = &DymintTestChainClient{
+		baseTestChainClient: suite.rollapp1.TestChainClient,
+		baseTestChain:       suite.rollapp1,
 		bds:                 bds,
 	}
 
 	// rollapp2 dymint chain
-	suite.chainC = suite.coordinator.GetChain(ibctesting.GetChainID(3))
+	suite.rollapp2 = suite.coordinator.GetChain(ibctesting.GetChainID(3))
 	// replace the TestChainClient to be DymintTestChainClient
-	suite.chainC.TestChainClient = &DymintTestChainClient{
-		baseTestChainClient: suite.chainC.TestChainClient,
-		baseTestChain:       suite.chainC,
+	suite.rollapp2.TestChainClient = &DymintTestChainClient{
+		baseTestChainClient: suite.rollapp2.TestChainClient,
+		baseTestChain:       suite.rollapp2,
 		bds:                 bds,
 	}
 
 	suite.rollappToSeqAccount = make(map[string]ibctesting.SenderAccount)
 	// allocate sequencer acounts on the hub
-	suite.rollappToSeqAccount[suite.chainA.ChainID] = suite.chainB.SenderAccounts[1]
-	suite.rollappToSeqAccount[suite.chainC.ChainID] = suite.chainB.SenderAccounts[2]
+	suite.rollappToSeqAccount[suite.rollapp1.ChainID] = suite.hubChain.SenderAccounts[1]
+	suite.rollappToSeqAccount[suite.rollapp2.ChainID] = suite.hubChain.SenderAccounts[2]
 
 	// commit some blocks so that QueryProof returns valid proof (cannot return valid query if height <= 1)
-	suite.coordinator.CommitNBlocks(suite.chainA, 2)
-	suite.coordinator.CommitNBlocks(suite.chainB, 2)
-	suite.coordinator.CommitNBlocks(suite.chainC, 2)
+	suite.coordinator.CommitNBlocks(suite.rollapp1, 2)
+	suite.coordinator.CommitNBlocks(suite.hubChain, 2)
+	suite.coordinator.CommitNBlocks(suite.rollapp2, 2)
 }
 
 // CreateRollapp creates a rollapp on the hub
 func (suite *IrcTestSuite) CreateRollapp(rollapId string) (err error) {
 
 	msg := rollapptypes.NewMsgCreateRollapp(
-		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
 		rollapId,
 		"argCodeStamp",
 		"argGenesisPath",
@@ -130,7 +127,7 @@ func (suite *IrcTestSuite) CreateRollapp(rollapId string) (err error) {
 		},
 	)
 
-	_, err = suite.chainB.SendMsgs(msg)
+	_, err = suite.hubChain.SendMsgs(msg)
 
 	return err
 }
@@ -150,7 +147,7 @@ func (suite *IrcTestSuite) CreateSequencer(rollapId string) error {
 		return err
 	}
 
-	_, err = SendMsgs(suite.chainB, seqAccount, msg)
+	_, err = SendMsgs(suite.hubChain, seqAccount, msg)
 
 	return err
 }
@@ -174,7 +171,7 @@ func (suite *IrcTestSuite) UpdateState(rollapId string, bds *rollapptypes.BlockD
 		return err
 	}
 
-	_, err = SendMsgs(suite.chainB, seqAccount, msg)
+	_, err = SendMsgs(suite.hubChain, seqAccount, msg)
 
 	// reset bds array
 	bds.BD = nil
@@ -185,8 +182,8 @@ func (suite *IrcTestSuite) UpdateState(rollapId string, bds *rollapptypes.BlockD
 // FinalizeState advance the hub chain in DisputePeriodInBlocks blocks
 // All rollapp updates will become finalized
 func (suite *IrcTestSuite) FinalizeState() (err error) {
-	disputePeriodInBlocks := suite.chainB.App.(*dymensionapp.App).RollappKeeper.DisputePeriodInBlocks(suite.chainB.GetContext())
-	suite.coordinator.CommitNBlocks(suite.chainB, disputePeriodInBlocks)
+	disputePeriodInBlocks := suite.hubChain.App.(*dymensionapp.App).RollappKeeper.DisputePeriodInBlocks(suite.hubChain.GetContext())
+	suite.coordinator.CommitNBlocks(suite.hubChain, disputePeriodInBlocks)
 	return err
 }
 
@@ -248,4 +245,28 @@ func SendMsgs(dymHubChain *ibctesting.TestChain, sequencerAccount ibctesting.Sen
 	dymHubChain.Coordinator.IncrementTime()
 
 	return r, err
+}
+
+// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
+func AcknowledgePacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet, ack []byte) (*sdk.Result, error) {
+	// get proof of acknowledgement on counterparty
+	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
+
+	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	return endpoint.Chain.SendMsgs(ackMsg)
+}
+
+// RecvPacketWithResult receives a packet on the associated endpoint and the result
+// of the transaction is returned.
+func RecvPacketWithResult(endpoint *ibctesting.Endpoint, packet channeltypes.Packet) (*sdk.Result, error) {
+	// get proof of packet commitment on source
+	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
+
+	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
+
+	// receive on counterparty and update source client
+	return endpoint.Chain.SendMsgs(recvMsg)
 }

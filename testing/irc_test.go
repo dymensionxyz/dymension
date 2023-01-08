@@ -10,10 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/strangelove-ventures/packet-forward-middleware/v3/router/keeper"
 
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	host "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-
 	"encoding/json"
 )
 
@@ -104,54 +100,51 @@ func (suite *IrcTestSuite) SetupConnection(rollappChain *ibctesting.TestChain, h
 	return path
 }
 
-// constructs a send from chainA to chainB on the established channel/connection
-// and sends the same coin back from chainB to chainA.
+// TestHandleMsgMiddlewareTransfer constructs a transfer from rollapp1 to rollapp2 through the hub
+// by using the packet-forward-middleware  and sends the same coin back from rollapp2 to rollapp1.
 func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
-	// setup connection between chainA and chainB
-	pathAtoB := suite.SetupConnection(suite.chainA, suite.chainB)
+	// setup connection between rollapp1 and hubChain
+	pathRollapp1toHub := suite.SetupConnection(suite.rollapp1, suite.hubChain)
 
-	// setup connection between chain to chainB
-	// NOTE:
-	// pathBtoC.EndpointA = endpoint on chainC
-	// pathBtoC.EndpointB = endpoint on chainB
-	pathCtoB := suite.SetupConnection(suite.chainC, suite.chainB)
+	// setup connection between rollapp2 to hubChain
+	pathRollapp2toHub := suite.SetupConnection(suite.rollapp2, suite.hubChain)
 
 	// rollapp1 dymint chain
-	rollapp1Endpoint := pathAtoB.EndpointA
+	rollapp1Endpoint := pathRollapp1toHub.EndpointA
 	// rollapp2 dymint chain
-	rollapp2Endpoint := pathCtoB.EndpointA
+	rollapp2Endpoint := pathRollapp2toHub.EndpointA
 
 	// block descriptors for update
-	rollapp1bds := &suite.chainA.TestChainClient.(*DymintTestChainClient).bds
-	rollapp2bds := &suite.chainC.TestChainClient.(*DymintTestChainClient).bds
+	rollapp1bds := &suite.rollapp1.TestChainClient.(*DymintTestChainClient).bds
+	rollapp2bds := &suite.rollapp2.TestChainClient.(*DymintTestChainClient).bds
 
 	amount, ok := sdk.NewIntFromString("1000")
 	suite.Require().True(ok)
 
 	//************************************************************************
-	//				send from chainA to chainC through B
+	//				send from rollapp1 to rollapp2 through the hub
 	//************************************************************************
 
 	// build forward message
 	coinToSend := sdk.NewCoin(sdk.DefaultBondDenom, amount)
-	msg := ibctransfertypes.NewMsgTransfer(pathAtoB.EndpointA.ChannelConfig.PortID,
-		pathAtoB.EndpointA.ChannelID,
+	msg := ibctransfertypes.NewMsgTransfer(pathRollapp1toHub.EndpointA.ChannelConfig.PortID,
+		pathRollapp1toHub.EndpointA.ChannelID,
 		coinToSend,
-		suite.chainA.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.rollapp1.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
 		timeoutHeight, 0)
 	nextMetadata := &keeper.PacketMetadata{
 		Forward: &keeper.ForwardMetadata{
-			Receiver: suite.chainC.SenderAccount.GetAddress().String(),
-			Port:     pathCtoB.EndpointB.ChannelConfig.PortID,
-			Channel:  pathCtoB.EndpointB.ChannelID,
+			Receiver: suite.rollapp2.SenderAccount.GetAddress().String(),
+			Port:     pathRollapp2toHub.EndpointB.ChannelConfig.PortID,
+			Channel:  pathRollapp2toHub.EndpointB.ChannelID,
 		},
 	}
 	memo, err := json.Marshal(nextMetadata)
 	suite.Require().NoError(err)
 	msg.Memo = string(memo)
 
-	res, err := suite.chainA.SendMsgs(msg)
+	res, err := suite.rollapp1.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -159,10 +152,10 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 
 	// update rollapp1 state before updating client
 	suite.UpdateRollappState(rollapp1Endpoint.Chain.ChainID, rollapp1bds)
-	// relay send from A to B
-	err = pathAtoB.EndpointB.UpdateClient()
+	// relay send from rollapp1 to the hub
+	err = pathRollapp1toHub.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = RecvPacketWithResult(pathAtoB.EndpointB, packet)
+	res, err = RecvPacketWithResult(pathRollapp1toHub.EndpointB, packet)
 	suite.Require().NoError(err)
 	events := res.GetEvents()
 
@@ -170,80 +163,80 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 	forwardPacket, err := ibctesting.ParsePacketFromEvents(events)
 	suite.Require().NoError(err)
 
-	// check the balance of the module account escrow address on chain A (holding the funds)
-	escrowAddressChainA := ibctransfertypes.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
-	balance := GetRollappSimApp(suite.chainA).BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddressChainA, sdk.DefaultBondDenom)
+	// check the balance of the module account escrow address on rollapp1 (holding the funds)
+	escrowAddressRollapp1 := ibctransfertypes.GetEscrowAddress(packet.GetDestPort(), packet.GetDestChannel())
+	balance := GetRollappSimApp(suite.rollapp1).BankKeeper.GetBalance(suite.rollapp1.GetContext(), escrowAddressRollapp1, sdk.DefaultBondDenom)
 	suite.Require().Equal(sdk.NewCoin(sdk.DefaultBondDenom, amount), balance)
 
-	// check the balance of the account escrow on chain B (holding the new minted funds on chain B)
+	// check the balance of the account escrow on the hub (holding the new minted funds on the hub)
 	fullDenomPathCahinB := ibctransfertypes.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom)
 	coinSentFromAToB := sdk.NewCoin(ibctransfertypes.ParseDenomTrace(fullDenomPathCahinB).IBCDenom(), amount)
-	escrowAddressChainB := ibctransfertypes.GetEscrowAddress(forwardPacket.GetSourcePort(), forwardPacket.GetSourceChannel())
-	balance = GetHubSimApp(suite.chainB).BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressChainB, coinSentFromAToB.Denom)
+	hubEscrowAddress := ibctransfertypes.GetEscrowAddress(forwardPacket.GetSourcePort(), forwardPacket.GetSourceChannel())
+	balance = GetHubSimApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), hubEscrowAddress, coinSentFromAToB.Denom)
 	suite.Require().Equal(coinSentFromAToB, balance)
 	print("\n", fullDenomPathCahinB)
 
-	// relay forward middleware packet from B to C
-	err = pathCtoB.EndpointA.UpdateClient()
+	// relay forward middleware packet from the hub to rollapp2
+	err = pathRollapp2toHub.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = RecvPacketWithResult(pathCtoB.EndpointA, forwardPacket)
+	res, err = RecvPacketWithResult(pathRollapp2toHub.EndpointA, forwardPacket)
 	suite.Require().NoError(err)
 
-	// parse the ack from C
+	// parse the ack from rollapp2
 	events = res.GetEvents()
 	ack, err := ibctesting.ParseAckFromEvents(events)
 	suite.Require().NoError(err)
 
-	// check that the balance is updated on chainC (having the new minted funds on chain C)
+	// check that the balance is updated on rollapp2 (having the new minted funds on chain rollapp2)
 	fullDenomPathCahinC := ibctransfertypes.GetPrefixedDenom(forwardPacket.GetDestPort(), forwardPacket.GetDestChannel(), fullDenomPathCahinB)
 	coinSentFromBToC := sdk.NewCoin(ibctransfertypes.ParseDenomTrace(fullDenomPathCahinC).IBCDenom(), amount)
-	balance = GetRollappSimApp(suite.chainC).BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
+	balance = GetRollappSimApp(suite.rollapp2).BankKeeper.GetBalance(suite.rollapp2.GetContext(), suite.rollapp2.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
 	suite.Require().Equal(coinSentFromBToC, balance)
 	print("\n", fullDenomPathCahinC)
 
 	// update rollapp1 state before updating client
 	suite.UpdateRollappState(rollapp2Endpoint.Chain.ChainID, rollapp2bds)
-	// relay the ack to C
-	err = pathCtoB.EndpointB.UpdateClient()
+	// relay the ack to rollapp2
+	err = pathRollapp2toHub.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = AcknowledgePacket(pathCtoB.EndpointB, forwardPacket, ack)
+	res, err = AcknowledgePacket(pathRollapp2toHub.EndpointB, forwardPacket, ack)
 	suite.Require().NoError(err)
 
-	// the forward middleware ack also generates the ack of the source send (from A to B)
+	// the forward middleware ack also generates the ack of the original send
 	events = res.GetEvents()
 	ack, err = ibctesting.ParseAckFromEvents(events)
 	suite.Require().NoError(err)
 
-	// relay Acknowledgement to chain A
-	err = pathAtoB.EndpointA.UpdateClient()
+	// relay Acknowledgement to rollapp1
+	err = pathRollapp1toHub.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	_, err = AcknowledgePacket(pathAtoB.EndpointA, packet, ack)
+	_, err = AcknowledgePacket(pathRollapp1toHub.EndpointA, packet, ack)
 	suite.Require().NoError(err)
 
 	//************************************************************************
-	//				send back from chainC to chainA through B
+	//				send back from rollapp2 to rollapp1 through the hub
 	//************************************************************************
 
 	// build forward message
 	coinToSend = sdk.NewCoin(coinSentFromBToC.Denom, amount)
-	msg = ibctransfertypes.NewMsgTransfer(pathCtoB.EndpointA.ChannelConfig.PortID,
-		pathCtoB.EndpointA.ChannelID,
+	msg = ibctransfertypes.NewMsgTransfer(pathRollapp2toHub.EndpointA.ChannelConfig.PortID,
+		pathRollapp2toHub.EndpointA.ChannelID,
 		coinToSend,
-		suite.chainC.SenderAccount.GetAddress().String(),
-		suite.chainB.SenderAccount.GetAddress().String(),
+		suite.rollapp2.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
 		timeoutHeight, 0)
 	nextMetadata = &keeper.PacketMetadata{
 		Forward: &keeper.ForwardMetadata{
-			Receiver: suite.chainA.SenderAccount.GetAddress().String(),
-			Port:     pathAtoB.EndpointB.ChannelConfig.PortID,
-			Channel:  pathAtoB.EndpointB.ChannelID,
+			Receiver: suite.rollapp1.SenderAccount.GetAddress().String(),
+			Port:     pathRollapp1toHub.EndpointB.ChannelConfig.PortID,
+			Channel:  pathRollapp1toHub.EndpointB.ChannelID,
 		},
 	}
 	memo, err = json.Marshal(nextMetadata)
 	suite.Require().NoError(err)
 	msg.Memo = string(memo)
 
-	res, err = suite.chainC.SendMsgs(msg)
+	res, err = suite.rollapp2.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -251,10 +244,10 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 
 	// update rollapp2 state before updating client
 	suite.UpdateRollappState(rollapp2Endpoint.Chain.ChainID, rollapp2bds)
-	// relay send from C to B
-	err = pathCtoB.EndpointB.UpdateClient()
+	// relay send from rollapp2 to the hub
+	err = pathRollapp2toHub.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = RecvPacketWithResult(pathCtoB.EndpointB, packet)
+	res, err = RecvPacketWithResult(pathRollapp2toHub.EndpointB, packet)
 	suite.Require().NoError(err)
 	events = res.GetEvents()
 
@@ -262,82 +255,54 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 	forwardPacket, err = ibctesting.ParsePacketFromEvents(events)
 	suite.Require().NoError(err)
 
-	// check that the balance is updated on chainC (burned to zero)
-	balance = GetRollappSimApp(suite.chainC).BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
+	// check that the balance is updated on rollapp2 (burned to zero)
+	balance = GetRollappSimApp(suite.rollapp2).BankKeeper.GetBalance(suite.rollapp2.GetContext(), suite.rollapp2.SenderAccount.GetAddress(), coinSentFromBToC.Denom)
 	suite.Require().Zero(balance.Amount.Int64())
 
-	// check the balance of the account escrow on chain B (not holding burned tokens)
-	balance = GetHubSimApp(suite.chainB).BankKeeper.GetBalance(suite.chainB.GetContext(), escrowAddressChainB, coinSentFromAToB.Denom)
+	// check the balance of the account escrow on the hub (not holding burned tokens)
+	balance = GetHubSimApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), hubEscrowAddress, coinSentFromAToB.Denom)
 	suite.Require().Zero(balance.Amount.Int64())
 
-	// relay forward middleware packet from B to A
-	err = pathAtoB.EndpointA.UpdateClient()
+	// relay forward middleware packet from the hub to rollapp1
+	err = pathRollapp1toHub.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = RecvPacketWithResult(pathAtoB.EndpointA, forwardPacket)
+	res, err = RecvPacketWithResult(pathRollapp1toHub.EndpointA, forwardPacket)
 	suite.Require().NoError(err)
 
-	// parse the ack from A
+	// parse the ack from rollapp1
 	events = res.GetEvents()
 	ack, err = ibctesting.ParseAckFromEvents(events)
 	suite.Require().NoError(err)
 
-	// check that the balance is updated on chainA (having the new minted funds on chain C)
-	balance = GetRollappSimApp(suite.chainC).BankKeeper.GetBalance(suite.chainC.GetContext(), suite.chainC.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
+	// check that the balance is updated on rollapp1 (having the new minted funds on chain rollapp2)
+	balance = GetRollappSimApp(suite.rollapp2).BankKeeper.GetBalance(suite.rollapp2.GetContext(), suite.rollapp2.SenderAccount.GetAddress(), sdk.DefaultBondDenom)
 	//suite.Require().Equal(coinSentFromBToC, balance)
 
-	// check the balance of the module account escrow address on chain A (not holding tokens)
-	balance = GetRollappSimApp(suite.chainA).BankKeeper.GetBalance(suite.chainA.GetContext(), escrowAddressChainA, sdk.DefaultBondDenom)
+	// check the balance of the module account escrow address on rollapp1 (not holding tokens)
+	balance = GetRollappSimApp(suite.rollapp1).BankKeeper.GetBalance(suite.rollapp1.GetContext(), escrowAddressRollapp1, sdk.DefaultBondDenom)
 	suite.Require().Zero(balance.Amount.Int64())
 
 	// update rollapp1 state before updating client
 	suite.UpdateRollappState(rollapp1Endpoint.Chain.ChainID, rollapp1bds)
-	// relay the ack to B (from A)
-	err = pathAtoB.EndpointB.UpdateClient()
+	// relay the ack to the hub (from rollapp1)
+	err = pathRollapp1toHub.EndpointB.UpdateClient()
 	suite.Require().NoError(err)
-	res, err = AcknowledgePacket(pathAtoB.EndpointB, forwardPacket, ack)
+	res, err = AcknowledgePacket(pathRollapp1toHub.EndpointB, forwardPacket, ack)
 	suite.Require().NoError(err)
 
-	// the forward middleware ack also generates the ack of the source send (from C to B)
+	// the forward middleware ack also generates the ack of the source send (from rollapp2 to the hub)
 	events = res.GetEvents()
 	ack, err = ibctesting.ParseAckFromEvents(events)
 	suite.Require().NoError(err)
 
-	// relay Acknowledgement to chain C
-	err = pathCtoB.EndpointA.UpdateClient()
+	// relay Acknowledgement to rollapp2
+	err = pathRollapp2toHub.EndpointA.UpdateClient()
 	suite.Require().NoError(err)
-	_, err = AcknowledgePacket(pathCtoB.EndpointA, packet, ack)
+	_, err = AcknowledgePacket(pathRollapp2toHub.EndpointA, packet, ack)
 	suite.Require().NoError(err)
-}
-
-// AcknowledgePacket sends a MsgAcknowledgement to the channel associated with the endpoint.
-func AcknowledgePacket(endpoint *ibctesting.Endpoint, packet channeltypes.Packet, ack []byte) (*sdk.Result, error) {
-	// get proof of acknowledgement on counterparty
-	packetKey := host.PacketAcknowledgementKey(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
-	proof, proofHeight := endpoint.Counterparty.QueryProof(packetKey)
-
-	ackMsg := channeltypes.NewMsgAcknowledgement(packet, ack, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
-
-	return endpoint.Chain.SendMsgs(ackMsg)
-}
-
-// RecvPacketWithResult receives a packet on the associated endpoint and the result
-// of the transaction is returned.
-func RecvPacketWithResult(endpoint *ibctesting.Endpoint, packet channeltypes.Packet) (*sdk.Result, error) {
-	// get proof of packet commitment on source
-	packetKey := host.PacketCommitmentKey(packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
-	proof, proofHeight := endpoint.Counterparty.Chain.QueryProof(packetKey)
-
-	recvMsg := channeltypes.NewMsgRecvPacket(packet, proof, proofHeight, endpoint.Chain.SenderAccount.GetAddress().String())
-
-	// receive on counterparty and update source client
-	return endpoint.Chain.SendMsgs(recvMsg)
 }
 
 // TestSuite initialize dymint rollapp and dymension hub chain
 func TestSuite(t *testing.T) {
-	suite.Run(t, &IrcTestSuite{
-		chainAConsensusType: exported.Dymint,     // rollapp dymint chain
-		chainBConsensusType: exported.Tendermint, // dymension hub chain
-		chainCConsensusType: exported.Dymint,     // rollapp dymint chain
-	})
+	suite.Run(t, &IrcTestSuite{})
 }
