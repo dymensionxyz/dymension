@@ -22,7 +22,8 @@ var (
 type DymintTestChainClient struct {
 	baseTestChainClient ibctesting.TestChainClientI
 	baseTestChain       *ibctesting.TestChain
-	bds                 *rollapptypes.BlockDescriptors
+	// track rollapp BDs for update
+	bds rollapptypes.BlockDescriptors
 }
 
 func (dymintC *DymintTestChainClient) GetContext() sdk.Context {
