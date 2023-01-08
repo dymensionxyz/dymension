@@ -438,7 +438,7 @@ func New(
 	// ... other modules keepers
 
 	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeper(
+	app.IBCKeeper = ibckeeper.NewKeeperWithSelfClient(
 		appCodec,
 		keys[ibchost.StoreKey],
 		app.GetSubspace(ibchost.ModuleName),
