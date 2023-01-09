@@ -13,7 +13,7 @@ var _ = strconv.Itoa(0)
 
 func CmdShowLatestFinalizedStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "latest-finalized-state-info [rollapp-id]",
+		Use:   "show-latest-finalized-state-info [rollapp-id]",
 		Short: "query the latest StateInfo that was finalized",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
