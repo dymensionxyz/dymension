@@ -108,7 +108,7 @@ func CmdShowStateInfo() *cobra.Command {
 	cmd.Flags().String(FlagRollappId, "", "rollapp-id to query for state-info")
 	cmd.Flags().Uint64(FlagStateIndex, 0, "Use a specific state-index to query state-info at")
 	cmd.Flags().Uint64(FlagRollappHeight, 0, "Use a specific height of the rollapp to query state-info at")
-	cmd.MarkFlagRequired(FlagRollappId)
+	_ = cmd.MarkFlagRequired(FlagRollappId)
 
 	flags.AddQueryFlagsToCmd(cmd)
 
