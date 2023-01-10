@@ -44,8 +44,8 @@ func CmdListLatestStateInfoIndex() *cobra.Command {
 
 func CmdShowLatestStateInfoIndex() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-state-index [rollapp-id]",
-		Short: "shows a latest_state_info_index",
+		Use:   "show-latest-state-index [rollapp-id]",
+		Short: "shows the latest_state_info_index",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

@@ -27,7 +27,7 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
-	for i := 0; i < n; i++ {
+	for i := 1; i <= n; i++ {
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: strconv.Itoa(i),
@@ -84,11 +84,9 @@ func TestShowStateInfo(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{
-				tc.idRollappId,
-				fmt.Sprint(tc.idStateIndex),
-			}
-			args = append(args, tc.args...)
+			args := tc.args
+			args = append(args, fmt.Sprintf("--%s=%s", cli.FlagRollappId, tc.idRollappId))
+			args = append(args, fmt.Sprintf("--%s=%d", cli.FlagStateIndex, tc.idStateIndex))
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowStateInfo(), args)
 			if tc.err != nil {
 				stat, ok := status.FromError(tc.err)
