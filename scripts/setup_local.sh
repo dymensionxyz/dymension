@@ -10,18 +10,20 @@ GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"local-testnet"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
-SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:26657"}
-GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:9090"}
-GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:9091"}
-P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:26656"}
+P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
+SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:36657"}
+GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
+GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
 if ! command -v dymd; then
+  echo "dymension hub binary not found in PATH"
+  echo "executing 'make install'"
   make install
 
   if ! command -v dymd; then
-    echo "dYmension binary not found in $PATH"
+    echo "dymension hub binary not found in PATH"
     exit 1
   fi
 fi
