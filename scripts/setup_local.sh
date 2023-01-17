@@ -10,6 +10,9 @@ GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"local-testnet"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
+KEY_NAME_SEQUENCER1=${KEY_NAME_SEQUENCER1:-"local-sequencer1"}
+KEY_NAME_SEQUENCER2=${KEY_NAME_SEQUENCER2:-"local-sequencer2"}
+KEY_NAME_SEQUENCER3=${KEY_NAME_SEQUENCER3:-"local-sequencer3"}
 P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
 SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:36657"}
 GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
@@ -54,6 +57,14 @@ sed -i'' -e 's/bond_denom": ".*"/bond_denom": "dym"/' "$GENESIS_FILE"
 sed -i'' -e 's/mint_denom": ".*"/mint_denom": "dym"/' "$GENESIS_FILE"
 
 dymd keys add "$KEY_NAME" --keyring-backend test
+dymd keys add "$KEY_NAME_SEQUENCER1" --keyring-backend test
+dymd keys add "$KEY_NAME_SEQUENCER2" --keyring-backend test
+dymd keys add "$KEY_NAME_SEQUENCER3" --keyring-backend test
+
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 100000000000dym
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME_SEQUENCER1" -a --keyring-backend test)" 1000000000dym
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME_SEQUENCER2" -a --keyring-backend test)" 1000000000dym
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME_SEQUENCER3" -a --keyring-backend test)" 1000000000dym
+
 dymd gentx "$KEY_NAME" 100000000dym --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
