@@ -16,7 +16,7 @@ var (
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 	// default value
-	DefaultDisputePeriodInBlocks uint64 = 100
+	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum numner of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 )

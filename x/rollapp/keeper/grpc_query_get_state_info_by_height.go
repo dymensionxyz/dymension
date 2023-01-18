@@ -111,9 +111,8 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 		}
 		candidateInfoIndex := startInfoIndex + infoIndexStep
 		if candidateInfoIndex > endInfoIndex {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"candidateInfoIndex > endInfoIndex for req.RollappId=%s, endHeight=%d, startHeight=%d, endInfoIndex=%d, startInfoIndex=%d, candidateInfoIndex=%d",
-				req.RollappId, endHeight, startHeight, endInfoIndex, startInfoIndex, candidateInfoIndex)
+			// skip to the last, probably the steps to big
+			candidateInfoIndex = endInfoIndex
 		}
 		if candidateInfoIndex == endInfoIndex {
 			candidateInfoIndex = endInfoIndex - 1
