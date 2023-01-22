@@ -5,8 +5,8 @@ option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 import "shared/sequencers.proto";
 import "gogoproto/gogo.proto";
 
-// Rollapp defines a rollapp object. First rollapp is create and then
-// sequencers can be create and attach to it. Rollapp is identified by rollappId
+// Rollapp defines a rollapp object. First the RollApp is created and then
+// sequencers can be created and attached. The RollApp is identified by rollappId
 message Rollapp {
   // rollappId is the unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id.
@@ -29,6 +29,5 @@ message Rollapp {
   // sequencers that are allowed to serve this rollappId. 
   // In the case of an empty list, the rollapp is considered permissionless.
   shared.Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false]; 
-  
 }
 
