@@ -10,10 +10,14 @@ GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"local-testnet"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
-SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:26657"}
+
+SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:36657"}
+P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
 GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:9090"}
 GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:9091"}
-P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:26656"}
+
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000udym"} #1M DYM (1e6dym == 1e12udym)
+STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000udym"} #67% is staked (inflation goal)
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -21,7 +25,7 @@ if ! command -v dymd; then
   make install
 
   if ! command -v dymd; then
-    echo "dYmension binary not found in $PATH"
+    echo "dymension binary not found in $PATH"
     exit 1
   fi
 fi
@@ -48,10 +52,10 @@ sed -i'' -e "/\[grpc\]/,+6 s/address *= .*/address = \"$GRPC_ADDRESS\"/" "$APP_C
 sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e "s/^node *= .*/node = \"tcp:\/\/$SETTLEMENT_RPC\"/" "$CLIENT_CONFIG_FILE"
-sed -i'' -e 's/bond_denom": ".*"/bond_denom": "dym"/' "$GENESIS_FILE"
-sed -i'' -e 's/mint_denom": ".*"/mint_denom": "dym"/' "$GENESIS_FILE"
+sed -i'' -e 's/bond_denom": ".*"/bond_denom": "udym"/' "$GENESIS_FILE"
+sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
 
 dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 100000000000dym
-dymd gentx "$KEY_NAME" 100000000dym --chain-id "$CHAIN_ID" --keyring-backend test
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
