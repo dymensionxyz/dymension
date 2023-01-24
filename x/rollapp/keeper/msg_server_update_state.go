@@ -15,7 +15,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// load rollapp object for stateful validations
 	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
-		return nil, types.ErrUnknownRollappId
+		return nil, types.ErrUnknownRollappID
 	}
 
 	// check rollapp version

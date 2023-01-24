@@ -17,6 +17,15 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "invalid rollappId",
+			msg: MsgCreateRollapp{
+				Creator:              sample.AccAddress(),
+				MaxSequencers:        1,
+				MaxWithholdingBlocks: 1,
+				RollappId:            "ivalid-3",
+			},
+			err: ErrInvalidRollappID,
+		}, {
 			name: "invalid address",
 			msg: MsgCreateRollapp{
 				Creator:              "invalid_address",

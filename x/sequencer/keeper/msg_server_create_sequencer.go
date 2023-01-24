@@ -48,7 +48,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			}
 		}
 	} else {
-		return nil, types.ErrUnknownRollappId
+		return nil, types.ErrUnknownRollappID
 	}
 
 	// update sequencers list

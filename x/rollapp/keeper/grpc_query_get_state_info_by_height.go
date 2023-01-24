@@ -24,7 +24,7 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 
 	_, found := k.GetRollapp(ctx, req.RollappId)
 	if !found {
-		return nil, types.ErrUnknownRollappId
+		return nil, types.ErrUnknownRollappID
 	}
 
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
