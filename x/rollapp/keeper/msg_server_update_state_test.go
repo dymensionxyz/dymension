@@ -207,7 +207,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.EqualError(err, types.ErrUnknownRollappId.Error())
+	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
 func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
@@ -688,7 +688,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	suite.ErrorIs(err, sequencertypes.ErrNotActiveSequencer)
 }
 
-//---------------------------------------
+// ---------------------------------------
 // vereifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
 func vereifyAll(suite *RollappTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.Rollapp) {

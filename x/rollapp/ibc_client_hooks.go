@@ -2,7 +2,6 @@ package rollapp
 
 import (
 	"bytes"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -118,11 +117,10 @@ func (ch RollappClientHooks) isRollappChain(
 	clientType string,
 	chainID string,
 ) (bool, error) {
+	// rollapp client type is Dymint
 	isDymint := clientType == exported.Dymint
-	// swap out revision if exists and get chainID
-	chainId := strings.Split(chainID, "-")[0]
 	// rollappId is the rollapp chainId
-	_, isFound := ch.k.GetRollapp(ctx, chainId)
+	_, isFound := ch.k.GetRollapp(ctx, chainID)
 	// if the client type isn't dymint and there is no such rollapp
 	// we can be sure that the chain isn't a rollapp
 	if !isDymint && !isFound {
@@ -134,10 +132,10 @@ func (ch RollappClientHooks) isRollappChain(
 	}
 	// client type is dymint but no such rollapp
 	if isDymint && !isFound {
-		return true, types.ErrUnknownRollappId
+		return true, sdkerrors.Wrapf(types.ErrUnknownRollappID, "rollappID: %s", chainID)
 	}
 	// client type is not dymint but the chain is a rollapp
-	return false, types.ErrInvalidClientType
+	return false, sdkerrors.Wrapf(types.ErrInvalidClientType, "clientType: %s", clientType)
 }
 
 // validateStateRoot load the stateInfo and verify the state was finalized
@@ -148,7 +146,7 @@ func (ch RollappClientHooks) validateStateRoot(ctx sdk.Context, rollappId string
 		return err
 	}
 	if stateInfo.GetStatus() != types.STATE_STATUS_FINALIZED {
-		return types.ErrHeightStateNotFainalized
+		return sdkerrors.Wrapf(types.ErrHeightStateNotFainalized, "rollappID: %s, height=%d", rollappId, height)
 	}
 	BlockDescriptionIndex := int(height - stateInfo.StartHeight)
 	if BlockDescriptionIndex < 0 || BlockDescriptionIndex >= len(stateInfo.BDs.BD) {
@@ -163,7 +161,7 @@ func (ch RollappClientHooks) validateStateRoot(ctx sdk.Context, rollappId string
 			height, stateInfo.StartHeight, stateInfo.NumBlocks, len(stateInfo.BDs.BD), BlockDescriptionIndex, blockDescription.Height)
 	}
 	if !bytes.Equal(stateRoot, blockDescription.StateRoot) {
-		return types.ErrInvalidAppHash
+		return sdkerrors.Wrapf(types.ErrInvalidAppHash, "rollappID: %s, appHash=%d", rollappId, blockDescription.StateRoot)
 	}
 	return nil
 }

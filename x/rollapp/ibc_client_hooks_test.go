@@ -134,7 +134,7 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 		{
 			"unknown rollappId", func() {
 				keeper.SetRollapp(ctx, types.Rollapp{RollappId: "unknown"})
-			}, types.ErrUnknownRollappId,
+			}, types.ErrUnknownRollappID,
 		},
 		{
 			"invalid height=0", func() {

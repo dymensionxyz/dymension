@@ -230,7 +230,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrUnknownRollappId.Error())
+	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
 func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
@@ -424,7 +424,7 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	suite.EqualValues(scheduler.Status, types.Inactive)
 }
 
-//---------------------------------------
+// ---------------------------------------
 // vereifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
 func vereifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {

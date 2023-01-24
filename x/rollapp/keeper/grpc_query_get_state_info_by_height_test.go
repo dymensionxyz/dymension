@@ -133,7 +133,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 				Height:    100,
 			},
 			response: &types.QueryGetStateInfoByHeightResponse{StateInfo: types.StateInfo{}},
-			err:      types.ErrUnknownRollappId,
+			err:      types.ErrUnknownRollappID,
 		},
 		{
 			desc: "ErrInvalidHeight",

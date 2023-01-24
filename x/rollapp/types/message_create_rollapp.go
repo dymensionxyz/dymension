@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	"github.com/dymensionxyz/dymension/shared/types"
 )
 
@@ -45,6 +46,15 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
+	// rollappId is the chainID of the rollapp
+	// in order to prevent confusion with ibc revision formats
+	// we prevent to create a rollapps with a name compiling to revision format
+	if ibcclienttypes.IsRevisionFormat(msg.RollappId) {
+		return sdkerrors.Wrapf(
+			ErrInvalidRollappID, "RollappID can not be in revision format: %s", msg.RollappId,
+		)
+	}
+
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
