@@ -12,7 +12,7 @@ MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
 HUB_PEERS=${HUB_PEERS:-""}
 
-SETTLEMENT_RPC=${SETTLEMENT_RPC:-"0.0.0.0:36657"}
+SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
 P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
 GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
 GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
@@ -58,7 +58,7 @@ dymd collect-gentxs
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
 # ---------------------------------------------------------------------------- #
-sed -i'' -e "/\[rpc\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$SETTLEMENT_RPC\"/" "$TENDERMINT_CONFIG_FILE"
+sed -i'' -e "/\[rpc\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$SETTLEMENT_ADDR\"/" "$TENDERMINT_CONFIG_FILE"
 sed -i'' -e "/\[p2p\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$P2P_ADDRESS\"/" "$TENDERMINT_CONFIG_FILE"
 sed  -i '' -e "s/^persistent_peers =.*/persistent_peers = \"$HUB_PEERS\"/" "$TENDERMINT_CONFIG_FILE"
 
@@ -66,7 +66,7 @@ sed -i'' -e "/\[grpc\]/,+6 s/address *= .*/address = \"$GRPC_ADDRESS\"/" "$APP_C
 sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 
-sed -i'' -e "s/^node *= .*/node = \"tcp:\/\/$SETTLEMENT_RPC\"/" "$CLIENT_CONFIG_FILE"
+sed -i'' -e "s/^node *= .*/node = \"tcp:\/\/$SETTLEMENT_ADDR\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e 's/bond_denom": ".*"/bond_denom": "udym"/' "$GENESIS_FILE"
 sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
 
