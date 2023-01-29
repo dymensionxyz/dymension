@@ -34,7 +34,7 @@ fi
 
 # Verify that a genesis file doesn't exists for the dymension chain
 if [ -f "$GENESIS_FILE" ]; then
-  printf "\n======================================================================================================"
+  printf "\n======================================================================================================\n"
   echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
   read -r answer
   if [ "$answer" != "${answer#[Yy]}" ]; then
@@ -48,13 +48,24 @@ fi
 dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 dymd tendermint unsafe-reset-all
 
+dymd keys add "$KEY_NAME" --keyring-backend test
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+
+dymd collect-gentxs
+
+
+# ---------------------------------------------------------------------------- #
+#                              Set configurations                              #
+# ---------------------------------------------------------------------------- #
 sed -i'' -e "/\[rpc\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$SETTLEMENT_RPC\"/" "$TENDERMINT_CONFIG_FILE"
 sed -i'' -e "/\[p2p\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$P2P_ADDRESS\"/" "$TENDERMINT_CONFIG_FILE"
-sed -i'' -e "s/^persistent_peers *= .*/persistent_peers = \"$HUB_PEERS\"/" "$TENDERMINT_CONFIG_FILE"
+sed  -i '' -e "s/^persistent_peers =.*/persistent_peers = \"$HUB_PEERS\"/" "$TENDERMINT_CONFIG_FILE"
 
 sed -i'' -e "/\[grpc\]/,+6 s/address *= .*/address = \"$GRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
+
 sed -i'' -e "s/^node *= .*/node = \"tcp:\/\/$SETTLEMENT_RPC\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e 's/bond_denom": ".*"/bond_denom": "udym"/' "$GENESIS_FILE"
 sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
@@ -64,13 +75,8 @@ sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
 
-dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd collect-gentxs
-
 if [ "$HUB_PEERS" != "" ]; then
-  printf "\n======================================================================================================"
+  printf "\n======================================================================================================\n"
   echo "To join existing chain, copy the genesis file to $GENESIS_FILE"
   echo "To run a validator, run set_validator.sh after the node synced"
 fi
