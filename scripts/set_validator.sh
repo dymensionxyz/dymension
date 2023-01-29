@@ -15,7 +15,7 @@ query_balance() {
     dymd q bank balances "$NODE_ACCOUNT"
 
     echo "Make sure the sequencer account [$NODE_ACCOUNT] is funded"
-    echo "From within the hub node: \"dymd tx bank send $KEY_NAME $NODE_ACCOUNT $SEQUENCER_AMOUNT --keyring-backend test\""
+    echo "From within the hub node: \"dymd tx bank send $KEY_NAME $NODE_ACCOUNT $NODE_AMOUNT --keyring-backend test\""
     read -r -p "Press to continue..."
 }
 
