@@ -47,7 +47,9 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 
 	// check that req.Height exists
 	if req.Height >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
-		return nil, types.ErrStateNotExists
+		return nil, sdkerrors.Wrapf(types.ErrStateNotExists,
+			"rollappId=%s, height=%d",
+			req.RollappId, req.Height)
 	}
 
 	// check if the the req.Height belongs to this batch
