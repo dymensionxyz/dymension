@@ -1,6 +1,7 @@
 dymension-testnet.pem
 vue/
 release/
+bin/
 .idea/
 .vscode/
 .DS_Store
