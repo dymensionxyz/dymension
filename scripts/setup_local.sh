@@ -17,6 +17,7 @@ P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
 GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
 GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
 API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1317"}
+UNSAFE_CORS=${UNSAFE_CORS:-""}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000udym"} #1M DYM (1e6dym == 1e12udym)
 STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000udym"} #67% is staked (inflation goal)
@@ -73,6 +74,13 @@ sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
 sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0udym"/' "$APP_CONFIG_FILE"
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
+
+if [ -n "$UNSAFE_CORS" ]; then
+  echo "Setting CORS"
+  sed -ie 's/enabled-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
+  sed -ie 's/enable-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
+  sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
+fi
 
 
 if [ "$HUB_PEERS" != "" ]; then
