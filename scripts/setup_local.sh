@@ -1,5 +1,15 @@
 #!/bin/sh
 
+# Common commands
+genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
+
+if [ -f "$genesis_config_cmds" ]; then
+  . "$genesis_config_cmds"
+else
+  echo "Error: header file not found" >&2
+  exit 1
+fi
+
 # Set parameters
 DATA_DIRECTORY="$HOME/.dymension"
 CONFIG_DIRECTORY="$DATA_DIRECTORY/config"
@@ -24,7 +34,7 @@ STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000udym"} #67% is staked (inflation g
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
-if ! command -v dymd; then
+if ! command -v dymd > /dev/null; then
   make install
 
   if ! command -v dymd; then
@@ -49,13 +59,6 @@ fi
 dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
 dymd tendermint unsafe-reset-all
 
-dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-
-dymd collect-gentxs
-
-
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
 # ---------------------------------------------------------------------------- #
@@ -75,6 +78,14 @@ sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0udym"/' "$APP_CO
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
+set_distribution_params
+set_gov_params
+set_minting_params
+set_staking_slashing_params
+set_ibc_params
+set_hub_params
+
+
 if [ -n "$UNSAFE_CORS" ]; then
   echo "Setting CORS"
   sed -ie 's/enabled-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
@@ -82,9 +93,19 @@ if [ -n "$UNSAFE_CORS" ]; then
   sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
 fi
 
+dymd keys add "$KEY_NAME" --keyring-backend test
 
 if [ "$HUB_PEERS" != "" ]; then
   printf "\n======================================================================================================\n"
   echo "To join existing chain, copy the genesis file to $GENESIS_FILE"
   echo "To run a validator, run set_validator.sh after the node synced"
 fi
+
+echo "Do you want to initialize genesis accounts? (Y/n) "
+read -r answer
+if [ ! "$answer" != "${answer#[Nn]}" ] ;then
+  dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+  dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+  dymd collect-gentxs
+fi
+

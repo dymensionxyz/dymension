@@ -1,0 +1,51 @@
+#! /bin/bash
+
+tmp=$(mktemp)
+
+set_minting_params() {
+    echo "setting minting params"
+
+    # jq '.app_state.mint.minter.inflation = "0.300000000000000000"' genesis.json > "$tmp" && mv "$tmp" genesis.json
+    # jq '.app_state.mint.params.blocks_per_year = "6311520"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    # jq '.app_state.mint.params.goal_bonded = "0.670000000000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_distribution_params() {
+    echo "setting distribution params"
+}
+
+set_gov_params() {
+    echo "setting gov params"
+
+    jq '.app_state.gov.deposit_params.min_deposit[0].denom = "urap"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.deposit_params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    #Two weeks voting_period
+    jq '.app_state.gov.voting_params.voting_period = "1209600s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_ibc_params() {
+    echo "setting IBC params"
+    # jq '.app_state.packetforwardmiddleware.params.fee_percentage = "0.00"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_hub_params() {
+    echo "setting hub params"
+    jq '.app_state.rollapp.params.dispute_period_in_blocks = "60"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_staking_slashing_params() {
+    echo "setting slashing params"
+    # jq '.app_state.slashing.params.slash_fraction_downtime = "0.01"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+
+    echo "setting staking params"
+}
+
+set_rollapp_deployer_whitelist() {
+  echo "NOT SUPPORTED"
+  #TODO
+}
+
+add_genesis_accounts() {
+    echo "NOT SUPPORTED"
+  #TODO
+}
