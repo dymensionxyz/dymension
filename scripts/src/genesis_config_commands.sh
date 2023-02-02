@@ -38,6 +38,8 @@ set_staking_slashing_params() {
     # jq '.app_state.slashing.params.slash_fraction_downtime = "0.01"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
     echo "setting staking params"
+    jq '.app_state.staking.params.max_validators = 110' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+
 }
 
 set_rollapp_deployer_whitelist() {
