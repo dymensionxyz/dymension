@@ -86,6 +86,7 @@ set_minting_params
 set_staking_slashing_params
 set_ibc_params
 set_hub_params
+set_misc_params
 
 
 if [ -n "$UNSAFE_CORS" ]; then

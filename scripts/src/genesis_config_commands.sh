@@ -42,6 +42,12 @@ set_staking_slashing_params() {
 
 }
 
+
+
+set_misc_params() {
+    jq '.app_state.crisis.constant_fee.denom = "urap"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
 set_rollapp_deployer_whitelist() {
   echo "NOT SUPPORTED"
   #TODO
