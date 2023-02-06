@@ -96,6 +96,15 @@ if [ -n "$UNSAFE_CORS" ]; then
   sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
 fi
 
+
+echo "Enable monitoring? (Y/n) "
+read -r answer
+if [ ! "$answer" != "${answer#[Nn]}" ] ;then
+  enable_monitoring
+fi
+
+
+
 dymd keys add "$KEY_NAME" --keyring-backend test
 
 if [ "$HUB_PEERS" != "" ]; then

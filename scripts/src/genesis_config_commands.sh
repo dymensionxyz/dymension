@@ -48,6 +48,12 @@ set_misc_params() {
     jq '.app_state.crisis.constant_fee.denom = "urap"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
+enable_monitoring() {
+    sed -i'' -e "/\[telemetry\]/,+8 s/enabled = .*/enabled = true/" "$APP_CONFIG_FILE"
+    sed  -i'' -e "s/^prometheus-retention-time =.*/prometheus-retention-time = 31104000/" "$APP_CONFIG_FILE"
+    sed  -i'' -e "s/^prometheus =.*/prometheus = true/" "$TENDERMINT_CONFIG_FILE"
+}
+
 set_rollapp_deployer_whitelist() {
   echo "NOT SUPPORTED"
   #TODO
