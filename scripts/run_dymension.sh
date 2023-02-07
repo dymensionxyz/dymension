@@ -1,3 +1,3 @@
 #!/bin/sh
 
-dymd start
+dymd start --log_level "$LOG_LEVEL"
