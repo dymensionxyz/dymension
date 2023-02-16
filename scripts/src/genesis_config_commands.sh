@@ -17,7 +17,7 @@ set_distribution_params() {
 set_gov_params() {
     echo "setting gov params"
 
-    jq '.app_state.gov.deposit_params.min_deposit[0].denom = "urap"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.deposit_params.min_deposit[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.deposit_params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     #Two weeks voting_period
     jq '.app_state.gov.voting_params.voting_period = "1209600s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -45,7 +45,7 @@ set_staking_slashing_params() {
 
 
 set_misc_params() {
-    jq '.app_state.crisis.constant_fee.denom = "urap"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.crisis.constant_fee.denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 enable_monitoring() {
