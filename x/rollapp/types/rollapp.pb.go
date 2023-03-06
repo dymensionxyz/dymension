@@ -24,8 +24,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Rollapp defines a rollapp object. First rollapp is create and then
-// sequencers can be create and attach to it. Rollapp is identified by rollappId
+// Rollapp defines a rollapp object. First the RollApp is created and then
+// sequencers can be created and attached. The RollApp is identified by rollappId
 type Rollapp struct {
 	// rollappId is the unique identifier of the rollapp chain.
 	// The rollappId follows the same standard as cosmos chain_id.
