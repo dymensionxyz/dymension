@@ -11,6 +11,6 @@ import (
 )
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
-	k, ctx := keepertest.IRCKeeper(t)
+	k, _, ctx := keepertest.IRCKeeper(t)
 	return keeper.NewMsgServerImpl(k), sdk.WrapSDKContext(ctx)
 }

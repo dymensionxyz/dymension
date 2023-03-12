@@ -9,19 +9,19 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 	"github.com/dymensionxyz/dymension/x/irc/types"
 )
 
 type (
 	Keeper struct {
-		*ibckeeper.Keeper
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		bankKeeper types.BankKeeper
+		bankKeeper    types.BankKeeper
+		ibcKeeper     types.IBCKeeper
+		rollappKeeper types.RollappKeeper
 	}
 )
 
@@ -32,7 +32,8 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 
 	bankKeeper types.BankKeeper,
-	ibcKeeper *ibckeeper.Keeper,
+	ibcKeeper types.IBCKeeper,
+	rollappKeeper types.RollappKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -40,12 +41,13 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		Keeper:     ibcKeeper,
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		bankKeeper: bankKeeper,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramstore:    ps,
+		bankKeeper:    bankKeeper,
+		ibcKeeper:     ibcKeeper,
+		rollappKeeper: rollappKeeper,
 	}
 }
 

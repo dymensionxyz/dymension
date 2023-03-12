@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetParams(t *testing.T) {
-	k, ctx := testkeeper.IRCKeeper(t)
+	k, _, ctx := testkeeper.IRCKeeper(t)
 	params := types.DefaultParams()
 
 	k.SetParams(ctx, params)

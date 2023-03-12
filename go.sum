@@ -417,8 +417,8 @@ github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac/go.mod h1:Htr
 github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b h1:HBah4D48ypg3J7Np4N+HY/ZR76fx3HEUGxDU6Uk39oQ=
 github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b/go.mod h1:7BvyPhdbLxMXIYTFPLsyJRFMsKmOZnQmzh6Gb+uquuM=
 github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
-github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20230105134315-1870174ab6da h1:driSbrBc4deT0iRjDKjA4royFDsUsDcE0IgFkFxhopo=
-github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20230105134315-1870174ab6da/go.mod h1:VwB/vWu4ysT5DN2aF78d17LYmx3omSAdq6gpKvM7XRA=
+github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20230312090613-e315bbffc55f h1:4mXjF8CNN9Qzj1cbCPwcNgb4N8CVd+7UQYJAZQQ6n0M=
+github.com/dymensionxyz/ibc-go/v3 v3.0.0-rc2.0.20230312090613-e315bbffc55f/go.mod h1:VwB/vWu4ysT5DN2aF78d17LYmx3omSAdq6gpKvM7XRA=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=

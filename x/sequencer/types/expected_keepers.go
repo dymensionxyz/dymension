@@ -6,9 +6,10 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
+// RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.
 type RollappKeeper interface {
-	// Methods imported from rollapp should be defined here
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
+	// Methods imported from rollapp should be defined here
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

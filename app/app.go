@@ -456,7 +456,6 @@ func New(
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
 		ibctmtypes.NewSelfClient(),
-		rollappmodule.NewRollappClientHooks(&app.RollappKeeper),
 	)
 
 	// register the proposal types
@@ -515,7 +514,11 @@ func New(
 
 		app.BankKeeper,
 		app.IBCKeeper,
+		app.RollappKeeper,
 	)
+
+	// set irc as messahe interceptor
+	ibcModule := ibc.NewAppModuleWithMsgInterceptor(app.IBCKeeper, app.IRCKeeper)
 	ircModule := ircmodule.NewAppModule(appCodec, app.IRCKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
@@ -569,7 +572,7 @@ func New(
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
+		ibcModule,
 		params.NewAppModule(app.ParamsKeeper),
 		routerModule,
 		transferModule,
@@ -688,7 +691,7 @@ func New(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
+		ibcModule,
 		transferModule,
 		routerModule,
 		monitoringModule,

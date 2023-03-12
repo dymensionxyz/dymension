@@ -64,7 +64,7 @@ func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
 		Height:    100,
 	}
 	_, err := keeper.GetStateInfoByHeight(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic, "LatestStateInfoIndex wasn't found for req.RollappId=%s", rollappId).Error())
+	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
 }
 
 func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
@@ -85,7 +85,7 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 	}
 	_, err := keeper.GetStateInfoByHeight(wctx, request)
 	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-		"StateInfo wasn't found for req.RollappId=%s, index=%d",
+		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 85).Error())
 }
 
@@ -112,7 +112,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 	})
 	_, err := keeper.GetStateInfoByHeight(wctx, request)
 	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-		"StateInfo wasn't found for req.RollappId=%s, index=%d",
+		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 1).Error())
 }
 

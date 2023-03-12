@@ -8,16 +8,20 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
+
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/dymensionxyz/dymension/x/irc/keeper"
 	"github.com/dymensionxyz/dymension/x/irc/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 )
 
-func IRCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
@@ -29,6 +33,20 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
+
+	// create roolapp keeper
+	rollappParamsSubspace := typesparams.NewSubspace(cdc,
+		types.Amino,
+		storeKey,
+		memStoreKey,
+		"RollappParams",
+	)
+	rollappKeeper := rollappkeeper.NewKeeper(
+		cdc,
+		storeKey,
+		memStoreKey,
+		rollappParamsSubspace,
+	)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -43,6 +61,7 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramsSubspace,
 		nil,
 		nil,
+		rollappKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
@@ -50,5 +69,5 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())
 
-	return k, ctx
+	return k, rollappKeeper, ctx
 }

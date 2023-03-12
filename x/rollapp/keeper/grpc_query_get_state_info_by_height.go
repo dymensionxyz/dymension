@@ -16,98 +16,104 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// check that req.Height not zero
-	if req.Height == 0 {
+	stateInfo, err := k.FindStateInfoByHeight(ctx, req.RollappId, req.Height)
+	if err != nil {
+		return nil, err
+	}
+	return &types.QueryGetStateInfoByHeightResponse{StateInfo: *stateInfo}, nil
+}
+func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh uint64) (*types.StateInfo, error) {
+	// check that heigh not zero
+	if heigh == 0 {
 		return nil, types.ErrInvalidHeight
 	}
 
-	_, found := k.GetRollapp(ctx, req.RollappId)
+	_, found := k.GetRollapp(ctx, rollappId)
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
 
-	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
+	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if !found {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-			"LatestStateInfoIndex wasn't found for req.RollappId=%s",
-			req.RollappId)
+			"LatestStateInfoIndex wasn't found for rollappId=%s",
+			rollappId)
 	}
 	// initial interval to search in
 	startInfoIndex := uint64(1) // see TODO bellow
 	endInfoIndex := stateInfoIndex.Index
 
 	// get state info
-	LatestStateInfo, found := k.GetStateInfo(ctx, req.RollappId, endInfoIndex)
+	LatestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 	if !found {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-			"StateInfo wasn't found for req.RollappId=%s, index=%d",
-			req.RollappId, endInfoIndex)
+			"StateInfo wasn't found for rollappId=%s, index=%d",
+			rollappId, endInfoIndex)
 	}
 
-	// check that req.Height exists
-	if req.Height >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
+	// check that heigh exists
+	if heigh >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
 		return nil, sdkerrors.Wrapf(types.ErrStateNotExists,
 			"rollappId=%s, height=%d",
-			req.RollappId, req.Height)
+			rollappId, heigh)
 	}
 
-	// check if the the req.Height belongs to this batch
-	if req.Height >= LatestStateInfo.StartHeight {
-		return &types.QueryGetStateInfoByHeightResponse{StateInfo: LatestStateInfo}, nil
+	// check if the the heigh belongs to this batch
+	if heigh >= LatestStateInfo.StartHeight {
+		return &LatestStateInfo, nil
 	}
 
 	maxNumberOfSteps := endInfoIndex - startInfoIndex + 1
 	stepNum := uint64(0)
 	for ; stepNum < maxNumberOfSteps; stepNum += 1 {
 		// we know that endInfoIndex > startInfoIndex
-		// otherwise the req.Height should have been found
+		// otherwise the heigh should have been found
 		if endInfoIndex <= startInfoIndex {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"endInfoIndex should be != than startInfoIndex req.RollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
-				req.RollappId, startInfoIndex, endInfoIndex)
+				"endInfoIndex should be != than startInfoIndex rollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
+				rollappId, startInfoIndex, endInfoIndex)
 		}
 		// 1. get state info
-		startStateInfo, found := k.GetStateInfo(ctx, req.RollappId, startInfoIndex)
+		startStateInfo, found := k.GetStateInfo(ctx, rollappId, startInfoIndex)
 		if !found {
 			// TODO:
 			// if stateInfo is missing it won't be logic error if history deletion be implemented
 			// for that we will have to check the oldest we have
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"StateInfo wasn't found for req.RollappId=%s, index=%d",
-				req.RollappId, startInfoIndex)
+				"StateInfo wasn't found for rollappId=%s, index=%d",
+				rollappId, startInfoIndex)
 		}
-		endStateInfo, found := k.GetStateInfo(ctx, req.RollappId, endInfoIndex)
+		endStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 		if !found {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"StateInfo wasn't found for req.RollappId=%s, index=%d",
-				req.RollappId, endInfoIndex)
+				"StateInfo wasn't found for rollappId=%s, index=%d",
+				rollappId, endInfoIndex)
 		}
 		startHeight := startStateInfo.StartHeight
 		endHeight := endStateInfo.StartHeight + endStateInfo.NumBlocks - 1
 
 		// 2. check startStateInfo
-		if req.Height >= startStateInfo.StartHeight &&
-			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > req.Height {
-			return &types.QueryGetStateInfoByHeightResponse{StateInfo: startStateInfo}, nil
+		if heigh >= startStateInfo.StartHeight &&
+			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > heigh {
+			return &startStateInfo, nil
 		}
 
 		// 3. check endStateInfo
-		if req.Height >= endStateInfo.StartHeight &&
-			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > req.Height {
-			return &types.QueryGetStateInfoByHeightResponse{StateInfo: endStateInfo}, nil
+		if heigh >= endStateInfo.StartHeight &&
+			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > heigh {
+			return &endStateInfo, nil
 		}
 
 		// 4. calculate the average blocks per batch
 		avgBlocksPerBatch := (endHeight - startHeight + 1) / (endInfoIndex - startInfoIndex + 1)
 		if avgBlocksPerBatch == 0 {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"avgBlocksPerBatch is zero!!! req.RollappId=%s, endHeight=%d, startHeight=%d, endInfoIndex=%d, startInfoIndex=%d",
-				req.RollappId, endHeight, startHeight, endInfoIndex, startInfoIndex)
+				"avgBlocksPerBatch is zero!!! rollappId=%s, endHeight=%d, startHeight=%d, endInfoIndex=%d, startInfoIndex=%d",
+				rollappId, endHeight, startHeight, endInfoIndex, startInfoIndex)
 		}
 
 		// 5. load the candidate block batch
-		infoIndexStep := (req.Height - startHeight) / avgBlocksPerBatch
+		infoIndexStep := (heigh - startHeight) / avgBlocksPerBatch
 		if infoIndexStep == 0 {
 			infoIndexStep = 1
 		}
@@ -119,26 +125,26 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 		if candidateInfoIndex == endInfoIndex {
 			candidateInfoIndex = endInfoIndex - 1
 		}
-		candidateStateInfo, found := k.GetStateInfo(ctx, req.RollappId, candidateInfoIndex)
+		candidateStateInfo, found := k.GetStateInfo(ctx, rollappId, candidateInfoIndex)
 		if !found {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"StateInfo wasn't found for req.RollappId=%s, index=%d",
-				req.RollappId, candidateInfoIndex)
+				"StateInfo wasn't found for rollappId=%s, index=%d",
+				rollappId, candidateInfoIndex)
 		}
 
 		// 6. check the candidate
-		if candidateStateInfo.StartHeight > req.Height {
+		if candidateStateInfo.StartHeight > heigh {
 			endInfoIndex = candidateInfoIndex - 1
 		} else {
-			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < req.Height {
+			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < heigh {
 				startInfoIndex = candidateInfoIndex + 1
 			} else {
-				return &types.QueryGetStateInfoByHeightResponse{StateInfo: candidateStateInfo}, nil
+				return &candidateStateInfo, nil
 			}
 		}
 	}
 
 	return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-		"More searching steps than indexes!!! req.RollappId=%s, stepNum=%d, maxNumberOfSteps=%d",
-		req.RollappId, stepNum, maxNumberOfSteps)
+		"More searching steps than indexes!!! rollappId=%s, stepNum=%d, maxNumberOfSteps=%d",
+		rollappId, stepNum, maxNumberOfSteps)
 }
