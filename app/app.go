@@ -105,9 +105,14 @@ import (
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+
 	sequencermodule "github.com/dymensionxyz/dymension/x/sequencer"
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/x/sequencer/types"
+
+	ircmodule "github.com/dymensionxyz/dymension/x/irc"
+	ircmodulekeeper "github.com/dymensionxyz/dymension/x/irc/keeper"
+	ircmoduletypes "github.com/dymensionxyz/dymension/x/irc/types"
 
 	"github.com/strangelove-ventures/packet-forward-middleware/v3/router"
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v3/router/keeper"
@@ -179,6 +184,7 @@ var (
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
 		router.AppModuleBasic{},
+		ircmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -192,6 +198,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName: {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -260,6 +267,8 @@ type App struct {
 	RollappKeeper rollappmodulekeeper.Keeper
 
 	SequencerKeeper sequencermodulekeeper.Keeper
+
+	IRCKeeper *ircmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -336,6 +345,7 @@ func New(
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
 		routertypes.StoreKey,
+		ircmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -446,7 +456,6 @@ func New(
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
 		ibctmtypes.NewSelfClient(),
-		rollappmodule.NewRollappClientHooks(&app.RollappKeeper),
 	)
 
 	// register the proposal types
@@ -496,6 +505,21 @@ func New(
 		scopedMonitoringKeeper,
 	)
 	monitoringModule := monitoringp.NewAppModule(appCodec, app.MonitoringKeeper)
+
+	app.IRCKeeper = ircmodulekeeper.NewKeeper(
+		appCodec,
+		keys[ircmoduletypes.StoreKey],
+		keys[ircmoduletypes.MemStoreKey],
+		app.GetSubspace(ircmoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.IBCKeeper,
+		app.RollappKeeper,
+	)
+
+	// set irc as messahe interceptor
+	ibcModule := ibc.NewAppModuleWithMsgInterceptor(app.IBCKeeper, app.IRCKeeper)
+	ircModule := ircmodule.NewAppModule(appCodec, app.IRCKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -548,13 +572,14 @@ func New(
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
+		ibcModule,
 		params.NewAppModule(app.ParamsKeeper),
 		routerModule,
 		transferModule,
 		monitoringModule,
 		rollappModule,
 		sequencerModule,
+		ircModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -585,6 +610,7 @@ func New(
 		monitoringptypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -611,6 +637,7 @@ func New(
 		monitoringptypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -642,6 +669,7 @@ func New(
 		monitoringptypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -663,12 +691,13 @@ func New(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
+		ibcModule,
 		transferModule,
 		routerModule,
 		monitoringModule,
 		rollappModule,
 		sequencerModule,
+		ircModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -861,6 +890,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(monitoringptypes.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
+	paramsKeeper.Subspace(ircmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

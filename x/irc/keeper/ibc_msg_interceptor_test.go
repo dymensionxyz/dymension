@@ -1,4 +1,4 @@
-package rollapp_test
+package keeper_test
 
 import (
 	"testing"
@@ -17,15 +17,17 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
-	"github.com/dymensionxyz/dymension/x/rollapp"
-	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
+	keeper "github.com/dymensionxyz/dymension/x/irc/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
-func TestIbcClientHooksDymCHain(t *testing.T) {
+func TestIRCMessageInterceptorDymCHain(t *testing.T) {
 	var (
-		keeper *keeper.Keeper
-		ctx    sdk.Context
+		rollappKeeper *rollappkeeper.Keeper
+		keeper        *keeper.Keeper
+
+		ctx sdk.Context
 
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -47,9 +49,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    height,
 					NumBlocks:      1,
@@ -64,9 +66,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    1,
 					NumBlocks:      3,
@@ -84,9 +86,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    2,
 					NumBlocks:      3,
@@ -106,14 +108,14 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				stateInfoIndex1 := types.StateInfoIndex{RollappId: rollappId, Index: 1}
 				stateInfoIndex2 := types.StateInfoIndex{RollappId: rollappId, Index: 2}
 				stateInfoIndex3 := types.StateInfoIndex{RollappId: rollappId, Index: 3}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex3)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex3)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex1,
 					StartHeight:    1,
 					NumBlocks:      10},
 				)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex2,
 					StartHeight:    11,
 					NumBlocks:      2,
@@ -124,7 +126,7 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 						{Height: 13, StateRoot: nil, IntermediateStatesRoot: nil},
 					}},
 				})
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex3,
 					StartHeight:    14,
 					NumBlocks:      7},
@@ -133,13 +135,13 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 		},
 		{
 			"unknown rollappId", func() {
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: "unknown"})
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: "unknown"})
 			}, types.ErrUnknownRollappID,
 		},
 		{
 			"invalid height=0", func() {
 				height = 0
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
 			}, types.ErrInvalidHeight,
 		},
 		{
@@ -147,9 +149,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    height,
 					NumBlocks:      1,
@@ -164,9 +166,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    height,
 					NumBlocks:      1,
@@ -178,14 +180,14 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 		},
 		{
 			"LatestStateInfoIndex wasn't found", func() {
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
 			}, sdkerrors.ErrLogic,
 		},
 		{
 			"StateInfo wasn't found", func() {
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
 			}, sdkerrors.ErrLogic,
 		},
 		{
@@ -193,9 +195,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    2,
 					NumBlocks:      1,
@@ -210,9 +212,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 2}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    4,
 					NumBlocks:      1,
@@ -227,9 +229,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    4,
 					NumBlocks:      1,
@@ -244,9 +246,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    1,
 					NumBlocks:      4,
@@ -261,9 +263,9 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 				height = 3
 				appHash = []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 255}
 				stateInfoIndex := types.StateInfoIndex{RollappId: rollappId, Index: 1}
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
-				keeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
-				keeper.SetStateInfo(ctx, types.StateInfo{
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: rollappId})
+				rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfoIndex)
+				rollappKeeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: stateInfoIndex,
 					StartHeight:    height,
 					NumBlocks:      1,
@@ -278,8 +280,7 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			keeper, ctx = keepertest.RollappKeeper(t)
-			ch := rollapp.NewRollappClientHooks(keeper)
+			keeper, rollappKeeper, ctx = keepertest.IRCKeeper(t)
 
 			tt.malleate()
 
@@ -320,29 +321,29 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 			// build misbehaviour
 			misbehaviour = ibcdmtypes.NewMisbehaviour("clientID", header.(*ibcdmtypes.Header), header.(*ibcdmtypes.Header))
 
-			// check OnCreateClient
-			if err := ch.OnCreateClient(ctx, clientState, consensusState); tt.err != nil {
+			// check CreateClientValidate
+			if err := keeper.CreateClientValidate(ctx, clientState, consensusState); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnUpdateClient
-			if err := ch.OnUpdateClient(ctx, "clientID", header); tt.err != nil {
+			// check UpdateClientValidate
+			if err := keeper.UpdateClientValidate(ctx, "clientID", header); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnUpgradeClient
-			if err := ch.OnUpgradeClient(ctx, "clientID", clientState, consensusState, nil, nil); tt.err != nil {
+			// check UpgradeClientValidate
+			if err := keeper.UpgradeClientValidate(ctx, "clientID", clientState, consensusState, nil, nil); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnCheckMisbehaviourAndUpdateState
-			if err := ch.OnCheckMisbehaviourAndUpdateState(ctx, misbehaviour); tt.err != nil {
+			// check SubmitMisbehaviourValidate
+			if err := keeper.SubmitMisbehaviourValidate(ctx, misbehaviour); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
@@ -351,10 +352,12 @@ func TestIbcClientHooksDymCHain(t *testing.T) {
 	}
 }
 
-func TestIbcClientHooksNotDymCHain(t *testing.T) {
+func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 	var (
-		keeper *keeper.Keeper
-		ctx    sdk.Context
+		rollappKeeper *rollappkeeper.Keeper
+		keeper        *keeper.Keeper
+
+		ctx sdk.Context
 
 		clientState    exported.ClientState
 		consensusState exported.ConsensusState
@@ -373,7 +376,7 @@ func TestIbcClientHooksNotDymCHain(t *testing.T) {
 		},
 		{
 			"client type is not dymint but the chain is a rollapp", func() {
-				keeper.SetRollapp(ctx, types.Rollapp{RollappId: "chain1"})
+				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: "chain1"})
 			}, types.ErrInvalidClientType,
 		},
 	}
@@ -381,8 +384,7 @@ func TestIbcClientHooksNotDymCHain(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			keeper, ctx = keepertest.RollappKeeper(t)
-			ch := rollapp.NewRollappClientHooks(keeper)
+			keeper, rollappKeeper, ctx = keepertest.IRCKeeper(t)
 
 			tt.malleate()
 
@@ -404,29 +406,29 @@ func TestIbcClientHooksNotDymCHain(t *testing.T) {
 			// build misbehaviour
 			misbehaviour = ibctmtypes.NewMisbehaviour("clientID", header.(*ibctmtypes.Header), header.(*ibctmtypes.Header))
 
-			// check OnCreateClient
-			if err := ch.OnCreateClient(ctx, clientState, consensusState); tt.err != nil {
+			// check CreateClientValidate
+			if err := keeper.CreateClientValidate(ctx, clientState, consensusState); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnUpdateClient
-			if err := ch.OnUpdateClient(ctx, "clientID", header); tt.err != nil {
+			// check UpdateClientValidate
+			if err := keeper.UpdateClientValidate(ctx, "clientID", header); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnUpgradeClient
-			if err := ch.OnUpgradeClient(ctx, "clientID", clientState, consensusState, nil, nil); tt.err != nil {
+			// check UpgradeClientValidate
+			if err := keeper.UpgradeClientValidate(ctx, "clientID", clientState, consensusState, nil, nil); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
 			}
 
-			// check OnCheckMisbehaviourAndUpdateState
-			if err := ch.OnCheckMisbehaviourAndUpdateState(ctx, misbehaviour); tt.err != nil {
+			// check SubmitMisbehaviourValidate
+			if err := keeper.SubmitMisbehaviourValidate(ctx, misbehaviour); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 			} else {
 				require.NoError(t, err)
