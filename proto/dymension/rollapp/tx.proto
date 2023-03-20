@@ -2,8 +2,8 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
-import "rollapp/block_descriptor.proto";
-import "shared/sequencers.proto";
+import "dymension/rollapp/block_descriptor.proto";
+import "dymension/shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 

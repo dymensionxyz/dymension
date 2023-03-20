@@ -2,7 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
 // this line is used by starport scaffolding # proto/tx/import
-import "sequencer/description.proto";
+import "dymension/sequencer/description.proto";
 
 import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";

@@ -19,12 +19,34 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid:    true,
 		},
 		{
-			desc:     "valid genesis state",
+			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
+				IRCRequestList: []types.IRCRequest{
+					{
+						ReqId: 0,
+					},
+					{
+						ReqId: 1,
+					},
+				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
+		},
+		{
+			desc: "duplicated ircRequest",
+			genState: &types.GenesisState{
+				IRCRequestList: []types.IRCRequest{
+					{
+						ReqId: 0,
+					},
+					{
+						ReqId: 0,
+					},
+				},
+			},
+			valid: false,
 		},
 		// this line is used by starport scaffolding # types/genesis/testcase
 	} {

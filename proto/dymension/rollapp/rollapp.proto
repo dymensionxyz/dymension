@@ -2,7 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
-import "shared/sequencers.proto";
+import "dymension/shared/sequencers.proto";
 import "gogoproto/gogo.proto";
 
 // Rollapp defines a rollapp object. First the RollApp is created and then
