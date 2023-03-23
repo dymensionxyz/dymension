@@ -6343,8 +6343,8 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}:
-    get:
+  ? /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards/{validator_address}
+  : get:
       summary: DelegationRewards queries the total rewards accrued by a delegation.
       operationId: CosmosDistributionV1Beta1DelegationRewards
       responses:
@@ -6600,8 +6600,8 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards:
-    get:
+  ? /cosmos/distribution/v1beta1/validators/{validator_address}/outstanding_rewards
+  : get:
       summary: ValidatorOutstandingRewards queries rewards of a validator address.
       operationId: CosmosDistributionV1Beta1ValidatorOutstandingRewards
       responses:
@@ -12960,8 +12960,8 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}:
-    get:
+  ? /cosmos/staking/v1beta1/delegators/{delegator_addr}/validators/{validator_addr}
+  : get:
       summary: |-
         DelegatorValidator queries validator info for given delegator validator
         pair.
@@ -15474,8 +15474,8 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}:
-    get:
+  ? /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}
+  : get:
       summary: Delegation queries delegate info for given validator delegator pair.
       operationId: CosmosStakingV1Beta1Delegation
       responses:
@@ -15730,8 +15730,8 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation:
-    get:
+  ? /cosmos/staking/v1beta1/validators/{validator_addr}/delegations/{delegator_addr}/unbonding_delegation
+  : get:
       summary: |-
         UnbondingDelegation queries unbonding info for given validator delegator
         pair.
@@ -18991,8 +18991,8 @@ paths:
           type: boolean
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}:
-    get:
+  ? /dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}
+  : get:
       summary: Queries a BlockHeightToFinalizationQueue by index.
       operationId: DymensionxyzDymensionRollappBlockHeightToFinalizationQueue
       responses:
@@ -22543,202 +22543,6 @@ paths:
           in: path
           required: true
           type: string
-      tags:
-        - Query
-  /tendermint/spn/monitoringp/connection_channel_id:
-    get:
-      summary: Queries a ConnectionChannelID by index.
-      operationId: TendermintSpnMonitoringpConnectionChannelID
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              ConnectionChannelID:
-                type: object
-                properties:
-                  channelID:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
-  /tendermint/spn/monitoringp/consumer_client_id:
-    get:
-      summary: Queries a ConsumerClientID by index.
-      operationId: TendermintSpnMonitoringpConsumerClientID
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              ConsumerClientID:
-                type: object
-                properties:
-                  clientID:
-                    type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
-  /tendermint/spn/monitoringp/monitoring_info:
-    get:
-      summary: Queries a MonitoringInfo by index.
-      operationId: TendermintSpnMonitoringpMonitoringInfo
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              MonitoringInfo:
-                type: object
-                properties:
-                  transmitted:
-                    type: boolean
-                  signatureCounts:
-                    type: object
-                    properties:
-                      blockCount:
-                        type: string
-                        format: uint64
-                      counts:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            opAddress:
-                              type: string
-                            RelativeSignatures:
-                              type: string
-                          title: >-
-                            SignatureCount contains information of signature
-                            reporting for one specific validator with consensus
-                            address
-
-                            RelativeSignatures is the sum of all signatures
-                            relative to the validator set size
-                    title: >-
-                      SignatureCounts contains information about signature
-                      reporting for a number of blocks
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
-      tags:
-        - Query
-  /tendermint/spn/monitoringp/params:
-    get:
-      summary: Params queries the parameters of the module.
-      operationId: TendermintSpnMonitoringpParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                type: object
-                properties:
-                  lastBlockHeight:
-                    type: string
-                    format: int64
-                  consumerChainID:
-                    type: string
-                  consumerConsensusState:
-                    type: object
-                    properties:
-                      nextValidatorsHash:
-                        type: string
-                      timestamp:
-                        type: string
-                      root:
-                        type: object
-                        properties:
-                          hash:
-                            type: string
-                        title: MerkelRool represents a Merkel Root in ConsensusState
-                    title: >-
-                      ConsensusState represents a Consensus State
-
-                      it is compatible with the dumped state from `appd q ibc
-                      client self-consensus-state` command
-                  consumerUnbondingPeriod:
-                    type: string
-                    format: int64
-                  consumerRevisionHeight:
-                    type: string
-                    format: uint64
-                description: Params defines the parameters for the module.
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    '@type':
-                      type: string
-                  additionalProperties: {}
       tags:
         - Query
 definitions:
@@ -40080,221 +39884,3 @@ definitions:
            - OPERATING_STATUS_PROPOSER: OPERATING_STATUS_PROPOSER defines a sequencer that is active and can propose state updates
            - OPERATING_STATUS_INACTIVE: OPERATING_STATUS_INACTIVE defines a sequencer that is not active and won't be scheduled
     description: SequencerInfo holds information for user query.
-  tendermint.spn.monitoringp.ConnectionChannelID:
-    type: object
-    properties:
-      channelID:
-        type: string
-  tendermint.spn.monitoringp.ConsumerClientID:
-    type: object
-    properties:
-      clientID:
-        type: string
-  tendermint.spn.monitoringp.MonitoringInfo:
-    type: object
-    properties:
-      transmitted:
-        type: boolean
-      signatureCounts:
-        type: object
-        properties:
-          blockCount:
-            type: string
-            format: uint64
-          counts:
-            type: array
-            items:
-              type: object
-              properties:
-                opAddress:
-                  type: string
-                RelativeSignatures:
-                  type: string
-              title: >-
-                SignatureCount contains information of signature reporting for
-                one specific validator with consensus address
-
-                RelativeSignatures is the sum of all signatures relative to the
-                validator set size
-        title: >-
-          SignatureCounts contains information about signature reporting for a
-          number of blocks
-  tendermint.spn.monitoringp.Params:
-    type: object
-    properties:
-      lastBlockHeight:
-        type: string
-        format: int64
-      consumerChainID:
-        type: string
-      consumerConsensusState:
-        type: object
-        properties:
-          nextValidatorsHash:
-            type: string
-          timestamp:
-            type: string
-          root:
-            type: object
-            properties:
-              hash:
-                type: string
-            title: MerkelRool represents a Merkel Root in ConsensusState
-        title: >-
-          ConsensusState represents a Consensus State
-
-          it is compatible with the dumped state from `appd q ibc client
-          self-consensus-state` command
-      consumerUnbondingPeriod:
-        type: string
-        format: int64
-      consumerRevisionHeight:
-        type: string
-        format: uint64
-    description: Params defines the parameters for the module.
-  tendermint.spn.monitoringp.QueryGetConnectionChannelIDResponse:
-    type: object
-    properties:
-      ConnectionChannelID:
-        type: object
-        properties:
-          channelID:
-            type: string
-  tendermint.spn.monitoringp.QueryGetConsumerClientIDResponse:
-    type: object
-    properties:
-      ConsumerClientID:
-        type: object
-        properties:
-          clientID:
-            type: string
-  tendermint.spn.monitoringp.QueryGetMonitoringInfoResponse:
-    type: object
-    properties:
-      MonitoringInfo:
-        type: object
-        properties:
-          transmitted:
-            type: boolean
-          signatureCounts:
-            type: object
-            properties:
-              blockCount:
-                type: string
-                format: uint64
-              counts:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    opAddress:
-                      type: string
-                    RelativeSignatures:
-                      type: string
-                  title: >-
-                    SignatureCount contains information of signature reporting
-                    for one specific validator with consensus address
-
-                    RelativeSignatures is the sum of all signatures relative to
-                    the validator set size
-            title: >-
-              SignatureCounts contains information about signature reporting for
-              a number of blocks
-  tendermint.spn.monitoringp.QueryParamsResponse:
-    type: object
-    properties:
-      params:
-        type: object
-        properties:
-          lastBlockHeight:
-            type: string
-            format: int64
-          consumerChainID:
-            type: string
-          consumerConsensusState:
-            type: object
-            properties:
-              nextValidatorsHash:
-                type: string
-              timestamp:
-                type: string
-              root:
-                type: object
-                properties:
-                  hash:
-                    type: string
-                title: MerkelRool represents a Merkel Root in ConsensusState
-            title: >-
-              ConsensusState represents a Consensus State
-
-              it is compatible with the dumped state from `appd q ibc client
-              self-consensus-state` command
-          consumerUnbondingPeriod:
-            type: string
-            format: int64
-          consumerRevisionHeight:
-            type: string
-            format: uint64
-        description: Params defines the parameters for the module.
-    description: QueryParamsResponse is response type for the Query/Params RPC method.
-  tendermint.spn.types.ConsensusState:
-    type: object
-    properties:
-      nextValidatorsHash:
-        type: string
-      timestamp:
-        type: string
-      root:
-        type: object
-        properties:
-          hash:
-            type: string
-        title: MerkelRool represents a Merkel Root in ConsensusState
-    title: >-
-      ConsensusState represents a Consensus State
-
-      it is compatible with the dumped state from `appd q ibc client
-      self-consensus-state` command
-  tendermint.spn.types.MerkelRool:
-    type: object
-    properties:
-      hash:
-        type: string
-    title: MerkelRool represents a Merkel Root in ConsensusState
-  tendermint.spn.types.SignatureCount:
-    type: object
-    properties:
-      opAddress:
-        type: string
-      RelativeSignatures:
-        type: string
-    title: >-
-      SignatureCount contains information of signature reporting for one
-      specific validator with consensus address
-
-      RelativeSignatures is the sum of all signatures relative to the validator
-      set size
-  tendermint.spn.types.SignatureCounts:
-    type: object
-    properties:
-      blockCount:
-        type: string
-        format: uint64
-      counts:
-        type: array
-        items:
-          type: object
-          properties:
-            opAddress:
-              type: string
-            RelativeSignatures:
-              type: string
-          title: >-
-            SignatureCount contains information of signature reporting for one
-            specific validator with consensus address
-
-            RelativeSignatures is the sum of all signatures relative to the
-            validator set size
-    title: >-
-      SignatureCounts contains information about signature reporting for a
-      number of blocks
