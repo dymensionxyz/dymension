@@ -21,29 +21,47 @@ func init() {
 // Running as go benchmark test:
 // `go test -benchmem -run=^$ -bench ^BenchmarkSimulation ./app -NumBlocks=200 -BlockSize 50 -Commit=true -Verbose=true -Enabled=true`
 func BenchmarkSimulation(b *testing.B) {
-	simApp, _, config, db, dir, _ := app.SetupTestApp(false)
+	simapp.FlagEnabledValue = true
+	simapp.FlagCommitValue = true
+
+	config, db, dir, logger, _, err := simapp.SetupSimulation("goleveldb-app-sim", "Simulation")
+	require.NoError(b, err, "simulation setup failed")
 
 	b.Cleanup(func() {
 		db.Close()
-		err := os.RemoveAll(dir)
+		err = os.RemoveAll(dir)
 		require.NoError(b, err)
 	})
+
+	encoding := app.MakeEncodingConfig()
+
+	app := app.New(
+		logger,
+		db,
+		nil,
+		true,
+		map[int64]bool{},
+		app.DefaultNodeHome,
+		0,
+		encoding,
+		simapp.EmptyAppOptions{},
+	)
 
 	// Run randomized simulations
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		b,
 		os.Stdout,
-		simApp.GetBaseApp(),
-		simapp.AppStateFn(simApp.AppCodec(), simApp.SimulationManager()),
+		app.BaseApp,
+		simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
 		simulationtypes.RandomAccounts,
-		simapp.SimulationOperations(simApp, simApp.AppCodec(), config),
-		simApp.ModuleAccountAddrs(),
+		simapp.SimulationOperations(app, app.AppCodec(), config),
+		app.ModuleAccountAddrs(),
 		config,
-		simApp.AppCodec(),
+		app.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
-	err := simapp.CheckExportSimulation(simApp, config, simParams)
+	err = simapp.CheckExportSimulation(app, config, simParams)
 	require.NoError(b, err)
 	require.NoError(b, simErr)
 
