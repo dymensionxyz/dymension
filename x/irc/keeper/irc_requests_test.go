@@ -47,10 +47,8 @@ func TestIRCRequestGet(t *testing.T) {
 		)
 		require.True(t, found)
 		require.Equal(t, &item, &rst)
-		cached := rst.Message.GetCachedValue()
-		require.NotNil(t, cached)
-		msg := cached.(sdk.Msg)
-		print(msg.String())
+		msg := rst.GetMsg()
+		require.NotNil(t, msg)
 	}
 }
 func TestIRCRequestRemove(t *testing.T) {

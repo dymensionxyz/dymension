@@ -102,50 +102,52 @@ func (m IRCRequest) GetMsg() sdk.Msg {
 	if m.Message == nil {
 		return nil
 	}
-	msg := m.Message.GetCachedValue()
-	if msg == nil {
+	msgVal := m.Message.GetCachedValue()
+	if msgVal == nil {
 		return nil
 	}
-	switch m.MessageType {
-	case CreateClient:
-		return msg.(*clienttypes.MsgCreateClient)
-	case UpdateClient:
-		return msg.(*clienttypes.MsgUpdateClient)
-	case UpgradeClient:
-		return msg.(*clienttypes.MsgUpgradeClient)
-	case SubmitMisbehaviour:
-		return msg.(*clienttypes.MsgSubmitMisbehaviour)
-	case ConnectionOpenInit:
-		return msg.(*connectiontypes.MsgConnectionOpenInit)
-	case ConnectionOpenTry:
-		return msg.(*connectiontypes.MsgConnectionOpenTry)
-	case ConnectionOpenAck:
-		return msg.(*connectiontypes.MsgConnectionOpenAck)
-	case ConnectionOpenConfirm:
-		return msg.(*connectiontypes.MsgConnectionOpenConfirm)
-	case ChannelOpenInit:
-		return msg.(*channeltypes.MsgChannelOpenInit)
-	case ChannelOpenTry:
-		return msg.(*channeltypes.MsgChannelOpenTry)
-	case ChannelOpenAck:
-		return msg.(*channeltypes.MsgChannelOpenAck)
-	case ChannelOpenConfirm:
-		return msg.(*channeltypes.MsgChannelOpenConfirm)
-	case ChannelCloseInit:
-		return msg.(*channeltypes.MsgChannelCloseInit)
-	case ChannelCloseConfirm:
-		return msg.(*channeltypes.MsgChannelCloseConfirm)
-	case RecvPacket:
-		return msg.(*channeltypes.MsgRecvPacket)
-	case Timeout:
-		return msg.(*channeltypes.MsgTimeout)
-	case TimeoutOnClose:
-		return msg.(*channeltypes.MsgTimeoutOnClose)
-	case Acknowledgement:
-		return msg.(*channeltypes.MsgAcknowledgement)
-	default:
-		return nil
-	}
+	msg := msgVal.(sdk.Msg)
+	return msg
+	// switch m.MessageType {
+	// case CreateClient:
+	// 	return msg.(*clienttypes.MsgCreateClient)
+	// case UpdateClient:
+	// 	return msg.(*clienttypes.MsgUpdateClient)
+	// case UpgradeClient:
+	// 	return msg.(*clienttypes.MsgUpgradeClient)
+	// case SubmitMisbehaviour:
+	// 	return msg.(*clienttypes.MsgSubmitMisbehaviour)
+	// case ConnectionOpenInit:
+	// 	return msg.(*connectiontypes.MsgConnectionOpenInit)
+	// case ConnectionOpenTry:
+	// 	return msg.(*connectiontypes.MsgConnectionOpenTry)
+	// case ConnectionOpenAck:
+	// 	return msg.(*connectiontypes.MsgConnectionOpenAck)
+	// case ConnectionOpenConfirm:
+	// 	return msg.(*connectiontypes.MsgConnectionOpenConfirm)
+	// case ChannelOpenInit:
+	// 	return msg.(*channeltypes.MsgChannelOpenInit)
+	// case ChannelOpenTry:
+	// 	return msg.(*channeltypes.MsgChannelOpenTry)
+	// case ChannelOpenAck:
+	// 	return msg.(*channeltypes.MsgChannelOpenAck)
+	// case ChannelOpenConfirm:
+	// 	return msg.(*channeltypes.MsgChannelOpenConfirm)
+	// case ChannelCloseInit:
+	// 	return msg.(*channeltypes.MsgChannelCloseInit)
+	// case ChannelCloseConfirm:
+	// 	return msg.(*channeltypes.MsgChannelCloseConfirm)
+	// case RecvPacket:
+	// 	return msg.(*channeltypes.MsgRecvPacket)
+	// case Timeout:
+	// 	return msg.(*channeltypes.MsgTimeout)
+	// case TimeoutOnClose:
+	// 	return msg.(*channeltypes.MsgTimeoutOnClose)
+	// case Acknowledgement:
+	// 	return msg.(*channeltypes.MsgAcknowledgement)
+	// default:
+	// 	return nil
+	// }
 }
 
 // Handler implements IRCRequestI
