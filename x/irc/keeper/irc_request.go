@@ -51,6 +51,7 @@ func (k Keeper) GetAllIRCRequest(ctx sdk.Context) (list []types.IRCRequest) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.IRCRequestKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
+	// nolint: errcheck
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
