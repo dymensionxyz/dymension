@@ -16,6 +16,7 @@ var _ binary.ByteOrder
 
 var (
 	_ codectypes.UnpackInterfacesMessage = IRCRequest{}
+	_ IRCRequestI                        = &IRCRequest{}
 )
 
 var MsgTypeStr2MsgType = map[string]MsgType{}
@@ -28,7 +29,7 @@ func NewIRCRequest(reqId uint64, msg sdk.Msg) (*IRCRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	msgType := getMsgTypeFromNsg(msg)
+	msgType := getMsgTypeFromMsg(msg)
 
 	if msgType == Unspecified {
 		return nil, ErrInvalidMsgType
@@ -37,11 +38,11 @@ func NewIRCRequest(reqId uint64, msg sdk.Msg) (*IRCRequest, error) {
 	return &IRCRequest{
 		ReqId:       reqId,
 		Message:     any,
-		MessageType: getMsgTypeFromNsg(msg),
+		MessageType: getMsgTypeFromMsg(msg),
 	}, nil
 }
 
-func getMsgTypeFromNsg(msg sdk.Msg) MsgType {
+func getMsgTypeFromMsg(msg sdk.Msg) MsgType {
 	msgTypeStr := fmt.Sprintf("%T", msg)
 	msgType, exists := MsgTypeStr2MsgType[msgTypeStr]
 	if exists {
@@ -94,4 +95,60 @@ func getMsgTypeFromNsg(msg sdk.Msg) MsgType {
 func (m IRCRequest) UnpackInterfaces(ctx codectypes.AnyUnpacker) error {
 	var msg sdk.Msg
 	return ctx.UnpackAny(m.Message, &msg)
+}
+
+// GetMsg implements IRCRequestI
+func (m IRCRequest) GetMsg() sdk.Msg {
+	if m.Message == nil {
+		return nil
+	}
+	msg := m.Message.GetCachedValue()
+	if msg == nil {
+		return nil
+	}
+	switch m.MessageType {
+	case CreateClient:
+		return msg.(*clienttypes.MsgCreateClient)
+	case UpdateClient:
+		return msg.(*clienttypes.MsgUpdateClient)
+	case UpgradeClient:
+		return msg.(*clienttypes.MsgUpgradeClient)
+	case SubmitMisbehaviour:
+		return msg.(*clienttypes.MsgSubmitMisbehaviour)
+	case ConnectionOpenInit:
+		return msg.(*connectiontypes.MsgConnectionOpenInit)
+	case ConnectionOpenTry:
+		return msg.(*connectiontypes.MsgConnectionOpenTry)
+	case ConnectionOpenAck:
+		return msg.(*connectiontypes.MsgConnectionOpenAck)
+	case ConnectionOpenConfirm:
+		return msg.(*connectiontypes.MsgConnectionOpenConfirm)
+	case ChannelOpenInit:
+		return msg.(*channeltypes.MsgChannelOpenInit)
+	case ChannelOpenTry:
+		return msg.(*channeltypes.MsgChannelOpenTry)
+	case ChannelOpenAck:
+		return msg.(*channeltypes.MsgChannelOpenAck)
+	case ChannelOpenConfirm:
+		return msg.(*channeltypes.MsgChannelOpenConfirm)
+	case ChannelCloseInit:
+		return msg.(*channeltypes.MsgChannelCloseInit)
+	case ChannelCloseConfirm:
+		return msg.(*channeltypes.MsgChannelCloseConfirm)
+	case RecvPacket:
+		return msg.(*channeltypes.MsgRecvPacket)
+	case Timeout:
+		return msg.(*channeltypes.MsgTimeout)
+	case TimeoutOnClose:
+		return msg.(*channeltypes.MsgTimeoutOnClose)
+	case Acknowledgement:
+		return msg.(*channeltypes.MsgAcknowledgement)
+	default:
+		return nil
+	}
+}
+
+// Handler implements IRCRequestI
+func (m IRCRequest) Handler() error {
+	panic("unimplemented")
 }
