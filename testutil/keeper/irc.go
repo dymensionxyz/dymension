@@ -19,6 +19,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	ibc "github.com/cosmos/ibc-go/v3/modules/core/types"
 )
 
 func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context) {
@@ -31,7 +33,10 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	require.NoError(t, stateStore.LoadLatestVersion())
 
+	// create codec
 	registry := codectypes.NewInterfaceRegistry()
+	types.RegisterInterfaces(registry)
+	ibc.RegisterInterfaces(registry)
 	cdc := codec.NewProtoCodec(registry)
 
 	// create roolapp keeper
@@ -54,6 +59,7 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context
 		memStoreKey,
 		"IrcParams",
 	)
+
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,

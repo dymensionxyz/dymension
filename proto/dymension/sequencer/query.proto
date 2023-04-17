@@ -4,11 +4,11 @@ package dymensionxyz.dymension.sequencer;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "sequencer/params.proto";
-import "sequencer/sequencer.proto";
-import "sequencer/scheduler.proto";
+import "dymension/sequencer/params.proto";
+import "dymension/sequencer/sequencer.proto";
+import "dymension/sequencer/scheduler.proto";
 // this line is used by starport scaffolding # 1
-import "sequencer/operating_status.proto";
+import "dymension/sequencer/operating_status.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
 

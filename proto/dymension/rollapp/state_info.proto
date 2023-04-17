@@ -5,8 +5,8 @@ option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
 import "gogoproto/gogo.proto";
 
-import "rollapp/block_descriptor.proto"; 
-import "rollapp/state_status.proto"; 
+import "dymension/rollapp/block_descriptor.proto"; 
+import "dymension/rollapp/state_status.proto"; 
 
 // StateInfoIndex is the data used for indexing and retrieving a StateInfo 
 // it updated and saved with every UpdateState in StateInfo.

@@ -10,7 +10,7 @@ import (
 // RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
-	FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh uint64) (*rollapptypes.StateInfo, error)
+	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
 	// Methods imported from rollapp should be defined here
 }
 

@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package dymensionxyz.dymension.irc;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymension/irc/params.proto";
+import "dymension/irc/irc_requests.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/irc/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  
+  // Parameters queries the parameters of the module.
+  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/irc/params";
+  
+  }
+  
+  // Queries a list of IRCRequest items.
+  rpc IRCRequest    (QueryGetIRCRequestRequest) returns (QueryGetIRCRequestResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/irc/irc_requests/{reqId}";
+  
+  }
+  rpc IRCRequestAll (QueryAllIRCRequestRequest) returns (QueryAllIRCRequestResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/irc/irc_requests";
+  
+  }
+}
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetIRCRequestRequest {
+  uint64 reqId = 1;
+}
+
+message QueryGetIRCRequestResponse {
+  IRCRequest ircRequest = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllIRCRequestRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllIRCRequestResponse {
+  repeated IRCRequest                            ircRequest = 1 [(gogoproto.nullable) = false];
+           cosmos.base.query.v1beta1.PageResponse pagination  = 2;
+}
+

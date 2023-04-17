@@ -2,7 +2,7 @@ syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
 option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
-import "sequencer/description.proto"; 
+import "dymension/sequencer/description.proto"; 
 
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";

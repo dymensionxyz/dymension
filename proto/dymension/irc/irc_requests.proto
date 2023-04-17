@@ -1,0 +1,48 @@
+syntax = "proto3";
+package dymensionxyz.dymension.irc;
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/x/irc/types";
+
+// MsgType is the type of the intercepted IBC message.
+enum MsgType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // UNSPECIFIED defines an invalid validator status.
+  MSG_TYPE_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "Unspecified"];
+
+  MSG_TYPE_CREATE_CLIENT = 1 [(gogoproto.enumvalue_customname) = "CreateClient"];
+  MSG_TYPE_UPDATE_CLIENT = 2 [(gogoproto.enumvalue_customname) = "UpdateClient"];
+  MSG_TYPE_UPGRADE_CLIENT = 3 [(gogoproto.enumvalue_customname) = "UpgradeClient"];
+  MSG_TYPE_SUBMIT_MISBEHAVIOUR = 4 [(gogoproto.enumvalue_customname) = "SubmitMisbehaviour"];
+  MSG_TYPE_CONNECTION_OPEN_INIT = 5 [(gogoproto.enumvalue_customname) = "ConnectionOpenInit"];
+  MSG_TYPE_CONNECTION_OPEN_TRY = 6 [(gogoproto.enumvalue_customname) = "ConnectionOpenTry"];
+  MSG_TYPE_CONNECTION_OPEN_ACK = 7 [(gogoproto.enumvalue_customname) = "ConnectionOpenAck"];
+  MSG_TYPE_CONNECTION_OPEN_CONFIRM = 8 [(gogoproto.enumvalue_customname) = "ConnectionOpenConfirm"];
+  MSG_TYPE_CHANNEL_OPEN_INIT = 9 [(gogoproto.enumvalue_customname) = "ChannelOpenInit"];
+  MSG_TYPE_CHANNEL_OPEN_TRY = 10 [(gogoproto.enumvalue_customname) = "ChannelOpenTry"];
+  MSG_TYPE_CHANNEL_OPEN_ACK = 11 [(gogoproto.enumvalue_customname) = "ChannelOpenAck"];
+  MSG_TYPE_CHANNEL_OPEN_CONFIRM = 12 [(gogoproto.enumvalue_customname) = "ChannelOpenConfirm"];
+  MSG_TYPE_CHANNEL_CLOSE_INIT = 13 [(gogoproto.enumvalue_customname) = "ChannelCloseInit"];
+  MSG_TYPE_CHANNEL_CLOSE_CONFIRM = 14 [(gogoproto.enumvalue_customname) = "ChannelCloseConfirm"];
+  MSG_TYPE_RECV_PACKET = 15 [(gogoproto.enumvalue_customname) = "RecvPacket"];
+  MSG_TYPE_TIMEOUT = 16 [(gogoproto.enumvalue_customname) = "Timeout"];
+  MSG_TYPE_TIMEOUT_ON_CLOSE = 17 [(gogoproto.enumvalue_customname) = "TimeoutOnClose"];
+  MSG_TYPE_ACKNOWLEDGEMENT = 18 [(gogoproto.enumvalue_customname) = "Acknowledgement"];
+}
+
+// IRCRequest represents a message that was sent to the IBC module by IRC
+message IRCRequest {
+  // reqId is s unique identifier of the request
+  uint64 req_id = 1; 
+  // message is the IBC message to be handled
+  google.protobuf.Any message = 2  [(cosmos_proto.accepts_interface) = "sdk.Msg"];
+  // msg_type is the type of the IBC message
+  MsgType message_type = 3; 
+  
+}
+
+

@@ -29,7 +29,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		return nil, err
 	}
 
-	// Logig Error check - must be done after BeforeUpdateStateRecoverable
+	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
 	permissionedAddresses := rollapp.PermissionedAddresses.Addresses

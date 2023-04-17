@@ -4,10 +4,10 @@ package dymensionxyz.dymension.rollapp;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "rollapp/params.proto";
-import "rollapp/rollapp.proto";
+import "dymension/rollapp/params.proto";
+import "dymension/rollapp/rollapp.proto";
 // this line is used by starport scaffolding # 1
-import "rollapp/state_info.proto";
+import "dymension/rollapp/state_info.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 

@@ -22,9 +22,9 @@ func (k Keeper) GetStateInfoByHeight(goCtx context.Context, req *types.QueryGetS
 	}
 	return &types.QueryGetStateInfoByHeightResponse{StateInfo: *stateInfo}, nil
 }
-func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh uint64) (*types.StateInfo, error) {
-	// check that heigh not zero
-	if heigh == 0 {
+func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
+	// check that height not zero
+	if height == 0 {
 		return nil, types.ErrInvalidHeight
 	}
 
@@ -51,15 +51,15 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh u
 			rollappId, endInfoIndex)
 	}
 
-	// check that heigh exists
-	if heigh >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
+	// check that height exists
+	if height >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
 		return nil, sdkerrors.Wrapf(types.ErrStateNotExists,
 			"rollappId=%s, height=%d",
-			rollappId, heigh)
+			rollappId, height)
 	}
 
-	// check if the the heigh belongs to this batch
-	if heigh >= LatestStateInfo.StartHeight {
+	// check if the the height belongs to this batch
+	if height >= LatestStateInfo.StartHeight {
 		return &LatestStateInfo, nil
 	}
 
@@ -67,7 +67,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh u
 	stepNum := uint64(0)
 	for ; stepNum < maxNumberOfSteps; stepNum += 1 {
 		// we know that endInfoIndex > startInfoIndex
-		// otherwise the heigh should have been found
+		// otherwise the height should have been found
 		if endInfoIndex <= startInfoIndex {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 				"endInfoIndex should be != than startInfoIndex rollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
@@ -93,14 +93,14 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh u
 		endHeight := endStateInfo.StartHeight + endStateInfo.NumBlocks - 1
 
 		// 2. check startStateInfo
-		if heigh >= startStateInfo.StartHeight &&
-			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > heigh {
+		if height >= startStateInfo.StartHeight &&
+			(startStateInfo.StartHeight+startStateInfo.NumBlocks) > height {
 			return &startStateInfo, nil
 		}
 
 		// 3. check endStateInfo
-		if heigh >= endStateInfo.StartHeight &&
-			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > heigh {
+		if height >= endStateInfo.StartHeight &&
+			(endStateInfo.StartHeight+endStateInfo.NumBlocks) > height {
 			return &endStateInfo, nil
 		}
 
@@ -113,7 +113,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh u
 		}
 
 		// 5. load the candidate block batch
-		infoIndexStep := (heigh - startHeight) / avgBlocksPerBatch
+		infoIndexStep := (height - startHeight) / avgBlocksPerBatch
 		if infoIndexStep == 0 {
 			infoIndexStep = 1
 		}
@@ -133,10 +133,10 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, heigh u
 		}
 
 		// 6. check the candidate
-		if candidateStateInfo.StartHeight > heigh {
+		if candidateStateInfo.StartHeight > height {
 			endInfoIndex = candidateInfoIndex - 1
 		} else {
-			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < heigh {
+			if candidateStateInfo.StartHeight+candidateStateInfo.NumBlocks-1 < height {
 				startInfoIndex = candidateInfoIndex + 1
 			} else {
 				return &candidateStateInfo, nil
