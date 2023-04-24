@@ -10,13 +10,9 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
-	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
-
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
 )
 
 var defaultConsensusParams = &abci.ConsensusParams{
@@ -45,9 +41,9 @@ func SetupTestApp(withGenesis bool) (*App, GenesisState, simtypes.Config, dbm.DB
 		panic(err)
 	}
 
-	encoding := cosmoscmd.MakeEncodingConfig(ModuleBasics)
+	encoding := MakeEncodingConfig()
 
-	myApp := NewSim(
+	app := New(
 		logger,
 		db,
 		nil,
@@ -59,21 +55,12 @@ func SetupTestApp(withGenesis bool) (*App, GenesisState, simtypes.Config, dbm.DB
 		simapp.EmptyAppOptions{},
 	)
 
-	_, ok := myApp.(ibctesting.TestingApp)
-	if !ok {
-		panic(err)
-	}
-	simApp, ok := myApp.(*App)
-	if !ok {
-		panic(err)
-	}
-
 	genesisState := GenesisState{}
 	if withGenesis {
-		genesisState = NewDefaultGenesisState(simApp.AppCodec())
+		genesisState = NewDefaultGenesisState(app.AppCodec())
 	}
 
-	return simApp, genesisState, config, db, dir, logger
+	return app, genesisState, config, db, dir, logger
 }
 
 // Setup initializes a new test App. A Nop logger is set in App.

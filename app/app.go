@@ -97,6 +97,7 @@ import (
 	"github.com/ignite/cli/ignite/pkg/cosmoscmd"
 	"github.com/ignite/cli/ignite/pkg/openapiconsole"
 
+	appparams "github.com/dymensionxyz/dymension/app/params"
 	"github.com/dymensionxyz/dymension/docs"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
@@ -292,21 +293,21 @@ func (app *App) GetTxConfig() client.TxConfig {
 }
 
 // NewSim returns a reference to an initialized blockchain app in simulation mode
-func NewSim(
-	logger log.Logger,
-	db dbm.DB,
-	traceStore io.Writer,
-	loadLatest bool,
-	skipUpgradeHeights map[int64]bool,
-	homePath string,
-	invCheckPeriod uint,
-	encodingConfig cosmoscmd.EncodingConfig,
-	appOpts servertypes.AppOptions,
-	baseAppOptions ...func(*baseapp.BaseApp),
-) cosmoscmd.App {
-	bSimulation = true
-	return New(logger, db, traceStore, loadLatest, skipUpgradeHeights, homePath, invCheckPeriod, encodingConfig, appOpts, baseAppOptions...)
-}
+// func NewSim(
+// 	logger log.Logger,
+// 	db dbm.DB,
+// 	traceStore io.Writer,
+// 	loadLatest bool,
+// 	skipUpgradeHeights map[int64]bool,
+// 	homePath string,
+// 	invCheckPeriod uint,
+// 	encodingConfig appparams.EncodingConfig,
+// 	appOpts servertypes.AppOptions,
+// 	baseAppOptions ...func(*baseapp.BaseApp),
+// ) cosmoscmd.App {
+// 	bSimulation = true
+// 	return New(logger, db, traceStore, loadLatest, skipUpgradeHeights, homePath, invCheckPeriod, encodingConfig, appOpts, baseAppOptions...)
+// }
 
 // New returns a reference to an initialized blockchain app
 func New(
@@ -317,10 +318,10 @@ func New(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig cosmoscmd.EncodingConfig,
+	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) cosmoscmd.App {
+) *App {
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
