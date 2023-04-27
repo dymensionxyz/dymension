@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -10,60 +11,37 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var (
-	LatestBlockHeight int64
-	lastResult        bool
-)
-
-const progressCheckPeriod = 1 * time.Minute
+const maxNoHeightProgressDuration = 2 * time.Minute
 
 func HealthcheckRegister(clientCtx client.Context, r *mux.Router) {
-	go RunHealthCheck(clientCtx)
 	r.HandleFunc("/healthcheck", HealthcheckRequestHandlerFn(clientCtx)).Methods("GET")
 }
 
-func getLatestHeight(clientCtx client.Context) (int64, error) {
+func getLatestBlockTime(clientCtx client.Context) (time.Time, error) {
 	node, err := clientCtx.GetNode()
 	if err != nil {
-		return 0, err
+		return time.Time{}, err
 	}
 
 	status, err := node.Status(context.Background())
 	if err != nil {
-		return 0, err
+		return time.Time{}, err
 	}
 
-	return status.SyncInfo.LatestBlockHeight, nil
-}
-
-func RunHealthCheck(clientCtx client.Context) {
-	LatestBlockHeight, _ := getLatestHeight(clientCtx)
-	for {
-		select {
-		case <-clientCtx.Client.Quit():
-			return
-		case <-time.After(progressCheckPeriod):
-			height, err := getLatestHeight(clientCtx)
-			if err != nil {
-				lastResult = false
-				continue
-			}
-
-			if height <= LatestBlockHeight {
-				lastResult = false
-				continue
-			}
-
-			lastResult = true
-			LatestBlockHeight = height
-		}
-	}
+	return status.SyncInfo.LatestBlockTime, nil
 }
 
 func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !lastResult {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, "Node is not syncing")
+
+		latestTime, err := getLatestBlockTime(clientCtx)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get latest block time")
+			return
+		}
+
+		if time.Now().UTC().Sub(latestTime).Minutes() > maxNoHeightProgressDuration.Minutes() {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Node is not syncing. Last block time: %s, curr time: %s", latestTime.String(), time.Now().UTC().String()))
 			return
 		}
 
