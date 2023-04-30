@@ -292,23 +292,6 @@ func (app *App) GetTxConfig() client.TxConfig {
 	return simappparams.MakeTestEncodingConfig().TxConfig
 }
 
-// NewSim returns a reference to an initialized blockchain app in simulation mode
-// func NewSim(
-// 	logger log.Logger,
-// 	db dbm.DB,
-// 	traceStore io.Writer,
-// 	loadLatest bool,
-// 	skipUpgradeHeights map[int64]bool,
-// 	homePath string,
-// 	invCheckPeriod uint,
-// 	encodingConfig appparams.EncodingConfig,
-// 	appOpts servertypes.AppOptions,
-// 	baseAppOptions ...func(*baseapp.BaseApp),
-// ) cosmoscmd.App {
-// 	bSimulation = true
-// 	return New(logger, db, traceStore, loadLatest, skipUpgradeHeights, homePath, invCheckPeriod, encodingConfig, appOpts, baseAppOptions...)
-// }
-
 // New returns a reference to an initialized blockchain app
 func New(
 	logger log.Logger,
@@ -823,6 +806,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// register app's OpenAPI routes.
 	apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Docs)))
 	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/openapi.yml"))
+
+	HealthcheckRegister(clientCtx, apiSvr.Router)
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
