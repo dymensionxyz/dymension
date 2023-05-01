@@ -124,9 +124,8 @@ var (
 )
 
 const (
-	AccountAddressPrefix = "dymension"
+	AccountAddressPrefix = "dym"
 	Name                 = "dymension"
-	ShortName            = "dym"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
