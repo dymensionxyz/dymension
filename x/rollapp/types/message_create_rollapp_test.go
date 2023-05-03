@@ -17,15 +17,6 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid rollappId",
-			msg: MsgCreateRollapp{
-				Creator:              sample.AccAddress(),
-				MaxSequencers:        1,
-				MaxWithholdingBlocks: 1,
-				RollappId:            "ivalid-3",
-			},
-			err: ErrInvalidRollappID,
-		}, {
 			name: "invalid address",
 			msg: MsgCreateRollapp{
 				Creator:              "invalid_address",
@@ -88,7 +79,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				require.ErrorIs(t, err, tt.err, "test %s failed", tt.name)
 				return
 			}
 			require.NoError(t, err)

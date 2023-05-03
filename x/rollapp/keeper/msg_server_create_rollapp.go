@@ -29,7 +29,9 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 		if !bInWhitelist {
 			return nil, types.ErrUnauthorizedRollappCreator
-		} else if item.MaxRollapps > 0 {
+		}
+
+		if item.MaxRollapps > 0 {
 			// if MaxRollapps, it means there is a limit for this creator
 			// count how many rollapps he created
 			rollappsNumOfCreator := uint64(0)
