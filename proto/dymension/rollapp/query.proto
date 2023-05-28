@@ -93,7 +93,7 @@ message QueryAllRollappRequest {
 }
 
 message QueryAllRollappResponse {
-	repeated Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	repeated RollappSummary rollapp = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
