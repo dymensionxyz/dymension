@@ -86,6 +86,7 @@ message QueryGetStateInfoRequest {
 	  string rollappId = 1;
 	  uint64 index = 2;
 		uint64 height = 3;
+		bool finalized = 4;
 }
 
 message QueryGetStateInfoResponse {

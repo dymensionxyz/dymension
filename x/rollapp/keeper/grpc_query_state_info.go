@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -51,18 +50,30 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-	if req.Height != 0 && req.Index != 0 {
-		return nil, status.Error(codes.InvalidArgument, fmt.Sprintf("only one flag can be use for %d or %d", req.Index, req.Height))
-	}
+
 	ctx := sdk.UnwrapSDKContext(c)
+
+	if req.Height == 0 && req.Index == 0 {
+		if req.Finalized {
+			latestFinalizedStateIndex, found := k.GetLatestFinalizedStateIndex(ctx, req.RollappId)
+			if !found {
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+					"LatestFinalizedStateIndex wasn't found for rollappId=%s", req.RollappId)
+			}
+			req.Index = latestFinalizedStateIndex.Index
+		} else {
+			latestStateIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
+			if !found {
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+					"LatestStateInfoIndex wasn't found for rollappId=%s", req.RollappId)
+			}
+			req.Index = latestStateIndex.Index
+		}
+	}
 
 	var stateInfo types.StateInfo
 	if req.Index != 0 {
-		val, found := k.GetStateInfo(
-			ctx,
-			req.RollappId,
-			req.Index,
-		)
+		val, found := k.GetStateInfo(ctx, req.RollappId, req.Index)
 		if !found {
 			return nil, status.Error(codes.NotFound, "not found")
 		}

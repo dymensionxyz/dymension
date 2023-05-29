@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
@@ -12,6 +13,7 @@ const (
 	FlagRollappId     = "rollapp-id"
 	FlagStateIndex    = "index"
 	FlagRollappHeight = "rollapp-height"
+	FlagFinalized     = "finalized"
 )
 
 func CmdListStateInfo() *cobra.Command {
@@ -69,8 +71,21 @@ func CmdShowStateInfo() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			argFinalized, err := flagSet.GetBool(FlagFinalized)
+			if err != nil {
+				return err
+			}
 
-			params := &types.QueryGetStateInfoRequest{RollappId: argRollappId, Index: argIndex, Height: argHeight}
+			if (argHeight != 0 && argIndex != 0) || (argHeight != 0 && argFinalized) || (argIndex != 0 && argFinalized) {
+				return fmt.Errorf("only one flag can be use for %s, %s or %s", FlagStateIndex, FlagRollappHeight, FlagFinalized)
+			}
+
+			params := &types.QueryGetStateInfoRequest{
+				RollappId: argRollappId,
+				Index:     argIndex,
+				Height:    argHeight,
+				Finalized: argFinalized,
+			}
 			queryClient := types.NewQueryClient(clientCtx)
 			res, err := queryClient.StateInfo(context.Background(), params)
 			if err != nil {
@@ -82,6 +97,7 @@ func CmdShowStateInfo() *cobra.Command {
 
 	cmd.Flags().Uint64(FlagStateIndex, 0, "Use a specific state-index to query state-info at")
 	cmd.Flags().Uint64(FlagRollappHeight, 0, "Use a specific height of the rollapp to query state-info at")
+	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state")
 
 	flags.AddQueryFlagsToCmd(cmd)
 
