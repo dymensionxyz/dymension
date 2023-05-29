@@ -59,11 +59,11 @@ func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
 	keeper.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
-	request := &types.QueryGetStateInfoByHeightRequest{
+	request := &types.QueryGetStateInfoRequest{
 		RollappId: rollappId,
 		Height:    100,
 	}
-	_, err := keeper.GetStateInfoByHeight(wctx, request)
+	_, err := keeper.StateInfo(wctx, request)
 	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
 }
 
@@ -79,11 +79,11 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 		RollappId: rollappId,
 		Index:     uint64(85),
 	})
-	request := &types.QueryGetStateInfoByHeightRequest{
+	request := &types.QueryGetStateInfoRequest{
 		RollappId: rollappId,
 		Height:    100,
 	}
-	_, err := keeper.GetStateInfoByHeight(wctx, request)
+	_, err := keeper.StateInfo(wctx, request)
 	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 85).Error())
@@ -101,7 +101,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		RollappId: rollappId,
 		Index:     uint64(60),
 	})
-	request := &types.QueryGetStateInfoByHeightRequest{
+	request := &types.QueryGetStateInfoRequest{
 		RollappId: rollappId,
 		Height:    70,
 	}
@@ -110,7 +110,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		StartHeight:    71,
 		NumBlocks:      1,
 	})
-	_, err := keeper.GetStateInfoByHeight(wctx, request)
+	_, err := keeper.StateInfo(wctx, request)
 	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 1).Error())
@@ -122,22 +122,22 @@ func TestStateInfoByHeightErr(t *testing.T) {
 	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId", true)
 	for _, tc := range []struct {
 		desc     string
-		request  *types.QueryGetStateInfoByHeightRequest
-		response *types.QueryGetStateInfoByHeightResponse
+		request  *types.QueryGetStateInfoRequest
+		response *types.QueryGetStateInfoResponse
 		err      error
 	}{
 		{
 			desc: "LatestStateInfoIndex",
-			request: &types.QueryGetStateInfoByHeightRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId: "UnknownRollappId",
 				Height:    100,
 			},
-			response: &types.QueryGetStateInfoByHeightResponse{StateInfo: types.StateInfo{}},
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{}},
 			err:      types.ErrUnknownRollappID,
 		},
 		{
 			desc: "ErrInvalidHeight",
-			request: &types.QueryGetStateInfoByHeightRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
 				Height:    0,
 			},
@@ -145,7 +145,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		},
 		{
 			desc: "ErrStateNotExists",
-			request: &types.QueryGetStateInfoByHeightRequest{
+			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
 				Height:    msgs[len(msgs)-1].StartHeight + msgs[len(msgs)-1].NumBlocks,
 			},
@@ -153,7 +153,7 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.GetStateInfoByHeight(wctx, tc.request)
+			response, err := keeper.StateInfo(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -176,14 +176,14 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
-			request := &types.QueryGetStateInfoByHeightRequest{
+			request := &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
 				Height:    height,
 			}
-			response, err := keeper.GetStateInfoByHeight(wctx, request)
+			response, err := keeper.StateInfo(wctx, request)
 			require.NoError(t, err)
 			require.Equal(t,
-				nullify.Fill(&types.QueryGetStateInfoByHeightResponse{StateInfo: msgs[i]}),
+				nullify.Fill(&types.QueryGetStateInfoResponse{StateInfo: msgs[i]}),
 				nullify.Fill(response),
 			)
 		}
@@ -199,14 +199,14 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
-			request := &types.QueryGetStateInfoByHeightRequest{
+			request := &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
 				Height:    height,
 			}
-			response, err := keeper.GetStateInfoByHeight(wctx, request)
+			response, err := keeper.StateInfo(wctx, request)
 			require.NoError(t, err)
 			require.Equal(t,
-				nullify.Fill(&types.QueryGetStateInfoByHeightResponse{StateInfo: msgs[i]}),
+				nullify.Fill(&types.QueryGetStateInfoResponse{StateInfo: msgs[i]}),
 				nullify.Fill(response),
 			)
 		}

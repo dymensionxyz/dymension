@@ -39,7 +39,7 @@ message RollappSummary {
   // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1;
   // Contains details about the latest UpdateState and the latest finalized UpdateState of the Rollapp.
-  LatestStatesSummary latestStatesSummary = 4;
+  LatestStatesSummary latestStatesSummary = 2;
 }
 
 // LatestStateIndexes contains details about the latest UpdateState and the latest finalized UpdateState of a Rollapp.
