@@ -136,12 +136,16 @@ func TestStateInfoByHeightErr(t *testing.T) {
 			err:      types.ErrUnknownRollappID,
 		},
 		{
-			desc: "ErrInvalidHeight",
+			desc: "NoFlagsReturnLatestStateInfoIndex",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
 				Height:    0,
 			},
-			err: types.ErrInvalidHeight,
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
+				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 4},
+				StartHeight:    7,
+				NumBlocks:      4,
+			}},
 		},
 		{
 			desc: "ErrStateNotExists",

@@ -21,7 +21,7 @@ var _ = strconv.IntSize
 func TestStateInfoQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNStateInfo(keeper, ctx, 2)
+	msgs, _ := createNStateInfo(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetStateInfoRequest
@@ -83,7 +83,7 @@ func TestStateInfoQuerySingle(t *testing.T) {
 func TestStateInfoQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNStateInfo(keeper, ctx, 5)
+	_, msgs := createNStateInfo(keeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllStateInfoRequest {
 		return &types.QueryAllStateInfoRequest{

@@ -15,19 +15,29 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Rollapp {
+func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {
 	items := make([]types.Rollapp, n)
 	for i := range items {
 		items[i].RollappId = strconv.Itoa(i)
-
+		items[i].LatestStatesSummary = &types.LatestStatesSummary{}
 		keeper.SetRollapp(ctx, items[i])
 	}
-	return items
+
+	rollappSummaries := []types.RollappSummary{}
+	for _, item := range items {
+		rollappSummary := types.RollappSummary{
+			RollappId:           item.RollappId,
+			LatestStatesSummary: item.LatestStatesSummary,
+		}
+		rollappSummaries = append(rollappSummaries, rollappSummary)
+	}
+
+	return items, rollappSummaries
 }
 
 func TestRollappGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollapp(keeper, ctx, 10)
+	items, _ := createNRollapp(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetRollapp(ctx,
 			item.RollappId,
@@ -41,7 +51,7 @@ func TestRollappGet(t *testing.T) {
 }
 func TestRollappRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollapp(keeper, ctx, 10)
+	items, _ := createNRollapp(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveRollapp(ctx,
 			item.RollappId,
@@ -55,7 +65,7 @@ func TestRollappRemove(t *testing.T) {
 
 func TestRollappGetAll(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNRollapp(keeper, ctx, 10)
+	_, items := createNRollapp(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllRollapp(ctx)),

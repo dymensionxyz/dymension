@@ -691,7 +691,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 // ---------------------------------------
 // vereifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
-func vereifyAll(suite *RollappTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.Rollapp) {
+func vereifyAll(suite *RollappTestSuite, rollappsExpect []*types.Rollapp, rollappsRes map[string]*types.RollappSummary) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(rollappsExpect), len(rollappsRes))
 	for i := 0; i < len(rollappsExpect); i++ {
@@ -704,12 +704,12 @@ func vereifyAll(suite *RollappTestSuite, rollappsExpect []*types.Rollapp, rollap
 
 // getAll queries for all exsisting rollapps and returns a tuple of:
 // map of rollappId->rollapp and the number of retrieved rollapps
-func getAll(suite *RollappTestSuite) (map[string]*types.Rollapp, int) {
+func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	totalChecked := 0
 	totalRes := 0
 	nextKey := []byte{}
-	rollappsRes := make(map[string]*types.Rollapp)
+	rollappsRes := make(map[string]*types.RollappSummary)
 	for {
 		queryAllResponse, err := suite.queryClient.RollappAll(goCtx,
 			&types.QueryAllRollappRequest{
@@ -728,9 +728,6 @@ func getAll(suite *RollappTestSuite) (map[string]*types.Rollapp, int) {
 
 		for i := 0; i < len(queryAllResponse.GetRollapp()); i++ {
 			rollappRes := queryAllResponse.GetRollapp()[i]
-			if rollappRes.PermissionedAddresses.Addresses == nil {
-				rollappRes.PermissionedAddresses.Addresses = []string{}
-			}
 			rollappsRes[rollappRes.GetRollappId()] = &rollappRes
 		}
 		totalChecked += len(queryAllResponse.GetRollapp())

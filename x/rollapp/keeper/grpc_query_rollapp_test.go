@@ -21,7 +21,7 @@ var _ = strconv.IntSize
 func TestRollappQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRollapp(keeper, ctx, 2)
+	msgs, _ := createNRollapp(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetRollappRequest
@@ -72,7 +72,7 @@ func TestRollappQuerySingle(t *testing.T) {
 func TestRollappQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRollapp(keeper, ctx, 5)
+	_, msgs := createNRollapp(keeper, ctx, 5)
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllRollappRequest {
 		return &types.QueryAllRollappRequest{

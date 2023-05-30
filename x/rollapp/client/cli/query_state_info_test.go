@@ -21,7 +21,9 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types.StateInfo) {
+var RollappIds = []string{"1", "2"}
+
+func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types.StateInfo, []types.StateInfoSummary) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
@@ -30,7 +32,7 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	for i := 1; i <= n; i++ {
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
-				RollappId: strconv.Itoa(i),
+				RollappId: RollappIds[i%2],
 				Index:     uint64(i)},
 		}
 		nullify.Fill(&stateInfo)
@@ -39,11 +41,20 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.StateInfoList
+	var stateInfoSummaries []types.StateInfoSummary
+	for _, state := range state.StateInfoList {
+		stateInfoSummary := types.StateInfoSummary{
+			StateInfoIndex: state.StateInfoIndex,
+			Status:         state.Status,
+			CreationHeight: state.CreationHeight,
+		}
+		stateInfoSummaries = append(stateInfoSummaries, stateInfoSummary)
+	}
+	return network.New(t, cfg), state.StateInfoList, stateInfoSummaries
 }
 
 func TestShowStateInfo(t *testing.T) {
-	net, objs := networkWithStateInfoObjects(t, 2)
+	net, objs, _ := networkWithStateInfoObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
@@ -84,8 +95,10 @@ func TestShowStateInfo(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			args := tc.args
-			args = append(args, fmt.Sprintf("--%s=%s", cli.FlagRollappId, tc.idRollappId))
+			args := []string{
+				tc.idRollappId,
+			}
+			args = append(args, tc.args...)
 			args = append(args, fmt.Sprintf("--%s=%d", cli.FlagStateIndex, tc.idStateIndex))
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowStateInfo(), args)
 			if tc.err != nil {
@@ -107,7 +120,7 @@ func TestShowStateInfo(t *testing.T) {
 }
 
 func TestListStateInfo(t *testing.T) {
-	net, objs := networkWithStateInfoObjects(t, 5)
+	net, _, objs := networkWithStateInfoObjects(t, 5)
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -128,7 +141,9 @@ func TestListStateInfo(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(objs); i += step {
-			args := request(nil, uint64(i), uint64(step), false)
+			requestArgs := request(nil, uint64(i), uint64(step), false)
+			args := []string{RollappIds[0]}
+			args = append(args, requestArgs...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 			require.NoError(t, err)
 			var resp types.QueryAllStateInfoResponse
@@ -144,7 +159,9 @@ func TestListStateInfo(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(objs); i += step {
-			args := request(next, 0, uint64(step), false)
+			requestArgs := request(next, 0, uint64(step), false)
+			args := []string{RollappIds[0]}
+			args = append(args, requestArgs...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 			require.NoError(t, err)
 			var resp types.QueryAllStateInfoResponse
@@ -158,15 +175,25 @@ func TestListStateInfo(t *testing.T) {
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		args := request(nil, 0, uint64(len(objs)), true)
+		requestArgs := request(nil, 0, uint64(len(objs)), true)
+		args := []string{RollappIds[0]}
+		args = append(args, requestArgs...)
 		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListStateInfo(), args)
 		require.NoError(t, err)
 		var resp types.QueryAllStateInfoResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
-		require.Equal(t, len(objs), int(resp.Pagination.Total))
+
+		var filteredObjects []types.StateInfoSummary
+		for _, state := range objs {
+			if state.StateInfoIndex.RollappId == RollappIds[0] {
+				filteredObjects = append(filteredObjects, state)
+			}
+		}
+		require.Equal(t, len(resp.StateInfo), len(filteredObjects))
+
 		require.ElementsMatch(t,
-			nullify.Fill(objs),
+			nullify.Fill(filteredObjects),
 			nullify.Fill(resp.StateInfo),
 		)
 	})

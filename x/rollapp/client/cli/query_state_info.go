@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	FlagRollappId     = "rollapp-id"
 	FlagStateIndex    = "index"
 	FlagRollappHeight = "rollapp-height"
 	FlagFinalized     = "finalized"
