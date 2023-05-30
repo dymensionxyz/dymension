@@ -65,7 +65,7 @@ func TestRollappRemove(t *testing.T) {
 
 func TestRollappGetAll(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
-	_, items := createNRollapp(keeper, ctx, 10)
+	items, _ := createNRollapp(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllRollapp(ctx)),
