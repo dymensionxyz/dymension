@@ -33,14 +33,14 @@ func TestRollappQuerySingle(t *testing.T) {
 			request: &types.QueryGetRollappRequest{
 				RollappId: msgs[0].RollappId,
 			},
-			response: &types.QueryGetRollappResponse{Rollapp: msgs[0]},
+			response: &types.QueryGetRollappResponse{Rollapp: msgs[0], LatestStatesSummary: &types.LatestStatesSummary{}},
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetRollappRequest{
 				RollappId: msgs[1].RollappId,
 			},
-			response: &types.QueryGetRollappResponse{Rollapp: msgs[1]},
+			response: &types.QueryGetRollappResponse{Rollapp: msgs[1], LatestStatesSummary: &types.LatestStatesSummary{}},
 		},
 		{
 			desc: "KeyNotFound",

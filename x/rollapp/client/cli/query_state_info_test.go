@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"fmt"
+	"google.golang.org/grpc/codes"
 	"strconv"
 	"testing"
 
@@ -9,7 +10,6 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/testutil/network"
@@ -60,6 +60,7 @@ func TestShowStateInfo(t *testing.T) {
 	common := []string{
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
+	invalidFlagsError := status.Error(codes.InvalidArgument, fmt.Sprintf("only one flag can be use for %s, %s or %s", cli.FlagStateIndex, cli.FlagRollappHeight, cli.FlagFinalized))
 	for _, tc := range []struct {
 		desc         string
 		idRollappId  string
@@ -76,6 +77,30 @@ func TestShowStateInfo(t *testing.T) {
 
 			args: common,
 			obj:  objs[0],
+		},
+		{
+			desc:         "invalid flags",
+			idRollappId:  objs[0].StateInfoIndex.RollappId,
+			idStateIndex: objs[0].StateInfoIndex.Index,
+
+			args: append(common, fmt.Sprintf("--%s=10", cli.FlagRollappHeight), fmt.Sprintf("--%s=2", cli.FlagStateIndex)),
+			err:  invalidFlagsError,
+		},
+		{
+			desc:         "invalid flags",
+			idRollappId:  objs[0].StateInfoIndex.RollappId,
+			idStateIndex: objs[0].StateInfoIndex.Index,
+
+			args: append(common, fmt.Sprintf("--%s=10", cli.FlagRollappHeight), fmt.Sprintf("--%s", cli.FlagFinalized)),
+			err:  invalidFlagsError,
+		},
+		{
+			desc:         "invalid flags",
+			idRollappId:  objs[0].StateInfoIndex.RollappId,
+			idStateIndex: objs[0].StateInfoIndex.Index,
+
+			args: append(common, fmt.Sprintf("--%s=10", cli.FlagStateIndex), fmt.Sprintf("--%s", cli.FlagFinalized)),
+			err:  invalidFlagsError,
 		},
 		{
 			desc:         "not found",
@@ -102,9 +127,7 @@ func TestShowStateInfo(t *testing.T) {
 			args = append(args, fmt.Sprintf("--%s=%d", cli.FlagStateIndex, tc.idStateIndex))
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowStateInfo(), args)
 			if tc.err != nil {
-				stat, ok := status.FromError(tc.err)
-				require.True(t, ok)
-				require.ErrorIs(t, stat.Err(), tc.err)
+				require.ErrorContains(t, err, tc.err.Error())
 			} else {
 				require.NoError(t, err)
 				var resp types.QueryGetStateInfoResponse

@@ -29,8 +29,7 @@ func networkWithRollappObjects(t *testing.T, n int) (*network.Network, []types.R
 
 	for i := 0; i < n; i++ {
 		rollapp := types.Rollapp{
-			RollappId:           strconv.Itoa(i),
-			LatestStatesSummary: &types.LatestStatesSummary{},
+			RollappId: strconv.Itoa(i),
 		}
 		nullify.Fill(&rollapp)
 		state.RollappList = append(state.RollappList, rollapp)
@@ -101,7 +100,7 @@ func TestListRollapp(t *testing.T) {
 	for _, rollapp := range fullObjs {
 		rollappSummary := types.RollappSummary{
 			RollappId:           rollapp.RollappId,
-			LatestStatesSummary: rollapp.LatestStatesSummary,
+			LatestStatesSummary: &types.LatestStatesSummary{},
 		}
 		objs = append(objs, rollappSummary)
 	}

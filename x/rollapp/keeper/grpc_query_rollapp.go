@@ -64,15 +64,16 @@ func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
+
+	latestStatesSummary := &types.LatestStatesSummary{}
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
-	val.LatestStatesSummary = &types.LatestStatesSummary{}
 	if found {
-		val.LatestStatesSummary.LatestStateIndex = latestStateInfoIndex.Index
+		latestStatesSummary.LatestStateIndex = latestStateInfoIndex.Index
 	}
 	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
 	if found {
-		val.LatestStatesSummary.LatestFinalizedStateIndex = latestFinalizedStateInfoIndex.Index
+		latestStatesSummary.LatestFinalizedStateIndex = latestFinalizedStateInfoIndex.Index
 	}
 
-	return &types.QueryGetRollappResponse{Rollapp: val}, nil
+	return &types.QueryGetRollappResponse{Rollapp: val, LatestStatesSummary: latestStatesSummary}, nil
 }

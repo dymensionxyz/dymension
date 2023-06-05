@@ -19,7 +19,6 @@ func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Roll
 	items := make([]types.Rollapp, n)
 	for i := range items {
 		items[i].RollappId = strconv.Itoa(i)
-		items[i].LatestStatesSummary = &types.LatestStatesSummary{}
 		keeper.SetRollapp(ctx, items[i])
 	}
 
@@ -27,7 +26,7 @@ func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Roll
 	for _, item := range items {
 		rollappSummary := types.RollappSummary{
 			RollappId:           item.RollappId,
-			LatestStatesSummary: item.LatestStatesSummary,
+			LatestStatesSummary: &types.LatestStatesSummary{},
 		}
 		rollappSummaries = append(rollappSummaries, rollappSummary)
 	}

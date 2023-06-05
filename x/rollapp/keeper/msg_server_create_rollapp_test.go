@@ -34,7 +34,6 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 		MaxWithholdingBlocks:  rollapp.GetMaxWithholdingBlocks(),
 		MaxSequencers:         rollapp.GetMaxSequencers(),
 		PermissionedAddresses: rollapp.GetPermissionedAddresses(),
-		LatestStatesSummary:   &types.LatestStatesSummary{},
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -57,7 +56,7 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 
 	rollappSummaryExpect := &types.RollappSummary{
 		RollappId:           rollappExpect.RollappId,
-		LatestStatesSummary: rollappExpect.LatestStatesSummary,
+		LatestStatesSummary: &types.LatestStatesSummary{},
 	}
 
 	// add the rollapp to the list of get all expected list

@@ -44,7 +44,7 @@ func CmdListRollapp() *cobra.Command {
 
 func CmdShowRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get [rollapp-id]",
+		Use:   "show [rollapp-id]",
 		Short: "Query the rollapp associated with the specified rollapp-id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

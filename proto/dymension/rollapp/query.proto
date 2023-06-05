@@ -51,11 +51,11 @@ message QueryParamsResponse {
 
 message QueryGetRollappRequest {
 	  string rollappId = 1;
-
 }
 
 message QueryGetRollappResponse {
 	Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	LatestStatesSummary latestStatesSummary = 2;
 }
 
 message QueryAllRollappRequest {

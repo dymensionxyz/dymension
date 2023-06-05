@@ -7,6 +7,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -76,7 +78,7 @@ func CmdShowStateInfo() *cobra.Command {
 			}
 
 			if (argHeight != 0 && argIndex != 0) || (argHeight != 0 && argFinalized) || (argIndex != 0 && argFinalized) {
-				return fmt.Errorf("only one flag can be use for %s, %s or %s", FlagStateIndex, FlagRollappHeight, FlagFinalized)
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("only one flag can be use for %s, %s or %s", FlagStateIndex, FlagRollappHeight, FlagFinalized))
 			}
 
 			params := &types.QueryGetStateInfoRequest{
