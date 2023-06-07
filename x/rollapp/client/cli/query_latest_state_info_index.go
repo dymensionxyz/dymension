@@ -21,8 +21,14 @@ func CmdShowLatestStateIndex() *cobra.Command {
 
 			argRollappId := args[0]
 
+			argFinalized, err := cmd.Flags().GetBool(FlagFinalized)
+			if err != nil {
+				return err
+			}
+
 			params := &types.QueryGetLatestStateIndexRequest{
 				RollappId: argRollappId,
+				Finalized: argFinalized,
 			}
 
 			res, err := queryClient.LatestStateIndex(context.Background(), params)
@@ -33,6 +39,8 @@ func CmdShowLatestStateIndex() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
+
+	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state index")
 
 	flags.AddQueryFlagsToCmd(cmd)
 

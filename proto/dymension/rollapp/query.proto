@@ -32,11 +32,6 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}";
 	}
 
-	// Queries a LatestFinalizedStateIndex by rollapp-id.
-	rpc LatestFinalizedStateIndex(QueryGetLatestFinalizedStateIndexRequest) returns (QueryGetLatestFinalizedStateIndexResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}";
-	}
-
 	// Queries a StateInfo by index.
 	rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
@@ -65,17 +60,10 @@ message QueryGetRollappRequest {
 
 message QueryGetLatestStateIndexRequest {
 	string rollappId = 1;
+	bool finalized = 2;
 }
 
 message QueryGetLatestStateIndexResponse {
-	StateInfoIndex stateIndex = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryGetLatestFinalizedStateIndexRequest {
-	string rollappId = 1;
-}
-
-message QueryGetLatestFinalizedStateIndexResponse {
 	StateInfoIndex stateIndex = 1 [(gogoproto.nullable) = false];
 }
 

@@ -15,10 +15,20 @@ func (k Keeper) LatestStateIndex(c context.Context, req *types.QueryGetLatestSta
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetLatestStateInfoIndex(
-		ctx,
-		req.RollappId,
-	)
+	var val types.StateInfoIndex
+	var found bool
+	if req.Finalized {
+		val, found = k.GetLatestFinalizedStateIndex(
+			ctx,
+			req.RollappId,
+		)
+	} else {
+		val, found = k.GetLatestStateInfoIndex(
+			ctx,
+			req.RollappId,
+		)
+	}
+
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
