@@ -25,8 +25,7 @@ func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Roll
 	rollappSummaries := []types.RollappSummary{}
 	for _, item := range items {
 		rollappSummary := types.RollappSummary{
-			RollappId:           item.RollappId,
-			LatestStatesSummary: &types.LatestStatesSummary{},
+			RollappId: item.RollappId,
 		}
 		rollappSummaries = append(rollappSummaries, rollappSummary)
 	}

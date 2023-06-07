@@ -27,6 +27,11 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
 	}
 
+	// Queries a LatestStateIndex by rollapp-id.
+	rpc LatestStateIndex(QueryGetLatestStateIndexRequest) returns (QueryGetLatestStateIndexResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}";
+	}
+
 	// Queries a StateInfo by index.
 	rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
@@ -53,9 +58,21 @@ message QueryGetRollappRequest {
 	  string rollappId = 1;
 }
 
+message QueryGetLatestStateIndexRequest {
+	string rollappId = 1;
+	bool finalized = 2;
+}
+
+message QueryGetLatestStateIndexResponse {
+	StateInfoIndex stateIndex = 1 [(gogoproto.nullable) = false];
+}
+
 message QueryGetRollappResponse {
 	Rollapp rollapp = 1 [(gogoproto.nullable) = false];
-	LatestStatesSummary latestStatesSummary = 2;
+	// Defines the index of the last rollapp UpdateState.
+	StateInfoIndex latestStateIndex = 2;
+	// Defines the index of the last rollapp UpdateState that was finalized.
+	StateInfoIndex latestFinalizedStateIndex = 3;
 }
 
 message QueryAllRollappRequest {

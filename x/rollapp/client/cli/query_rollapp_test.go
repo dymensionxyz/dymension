@@ -99,8 +99,7 @@ func TestListRollapp(t *testing.T) {
 	var objs []types.RollappSummary
 	for _, rollapp := range fullObjs {
 		rollappSummary := types.RollappSummary{
-			RollappId:           rollapp.RollappId,
-			LatestStatesSummary: &types.LatestStatesSummary{},
+			RollappId: rollapp.RollappId,
 		}
 		objs = append(objs, rollappSummary)
 	}

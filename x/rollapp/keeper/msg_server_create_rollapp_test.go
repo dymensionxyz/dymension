@@ -55,8 +55,7 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
 	rollappSummaryExpect := &types.RollappSummary{
-		RollappId:           rollappExpect.RollappId,
-		LatestStatesSummary: &types.LatestStatesSummary{},
+		RollappId: rollappExpect.RollappId,
 	}
 
 	// add the rollapp to the list of get all expected list

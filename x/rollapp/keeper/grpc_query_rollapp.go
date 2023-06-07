@@ -28,16 +28,15 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 			return err
 		}
 		var rollappSummary = types.RollappSummary{
-			RollappId:           rollapp.RollappId,
-			LatestStatesSummary: &types.LatestStatesSummary{},
+			RollappId: rollapp.RollappId,
 		}
 		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 		if found {
-			rollappSummary.LatestStatesSummary.LatestStateIndex = latestStateInfoIndex.Index
+			rollappSummary.LatestStateIndex = &latestStateInfoIndex
 		}
 		latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 		if found {
-			rollappSummary.LatestStatesSummary.LatestFinalizedStateIndex = latestFinalizedStateInfoIndex.Index
+			rollappSummary.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
 		}
 
 		rollapps = append(rollapps, rollappSummary)
@@ -65,15 +64,15 @@ func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	latestStatesSummary := &types.LatestStatesSummary{}
+	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
 	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
 	if found {
-		latestStatesSummary.LatestStateIndex = latestStateInfoIndex.Index
+		rollappResponse.LatestStateIndex = &latestStateInfoIndex
 	}
 	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
 	if found {
-		latestStatesSummary.LatestFinalizedStateIndex = latestFinalizedStateInfoIndex.Index
+		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
 	}
 
-	return &types.QueryGetRollappResponse{Rollapp: val, LatestStatesSummary: latestStatesSummary}, nil
+	return rollappResponse, nil
 }
