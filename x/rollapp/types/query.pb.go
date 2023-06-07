@@ -157,16 +157,201 @@ func (m *QueryGetRollappRequest) GetRollappId() string {
 	return ""
 }
 
+type QueryGetLatestStateIndexRequest struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *QueryGetLatestStateIndexRequest) Reset()         { *m = QueryGetLatestStateIndexRequest{} }
+func (m *QueryGetLatestStateIndexRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetLatestStateIndexRequest) ProtoMessage()    {}
+func (*QueryGetLatestStateIndexRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6816c5236b322a4f, []int{3}
+}
+func (m *QueryGetLatestStateIndexRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLatestStateIndexRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLatestStateIndexRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLatestStateIndexRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLatestStateIndexRequest.Merge(m, src)
+}
+func (m *QueryGetLatestStateIndexRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLatestStateIndexRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLatestStateIndexRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLatestStateIndexRequest proto.InternalMessageInfo
+
+func (m *QueryGetLatestStateIndexRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+type QueryGetLatestStateIndexResponse struct {
+	StateIndex StateInfoIndex `protobuf:"bytes,1,opt,name=stateIndex,proto3" json:"stateIndex"`
+}
+
+func (m *QueryGetLatestStateIndexResponse) Reset()         { *m = QueryGetLatestStateIndexResponse{} }
+func (m *QueryGetLatestStateIndexResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetLatestStateIndexResponse) ProtoMessage()    {}
+func (*QueryGetLatestStateIndexResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6816c5236b322a4f, []int{4}
+}
+func (m *QueryGetLatestStateIndexResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLatestStateIndexResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLatestStateIndexResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLatestStateIndexResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLatestStateIndexResponse.Merge(m, src)
+}
+func (m *QueryGetLatestStateIndexResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLatestStateIndexResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLatestStateIndexResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLatestStateIndexResponse proto.InternalMessageInfo
+
+func (m *QueryGetLatestStateIndexResponse) GetStateIndex() StateInfoIndex {
+	if m != nil {
+		return m.StateIndex
+	}
+	return StateInfoIndex{}
+}
+
+type QueryGetLatestFinalizedStateIndexRequest struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) Reset() {
+	*m = QueryGetLatestFinalizedStateIndexRequest{}
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetLatestFinalizedStateIndexRequest) ProtoMessage()    {}
+func (*QueryGetLatestFinalizedStateIndexRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6816c5236b322a4f, []int{5}
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLatestFinalizedStateIndexRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLatestFinalizedStateIndexRequest.Merge(m, src)
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLatestFinalizedStateIndexRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLatestFinalizedStateIndexRequest proto.InternalMessageInfo
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+type QueryGetLatestFinalizedStateIndexResponse struct {
+	StateIndex StateInfoIndex `protobuf:"bytes,1,opt,name=stateIndex,proto3" json:"stateIndex"`
+}
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) Reset() {
+	*m = QueryGetLatestFinalizedStateIndexResponse{}
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QueryGetLatestFinalizedStateIndexResponse) ProtoMessage() {}
+func (*QueryGetLatestFinalizedStateIndexResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6816c5236b322a4f, []int{6}
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetLatestFinalizedStateIndexResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetLatestFinalizedStateIndexResponse.Merge(m, src)
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetLatestFinalizedStateIndexResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetLatestFinalizedStateIndexResponse proto.InternalMessageInfo
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) GetStateIndex() StateInfoIndex {
+	if m != nil {
+		return m.StateIndex
+	}
+	return StateInfoIndex{}
+}
+
 type QueryGetRollappResponse struct {
-	Rollapp             Rollapp              `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
-	LatestStatesSummary *LatestStatesSummary `protobuf:"bytes,2,opt,name=latestStatesSummary,proto3" json:"latestStatesSummary,omitempty"`
+	Rollapp Rollapp `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
+	// Defines the index of the last rollapp UpdateState.
+	LatestStateIndex *StateInfoIndex `protobuf:"bytes,2,opt,name=latestStateIndex,proto3" json:"latestStateIndex,omitempty"`
+	// Defines the index of the last rollapp UpdateState that was finalized.
+	LatestFinalizedStateIndex *StateInfoIndex `protobuf:"bytes,3,opt,name=latestFinalizedStateIndex,proto3" json:"latestFinalizedStateIndex,omitempty"`
 }
 
 func (m *QueryGetRollappResponse) Reset()         { *m = QueryGetRollappResponse{} }
 func (m *QueryGetRollappResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetRollappResponse) ProtoMessage()    {}
 func (*QueryGetRollappResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{3}
+	return fileDescriptor_6816c5236b322a4f, []int{7}
 }
 func (m *QueryGetRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -202,9 +387,16 @@ func (m *QueryGetRollappResponse) GetRollapp() Rollapp {
 	return Rollapp{}
 }
 
-func (m *QueryGetRollappResponse) GetLatestStatesSummary() *LatestStatesSummary {
+func (m *QueryGetRollappResponse) GetLatestStateIndex() *StateInfoIndex {
 	if m != nil {
-		return m.LatestStatesSummary
+		return m.LatestStateIndex
+	}
+	return nil
+}
+
+func (m *QueryGetRollappResponse) GetLatestFinalizedStateIndex() *StateInfoIndex {
+	if m != nil {
+		return m.LatestFinalizedStateIndex
 	}
 	return nil
 }
@@ -217,7 +409,7 @@ func (m *QueryAllRollappRequest) Reset()         { *m = QueryAllRollappRequest{}
 func (m *QueryAllRollappRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllRollappRequest) ProtoMessage()    {}
 func (*QueryAllRollappRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{4}
+	return fileDescriptor_6816c5236b322a4f, []int{8}
 }
 func (m *QueryAllRollappRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -262,7 +454,7 @@ func (m *QueryAllRollappResponse) Reset()         { *m = QueryAllRollappResponse
 func (m *QueryAllRollappResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllRollappResponse) ProtoMessage()    {}
 func (*QueryAllRollappResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{5}
+	return fileDescriptor_6816c5236b322a4f, []int{9}
 }
 func (m *QueryAllRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -316,7 +508,7 @@ func (m *QueryGetStateInfoRequest) Reset()         { *m = QueryGetStateInfoReque
 func (m *QueryGetStateInfoRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGetStateInfoRequest) ProtoMessage()    {}
 func (*QueryGetStateInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{6}
+	return fileDescriptor_6816c5236b322a4f, []int{10}
 }
 func (m *QueryGetStateInfoRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -381,7 +573,7 @@ func (m *QueryGetStateInfoResponse) Reset()         { *m = QueryGetStateInfoResp
 func (m *QueryGetStateInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGetStateInfoResponse) ProtoMessage()    {}
 func (*QueryGetStateInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{7}
+	return fileDescriptor_6816c5236b322a4f, []int{11}
 }
 func (m *QueryGetStateInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -426,7 +618,7 @@ func (m *QueryAllStateInfoRequest) Reset()         { *m = QueryAllStateInfoReque
 func (m *QueryAllStateInfoRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAllStateInfoRequest) ProtoMessage()    {}
 func (*QueryAllStateInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{8}
+	return fileDescriptor_6816c5236b322a4f, []int{12}
 }
 func (m *QueryAllStateInfoRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -478,7 +670,7 @@ func (m *QueryAllStateInfoResponse) Reset()         { *m = QueryAllStateInfoResp
 func (m *QueryAllStateInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAllStateInfoResponse) ProtoMessage()    {}
 func (*QueryAllStateInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{9}
+	return fileDescriptor_6816c5236b322a4f, []int{13}
 }
 func (m *QueryAllStateInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -525,6 +717,10 @@ func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.rollapp.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.rollapp.QueryParamsResponse")
 	proto.RegisterType((*QueryGetRollappRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappRequest")
+	proto.RegisterType((*QueryGetLatestStateIndexRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateIndexRequest")
+	proto.RegisterType((*QueryGetLatestStateIndexResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateIndexResponse")
+	proto.RegisterType((*QueryGetLatestFinalizedStateIndexRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestFinalizedStateIndexRequest")
+	proto.RegisterType((*QueryGetLatestFinalizedStateIndexResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestFinalizedStateIndexResponse")
 	proto.RegisterType((*QueryGetRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetRollappResponse")
 	proto.RegisterType((*QueryAllRollappRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappRequest")
 	proto.RegisterType((*QueryAllRollappResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllRollappResponse")
@@ -537,54 +733,61 @@ func init() {
 func init() { proto.RegisterFile("dymension/rollapp/query.proto", fileDescriptor_6816c5236b322a4f) }
 
 var fileDescriptor_6816c5236b322a4f = []byte{
-	// 744 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x4d, 0x4f, 0xd4, 0x5c,
-	0x14, 0xc7, 0xe7, 0xf2, 0x32, 0x3c, 0x73, 0x79, 0x56, 0x17, 0xc2, 0x33, 0xcf, 0x04, 0x0b, 0xe9,
-	0x02, 0x06, 0x62, 0x5a, 0x99, 0x89, 0x88, 0x31, 0x31, 0x42, 0x0c, 0x84, 0xf8, 0x12, 0x2c, 0xae,
-	0x74, 0xa1, 0x77, 0x98, 0x4b, 0xa9, 0xe9, 0xf4, 0x96, 0xb9, 0x77, 0x0c, 0x03, 0x21, 0x31, 0xc6,
-	0x0f, 0x60, 0xe2, 0xd2, 0x95, 0x5f, 0xc0, 0x85, 0x1b, 0x13, 0x3f, 0x01, 0xee, 0x48, 0xdc, 0xb8,
-	0x32, 0x06, 0xfc, 0x20, 0xa6, 0xb7, 0xa7, 0x9d, 0x19, 0x3a, 0xd8, 0x42, 0x5c, 0x95, 0xde, 0x9e,
-	0xf3, 0x3f, 0xbf, 0xf3, 0xef, 0xe9, 0x61, 0xf0, 0x95, 0x7a, 0xbb, 0xc1, 0x3c, 0xe1, 0x70, 0xcf,
-	0x6c, 0x72, 0xd7, 0xa5, 0xbe, 0x6f, 0xee, 0xb6, 0x58, 0xb3, 0x6d, 0xf8, 0x4d, 0x2e, 0x39, 0xd1,
-	0xe2, 0xc7, 0x7b, 0xed, 0x7d, 0x23, 0xbe, 0x31, 0x20, 0xb6, 0x34, 0x6e, 0x73, 0x9b, 0xab, 0x50,
-	0x33, 0xf8, 0x2b, 0xcc, 0x2a, 0x4d, 0xda, 0x9c, 0xdb, 0x2e, 0x33, 0xa9, 0xef, 0x98, 0xd4, 0xf3,
-	0xb8, 0xa4, 0xd2, 0xe1, 0x9e, 0x80, 0xa7, 0xf3, 0x5b, 0x5c, 0x34, 0xb8, 0x30, 0x6b, 0x54, 0xb0,
-	0xb0, 0x98, 0xf9, 0x72, 0xa1, 0xc6, 0x24, 0x5d, 0x30, 0x7d, 0x6a, 0x3b, 0x9e, 0x0a, 0x86, 0x58,
-	0x2d, 0x89, 0xe7, 0xd3, 0x26, 0x6d, 0x44, 0x5a, 0x53, 0xc9, 0xe7, 0x70, 0x85, 0x00, 0x3d, 0x19,
-	0x20, 0x24, 0x95, 0xec, 0x99, 0xe3, 0x6d, 0x03, 0xae, 0x3e, 0x8e, 0xc9, 0xa3, 0x00, 0x63, 0x43,
-	0x29, 0x5b, 0x6c, 0xb7, 0xc5, 0x84, 0xd4, 0x9f, 0xe2, 0xb1, 0x9e, 0x53, 0xe1, 0x73, 0x4f, 0x30,
-	0x72, 0x17, 0xe7, 0x43, 0x82, 0x22, 0x9a, 0x46, 0xe5, 0xd1, 0xca, 0x8c, 0xf1, 0x67, 0x8b, 0x8c,
-	0x30, 0x7f, 0x65, 0xe8, 0xe8, 0xc7, 0x54, 0xce, 0x82, 0x5c, 0x7d, 0x11, 0x4f, 0x28, 0xf1, 0x35,
-	0x26, 0xad, 0x30, 0x0e, 0xca, 0x92, 0x49, 0x5c, 0x80, 0xcc, 0xf5, 0xba, 0x2a, 0x51, 0xb0, 0x3a,
-	0x07, 0xfa, 0x57, 0x84, 0xff, 0x4b, 0x24, 0x02, 0xd9, 0x1a, 0x1e, 0x81, 0x40, 0x40, 0x9b, 0x4d,
-	0x43, 0x03, 0x05, 0x60, 0x8b, 0xb2, 0x09, 0xc3, 0x63, 0x2e, 0x95, 0x4c, 0xc8, 0xcd, 0xc0, 0x29,
-	0xb1, 0xd9, 0x6a, 0x34, 0x68, 0xb3, 0x5d, 0x1c, 0x50, 0xa2, 0xd5, 0x34, 0xd1, 0xfb, 0xc9, 0x54,
-	0xab, 0x9f, 0x9e, 0xfe, 0x1c, 0x3c, 0x58, 0x76, 0xdd, 0x33, 0x1e, 0xac, 0x62, 0xdc, 0x99, 0x84,
-	0xd8, 0xe7, 0x70, 0x6c, 0x8c, 0x60, 0x6c, 0x8c, 0x70, 0x46, 0x61, 0x6c, 0x8c, 0x0d, 0x6a, 0x33,
-	0xc8, 0xb5, 0xba, 0x32, 0xf5, 0x4f, 0x91, 0x5b, 0xdd, 0x25, 0xc0, 0xad, 0x87, 0xdd, 0x6e, 0x0d,
-	0x96, 0x47, 0x2b, 0x46, 0x46, 0xb7, 0x00, 0xff, 0xac, 0x69, 0x6b, 0x3d, 0xcc, 0x03, 0xf0, 0x02,
-	0xd2, 0x98, 0x43, 0x98, 0x1e, 0xe8, 0x37, 0x08, 0x17, 0xa3, 0x57, 0xac, 0x0c, 0x5b, 0xf7, 0xb6,
-	0x79, 0xa6, 0xe9, 0x20, 0xe3, 0x78, 0xd8, 0xf1, 0xea, 0x6c, 0x4f, 0x95, 0x1f, 0xb2, 0xc2, 0x1b,
-	0x32, 0x81, 0xf3, 0x3b, 0xcc, 0xb1, 0x77, 0x64, 0x71, 0x50, 0x1d, 0xc3, 0x5d, 0xa0, 0xb5, 0xed,
-	0x78, 0xd4, 0x75, 0xf6, 0x59, 0xbd, 0x38, 0x34, 0x8d, 0xca, 0xff, 0x58, 0x9d, 0x03, 0xfd, 0x05,
-	0xfe, 0xbf, 0x0f, 0x05, 0x98, 0xf7, 0x00, 0x17, 0x44, 0x74, 0x08, 0xef, 0x67, 0x2e, 0xcd, 0xbe,
-	0x58, 0x05, 0x9c, 0xeb, 0x28, 0xe8, 0xaf, 0xa2, 0x96, 0x97, 0x5d, 0xf7, 0x82, 0x2d, 0xaf, 0xf6,
-	0xb1, 0xfd, 0x32, 0xa3, 0xf2, 0x05, 0x41, 0xbf, 0xbd, 0x08, 0xd0, 0xef, 0xe3, 0xde, 0x7e, 0x83,
-	0x71, 0xb9, 0x96, 0xb9, 0xdf, 0xde, 0x81, 0xe9, 0x08, 0xfd, 0xb5, 0x91, 0xa9, 0xbc, 0x1f, 0xc1,
-	0xc3, 0x0a, 0x9e, 0x7c, 0x40, 0x38, 0x1f, 0x2e, 0x1c, 0x52, 0x49, 0x03, 0x4c, 0xee, 0xbc, 0x52,
-	0xf5, 0x42, 0x39, 0x21, 0x89, 0x6e, 0xbc, 0xfe, 0xf6, 0xeb, 0xdd, 0x40, 0x99, 0xcc, 0x98, 0xdd,
-	0xc9, 0xe6, 0x79, 0x9b, 0x9b, 0x7c, 0x46, 0x78, 0x04, 0xbe, 0x25, 0xb2, 0x98, 0xa9, 0x60, 0x62,
-	0x4b, 0x96, 0x6e, 0x5c, 0x38, 0x0f, 0x60, 0x6f, 0x29, 0xd8, 0xeb, 0xa4, 0x9a, 0x06, 0x1b, 0x5d,
-	0x0f, 0xe2, 0x59, 0x3b, 0x24, 0x1f, 0x11, 0xc6, 0x20, 0xb8, 0xec, 0xba, 0x19, 0xe1, 0x13, 0xeb,
-	0x2d, 0x23, 0x7c, 0x72, 0x67, 0xe9, 0xa6, 0x82, 0x9f, 0x23, 0xb3, 0x19, 0xe1, 0xc9, 0x11, 0xc2,
-	0x85, 0x78, 0x0e, 0xc9, 0x52, 0x56, 0xd3, 0xce, 0x7e, 0x83, 0xa5, 0x9b, 0x97, 0xc8, 0x04, 0xe6,
-	0x55, 0xc5, 0x7c, 0x87, 0xdc, 0x4e, 0x63, 0xee, 0xfc, 0x5b, 0xee, 0xf6, 0xdc, 0x3c, 0x50, 0x4b,
-	0xec, 0x30, 0x98, 0x9a, 0x7f, 0x63, 0xf5, 0xc0, 0xfd, 0xa5, 0xac, 0x2e, 0x5e, 0xb2, 0x9b, 0x7e,
-	0x8b, 0x40, 0xaf, 0xa8, 0x6e, 0xae, 0x92, 0xf9, 0xec, 0xdd, 0xac, 0xdc, 0x3b, 0x3a, 0xd1, 0xd0,
-	0xf1, 0x89, 0x86, 0x7e, 0x9e, 0x68, 0xe8, 0xed, 0xa9, 0x96, 0x3b, 0x3e, 0xd5, 0x72, 0xdf, 0x4f,
-	0xb5, 0xdc, 0x93, 0x05, 0xdb, 0x91, 0x3b, 0xad, 0x9a, 0xb1, 0xc5, 0x1b, 0xe7, 0xe9, 0xed, 0xc5,
-	0x8a, 0xb2, 0xed, 0x33, 0x51, 0xcb, 0xab, 0x9f, 0x2c, 0xd5, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff,
-	0xaf, 0xbc, 0xe8, 0x05, 0xb8, 0x09, 0x00, 0x00,
+	// 859 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x57, 0x4f, 0x4f, 0xdb, 0x58,
+	0x10, 0xcf, 0x0b, 0x21, 0x6c, 0x66, 0xf7, 0x80, 0xde, 0x22, 0x36, 0x44, 0xac, 0x41, 0x3e, 0x40,
+	0x40, 0x2b, 0x7b, 0x09, 0x5a, 0x96, 0xd5, 0x4a, 0xcb, 0x1f, 0xad, 0x02, 0xa8, 0x7f, 0x44, 0x4d,
+	0x4f, 0xf4, 0x40, 0x1d, 0xf2, 0x30, 0xae, 0x1c, 0xdb, 0xc4, 0x4e, 0x95, 0x80, 0x90, 0xda, 0xaa,
+	0x1f, 0xa0, 0x52, 0x3f, 0x41, 0xef, 0x55, 0x0f, 0xbd, 0x54, 0xea, 0x27, 0xe0, 0x88, 0xd4, 0x4b,
+	0x2f, 0xad, 0x2a, 0xe8, 0x67, 0xa8, 0x7a, 0xac, 0x6c, 0x8f, 0x9d, 0x38, 0xc6, 0x8d, 0x13, 0xd1,
+	0x93, 0xe3, 0xe7, 0x37, 0xbf, 0xf9, 0xfd, 0x66, 0xe6, 0xcd, 0xbc, 0xc0, 0xef, 0xd5, 0x56, 0x8d,
+	0xe9, 0x96, 0x6a, 0xe8, 0x62, 0xdd, 0xd0, 0x34, 0xd9, 0x34, 0xc5, 0xa3, 0x06, 0xab, 0xb7, 0x04,
+	0xb3, 0x6e, 0xd8, 0x06, 0xe5, 0x82, 0xcf, 0xcd, 0xd6, 0xb1, 0x10, 0xbc, 0x08, 0xb8, 0xb7, 0x30,
+	0xa6, 0x18, 0x8a, 0xe1, 0x6e, 0x15, 0x9d, 0x5f, 0x9e, 0x55, 0x61, 0x52, 0x31, 0x0c, 0x45, 0x63,
+	0xa2, 0x6c, 0xaa, 0xa2, 0xac, 0xeb, 0x86, 0x2d, 0xdb, 0xaa, 0xa1, 0x5b, 0xf8, 0x75, 0x7e, 0xdf,
+	0xb0, 0x6a, 0x86, 0x25, 0x56, 0x64, 0x8b, 0x79, 0xce, 0xc4, 0x87, 0x0b, 0x15, 0x66, 0xcb, 0x0b,
+	0xa2, 0x29, 0x2b, 0xaa, 0xee, 0x6e, 0xc6, 0xbd, 0x5c, 0x94, 0x9e, 0x29, 0xd7, 0xe5, 0x9a, 0x8f,
+	0x35, 0x15, 0xfd, 0x8e, 0x4f, 0xdc, 0xc0, 0x47, 0x37, 0x58, 0xb6, 0x6c, 0xb3, 0x3d, 0x55, 0x3f,
+	0x40, 0xba, 0xfc, 0x18, 0xd0, 0x3b, 0x0e, 0x8d, 0x6d, 0x17, 0x59, 0x62, 0x47, 0x0d, 0x66, 0xd9,
+	0xfc, 0x3d, 0xf8, 0x35, 0xb4, 0x6a, 0x99, 0x86, 0x6e, 0x31, 0xfa, 0x3f, 0x64, 0x3d, 0x06, 0x79,
+	0x32, 0x4d, 0x8a, 0x3f, 0x97, 0x66, 0x84, 0xef, 0x87, 0x48, 0xf0, 0xec, 0xd7, 0x33, 0x67, 0x1f,
+	0xa7, 0x52, 0x12, 0xda, 0xf2, 0x4b, 0x30, 0xee, 0x82, 0x6f, 0x30, 0x5b, 0xf2, 0xf6, 0xa1, 0x5b,
+	0x3a, 0x09, 0x39, 0xb4, 0xdc, 0xaa, 0xba, 0x2e, 0x72, 0x52, 0x7b, 0x81, 0x5f, 0x81, 0x29, 0xdf,
+	0xee, 0xa6, 0x6c, 0x33, 0xcb, 0xde, 0x71, 0xc4, 0x6c, 0xe9, 0x55, 0xd6, 0x4c, 0x06, 0xd0, 0x84,
+	0xe9, 0x78, 0x00, 0x94, 0x78, 0x17, 0xc0, 0x0a, 0x56, 0x51, 0xa6, 0xd0, 0x4b, 0x26, 0xe2, 0x1c,
+	0x18, 0xae, 0x15, 0xca, 0xed, 0xc0, 0xe1, 0x37, 0xa1, 0x18, 0xf6, 0x5c, 0x56, 0x75, 0x59, 0x53,
+	0x8f, 0x59, 0xb5, 0x5f, 0x0d, 0x8f, 0x09, 0xcc, 0x25, 0x80, 0xfa, 0xa1, 0x6a, 0x5e, 0xa6, 0xe1,
+	0xb7, 0x48, 0x06, 0xd1, 0xe3, 0x06, 0x8c, 0x20, 0x0e, 0xba, 0x9b, 0xed, 0xe5, 0x0e, 0x11, 0xd0,
+	0x8f, 0x6f, 0x4d, 0x77, 0x61, 0x54, 0xeb, 0x4a, 0x52, 0x3e, 0x3d, 0x88, 0x00, 0x29, 0x82, 0x43,
+	0x35, 0x98, 0xd0, 0xe2, 0x62, 0x97, 0x1f, 0x1a, 0xc8, 0x49, 0x3c, 0x20, 0x7f, 0x1f, 0xeb, 0x7d,
+	0x4d, 0xd3, 0xba, 0xea, 0xbd, 0x0c, 0xd0, 0x3e, 0xf5, 0xc1, 0x99, 0xf2, 0x5a, 0x84, 0xe0, 0xb4,
+	0x08, 0xc1, 0xeb, 0x47, 0xd8, 0x22, 0x84, 0x6d, 0x59, 0x61, 0x68, 0x2b, 0x75, 0x58, 0xf2, 0xaf,
+	0x09, 0x26, 0xa4, 0xd3, 0x05, 0x26, 0xe4, 0x76, 0x67, 0x42, 0x86, 0x92, 0x28, 0x43, 0x84, 0x9d,
+	0x46, 0xad, 0x26, 0xd7, 0x5b, 0xdd, 0x79, 0xd9, 0x08, 0x71, 0x4e, 0x63, 0x8e, 0x7b, 0x71, 0xf6,
+	0xc8, 0x84, 0x48, 0x3f, 0x25, 0x90, 0xf7, 0xab, 0x28, 0x08, 0x66, 0xa2, 0x43, 0x40, 0xc7, 0x60,
+	0x58, 0x0d, 0x0a, 0x22, 0x23, 0x79, 0x2f, 0x74, 0x1c, 0xb2, 0x87, 0x4c, 0x55, 0x0e, 0x6d, 0x37,
+	0x85, 0x19, 0x09, 0xdf, 0x1c, 0xac, 0x03, 0x3f, 0x2d, 0xf9, 0xcc, 0x34, 0x29, 0xfe, 0x24, 0xb5,
+	0x17, 0xf8, 0x07, 0x30, 0x71, 0x05, 0x0b, 0x0c, 0xde, 0x2d, 0xc8, 0x59, 0xfe, 0x22, 0xe6, 0x67,
+	0x2e, 0x71, 0x61, 0x60, 0xe4, 0xda, 0x08, 0xfc, 0x23, 0x5f, 0xf2, 0x9a, 0xa6, 0xf5, 0x29, 0xb9,
+	0x7c, 0x45, 0xd8, 0x07, 0x29, 0x95, 0xb7, 0x04, 0xf5, 0x86, 0x29, 0x04, 0xfd, 0x22, 0xa4, 0xd7,
+	0x29, 0x97, 0x3f, 0x13, 0xeb, 0x0d, 0x17, 0x4c, 0x1b, 0xe8, 0xda, 0x4a, 0xa6, 0xf4, 0x05, 0x60,
+	0xd8, 0x25, 0x4f, 0x5f, 0x10, 0xc8, 0x7a, 0xc3, 0x85, 0x96, 0x7a, 0x11, 0x8c, 0xce, 0xb7, 0xc2,
+	0x62, 0x5f, 0x36, 0x1e, 0x13, 0x5e, 0x78, 0xf2, 0xee, 0xf3, 0xf3, 0x74, 0x91, 0xce, 0x88, 0x9d,
+	0xc6, 0x62, 0xdc, 0x94, 0xa6, 0x6f, 0x08, 0x8c, 0xe0, 0x59, 0xa2, 0x4b, 0x89, 0x1c, 0x46, 0x26,
+	0x62, 0xe1, 0xef, 0xbe, 0xed, 0x90, 0xec, 0xbf, 0x2e, 0xd9, 0xbf, 0xe8, 0x62, 0x2f, 0xb2, 0xfe,
+	0xf3, 0x24, 0xa8, 0xb5, 0x53, 0xfa, 0x8a, 0x00, 0x20, 0xe0, 0x9a, 0xa6, 0x25, 0x24, 0x1f, 0x69,
+	0x6f, 0x09, 0xc9, 0x47, 0x7b, 0x16, 0x2f, 0xba, 0xe4, 0xe7, 0xe8, 0x6c, 0x42, 0xf2, 0xf4, 0x03,
+	0x81, 0xd1, 0xee, 0x91, 0x4e, 0x57, 0x92, 0xc6, 0x2e, 0xe6, 0x36, 0x51, 0x58, 0x1d, 0x1c, 0x00,
+	0x85, 0x94, 0x5d, 0x21, 0xab, 0xf4, 0xbf, 0x5e, 0x42, 0xbc, 0xe9, 0xb1, 0xe7, 0x5f, 0xcf, 0xaa,
+	0xac, 0x19, 0x4a, 0xc8, 0x57, 0x02, 0x13, 0xb1, 0xd3, 0x9e, 0x6e, 0xf6, 0xc7, 0x33, 0xfe, 0xee,
+	0x51, 0xd8, 0xba, 0x06, 0xa4, 0x6b, 0x96, 0x7e, 0x46, 0x20, 0x17, 0xb4, 0x18, 0xba, 0x9c, 0x94,
+	0x60, 0x77, 0x7b, 0x2d, 0xfc, 0x33, 0x80, 0x65, 0xbf, 0x52, 0xda, 0xb7, 0xeb, 0x4e, 0x09, 0xe2,
+	0x89, 0xab, 0xea, 0xd4, 0x69, 0x08, 0xbf, 0x04, 0xe8, 0xce, 0xc1, 0x5a, 0x4e, 0x7a, 0x40, 0x06,
+	0x54, 0x73, 0x55, 0x8f, 0xe7, 0x4b, 0xae, 0x9a, 0x3f, 0xe8, 0x7c, 0x72, 0x35, 0xeb, 0x37, 0xce,
+	0x2e, 0x38, 0x72, 0x7e, 0xc1, 0x91, 0x4f, 0x17, 0x1c, 0x79, 0x76, 0xc9, 0xa5, 0xce, 0x2f, 0xb9,
+	0xd4, 0xfb, 0x4b, 0x2e, 0xb5, 0xbb, 0xa0, 0xa8, 0xf6, 0x61, 0xa3, 0x22, 0xec, 0x1b, 0xb5, 0x38,
+	0xbc, 0x66, 0x80, 0x68, 0xb7, 0x4c, 0x66, 0x55, 0xb2, 0xee, 0x3f, 0x8f, 0xc5, 0x6f, 0x01, 0x00,
+	0x00, 0xff, 0xff, 0xd6, 0x95, 0x79, 0xc2, 0x7f, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -605,6 +808,10 @@ type QueryClient interface {
 	Rollapp(ctx context.Context, in *QueryGetRollappRequest, opts ...grpc.CallOption) (*QueryGetRollappResponse, error)
 	// Queries a list of Rollapp items.
 	RollappAll(ctx context.Context, in *QueryAllRollappRequest, opts ...grpc.CallOption) (*QueryAllRollappResponse, error)
+	// Queries a LatestStateIndex by rollapp-id.
+	LatestStateIndex(ctx context.Context, in *QueryGetLatestStateIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestStateIndexResponse, error)
+	// Queries a LatestFinalizedStateIndex by rollapp-id.
+	LatestFinalizedStateIndex(ctx context.Context, in *QueryGetLatestFinalizedStateIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestFinalizedStateIndexResponse, error)
 	// Queries a StateInfo by index.
 	StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error)
 	// Queries a list of StateInfo items.
@@ -646,6 +853,24 @@ func (c *queryClient) RollappAll(ctx context.Context, in *QueryAllRollappRequest
 	return out, nil
 }
 
+func (c *queryClient) LatestStateIndex(ctx context.Context, in *QueryGetLatestStateIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestStateIndexResponse, error) {
+	out := new(QueryGetLatestStateIndexResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestStateIndex", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) LatestFinalizedStateIndex(ctx context.Context, in *QueryGetLatestFinalizedStateIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestFinalizedStateIndexResponse, error) {
+	out := new(QueryGetLatestFinalizedStateIndexResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestFinalizedStateIndex", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error) {
 	out := new(QueryGetStateInfoResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/StateInfo", in, out, opts...)
@@ -672,6 +897,10 @@ type QueryServer interface {
 	Rollapp(context.Context, *QueryGetRollappRequest) (*QueryGetRollappResponse, error)
 	// Queries a list of Rollapp items.
 	RollappAll(context.Context, *QueryAllRollappRequest) (*QueryAllRollappResponse, error)
+	// Queries a LatestStateIndex by rollapp-id.
+	LatestStateIndex(context.Context, *QueryGetLatestStateIndexRequest) (*QueryGetLatestStateIndexResponse, error)
+	// Queries a LatestFinalizedStateIndex by rollapp-id.
+	LatestFinalizedStateIndex(context.Context, *QueryGetLatestFinalizedStateIndexRequest) (*QueryGetLatestFinalizedStateIndexResponse, error)
 	// Queries a StateInfo by index.
 	StateInfo(context.Context, *QueryGetStateInfoRequest) (*QueryGetStateInfoResponse, error)
 	// Queries a list of StateInfo items.
@@ -690,6 +919,12 @@ func (*UnimplementedQueryServer) Rollapp(ctx context.Context, req *QueryGetRolla
 }
 func (*UnimplementedQueryServer) RollappAll(ctx context.Context, req *QueryAllRollappRequest) (*QueryAllRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RollappAll not implemented")
+}
+func (*UnimplementedQueryServer) LatestStateIndex(ctx context.Context, req *QueryGetLatestStateIndexRequest) (*QueryGetLatestStateIndexResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LatestStateIndex not implemented")
+}
+func (*UnimplementedQueryServer) LatestFinalizedStateIndex(ctx context.Context, req *QueryGetLatestFinalizedStateIndexRequest) (*QueryGetLatestFinalizedStateIndexResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LatestFinalizedStateIndex not implemented")
 }
 func (*UnimplementedQueryServer) StateInfo(ctx context.Context, req *QueryGetStateInfoRequest) (*QueryGetStateInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StateInfo not implemented")
@@ -756,6 +991,42 @@ func _Query_RollappAll_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_LatestStateIndex_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLatestStateIndexRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LatestStateIndex(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestStateIndex",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LatestStateIndex(ctx, req.(*QueryGetLatestStateIndexRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_LatestFinalizedStateIndex_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetLatestFinalizedStateIndexRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).LatestFinalizedStateIndex(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestFinalizedStateIndex",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).LatestFinalizedStateIndex(ctx, req.(*QueryGetLatestFinalizedStateIndexRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_StateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryGetStateInfoRequest)
 	if err := dec(in); err != nil {
@@ -807,6 +1078,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RollappAll",
 			Handler:    _Query_RollappAll_Handler,
+		},
+		{
+			MethodName: "LatestStateIndex",
+			Handler:    _Query_LatestStateIndex_Handler,
+		},
+		{
+			MethodName: "LatestFinalizedStateIndex",
+			Handler:    _Query_LatestFinalizedStateIndex_Handler,
 		},
 		{
 			MethodName: "StateInfo",
@@ -907,6 +1186,132 @@ func (m *QueryGetRollappRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGetLatestStateIndexRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLatestStateIndexRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLatestStateIndexRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetLatestStateIndexResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLatestStateIndexResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLatestStateIndexResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.StateIndex.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.StateIndex.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryGetRollappResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -927,9 +1332,21 @@ func (m *QueryGetRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	if m.LatestStatesSummary != nil {
+	if m.LatestFinalizedStateIndex != nil {
 		{
-			size, err := m.LatestStatesSummary.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.LatestFinalizedStateIndex.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.LatestStateIndex != nil {
+		{
+			size, err := m.LatestStateIndex.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1254,6 +1671,54 @@ func (m *QueryGetRollappRequest) Size() (n int) {
 	return n
 }
 
+func (m *QueryGetLatestStateIndexRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetLatestStateIndexResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.StateIndex.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryGetLatestFinalizedStateIndexRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetLatestFinalizedStateIndexResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.StateIndex.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
 func (m *QueryGetRollappResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1262,8 +1727,12 @@ func (m *QueryGetRollappResponse) Size() (n int) {
 	_ = l
 	l = m.Rollapp.Size()
 	n += 1 + l + sovQuery(uint64(l))
-	if m.LatestStatesSummary != nil {
-		l = m.LatestStatesSummary.Size()
+	if m.LatestStateIndex != nil {
+		l = m.LatestStateIndex.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.LatestFinalizedStateIndex != nil {
+		l = m.LatestFinalizedStateIndex.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
@@ -1591,6 +2060,336 @@ func (m *QueryGetRollappRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *QueryGetLatestStateIndexRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLatestStateIndexRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLatestStateIndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetLatestStateIndexResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLatestStateIndexResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLatestStateIndexResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StateIndex", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetLatestFinalizedStateIndexRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLatestFinalizedStateIndexRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLatestFinalizedStateIndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetLatestFinalizedStateIndexResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetLatestFinalizedStateIndexResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetLatestFinalizedStateIndexResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StateIndex", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1655,7 +2454,7 @@ func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LatestStatesSummary", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestStateIndex", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1682,10 +2481,46 @@ func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.LatestStatesSummary == nil {
-				m.LatestStatesSummary = &LatestStatesSummary{}
+			if m.LatestStateIndex == nil {
+				m.LatestStateIndex = &StateInfoIndex{}
 			}
-			if err := m.LatestStatesSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.LatestStateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestFinalizedStateIndex", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.LatestFinalizedStateIndex == nil {
+				m.LatestFinalizedStateIndex = &StateInfoIndex{}
+			}
+			if err := m.LatestFinalizedStateIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

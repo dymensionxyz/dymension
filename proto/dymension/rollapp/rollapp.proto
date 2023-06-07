@@ -4,6 +4,7 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 import "dymension/shared/sequencers.proto";
 import "gogoproto/gogo.proto";
+import "dymension/rollapp/state_info.proto";
 
 // Rollapp defines a rollapp object. First the RollApp is created and then
 // sequencers can be created and attached. The RollApp is identified by rollappId
@@ -36,15 +37,9 @@ message RollappSummary {
   // The unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1;
-  // Contains details about the latest UpdateState and the latest finalized UpdateState of the Rollapp.
-  LatestStatesSummary latestStatesSummary = 2;
-}
-
-// LatestStateIndexes contains details about the latest UpdateState and the latest finalized UpdateState of a Rollapp.
-message LatestStatesSummary {
   // Defines the index of the last rollapp UpdateState.
-  uint64 latestStateIndex = 1;
+  StateInfoIndex latestStateIndex = 2;
   // Defines the index of the last rollapp UpdateState that was finalized.
-  uint64 latestFinalizedStateIndex = 2;
+  StateInfoIndex latestFinalizedStateIndex = 3;
 }
 

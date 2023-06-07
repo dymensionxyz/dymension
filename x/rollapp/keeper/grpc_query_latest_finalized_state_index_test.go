@@ -17,33 +17,33 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func TestLatestStateIndexQuerySingle(t *testing.T) {
+func TestLatestFinalizedStateIndexQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNLatestStateInfoIndex(keeper, ctx, 2)
+	msgs := createNLatestFinalizedStateIndex(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
-		request  *types.QueryGetLatestStateIndexRequest
-		response *types.QueryGetLatestStateIndexResponse
+		request  *types.QueryGetLatestFinalizedStateIndexRequest
+		response *types.QueryGetLatestFinalizedStateIndexResponse
 		err      error
 	}{
 		{
 			desc: "First",
-			request: &types.QueryGetLatestStateIndexRequest{
+			request: &types.QueryGetLatestFinalizedStateIndexRequest{
 				RollappId: msgs[0].RollappId,
 			},
-			response: &types.QueryGetLatestStateIndexResponse{StateIndex: msgs[0]},
+			response: &types.QueryGetLatestFinalizedStateIndexResponse{StateIndex: msgs[0]},
 		},
 		{
 			desc: "Second",
-			request: &types.QueryGetLatestStateIndexRequest{
+			request: &types.QueryGetLatestFinalizedStateIndexRequest{
 				RollappId: msgs[1].RollappId,
 			},
-			response: &types.QueryGetLatestStateIndexResponse{StateIndex: msgs[1]},
+			response: &types.QueryGetLatestFinalizedStateIndexResponse{StateIndex: msgs[1]},
 		},
 		{
 			desc: "KeyNotFound",
-			request: &types.QueryGetLatestStateIndexRequest{
+			request: &types.QueryGetLatestFinalizedStateIndexRequest{
 				RollappId: strconv.Itoa(100000),
 			},
 			err: status.Error(codes.NotFound, "not found"),
@@ -54,7 +54,7 @@ func TestLatestStateIndexQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.LatestStateIndex(wctx, tc.request)
+			response, err := keeper.LatestFinalizedStateIndex(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {

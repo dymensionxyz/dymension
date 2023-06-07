@@ -20,27 +20,27 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func networkWithLatestStateIndexObjects(t *testing.T, n int) (*network.Network, []types.StateInfoIndex) {
+func networkWithLatestFinalizedStateIndexObjects(t *testing.T, n int) (*network.Network, []types.StateInfoIndex) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
-		latestStateIndex := types.StateInfoIndex{
+		latestFinalizedStateIndex := types.StateInfoIndex{
 			RollappId: strconv.Itoa(i),
 		}
-		nullify.Fill(&latestStateIndex)
-		state.LatestStateInfoIndexList = append(state.LatestStateInfoIndexList, latestStateIndex)
+		nullify.Fill(&latestFinalizedStateIndex)
+		state.LatestFinalizedStateIndexList = append(state.LatestFinalizedStateIndexList, latestFinalizedStateIndex)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.LatestStateInfoIndexList
+	return network.New(t, cfg), state.LatestFinalizedStateIndexList
 }
 
-func TestShowLatestStateInfoIndex(t *testing.T) {
-	net, objs := networkWithLatestStateIndexObjects(t, 2)
+func TestShowLatestFinalizedStateInfoIndex(t *testing.T) {
+	net, objs := networkWithLatestFinalizedStateIndexObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
@@ -74,14 +74,14 @@ func TestShowLatestStateInfoIndex(t *testing.T) {
 				tc.idRollappId,
 			}
 			args = append(args, tc.args...)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowLatestStateIndex(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowLatestFinalizedStateIndex(), args)
 			if tc.err != nil {
 				stat, ok := status.FromError(tc.err)
 				require.True(t, ok)
 				require.ErrorIs(t, stat.Err(), tc.err)
 			} else {
 				require.NoError(t, err)
-				var resp types.QueryGetLatestStateIndexResponse
+				var resp types.QueryGetLatestFinalizedStateIndexResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 				require.NotNil(t, resp.StateIndex)
 				require.Equal(t,

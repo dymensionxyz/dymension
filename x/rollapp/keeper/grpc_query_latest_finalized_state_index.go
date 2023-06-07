@@ -9,13 +9,13 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) LatestStateIndex(c context.Context, req *types.QueryGetLatestStateIndexRequest) (*types.QueryGetLatestStateIndexResponse, error) {
+func (k Keeper) LatestFinalizedStateIndex(c context.Context, req *types.QueryGetLatestFinalizedStateIndexRequest) (*types.QueryGetLatestFinalizedStateIndexResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetLatestStateInfoIndex(
+	val, found := k.GetLatestFinalizedStateIndex(
 		ctx,
 		req.RollappId,
 	)
@@ -23,5 +23,5 @@ func (k Keeper) LatestStateIndex(c context.Context, req *types.QueryGetLatestSta
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetLatestStateIndexResponse{StateIndex: val}, nil
+	return &types.QueryGetLatestFinalizedStateIndexResponse{StateIndex: val}, nil
 }
