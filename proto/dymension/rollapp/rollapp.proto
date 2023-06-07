@@ -8,26 +8,43 @@ import "gogoproto/gogo.proto";
 // Rollapp defines a rollapp object. First the RollApp is created and then
 // sequencers can be created and attached. The RollApp is identified by rollappId
 message Rollapp {
-  // rollappId is the unique identifier of the rollapp chain.
+  // The unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id.
-  string rollappId = 1; 
+  string rollappId = 1;
   // creator is the bech32-encoded address of the rollapp creator.
-  string creator = 2; 
+  string creator = 2;
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
-  uint64 version = 3; 
+  uint64 version = 3;
   // codeStamp is a generated hash for unique identification of the rollapp code.
-  string codeStamp = 4; 
+  string codeStamp = 4;
   // genesisPath is the description of the genesis file location on the DA.
-  string genesisPath = 5; 
+  string genesisPath = 5;
   // maxWithholdingBlocks is the maximum number of blocks for
-  // an active sequencer to send a state update (MsgUpdateState). 
-  uint64 maxWithholdingBlocks = 6; 
-  // maxSequencers is the maximum number of sequencers. 
-  uint64 maxSequencers = 7; 
-  // permissionedAddresses is a bech32-encoded address list of the 
-  // sequencers that are allowed to serve this rollappId. 
+  // an active sequencer to send a state update (MsgUpdateState).
+  uint64 maxWithholdingBlocks = 6;
+  // maxSequencers is the maximum number of sequencers.
+  uint64 maxSequencers = 7;
+  // permissionedAddresses is a bech32-encoded address list of the
+  // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
-  shared.Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false]; 
+  shared.Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false];
+}
+
+// Rollapp summary is a compact representation of Rollapp
+message RollappSummary {
+  // The unique identifier of the rollapp chain.
+  // The rollappId follows the same standard as cosmos chain_id.
+  string rollappId = 1;
+  // Contains details about the latest UpdateState and the latest finalized UpdateState of the Rollapp.
+  LatestStatesSummary latestStatesSummary = 2;
+}
+
+// LatestStateIndexes contains details about the latest UpdateState and the latest finalized UpdateState of a Rollapp.
+message LatestStatesSummary {
+  // Defines the index of the last rollapp UpdateState.
+  uint64 latestStateIndex = 1;
+  // Defines the index of the last rollapp UpdateState that was finalized.
+  uint64 latestFinalizedStateIndex = 2;
 }
 

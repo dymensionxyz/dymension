@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error, rollappsExpect *[]*types.Rollapp) {
+func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error, rollappsExpect *[]*types.RollappSummary) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	// generate sequences address
 	addresses := sample.GenerateAddresses(numOfAddresses)
@@ -54,9 +54,14 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	suite.Require().Nil(err)
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
+	rollappSummaryExpect := &types.RollappSummary{
+		RollappId:           rollappExpect.RollappId,
+		LatestStatesSummary: &types.LatestStatesSummary{},
+	}
+
 	// add the rollapp to the list of get all expected list
 	newRollappsExpect := *rollappsExpect
-	newRollappsExpect = append(newRollappsExpect, &rollappExpect)
+	newRollappsExpect = append(newRollappsExpect, rollappSummaryExpect)
 	// verify that query all contains all the rollapps that were created
 	rollappsRes, totalRes := getAll(suite)
 	suite.Require().EqualValues(totalRes, numOfAddresses+1)
@@ -68,7 +73,7 @@ func (suite *RollappTestSuite) createRollappFromWhitelist(expectedErr error, dep
 	suite.SetupTest(deployerWhitelist...)
 
 	// rollappsExpect is the expected result of query all
-	rollappsExpect := []*types.Rollapp{}
+	var rollappsExpect []*types.RollappSummary
 
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {
@@ -116,7 +121,7 @@ func (suite *RollappTestSuite) TestCreateRollappExceedMaxRollapps() {
 	suite.SetupTest(deployerWhitelist...)
 
 	// rollappsExpect is the expected result of query all
-	rollappsExpect := []*types.Rollapp{}
+	var rollappsExpect []*types.RollappSummary
 
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {

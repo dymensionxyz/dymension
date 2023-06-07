@@ -158,7 +158,8 @@ func (m *QueryGetRollappRequest) GetRollappId() string {
 }
 
 type QueryGetRollappResponse struct {
-	Rollapp Rollapp `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
+	Rollapp             Rollapp              `protobuf:"bytes,1,opt,name=rollapp,proto3" json:"rollapp"`
+	LatestStatesSummary *LatestStatesSummary `protobuf:"bytes,2,opt,name=latestStatesSummary,proto3" json:"latestStatesSummary,omitempty"`
 }
 
 func (m *QueryGetRollappResponse) Reset()         { *m = QueryGetRollappResponse{} }
@@ -199,6 +200,13 @@ func (m *QueryGetRollappResponse) GetRollapp() Rollapp {
 		return m.Rollapp
 	}
 	return Rollapp{}
+}
+
+func (m *QueryGetRollappResponse) GetLatestStatesSummary() *LatestStatesSummary {
+	if m != nil {
+		return m.LatestStatesSummary
+	}
+	return nil
 }
 
 type QueryAllRollappRequest struct {
@@ -246,7 +254,7 @@ func (m *QueryAllRollappRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryAllRollappResponse struct {
-	Rollapp    []Rollapp           `protobuf:"bytes,1,rep,name=rollapp,proto3" json:"rollapp"`
+	Rollapp    []RollappSummary    `protobuf:"bytes,1,rep,name=rollapp,proto3" json:"rollapp"`
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -283,7 +291,7 @@ func (m *QueryAllRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllRollappResponse proto.InternalMessageInfo
 
-func (m *QueryAllRollappResponse) GetRollapp() []Rollapp {
+func (m *QueryAllRollappResponse) GetRollapp() []RollappSummary {
 	if m != nil {
 		return m.Rollapp
 	}
@@ -300,6 +308,8 @@ func (m *QueryAllRollappResponse) GetPagination() *query.PageResponse {
 type QueryGetStateInfoRequest struct {
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	Index     uint64 `protobuf:"varint,2,opt,name=index,proto3" json:"index,omitempty"`
+	Height    uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
+	Finalized bool   `protobuf:"varint,4,opt,name=finalized,proto3" json:"finalized,omitempty"`
 }
 
 func (m *QueryGetStateInfoRequest) Reset()         { *m = QueryGetStateInfoRequest{} }
@@ -349,6 +359,20 @@ func (m *QueryGetStateInfoRequest) GetIndex() uint64 {
 	return 0
 }
 
+func (m *QueryGetStateInfoRequest) GetHeight() uint64 {
+	if m != nil {
+		return m.Height
+	}
+	return 0
+}
+
+func (m *QueryGetStateInfoRequest) GetFinalized() bool {
+	if m != nil {
+		return m.Finalized
+	}
+	return false
+}
+
 type QueryGetStateInfoResponse struct {
 	StateInfo StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
 }
@@ -394,7 +418,8 @@ func (m *QueryGetStateInfoResponse) GetStateInfo() StateInfo {
 }
 
 type QueryAllStateInfoRequest struct {
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	RollappId  string             `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryAllStateInfoRequest) Reset()         { *m = QueryAllStateInfoRequest{} }
@@ -430,6 +455,13 @@ func (m *QueryAllStateInfoRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllStateInfoRequest proto.InternalMessageInfo
 
+func (m *QueryAllStateInfoRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
 func (m *QueryAllStateInfoRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
@@ -438,7 +470,7 @@ func (m *QueryAllStateInfoRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryAllStateInfoResponse struct {
-	StateInfo  []StateInfo         `protobuf:"bytes,1,rep,name=stateInfo,proto3" json:"stateInfo"`
+	StateInfo  []StateInfoSummary  `protobuf:"bytes,1,rep,name=stateInfo,proto3" json:"stateInfo"`
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
@@ -475,7 +507,7 @@ func (m *QueryAllStateInfoResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryAllStateInfoResponse proto.InternalMessageInfo
 
-func (m *QueryAllStateInfoResponse) GetStateInfo() []StateInfo {
+func (m *QueryAllStateInfoResponse) GetStateInfo() []StateInfoSummary {
 	if m != nil {
 		return m.StateInfo
 	}
@@ -489,578 +521,6 @@ func (m *QueryAllStateInfoResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-type QueryGetLatestStateInfoIndexRequest struct {
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-}
-
-func (m *QueryGetLatestStateInfoIndexRequest) Reset()         { *m = QueryGetLatestStateInfoIndexRequest{} }
-func (m *QueryGetLatestStateInfoIndexRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetLatestStateInfoIndexRequest) ProtoMessage()    {}
-func (*QueryGetLatestStateInfoIndexRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{10}
-}
-func (m *QueryGetLatestStateInfoIndexRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetLatestStateInfoIndexRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetLatestStateInfoIndexRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetLatestStateInfoIndexRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetLatestStateInfoIndexRequest.Merge(m, src)
-}
-func (m *QueryGetLatestStateInfoIndexRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetLatestStateInfoIndexRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetLatestStateInfoIndexRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetLatestStateInfoIndexRequest proto.InternalMessageInfo
-
-func (m *QueryGetLatestStateInfoIndexRequest) GetRollappId() string {
-	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-type QueryGetLatestStateInfoIndexResponse struct {
-	LatestStateInfoIndex StateInfoIndex `protobuf:"bytes,1,opt,name=latestStateInfoIndex,proto3" json:"latestStateInfoIndex"`
-}
-
-func (m *QueryGetLatestStateInfoIndexResponse) Reset()         { *m = QueryGetLatestStateInfoIndexResponse{} }
-func (m *QueryGetLatestStateInfoIndexResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetLatestStateInfoIndexResponse) ProtoMessage()    {}
-func (*QueryGetLatestStateInfoIndexResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{11}
-}
-func (m *QueryGetLatestStateInfoIndexResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetLatestStateInfoIndexResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetLatestStateInfoIndexResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetLatestStateInfoIndexResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetLatestStateInfoIndexResponse.Merge(m, src)
-}
-func (m *QueryGetLatestStateInfoIndexResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetLatestStateInfoIndexResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetLatestStateInfoIndexResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetLatestStateInfoIndexResponse proto.InternalMessageInfo
-
-func (m *QueryGetLatestStateInfoIndexResponse) GetLatestStateInfoIndex() StateInfoIndex {
-	if m != nil {
-		return m.LatestStateInfoIndex
-	}
-	return StateInfoIndex{}
-}
-
-type QueryAllLatestStateInfoIndexRequest struct {
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryAllLatestStateInfoIndexRequest) Reset()         { *m = QueryAllLatestStateInfoIndexRequest{} }
-func (m *QueryAllLatestStateInfoIndexRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllLatestStateInfoIndexRequest) ProtoMessage()    {}
-func (*QueryAllLatestStateInfoIndexRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{12}
-}
-func (m *QueryAllLatestStateInfoIndexRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryAllLatestStateInfoIndexRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryAllLatestStateInfoIndexRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryAllLatestStateInfoIndexRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllLatestStateInfoIndexRequest.Merge(m, src)
-}
-func (m *QueryAllLatestStateInfoIndexRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryAllLatestStateInfoIndexRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllLatestStateInfoIndexRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryAllLatestStateInfoIndexRequest proto.InternalMessageInfo
-
-func (m *QueryAllLatestStateInfoIndexRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryAllLatestStateInfoIndexResponse struct {
-	LatestStateInfoIndex []StateInfoIndex    `protobuf:"bytes,1,rep,name=latestStateInfoIndex,proto3" json:"latestStateInfoIndex"`
-	Pagination           *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) Reset()         { *m = QueryAllLatestStateInfoIndexResponse{} }
-func (m *QueryAllLatestStateInfoIndexResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllLatestStateInfoIndexResponse) ProtoMessage()    {}
-func (*QueryAllLatestStateInfoIndexResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{13}
-}
-func (m *QueryAllLatestStateInfoIndexResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryAllLatestStateInfoIndexResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryAllLatestStateInfoIndexResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryAllLatestStateInfoIndexResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllLatestStateInfoIndexResponse.Merge(m, src)
-}
-func (m *QueryAllLatestStateInfoIndexResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryAllLatestStateInfoIndexResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllLatestStateInfoIndexResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryAllLatestStateInfoIndexResponse proto.InternalMessageInfo
-
-func (m *QueryAllLatestStateInfoIndexResponse) GetLatestStateInfoIndex() []StateInfoIndex {
-	if m != nil {
-		return m.LatestStateInfoIndex
-	}
-	return nil
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) GetPagination() *query.PageResponse {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryGetBlockHeightToFinalizationQueueRequest struct {
-	FinalizationHeight uint64 `protobuf:"varint,1,opt,name=finalizationHeight,proto3" json:"finalizationHeight,omitempty"`
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) Reset() {
-	*m = QueryGetBlockHeightToFinalizationQueueRequest{}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryGetBlockHeightToFinalizationQueueRequest) ProtoMessage() {}
-func (*QueryGetBlockHeightToFinalizationQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{14}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueRequest.Merge(m, src)
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueRequest proto.InternalMessageInfo
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) GetFinalizationHeight() uint64 {
-	if m != nil {
-		return m.FinalizationHeight
-	}
-	return 0
-}
-
-type QueryGetBlockHeightToFinalizationQueueResponse struct {
-	BlockHeightToFinalizationQueue BlockHeightToFinalizationQueue `protobuf:"bytes,1,opt,name=blockHeightToFinalizationQueue,proto3" json:"blockHeightToFinalizationQueue"`
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) Reset() {
-	*m = QueryGetBlockHeightToFinalizationQueueResponse{}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryGetBlockHeightToFinalizationQueueResponse) ProtoMessage() {}
-func (*QueryGetBlockHeightToFinalizationQueueResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{15}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueResponse.Merge(m, src)
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetBlockHeightToFinalizationQueueResponse proto.InternalMessageInfo
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) GetBlockHeightToFinalizationQueue() BlockHeightToFinalizationQueue {
-	if m != nil {
-		return m.BlockHeightToFinalizationQueue
-	}
-	return BlockHeightToFinalizationQueue{}
-}
-
-type QueryAllBlockHeightToFinalizationQueueRequest struct {
-	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) Reset() {
-	*m = QueryAllBlockHeightToFinalizationQueueRequest{}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryAllBlockHeightToFinalizationQueueRequest) ProtoMessage() {}
-func (*QueryAllBlockHeightToFinalizationQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{16}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueRequest.Merge(m, src)
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueRequest proto.InternalMessageInfo
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryAllBlockHeightToFinalizationQueueResponse struct {
-	BlockHeightToFinalizationQueue []BlockHeightToFinalizationQueue `protobuf:"bytes,1,rep,name=blockHeightToFinalizationQueue,proto3" json:"blockHeightToFinalizationQueue"`
-	Pagination                     *query.PageResponse              `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) Reset() {
-	*m = QueryAllBlockHeightToFinalizationQueueResponse{}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) String() string {
-	return proto.CompactTextString(m)
-}
-func (*QueryAllBlockHeightToFinalizationQueueResponse) ProtoMessage() {}
-func (*QueryAllBlockHeightToFinalizationQueueResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{17}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueResponse.Merge(m, src)
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryAllBlockHeightToFinalizationQueueResponse proto.InternalMessageInfo
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) GetBlockHeightToFinalizationQueue() []BlockHeightToFinalizationQueue {
-	if m != nil {
-		return m.BlockHeightToFinalizationQueue
-	}
-	return nil
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) GetPagination() *query.PageResponse {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryGetLatestFinalizedStateInfoRequest struct {
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-}
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) Reset() {
-	*m = QueryGetLatestFinalizedStateInfoRequest{}
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetLatestFinalizedStateInfoRequest) ProtoMessage()    {}
-func (*QueryGetLatestFinalizedStateInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{18}
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetLatestFinalizedStateInfoRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetLatestFinalizedStateInfoRequest.Merge(m, src)
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetLatestFinalizedStateInfoRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetLatestFinalizedStateInfoRequest proto.InternalMessageInfo
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) GetRollappId() string {
-	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-type QueryGetLatestFinalizedStateInfoResponse struct {
-	StateInfo StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
-}
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) Reset() {
-	*m = QueryGetLatestFinalizedStateInfoResponse{}
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetLatestFinalizedStateInfoResponse) ProtoMessage()    {}
-func (*QueryGetLatestFinalizedStateInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{19}
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetLatestFinalizedStateInfoResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetLatestFinalizedStateInfoResponse.Merge(m, src)
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetLatestFinalizedStateInfoResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetLatestFinalizedStateInfoResponse proto.InternalMessageInfo
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) GetStateInfo() StateInfo {
-	if m != nil {
-		return m.StateInfo
-	}
-	return StateInfo{}
-}
-
-type QueryGetStateInfoByHeightRequest struct {
-	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	Height    uint64 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-}
-
-func (m *QueryGetStateInfoByHeightRequest) Reset()         { *m = QueryGetStateInfoByHeightRequest{} }
-func (m *QueryGetStateInfoByHeightRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetStateInfoByHeightRequest) ProtoMessage()    {}
-func (*QueryGetStateInfoByHeightRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{20}
-}
-func (m *QueryGetStateInfoByHeightRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetStateInfoByHeightRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetStateInfoByHeightRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetStateInfoByHeightRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetStateInfoByHeightRequest.Merge(m, src)
-}
-func (m *QueryGetStateInfoByHeightRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetStateInfoByHeightRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetStateInfoByHeightRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetStateInfoByHeightRequest proto.InternalMessageInfo
-
-func (m *QueryGetStateInfoByHeightRequest) GetRollappId() string {
-	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-func (m *QueryGetStateInfoByHeightRequest) GetHeight() uint64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
-type QueryGetStateInfoByHeightResponse struct {
-	StateInfo StateInfo `protobuf:"bytes,1,opt,name=stateInfo,proto3" json:"stateInfo"`
-}
-
-func (m *QueryGetStateInfoByHeightResponse) Reset()         { *m = QueryGetStateInfoByHeightResponse{} }
-func (m *QueryGetStateInfoByHeightResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetStateInfoByHeightResponse) ProtoMessage()    {}
-func (*QueryGetStateInfoByHeightResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_6816c5236b322a4f, []int{21}
-}
-func (m *QueryGetStateInfoByHeightResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGetStateInfoByHeightResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGetStateInfoByHeightResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGetStateInfoByHeightResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetStateInfoByHeightResponse.Merge(m, src)
-}
-func (m *QueryGetStateInfoByHeightResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGetStateInfoByHeightResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetStateInfoByHeightResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGetStateInfoByHeightResponse proto.InternalMessageInfo
-
-func (m *QueryGetStateInfoByHeightResponse) GetStateInfo() StateInfo {
-	if m != nil {
-		return m.StateInfo
-	}
-	return StateInfo{}
-}
-
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.rollapp.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.rollapp.QueryParamsResponse")
@@ -1072,93 +532,59 @@ func init() {
 	proto.RegisterType((*QueryGetStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoResponse")
 	proto.RegisterType((*QueryAllStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllStateInfoRequest")
 	proto.RegisterType((*QueryAllStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllStateInfoResponse")
-	proto.RegisterType((*QueryGetLatestStateInfoIndexRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexRequest")
-	proto.RegisterType((*QueryGetLatestStateInfoIndexResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestStateInfoIndexResponse")
-	proto.RegisterType((*QueryAllLatestStateInfoIndexRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllLatestStateInfoIndexRequest")
-	proto.RegisterType((*QueryAllLatestStateInfoIndexResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllLatestStateInfoIndexResponse")
-	proto.RegisterType((*QueryGetBlockHeightToFinalizationQueueRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetBlockHeightToFinalizationQueueRequest")
-	proto.RegisterType((*QueryGetBlockHeightToFinalizationQueueResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetBlockHeightToFinalizationQueueResponse")
-	proto.RegisterType((*QueryAllBlockHeightToFinalizationQueueRequest)(nil), "dymensionxyz.dymension.rollapp.QueryAllBlockHeightToFinalizationQueueRequest")
-	proto.RegisterType((*QueryAllBlockHeightToFinalizationQueueResponse)(nil), "dymensionxyz.dymension.rollapp.QueryAllBlockHeightToFinalizationQueueResponse")
-	proto.RegisterType((*QueryGetLatestFinalizedStateInfoRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestFinalizedStateInfoRequest")
-	proto.RegisterType((*QueryGetLatestFinalizedStateInfoResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetLatestFinalizedStateInfoResponse")
-	proto.RegisterType((*QueryGetStateInfoByHeightRequest)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoByHeightRequest")
-	proto.RegisterType((*QueryGetStateInfoByHeightResponse)(nil), "dymensionxyz.dymension.rollapp.QueryGetStateInfoByHeightResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/query.proto", fileDescriptor_6816c5236b322a4f) }
 
 var fileDescriptor_6816c5236b322a4f = []byte{
-	// 1099 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x58, 0xcb, 0x6f, 0x1b, 0x45,
-	0x18, 0xcf, 0x3a, 0x69, 0xaa, 0x7c, 0x70, 0x9a, 0x5a, 0x6d, 0xb0, 0xca, 0xb6, 0x1d, 0x50, 0x93,
-	0x56, 0xb0, 0xab, 0x24, 0xa2, 0x0f, 0x21, 0x95, 0xda, 0x09, 0x71, 0x43, 0x49, 0x1f, 0x06, 0xc4,
-	0xeb, 0xb0, 0xac, 0x93, 0x89, 0xb3, 0xb0, 0xde, 0x71, 0xbc, 0x6b, 0x88, 0x1b, 0xe5, 0xc2, 0x89,
-	0x03, 0x42, 0x95, 0xb8, 0x23, 0x38, 0x23, 0x71, 0xe1, 0xc0, 0x91, 0x6b, 0x8e, 0x95, 0xb8, 0xc0,
-	0x05, 0xa1, 0x04, 0xae, 0x1c, 0xf8, 0x03, 0x10, 0xda, 0x99, 0x6f, 0xfd, 0xc8, 0xae, 0xbd, 0xe3,
-	0x78, 0xcb, 0xc9, 0xdd, 0x9d, 0xef, 0xf1, 0xfb, 0xfd, 0xbe, 0x99, 0x9d, 0x5f, 0x03, 0xcf, 0x6f,
-	0xb6, 0xeb, 0xcc, 0xf3, 0x1d, 0xee, 0x99, 0x4d, 0xee, 0xba, 0x76, 0xa3, 0x61, 0xee, 0xb4, 0x58,
-	0xb3, 0x6d, 0x34, 0x9a, 0x3c, 0xe0, 0x44, 0xef, 0x2c, 0xef, 0xb6, 0x1f, 0x19, 0x9d, 0x07, 0x03,
-	0x63, 0x0b, 0xf9, 0x1a, 0xaf, 0x71, 0x11, 0x6a, 0x86, 0xff, 0x92, 0x59, 0x85, 0xf3, 0x35, 0xce,
-	0x6b, 0x2e, 0x33, 0xed, 0x86, 0x63, 0xda, 0x9e, 0xc7, 0x03, 0x3b, 0x70, 0xb8, 0xe7, 0xe3, 0xea,
-	0xd5, 0x0d, 0xee, 0xd7, 0xb9, 0x6f, 0x56, 0x6d, 0x9f, 0xc9, 0x66, 0xe6, 0xa7, 0x0b, 0x55, 0x16,
-	0xd8, 0x0b, 0x66, 0xc3, 0xae, 0x39, 0x9e, 0x08, 0xc6, 0x58, 0x3d, 0x0e, 0xaf, 0x61, 0x37, 0xed,
-	0x7a, 0x54, 0xeb, 0x42, 0x7c, 0x1d, 0x7f, 0x31, 0x80, 0xc6, 0x03, 0xfc, 0xc0, 0x0e, 0x98, 0xe5,
-	0x78, 0x5b, 0x08, 0x97, 0xe6, 0x81, 0x3c, 0x0c, 0x61, 0x3c, 0x10, 0x95, 0x2b, 0x6c, 0xa7, 0xc5,
-	0xfc, 0x80, 0x7e, 0x08, 0x67, 0xfa, 0xde, 0xfa, 0x0d, 0xee, 0xf9, 0x8c, 0xac, 0xc0, 0xb4, 0x44,
-	0x30, 0xab, 0x5d, 0xd4, 0xe6, 0x9f, 0x59, 0xbc, 0x6c, 0x0c, 0x97, 0xc8, 0x90, 0xf9, 0xa5, 0xa9,
-	0x83, 0xdf, 0x2f, 0x4c, 0x54, 0x30, 0x97, 0x5e, 0x83, 0xb3, 0xa2, 0x78, 0x99, 0x05, 0x15, 0x19,
-	0x87, 0x6d, 0xc9, 0x79, 0x98, 0xc1, 0xcc, 0xb5, 0x4d, 0xd1, 0x62, 0xa6, 0xd2, 0x7d, 0x41, 0xab,
-	0x70, 0x2e, 0x96, 0x87, 0xc0, 0xca, 0x70, 0x1a, 0xe3, 0x10, 0xd9, 0x5c, 0x1a, 0x32, 0xac, 0x80,
-	0xd0, 0xa2, 0x6c, 0xfa, 0x11, 0x62, 0x2b, 0xba, 0xee, 0x31, 0x6c, 0xab, 0x00, 0xdd, 0x09, 0x75,
-	0xf8, 0xcb, 0x71, 0x1a, 0xe1, 0x38, 0x0d, 0xb9, 0x77, 0x70, 0x9c, 0xc6, 0x03, 0xbb, 0xc6, 0x30,
-	0xb7, 0xd2, 0x93, 0x49, 0xbf, 0xd7, 0x90, 0x46, 0x6f, 0x8b, 0x24, 0x1a, 0x93, 0x27, 0xa7, 0x41,
-	0xca, 0x7d, 0x60, 0x73, 0x28, 0x49, 0x1a, 0x58, 0x89, 0xa2, 0x0f, 0xed, 0x3d, 0x98, 0x8d, 0x34,
-	0x7f, 0x2b, 0xdc, 0x3a, 0x6b, 0xde, 0x16, 0x57, 0x9a, 0x16, 0xc9, 0xc3, 0x29, 0xc7, 0xdb, 0x64,
-	0xbb, 0xa2, 0xfb, 0x54, 0x45, 0x3e, 0xd0, 0x8f, 0xe1, 0xb9, 0x84, 0x7a, 0x48, 0x7f, 0x1d, 0x66,
-	0xfc, 0xe8, 0x25, 0x2a, 0x7c, 0x25, 0x4d, 0x80, 0x4e, 0x15, 0x94, 0xa0, 0x5b, 0x81, 0x56, 0x11,
-	0x7b, 0xd1, 0x75, 0x63, 0xd8, 0xb3, 0x9a, 0xe6, 0x8f, 0x1a, 0x12, 0xea, 0x6f, 0x92, 0x4c, 0x68,
-	0x72, 0x3c, 0x42, 0xd9, 0x4d, 0x75, 0x19, 0x5e, 0x88, 0xa6, 0xf0, 0xa6, 0x1d, 0x30, 0xbf, 0x3b,
-	0x8b, 0xb5, 0x70, 0x4a, 0x6a, 0xc7, 0xf1, 0xb1, 0x06, 0x2f, 0x0e, 0xaf, 0x82, 0x2a, 0x6c, 0x43,
-	0xde, 0x4d, 0x58, 0x47, 0xd5, 0x0d, 0x65, 0x41, 0x44, 0x16, 0xaa, 0x92, 0x58, 0x91, 0xd6, 0x91,
-	0x57, 0xd1, 0x75, 0x87, 0xf1, 0xca, 0x6a, 0xf8, 0xbf, 0x45, 0x0a, 0x0c, 0xec, 0x97, 0xaa, 0xc0,
-	0x64, 0xb6, 0x0a, 0x64, 0xb7, 0x45, 0x2c, 0x78, 0x39, 0x1a, 0x6e, 0xc9, 0xe5, 0x1b, 0x9f, 0xdc,
-	0x61, 0x4e, 0x6d, 0x3b, 0x78, 0x9b, 0xaf, 0x3a, 0x9e, 0xed, 0x3a, 0x8f, 0x44, 0xd0, 0xc3, 0x16,
-	0x6b, 0x45, 0xc2, 0x10, 0x03, 0xc8, 0x56, 0xcf, 0x9a, 0x8c, 0x17, 0xe2, 0x4e, 0x55, 0x12, 0x56,
-	0xe8, 0xcf, 0x1a, 0x18, 0xaa, 0x1d, 0x50, 0xc6, 0x2f, 0x35, 0xd0, 0xab, 0x43, 0x43, 0x71, 0x98,
-	0xb7, 0xd2, 0x14, 0x1d, 0xde, 0x10, 0x15, 0x4e, 0xe9, 0x45, 0x3f, 0x43, 0x89, 0x8a, 0xae, 0xab,
-	0x26, 0x51, 0x56, 0xfb, 0xee, 0x8b, 0x1c, 0x4a, 0xa7, 0xd0, 0x79, 0x14, 0xe9, 0x26, 0xff, 0x2f,
-	0xe9, 0xb2, 0xdb, 0xa6, 0x65, 0x98, 0xeb, 0xff, 0x06, 0x61, 0x2f, 0xb6, 0x39, 0xda, 0x75, 0x45,
-	0xdb, 0x30, 0x9f, 0x5e, 0xe8, 0xe9, 0xdc, 0x53, 0xef, 0xc1, 0xc5, 0xd8, 0x9d, 0x58, 0x6a, 0x4b,
-	0xf1, 0xd4, 0xee, 0xda, 0xb3, 0x30, 0xbd, 0x2d, 0xcf, 0x9b, 0xbc, 0x6c, 0xf1, 0x89, 0x36, 0xe1,
-	0xd2, 0x90, 0xca, 0x4f, 0x85, 0xcd, 0xe2, 0x37, 0x67, 0xe0, 0x94, 0x68, 0x4a, 0xbe, 0xd3, 0x60,
-	0x5a, 0x1a, 0x40, 0xb2, 0x98, 0x56, 0x30, 0xee, 0x41, 0x0b, 0x4b, 0x23, 0xe5, 0x48, 0x32, 0xd4,
-	0xf8, 0xfc, 0x97, 0x3f, 0xbf, 0xce, 0xcd, 0x93, 0xcb, 0x66, 0x6f, 0xb2, 0x39, 0xc8, 0x49, 0x93,
-	0x9f, 0x34, 0x38, 0x8d, 0x1e, 0x8a, 0x5c, 0x53, 0x6a, 0x18, 0x73, 0xad, 0x85, 0xeb, 0x23, 0xe7,
-	0x21, 0xd8, 0x57, 0x05, 0xd8, 0x57, 0xc8, 0x52, 0x1a, 0xd8, 0xe8, 0x77, 0xaf, 0x33, 0xf2, 0x7d,
-	0xf2, 0x83, 0x06, 0x80, 0x05, 0x8b, 0xae, 0xab, 0x08, 0x3e, 0x66, 0x6b, 0x15, 0xc1, 0xc7, 0xbd,
-	0x2a, 0x35, 0x05, 0xf8, 0x2b, 0x64, 0x4e, 0x11, 0x3c, 0x39, 0xd0, 0x60, 0xa6, 0xb3, 0x6f, 0xc8,
-	0x0d, 0x55, 0xd1, 0x8e, 0x9f, 0xe3, 0xc2, 0xcd, 0x13, 0x64, 0x22, 0xe6, 0x55, 0x81, 0xf9, 0x36,
-	0xb9, 0x95, 0x86, 0xb9, 0xfb, 0xdf, 0xa4, 0x5e, 0xcd, 0xcd, 0x3d, 0x61, 0x62, 0xf7, 0xc3, 0x5d,
-	0xf3, 0x6c, 0xa7, 0x7a, 0xa8, 0xfe, 0x0d, 0x55, 0x15, 0x4f, 0xc8, 0x26, 0xc9, 0x5d, 0xd2, 0x45,
-	0xc1, 0xe6, 0x25, 0x72, 0x55, 0x9d, 0x0d, 0xf9, 0x5b, 0x83, 0x7c, 0x92, 0x55, 0x21, 0xcb, 0xaa,
-	0xaa, 0x0e, 0x31, 0x56, 0x85, 0x95, 0xf1, 0x8a, 0x20, 0xaf, 0xbb, 0x82, 0xd7, 0xeb, 0x64, 0x39,
-	0x8d, 0x97, 0x74, 0x40, 0x56, 0x97, 0x9e, 0x25, 0xe6, 0xd3, 0x77, 0x4c, 0xfe, 0xd2, 0xe0, 0x5c,
-	0x52, 0xb7, 0x70, 0x6a, 0xcb, 0xaa, 0xda, 0x8f, 0xcf, 0x39, 0xc5, 0x21, 0xd2, 0xd7, 0x04, 0xe7,
-	0x9b, 0xe4, 0xfa, 0x09, 0x39, 0x93, 0x6f, 0x73, 0xa0, 0x0f, 0xbf, 0x9a, 0xc9, 0xba, 0xea, 0x74,
-	0x94, 0xdc, 0x4c, 0xe1, 0x5e, 0x56, 0xe5, 0x50, 0x02, 0x4b, 0x48, 0xf0, 0x3e, 0x79, 0x37, 0x4d,
-	0x02, 0xe1, 0x2d, 0x2c, 0x79, 0xc5, 0x59, 0x01, 0xb7, 0x7a, 0xcd, 0xa5, 0xb5, 0x13, 0xd6, 0x34,
-	0xf7, 0xe2, 0x86, 0x73, 0x9f, 0x7c, 0x95, 0x83, 0x4b, 0xc3, 0xb1, 0x84, 0x9b, 0x62, 0x5d, 0x75,
-	0x9e, 0x59, 0xaa, 0xa4, 0x6c, 0xe4, 0xe8, 0x1b, 0x42, 0xa5, 0x15, 0x52, 0x1a, 0x5f, 0x25, 0xf2,
-	0xaf, 0x06, 0xb3, 0x83, 0xcc, 0x0e, 0x29, 0x8f, 0x76, 0x96, 0x07, 0xfa, 0xae, 0xc2, 0x9d, 0xf1,
-	0x0b, 0x21, 0xf7, 0xfb, 0x82, 0xfb, 0x1a, 0x29, 0x2b, 0x1e, 0x92, 0xad, 0xa8, 0x94, 0x95, 0xfc,
-	0x3d, 0x27, 0xff, 0x68, 0x90, 0x4f, 0xf2, 0x46, 0xe4, 0xf6, 0xc8, 0x77, 0xcc, 0x31, 0xc3, 0x56,
-	0x28, 0x8e, 0x51, 0x01, 0xe9, 0xbe, 0x23, 0xe8, 0xde, 0x27, 0xeb, 0x69, 0x74, 0x6b, 0xac, 0xef,
-	0x83, 0x50, 0x6d, 0xe3, 0xd8, 0xfb, 0xef, 0x2e, 0xf9, 0x6e, 0xbf, 0x74, 0xf7, 0xe0, 0x50, 0xd7,
-	0x9e, 0x1c, 0xea, 0xda, 0x1f, 0x87, 0xba, 0xf6, 0xf8, 0x48, 0x9f, 0x78, 0x72, 0xa4, 0x4f, 0xfc,
-	0x7a, 0xa4, 0x4f, 0x7c, 0xb0, 0x50, 0x73, 0x82, 0xed, 0x56, 0xd5, 0xd8, 0xe0, 0xf5, 0x41, 0x2d,
-	0x77, 0x3b, 0x4d, 0x83, 0x76, 0x83, 0xf9, 0xd5, 0x69, 0xf1, 0x57, 0xc4, 0xa5, 0xff, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0xe9, 0x0b, 0x0b, 0x0f, 0x4b, 0x15, 0x00, 0x00,
+	// 744 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x4d, 0x4f, 0xd4, 0x5c,
+	0x14, 0xc7, 0xe7, 0xf2, 0x32, 0x3c, 0x73, 0x79, 0x56, 0x17, 0xc2, 0x33, 0xcf, 0x04, 0x0b, 0xe9,
+	0x02, 0x06, 0x62, 0x5a, 0x99, 0x89, 0x88, 0x31, 0x31, 0x42, 0x0c, 0x84, 0xf8, 0x12, 0x2c, 0xae,
+	0x74, 0xa1, 0x77, 0x98, 0x4b, 0xa9, 0xe9, 0xf4, 0x96, 0xb9, 0x77, 0x0c, 0x03, 0x21, 0x31, 0xc6,
+	0x0f, 0x60, 0xe2, 0xd2, 0x95, 0x5f, 0xc0, 0x85, 0x1b, 0x13, 0x3f, 0x01, 0xee, 0x48, 0xdc, 0xb8,
+	0x32, 0x06, 0xfc, 0x20, 0xa6, 0xb7, 0xa7, 0x9d, 0x19, 0x3a, 0xd8, 0x42, 0x5c, 0x95, 0xde, 0x9e,
+	0xf3, 0x3f, 0xbf, 0xf3, 0xef, 0xe9, 0x61, 0xf0, 0x95, 0x7a, 0xbb, 0xc1, 0x3c, 0xe1, 0x70, 0xcf,
+	0x6c, 0x72, 0xd7, 0xa5, 0xbe, 0x6f, 0xee, 0xb6, 0x58, 0xb3, 0x6d, 0xf8, 0x4d, 0x2e, 0x39, 0xd1,
+	0xe2, 0xc7, 0x7b, 0xed, 0x7d, 0x23, 0xbe, 0x31, 0x20, 0xb6, 0x34, 0x6e, 0x73, 0x9b, 0xab, 0x50,
+	0x33, 0xf8, 0x2b, 0xcc, 0x2a, 0x4d, 0xda, 0x9c, 0xdb, 0x2e, 0x33, 0xa9, 0xef, 0x98, 0xd4, 0xf3,
+	0xb8, 0xa4, 0xd2, 0xe1, 0x9e, 0x80, 0xa7, 0xf3, 0x5b, 0x5c, 0x34, 0xb8, 0x30, 0x6b, 0x54, 0xb0,
+	0xb0, 0x98, 0xf9, 0x72, 0xa1, 0xc6, 0x24, 0x5d, 0x30, 0x7d, 0x6a, 0x3b, 0x9e, 0x0a, 0x86, 0x58,
+	0x2d, 0x89, 0xe7, 0xd3, 0x26, 0x6d, 0x44, 0x5a, 0x53, 0xc9, 0xe7, 0x70, 0x85, 0x00, 0x3d, 0x19,
+	0x20, 0x24, 0x95, 0xec, 0x99, 0xe3, 0x6d, 0x03, 0xae, 0x3e, 0x8e, 0xc9, 0xa3, 0x00, 0x63, 0x43,
+	0x29, 0x5b, 0x6c, 0xb7, 0xc5, 0x84, 0xd4, 0x9f, 0xe2, 0xb1, 0x9e, 0x53, 0xe1, 0x73, 0x4f, 0x30,
+	0x72, 0x17, 0xe7, 0x43, 0x82, 0x22, 0x9a, 0x46, 0xe5, 0xd1, 0xca, 0x8c, 0xf1, 0x67, 0x8b, 0x8c,
+	0x30, 0x7f, 0x65, 0xe8, 0xe8, 0xc7, 0x54, 0xce, 0x82, 0x5c, 0x7d, 0x11, 0x4f, 0x28, 0xf1, 0x35,
+	0x26, 0xad, 0x30, 0x0e, 0xca, 0x92, 0x49, 0x5c, 0x80, 0xcc, 0xf5, 0xba, 0x2a, 0x51, 0xb0, 0x3a,
+	0x07, 0xfa, 0x57, 0x84, 0xff, 0x4b, 0x24, 0x02, 0xd9, 0x1a, 0x1e, 0x81, 0x40, 0x40, 0x9b, 0x4d,
+	0x43, 0x03, 0x05, 0x60, 0x8b, 0xb2, 0x09, 0xc3, 0x63, 0x2e, 0x95, 0x4c, 0xc8, 0xcd, 0xc0, 0x29,
+	0xb1, 0xd9, 0x6a, 0x34, 0x68, 0xb3, 0x5d, 0x1c, 0x50, 0xa2, 0xd5, 0x34, 0xd1, 0xfb, 0xc9, 0x54,
+	0xab, 0x9f, 0x9e, 0xfe, 0x1c, 0x3c, 0x58, 0x76, 0xdd, 0x33, 0x1e, 0xac, 0x62, 0xdc, 0x99, 0x84,
+	0xd8, 0xe7, 0x70, 0x6c, 0x8c, 0x60, 0x6c, 0x8c, 0x70, 0x46, 0x61, 0x6c, 0x8c, 0x0d, 0x6a, 0x33,
+	0xc8, 0xb5, 0xba, 0x32, 0xf5, 0x4f, 0x91, 0x5b, 0xdd, 0x25, 0xc0, 0xad, 0x87, 0xdd, 0x6e, 0x0d,
+	0x96, 0x47, 0x2b, 0x46, 0x46, 0xb7, 0x00, 0xff, 0xac, 0x69, 0x6b, 0x3d, 0xcc, 0x03, 0xf0, 0x02,
+	0xd2, 0x98, 0x43, 0x98, 0x1e, 0xe8, 0x37, 0x08, 0x17, 0xa3, 0x57, 0xac, 0x0c, 0x5b, 0xf7, 0xb6,
+	0x79, 0xa6, 0xe9, 0x20, 0xe3, 0x78, 0xd8, 0xf1, 0xea, 0x6c, 0x4f, 0x95, 0x1f, 0xb2, 0xc2, 0x1b,
+	0x32, 0x81, 0xf3, 0x3b, 0xcc, 0xb1, 0x77, 0x64, 0x71, 0x50, 0x1d, 0xc3, 0x5d, 0xa0, 0xb5, 0xed,
+	0x78, 0xd4, 0x75, 0xf6, 0x59, 0xbd, 0x38, 0x34, 0x8d, 0xca, 0xff, 0x58, 0x9d, 0x03, 0xfd, 0x05,
+	0xfe, 0xbf, 0x0f, 0x05, 0x98, 0xf7, 0x00, 0x17, 0x44, 0x74, 0x08, 0xef, 0x67, 0x2e, 0xcd, 0xbe,
+	0x58, 0x05, 0x9c, 0xeb, 0x28, 0xe8, 0xaf, 0xa2, 0x96, 0x97, 0x5d, 0xf7, 0x82, 0x2d, 0xaf, 0xf6,
+	0xb1, 0xfd, 0x32, 0xa3, 0xf2, 0x05, 0x41, 0xbf, 0xbd, 0x08, 0xd0, 0xef, 0xe3, 0xde, 0x7e, 0x83,
+	0x71, 0xb9, 0x96, 0xb9, 0xdf, 0xde, 0x81, 0xe9, 0x08, 0xfd, 0xb5, 0x91, 0xa9, 0xbc, 0x1f, 0xc1,
+	0xc3, 0x0a, 0x9e, 0x7c, 0x40, 0x38, 0x1f, 0x2e, 0x1c, 0x52, 0x49, 0x03, 0x4c, 0xee, 0xbc, 0x52,
+	0xf5, 0x42, 0x39, 0x21, 0x89, 0x6e, 0xbc, 0xfe, 0xf6, 0xeb, 0xdd, 0x40, 0x99, 0xcc, 0x98, 0xdd,
+	0xc9, 0xe6, 0x79, 0x9b, 0x9b, 0x7c, 0x46, 0x78, 0x04, 0xbe, 0x25, 0xb2, 0x98, 0xa9, 0x60, 0x62,
+	0x4b, 0x96, 0x6e, 0x5c, 0x38, 0x0f, 0x60, 0x6f, 0x29, 0xd8, 0xeb, 0xa4, 0x9a, 0x06, 0x1b, 0x5d,
+	0x0f, 0xe2, 0x59, 0x3b, 0x24, 0x1f, 0x11, 0xc6, 0x20, 0xb8, 0xec, 0xba, 0x19, 0xe1, 0x13, 0xeb,
+	0x2d, 0x23, 0x7c, 0x72, 0x67, 0xe9, 0xa6, 0x82, 0x9f, 0x23, 0xb3, 0x19, 0xe1, 0xc9, 0x11, 0xc2,
+	0x85, 0x78, 0x0e, 0xc9, 0x52, 0x56, 0xd3, 0xce, 0x7e, 0x83, 0xa5, 0x9b, 0x97, 0xc8, 0x04, 0xe6,
+	0x55, 0xc5, 0x7c, 0x87, 0xdc, 0x4e, 0x63, 0xee, 0xfc, 0x5b, 0xee, 0xf6, 0xdc, 0x3c, 0x50, 0x4b,
+	0xec, 0x30, 0x98, 0x9a, 0x7f, 0x63, 0xf5, 0xc0, 0xfd, 0xa5, 0xac, 0x2e, 0x5e, 0xb2, 0x9b, 0x7e,
+	0x8b, 0x40, 0xaf, 0xa8, 0x6e, 0xae, 0x92, 0xf9, 0xec, 0xdd, 0xac, 0xdc, 0x3b, 0x3a, 0xd1, 0xd0,
+	0xf1, 0x89, 0x86, 0x7e, 0x9e, 0x68, 0xe8, 0xed, 0xa9, 0x96, 0x3b, 0x3e, 0xd5, 0x72, 0xdf, 0x4f,
+	0xb5, 0xdc, 0x93, 0x05, 0xdb, 0x91, 0x3b, 0xad, 0x9a, 0xb1, 0xc5, 0x1b, 0xe7, 0xe9, 0xed, 0xc5,
+	0x8a, 0xb2, 0xed, 0x33, 0x51, 0xcb, 0xab, 0x9f, 0x2c, 0xd5, 0xdf, 0x01, 0x00, 0x00, 0xff, 0xff,
+	0xaf, 0xbc, 0xe8, 0x05, 0xb8, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1183,18 +609,6 @@ type QueryClient interface {
 	StateInfo(ctx context.Context, in *QueryGetStateInfoRequest, opts ...grpc.CallOption) (*QueryGetStateInfoResponse, error)
 	// Queries a list of StateInfo items.
 	StateInfoAll(ctx context.Context, in *QueryAllStateInfoRequest, opts ...grpc.CallOption) (*QueryAllStateInfoResponse, error)
-	// Queries a LatestStateInfoIndex by index.
-	LatestStateInfoIndex(ctx context.Context, in *QueryGetLatestStateInfoIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestStateInfoIndexResponse, error)
-	// Queries a list of LatestStateInfoIndex items.
-	LatestStateInfoIndexAll(ctx context.Context, in *QueryAllLatestStateInfoIndexRequest, opts ...grpc.CallOption) (*QueryAllLatestStateInfoIndexResponse, error)
-	// Queries a BlockHeightToFinalizationQueue by index.
-	BlockHeightToFinalizationQueue(ctx context.Context, in *QueryGetBlockHeightToFinalizationQueueRequest, opts ...grpc.CallOption) (*QueryGetBlockHeightToFinalizationQueueResponse, error)
-	// Queries a list of BlockHeightToFinalizationQueue items.
-	BlockHeightToFinalizationQueueAll(ctx context.Context, in *QueryAllBlockHeightToFinalizationQueueRequest, opts ...grpc.CallOption) (*QueryAllBlockHeightToFinalizationQueueResponse, error)
-	// Queries a list of LatestFinalizedStateInfo items.
-	LatestFinalizedStateInfo(ctx context.Context, in *QueryGetLatestFinalizedStateInfoRequest, opts ...grpc.CallOption) (*QueryGetLatestFinalizedStateInfoResponse, error)
-	// Queries a list of GetStateInfoByHeight items.
-	GetStateInfoByHeight(ctx context.Context, in *QueryGetStateInfoByHeightRequest, opts ...grpc.CallOption) (*QueryGetStateInfoByHeightResponse, error)
 }
 
 type queryClient struct {
@@ -1250,60 +664,6 @@ func (c *queryClient) StateInfoAll(ctx context.Context, in *QueryAllStateInfoReq
 	return out, nil
 }
 
-func (c *queryClient) LatestStateInfoIndex(ctx context.Context, in *QueryGetLatestStateInfoIndexRequest, opts ...grpc.CallOption) (*QueryGetLatestStateInfoIndexResponse, error) {
-	out := new(QueryGetLatestStateInfoIndexResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestStateInfoIndex", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) LatestStateInfoIndexAll(ctx context.Context, in *QueryAllLatestStateInfoIndexRequest, opts ...grpc.CallOption) (*QueryAllLatestStateInfoIndexResponse, error) {
-	out := new(QueryAllLatestStateInfoIndexResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestStateInfoIndexAll", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) BlockHeightToFinalizationQueue(ctx context.Context, in *QueryGetBlockHeightToFinalizationQueueRequest, opts ...grpc.CallOption) (*QueryGetBlockHeightToFinalizationQueueResponse, error) {
-	out := new(QueryGetBlockHeightToFinalizationQueueResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/BlockHeightToFinalizationQueue", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) BlockHeightToFinalizationQueueAll(ctx context.Context, in *QueryAllBlockHeightToFinalizationQueueRequest, opts ...grpc.CallOption) (*QueryAllBlockHeightToFinalizationQueueResponse, error) {
-	out := new(QueryAllBlockHeightToFinalizationQueueResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/BlockHeightToFinalizationQueueAll", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) LatestFinalizedStateInfo(ctx context.Context, in *QueryGetLatestFinalizedStateInfoRequest, opts ...grpc.CallOption) (*QueryGetLatestFinalizedStateInfoResponse, error) {
-	out := new(QueryGetLatestFinalizedStateInfoResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/LatestFinalizedStateInfo", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) GetStateInfoByHeight(ctx context.Context, in *QueryGetStateInfoByHeightRequest, opts ...grpc.CallOption) (*QueryGetStateInfoByHeightResponse, error) {
-	out := new(QueryGetStateInfoByHeightResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Query/GetStateInfoByHeight", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -1316,18 +676,6 @@ type QueryServer interface {
 	StateInfo(context.Context, *QueryGetStateInfoRequest) (*QueryGetStateInfoResponse, error)
 	// Queries a list of StateInfo items.
 	StateInfoAll(context.Context, *QueryAllStateInfoRequest) (*QueryAllStateInfoResponse, error)
-	// Queries a LatestStateInfoIndex by index.
-	LatestStateInfoIndex(context.Context, *QueryGetLatestStateInfoIndexRequest) (*QueryGetLatestStateInfoIndexResponse, error)
-	// Queries a list of LatestStateInfoIndex items.
-	LatestStateInfoIndexAll(context.Context, *QueryAllLatestStateInfoIndexRequest) (*QueryAllLatestStateInfoIndexResponse, error)
-	// Queries a BlockHeightToFinalizationQueue by index.
-	BlockHeightToFinalizationQueue(context.Context, *QueryGetBlockHeightToFinalizationQueueRequest) (*QueryGetBlockHeightToFinalizationQueueResponse, error)
-	// Queries a list of BlockHeightToFinalizationQueue items.
-	BlockHeightToFinalizationQueueAll(context.Context, *QueryAllBlockHeightToFinalizationQueueRequest) (*QueryAllBlockHeightToFinalizationQueueResponse, error)
-	// Queries a list of LatestFinalizedStateInfo items.
-	LatestFinalizedStateInfo(context.Context, *QueryGetLatestFinalizedStateInfoRequest) (*QueryGetLatestFinalizedStateInfoResponse, error)
-	// Queries a list of GetStateInfoByHeight items.
-	GetStateInfoByHeight(context.Context, *QueryGetStateInfoByHeightRequest) (*QueryGetStateInfoByHeightResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1348,24 +696,6 @@ func (*UnimplementedQueryServer) StateInfo(ctx context.Context, req *QueryGetSta
 }
 func (*UnimplementedQueryServer) StateInfoAll(ctx context.Context, req *QueryAllStateInfoRequest) (*QueryAllStateInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StateInfoAll not implemented")
-}
-func (*UnimplementedQueryServer) LatestStateInfoIndex(ctx context.Context, req *QueryGetLatestStateInfoIndexRequest) (*QueryGetLatestStateInfoIndexResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestStateInfoIndex not implemented")
-}
-func (*UnimplementedQueryServer) LatestStateInfoIndexAll(ctx context.Context, req *QueryAllLatestStateInfoIndexRequest) (*QueryAllLatestStateInfoIndexResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestStateInfoIndexAll not implemented")
-}
-func (*UnimplementedQueryServer) BlockHeightToFinalizationQueue(ctx context.Context, req *QueryGetBlockHeightToFinalizationQueueRequest) (*QueryGetBlockHeightToFinalizationQueueResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BlockHeightToFinalizationQueue not implemented")
-}
-func (*UnimplementedQueryServer) BlockHeightToFinalizationQueueAll(ctx context.Context, req *QueryAllBlockHeightToFinalizationQueueRequest) (*QueryAllBlockHeightToFinalizationQueueResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BlockHeightToFinalizationQueueAll not implemented")
-}
-func (*UnimplementedQueryServer) LatestFinalizedStateInfo(ctx context.Context, req *QueryGetLatestFinalizedStateInfoRequest) (*QueryGetLatestFinalizedStateInfoResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestFinalizedStateInfo not implemented")
-}
-func (*UnimplementedQueryServer) GetStateInfoByHeight(ctx context.Context, req *QueryGetStateInfoByHeightRequest) (*QueryGetStateInfoByHeightResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetStateInfoByHeight not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1462,114 +792,6 @@ func _Query_StateInfoAll_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_LatestStateInfoIndex_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetLatestStateInfoIndexRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).LatestStateInfoIndex(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestStateInfoIndex",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).LatestStateInfoIndex(ctx, req.(*QueryGetLatestStateInfoIndexRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_LatestStateInfoIndexAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllLatestStateInfoIndexRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).LatestStateInfoIndexAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestStateInfoIndexAll",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).LatestStateInfoIndexAll(ctx, req.(*QueryAllLatestStateInfoIndexRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_BlockHeightToFinalizationQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetBlockHeightToFinalizationQueueRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).BlockHeightToFinalizationQueue(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/BlockHeightToFinalizationQueue",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).BlockHeightToFinalizationQueue(ctx, req.(*QueryGetBlockHeightToFinalizationQueueRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_BlockHeightToFinalizationQueueAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllBlockHeightToFinalizationQueueRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).BlockHeightToFinalizationQueueAll(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/BlockHeightToFinalizationQueueAll",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).BlockHeightToFinalizationQueueAll(ctx, req.(*QueryAllBlockHeightToFinalizationQueueRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_LatestFinalizedStateInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetLatestFinalizedStateInfoRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).LatestFinalizedStateInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/LatestFinalizedStateInfo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).LatestFinalizedStateInfo(ctx, req.(*QueryGetLatestFinalizedStateInfoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_GetStateInfoByHeight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetStateInfoByHeightRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).GetStateInfoByHeight(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Query/GetStateInfoByHeight",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).GetStateInfoByHeight(ctx, req.(*QueryGetStateInfoByHeightRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.rollapp.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -1593,30 +815,6 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "StateInfoAll",
 			Handler:    _Query_StateInfoAll_Handler,
-		},
-		{
-			MethodName: "LatestStateInfoIndex",
-			Handler:    _Query_LatestStateInfoIndex_Handler,
-		},
-		{
-			MethodName: "LatestStateInfoIndexAll",
-			Handler:    _Query_LatestStateInfoIndexAll_Handler,
-		},
-		{
-			MethodName: "BlockHeightToFinalizationQueue",
-			Handler:    _Query_BlockHeightToFinalizationQueue_Handler,
-		},
-		{
-			MethodName: "BlockHeightToFinalizationQueueAll",
-			Handler:    _Query_BlockHeightToFinalizationQueueAll_Handler,
-		},
-		{
-			MethodName: "LatestFinalizedStateInfo",
-			Handler:    _Query_LatestFinalizedStateInfo_Handler,
-		},
-		{
-			MethodName: "GetStateInfoByHeight",
-			Handler:    _Query_GetStateInfoByHeight_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1729,6 +927,18 @@ func (m *QueryGetRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
+	if m.LatestStatesSummary != nil {
+		{
+			size, err := m.LatestStatesSummary.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	{
 		size, err := m.Rollapp.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -1846,6 +1056,21 @@ func (m *QueryGetStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 	_ = i
 	var l int
 	_ = l
+	if m.Finalized {
+		i--
+		if m.Finalized {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Height != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x18
+	}
 	if m.Index != 0 {
 		i = encodeVarintQuery(dAtA, i, uint64(m.Index))
 		i--
@@ -1924,6 +1149,13 @@ func (m *QueryAllStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
 		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
@@ -1975,429 +1207,6 @@ func (m *QueryAllStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 			dAtA[i] = 0xa
 		}
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetLatestStateInfoIndexRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetLatestStateInfoIndexRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetLatestStateInfoIndexRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetLatestStateInfoIndexResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetLatestStateInfoIndexResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetLatestStateInfoIndexResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.LatestStateInfoIndex.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintQuery(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryAllLatestStateInfoIndexRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryAllLatestStateInfoIndexRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryAllLatestStateInfoIndexRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.LatestStateInfoIndex) > 0 {
-		for iNdEx := len(m.LatestStateInfoIndex) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.LatestStateInfoIndex[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.FinalizationHeight != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.FinalizationHeight))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.BlockHeightToFinalizationQueue.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintQuery(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.BlockHeightToFinalizationQueue) > 0 {
-		for iNdEx := len(m.BlockHeightToFinalizationQueue) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.BlockHeightToFinalizationQueue[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.StateInfo.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintQuery(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetStateInfoByHeightRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetStateInfoByHeightRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetStateInfoByHeightRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Height != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryGetStateInfoByHeightResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryGetStateInfoByHeightResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryGetStateInfoByHeightResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	{
-		size, err := m.StateInfo.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintQuery(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2453,6 +1262,10 @@ func (m *QueryGetRollappResponse) Size() (n int) {
 	_ = l
 	l = m.Rollapp.Size()
 	n += 1 + l + sovQuery(uint64(l))
+	if m.LatestStatesSummary != nil {
+		l = m.LatestStatesSummary.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -2501,6 +1314,12 @@ func (m *QueryGetStateInfoRequest) Size() (n int) {
 	if m.Index != 0 {
 		n += 1 + sovQuery(uint64(m.Index))
 	}
+	if m.Height != 0 {
+		n += 1 + sovQuery(uint64(m.Height))
+	}
+	if m.Finalized {
+		n += 2
+	}
 	return n
 }
 
@@ -2521,6 +1340,10 @@ func (m *QueryAllStateInfoRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	if m.Pagination != nil {
 		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
@@ -2544,168 +1367,6 @@ func (m *QueryAllStateInfoResponse) Size() (n int) {
 		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	return n
-}
-
-func (m *QueryGetLatestStateInfoIndexRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.RollappId)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryGetLatestStateInfoIndexResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.LatestStateInfoIndex.Size()
-	n += 1 + l + sovQuery(uint64(l))
-	return n
-}
-
-func (m *QueryAllLatestStateInfoIndexRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryAllLatestStateInfoIndexResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.LatestStateInfoIndex) > 0 {
-		for _, e := range m.LatestStateInfoIndex {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.FinalizationHeight != 0 {
-		n += 1 + sovQuery(uint64(m.FinalizationHeight))
-	}
-	return n
-}
-
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.BlockHeightToFinalizationQueue.Size()
-	n += 1 + l + sovQuery(uint64(l))
-	return n
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.BlockHeightToFinalizationQueue) > 0 {
-		for _, e := range m.BlockHeightToFinalizationQueue {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryGetLatestFinalizedStateInfoRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.RollappId)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryGetLatestFinalizedStateInfoResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.StateInfo.Size()
-	n += 1 + l + sovQuery(uint64(l))
-	return n
-}
-
-func (m *QueryGetStateInfoByHeightRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.RollappId)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Height != 0 {
-		n += 1 + sovQuery(uint64(m.Height))
-	}
-	return n
-}
-
-func (m *QueryGetStateInfoByHeightResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = m.StateInfo.Size()
-	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -2992,6 +1653,42 @@ func (m *QueryGetRollappResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestStatesSummary", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.LatestStatesSummary == nil {
+				m.LatestStatesSummary = &LatestStatesSummary{}
+			}
+			if err := m.LatestStatesSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -3157,7 +1854,7 @@ func (m *QueryAllRollappResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Rollapp = append(m.Rollapp, Rollapp{})
+			m.Rollapp = append(m.Rollapp, RollappSummary{})
 			if err := m.Rollapp[len(m.Rollapp)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -3299,6 +1996,45 @@ func (m *QueryGetStateInfoRequest) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			m.Height = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Height |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Finalized", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Finalized = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -3434,6 +2170,38 @@ func (m *QueryAllStateInfoRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
 			}
 			var msglen int
@@ -3547,7 +2315,7 @@ func (m *QueryAllStateInfoResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.StateInfo = append(m.StateInfo, StateInfo{})
+			m.StateInfo = append(m.StateInfo, StateInfoSummary{})
 			if err := m.StateInfo[len(m.StateInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -3585,1084 +2353,6 @@ func (m *QueryAllStateInfoResponse) Unmarshal(dAtA []byte) error {
 				m.Pagination = &query.PageResponse{}
 			}
 			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetLatestStateInfoIndexRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetLatestStateInfoIndexRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetLatestStateInfoIndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetLatestStateInfoIndexResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetLatestStateInfoIndexResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetLatestStateInfoIndexResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LatestStateInfoIndex", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.LatestStateInfoIndex.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryAllLatestStateInfoIndexRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllLatestStateInfoIndexRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllLatestStateInfoIndexRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryAllLatestStateInfoIndexResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllLatestStateInfoIndexResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllLatestStateInfoIndexResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LatestStateInfoIndex", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.LatestStateInfoIndex = append(m.LatestStateInfoIndex, StateInfoIndex{})
-			if err := m.LatestStateInfoIndex[len(m.LatestStateInfoIndex)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageResponse{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetBlockHeightToFinalizationQueueRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetBlockHeightToFinalizationQueueRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetBlockHeightToFinalizationQueueRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FinalizationHeight", wireType)
-			}
-			m.FinalizationHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.FinalizationHeight |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetBlockHeightToFinalizationQueueResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetBlockHeightToFinalizationQueueResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetBlockHeightToFinalizationQueueResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockHeightToFinalizationQueue", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.BlockHeightToFinalizationQueue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryAllBlockHeightToFinalizationQueueRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllBlockHeightToFinalizationQueueRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllBlockHeightToFinalizationQueueRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryAllBlockHeightToFinalizationQueueResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllBlockHeightToFinalizationQueueResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllBlockHeightToFinalizationQueueResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockHeightToFinalizationQueue", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.BlockHeightToFinalizationQueue = append(m.BlockHeightToFinalizationQueue, BlockHeightToFinalizationQueue{})
-			if err := m.BlockHeightToFinalizationQueue[len(m.BlockHeightToFinalizationQueue)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageResponse{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetLatestFinalizedStateInfoRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetLatestFinalizedStateInfoRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetLatestFinalizedStateInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetLatestFinalizedStateInfoResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetLatestFinalizedStateInfoResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetLatestFinalizedStateInfoResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StateInfo", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.StateInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetStateInfoByHeightRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetStateInfoByHeightRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetStateInfoByHeightRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGetStateInfoByHeightResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetStateInfoByHeightResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetStateInfoByHeightResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StateInfo", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.StateInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

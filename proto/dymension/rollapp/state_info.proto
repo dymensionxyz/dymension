@@ -48,6 +48,17 @@ message StateInfo {
     BlockDescriptors BDs = 9 [(gogoproto.nullable) = false];
 }
 
+// StateInfoSummary is a compact representation of StateInfo
+message StateInfoSummary {
+    // stateInfoIndex defines what rollapp the state belongs to
+    // and in which index it can be referenced
+    StateInfoIndex stateInfoIndex = 1 [(gogoproto.nullable) = false];
+    // status is the status of the state update
+    StateStatus status = 2;
+    // creationHeight is the height at which the UpdateState took place
+    uint64 creationHeight = 3;
+}
+
 // BlockHeightToFinalizationQueue defines a map from block height to list of states to finalized
 message BlockHeightToFinalizationQueue {
     // finalizationHeight is the block height that the state should be finalized

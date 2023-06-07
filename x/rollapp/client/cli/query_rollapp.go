@@ -11,8 +11,8 @@ import (
 
 func CmdListRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-rollapp",
-		Short: "list all rollapp",
+		Use:   "list",
+		Short: "Query all rollapps currently registered in the hub",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -44,8 +44,8 @@ func CmdListRollapp() *cobra.Command {
 
 func CmdShowRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-rollapp [rollapp-id]",
-		Short: "shows a rollapp",
+		Use:   "show [rollapp-id]",
+		Short: "Query the rollapp associated with the specified rollapp-id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

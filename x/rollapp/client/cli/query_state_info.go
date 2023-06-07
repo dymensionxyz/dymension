@@ -8,21 +8,25 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/spf13/cobra"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
-	FlagRollappId     = "rollapp-id"
 	FlagStateIndex    = "index"
 	FlagRollappHeight = "rollapp-height"
+	FlagFinalized     = "finalized"
 )
 
 func CmdListStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-rollapp-state-info",
-		Short: "list all state_info",
+		Use:   "states [rollapp-id]",
+		Short: "Query all states associated with the specified rollapp-id",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
+			argRollappId := args[0]
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
 				return err
@@ -31,6 +35,7 @@ func CmdListStateInfo() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryAllStateInfoRequest{
+				RollappId:  argRollappId,
 				Pagination: pageReq,
 			}
 
@@ -51,16 +56,15 @@ func CmdListStateInfo() *cobra.Command {
 
 func CmdShowStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("show-rollapp-state-info [%s] [%s|%s]", FlagRollappId, FlagStateIndex, FlagRollappHeight),
-		Short: "shows a state_info by index or by height",
+		Use:   "state [rollapp-id]",
+		Short: "Query the state associated with the specified rollapp-id and any other flags. If no flags are provided, return the latest state.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
+			argRollappId := args[0]
+
 			flagSet := cmd.Flags()
-			argRollappId, err := flagSet.GetString(FlagRollappId)
-			if err != nil {
-				return err
-			}
 			argIndex, err := flagSet.GetUint64(FlagStateIndex)
 			if err != nil {
 				return err
@@ -69,46 +73,33 @@ func CmdShowStateInfo() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			argFinalized, err := flagSet.GetBool(FlagFinalized)
+			if err != nil {
+				return err
+			}
 
+			if (argHeight != 0 && argIndex != 0) || (argHeight != 0 && argFinalized) || (argIndex != 0 && argFinalized) {
+				return status.Error(codes.InvalidArgument, fmt.Sprintf("only one flag can be use for %s, %s or %s", FlagStateIndex, FlagRollappHeight, FlagFinalized))
+			}
+
+			params := &types.QueryGetStateInfoRequest{
+				RollappId: argRollappId,
+				Index:     argIndex,
+				Height:    argHeight,
+				Finalized: argFinalized,
+			}
 			queryClient := types.NewQueryClient(clientCtx)
-
-			byIndex := argIndex != 0
-			byHeight := argHeight != 0
-			if byIndex && byHeight {
-				return fmt.Errorf("only one flag can be use for %s or %s", FlagStateIndex, FlagRollappHeight)
+			res, err := queryClient.StateInfo(context.Background(), params)
+			if err != nil {
+				return err
 			}
-			if byIndex {
-				params := &types.QueryGetStateInfoRequest{RollappId: argRollappId, Index: argIndex}
-
-				res, err := queryClient.StateInfo(context.Background(), params)
-				if err != nil {
-					return err
-				}
-
-				return clientCtx.PrintProto(res)
-			} else if byHeight {
-
-				params := &types.QueryGetStateInfoByHeightRequest{
-
-					RollappId: argRollappId,
-					Height:    argHeight,
-				}
-
-				res, err := queryClient.GetStateInfoByHeight(cmd.Context(), params)
-				if err != nil {
-					return err
-				}
-				return clientCtx.PrintProto(res)
-			} else {
-				return fmt.Errorf("please choose one flag for %s or %s", FlagStateIndex, FlagRollappHeight)
-			}
+			return clientCtx.PrintProto(res)
 		},
 	}
 
-	cmd.Flags().String(FlagRollappId, "", "rollapp-id to query for state-info")
 	cmd.Flags().Uint64(FlagStateIndex, 0, "Use a specific state-index to query state-info at")
 	cmd.Flags().Uint64(FlagRollappHeight, 0, "Use a specific height of the rollapp to query state-info at")
-	_ = cmd.MarkFlagRequired(FlagRollappId)
+	cmd.Flags().Bool(FlagFinalized, false, "Indicates whether to return the latest finalized state")
 
 	flags.AddQueryFlagsToCmd(cmd)
 

@@ -27,7 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Rollapp defines a rollapp object. First the RollApp is created and then
 // sequencers can be created and attached. The RollApp is identified by rollappId
 type Rollapp struct {
-	// rollappId is the unique identifier of the rollapp chain.
+	// The unique identifier of the rollapp chain.
 	// The rollappId follows the same standard as cosmos chain_id.
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	// creator is the bech32-encoded address of the rollapp creator.
@@ -139,36 +139,154 @@ func (m *Rollapp) GetPermissionedAddresses() types.Sequencers {
 	return types.Sequencers{}
 }
 
+// Rollapp summary is a compact representation of Rollapp
+type RollappSummary struct {
+	// The unique identifier of the rollapp chain.
+	// The rollappId follows the same standard as cosmos chain_id.
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	// Contains details about the latest UpdateState and the latest finalized UpdateState of the Rollapp.
+	LatestStatesSummary *LatestStatesSummary `protobuf:"bytes,2,opt,name=latestStatesSummary,proto3" json:"latestStatesSummary,omitempty"`
+}
+
+func (m *RollappSummary) Reset()         { *m = RollappSummary{} }
+func (m *RollappSummary) String() string { return proto.CompactTextString(m) }
+func (*RollappSummary) ProtoMessage()    {}
+func (*RollappSummary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c072320fdc0abd9, []int{1}
+}
+func (m *RollappSummary) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RollappSummary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RollappSummary.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RollappSummary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RollappSummary.Merge(m, src)
+}
+func (m *RollappSummary) XXX_Size() int {
+	return m.Size()
+}
+func (m *RollappSummary) XXX_DiscardUnknown() {
+	xxx_messageInfo_RollappSummary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RollappSummary proto.InternalMessageInfo
+
+func (m *RollappSummary) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *RollappSummary) GetLatestStatesSummary() *LatestStatesSummary {
+	if m != nil {
+		return m.LatestStatesSummary
+	}
+	return nil
+}
+
+// LatestStateIndexes contains details about the latest UpdateState and the latest finalized UpdateState of a Rollapp.
+type LatestStatesSummary struct {
+	// Defines the index of the last rollapp UpdateState.
+	LatestStateIndex uint64 `protobuf:"varint,1,opt,name=latestStateIndex,proto3" json:"latestStateIndex,omitempty"`
+	// Defines the index of the last rollapp UpdateState that was finalized.
+	LatestFinalizedStateIndex uint64 `protobuf:"varint,2,opt,name=latestFinalizedStateIndex,proto3" json:"latestFinalizedStateIndex,omitempty"`
+}
+
+func (m *LatestStatesSummary) Reset()         { *m = LatestStatesSummary{} }
+func (m *LatestStatesSummary) String() string { return proto.CompactTextString(m) }
+func (*LatestStatesSummary) ProtoMessage()    {}
+func (*LatestStatesSummary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c072320fdc0abd9, []int{2}
+}
+func (m *LatestStatesSummary) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LatestStatesSummary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LatestStatesSummary.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LatestStatesSummary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LatestStatesSummary.Merge(m, src)
+}
+func (m *LatestStatesSummary) XXX_Size() int {
+	return m.Size()
+}
+func (m *LatestStatesSummary) XXX_DiscardUnknown() {
+	xxx_messageInfo_LatestStatesSummary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LatestStatesSummary proto.InternalMessageInfo
+
+func (m *LatestStatesSummary) GetLatestStateIndex() uint64 {
+	if m != nil {
+		return m.LatestStateIndex
+	}
+	return 0
+}
+
+func (m *LatestStatesSummary) GetLatestFinalizedStateIndex() uint64 {
+	if m != nil {
+		return m.LatestFinalizedStateIndex
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*Rollapp)(nil), "dymensionxyz.dymension.rollapp.Rollapp")
+	proto.RegisterType((*RollappSummary)(nil), "dymensionxyz.dymension.rollapp.RollappSummary")
+	proto.RegisterType((*LatestStatesSummary)(nil), "dymensionxyz.dymension.rollapp.LatestStatesSummary")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/rollapp.proto", fileDescriptor_2c072320fdc0abd9) }
 
 var fileDescriptor_2c072320fdc0abd9 = []byte{
-	// 341 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0xb1, 0x4e, 0xeb, 0x30,
-	0x14, 0x86, 0xe3, 0xde, 0xde, 0xf6, 0xd6, 0xd5, 0x5d, 0xac, 0x22, 0x59, 0x15, 0x72, 0x03, 0x62,
-	0x28, 0x4b, 0x22, 0xca, 0x13, 0xd0, 0x0d, 0xb1, 0xa0, 0x74, 0x40, 0x62, 0x73, 0xe3, 0xa3, 0x24,
-	0x22, 0x89, 0x83, 0xed, 0xa2, 0x94, 0xa7, 0xe0, 0xb1, 0x3a, 0x76, 0x64, 0x40, 0x08, 0xb5, 0x2f,
-	0x82, 0x92, 0xb4, 0x49, 0x91, 0xca, 0x94, 0xf3, 0xff, 0xff, 0xd1, 0x77, 0xe2, 0x63, 0xe3, 0x91,
-	0x58, 0x26, 0x90, 0xea, 0x48, 0xa6, 0xae, 0x92, 0x71, 0xcc, 0xb3, 0x6c, 0xff, 0x75, 0x32, 0x25,
-	0x8d, 0x24, 0xac, 0x6e, 0xc8, 0x97, 0xaf, 0x4e, 0x2d, 0x9c, 0x5d, 0xd7, 0xf0, 0xac, 0x01, 0xe8,
-	0x90, 0x2b, 0x10, 0xae, 0x86, 0xe7, 0x05, 0xa4, 0x3e, 0x28, 0x5d, 0x21, 0x86, 0x83, 0x40, 0x06,
-	0xb2, 0x2c, 0xdd, 0xa2, 0xaa, 0xdc, 0xf3, 0x8f, 0x16, 0xee, 0x7a, 0x15, 0x84, 0x9c, 0xe2, 0xde,
-	0x8e, 0x77, 0x2b, 0x28, 0xb2, 0xd1, 0xb8, 0xe7, 0x35, 0x06, 0xa1, 0xb8, 0xeb, 0x2b, 0xe0, 0x46,
-	0x2a, 0xda, 0x2a, 0xb3, 0xbd, 0x2c, 0x92, 0x17, 0x50, 0xc5, 0x70, 0xfa, 0xc7, 0x46, 0xe3, 0xb6,
-	0xb7, 0x97, 0x05, 0xd1, 0x97, 0x02, 0x66, 0x86, 0x27, 0x19, 0x6d, 0x57, 0xc4, 0xda, 0x20, 0x36,
-	0xee, 0x07, 0x90, 0x82, 0x8e, 0xf4, 0x3d, 0x37, 0x21, 0xfd, 0x5b, 0xe6, 0x87, 0x16, 0x99, 0xe0,
-	0x41, 0xc2, 0xf3, 0x87, 0xc8, 0x84, 0xa1, 0x8c, 0x45, 0x94, 0x06, 0xd3, 0x58, 0xfa, 0x4f, 0x9a,
-	0x76, 0xca, 0x31, 0x47, 0x33, 0x72, 0x81, 0xff, 0x27, 0x3c, 0x9f, 0xd5, 0xc7, 0xa7, 0xdd, 0xb2,
-	0xf9, 0xa7, 0x49, 0x00, 0x9f, 0x64, 0xa0, 0x92, 0x48, 0x17, 0xff, 0x09, 0xe2, 0x46, 0x08, 0x05,
-	0x5a, 0x83, 0xa6, 0xff, 0x6c, 0x34, 0xee, 0x4f, 0x2e, 0x9d, 0x5f, 0x16, 0x5e, 0x6d, 0xd7, 0x69,
-	0x48, 0xd3, 0xf6, 0xea, 0x73, 0x64, 0x79, 0xc7, 0x69, 0xd3, 0xbb, 0xd5, 0x86, 0xa1, 0xf5, 0x86,
-	0xa1, 0xaf, 0x0d, 0x43, 0x6f, 0x5b, 0x66, 0xad, 0xb7, 0xcc, 0x7a, 0xdf, 0x32, 0xeb, 0xf1, 0x2a,
-	0x88, 0x4c, 0xb8, 0x98, 0x3b, 0xbe, 0x4c, 0xdc, 0xc3, 0x59, 0x8d, 0x70, 0xf3, 0xfa, 0x31, 0x98,
-	0x65, 0x06, 0x7a, 0xde, 0x29, 0xaf, 0xec, 0xfa, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x38, 0x39, 0x49,
-	0xfe, 0x2e, 0x02, 0x00, 0x00,
+	// 430 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0x31, 0x8f, 0xd3, 0x30,
+	0x14, 0xc7, 0xeb, 0x52, 0xae, 0x9c, 0x2b, 0x10, 0xf2, 0x1d, 0x92, 0x39, 0xa1, 0x5c, 0xa9, 0x18,
+	0x0a, 0x83, 0x23, 0x7a, 0x2b, 0x0b, 0x1d, 0x90, 0x4e, 0x30, 0xa0, 0x74, 0x40, 0x62, 0xf3, 0xc5,
+	0x4f, 0x89, 0x45, 0x1c, 0x07, 0xdb, 0x45, 0xe9, 0x2d, 0x7c, 0x05, 0x16, 0xbe, 0xd3, 0x8d, 0x37,
+	0x32, 0x20, 0x84, 0xda, 0x2f, 0x82, 0xe2, 0xb4, 0x69, 0xd0, 0xe5, 0x60, 0x8a, 0xdf, 0xff, 0xfd,
+	0xdf, 0xcf, 0xf6, 0x5f, 0x0e, 0x3e, 0x15, 0x2b, 0x05, 0xb9, 0x95, 0x3a, 0x0f, 0x8d, 0xce, 0x32,
+	0x5e, 0x14, 0xbb, 0x2f, 0x2b, 0x8c, 0x76, 0x9a, 0x04, 0x8d, 0xa1, 0x5c, 0x5d, 0xb2, 0xa6, 0x60,
+	0x5b, 0xd7, 0xc9, 0xd3, 0x3d, 0xc0, 0xa6, 0xdc, 0x80, 0x08, 0x2d, 0x7c, 0x5e, 0x42, 0x1e, 0x83,
+	0xb1, 0x35, 0xe2, 0xe4, 0x38, 0xd1, 0x89, 0xf6, 0xcb, 0xb0, 0x5a, 0xd5, 0xea, 0xe4, 0x67, 0x1f,
+	0x0f, 0xa3, 0x1a, 0x42, 0x9e, 0xe0, 0xc3, 0x2d, 0xef, 0x5c, 0x50, 0x34, 0x46, 0xd3, 0xc3, 0x68,
+	0x2f, 0x10, 0x8a, 0x87, 0xb1, 0x01, 0xee, 0xb4, 0xa1, 0x7d, 0xdf, 0xdb, 0x95, 0x55, 0xe7, 0x0b,
+	0x98, 0x6a, 0x73, 0x7a, 0x67, 0x8c, 0xa6, 0x83, 0x68, 0x57, 0x56, 0xc4, 0x58, 0x0b, 0x58, 0x38,
+	0xae, 0x0a, 0x3a, 0xa8, 0x89, 0x8d, 0x40, 0xc6, 0x78, 0x94, 0x40, 0x0e, 0x56, 0xda, 0xf7, 0xdc,
+	0xa5, 0xf4, 0xae, 0xef, 0xb7, 0x25, 0x32, 0xc3, 0xc7, 0x8a, 0x97, 0x1f, 0xa4, 0x4b, 0x53, 0x9d,
+	0x09, 0x99, 0x27, 0xf3, 0x4c, 0xc7, 0x9f, 0x2c, 0x3d, 0xf0, 0xdb, 0x74, 0xf6, 0xc8, 0x33, 0x7c,
+	0x5f, 0xf1, 0x72, 0xd1, 0x5c, 0x9f, 0x0e, 0xbd, 0xf9, 0x6f, 0x91, 0x00, 0x7e, 0x54, 0x80, 0x51,
+	0xd2, 0x56, 0xe7, 0x04, 0xf1, 0x5a, 0x08, 0x03, 0xd6, 0x82, 0xa5, 0xf7, 0xc6, 0x68, 0x3a, 0x9a,
+	0x3d, 0x67, 0xb7, 0x04, 0x5e, 0xa7, 0xcb, 0xf6, 0xa4, 0xf9, 0xe0, 0xea, 0xd7, 0x69, 0x2f, 0xea,
+	0xa6, 0x4d, 0xbe, 0x23, 0xfc, 0x60, 0x1b, 0xef, 0x62, 0xa9, 0x14, 0x37, 0xab, 0xff, 0xa4, 0x0c,
+	0xf8, 0x28, 0xe3, 0x0e, 0xac, 0x5b, 0xb8, 0xea, 0xb3, 0x1d, 0xf2, 0x89, 0x8f, 0x66, 0x67, 0xec,
+	0xdf, 0xcf, 0x80, 0xbd, 0xbb, 0x39, 0x1a, 0x75, 0xf1, 0x26, 0x5f, 0xf1, 0x51, 0x87, 0x97, 0xbc,
+	0xc0, 0x0f, 0x5b, 0xee, 0xf3, 0x5c, 0x40, 0xe9, 0x8f, 0x38, 0x88, 0x6e, 0xe8, 0xe4, 0x15, 0x7e,
+	0x5c, 0x6b, 0x6f, 0x64, 0xce, 0x33, 0x79, 0x09, 0xa2, 0x35, 0xd4, 0xf7, 0x43, 0xb7, 0x1b, 0xe6,
+	0x6f, 0xaf, 0xd6, 0x01, 0xba, 0x5e, 0x07, 0xe8, 0xf7, 0x3a, 0x40, 0xdf, 0x36, 0x41, 0xef, 0x7a,
+	0x13, 0xf4, 0x7e, 0x6c, 0x82, 0xde, 0xc7, 0x97, 0x89, 0x74, 0xe9, 0xf2, 0x82, 0xc5, 0x5a, 0x85,
+	0xed, 0xeb, 0xee, 0x8b, 0xb0, 0x6c, 0xfe, 0x12, 0xb7, 0x2a, 0xc0, 0x5e, 0x1c, 0xf8, 0xb7, 0x7c,
+	0xf6, 0x27, 0x00, 0x00, 0xff, 0xff, 0x7d, 0x70, 0x1e, 0x91, 0x47, 0x03, 0x00, 0x00,
 }
 
 func (m *Rollapp) Marshal() (dAtA []byte, err error) {
@@ -247,6 +365,81 @@ func (m *Rollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *RollappSummary) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RollappSummary) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RollappSummary) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.LatestStatesSummary != nil {
+		{
+			size, err := m.LatestStatesSummary.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintRollapp(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintRollapp(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LatestStatesSummary) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LatestStatesSummary) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LatestStatesSummary) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.LatestFinalizedStateIndex != 0 {
+		i = encodeVarintRollapp(dAtA, i, uint64(m.LatestFinalizedStateIndex))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.LatestStateIndex != 0 {
+		i = encodeVarintRollapp(dAtA, i, uint64(m.LatestStateIndex))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintRollapp(dAtA []byte, offset int, v uint64) int {
 	offset -= sovRollapp(v)
 	base := offset
@@ -291,6 +484,38 @@ func (m *Rollapp) Size() (n int) {
 	}
 	l = m.PermissionedAddresses.Size()
 	n += 1 + l + sovRollapp(uint64(l))
+	return n
+}
+
+func (m *RollappSummary) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovRollapp(uint64(l))
+	}
+	if m.LatestStatesSummary != nil {
+		l = m.LatestStatesSummary.Size()
+		n += 1 + l + sovRollapp(uint64(l))
+	}
+	return n
+}
+
+func (m *LatestStatesSummary) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.LatestStateIndex != 0 {
+		n += 1 + sovRollapp(uint64(m.LatestStateIndex))
+	}
+	if m.LatestFinalizedStateIndex != 0 {
+		n += 1 + sovRollapp(uint64(m.LatestFinalizedStateIndex))
+	}
 	return n
 }
 
@@ -547,6 +772,212 @@ func (m *Rollapp) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipRollapp(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RollappSummary) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowRollapp
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RollappSummary: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RollappSummary: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRollapp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestStatesSummary", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRollapp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.LatestStatesSummary == nil {
+				m.LatestStatesSummary = &LatestStatesSummary{}
+			}
+			if err := m.LatestStatesSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipRollapp(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthRollapp
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LatestStatesSummary) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowRollapp
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LatestStatesSummary: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LatestStatesSummary: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestStateIndex", wireType)
+			}
+			m.LatestStateIndex = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRollapp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LatestStateIndex |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LatestFinalizedStateIndex", wireType)
+			}
+			m.LatestFinalizedStateIndex = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRollapp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LatestFinalizedStateIndex |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRollapp(dAtA[iNdEx:])

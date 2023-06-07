@@ -37,36 +37,6 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/state_info";
 	}
 
-	// Queries a LatestStateInfoIndex by index.
-	rpc LatestStateInfoIndex(QueryGetLatestStateInfoIndexRequest) returns (QueryGetLatestStateInfoIndexResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_info_index/{rollappId}";
-	}
-
-	// Queries a list of LatestStateInfoIndex items.
-	rpc LatestStateInfoIndexAll(QueryAllLatestStateInfoIndexRequest) returns (QueryAllLatestStateInfoIndexResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_state_info_index";
-	}
-
-	// Queries a BlockHeightToFinalizationQueue by index.
-	rpc BlockHeightToFinalizationQueue(QueryGetBlockHeightToFinalizationQueueRequest) returns (QueryGetBlockHeightToFinalizationQueueResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue/{finalizationHeight}";
-	}
-
-	// Queries a list of BlockHeightToFinalizationQueue items.
-	rpc BlockHeightToFinalizationQueueAll(QueryAllBlockHeightToFinalizationQueueRequest) returns (QueryAllBlockHeightToFinalizationQueueResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/block_height_to_finalization_queue";
-	}
-
-	// Queries a list of LatestFinalizedStateInfo items.
-	rpc LatestFinalizedStateInfo(QueryGetLatestFinalizedStateInfoRequest) returns (QueryGetLatestFinalizedStateInfoResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/latest_finalized_state_info/{rollappId}";
-	}
-
-// Queries a list of GetStateInfoByHeight items.
-	rpc GetStateInfoByHeight(QueryGetStateInfoByHeightRequest) returns (QueryGetStateInfoByHeightResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/get_state_info_by_height/{rollappId}/{height}";
-	}
-
 // this line is used by starport scaffolding # 2
 }
 
@@ -81,11 +51,11 @@ message QueryParamsResponse {
 
 message QueryGetRollappRequest {
 	  string rollappId = 1;
-
 }
 
 message QueryGetRollappResponse {
 	Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	LatestStatesSummary latestStatesSummary = 2;
 }
 
 message QueryAllRollappRequest {
@@ -93,13 +63,15 @@ message QueryAllRollappRequest {
 }
 
 message QueryAllRollappResponse {
-	repeated Rollapp rollapp = 1 [(gogoproto.nullable) = false];
+	repeated RollappSummary rollapp = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetStateInfoRequest {
 	  string rollappId = 1;
 	  uint64 index = 2;
+		uint64 height = 3;
+		bool finalized = 4;
 }
 
 message QueryGetStateInfoResponse {
@@ -107,64 +79,13 @@ message QueryGetStateInfoResponse {
 }
 
 message QueryAllStateInfoRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+	string rollappId = 1;
+	cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryAllStateInfoResponse {
-	repeated StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
+	repeated StateInfoSummary stateInfo = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetLatestStateInfoIndexRequest {
-	  string rollappId = 1;
-
-}
-
-message QueryGetLatestStateInfoIndexResponse {
-	StateInfoIndex latestStateInfoIndex = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllLatestStateInfoIndexRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllLatestStateInfoIndexResponse {
-	repeated StateInfoIndex latestStateInfoIndex = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetBlockHeightToFinalizationQueueRequest {
-	  uint64 finalizationHeight = 1;
-}
-
-message QueryGetBlockHeightToFinalizationQueueResponse {
-	BlockHeightToFinalizationQueue blockHeightToFinalizationQueue = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllBlockHeightToFinalizationQueueRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllBlockHeightToFinalizationQueueResponse {
-	repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueue = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetLatestFinalizedStateInfoRequest {
-	string rollappId = 1;
-}
-
-message QueryGetLatestFinalizedStateInfoResponse {
-	StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryGetStateInfoByHeightRequest {
-  string rollappId = 1;
-  uint64 height = 2;
-}
-
-message QueryGetStateInfoByHeightResponse {
-  StateInfo stateInfo = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3
