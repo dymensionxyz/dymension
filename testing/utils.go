@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	timeoutHeight = clienttypes.NewHeight(1, 100)
+	timeoutHeight = clienttypes.NewHeight(5, 100)
 )
 
 type IrcTestSuite struct {
@@ -60,6 +60,8 @@ func SetupTestingApp(chainConsensusType string) (ibctesting.TestingApp, map[stri
 }
 
 func (suite *IrcTestSuite) SetupTest() {
+	ibctesting.ChainIDPrefix = "dymension_100-"
+
 	// setup the testing app creation callback
 	ibctesting.DefaultTestingAppInit = SetupTestingApp
 	// setup endpoints
