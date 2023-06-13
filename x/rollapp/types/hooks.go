@@ -11,7 +11,7 @@ import (
 
 // RollappHooks event hooks for rollapp object (noalias)
 type RollappHooks interface {
-	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) // Must be called when a rollapp's state changes
+	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error // Must be called when a rollapp's state changes
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -24,8 +24,12 @@ func NewMultiRollappHooks(hooks ...RollappHooks) MultiRollappHooks {
 	return hooks
 }
 
-func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) {
+func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
 	for i := range h {
-		h[i].BeforeUpdateState(ctx, seqAddr, rollappId)
+		err := h[i].BeforeUpdateState(ctx, seqAddr, rollappId)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

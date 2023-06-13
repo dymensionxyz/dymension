@@ -24,7 +24,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// call the before-update-state hook
-	err := k.BeforeUpdateStateRecoverable(ctx, msg.Creator, msg.RollappId)
+	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
 	if err != nil {
 		return nil, err
 	}
