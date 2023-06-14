@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/strangelove-ventures/packet-forward-middleware/v3/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v3/router/types"
 
 	"encoding/json"
 )
@@ -118,7 +118,8 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 	rollapp1bds := &suite.rollapp1.TestChainClient.(*DymintTestChainClient).bds
 	rollapp2bds := &suite.rollapp2.TestChainClient.(*DymintTestChainClient).bds
 
-	amount, ok := sdk.NewIntFromString("1000")
+	// This value used to cause panic in the forward middleware and fail the test
+	amount, ok := sdk.NewIntFromString("9900000000000000000")
 	suite.Require().True(ok)
 
 	//************************************************************************
@@ -133,8 +134,8 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 		suite.rollapp1.SenderAccount.GetAddress().String(),
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		timeoutHeight, 0)
-	nextMetadata := &keeper.PacketMetadata{
-		Forward: &keeper.ForwardMetadata{
+	nextMetadata := &routertypes.PacketMetadata{
+		Forward: &routertypes.ForwardMetadata{
 			Receiver: suite.rollapp2.SenderAccount.GetAddress().String(),
 			Port:     pathRollapp2toHub.EndpointB.ChannelConfig.PortID,
 			Channel:  pathRollapp2toHub.EndpointB.ChannelID,
@@ -225,8 +226,8 @@ func (suite *IrcTestSuite) TestHandleMsgMiddlewareTransfer() {
 		suite.rollapp2.SenderAccount.GetAddress().String(),
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		timeoutHeight, 0)
-	nextMetadata = &keeper.PacketMetadata{
-		Forward: &keeper.ForwardMetadata{
+	nextMetadata = &routertypes.PacketMetadata{
+		Forward: &routertypes.ForwardMetadata{
 			Receiver: suite.rollapp1.SenderAccount.GetAddress().String(),
 			Port:     pathRollapp1toHub.EndpointB.ChannelConfig.PortID,
 			Channel:  pathRollapp1toHub.EndpointB.ChannelID,

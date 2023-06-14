@@ -272,7 +272,7 @@ type App struct {
 	EvidenceKeeper   evidencekeeper.Keeper
 	TransferKeeper   ibctransferkeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
-	RouterKeeper     routerkeeper.Keeper
+	RouterKeeper     *routerkeeper.Keeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -533,16 +533,18 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.DistrKeeper,
 		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
 	)
 
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.TransferKeeper)
-	routerModule := router.NewAppModule(app.RouterKeeper, transferIBCModule, 0,
-		routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp, routerkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+
+	var transferStack ibcporttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = router.NewIBCMiddleware(transferStack, app.RouterKeeper, 0, routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp, routerkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, routerModule)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -576,7 +578,7 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibcModule,
 		params.NewAppModule(app.ParamsKeeper),
-		routerModule,
+		router.NewAppModule(app.RouterKeeper),
 		transferModule,
 		rollappModule,
 		sequencerModule,
@@ -701,7 +703,7 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibcModule,
 		transferModule,
-		routerModule,
+		router.NewAppModule(app.RouterKeeper),
 		rollappModule,
 		sequencerModule,
 		ircModule,
