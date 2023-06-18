@@ -25,6 +25,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -55,7 +56,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithViper("")
 
 	rootCmd := &cobra.Command{
-		Use: app.Name + "d",
+		Use: "dymd",
 		Short: `
 ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    __   __  __   __  _______
 |      | |  | |  ||  |_|  ||       ||  |  | ||       ||   | |       ||  |  | |  |  | |  ||  | |  ||  _    |
@@ -84,7 +85,7 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 			customAppTemplate, customAppConfig := initAppConfig()
 			return sdkserver.InterceptConfigsPreRunHandler(
-				cmd, customAppTemplate, customAppConfig,
+				cmd, customAppTemplate, customAppConfig, tmcfg.DefaultConfig(),
 			)
 		},
 	}

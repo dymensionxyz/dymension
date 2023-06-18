@@ -143,7 +143,7 @@ var (
 
 const (
 	AccountAddressPrefix = "dym"
-	Name                 = "dymd"
+	Name                 = "dymension"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
