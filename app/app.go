@@ -5,13 +5,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sort"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmcrypto "github.com/tendermint/tendermint/crypto/encoding"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -23,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
-	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -36,7 +33,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
@@ -94,22 +90,20 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 
-	"github.com/cosmos/ibc-go/v3/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v3/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v3/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	ibcporttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	ibctransfer "github.com/cosmos/ibc-go/v5/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v5/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v5/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v5/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
 
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params""
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
 	appparams "github.com/dymensionxyz/dymension/app/params"
-	"github.com/dymensionxyz/dymension/docs"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
@@ -122,9 +116,9 @@ import (
 	ircmodulekeeper "github.com/dymensionxyz/dymension/x/irc/keeper"
 	ircmoduletypes "github.com/dymensionxyz/dymension/x/irc/types"
 
-	"github.com/strangelove-ventures/packet-forward-middleware/v3/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v3/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v3/router/types"
+	"github.com/strangelove-ventures/packet-forward-middleware/v5/router"
+	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v5/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v5/router/types"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -133,9 +127,9 @@ import (
 	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
-	evmrest "github.com/evmos/ethermint/x/evm/client/rest"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/x/evm/vm/geth"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -149,7 +143,7 @@ var (
 
 const (
 	AccountAddressPrefix = "dym"
-	Name                 = "dymension"
+	Name                 = "dymd"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -190,7 +184,7 @@ var (
 		staking.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(getGovProposalHandlers()...),
+		gov.NewAppModuleBasic(getGovProposalHandlers()),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -198,7 +192,7 @@ var (
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
-		transfer.AppModuleBasic{},
+		ibctransfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
@@ -391,7 +385,7 @@ func New(
 	)
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(
-		keys[authz.ModuleName], appCodec, app.MsgServiceRouter(),
+		keys[authz.ModuleName], appCodec, app.MsgServiceRouter(), app.AccountKeeper,
 	)
 
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
@@ -434,7 +428,7 @@ func New(
 	app.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
-		tracer,
+		nil, geth.NewEVM, tracer,
 	)
 
 	//--------------- dYmension specific modules
@@ -471,14 +465,13 @@ func New(
 	// ... other modules keepers
 
 	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeperWithSelfClient(
+	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
 		keys[ibchost.StoreKey],
 		app.GetSubspace(ibchost.ModuleName),
 		app.StakingKeeper,
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
-		ibctmtypes.NewSelfClient(),
 	)
 
 	// Register the proposal types
@@ -545,10 +538,10 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 	)
 
-	transferModule := transfer.NewAppModule(app.TransferKeeper)
+	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
+	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
 	transferStack = router.NewIBCMiddleware(transferStack, app.RouterKeeper, 0, routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp, routerkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -578,7 +571,7 @@ func New(
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		crisis.NewAppModule(&app.CrisisKeeper, skipGenesisInvariants),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
@@ -697,13 +690,13 @@ func New(
 	app.mm.RegisterServices(app.configurator)
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts),
+		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
 		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
 		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper),
+		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
@@ -851,17 +844,10 @@ func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
 	return subspace
 }
 
-// SimulationManager implements the SimulationApp interface
-func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
-}
-
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
-	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
-	evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

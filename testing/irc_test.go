@@ -3,12 +3,12 @@ package irctesting
 import (
 	"testing"
 
-	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibctesting "github.com/cosmos/ibc-go/v3/testing"
+	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v3/router/types"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v5/router/types"
 
 	"encoding/json"
 )

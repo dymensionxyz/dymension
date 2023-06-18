@@ -36,12 +36,12 @@ func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 
 		latestTime, err := getLatestBlockTime(clientCtx)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, "Failed to get latest block time")
+			writeErrorResponse(w, http.StatusInternalServerError, "Failed to get latest block time")
 			return
 		}
 
 		if time.Now().UTC().Sub(latestTime).Minutes() > maxNoHeightProgressDuration.Minutes() {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Node is not syncing. Last block time: %s, curr time: %s", latestTime.String(), time.Now().UTC().String()))
+			writeErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("Node is not syncing. Last block time: %s, curr time: %s", latestTime.String(), time.Now().UTC().String()))
 			return
 		}
 
