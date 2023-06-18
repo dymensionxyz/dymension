@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/gorilla/mux"
 )
 
@@ -47,4 +47,21 @@ func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+// errorResponse defines the attributes of a JSON error response.
+type errorResponse struct {
+	Code  int    `json:"code,omitempty"`
+	Error string `json:"error"`
+}
+
+// newErrorResponse creates a new errorResponse instance.
+func newErrorResponse(code int, err string) errorResponse {
+	return errorResponse{Code: code, Error: err}
+}
+
+func writeErrorResponse(w http.ResponseWriter, status int, err string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_, _ = w.Write(legacy.Cdc.MustMarshalJSON(newErrorResponse(0, err)))
 }
