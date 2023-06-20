@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymensionapp "github.com/dymensionxyz/dymension/app"
+	"github.com/dymensionxyz/dymension/app"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
@@ -47,14 +47,14 @@ var (
 type RollappTestSuite struct {
 	suite.Suite
 
-	app         *dymensionapp.App
+	app         *app.App
 	msgServer   types.MsgServer
 	ctx         sdk.Context
 	queryClient types.QueryClient
 }
 
 func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
-	app := dymensionapp.Setup(false)
+	app := app.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())

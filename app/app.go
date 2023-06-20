@@ -100,6 +100,8 @@ import (
 	ibcporttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v5/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
@@ -226,6 +228,7 @@ var (
 var (
 	_ servertypes.Application = (*App)(nil)
 	_ simapp.App              = (*App)(nil)
+	_ ibctesting.TestingApp   = (*App)(nil)
 )
 
 func init() {
@@ -321,7 +324,7 @@ func New(
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
@@ -522,7 +525,7 @@ func New(
 		app.RollappKeeper,
 	)
 
-	// set irc as messahe interceptor
+	// set irc as message interceptor
 	ibcModule := ibc.NewAppModuleWithMsgInterceptor(app.IBCKeeper, app.IRCKeeper)
 	ircModule := ircmodule.NewAppModule(appCodec, app.IRCKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -949,7 +952,7 @@ func (app *App) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
 }
 
 // GetStakingKeeper implements ibctesting.TestingApp
-func (app *App) GetStakingKeeper() stakingkeeper.Keeper {
+func (app *App) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 	return app.StakingKeeper
 }
 

@@ -27,14 +27,13 @@ func (k Keeper) CreateClientValidate(
 	consensusState exported.ConsensusState,
 ) error {
 	// filter only rollapp chains
-
 	if clientState.ClientType() != exported.Dymint {
-		return errors.New(fmt.Sprint("invalid client type", clientState.ClientType()))
+		return errors.New(fmt.Sprint("invalid client type: ", clientState.ClientType()))
 	}
 
 	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
 	if !ok {
-		return errors.New(fmt.Sprint("failed to cast client state", clientState))
+		return errors.New(fmt.Sprint("failed to cast client state: ", clientState))
 	}
 
 	chainID := dymintstate.GetChainID()

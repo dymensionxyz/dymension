@@ -352,7 +352,7 @@ func TestIRCMessageInterceptorDymCHain(t *testing.T) {
 	}
 }
 
-func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
+func TestIRCMessageInterceptorNotDymChain(t *testing.T) {
 	var (
 		rollappKeeper *rollappkeeper.Keeper
 		keeper        *keeper.Keeper
@@ -403,9 +403,6 @@ func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 				TrustedHeight: clienttypes.Height{},
 			}
 
-			// build misbehaviour
-			misbehaviour = ibctmtypes.NewMisbehaviour("clientID", header.(*ibctmtypes.Header), header.(*ibctmtypes.Header))
-
 			// check CreateClientValidate
 			if err := keeper.CreateClientValidate(ctx, clientState, consensusState); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
@@ -427,6 +424,8 @@ func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			// build misbehaviour
+			misbehaviour = ibctmtypes.NewMisbehaviour("clientID", header.(*ibctmtypes.Header), header.(*ibctmtypes.Header))
 			// check SubmitMisbehaviourValidate
 			if err := keeper.SubmitMisbehaviourValidate(ctx, misbehaviour); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
