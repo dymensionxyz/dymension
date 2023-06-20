@@ -76,6 +76,7 @@ func Setup(isCheckTx bool) *App {
 		// Initialize the chain
 		(*simApp).InitChain(
 			abci.RequestInitChain{
+				ChainId:         "dymension_100-1",
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: defaultConsensusParams,
 				AppStateBytes:   stateBytes,

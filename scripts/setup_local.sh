@@ -17,7 +17,7 @@ TENDERMINT_CONFIG_FILE="$CONFIG_DIRECTORY/config.toml"
 CLIENT_CONFIG_FILE="$CONFIG_DIRECTORY/client.toml"
 APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
-CHAIN_ID=${CHAIN_ID:-"local-testnet"}
+CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
 HUB_PEERS=${HUB_PEERS:-""}
@@ -29,8 +29,8 @@ GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
 API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1317"}
 UNSAFE_CORS=${UNSAFE_CORS:-""}
 
-TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000udym"} #1M DYM (1e6dym == 1e12udym)
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000udym"} #67% is staked (inflation goal)
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000udym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24udym )
+STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000udym"} #67% is staked (inflation goal)
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -87,6 +87,7 @@ set_staking_slashing_params
 set_ibc_params
 set_hub_params
 set_misc_params
+set_EVM_params
 
 
 if [ -n "$UNSAFE_CORS" ]; then
