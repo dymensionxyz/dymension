@@ -28,7 +28,7 @@ func (k Keeper) CreateClientValidate(
 ) error {
 	// filter only rollapp chains
 	if clientState.ClientType() != exported.Dymint {
-		return errors.New(fmt.Sprint("invalid client type: ", clientState.ClientType()))
+		return nil
 	}
 
 	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
@@ -78,7 +78,7 @@ func (k Keeper) UpdateClientValidate(
 ) error {
 	// filter only rollapp chains
 	if header.ClientType() != exported.Dymint {
-		return errors.New(fmt.Sprint("invalid client type", header.ClientType()))
+		return nil
 	}
 
 	dymHeader, ok := header.(*ibcdmtypes.Header)
@@ -128,7 +128,7 @@ func (k Keeper) UpgradeClientValidate(
 ) error {
 	// filter only rollapp chains
 	if upgradedClient.ClientType() != exported.Dymint {
-		return errors.New(fmt.Sprint("invalid client type", upgradedClient.ClientType()))
+		return nil
 	}
 
 	dymUpgradedClient, ok := upgradedClient.(*ibcdmtypes.ClientState)
@@ -177,7 +177,7 @@ func (k Keeper) SubmitMisbehaviourValidate(
 ) error {
 	// filter only rollapp chains
 	if misbehaviour.ClientType() != exported.Dymint {
-		return errors.New(fmt.Sprint("invalid client type", misbehaviour.ClientType()))
+		return nil
 	}
 
 	dymMisbehaviour, ok := misbehaviour.(*ibcdmtypes.Misbehaviour)

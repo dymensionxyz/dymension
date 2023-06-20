@@ -354,8 +354,7 @@ func TestIRCMessageInterceptorDymCHain(t *testing.T) {
 
 func TestIRCMessageInterceptorNotDymChain(t *testing.T) {
 	var (
-		rollappKeeper *rollappkeeper.Keeper
-		keeper        *keeper.Keeper
+		keeper *keeper.Keeper
 
 		ctx sdk.Context
 
@@ -374,17 +373,12 @@ func TestIRCMessageInterceptorNotDymChain(t *testing.T) {
 			"valid state", func() {
 			}, nil,
 		},
-		{
-			"client type is not dymint but the chain is a rollapp", func() {
-				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: "chain1"})
-			}, types.ErrInvalidClientType,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			keeper, rollappKeeper, ctx = keepertest.IRCKeeper(t)
+			keeper, _, ctx = keepertest.IRCKeeper(t)
 
 			tt.malleate()
 
