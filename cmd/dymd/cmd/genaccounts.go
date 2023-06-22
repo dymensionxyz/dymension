@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -42,7 +40,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 `,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd).WithKeyringOptions(hd.EthSecp256k1Option())
 			cdc := clientCtx.Codec
 
 			serverCtx := server.GetServerContextFromCmd(cmd)
@@ -55,39 +53,31 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 				return fmt.Errorf("failed to parse coins: %w", err)
 			}
 
+			kr := clientCtx.Keyring
 			addr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
-				inBuf := bufio.NewReader(cmd.InOrStdin())
-				keyringBackend, err := cmd.Flags().GetString(flags.FlagKeyringBackend)
+				info, err := kr.Key(args[0])
+				if err != nil {
+					return fmt.Errorf("failed to get address from Keyring: %w", err)
+				}
+
+				addr, err = info.GetAddress()
 				if err != nil {
 					return err
 				}
-
-				// attempt to lookup address from Keybase if no address was provided
-				kb, err := keyring.New(sdk.KeyringServiceName(), keyringBackend, clientCtx.HomeDir, inBuf, hd.EthSecp256k1Option())
-				if err != nil {
-					return err
-				}
-
-				info, err := kb.Key(args[0])
-				if err != nil {
-					return fmt.Errorf("failed to get address from Keybase: %w", err)
-				}
-
-				addr = info.GetAddress()
 			}
 
 			vestingStart, err := cmd.Flags().GetInt64(flagVestingStart)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse vesting start: %w", err)
 			}
 			vestingEnd, err := cmd.Flags().GetInt64(flagVestingEnd)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse vesting end: %w", err)
 			}
 			vestingAmtStr, err := cmd.Flags().GetString(flagVestingAmt)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to parse vesting amount: %w", err)
 			}
 
 			vestingAmt, err := sdk.ParseCoinsNormalized(vestingAmtStr)

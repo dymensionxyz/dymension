@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	ibc "github.com/cosmos/ibc-go/v3/modules/core"
+	ibc "github.com/cosmos/ibc-go/v5/modules/core"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 

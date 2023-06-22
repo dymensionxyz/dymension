@@ -20,7 +20,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
-	ibc "github.com/cosmos/ibc-go/v3/modules/core/types"
+	ibc "github.com/cosmos/ibc-go/v5/modules/core/types"
 )
 
 func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context) {

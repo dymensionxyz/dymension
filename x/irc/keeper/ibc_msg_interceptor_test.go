@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v3/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/07-tendermint/types"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibcdmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/01-dymint/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -352,10 +352,9 @@ func TestIRCMessageInterceptorDymCHain(t *testing.T) {
 	}
 }
 
-func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
+func TestIRCMessageInterceptorNotDymChain(t *testing.T) {
 	var (
-		rollappKeeper *rollappkeeper.Keeper
-		keeper        *keeper.Keeper
+		keeper *keeper.Keeper
 
 		ctx sdk.Context
 
@@ -374,17 +373,12 @@ func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 			"valid state", func() {
 			}, nil,
 		},
-		{
-			"client type is not dymint but the chain is a rollapp", func() {
-				rollappKeeper.SetRollapp(ctx, types.Rollapp{RollappId: "chain1"})
-			}, types.ErrInvalidClientType,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			keeper, rollappKeeper, ctx = keepertest.IRCKeeper(t)
+			keeper, _, ctx = keepertest.IRCKeeper(t)
 
 			tt.malleate()
 
@@ -402,9 +396,6 @@ func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 				},
 				TrustedHeight: clienttypes.Height{},
 			}
-
-			// build misbehaviour
-			misbehaviour = ibctmtypes.NewMisbehaviour("clientID", header.(*ibctmtypes.Header), header.(*ibctmtypes.Header))
 
 			// check CreateClientValidate
 			if err := keeper.CreateClientValidate(ctx, clientState, consensusState); tt.err != nil {
@@ -427,6 +418,8 @@ func TestIRCMessageInterceptorNotDymCHain(t *testing.T) {
 				require.NoError(t, err)
 			}
 
+			// build misbehaviour
+			misbehaviour = ibctmtypes.NewMisbehaviour("clientID", header.(*ibctmtypes.Header), header.(*ibctmtypes.Header))
 			// check SubmitMisbehaviourValidate
 			if err := keeper.SubmitMisbehaviourValidate(ctx, misbehaviour); tt.err != nil {
 				require.ErrorIs(t, err, tt.err)

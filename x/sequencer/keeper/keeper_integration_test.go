@@ -6,7 +6,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	dymensionapp "github.com/dymensionxyz/dymension/app"
+	"github.com/dymensionxyz/dymension/app"
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
@@ -54,7 +54,7 @@ var (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	app         *dymensionapp.App
+	app         *app.App
 	msgServer   types.MsgServer
 	ctx         sdk.Context
 	queryClient types.QueryClient
@@ -65,7 +65,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *IntegrationTestSuite) SetupTest() {
-	app := dymensionapp.Setup(false)
+	app := app.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())

@@ -30,7 +30,7 @@ set_ibc_params() {
 
 set_hub_params() {
     echo "setting hub params"
-    jq '.app_state.rollapp.params.dispute_period_in_blocks = "60"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.rollapp.params.dispute_period_in_blocks = "2"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_staking_slashing_params() {

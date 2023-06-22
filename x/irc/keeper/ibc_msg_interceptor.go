@@ -3,16 +3,18 @@ package keeper
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	ibc "github.com/cosmos/ibc-go/v3/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v3/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v3/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v3/modules/core/exported"
-	ibcdmtypes "github.com/cosmos/ibc-go/v3/modules/light-clients/01-dymint/types"
+	ibc "github.com/cosmos/ibc-go/v5/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v5/modules/core/exported"
+	ibcdmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/01-dymint/types"
 
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
@@ -25,7 +27,16 @@ func (k Keeper) CreateClientValidate(
 	consensusState exported.ConsensusState,
 ) error {
 	// filter only rollapp chains
-	chainID := clientState.GetChainID()
+	if clientState.ClientType() != exported.Dymint {
+		return nil
+	}
+
+	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
+	if !ok {
+		return errors.New(fmt.Sprint("failed to cast client state: ", clientState))
+	}
+
+	chainID := dymintstate.GetChainID()
 	if isDymint, err := k.isRollappChain(ctx, clientState.ClientType(), chainID); !isDymint || err != nil {
 		return err
 	}
@@ -66,11 +77,20 @@ func (k Keeper) UpdateClientValidate(
 	header exported.Header,
 ) error {
 	// filter only rollapp chains
-	chainID := header.GetChainID()
+	if header.ClientType() != exported.Dymint {
+		return nil
+	}
+
+	dymHeader, ok := header.(*ibcdmtypes.Header)
+	if !ok {
+		return errors.New(fmt.Sprint("failed to cast header", header))
+	}
+
+	chainID := dymHeader.GetChainID()
 	if isDymint, err := k.isRollappChain(ctx, header.ClientType(), chainID); !isDymint || err != nil {
 		return err
 	}
-	dymHeader := header.(*ibcdmtypes.Header)
+
 	// get application stateRoot
 	stateRoot := dymHeader.Header.GetAppHash()
 	// get height
@@ -107,7 +127,16 @@ func (k Keeper) UpgradeClientValidate(
 	proofUpgradeConsState []byte,
 ) error {
 	// filter only rollapp chains
-	chainID := upgradedClient.GetChainID()
+	if upgradedClient.ClientType() != exported.Dymint {
+		return nil
+	}
+
+	dymUpgradedClient, ok := upgradedClient.(*ibcdmtypes.ClientState)
+	if !ok {
+		return errors.New(fmt.Sprint("failed to cast upgradedClient", upgradedClient))
+	}
+
+	chainID := dymUpgradedClient.GetChainID()
 	if isDymint, err := k.isRollappChain(ctx, upgradedClient.ClientType(), chainID); !isDymint || err != nil {
 		return err
 	}
@@ -147,7 +176,16 @@ func (k Keeper) SubmitMisbehaviourValidate(
 	misbehaviour exported.Misbehaviour,
 ) error {
 	// filter only rollapp chains
-	chainID := misbehaviour.GetChainID()
+	if misbehaviour.ClientType() != exported.Dymint {
+		return nil
+	}
+
+	dymMisbehaviour, ok := misbehaviour.(*ibcdmtypes.Misbehaviour)
+	if !ok {
+		return errors.New(fmt.Sprint("failed to cast misbehaviour", misbehaviour))
+	}
+
+	chainID := dymMisbehaviour.GetChainID()
 	if isDymint, err := k.isRollappChain(ctx, misbehaviour.ClientType(), chainID); !isDymint || err != nil {
 		return err
 	}
