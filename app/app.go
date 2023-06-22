@@ -124,6 +124,7 @@ import (
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
+	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 
 	ethante "github.com/evmos/ethermint/app/ante"
@@ -323,6 +324,13 @@ func New(
 	appCodec := encodingConfig.Codec
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
+
+	eip712.SetEncodingConfig(simappparams.EncodingConfig{
+		InterfaceRegistry: interfaceRegistry,
+		Codec:             appCodec,
+		TxConfig:          encodingConfig.TxConfig,
+		Amino:             encodingConfig.Amino,
+	})
 
 	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
