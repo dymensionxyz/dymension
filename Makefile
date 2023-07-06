@@ -87,8 +87,10 @@ endif
 
 all: install
 
+.PHONY: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/dymd
 
-build:
-	go build $(BUILD_FLAGS) -o bin/dymd ./cmd/dymd
+.PHONY: build
+build: go.sum
+	go build $(BUILD_FLAGS) -o build/dymd ./cmd/dymd
