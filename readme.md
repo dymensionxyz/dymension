@@ -10,9 +10,9 @@
 
 ## Overview
 
-Welcome to Dymension Hub, the **Settlement Layer of the Dymension protocol**. 
+Welcome to the Dymension Hub, the **Settlement Layer of the Dymension protocol**. 
 
-This guide will walk you through the steps required to set up and run a Dymension full node.
+This guide will walk you through the steps required to set up and run a Dymension Hub full node.
 
 ## Table of Contents
 
@@ -23,7 +23,6 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Installation](#installation)
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
-- [](#)
 
 ## Prerequisites
 
@@ -92,6 +91,5 @@ dymd start
 
 You should have a running local node!
 
-#
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
