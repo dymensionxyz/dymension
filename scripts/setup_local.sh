@@ -20,14 +20,16 @@ GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
-HUB_PEERS=${HUB_PEERS:-""}
 
+
+# Setting non-default ports to avoid port conflicts when running local rollapp
 SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
 P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
 GRPC_ADDRESS=${GRPC_ADDRESS:-"0.0.0.0:8090"}
 GRPC_WEB_ADDRESS=${GRPC_WEB_ADDRESS:-"0.0.0.0:8091"}
 API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
-UNSAFE_CORS=${UNSAFE_CORS:-""}
+JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
+JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
 TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000udym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24udym )
 STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000udym"} #67% is staked (inflation goal)
@@ -57,28 +59,29 @@ fi
 
 # Create and init dymension chain
 dymd init "$MONIKER_NAME" --chain-id="$CHAIN_ID"
-dymd tendermint unsafe-reset-all
 
 # ---------------------------------------------------------------------------- #
 #                              Set configurations                              #
 # ---------------------------------------------------------------------------- #
 sed -i'' -e "/\[rpc\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$SETTLEMENT_ADDR\"/" "$TENDERMINT_CONFIG_FILE"
 sed -i'' -e "/\[p2p\]/,+3 s/laddr *= .*/laddr = \"tcp:\/\/$P2P_ADDRESS\"/" "$TENDERMINT_CONFIG_FILE"
-if [ -n "$HUB_PEERS" ]; then
-  sed  -i '' -e "s/^persistent_peers =.*/persistent_peers = \"$HUB_PEERS\"/" "$TENDERMINT_CONFIG_FILE"
-fi
 
 sed -i'' -e "/\[grpc\]/,+6 s/address *= .*/address = \"$GRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
 sed -i'' -e "/\[grpc-web\]/,+7 s/address *= .*/address = \"$GRPC_WEB_ADDRESS\"/" "$APP_CONFIG_FILE"
-sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
+sed -i'' -e "/\[[json-rpc]\]/,+6 s/address *= .*/address = \"$JSONRPC_ADDRESS\"/" "$APP_CONFIG_FILE"
+sed -i'' -e "/\[[json-rpc]\]/,+9 s/address *= .*/address = \"$JSONRPC_WS_ADDRESS\"/" "$APP_CONFIG_FILE"
+sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
+sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
+sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0udym"/' "$APP_CONFIG_FILE"
+
+sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
+sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"test\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e "s/^node *= .*/node = \"tcp:\/\/$SETTLEMENT_ADDR\"/" "$CLIENT_CONFIG_FILE"
+
 sed -i'' -e 's/bond_denom": ".*"/bond_denom": "udym"/' "$GENESIS_FILE"
 sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
 
-sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "0udym"/' "$APP_CONFIG_FILE"
-sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
-sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
 set_distribution_params
 set_gov_params
@@ -89,15 +92,6 @@ set_hub_params
 set_misc_params
 set_EVM_params
 
-
-if [ -n "$UNSAFE_CORS" ]; then
-  echo "Setting CORS"
-  sed -ie 's/enabled-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
-  sed -ie 's/enable-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
-  sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
-fi
-
-
 echo "Enable monitoring? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
@@ -105,20 +99,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 
-
 dymd keys add "$KEY_NAME" --keyring-backend test
-
-if [ "$HUB_PEERS" != "" ]; then
-  printf "\n======================================================================================================\n"
-  echo "To join existing chain, copy the genesis file to $GENESIS_FILE"
-  echo "To run a validator, run set_validator.sh after the node synced"
-fi
-
-echo "Do you want to initialize genesis accounts? (Y/n) "
-read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
-  dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-  dymd collect-gentxs
-fi
-
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+dymd collect-gentxs
