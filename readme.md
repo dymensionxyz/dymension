@@ -1,6 +1,6 @@
 # Dymension Hub
 
-<img src="docs/dymension.png" alt="banner" width="830"/>
+![image](./docs/dymension.png)
 
 ![license](https://img.shields.io/github/license/dymensionxyz/dymension)
 ![Go](https://img.shields.io/badge/go-1.18-blue.svg)
@@ -10,7 +10,7 @@
 
 ## Overview
 
-Welcome to the Dymension Hub, the **Settlement Layer of the Dymension protocol**. 
+Welcome to the Dymension Hub, the **Settlement Layer of the Dymension protocol**.
 
 This guide will walk you through the steps required to set up and run a Dymension Hub full node.
 
@@ -53,16 +53,16 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 ## Initializing `dymd`
 
-  - Using the setup script:
- 
+- Using the setup script:
+
     This method is preffered as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
 
     ```sh
     bash scripts/setup_local.sh
     ```
 
-  - Manually:
-     
+- Manually:
+
     First, set the following environment variables:
 
     ```sh
@@ -90,6 +90,5 @@ dymd start
 ```
 
 You should have a running local node!
-
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
