@@ -86,8 +86,10 @@ export PATH=$PATH:$(go env GOPATH)/bin
 Now start the chain!
 
 ```sh
-dymd start
+dymd start --json-rpc.address "0.0.0.0:9545" --json-rpc.ws-address "0.0.0.0:9546"
 ```
+> **Note:** We are using ports 9545 and 9546 instead of the default ports to prevent conflicts with the local Rollapp.
+
 
 You should have a running local node!
 
