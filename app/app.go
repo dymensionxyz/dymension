@@ -245,7 +245,7 @@ func init() {
 	var BaseDenomUnit int64 = 18
 	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
 
-	var TokensToStake int64 = 1000000 //1M DYM minimal stake
+	var TokensToStake int64 = 100000 //100K DYM minimal stake
 	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
 
 }
