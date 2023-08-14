@@ -2,9 +2,12 @@ package app
 
 import (
 	"io"
+	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -125,7 +128,6 @@ import (
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/evmos/ethermint/ethereum/eip712"
-	ethermint "github.com/evmos/ethermint/types"
 
 	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/evmos/ethermint/server/flags"
@@ -240,7 +242,12 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
 
-	sdk.DefaultPowerReduction = ethermint.PowerReduction
+	var BaseDenomUnit int64 = 18
+	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
+
+	var TokensToStake int64 = 1000000 //1M DYM minimal stake
+	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
+
 }
 
 func isSimulation() bool {
