@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -57,7 +56,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			}
 
 			traceWriterFile := serverCtx.Viper.GetString(FlagTraceStore)
-			traceWriter, err := openTraceWriter(traceWriterFile)
+			traceWriter, err := openTraceWriter(filepath.Clean(traceWriterFile))
 			if err != nil {
 				return err
 			}
@@ -110,7 +109,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			// Get list of subdirectories
 			fmt.Println("\n\nGetting storage on disk...")
 			dataDir := filepath.Join(config.RootDir, "data")
-			directories, err := ioutil.ReadDir(dataDir)
+			directories, err := os.ReadDir(dataDir)
 			if err != nil {
 				return fmt.Errorf("Error reading directory: %v", err)
 			}
