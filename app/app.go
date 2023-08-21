@@ -141,11 +141,10 @@ import (
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
-	"github.com/tendermint/liquidity/x/liquidity"
-	liquiditykeeper "github.com/tendermint/liquidity/x/liquidity/keeper"
-	liquiditytypes "github.com/tendermint/liquidity/x/liquidity/types"
-
-	_ "github.com/tendermint/liquidity/client/docs/statik"
+	"github.com/dymensionxyz/dymension/x/liquidity"
+	liquiditykeeper "github.com/dymensionxyz/dymension/x/liquidity/keeper"
+	liquiditytypes "github.com/dymensionxyz/dymension/x/liquidity/types"
+	// _ "github.com/tendermint/liquidity/client/docs/statik"
 )
 
 var (
