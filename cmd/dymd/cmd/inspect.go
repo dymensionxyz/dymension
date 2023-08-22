@@ -56,7 +56,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			}
 
 			traceWriterFile := serverCtx.Viper.GetString(FlagTraceStore)
-			traceWriter, err := openTraceWriter(filepath.Clean(traceWriterFile))
+			traceWriter, err := openTraceWriter(traceWriterFile)
 			if err != nil {
 				return err
 			}
@@ -160,7 +160,8 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 	if traceWriterFile == "" {
 		return
 	}
-	// #nosec G302
+
+	// #nosec G302 G304
 	return os.OpenFile(
 		traceWriterFile,
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
