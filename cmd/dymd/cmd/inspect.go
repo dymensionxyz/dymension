@@ -160,9 +160,10 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 	if traceWriterFile == "" {
 		return
 	}
+	// #nosec G302
 	return os.OpenFile(
 		traceWriterFile,
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
-		0o666,
+		0o644,
 	)
 }
