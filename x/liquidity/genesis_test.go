@@ -3,7 +3,6 @@ package liquidity_test
 import (
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -14,17 +13,14 @@ import (
 )
 
 func TestGenesisState(t *testing.T) {
-	cdc := codec.NewLegacyAmino()
-	types.RegisterLegacyAminoCodec(cdc)
 	simapp := app.Setup(t, false)
-
 	ctx := simapp.BaseApp.NewContext(false, tmproto.Header{})
-	genesis := types.DefaultGenesisState()
 
+	genesis := types.DefaultGenesisState()
 	liquidity.InitGenesis(ctx, simapp.LiquidityKeeper, *genesis)
 
 	defaultGenesisExported := liquidity.ExportGenesis(ctx, simapp.LiquidityKeeper)
-
+	require.NotNil(t, defaultGenesisExported)
 	require.Equal(t, genesis, defaultGenesisExported)
 
 	// define test denom X, Y for Liquidity Pool
@@ -59,7 +55,7 @@ func TestGenesisState(t *testing.T) {
 	genesisExported := liquidity.ExportGenesis(ctx, simapp.LiquidityKeeper)
 	bankGenesisExported := simapp.BankKeeper.ExportGenesis(ctx)
 
-	simapp2 := app.Setup(false)
+	simapp2 := app.Setup(t, false)
 
 	ctx2 := simapp2.BaseApp.NewContext(false, tmproto.Header{})
 	ctx2 = ctx2.WithBlockHeight(1)

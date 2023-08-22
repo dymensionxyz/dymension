@@ -31,7 +31,7 @@ func TestSimulationSwapExecutionFindEdgeCase(t *testing.T) {
 
 		// set pool creator account, balance for deposit
 		addrs := app.AddTestAddrs(simapp, ctx, 3, params.PoolCreationFee)
-		app.SaveAccount(simapp, ctx, addrs[0], deposit) // pool creator
+		// app.SaveAccount(simapp, ctx, addrs[0], deposit) // pool creator
 		depositA := simapp.BankKeeper.GetBalance(ctx, addrs[0], denomX)
 		depositB := simapp.BankKeeper.GetBalance(ctx, addrs[0], denomY)
 		depositBalance := sdk.NewCoins(depositA, depositB)
@@ -69,7 +69,7 @@ func TestSwapExecution(t *testing.T) {
 
 		// set pool creator account, balance for deposit
 		addrs := app.AddTestAddrs(simapp, ctx, 3, params.PoolCreationFee)
-		app.SaveAccount(simapp, ctx, addrs[0], deposit) // pool creator
+		// app.SaveAccount(simapp, ctx, addrs[0], deposit) // pool creator
 		depositA := simapp.BankKeeper.GetBalance(ctx, addrs[0], denomX)
 		depositB := simapp.BankKeeper.GetBalance(ctx, addrs[0], denomY)
 		depositBalance := sdk.NewCoins(depositA, depositB)
@@ -103,13 +103,13 @@ func TestSwapExecution(t *testing.T) {
 		sellerAddrs := app.AddTestAddrsIncremental(simapp, ctx, len(yToX), sdk.NewInt(0))
 
 		for i, msg := range xToY {
-			app.SaveAccountWithFee(simapp, ctx, buyerAddrs[i], sdk.NewCoins(msg.OfferCoin), msg.OfferCoin)
+			// app.SaveAccountWithFee(simapp, ctx, buyerAddrs[i], sdk.NewCoins(msg.OfferCoin), msg.OfferCoin)
 			msg.SwapRequesterAddress = buyerAddrs[i].String()
 			msg.PoolId = poolID
 			msg.OfferCoinFee = types.GetOfferCoinFee(msg.OfferCoin, params.SwapFeeRate)
 		}
 		for i, msg := range yToX {
-			app.SaveAccountWithFee(simapp, ctx, sellerAddrs[i], sdk.NewCoins(msg.OfferCoin), msg.OfferCoin)
+			// app.SaveAccountWithFee(simapp, ctx, sellerAddrs[i], sdk.NewCoins(msg.OfferCoin), msg.OfferCoin)
 			msg.SwapRequesterAddress = sellerAddrs[i].String()
 			msg.PoolId = poolID
 			msg.OfferCoinFee = types.GetOfferCoinFee(msg.OfferCoin, params.SwapFeeRate)

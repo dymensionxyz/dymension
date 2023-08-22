@@ -12,7 +12,7 @@ import (
 
 // createTestInput Returns a simapp with custom LiquidityKeeper
 // to avoid messing with the hooks.
-func createTestInput() (*app.LiquidityApp, sdk.Context) {
+func createTestInput() (*app.App, sdk.Context) {
 	return app.CreateTestInput()
 }
 
