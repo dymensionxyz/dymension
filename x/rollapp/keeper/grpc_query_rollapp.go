@@ -76,3 +76,30 @@ func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*
 
 	return rollappResponse, nil
 }
+
+func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByEIP155Request) (*types.QueryGetRollappResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	val, found := k.GetRollappByEIP155(
+		ctx,
+		req.Eip255,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "not found")
+	}
+
+	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestStateIndex = &latestStateInfoIndex
+	}
+	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+	}
+
+	return rollappResponse, nil
+}

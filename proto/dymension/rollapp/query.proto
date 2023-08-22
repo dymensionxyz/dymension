@@ -13,13 +13,18 @@ option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  // Parameters queries the parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/params";
-  }
-  // Queries a Rollapp by index.
+	// Parameters queries the parameters of the module.
+	rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/params";
+	}
+  	// Queries a Rollapp by index.
 	rpc Rollapp(QueryGetRollappRequest) returns (QueryGetRollappResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp/{rollappId}";
+	}
+
+	// Queries a Rollapp by index.
+	rpc RollappByEIP155(QueryGetRollappByEIP155Request) returns (QueryGetRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/eip155/{eip155}";
 	}
 
 	// Queries a list of Rollapp items.
@@ -56,6 +61,10 @@ message QueryParamsResponse {
 
 message QueryGetRollappRequest {
 	  string rollappId = 1;
+}
+
+message QueryGetRollappByEIP155Request {
+	uint64 eip155 = 1;
 }
 
 message QueryGetLatestStateIndexRequest {
