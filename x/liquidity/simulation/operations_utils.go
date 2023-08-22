@@ -89,27 +89,6 @@ func randomOrderPrice(r *rand.Rand) sdk.Dec {
 	return sdk.NewDecWithPrec(int64(simtypes.RandIntBetween(r, 1, 1e2)), 2)
 }
 
-// randomFees returns a random amount of bond denom fee and
-// if the user doesn't have enough funds for paying fees, it returns empty coins.
-func randomFees(r *rand.Rand, spendableCoins sdk.Coins) (sdk.Coins, error) {
-	if spendableCoins.Empty() {
-		return nil, nil
-	}
-
-	if spendableCoins.AmountOf(sdk.DefaultBondDenom).Equal(sdk.ZeroInt()) {
-		return nil, nil
-	}
-
-	amt, err := simtypes.RandPositiveInt(r, spendableCoins.AmountOf(sdk.DefaultBondDenom))
-	if err != nil {
-		return nil, err
-	}
-
-	fees := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amt))
-
-	return fees, nil
-}
-
 // randomDenoms returns randomly generated two different denoms that has a length anywhere between 4 and 6.
 func randomDenoms(r *rand.Rand) (string, string) {
 	denomA := simtypes.RandStringOfLength(r, simtypes.RandIntBetween(r, 4, 6))

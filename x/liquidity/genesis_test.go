@@ -16,7 +16,7 @@ import (
 func TestGenesisState(t *testing.T) {
 	cdc := codec.NewLegacyAmino()
 	types.RegisterLegacyAminoCodec(cdc)
-	simapp := app.Setup(false)
+	simapp := app.Setup(t, false)
 
 	ctx := simapp.BaseApp.NewContext(false, tmproto.Header{})
 	genesis := types.DefaultGenesisState()

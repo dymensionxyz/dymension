@@ -3,49 +3,16 @@ package testutil
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
-	"github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	paramscli "github.com/cosmos/cosmos-sdk/x/params/client/cli"
 
-	liquidityapp "github.com/dymensionxyz/dymension/app"
 	liquiditycli "github.com/dymensionxyz/dymension/x/liquidity/client/cli"
-
-	dbm "github.com/tendermint/tm-db"
 )
-
-// NewConfig returns config that defines the necessary testing requirements
-// used to bootstrap and start an in-process local testing network.
-func NewConfig(dbm *dbm.MemDB) network.Config {
-	encCfg := simapp.MakeTestEncodingConfig()
-
-	cfg := network.DefaultConfig()
-	cfg.AppConstructor = NewAppConstructor(encCfg, dbm)                    // the ABCI application constructor
-	cfg.GenesisState = liquidityapp.ModuleBasics.DefaultGenesis(cfg.Codec) // liquidity genesis state to provide
-	return cfg
-}
-
-// NewAppConstructor returns a new network AppConstructor.
-func NewAppConstructor(encodingCfg params.EncodingConfig, db *dbm.MemDB) network.AppConstructor {
-	return func(val network.Validator) servertypes.Application {
-		return liquidityapp.NewLiquidityApp(
-			val.Ctx.Logger, db, nil, true, make(map[int64]bool), val.Ctx.Config.RootDir, 0,
-			liquidityapp.MakeEncodingConfig(),
-			simapp.EmptyAppOptions{},
-			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
-		)
-	}
-}
 
 var commonArgs = []string{
 	fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),

@@ -63,6 +63,8 @@ func (s *IntegrationTestSuite) SetupTest() {
 
 	db := tmdb.NewMemDB()
 
+	//chasnge to
+	//DefaultConfig() network.Config
 	cfg := liquiditytestutil.NewConfig(db)
 	cfg.NumValidators = 1
 
