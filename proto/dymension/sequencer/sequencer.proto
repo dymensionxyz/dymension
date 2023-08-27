@@ -16,7 +16,7 @@ message Sequencer {
   // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
   google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
   // rollappId defines the rollapp to which the sequencer belongs.
-  string rollappId = 3;
+  repeated string rollappIDs = 3;
   // description defines the descriptive terms for the sequencer.
   Description description = 4 [(gogoproto.nullable) = false];
 }
