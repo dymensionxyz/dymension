@@ -13,6 +13,36 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store.Set(types.RollappKey(
 		rollapp.RollappId,
 	), b)
+
+	// check if chain-id is EVM compatible
+	eip155, err := types.ParseChainID(rollapp.RollappId)
+	if err != nil || eip155 == nil {
+		return
+	}
+
+	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
+	b = k.cdc.MustMarshal(&rollapp)
+	store.Set(types.RollappByEIP155Key(
+		eip155.Uint64(),
+	), b)
+}
+
+// GetRollappByEIP155 returns a rollapp from its index
+func (k Keeper) GetRollappByEIP155(
+	ctx sdk.Context,
+	eip155 uint64,
+) (val types.Rollapp, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
+
+	b := store.Get(types.RollappByEIP155Key(
+		eip155,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
 }
 
 // GetRollapp returns a rollapp from its index
