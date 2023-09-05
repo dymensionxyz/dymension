@@ -103,3 +103,31 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 
 	return rollappResponse, nil
 }
+
+func (k Keeper) RollappByIBCChannel(c context.Context, req *types.QueryGetRollappByIBCChannelRequest) (*types.QueryGetRollappResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	val, found := k.GetRollappByIBCChannel(
+		ctx,
+		req.PortID,
+		req.ChannelID,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "not found")
+	}
+
+	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestStateIndex = &latestStateInfoIndex
+	}
+	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+	}
+
+	return rollappResponse, nil
+}

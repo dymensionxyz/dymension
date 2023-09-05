@@ -45,7 +45,7 @@ func CmdCreateRollapp() *cobra.Command {
 				argRollappId,
 				argMaxSequencers,
 				argPermissionedAddresses,
-				[]types.Metadata{},
+				[]types.TokenMetadata{},
 			//TODO: add
 			)
 			if err := msg.ValidateBasic(); err != nil {
