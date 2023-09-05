@@ -12,9 +12,8 @@ import "gogoproto/gogo.proto";
 
 // Msg defines the Msg service.
 service Msg {
-      rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-// this line is used by starport scaffolding # proto/tx/rpc
 }
 
 // ===================== MsgCreateRollapp
@@ -63,5 +62,3 @@ message MsgUpdateState {
 
 message MsgUpdateStateResponse {
 }
-
-// this line is used by starport scaffolding # proto/tx/message

@@ -8,8 +8,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	ibc "github.com/cosmos/ibc-go/v5/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -22,10 +20,6 @@ import (
 )
 
 var _ ibc.IBCMsgI = Keeper{}
-
-func (k Keeper) RegisterClientToRollapp() {
-
-}
 
 func (k Keeper) CreateClientValidate(
 	ctx sdk.Context,
@@ -278,17 +272,15 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 	println("my ChannelOpenAck")
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	clientID, clientState, err := k.channelKeeper.GetChannelClientState(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-
-	fmt.Println("clientID: ", clientID)
-
-	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
-	if ok {
-		rollappID := dymintstate.GetChainID()
-		fmt.Println("rollappID: ", rollappID)
+	rollappID, err := k.ExtractRollappIDFromChannel(ctx, msg.PortId, msg.ChannelId)
+	if rollappID != "" {
+		k.rollappKeeper.SetRollappByIBCChannel(ctx, rollappID, msg.PortId, msg.ChannelId)
+	} else {
+		if err != nil {
+			ctx.Logger().Error("failed to extract channelID from channel", "err", err)
+		} else {
+			ctx.Logger().Debug("channel created with non-rollapp chain")
+		}
 	}
 
 	return k.ibcKeeper.ChannelOpenAck(goCtx, msg)
@@ -301,17 +293,15 @@ func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgC
 	println("my ChannelOpenConfirm")
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	clientID, clientState, err := k.channelKeeper.GetChannelClientState(ctx, msg.PortId, msg.ChannelId)
-	if err != nil {
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-
-	fmt.Println("clientID: ", clientID)
-
-	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
-	if ok {
-		rollappID := dymintstate.GetChainID()
-		fmt.Println("rollappID: ", rollappID)
+	rollappID, err := k.ExtractRollappIDFromChannel(ctx, msg.PortId, msg.ChannelId)
+	if rollappID != "" {
+		k.rollappKeeper.SetRollappByIBCChannel(ctx, rollappID, msg.PortId, msg.ChannelId)
+	} else {
+		if err != nil {
+			ctx.Logger().Error("failed to extract channelID from channel", "err", err)
+		} else {
+			ctx.Logger().Debug("channel created with non-rollapp chain")
+		}
 	}
 
 	return k.ibcKeeper.ChannelOpenConfirm(goCtx, msg)
@@ -407,4 +397,18 @@ func (k Keeper) validateStateRoot(ctx sdk.Context, rollappId string, height uint
 		return sdkerrors.Wrapf(types.ErrInvalidAppHash, "rollappID: %s, appHash=%d", rollappId, blockDescription.StateRoot)
 	}
 	return nil
+}
+
+func (k Keeper) ExtractRollappIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
+	}
+
+	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return dymintstate.GetChainID(), nil
 }

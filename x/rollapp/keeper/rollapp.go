@@ -45,30 +45,10 @@ func (k Keeper) GetRollappByEIP155(
 	return val, true
 }
 
-func (k Keeper) GetRollappByIBCChannel(
-	ctx sdk.Context,
-	portID string,
-	channelID string,
-) (val types.Rollapp, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByIBCChannelKeyPrefix))
-
-	b := store.Get(types.RollappByIBCChannelKey(
-		portID,
-		channelID,
-	))
-	if b == nil {
-		return val, false
-	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
-}
-
 // GetRollapp returns a rollapp from its index
 func (k Keeper) GetRollapp(
 	ctx sdk.Context,
 	rollappId string,
-
 ) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 
@@ -110,4 +90,38 @@ func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
 	}
 
 	return
+}
+
+/* ------------------------- Rollapp by IBC channel ------------------------- */
+// SetChannelID sets the channelID for a rollapp
+func (k Keeper) SetRollappByIBCChannel(ctx sdk.Context, rollappID, portID, channelID string) {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
+	if !found {
+		return
+	}
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByIBCChannelKeyPrefix))
+	store.Set(types.RollappByIBCChannelKey(
+		portID,
+		channelID,
+	), k.cdc.MustMarshal(&rollapp))
+}
+
+func (k Keeper) GetRollappByIBCChannel(
+	ctx sdk.Context,
+	portID string,
+	channelID string,
+) (val types.Rollapp, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByIBCChannelKeyPrefix))
+
+	b := store.Get(types.RollappByIBCChannelKey(
+		portID,
+		channelID,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
 }

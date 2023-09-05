@@ -15,6 +15,8 @@ type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
 	// Methods imported from rollapp should be defined here
+
+	SetRollappByIBCChannel(ctx sdk.Context, rollappID, portID, channelID string)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
