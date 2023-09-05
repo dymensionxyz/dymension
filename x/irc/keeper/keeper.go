@@ -21,6 +21,7 @@ type (
 
 		bankKeeper    types.BankKeeper
 		ibcKeeper     types.IBCKeeper
+		channelKeeper types.ChannelKeeper
 		rollappKeeper types.RollappKeeper
 	}
 )
@@ -33,6 +34,7 @@ func NewKeeper(
 
 	bankKeeper types.BankKeeper,
 	ibcKeeper types.IBCKeeper,
+	channelKeeper types.ChannelKeeper,
 	rollappKeeper types.RollappKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -47,6 +49,7 @@ func NewKeeper(
 		paramstore:    ps,
 		bankKeeper:    bankKeeper,
 		ibcKeeper:     ibcKeeper,
+		channelKeeper: channelKeeper,
 		rollappKeeper: rollappKeeper,
 	}
 }

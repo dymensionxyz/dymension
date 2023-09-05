@@ -8,6 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	ibc "github.com/cosmos/ibc-go/v5/modules/core"
 	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
@@ -20,6 +22,10 @@ import (
 )
 
 var _ ibc.IBCMsgI = Keeper{}
+
+func (k Keeper) RegisterClientToRollapp() {
+
+}
 
 func (k Keeper) CreateClientValidate(
 	ctx sdk.Context,
@@ -270,6 +276,21 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 // callback, and write an OpenAck channel into state upon successful execution.
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	println("my ChannelOpenAck")
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	clientID, clientState, err := k.channelKeeper.GetChannelClientState(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	fmt.Println("clientID: ", clientID)
+
+	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
+	if ok {
+		rollappID := dymintstate.GetChainID()
+		fmt.Println("rollappID: ", rollappID)
+	}
+
 	return k.ibcKeeper.ChannelOpenAck(goCtx, msg)
 }
 
@@ -278,6 +299,21 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 // callback, and write an OpenConfirm channel into state upon successful execution.
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	println("my ChannelOpenConfirm")
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	clientID, clientState, err := k.channelKeeper.GetChannelClientState(ctx, msg.PortId, msg.ChannelId)
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	fmt.Println("clientID: ", clientID)
+
+	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
+	if ok {
+		rollappID := dymintstate.GetChainID()
+		fmt.Println("rollappID: ", rollappID)
+	}
+
 	return k.ibcKeeper.ChannelOpenConfirm(goCtx, msg)
 }
 

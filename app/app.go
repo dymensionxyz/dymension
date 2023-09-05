@@ -533,6 +533,7 @@ func New(
 
 		app.BankKeeper,
 		app.IBCKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.RollappKeeper,
 	)
 
