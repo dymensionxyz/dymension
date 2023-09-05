@@ -53,9 +53,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		RollappId:             msg.RollappId,
 		Creator:               msg.Creator,
 		Version:               0,
-		CodeStamp:             msg.CodeStamp,
-		GenesisPath:           msg.GenesisPath,
-		MaxWithholdingBlocks:  msg.MaxWithholdingBlocks,
 		MaxSequencers:         msg.MaxSequencers,
 		PermissionedAddresses: msg.PermissionedAddresses,
 	}

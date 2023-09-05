@@ -19,23 +19,18 @@ var _ = strconv.Itoa(0)
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-rollapp [rollapp-id] [code-stamp] [genesis-path] [max-withholding-blocks] [max-sequencers] [permissioned-addresses]",
+		Use:   "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
 		Short: "Create a new rollapp",
 		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
-			argCodeStamp := args[1]
-			argGenesisPath := args[2]
-			argMaxWithholdingBlocks, err := cast.ToUint64E(args[3])
-			if err != nil {
-				return err
-			}
-			argMaxSequencers, err := cast.ToUint64E(args[4])
+
+			argMaxSequencers, err := cast.ToUint64E(args[1])
 			if err != nil {
 				return err
 			}
 			argPermissionedAddresses := new(shared.Sequencers)
-			err = json.Unmarshal([]byte(args[5]), argPermissionedAddresses)
+			err = json.Unmarshal([]byte(args[2]), argPermissionedAddresses)
 			if err != nil {
 				return err
 			}
@@ -48,11 +43,10 @@ func CmdCreateRollapp() *cobra.Command {
 			msg := types.NewMsgCreateRollapp(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
-				argCodeStamp,
-				argGenesisPath,
-				argMaxWithholdingBlocks,
 				argMaxSequencers,
 				argPermissionedAddresses,
+				[]types.Metadata{},
+			//TODO: add
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

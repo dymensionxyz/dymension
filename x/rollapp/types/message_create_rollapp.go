@@ -10,15 +10,13 @@ const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-func NewMsgCreateRollapp(creator string, rollappId string, codeStamp string, genesisPath string, maxWithholdingBlocks uint64, maxSequencers uint64, permissionedAddresses *types.Sequencers) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses *types.Sequencers, metadatas []Metadata) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
-		CodeStamp:             codeStamp,
-		GenesisPath:           genesisPath,
-		MaxWithholdingBlocks:  maxWithholdingBlocks,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: *permissionedAddresses,
+		Metadatas:             []Metadata{},
 	}
 }
 
@@ -51,9 +49,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 	if msg.GetMaxSequencers() == 0 {
 		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
 	}
-	if msg.GetMaxWithholdingBlocks() == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxWithholding, "max-withholding-blocks must be greater than 0")
-	}
+
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := msg.GetPermissionedAddresses()

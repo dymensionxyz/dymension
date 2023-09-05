@@ -3,6 +3,7 @@ package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
 import "dymension/rollapp/block_descriptor.proto";
+import "dymension/rollapp/bank.proto";
 import "dymension/shared/sequencers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
@@ -24,18 +25,14 @@ message MsgCreateRollapp {
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
   // codeStamp is the description of the genesis file location on the DA
-  string codeStamp = 3;
-  // genesisPath is the description of the genesis file location on the DA
-  string genesisPath = 4;
-  // maxWithholdingBlocks is the maximum number of blocks for
-  // an active sequencer to send a state update (MsgUpdateState)
-  uint64 maxWithholdingBlocks = 5;   
   // maxSequencers is the maximum number of sequencers
-  uint64 maxSequencers = 6;
+  uint64 maxSequencers = 3;
   // permissionedAddresses is a bech32-encoded address list of the 
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
-  shared.Sequencers permissionedAddresses = 7 [(gogoproto.nullable) = false];
+  shared.Sequencers permissionedAddresses = 4 [(gogoproto.nullable) = false];
+  // metadata provides the client information for all the registered tokens.
+  repeated TokenMetadata metadatas = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateRollappResponse {
