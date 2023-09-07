@@ -16,7 +16,7 @@ func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64,
 		RollappId:             rollappId,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: *permissionedAddresses,
-		Metadatas:             []TokenMetadata{},
+		Metadatas:             metadatas,
 	}
 }
 

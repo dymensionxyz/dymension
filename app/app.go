@@ -558,6 +558,7 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = ircmodule.NewIBCMiddleware(transferStack, *app.IRCKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = router.NewIBCMiddleware(transferStack, app.RouterKeeper, 0, routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp, routerkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it

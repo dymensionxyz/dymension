@@ -4,11 +4,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transferkeeper "github.com/cosmos/ibc-go/v5/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v5/modules/core/exported"
 	keeper "github.com/dymensionxyz/dymension/x/irc/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -16,15 +20,21 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 // IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
 // fee keeper and the underlying application.
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
-	keeper keeper.Keeper
+	app            porttypes.IBCModule
+	keeper         keeper.Keeper
+	transferkeeper transferkeeper.Keeper
+	rollappkeeper  rollappkeeper.Keeper
+	bankkeeper     bankkeeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:    app,
-		keeper: k,
+		app:            app,
+		keeper:         k,
+		transferkeeper: tk,
+		rollappkeeper:  rk,
+		bankkeeper:     bk,
 	}
 }
 
@@ -120,13 +130,63 @@ func (im IBCMiddleware) OnRecvPacket(
 	)
 
 	rollappID, err := im.keeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
-	if rollappID != "" {
-		im.keeper.Logger(ctx).Info("Extracted rollappID from channel", "rollappID", rollappID)
-	} else {
-		if err != nil {
-			ctx.Logger().Error("failed to extract channelID from channel", "err", err)
-		} else {
-			ctx.Logger().Debug("channel created with non-rollapp chain")
+	if err != nil {
+		ctx.Logger().Error("failed to extract channelID from channel", "err", err)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+	// no-op if rollappID is empty (i.e transfer from non-dymint chain)
+	if rollappID == "" {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// no-op if the receiver chain is the source chain
+	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// since SendPacket did not prefix the denomination, we must prefix denomination here
+	sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+	// NOTE: sourcePrefix contains the trailing "/"
+	prefixedDenom := sourcePrefix + data.Denom
+	// construct the denomination trace from the full raw denomination
+	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
+	traceHash := denomTrace.Hash()
+	voucherDenom := denomTrace.IBCDenom()
+
+	// no-op if token already exist
+	if im.transferkeeper.HasDenomTrace(ctx, traceHash) {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	im.keeper.Logger(ctx).Info("Extracted rollappID from channel", "channelID", packet.GetDestChannel(), "rollappID", rollappID)
+	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
+	if !found {
+		panic("handling IBC transfer packet for non-existing rollapp")
+	}
+
+	for i := range rollapp.TokenMetadata {
+		if rollapp.TokenMetadata[i].Base == data.Denom {
+			metadata := banktypes.Metadata{
+				Description: "auto-generated metadata for " + voucherDenom + " from rollapp " + rollappID,
+				Base:        voucherDenom,
+				DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
+				Display:     rollapp.TokenMetadata[i].Display,
+				Name:        rollapp.TokenMetadata[i].Name,
+				Symbol:      rollapp.TokenMetadata[i].Symbol,
+				URI:         rollapp.TokenMetadata[i].URI,
+				URIHash:     rollapp.TokenMetadata[i].URIHash,
+			}
+			// Copy DenomUnits slice
+			for j, du := range rollapp.TokenMetadata[i].DenomUnits {
+				newDu := banktypes.DenomUnit{
+					Aliases:  du.Aliases,
+					Denom:    du.Denom,
+					Exponent: du.Exponent,
+				}
+				metadata.DenomUnits[j] = &newDu
+			}
+
+			im.bankkeeper.SetDenomMetaData(ctx, metadata)
 		}
 	}
 
