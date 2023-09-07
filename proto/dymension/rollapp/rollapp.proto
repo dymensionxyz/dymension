@@ -18,18 +18,20 @@ message Rollapp {
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
   uint64 version = 3;
+// codeStamp is a generated hash for unique identification of the rollapp code.
+  string codeStamp = 4 [deprecated=true]; 
+  // genesisPath is the description of the genesis file location on the DA.
+  string genesisPath = 5 [deprecated=true]; 
+  // maxWithholdingBlocks is the maximum number of blocks for
+  // an active sequencer to send a state update (MsgUpdateState). 
+  uint64 maxWithholdingBlocks = 6 [deprecated=true]; 
   // maxSequencers is the maximum number of sequencers.
-  uint64 maxSequencers = 4;
-  // permissionedAddresses is a bech32-encoded address list of the
-  // sequencers that are allowed to serve this rollappId.
+  uint64 maxSequencers = 7;
+  // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
-  shared.Sequencers permissionedAddresses = 5 [(gogoproto.nullable) = false];
-
-  repeated TokenMetadata tokenMetadata = 6;
-
-  repeated string channelIDs = 7;
-
-
+  shared.Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false];
+  // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
+  repeated TokenMetadata tokenMetadata = 9;
 }
 
 // Rollapp summary is a compact representation of Rollapp
