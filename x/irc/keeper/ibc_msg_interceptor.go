@@ -270,19 +270,6 @@ func (k Keeper) ChannelOpenTry(goCtx context.Context, msg *channeltypes.MsgChann
 // callback, and write an OpenAck channel into state upon successful execution.
 func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChannelOpenAck) (*channeltypes.MsgChannelOpenAckResponse, error) {
 	println("my ChannelOpenAck")
-
-	// ctx := sdk.UnwrapSDKContext(goCtx)
-	// rollappID, err := k.ExtractRollappIDFromChannel(ctx, msg.PortId, msg.ChannelId)
-	// if rollappID != "" {
-	// 	k.rollappKeeper.SetRollappByIBCChannel(ctx, rollappID, msg.PortId, msg.ChannelId)
-	// } else {
-	// 	if err != nil {
-	// 		ctx.Logger().Error("failed to extract channelID from channel", "err", err)
-	// 	} else {
-	// 		ctx.Logger().Debug("channel created with non-rollapp chain")
-	// 	}
-	// }
-
 	return k.ibcKeeper.ChannelOpenAck(goCtx, msg)
 }
 
@@ -291,19 +278,6 @@ func (k Keeper) ChannelOpenAck(goCtx context.Context, msg *channeltypes.MsgChann
 // callback, and write an OpenConfirm channel into state upon successful execution.
 func (k Keeper) ChannelOpenConfirm(goCtx context.Context, msg *channeltypes.MsgChannelOpenConfirm) (*channeltypes.MsgChannelOpenConfirmResponse, error) {
 	println("my ChannelOpenConfirm")
-
-	// ctx := sdk.UnwrapSDKContext(goCtx)
-	// rollappID, err := k.ExtractRollappIDFromChannel(ctx, msg.PortId, msg.ChannelId)
-	// if rollappID != "" {
-	// 	k.rollappKeeper.SetRollappByIBCChannel(ctx, rollappID, msg.PortId, msg.ChannelId)
-	// } else {
-	// 	if err != nil {
-	// 		ctx.Logger().Error("failed to extract channelID from channel", "err", err)
-	// 	} else {
-	// 		ctx.Logger().Debug("channel created with non-rollapp chain")
-	// 	}
-	// }
-
 	return k.ibcKeeper.ChannelOpenConfirm(goCtx, msg)
 }
 

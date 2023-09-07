@@ -122,13 +122,6 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	im.keeper.Logger(ctx).Info("GREATEST MESSAGE ARRIVED OnRecvPacket",
-		"sequence", packet.Sequence,
-		"src-channel", packet.SourceChannel, "src-port", packet.SourcePort,
-		"dst-channel", packet.DestinationChannel, "dst-port", packet.DestinationPort,
-		"amount", data.Amount, "denom", data.Denom, "memo", data.Memo,
-	)
-
 	rollappID, err := im.keeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		ctx.Logger().Error("failed to extract channelID from channel", "err", err)
@@ -136,6 +129,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	// no-op if rollappID is empty (i.e transfer from non-dymint chain)
 	if rollappID == "" {
+		ctx.Logger().Debug("handling IBC transfer OnRecvPacket for non-dymint chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -158,10 +152,19 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	im.keeper.Logger(ctx).Info("Extracted rollappID from channel", "channelID", packet.GetDestChannel(), "rollappID", rollappID)
 	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
 	if !found {
-		panic("handling IBC transfer packet for non-existing rollapp")
+		panic("handling dymint IBC transfer packet for non-existing rollapp")
+	}
+
+	if len(rollapp.TokenMetadata) == 0 {
+		ctx.Logger().Info("handling new IBC token for rollapp with no metadata", "rollappID", rollappID, "denom", voucherDenom)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	if im.bankkeeper.HasDenomMetaData(ctx, voucherDenom) {
+		ctx.Logger().Info("denom metadata already registered", "rollappID", rollappID, "denom", voucherDenom)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	for i := range rollapp.TokenMetadata {
@@ -183,6 +186,7 @@ func (im IBCMiddleware) OnRecvPacket(
 					Denom:    du.Denom,
 					Exponent: du.Exponent,
 				}
+				//base denom_unit should be the same as baseDenom
 				if newDu.Exponent == 0 {
 					newDu.Denom = voucherDenom
 					newDu.Aliases = append(newDu.Aliases, du.Denom)
@@ -191,6 +195,8 @@ func (im IBCMiddleware) OnRecvPacket(
 			}
 
 			im.bankkeeper.SetDenomMetaData(ctx, metadata)
+
+			ctx.Logger().Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", voucherDenom)
 		}
 	}
 
