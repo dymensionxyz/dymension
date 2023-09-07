@@ -105,9 +105,6 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			RollappId:             fmt.Sprintf("%s%d", "rollapp", j),
 			Creator:               alice,
 			Version:               0,
-			CodeStamp:             "",
-			GenesisPath:           "",
-			MaxWithholdingBlocks:  1,
 			MaxSequencers:         uint64(maxSequencers),
 			PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 		}
@@ -187,9 +184,6 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 		RollappId:             "rollapp1",
 		Creator:               alice,
 		Version:               0,
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 	}
@@ -245,9 +239,6 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 		RollappId:             "rollapp1",
 		Creator:               alice,
 		Version:               0,
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sequencerAddress}},
 	}
@@ -291,9 +282,6 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 		RollappId:             "rollapp1",
 		Creator:               alice,
 		Version:               0,
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sample.AccAddress()}},
 	}
@@ -325,9 +313,6 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 		RollappId:             "rollapp1",
 		Creator:               alice,
 		Version:               0,
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         uint64(maxSequencers),
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
 	}
@@ -373,13 +358,10 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
 	rollapp := rollapptypes.Rollapp{
-		RollappId:            "rollapp1",
-		Creator:              alice,
-		Version:              0,
-		CodeStamp:            "",
-		GenesisPath:          "",
-		MaxWithholdingBlocks: 1,
-		MaxSequencers:        2,
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       0,
+		MaxSequencers: 2,
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
