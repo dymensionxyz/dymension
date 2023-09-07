@@ -23,6 +23,7 @@ type (
 		ibcKeeper     types.IBCKeeper
 		channelKeeper types.ChannelKeeper
 		rollappKeeper types.RollappKeeper
+		ics4Wrapper   porttypes.ICS4Wrapper
 	}
 )
 
@@ -36,6 +37,7 @@ func NewKeeper(
 	ibcKeeper types.IBCKeeper,
 	channelKeeper types.ChannelKeeper,
 	rollappKeeper types.RollappKeeper,
+	ics4Wrapper porttypes.ICS4Wrapper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -51,6 +53,7 @@ func NewKeeper(
 		ibcKeeper:     ibcKeeper,
 		channelKeeper: channelKeeper,
 		rollappKeeper: rollappKeeper,
+		ics4Wrapper:   ics4Wrapper,
 	}
 }
 

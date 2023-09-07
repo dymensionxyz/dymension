@@ -535,6 +535,7 @@ func New(
 		app.IBCKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.RollappKeeper,
+		app.IBCKeeper.ChannelKeeper,
 	)
 
 	// set irc as message interceptor
