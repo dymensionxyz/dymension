@@ -27,11 +27,6 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/eip155/{eip155}";
 	}
 
-	// Queries a Rollapp by IBC channel.
-	rpc RollappByIBCChannel(QueryGetRollappByIBCChannelRequest) returns (QueryGetRollappResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/channelID/{portID}/{channelID}";
-	}
-
 	// Queries a list of Rollapp items.
 	rpc RollappAll(QueryAllRollappRequest) returns (QueryAllRollappResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
@@ -70,11 +65,6 @@ message QueryGetRollappRequest {
 
 message QueryGetRollappByEIP155Request {
 	uint64 eip155 = 1;
-}
-
-message QueryGetRollappByIBCChannelRequest {
-	string portID = 1;
-	string channelID = 2;
 }
 
 message QueryGetLatestStateIndexRequest {
