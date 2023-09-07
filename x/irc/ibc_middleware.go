@@ -183,6 +183,10 @@ func (im IBCMiddleware) OnRecvPacket(
 					Denom:    du.Denom,
 					Exponent: du.Exponent,
 				}
+				if newDu.Exponent == 0 {
+					newDu.Denom = voucherDenom
+					newDu.Aliases = append(newDu.Aliases, du.Denom)
+				}
 				metadata.DenomUnits[j] = &newDu
 			}
 
