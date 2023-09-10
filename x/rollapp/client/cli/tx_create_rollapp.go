@@ -73,6 +73,7 @@ func CmdCreateRollapp() *cobra.Command {
 func parseTokenMetadata(cdc codec.Codec, path string) ([]types.TokenMetadata, error) {
 	var metadata types.TokenMetadata
 
+	// #nosec G304
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return []types.TokenMetadata{}, err
