@@ -17,8 +17,7 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
-// IBCMiddleware implements the ICS26 callbacks for the fee middleware given the
-// fee keeper and the underlying application.
+// IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	app            porttypes.IBCModule
 	keeper         keeper.Keeper
@@ -54,8 +53,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
-// If the channel is not fee enabled the underlying application version will be returned
-// If the channel is fee enabled we merge the underlying application version with the ics29 version
 func (im IBCMiddleware) OnChanOpenTry(
 	ctx sdk.Context,
 	order channeltypes.Order,
@@ -110,7 +107,6 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 }
 
 // OnRecvPacket implements the IBCMiddleware interface.
-// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -204,7 +200,6 @@ func (im IBCMiddleware) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
-// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -215,7 +210,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
-// If fees are not enabled, this callback will default to the ibc-core packet callback
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
