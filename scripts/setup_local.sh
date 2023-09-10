@@ -91,6 +91,7 @@ set_ibc_params
 set_hub_params
 set_misc_params
 set_EVM_params
+set_bank_denom_metadata
 
 echo "Enable monitoring? (Y/n) "
 read -r answer
