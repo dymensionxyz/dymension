@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"io"
 	"math/big"
 	"net/http"
@@ -109,6 +110,7 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
 	appparams "github.com/dymensionxyz/dymension/app/params"
+	"github.com/dymensionxyz/dymension/app/upgrades/rc"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
@@ -753,6 +755,7 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+	app.setupUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -970,4 +973,41 @@ func (app *App) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetTxConfig implements ibctesting.TestingApp
 func (app *App) GetTxConfig() client.TxConfig {
 	return simappparams.MakeTestEncodingConfig().TxConfig
+}
+
+func (app *App) setupUpgradeHandlers() {
+	UpgradeName := "rc"
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		UpgradeName,
+		rc.CreateUpgradeHandler(
+			app.mm, app.configurator,
+			app.BankKeeper,
+		),
+	)
+
+	// When a planned update height is reached, the old binary will panic
+	// writing on disk the height and name of the update that triggered it
+	// This will read that value, and execute the preparations for the upgrade.
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
+	}
+
+	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		return
+	}
+
+	var storeUpgrades *storetypes.StoreUpgrades
+
+	switch upgradeInfo.Name {
+	case "UpgradeName":
+		// do nothing
+
+	}
+
+	if storeUpgrades != nil {
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, storeUpgrades))
+	}
 }
