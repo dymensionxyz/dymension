@@ -29,4 +29,5 @@ var (
 	ErrInvalidHeight                       = sdkerrors.Register(ModuleName, 1018, "invalid rollapp height")
 	ErrRollappCreatorExceedMaximumRollapps = sdkerrors.Register(ModuleName, 1019, "rollapp creator exceed maximum allowed rollapps as register in whitelist")
 	ErrInvalidRollappID                    = sdkerrors.Register(ModuleName, 1020, "invalid rollapp-id")
+	ErrEIP155Exists                        = sdkerrors.Register(ModuleName, 1021, "EIP155 already exist; must use unique EIP155 identifier")
 )
