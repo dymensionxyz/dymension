@@ -109,6 +109,7 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
+	ante "github.com/dymensionxyz/dymension/app/ante"
 	appparams "github.com/dymensionxyz/dymension/app/params"
 	"github.com/dymensionxyz/dymension/app/upgrades/rc"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
@@ -130,8 +131,6 @@ import (
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	"github.com/evmos/ethermint/ethereum/eip712"
-
-	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
@@ -738,15 +737,14 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
-	anteHandler, err := ethante.NewAnteHandler(ethante.HandlerOptions{
+	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:   app.AccountKeeper,
 		BankKeeper:      app.BankKeeper,
-		EvmKeeper:       app.EvmKeeper,
-		FeegrantKeeper:  app.FeeGrantKeeper,
 		IBCKeeper:       app.IBCKeeper,
 		FeeMarketKeeper: app.FeeMarketKeeper,
+		EvmKeeper:       app.EvmKeeper,
+		FeegrantKeeper:  app.FeeGrantKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  ethante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
 	})
 	if err != nil {
