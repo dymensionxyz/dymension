@@ -23,6 +23,7 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Installation](#installation)
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
+  - [Adding liquidity](#adding-liquidity)
 
 ## Prerequisites
 
@@ -90,5 +91,21 @@ dymd start
 ```
 
 You should have a running local node!
+
+
+## Adding liquidity
+TODO:
+to play around with `liquidity` module, u can bootstrap using:
+
+```sh
+sh scripts/pools/liquidity_bootstrap.sh
+```
+
+and for the `GAMM` module:
+
+```sh
+sh scripts/pools/osmosis_bootstrap.sh
+```
+
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
