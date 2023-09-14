@@ -128,7 +128,7 @@ import (
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v5/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v5/router/types"
 
-	// this line is used by starport scaffolding # stargate/app/moduleImport
+	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/server/flags"
@@ -139,17 +139,20 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
+	/* ----------------------------- osmosis imports ---------------------------- */
+	"github.com/dymensionxyz/dymension/x/gamm"
+	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
+	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
+	"github.com/dymensionxyz/dymension/x/poolmanager"
+	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
+	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
 )
 
 var (
 	_ = routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp
 	_ = router.AppModule{}
 	_ = routertypes.ErrIntOverflowGenesis
-)
-
-const (
-	AccountAddressPrefix = "dym"
-	Name                 = "dymension"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -209,6 +212,9 @@ var (
 		// Ethermint modules
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
+
+		gamm.AppModuleBasic{},
+		poolmanager.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -224,8 +230,8 @@ var (
 		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-
+		evmtypes.ModuleName:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -241,7 +247,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
 	var BaseDenomUnit int64 = 18
 	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
@@ -295,6 +301,10 @@ type App struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
+	// Osmostis keepers
+	GAMMKeeper        *gammkeeper.Keeper
+	PoolManagerKeeper *poolmanagerkeeper.Keeper
+
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -340,7 +350,7 @@ func New(
 		Amino:             encodingConfig.Amino,
 	})
 
-	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
@@ -358,6 +368,10 @@ func New(
 
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
+
+		// osmosis keys
+		gammtypes.StoreKey,
+		poolmanagertypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -445,6 +459,26 @@ func New(
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
 		nil, geth.NewEVM, tracer,
 	)
+
+	// Osmosis keepers
+	gammKeeper := gammkeeper.NewKeeper(
+		appCodec, keys[gammtypes.StoreKey],
+		app.GetSubspace(gammtypes.ModuleName),
+		app.AccountKeeper,
+		// TODO: Add a mintcoins restriction
+		app.BankKeeper, app.DistrKeeper)
+	app.GAMMKeeper = &gammKeeper
+
+	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
+		keys[poolmanagertypes.StoreKey],
+		app.GetSubspace(poolmanagertypes.ModuleName),
+		app.GAMMKeeper,
+		nil,
+		app.BankKeeper,
+		app.AccountKeeper,
+		app.DistrKeeper,
+	)
+	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
 	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
@@ -604,6 +638,10 @@ func New(
 		// Ethermint app modules
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper),
 		feemarket.NewAppModule(app.FeeMarketKeeper),
+
+		// osmosis modules
+		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
+		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -636,6 +674,8 @@ func New(
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -664,6 +704,8 @@ func New(
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -697,6 +739,9 @@ func New(
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -944,6 +989,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+
+	// osmosis subspaces
+	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
+	paramsKeeper.Subspace(gammtypes.ModuleName)
 
 	return paramsKeeper
 }
