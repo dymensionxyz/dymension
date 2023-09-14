@@ -1,0 +1,7 @@
+{
+    "weights": "5uusd,5uatom,5udym",
+    "initial-deposit": "1000000000uusd,1000000000uatom,2000000000000000000000udym",
+    "swap-fee": "0.01",
+    "exit-fee": "0.01",
+    "future-governor": ""
+}
