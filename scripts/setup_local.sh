@@ -100,6 +100,21 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 
+
+echo "Initialize liquidity pool accounts? (Y/n) "
+read -r answer
+if [ ! "$answer" != "${answer#[Nn]}" ] ;then
+  dymd keys add provider1 --keyring-backend test
+  dymd keys add provider2 --keyring-backend test
+
+  # Add genesis accounts and provide coins to the accounts
+  dymd add-genesis-account $(dymd keys show provider1 --keyring-backend test -a) 1000000000000000000000000udym,10000000000uatom,500000000000uusd
+  dymd add-genesis-account $(dymd keys show provider2 --keyring-backend test -a) 1000000000000000000000000udym,10000000000uatom,500000000000uusd
+fi
+
+
+
+
 dymd keys add "$KEY_NAME" --keyring-backend test
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
