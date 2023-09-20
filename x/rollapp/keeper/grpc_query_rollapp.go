@@ -85,7 +85,7 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 
 	val, found := k.GetRollappByEIP155(
 		ctx,
-		req.Eip255,
+		req.Eip155,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
