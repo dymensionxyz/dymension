@@ -1,16 +1,7 @@
 #!/usr/bin/make -f
 
-BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 COMMIT := $(shell git log -1 --format='%H')
-
-# don't override user values
-ifeq (,$(VERSION))
-  VERSION := $(shell git describe --tags)
-  # if VERSION is empty, then populate it with branch's name and raw commit hash
-  ifeq (,$(VERSION))
-    VERSION := $(BRANCH)-$(COMMIT)
-  endif
-endif
+VERSION ?= $(shell git describe --tags --always)
 
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 LEDGER_ENABLED ?= true
