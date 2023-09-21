@@ -231,7 +231,7 @@ func ParseFieldFromArg(fVal reflect.Value, fType reflect.StructField, arg string
 		var err error
 		if typeStr == "types.Coin" {
 			v, err = ParseCoin(arg, fType.Name)
-		} else if typeStr == "types.Int" {
+		} else if typeStr == "types.Int" || typeStr == "math.Int" {
 			v, err = ParseSdkInt(arg, fType.Name)
 		} else if typeStr == "time.Time" {
 			v, err = ParseUnixTime(arg, fType.Name)

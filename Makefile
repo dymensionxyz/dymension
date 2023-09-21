@@ -99,6 +99,9 @@ build: go.sum
 
 protoVer=v0.8
 protoImageName=osmolabs/osmo-proto-gen:$(protoVer)
+
+protoVer=v0.7
+protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
 containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 
