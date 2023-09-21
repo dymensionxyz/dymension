@@ -21,7 +21,7 @@ swap_tokens() {
 }
 
 multi_hop_swap() {
-    dymd tx gamm swap-exact-amount-in 50000000uatom 20000000 --swap-route-pool-ids 1 --swap-route-pool-ids 2 --swap-route-denoms uusd --from user --keyring-backend test -b block
+    dymd tx gamm swap-exact-amount-in 50000000uatom 20000000 --swap-route-pool-ids 1,2 --swap-route-denoms udym,uusd --from user --keyring-backend test -b block
 }
 
 

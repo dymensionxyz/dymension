@@ -80,7 +80,6 @@ func NewJoinPoolCmd() (*osmocli.TxCliDesc, *types.MsgJoinPool) {
 		Short: "join a new pool and provide the liquidity to it",
 		CustomFlagOverrides: map[string]string{
 			"poolid": FlagPoolId,
-			// "ShareOutAmount": FlagShareAmountOut,
 		},
 		CustomFieldParsers: map[string]osmocli.CustomFieldParserFn{
 			"TokenInMaxs":    osmocli.FlagOnlyParser(maxAmountsInParser),
@@ -95,11 +94,11 @@ func NewExitPoolCmd() (*osmocli.TxCliDesc, *types.MsgExitPool) {
 		Use:   "exit-pool",
 		Short: "exit a new pool and withdraw the liquidity from it",
 		CustomFlagOverrides: map[string]string{
-			"poolid":        FlagPoolId,
-			"ShareInAmount": FlagShareAmountIn,
+			"poolid": FlagPoolId,
 		},
 		CustomFieldParsers: map[string]osmocli.CustomFieldParserFn{
-			"TokenOutMins": osmocli.FlagOnlyParser(minAmountsOutParser),
+			"TokenOutMins":  osmocli.FlagOnlyParser(minAmountsOutParser),
+			"ShareInAmount": osmocli.FlagOnlyParser(shareAmountInParser),
 		},
 		Flags: osmocli.FlagDesc{RequiredFlags: []*flag.FlagSet{FlagSetExitPool()}},
 	}, &types.MsgExitPool{}
@@ -357,8 +356,8 @@ func NewBuildCreateStableswapPoolMsg(clientCtx client.Context, fs *flag.FlagSet)
 	}, nil
 }
 
-func shareAmountOutMinParser(fs *flag.FlagSet) (sdk.Int, error) {
-	return sdkIntParser("share-out-min-amount", fs)
+func shareAmountInParser(fs *flag.FlagSet) (sdk.Int, error) {
+	return sdkIntParser(FlagShareAmountIn, fs)
 }
 
 func shareAmountOutParser(fs *flag.FlagSet) (sdk.Int, error) {
