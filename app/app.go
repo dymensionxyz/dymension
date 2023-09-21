@@ -147,11 +147,6 @@ import (
 	"github.com/dymensionxyz/dymension/x/poolmanager"
 	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
-
-	"github.com/dymensionxyz/dymension/x/liquidity"
-	liquiditykeeper "github.com/dymensionxyz/dymension/x/liquidity/keeper"
-	liquiditytypes "github.com/dymensionxyz/dymension/x/liquidity/types"
-	// _ "github.com/tendermint/liquidity/client/docs/statik"
 )
 
 var (
@@ -218,8 +213,6 @@ var (
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 
-		liquidity.AppModuleBasic{},
-
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 	)
@@ -237,9 +230,8 @@ var (
 		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:       {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		liquiditytypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-		gammtypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -309,8 +301,6 @@ type App struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
-	LiquidityKeeper liquiditykeeper.Keeper
-
 	// Osmostis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
@@ -378,8 +368,6 @@ func New(
 
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
-
-		liquiditytypes.StoreKey,
 
 		// osmosis keys
 		gammtypes.StoreKey,
@@ -470,11 +458,6 @@ func New(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
 		nil, geth.NewEVM, tracer,
-	)
-
-	app.LiquidityKeeper = liquiditykeeper.NewKeeper(
-		appCodec, keys[liquiditytypes.StoreKey], app.GetSubspace(liquiditytypes.ModuleName),
-		app.BankKeeper, app.AccountKeeper, app.DistrKeeper,
 	)
 
 	// Osmosis keepers
@@ -661,8 +644,6 @@ func New(
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper),
 		feemarket.NewAppModule(app.FeeMarketKeeper),
 
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
-
 		// osmosis modules
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
@@ -686,7 +667,6 @@ func New(
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
 		routertypes.ModuleName,
-		liquiditytypes.ModuleName,
 		authtypes.ModuleName,
 		authz.ModuleName,
 		banktypes.ModuleName,
@@ -716,7 +696,6 @@ func New(
 		evmtypes.ModuleName,
 		slashingtypes.ModuleName,
 		vestingtypes.ModuleName,
-		liquiditytypes.ModuleName,
 		minttypes.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
@@ -753,7 +732,6 @@ func New(
 		govtypes.ModuleName,
 		minttypes.ModuleName,
 		crisistypes.ModuleName,
-		liquiditytypes.ModuleName,
 		ibchost.ModuleName,
 		genutiltypes.ModuleName,
 		evidencetypes.ModuleName,
@@ -796,8 +774,6 @@ func New(
 		sequencerModule,
 		ircModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
-
-		liquidity.NewAppModule(appCodec, app.LiquidityKeeper, app.AccountKeeper, app.BankKeeper, app.DistrKeeper),
 	)
 	app.sm.RegisterStoreDecoders()
 
@@ -1018,8 +994,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
-
-	paramsKeeper.Subspace(liquiditytypes.ModuleName)
 
 	// osmosis subspaces
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)

@@ -95,13 +95,7 @@ You should have a running local node!
 
 ## Adding liquidity
 TODO:
-to play around with `liquidity` module, u can bootstrap using:
-
-```sh
-sh scripts/pools/liquidity_bootstrap.sh
-```
-
-and for the `GAMM` module:
+to play around with the `GAMM` module:
 
 ```sh
 sh scripts/pools/osmosis_bootstrap.sh

@@ -52,9 +52,6 @@ set_EVM_params() {
 
 set_misc_params() {
     jq '.app_state.crisis.constant_fee.denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-
-    #liquidity denom
-    jq -r '.app_state.liquidity.params.pool_creation_fee[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     
     # poolmanager denom
     jq -r '.app_state.poolmanager.params.pool_creation_fee[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
