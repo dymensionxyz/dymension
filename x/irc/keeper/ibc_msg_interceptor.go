@@ -9,12 +9,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	ibc "github.com/cosmos/ibc-go/v5/modules/core"
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	connectiontypes "github.com/cosmos/ibc-go/v5/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibcdmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/01-dymint/types"
+	ibc "github.com/cosmos/ibc-go/v6/modules/core"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibcdmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/01-dymint/types"
 
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )

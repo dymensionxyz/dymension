@@ -94,18 +94,18 @@ import (
 	// unnamed import of statik for swagger UI support
 	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
 
-	ibctransfer "github.com/cosmos/ibc-go/v5/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v5/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v5/modules/core"
-	ibcclient "github.com/cosmos/ibc-go/v5/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v5/modules/core/02-client/client"
-	ibcclienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	ibcporttypes "github.com/cosmos/ibc-go/v5/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
-	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v5/testing"
-	ibctestingtypes "github.com/cosmos/ibc-go/v5/testing/types"
+	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v6/modules/core"
+	ibcclient "github.com/cosmos/ibc-go/v6/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
+	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
@@ -123,9 +123,9 @@ import (
 	ircmodulekeeper "github.com/dymensionxyz/dymension/x/irc/keeper"
 	ircmoduletypes "github.com/dymensionxyz/dymension/x/irc/types"
 
-	"github.com/strangelove-ventures/packet-forward-middleware/v5/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v5/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v5/router/types"
+	"github.com/strangelove-ventures/packet-forward-middleware/v6/router"
+	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
+	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
 
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
@@ -436,15 +436,16 @@ func New(
 
 	// Create Ethermint keepers
 	app.FeeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec, app.GetSubspace(feemarkettypes.ModuleName), keys[feemarkettypes.StoreKey], tkeys[feemarkettypes.TransientKey],
+		appCodec, authtypes.NewModuleAddress(govtypes.ModuleName),
+		keys[feemarkettypes.StoreKey], tkeys[feemarkettypes.TransientKey], app.GetSubspace(feemarkettypes.ModuleName),
 	)
 
 	// Create evmos keeper
 	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
 	app.EvmKeeper = evmkeeper.NewKeeper(
-		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], authtypes.NewModuleAddress(govtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
-		nil, geth.NewEVM, tracer,
+		nil, geth.NewEVM, tracer, app.GetSubspace(evmtypes.ModuleName),
 	)
 
 	//--------------- dYmension specific modules
@@ -603,8 +604,8 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
-		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper),
-		feemarket.NewAppModule(app.FeeMarketKeeper),
+		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
+		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

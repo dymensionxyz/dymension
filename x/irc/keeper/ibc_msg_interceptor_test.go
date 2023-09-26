@@ -4,11 +4,11 @@ import (
 	"testing"
 	"time"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
-	commitmenttypes "github.com/cosmos/ibc-go/v5/modules/core/23-commitment/types"
-	"github.com/cosmos/ibc-go/v5/modules/core/exported"
-	ibcdmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/01-dymint/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v5/modules/light-clients/07-tendermint/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibcdmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/01-dymint/types"
+	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
