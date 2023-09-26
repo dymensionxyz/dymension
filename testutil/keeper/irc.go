@@ -67,7 +67,9 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context
 		paramsSubspace,
 		nil,
 		nil,
+		nil,
 		rollappKeeper,
+		nil,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

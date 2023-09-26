@@ -49,7 +49,6 @@ func (k Keeper) GetRollappByEIP155(
 func (k Keeper) GetRollapp(
 	ctx sdk.Context,
 	rollappId string,
-
 ) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 

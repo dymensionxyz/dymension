@@ -116,15 +116,15 @@ func request_Query_RollappByEIP155_0(ctx context.Context, marshaler runtime.Mars
 		_   = err
 	)
 
-	val, ok = pathParams["eip255"]
+	val, ok = pathParams["eip155"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "eip255")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "eip155")
 	}
 
-	protoReq.Eip255, err = runtime.Uint64(val)
+	protoReq.Eip155, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "eip255", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "eip155", err)
 	}
 
 	msg, err := client.RollappByEIP155(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -143,15 +143,15 @@ func local_request_Query_RollappByEIP155_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["eip255"]
+	val, ok = pathParams["eip155"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "eip255")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "eip155")
 	}
 
-	protoReq.Eip255, err = runtime.Uint64(val)
+	protoReq.Eip155, err = runtime.Uint64(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "eip255", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "eip155", err)
 	}
 
 	msg, err := server.RollappByEIP155(ctx, &protoReq)
@@ -753,7 +753,7 @@ var (
 
 	pattern_Query_Rollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "rollapp", "eip155", "eip255"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_RollappByEIP155_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "rollapp", "eip155"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_RollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "rollapp"}, "", runtime.AssumeColonVerbOpt(true)))
 
