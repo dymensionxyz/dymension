@@ -223,11 +223,11 @@ func (suite *KeeperTestSuite) TestCreateBalancerPool() {
 			for _, asset := range test.msg.GetPoolAssets() {
 				expectedPoolTokens = expectedPoolTokens.Add(asset.Token)
 			}
-			expectedPoolShares := sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), types.InitPoolSharesSupply)
+			expectedPoolShares := sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt()))
 
 			// make sure sender's balance is updated correctly
 			senderBal := bankKeeper.GetAllBalances(suite.Ctx, sender)
-			expectedSenderBal := senderBalBeforeNewPool.Sub(params.PoolCreationFee).Sub(expectedPoolTokens).Add(expectedPoolShares)
+			expectedSenderBal := senderBalBeforeNewPool.Sub(params.PoolCreationFee...).Sub(expectedPoolTokens...).Add(expectedPoolShares)
 			suite.Require().Equal(senderBal.String(), expectedSenderBal.String())
 
 			// check pool's liquidity is correctly increased
@@ -289,8 +289,6 @@ func (suite *KeeperTestSuite) TestInitializePool() {
 
 				gammKeeper := suite.App.GAMMKeeper
 				bankKeeper := suite.App.BankKeeper
-				poolIncentivesKeeper := suite.App.PoolIncentivesKeeper
-
 				// sender test account
 				sender := testAccount
 				senderBalBeforeNewPool := bankKeeper.GetAllBalances(suite.Ctx, sender)
@@ -310,7 +308,7 @@ func (suite *KeeperTestSuite) TestInitializePool() {
 
 					// check to make sure user user balance increase correct number of pool shares
 					suite.Require().Equal(
-						senderBalBeforeNewPool.Add(sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), types.InitPoolSharesSupply)),
+						senderBalBeforeNewPool.Add(sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt()))),
 						bankKeeper.GetAllBalances(suite.Ctx, sender),
 					)
 
@@ -319,7 +317,7 @@ func (suite *KeeperTestSuite) TestInitializePool() {
 					for _, asset := range pool.GetTotalPoolLiquidity(suite.Ctx) {
 						expectedPoolTokens = expectedPoolTokens.Add(asset)
 					}
-					expectedPoolShares := sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), types.InitPoolSharesSupply)
+					expectedPoolShares := sdk.NewCoin(types.GetPoolShareDenom(pool.GetId()), sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt()))
 
 					// make sure expected pool tokens and expected pool shares matches the actual tokens and shares in the pool
 					suite.Require().Equal(expectedPoolTokens.String(), pool.GetTotalPoolLiquidity(suite.Ctx).String())
@@ -340,17 +338,6 @@ func (suite *KeeperTestSuite) TestInitializePool() {
 					suite.Require().Equal(metadata.DenomUnits[1].Denom, poolShareDisplayDenom)
 					suite.Require().Equal(metadata.DenomUnits[1].Exponent, uint32(types.OneShareExponent))
 					suite.Require().Equal(metadata.DenomUnits[1].Aliases, []string(nil))
-
-					// check AfterPoolCreated hook
-					for _, lockableDuration := range poolIncentivesKeeper.GetLockableDurations(suite.Ctx) {
-						gaugeId, err := poolIncentivesKeeper.GetPoolGaugeId(suite.Ctx, defaultPoolId, lockableDuration)
-						suite.Require().NoError(err, "test: %v", test.name)
-
-						poolIdFromPoolIncentives, err := poolIncentivesKeeper.GetPoolIdFromGaugeId(suite.Ctx, gaugeId, lockableDuration)
-						suite.Require().NoError(err, "test: %v", test.name)
-						suite.Require().Equal(poolIdFromPoolIncentives, defaultPoolId)
-					}
-
 				} else {
 					suite.Require().Error(err, "test: %v", test.name)
 				}
@@ -433,7 +420,7 @@ func (suite *KeeperTestSuite) TestJoinPoolNoSwap() {
 		{
 			name:            "basic join no swap",
 			txSender:        suite.TestAccs[1],
-			sharesRequested: types.OneShare.MulRaw(50),
+			sharesRequested: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenInMaxs:     sdk.Coins{},
 			expectPass:      true,
 		},
@@ -463,7 +450,7 @@ func (suite *KeeperTestSuite) TestJoinPoolNoSwap() {
 		{
 			name:            "join no swap with exact tokenInMaxs",
 			txSender:        suite.TestAccs[1],
-			sharesRequested: types.OneShare.MulRaw(50),
+			sharesRequested: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenInMaxs: sdk.Coins{
 				fiveKFooAndBar[0], fiveKFooAndBar[1],
 			},
@@ -472,7 +459,7 @@ func (suite *KeeperTestSuite) TestJoinPoolNoSwap() {
 		{
 			name:            "join no swap with arbitrary extra token in tokenInMaxs",
 			txSender:        suite.TestAccs[1],
-			sharesRequested: types.OneShare.MulRaw(50),
+			sharesRequested: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenInMaxs: sdk.Coins{
 				fiveKFooAndBar[0], fiveKFooAndBar[1], sdk.NewCoin("baz", sdk.NewInt(5000)),
 			},
@@ -481,7 +468,7 @@ func (suite *KeeperTestSuite) TestJoinPoolNoSwap() {
 		{
 			name:            "join no swap with TokenInMaxs not containing every token in pool",
 			txSender:        suite.TestAccs[1],
-			sharesRequested: types.OneShare.MulRaw(50),
+			sharesRequested: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenInMaxs: sdk.Coins{
 				fiveKFooAndBar[0],
 			},
@@ -518,7 +505,7 @@ func (suite *KeeperTestSuite) TestJoinPoolNoSwap() {
 			suite.Require().NoError(err, "test: %v", test.name)
 			suite.Require().Equal(test.sharesRequested.String(), bankKeeper.GetBalance(suite.Ctx, test.txSender, "gamm/pool/1").Amount.String())
 			balancesAfter := bankKeeper.GetAllBalances(suite.Ctx, test.txSender)
-			deltaBalances, _ := balancesBefore.SafeSub(balancesAfter)
+			deltaBalances, _ := balancesBefore.SafeSub(balancesAfter...)
 			// The pool was created with the 10000foo, 10000bar, and the pool share was minted as 100000000gamm/pool/1.
 			// Thus, to get the 50*OneShare gamm/pool/1, (10000foo, 10000bar) * (1 / 2) balances should be provided.
 			suite.Require().Equal("5000", deltaBalances.AmountOf("foo").String())
@@ -549,7 +536,7 @@ func (suite *KeeperTestSuite) TestExitPool() {
 		{
 			name:         "attempt exit pool with no pool share balance",
 			txSender:     suite.TestAccs[0],
-			sharesIn:     types.OneShare.MulRaw(50),
+			sharesIn:     sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenOutMins: sdk.Coins{},
 			emptySender:  true,
 			expectPass:   false,
@@ -557,7 +544,7 @@ func (suite *KeeperTestSuite) TestExitPool() {
 		{
 			name:         "exit half pool with correct pool share balance",
 			txSender:     suite.TestAccs[0],
-			sharesIn:     types.OneShare.MulRaw(50),
+			sharesIn:     sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenOutMins: sdk.Coins{},
 			emptySender:  false,
 			expectPass:   true,
@@ -581,7 +568,7 @@ func (suite *KeeperTestSuite) TestExitPool() {
 		{
 			name:     "attempt exit pool with tokenOutMins above actual output",
 			txSender: suite.TestAccs[0],
-			sharesIn: types.OneShare.MulRaw(50),
+			sharesIn: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenOutMins: sdk.Coins{
 				sdk.NewCoin("foo", sdk.NewInt(5001)),
 			},
@@ -591,7 +578,7 @@ func (suite *KeeperTestSuite) TestExitPool() {
 		{
 			name:     "attempt exit pool requesting tokenOutMins at exactly the actual output",
 			txSender: suite.TestAccs[0],
-			sharesIn: types.OneShare.MulRaw(50),
+			sharesIn: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 			tokenOutMins: sdk.Coins{
 				fiveKFooAndBar[1],
 			},
@@ -631,7 +618,7 @@ func (suite *KeeperTestSuite) TestExitPool() {
 				suite.Require().NoError(err, "test: %v", test.name)
 				suite.Require().Equal(test.sharesIn.String(), bankKeeper.GetBalance(suite.Ctx, test.txSender, "gamm/pool/1").Amount.String())
 				balancesAfter := bankKeeper.GetAllBalances(suite.Ctx, test.txSender)
-				deltaBalances, _ := balancesBefore.SafeSub(balancesAfter)
+				deltaBalances, _ := balancesBefore.SafeSub(balancesAfter...)
 				// The pool was created with the 10000foo, 10000bar, and the pool share was minted as 100*OneShare gamm/pool/1.
 				// Thus, to refund the 50*OneShare gamm/pool/1, (10000foo, 10000bar) * (1 / 2) balances should be refunded.
 				suite.Require().Equal("-5000", deltaBalances.AmountOf("foo").String())
@@ -672,7 +659,7 @@ func (suite *KeeperTestSuite) TestJoinPoolExitPool_InverseRelationship() {
 					Token:  sdk.NewCoin("bar", sdk.NewInt(10000)),
 				},
 			}, defaultFutureGovernor),
-			joinPoolShareAmt: types.OneShare.MulRaw(50),
+			joinPoolShareAmt: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 		},
 		{
 			name: "pool with different token ratio",
@@ -689,7 +676,7 @@ func (suite *KeeperTestSuite) TestJoinPoolExitPool_InverseRelationship() {
 					Token:  sdk.NewCoin("bar", sdk.NewInt(10000)),
 				},
 			}, defaultFutureGovernor),
-			joinPoolShareAmt: types.OneShare.MulRaw(50),
+			joinPoolShareAmt: sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()),
 		},
 	}
 
@@ -726,7 +713,7 @@ func (suite *KeeperTestSuite) TestJoinPoolExitPool_InverseRelationship() {
 			suite.AssertEventEmitted(ctx, types.TypeEvtPoolExited, 1)
 
 			balanceAfterExit := suite.App.BankKeeper.GetAllBalances(ctx, joinPoolAcc)
-			deltaBalance, _ := balanceBeforeJoin.SafeSub(balanceAfterExit)
+			deltaBalance, _ := balanceBeforeJoin.SafeSub(balanceAfterExit...)
 
 			// due to rounding, `balanceBeforeJoin` and `balanceAfterExit` have neglectable difference
 			// coming from rounding in exitPool.Here we test if the difference is within rounding tolerance range
@@ -765,12 +752,12 @@ func (suite *KeeperTestSuite) TestActiveBalancerPool() {
 			ctx = ctx.WithBlockTime(tc.blockTime)
 
 			// uneffected by start time
-			_, _, err := gammKeeper.JoinPoolNoSwap(ctx, testAccount, poolId, types.OneShare.MulRaw(50), sdk.Coins{})
+			_, _, err := gammKeeper.JoinPoolNoSwap(ctx, testAccount, poolId, sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt()), sdk.Coins{})
 			suite.Require().NoError(err)
 
 			suite.AssertEventEmitted(ctx, types.TypeEvtPoolJoined, 1)
 
-			_, err = gammKeeper.ExitPool(ctx, testAccount, poolId, types.InitPoolSharesSupply.QuoRaw(2), sdk.Coins{})
+			_, err = gammKeeper.ExitPool(ctx, testAccount, poolId, sdk.NewIntFromBigInt(types.InitPoolSharesSupply.QuoRaw(2).BigInt()), sdk.Coins{})
 			suite.Require().NoError(err)
 
 			suite.AssertEventEmitted(ctx, types.TypeEvtPoolExited, 1)
@@ -781,17 +768,17 @@ func (suite *KeeperTestSuite) TestActiveBalancerPool() {
 			if tc.expectPass {
 				_, err = gammKeeper.JoinSwapExactAmountIn(ctx, testAccount, poolId, foocoins, sdk.ZeroInt())
 				suite.Require().NoError(err)
-				_, err = gammKeeper.JoinSwapShareAmountOut(ctx, testAccount, poolId, "foo", types.OneShare.MulRaw(10), sdk.NewInt(1000000000000000000))
+				_, err = gammKeeper.JoinSwapShareAmountOut(ctx, testAccount, poolId, "foo", sdk.NewIntFromBigInt(types.OneShare.MulRaw(10).BigInt()), sdk.NewInt(1000000000000000000))
 				suite.Require().NoError(err)
-				_, err = gammKeeper.ExitSwapShareAmountIn(ctx, testAccount, poolId, "foo", types.OneShare.MulRaw(10), sdk.ZeroInt())
+				_, err = gammKeeper.ExitSwapShareAmountIn(ctx, testAccount, poolId, "foo", sdk.NewIntFromBigInt(types.OneShare.MulRaw(10).BigInt()), sdk.ZeroInt())
 				suite.Require().NoError(err)
 				_, err = gammKeeper.ExitSwapExactAmountOut(ctx, testAccount, poolId, foocoin, sdk.NewInt(1000000000000000000))
 				suite.Require().NoError(err)
 			} else {
 				suite.Require().Error(err)
-				_, err = gammKeeper.JoinSwapShareAmountOut(ctx, testAccount, poolId, "foo", types.OneShare.MulRaw(10), sdk.NewInt(1000000000000000000))
+				_, err = gammKeeper.JoinSwapShareAmountOut(ctx, testAccount, poolId, "foo", sdk.NewIntFromBigInt(types.OneShare.MulRaw(10).BigInt()), sdk.NewInt(1000000000000000000))
 				suite.Require().Error(err)
-				_, err = gammKeeper.ExitSwapShareAmountIn(ctx, testAccount, poolId, "foo", types.OneShare.MulRaw(10), sdk.ZeroInt())
+				_, err = gammKeeper.ExitSwapShareAmountIn(ctx, testAccount, poolId, "foo", sdk.NewIntFromBigInt(types.OneShare.MulRaw(10).BigInt()), sdk.ZeroInt())
 				suite.Require().Error(err)
 				_, err = gammKeeper.ExitSwapExactAmountOut(ctx, testAccount, poolId, foocoin, sdk.NewInt(1000000000000000000))
 				suite.Require().Error(err)

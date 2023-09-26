@@ -85,7 +85,7 @@ func RunQueryTestCase[Q proto.Message](t *testing.T, desc *QueryDescriptor, tc *
 // This logic is copied from the SDK, it should've just been publicly exposed.
 // But instead its buried within a mega-method.
 func newClientContextWithFrom(t *testing.T, fs *pflag.FlagSet) client.Context {
-	clientCtx := client.Context{}
+	clientCtx := client.Context{GenerateOnly: true}
 	from, _ := fs.GetString(flags.FlagFrom)
 	fromAddr, fromName, _, err := client.GetFromFields(clientCtx, nil, from)
 	require.NoError(t, err)

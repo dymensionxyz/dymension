@@ -680,7 +680,7 @@ func (suite *StableSwapTestSuite) Test_StableSwap_CalculateAmountOutAndIn_Invers
 	}
 	// create randomized test cases
 	r := rand.New(rand.NewSource(12345))
-	coinMax := sdk.NewInt(10).ToDec().Power(30).TruncateInt()
+	coinMax := sdk.NewDec(10).Power(30).TruncateInt()
 	for c := 2; c < 5; c++ {
 		for i := 0; i < 10; i++ {
 			coins := sdk.NewCoins()
@@ -971,7 +971,7 @@ func TestJoinPoolSharesInternal(t *testing.T) {
 			),
 			scalingFactors: defaultTwoAssetScalingFactors,
 			swapFee:        sdk.ZeroDec(),
-			expNumShare:    types.InitPoolSharesSupply.Quo(types.StableswapMaxScaledAmtPerAsset),
+			expNumShare:    sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt()).Quo(types.StableswapMaxScaledAmtPerAsset),
 			expTokensJoined: sdk.NewCoins(
 				sdk.NewInt64Coin("foo", 1),
 				sdk.NewInt64Coin("bar", 1),

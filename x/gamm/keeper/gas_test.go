@@ -14,7 +14,7 @@ import (
 var (
 	defaultAddr       sdk.AccAddress = sdk.AccAddress([]byte("addr1---------------"))
 	defaultCoins      sdk.Coins      = sdk.Coins{}
-	minShareOutAmount sdk.Int        = types.OneShare.MulRaw(50)
+	minShareOutAmount sdk.Int        = sdk.NewIntFromBigInt(types.OneShare.MulRaw(50).BigInt())
 )
 
 func (suite *KeeperTestSuite) measureJoinPoolGas(

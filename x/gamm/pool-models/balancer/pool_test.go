@@ -659,32 +659,32 @@ func TestCalcSingleAssetInAndOut_InverseRelationship(t *testing.T) {
 				swapFeeDec, err := sdk.NewDecFromStr(swapFee)
 				require.NoError(t, err)
 
-				initialPoolBalanceOut := sdk.NewInt(tc.initialPoolOut)
+				initialPoolBalanceOut := sdk.NewDec(tc.initialPoolOut)
 
-				initialWeightOut := sdk.NewInt(tc.initialWeightOut)
-				initialWeightIn := sdk.NewInt(tc.initialWeightIn)
+				initialWeightOut := sdk.NewDec(tc.initialWeightOut)
+				initialWeightIn := sdk.NewDec(tc.initialWeightIn)
 
-				initialTotalShares := types.InitPoolSharesSupply.ToDec()
-				initialCalcTokenOut := sdk.NewInt(tc.tokenOut)
+				initialTotalShares := types.InitPoolSharesSupply.ToDec().SDKDec()
+				initialCalcTokenOut := sdk.NewDec(tc.tokenOut)
 
 				actualSharesOut := balancer.CalcPoolSharesOutGivenSingleAssetIn(
-					initialPoolBalanceOut.ToDec(),
-					initialWeightOut.ToDec().Quo(initialWeightOut.Add(initialWeightIn).ToDec()),
+					initialPoolBalanceOut,
+					initialWeightOut.Quo(initialWeightOut).Add(initialWeightIn),
 					initialTotalShares,
-					initialCalcTokenOut.ToDec(),
+					initialCalcTokenOut,
 					swapFeeDec,
 				)
 
 				inverseCalcTokenOut := balancer.CalcSingleAssetInGivenPoolSharesOut(
-					initialPoolBalanceOut.Add(initialCalcTokenOut).ToDec(),
-					initialWeightOut.ToDec().Quo(initialWeightOut.Add(initialWeightIn).ToDec()),
+					initialPoolBalanceOut.Add(initialCalcTokenOut),
+					initialWeightOut.Quo(initialWeightOut.Add(initialWeightIn)),
 					initialTotalShares.Add(actualSharesOut),
 					actualSharesOut,
 					swapFeeDec,
 				)
 
 				tol := sdk.NewDec(1)
-				osmoassert.DecApproxEq(t, initialCalcTokenOut.ToDec(), inverseCalcTokenOut, tol)
+				osmoassert.DecApproxEq(t, initialCalcTokenOut, inverseCalcTokenOut, tol)
 			})
 		}
 	}
@@ -1342,7 +1342,7 @@ func TestCalcJoinPoolNoSwapShares(t *testing.T) {
 				PoolParams:         balancer.PoolParams{SwapFee: defaultSwapFee, ExitFee: defaultExitFee},
 				PoolAssets:         test.poolAssets,
 				FuturePoolGovernor: defaultFutureGovernor,
-				TotalShares:        sdk.NewCoin(types.GetPoolShareDenom(defaultPoolId), types.InitPoolSharesSupply),
+				TotalShares:        sdk.NewCoin(types.GetPoolShareDenom(defaultPoolId), sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt())),
 			}
 
 			numShare, tokensJoined, err := balancerPool.CalcJoinPoolNoSwapShares(ctx, test.tokensIn, balancerPool.GetSwapFee(ctx))

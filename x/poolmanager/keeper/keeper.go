@@ -73,7 +73,7 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Params:     k.GetParams(ctx),
 		NextPoolId: k.GetNextPoolId(ctx),
-		PoolRoutes: k.getAllPoolRoutes(ctx),
+		PoolRoutes: k.GetAllPoolRoutes(ctx),
 	}
 }
 

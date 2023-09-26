@@ -9,24 +9,15 @@ import (
 )
 
 func initSDKConfig() {
-	// Set prefixes
-	accountPubKeyPrefix := appparams.AccountAddressPrefix + "pub"
-	validatorAddressPrefix := appparams.AccountAddressPrefix + "valoper"
-	validatorPubKeyPrefix := appparams.AccountAddressPrefix + "valoperpub"
-	consNodeAddressPrefix := appparams.AccountAddressPrefix + "valcons"
-	consNodePubKeyPrefix := appparams.AccountAddressPrefix + "valconspub"
+
+	appparams.SetAddressPrefixes()
 
 	// Set config
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(appparams.AccountAddressPrefix, accountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(validatorAddressPrefix, validatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(consNodeAddressPrefix, consNodePubKeyPrefix)
-
 	ethcmd.SetBip44CoinType(config)
+	registerDenoms()
 
 	config.Seal()
-
-	registerDenoms()
 }
 
 // RegisterDenoms registers the base and display denominations to the SDK.

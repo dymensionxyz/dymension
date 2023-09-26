@@ -49,7 +49,7 @@ func TestNewCreatePoolCmd(t *testing.T) {
 			  "%s": "100node0token,100stake",
 			  "%s": "0.001",
 			  "%s": "0.001",
-			  "%s": "osmo1fqlr98d45v5ysqgp6h56kpujcj4cvsjnjq9nck"
+			  "%s": "dym1feufr4gpvdg043hww7x9dksqed5xksweg59nnm"
 			}
 			`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee, cli.PoolFileFutureGovernor),
 			false,

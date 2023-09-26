@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/simapp"
+
+	simapp "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +20,7 @@ import (
 )
 
 func TestGammInitGenesis(t *testing.T) {
-	app := osmoapp.Setup(false)
+	app := osmoapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	balancerPool, err := balancer.NewBalancerPool(1, balancer.PoolParams{
@@ -67,7 +69,7 @@ func TestGammInitGenesis(t *testing.T) {
 }
 
 func TestGammExportGenesis(t *testing.T) {
-	app := osmoapp.Setup(false)
+	app := osmoapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	acc1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
@@ -115,11 +117,11 @@ func TestGammExportGenesis(t *testing.T) {
 }
 
 func TestMarshalUnmarshalGenesis(t *testing.T) {
-	app := osmoapp.Setup(false)
+	app := osmoapp.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	encodingConfig := osmoapp.MakeEncodingConfig()
-	appCodec := encodingConfig.Marshaler
+	appCodec := encodingConfig.Codec
 	am := gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper)
 	acc1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
 	err := simapp.FundAccount(app.BankKeeper, ctx, acc1, sdk.NewCoins(

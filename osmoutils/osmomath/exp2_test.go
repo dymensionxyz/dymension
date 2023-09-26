@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/osmoutils/osmomath"
 	"github.com/stretchr/testify/require"
 )
 

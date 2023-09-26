@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -1025,6 +1026,10 @@ func (app *App) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetTxConfig implements ibctesting.TestingApp
 func (app *App) GetTxConfig() client.TxConfig {
 	return simappparams.MakeTestEncodingConfig().TxConfig
+}
+
+func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
 func (app *App) setupUpgradeHandlers() {

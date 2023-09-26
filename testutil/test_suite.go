@@ -8,16 +8,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	"github.com/cosmos/cosmos-sdk/simapp"
+	simapp "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"golang.org/x/exp/slices"
+
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -49,34 +47,20 @@ var (
 
 // Setup sets up basic environment for suite (App, Ctx, and test accounts)
 func (s *KeeperTestHelper) Setup() {
-	s.App = app.Setup(false)
+	s.App = app.Setup(s.T(), false)
 	s.Ctx = s.App.BaseApp.NewContext(false, tmtypes.Header{Height: 1, ChainID: "osmosis-1", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx,
 	}
 
-	s.SetEpochStartTime()
 	s.TestAccs = CreateRandomAccounts(3)
 }
 
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {
 	// Setting to True, leads to init genesis not running
-	s.App = app.Setup(true)
+	s.App = app.Setup(s.T(), true)
 	s.Ctx = s.App.BaseApp.NewContext(true, tmtypes.Header{})
-}
-
-func (s *KeeperTestHelper) SetEpochStartTime() {
-	epochsKeeper := s.App.EpochsKeeper
-
-	for _, epoch := range epochsKeeper.AllEpochInfos(s.Ctx) {
-		epoch.StartTime = s.Ctx.BlockTime()
-		epochsKeeper.DeleteEpochInfo(s.Ctx, epoch.Identifier)
-		err := epochsKeeper.AddEpochInfo(s.Ctx, epoch)
-		if err != nil {
-			panic(err)
-		}
-	}
 }
 
 // CreateTestContext creates a test context.
@@ -118,58 +102,8 @@ func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
 }
 
 func (s *KeeperTestHelper) MintCoins(coins sdk.Coins) {
-	err := s.App.BankKeeper.MintCoins(s.Ctx, minttypes.ModuleName, coins)
+	err := s.App.BankKeeper.MintCoins(s.Ctx, gammtypes.ModuleName, coins)
 	s.Require().NoError(err)
-}
-
-// SetupValidator sets up a validator and returns the ValAddress.
-func (s *KeeperTestHelper) SetupValidator(bondStatus stakingtypes.BondStatus) sdk.ValAddress {
-	valPub := secp256k1.GenPrivKey().PubKey()
-	valAddr := sdk.ValAddress(valPub.Address())
-	bondDenom := s.App.StakingKeeper.GetParams(s.Ctx).BondDenom
-	selfBond := sdk.NewCoins(sdk.Coin{Amount: sdk.NewInt(100), Denom: bondDenom})
-
-	s.FundAcc(sdk.AccAddress(valAddr), selfBond)
-
-	stakingHandler := staking.NewHandler(*s.App.StakingKeeper)
-	stakingCoin := sdk.NewCoin(sdk.DefaultBondDenom, selfBond[0].Amount)
-	ZeroCommission := stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec())
-	msg, err := stakingtypes.NewMsgCreateValidator(valAddr, valPub, stakingCoin, stakingtypes.Description{}, ZeroCommission, sdk.OneInt())
-	s.Require().NoError(err)
-	res, err := stakingHandler(s.Ctx, msg)
-	s.Require().NoError(err)
-	s.Require().NotNil(res)
-
-	val, found := s.App.StakingKeeper.GetValidator(s.Ctx, valAddr)
-	s.Require().True(found)
-
-	val = val.UpdateStatus(bondStatus)
-	s.App.StakingKeeper.SetValidator(s.Ctx, val)
-
-	consAddr, err := val.GetConsAddr()
-	s.Suite.Require().NoError(err)
-
-	signingInfo := slashingtypes.NewValidatorSigningInfo(
-		consAddr,
-		s.Ctx.BlockHeight(),
-		0,
-		time.Unix(0, 0),
-		false,
-		0,
-	)
-	s.App.SlashingKeeper.SetValidatorSigningInfo(s.Ctx, consAddr, signingInfo)
-
-	return valAddr
-}
-
-// SetupMultipleValidators setups "numValidator" validators and returns their address in string
-func (s *KeeperTestHelper) SetupMultipleValidators(numValidator int) []string {
-	valAddrs := []string{}
-	for i := 0; i < numValidator; i++ {
-		valAddr := s.SetupValidator(stakingtypes.Bonded)
-		valAddrs = append(valAddrs, valAddr.String())
-	}
-	return valAddrs
 }
 
 // BeginNewBlock starts a new block.
@@ -181,12 +115,13 @@ func (s *KeeperTestHelper) BeginNewBlock(executeNextEpoch bool) {
 		valAddrFancy, err := validators[0].GetConsAddr()
 		s.Require().NoError(err)
 		valAddr = valAddrFancy.Bytes()
-	} else {
-		valAddrFancy := s.SetupValidator(stakingtypes.Bonded)
-		validator, _ := s.App.StakingKeeper.GetValidator(s.Ctx, valAddrFancy)
-		valAddr2, _ := validator.GetConsAddr()
-		valAddr = valAddr2.Bytes()
 	}
+	// else {
+	// 	valAddrFancy := s.SetupValidator(stakingtypes.Bonded)
+	// 	validator, _ := s.App.StakingKeeper.GetValidator(s.Ctx, valAddrFancy)
+	// 	valAddr2, _ := validator.GetConsAddr()
+	// 	valAddr = valAddr2.Bytes()
+	// }
 
 	s.BeginNewBlockWithProposer(executeNextEpoch, valAddr)
 }
@@ -201,12 +136,7 @@ func (s *KeeperTestHelper) BeginNewBlockWithProposer(executeNextEpoch bool, prop
 
 	valAddr := valConsAddr.Bytes()
 
-	epochIdentifier := s.App.SuperfluidKeeper.GetEpochIdentifier(s.Ctx)
-	epoch := s.App.EpochsKeeper.GetEpochInfo(s.Ctx, epochIdentifier)
 	newBlockTime := s.Ctx.BlockTime().Add(5 * time.Second)
-	if executeNextEpoch {
-		newBlockTime = s.Ctx.BlockTime().Add(epoch.Duration).Add(time.Second)
-	}
 
 	header := tmtypes.Header{Height: s.Ctx.BlockHeight() + 1, Time: newBlockTime}
 	newCtx := s.Ctx.WithBlockTime(newBlockTime).WithBlockHeight(s.Ctx.BlockHeight() + 1)
@@ -268,7 +198,7 @@ func (s *KeeperTestHelper) SetupGammPoolsWithBondDenomMultiplier(multipliers []s
 	pools := []gammtypes.CFMMPoolI{}
 	for index, multiplier := range multipliers {
 		token := fmt.Sprintf("token%d", index)
-		uosmoAmount := gammtypes.InitPoolSharesSupply.ToDec().Mul(multiplier).RoundInt()
+		uosmoAmount := sdk.NewDecFromBigInt(gammtypes.InitPoolSharesSupply.BigInt()).Mul(multiplier).RoundInt()
 
 		s.FundAcc(acc1, sdk.NewCoins(
 			sdk.NewCoin(bondDenom, uosmoAmount.Mul(sdk.NewInt(10))),
@@ -374,7 +304,8 @@ func TestMessageAuthzSerialization(t *testing.T, msg sdk.Msg) {
 
 	// Authz: Grant Msg
 	typeURL := sdk.MsgTypeURL(msg)
-	grant, err := authz.NewGrant(someDate, authz.NewGenericAuthorization(typeURL), someDate.Add(time.Hour))
+	someDate = someDate.Add(time.Hour)
+	grant, err := authz.NewGrant(someDate, authz.NewGenericAuthorization(typeURL), nil)
 	require.NoError(t, err)
 
 	msgGrant := authz.MsgGrant{Granter: mockGranter, Grantee: mockGrantee, Grant: grant}
@@ -403,4 +334,37 @@ func GenerateTestAddrs() (string, string) {
 	validAddr := sdk.AccAddress(pk1.Address()).String()
 	invalidAddr := sdk.AccAddress("invalid").String()
 	return validAddr, invalidAddr
+}
+
+// AssertEventEmitted asserts that ctx's event manager has emitted the given number of events
+// of the given type.
+func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected string, numEventsExpected int) {
+	allEvents := ctx.EventManager().Events()
+	// filter out other events
+	actualEvents := make([]sdk.Event, 0)
+	for _, event := range allEvents {
+		if event.Type == eventTypeExpected {
+			actualEvents = append(actualEvents, event)
+		}
+	}
+	s.Equal(numEventsExpected, len(actualEvents))
+}
+
+func (s *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {
+	index := slices.IndexFunc(events, func(e sdk.Event) bool { return e.Type == name })
+	if index == -1 {
+		return sdk.Event{}
+	}
+	return events[index]
+}
+
+func (s *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]string {
+	attrs := make(map[string]string)
+	if event.Attributes == nil {
+		return attrs
+	}
+	for _, a := range event.Attributes {
+		attrs[string(a.Key)] = string(a.Value)
+	}
+	return attrs
 }

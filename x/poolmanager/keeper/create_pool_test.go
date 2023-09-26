@@ -97,11 +97,11 @@ func (suite *KeeperTestSuite) TestPoolCreationFee() {
 			for _, asset := range test.msg.GetPoolAssets() {
 				expectedPoolTokens = expectedPoolTokens.Add(asset.Token)
 			}
-			expectedPoolShares := sdk.NewCoin(gammtypes.GetPoolShareDenom(pool.GetId()), gammtypes.InitPoolSharesSupply)
+			expectedPoolShares := sdk.NewCoin(gammtypes.GetPoolShareDenom(pool.GetId()), sdk.NewIntFromBigInt(gammtypes.InitPoolSharesSupply.BigInt()))
 
 			// make sure sender's balance is updated correctly
 			senderBal := bankKeeper.GetAllBalances(suite.Ctx, sender)
-			expectedSenderBal := senderBalBeforeNewPool.Sub(test.poolCreationFee).Sub(expectedPoolTokens).Add(expectedPoolShares)
+			expectedSenderBal := senderBalBeforeNewPool.Sub(test.poolCreationFee...).Sub(expectedPoolTokens...).Add(expectedPoolShares)
 			suite.Require().Equal(senderBal.String(), expectedSenderBal.String())
 
 			// check pool's liquidity is correctly increased

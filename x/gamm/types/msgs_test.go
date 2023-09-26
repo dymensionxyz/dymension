@@ -517,7 +517,8 @@ func TestMsgJoinSwapExternAmountIn(t *testing.T) {
 		{
 			name: "invalid sender",
 			msg: createMsg(func(msg gammtypes.MsgJoinSwapExternAmountIn) gammtypes.MsgJoinSwapExternAmountIn {
-				msg.Sender = invalidAddr.String()
+				aa := invalidAddr.String()
+				msg.Sender = aa
 				return msg
 			}),
 			expectPass: false,

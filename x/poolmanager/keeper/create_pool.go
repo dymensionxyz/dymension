@@ -143,8 +143,8 @@ func (k Keeper) GetPoolModule(ctx sdk.Context, poolId uint64) (types.SwapI, erro
 	return swapModule, nil
 }
 
-// getAllPoolRoutes returns all pool routes from state.
-func (k Keeper) getAllPoolRoutes(ctx sdk.Context) []types.ModuleRoute {
+// GetAllPoolRoutes returns all pool routes from state.
+func (k Keeper) GetAllPoolRoutes(ctx sdk.Context) []types.ModuleRoute {
 	store := ctx.KVStore(k.storeKey)
 	moduleRoutes, err := osmoutils.GatherValuesFromStorePrefixWithKeyParser(store, types.SwapModuleRouterPrefix, parsePoolRouteWithKey)
 	if err != nil {

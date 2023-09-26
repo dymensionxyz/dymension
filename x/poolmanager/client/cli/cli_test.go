@@ -7,7 +7,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/app"
 	"github.com/dymensionxyz/dymension/osmoutils"
 	"github.com/dymensionxyz/dymension/osmoutils/osmocli"
 	"github.com/dymensionxyz/dymension/x/poolmanager/client/cli"
@@ -20,7 +19,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	"github.com/cosmos/cosmos-sdk/testutil/network"
+	"github.com/dymensionxyz/dymension/testutil/network"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/client/testutil"
 )
@@ -37,7 +37,7 @@ var testAddresses = osmoutils.CreateRandomAccounts(3)
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
 
-	s.cfg = app.DefaultConfig()
+	s.cfg = network.DefaultConfig()
 	s.cfg.GenesisState = poolmanagertestutil.UpdateTxFeeDenom(s.cfg.Codec, s.cfg.BondDenom)
 
 	s.network = network.New(s.T(), s.cfg)
@@ -232,7 +232,10 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 		keyring.English, sdk.FullFundraiserPath, keyring.DefaultBIP39Passphrase, hd.Secp256k1)
 	s.Require().NoError(err)
 
-	newAddr := sdk.AccAddress(info.GetPubKey().Address())
+	pub, err := info.GetPubKey()
+	s.Require().NoError(err)
+
+	newAddr := sdk.AccAddress(pub.Address())
 
 	_, err = banktestutil.MsgSendExec(
 		val.ClientCtx,
@@ -307,7 +310,7 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 			  "%s": "100node0token,100stake",
 			  "%s": "0.001",
 			  "%s": "0.001",
-			  "%s": "osmo1fqlr98d45v5ysqgp6h56kpujcj4cvsjnjq9nck"
+			  "%s": "dym1feufr4gpvdg043hww7x9dksqed5xksweg59nnm"
 			}
 			`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee, cli.PoolFileFutureGovernor),
 			false, &sdk.TxResponse{}, 0,
