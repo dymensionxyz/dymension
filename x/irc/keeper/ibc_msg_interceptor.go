@@ -372,3 +372,17 @@ func (k Keeper) validateStateRoot(ctx sdk.Context, rollappId string, height uint
 	}
 	return nil
 }
+
+func (k Keeper) ExtractRollappIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
+	}
+
+	dymintstate, ok := clientState.(*ibcdmtypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return dymintstate.GetChainID(), nil
+}

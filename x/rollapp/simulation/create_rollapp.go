@@ -54,19 +54,11 @@ func SimulateMsgCreateRollapp(
 		if bFailMaxSequencers {
 			maxSequencers = 0
 		}
-		// calculate maxWithholdingBlocks and whether or not to fail the transaction
-		bFailMaxWithholdingBlocks := r.Int()%2 == 0
-		maxWithholdingBlocks := uint64(r.Intn(len(accs))) + 1
-		if bFailMaxWithholdingBlocks {
-			maxWithholdingBlocks = 0
-		}
+
 		msg := &types.MsgCreateRollapp{
-			Creator:              simAccount.Address.String(),
-			RollappId:            rollappId,
-			CodeStamp:            "",
-			GenesisPath:          "",
-			MaxWithholdingBlocks: maxWithholdingBlocks,
-			MaxSequencers:        maxSequencers,
+			Creator:       simAccount.Address.String(),
+			RollappId:     rollappId,
+			MaxSequencers: maxSequencers,
 			PermissionedAddresses: sharedtypes.Sequencers{
 				Addresses: permissionedAddresses,
 			},
@@ -74,7 +66,7 @@ func SimulateMsgCreateRollapp(
 
 		// fmt.Printf("SimulateMsgCreateRollapp: RollappId(%s) bFailMaxSequencers(%t) bFailMaxWithholdingBlocks(%t) bFailDuplicateSequencer(%t)\n",
 		// 	msg.RollappId, bFailMaxSequencers, bFailMaxWithholdingBlocks, bFailDuplicateSequencer)
-		bExpectedError := bFailMaxSequencers || bFailMaxWithholdingBlocks || bFailDuplicateSequencer || bAlreadyExists
+		bExpectedError := bFailMaxSequencers || bFailDuplicateSequencer || bAlreadyExists
 
 		if !bExpectedError {
 			simulation.GlobalRollappList = append(simulation.GlobalRollappList, simulationtypes.SimRollapp{

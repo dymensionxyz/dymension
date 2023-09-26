@@ -18,9 +18,6 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
 		RollappId:             fmt.Sprintf("%s%d", "rollapp", numOfAddresses),
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: addresses},
 	}
@@ -29,9 +26,6 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 		RollappId:             rollapp.GetRollappId(),
 		Creator:               rollapp.GetCreator(),
 		Version:               0,
-		CodeStamp:             rollapp.GetCodeStamp(),
-		GenesisPath:           rollapp.GetGenesisPath(),
-		MaxWithholdingBlocks:  rollapp.GetMaxWithholdingBlocks(),
 		MaxSequencers:         rollapp.GetMaxSequencers(),
 		PermissionedAddresses: rollapp.GetPermissionedAddresses(),
 	}
@@ -101,9 +95,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
 		RollappId:             "rollapp1",
-		CodeStamp:             "",
-		GenesisPath:           "",
-		MaxWithholdingBlocks:  1,
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{},
 	}
