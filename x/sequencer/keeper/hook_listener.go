@@ -30,7 +30,14 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	}
 
 	// check to see if the rollappId matches the one of the sequencer
-	if sequencer.RollappId != rollappId {
+	rollappFound := false
+	for _, rollapp := range sequencer.RollappIDs {
+		if rollapp == rollappId {
+			rollappFound = true
+			break
+		}
+	}
+	if !rollappFound {
 		return types.ErrSequencerRollappMismatch
 	}
 

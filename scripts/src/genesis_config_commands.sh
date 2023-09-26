@@ -54,6 +54,30 @@ set_misc_params() {
     jq '.app_state.crisis.constant_fee.denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
+set_bank_denom_metadata() {
+    jq '.app_state.bank.denom_metadata = [
+        {
+            "base": "udym",
+            "denom_units": [
+                {
+                    "aliases": [],
+                    "denom": "udym",
+                    "exponent": 0
+                },
+                {
+                    "aliases": [],
+                    "denom": "DYM",
+                    "exponent": 18
+                }
+            ],
+            "description": "Denom metadata for DYM (udym)",
+            "display": "DYM",
+            "name": "DYM",
+            "symbol": "DYM"
+        }
+    ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
 enable_monitoring() {
     sed -i'' -e "/\[telemetry\]/,+8 s/enabled = .*/enabled = true/" "$APP_CONFIG_FILE"
     sed  -i'' -e "s/^prometheus-retention-time =.*/prometheus-retention-time = 31104000/" "$APP_CONFIG_FILE"
