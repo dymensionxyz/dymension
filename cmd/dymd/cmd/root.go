@@ -145,8 +145,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 	// add server commands
 	ethermintserver.AddCommands(
 		rootCmd,
-		app.DefaultNodeHome,
-		a.newApp,
+		ethermintserver.NewDefaultStartOptions(a.newApp, app.DefaultNodeHome),
 		a.appExport,
 		addModuleInitFlags,
 	)

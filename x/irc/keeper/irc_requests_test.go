@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/cosmos/ibc-go/v5/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
 	"github.com/dymensionxyz/dymension/x/irc/keeper"
 	"github.com/dymensionxyz/dymension/x/irc/types"
 	"github.com/stretchr/testify/require"
 
-	clienttypes "github.com/cosmos/ibc-go/v5/modules/core/02-client/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 )
 
 // Prevent strconv unused error
