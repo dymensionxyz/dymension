@@ -3,7 +3,7 @@ package ante
 import (
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	ibckeeper "github.com/cosmos/ibc-go/v5/modules/core/keeper"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
 	errorsmod "cosmossdk.io/errors"
