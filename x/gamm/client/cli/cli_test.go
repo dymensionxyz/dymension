@@ -6,20 +6,20 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/osmoutils"
 	"github.com/dymensionxyz/dymension/osmoutils/osmocli"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/client/cli"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
 
-	"github.com/cosmos/cosmos-sdk/testutil"
+	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 )
 
-var testAddresses = osmoutils.CreateRandomAccounts(3)
+var testAddresses = testutil.CreateRandomAccounts(3)
 
 type IntegrationTestSuite struct {
 	suite.Suite
@@ -164,7 +164,7 @@ func TestNewCreatePoolCmd(t *testing.T) {
 	for name, tc := range testCases {
 		t.Run(name, func(tt *testing.T) {
 			desc := cli.NewCreatePoolCmd()
-			jsonFile := testutil.WriteToNewTempFile(tt, tc.json)
+			jsonFile := sdktestutil.WriteToNewTempFile(tt, tc.json)
 			Cmd := fmt.Sprintf("--pool-file=%s --from=%s", jsonFile.Name(), testAddresses[0].String())
 
 			txTc := osmocli.TxCliTestCase[*balancer.MsgCreateBalancerPool]{

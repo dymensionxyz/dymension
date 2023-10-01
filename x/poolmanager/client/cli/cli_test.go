@@ -7,8 +7,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/osmoutils"
 	"github.com/dymensionxyz/dymension/osmoutils/osmocli"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/poolmanager/client/cli"
 	"github.com/dymensionxyz/dymension/x/poolmanager/client/queryproto"
 	poolmanagertestutil "github.com/dymensionxyz/dymension/x/poolmanager/client/testutil"
@@ -17,7 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/testutil"
+	sdktestutil "github.com/cosmos/cosmos-sdk/testutil"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/dymensionxyz/dymension/testutil/network"
 
@@ -32,7 +32,7 @@ type IntegrationTestSuite struct {
 	network *network.Network
 }
 
-var testAddresses = osmoutils.CreateRandomAccounts(3)
+var testAddresses = testutil.CreateRandomAccounts(3)
 
 func (s *IntegrationTestSuite) SetupSuite() {
 	s.T().Log("setting up integration test suite")
@@ -243,7 +243,7 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 		newAddr,
 		sdk.NewCoins(sdk.NewInt64Coin(s.cfg.BondDenom, 200000000), sdk.NewInt64Coin("node0token", 20000)), fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 		fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-		osmoutils.DefaultFeeString(s.cfg),
+		osmocli.DefaultFeeString(s.cfg),
 	)
 	s.Require().NoError(err)
 
@@ -483,7 +483,7 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 			cmd := cli.NewCreatePoolCmd()
 			clientCtx := val.ClientCtx
 
-			jsonFile := testutil.WriteToNewTempFile(s.T(), tc.json)
+			jsonFile := sdktestutil.WriteToNewTempFile(s.T(), tc.json)
 
 			args := []string{
 				fmt.Sprintf("--%s=%s", cli.FlagPoolFile, jsonFile.Name()),
@@ -491,7 +491,7 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 				// common args
 				fmt.Sprintf("--%s=true", flags.FlagSkipConfirmation),
 				fmt.Sprintf("--%s=%s", flags.FlagBroadcastMode, flags.BroadcastBlock),
-				osmoutils.DefaultFeeString(s.cfg),
+				osmocli.DefaultFeeString(s.cfg),
 				fmt.Sprintf("--%s=%s", flags.FlagGas, fmt.Sprint(400000)),
 			}
 
