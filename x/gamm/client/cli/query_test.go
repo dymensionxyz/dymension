@@ -21,21 +21,20 @@ func (s *QueryTestSuite) SetupSuite() {
 	s.queryClient = types.NewQueryClient(s.QueryHelper)
 	// create a new pool
 	s.PrepareBalancerPool()
-	s.Commit()
 }
 
 func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	var (
-		fooDenom   = apptesting.DefaultPoolAssets[0].Token.Denom
-		barDenom   = apptesting.DefaultPoolAssets[1].Token.Denom
-		bazDenom   = apptesting.DefaultPoolAssets[2].Token.Denom
-		uosmoDenom = apptesting.DefaultPoolAssets[3].Token.Denom
+		fooDenom  = apptesting.DefaultPoolAssets[0].Token.Denom
+		barDenom  = apptesting.DefaultPoolAssets[1].Token.Denom
+		bazDenom  = apptesting.DefaultPoolAssets[2].Token.Denom
+		udymDenom = apptesting.DefaultPoolAssets[3].Token.Denom
 
 		basicValidTokensIn = sdk.NewCoins(
 			sdk.NewCoin(fooDenom, sdk.OneInt()),
 			sdk.NewCoin(barDenom, sdk.OneInt()),
 			sdk.NewCoin(bazDenom, sdk.OneInt()),
-			sdk.NewCoin(uosmoDenom, sdk.OneInt()))
+			sdk.NewCoin(udymDenom, sdk.OneInt()))
 	)
 
 	testCases := []struct {

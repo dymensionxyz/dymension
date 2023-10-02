@@ -48,7 +48,7 @@ var (
 // Setup sets up basic environment for suite (App, Ctx, and test accounts)
 func (s *KeeperTestHelper) Setup() {
 	s.App = app.Setup(s.T(), false)
-	s.Ctx = s.App.BaseApp.NewContext(false, tmtypes.Header{Height: 1, ChainID: "osmosis-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContext(false, tmtypes.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
 		GRPCQueryRouter: s.App.GRPCQueryRouter(),
 		Ctx:             s.Ctx,
@@ -198,10 +198,10 @@ func (s *KeeperTestHelper) SetupGammPoolsWithBondDenomMultiplier(multipliers []s
 	pools := []gammtypes.CFMMPoolI{}
 	for index, multiplier := range multipliers {
 		token := fmt.Sprintf("token%d", index)
-		uosmoAmount := sdk.NewDecFromBigInt(gammtypes.InitPoolSharesSupply.BigInt()).Mul(multiplier).RoundInt()
+		udymAmount := sdk.NewDecFromBigInt(gammtypes.InitPoolSharesSupply.BigInt()).Mul(multiplier).RoundInt()
 
 		s.FundAcc(acc1, sdk.NewCoins(
-			sdk.NewCoin(bondDenom, uosmoAmount.Mul(sdk.NewInt(10))),
+			sdk.NewCoin(bondDenom, udymAmount.Mul(sdk.NewInt(10))),
 			sdk.NewInt64Coin(token, 100000),
 		).Add(params.PoolCreationFee...))
 
@@ -211,7 +211,7 @@ func (s *KeeperTestHelper) SetupGammPoolsWithBondDenomMultiplier(multipliers []s
 			// pool assets
 			defaultFooAsset = balancer.PoolAsset{
 				Weight: sdk.NewInt(100),
-				Token:  sdk.NewCoin(bondDenom, uosmoAmount),
+				Token:  sdk.NewCoin(bondDenom, udymAmount),
 			}
 			defaultBarAsset = balancer.PoolAsset{
 				Weight: sdk.NewInt(100),

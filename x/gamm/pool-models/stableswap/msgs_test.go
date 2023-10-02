@@ -179,7 +179,7 @@ func TestMsgCreateStableswapPoolValidateBasic(t *testing.T) {
 		{
 			name: "valid governor: address",
 			msg: updateMsg(func(msg stableswap.MsgCreateStableswapPool) stableswap.MsgCreateStableswapPool {
-				msg.FuturePoolGovernor = "dym1feufr4gpvdg043hww7x9dksqed5xksweg59nnm"
+				msg.FuturePoolGovernor = "dym1celvklgrnfmpxwknlvyxlxvtns2szsm8sey5u5"
 				return msg
 			}),
 			expectPass: true,
@@ -349,7 +349,8 @@ func (suite *TestSuite) TestMsgCreateStableswapPool() {
 
 			suite.Require().Equal(tc.poolId, pool.GetId())
 			suite.Require().Equal(tc.msg.InitialPoolLiquidity, pool.GetTotalPoolLiquidity(suite.Ctx))
-			suite.Require().Equal(types.InitPoolSharesSupply, pool.GetTotalShares())
+			// suite.Require().Equal(sdk.NewIntFromBigInt(types.InitPoolSharesSupply.BigInt()), pool.GetTotalShares())
+			suite.Require().Equal(types.InitPoolSharesSupply.String(), pool.GetTotalShares().String())
 		})
 	}
 }

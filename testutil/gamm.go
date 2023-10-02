@@ -12,7 +12,7 @@ import (
 )
 
 var DefaultAcctFunds sdk.Coins = sdk.NewCoins(
-	sdk.NewCoin("uosmo", sdk.NewInt(10000000000)),
+	sdk.NewCoin("udym", sdk.NewInt(10000000000)),
 	sdk.NewCoin("foo", sdk.NewInt(10000000000)),
 	sdk.NewCoin("bar", sdk.NewInt(10000000000)),
 	sdk.NewCoin("baz", sdk.NewInt(10000000000)),
@@ -33,7 +33,7 @@ var DefaultPoolAssets = []balancer.PoolAsset{
 	},
 	{
 		Weight: sdk.NewInt(400),
-		Token:  sdk.NewCoin("uosmo", sdk.NewInt(5000000)),
+		Token:  sdk.NewCoin("udym", sdk.NewInt(5000000)),
 	},
 }
 
@@ -151,7 +151,7 @@ func (s *KeeperTestHelper) PrepareBalancerPoolWithPoolParams(poolParams balancer
 // PrepareCustomBalancerPool sets up a Balancer pool with an array of assets and given parameters
 func (s *KeeperTestHelper) PrepareCustomBalancerPool(assets []balancer.PoolAsset, params balancer.PoolParams) uint64 {
 	// Add coins for pool creation fee + coins needed to mint balances
-	fundCoins := sdk.NewCoins(sdk.NewCoin("uosmo", sdk.NewInt(10000000000)))
+	fundCoins := sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000000)))
 	for _, a := range assets {
 		fundCoins = fundCoins.Add(a.Token)
 	}

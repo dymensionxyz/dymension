@@ -49,20 +49,20 @@ func TestNewCreatePoolCmd(t *testing.T) {
 			  "%s": "100node0token,100stake",
 			  "%s": "0.001",
 			  "%s": "0.001",
-			  "%s": "dym1feufr4gpvdg043hww7x9dksqed5xksweg59nnm"
+			  "%s": "dym1celvklgrnfmpxwknlvyxlxvtns2szsm8sey5u5"
 			}
 			`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee, cli.PoolFileFutureGovernor),
 			false,
 		},
 		"bad pool json - missing quotes around exit fee": {
 			fmt.Sprintf(`
-			{
-			  "%s": "1node0token,3stake",
-			  "%s": "100node0token,100stake",
-			  "%s": "0.001",
-			  "%s": 0.001
-			}
-	`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee),
+				{
+				  "%s": "1node0token,3stake",
+				  "%s": "100node0token,100stake",
+				  "%s": "0.001",
+				  "%s": 0.001
+				}
+		`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee),
 			true,
 		},
 		"empty pool json": {
@@ -70,93 +70,93 @@ func TestNewCreatePoolCmd(t *testing.T) {
 		},
 		"smooth change params": {
 			fmt.Sprintf(`
-				{
-					"%s": "1node0token,3stake",
-					"%s": "100node0token,100stake",
-					"%s": "0.001",
-					"%s": "0.001",
-					"%s": {
-						"%s": "864h",
-						"%s": "2node0token,1stake",
-						"%s": "2006-01-02T15:04:05Z"
+					{
+						"%s": "1node0token,3stake",
+						"%s": "100node0token,100stake",
+						"%s": "0.001",
+						"%s": "0.001",
+						"%s": {
+							"%s": "864h",
+							"%s": "2node0token,1stake",
+							"%s": "2006-01-02T15:04:05Z"
+						}
 					}
-				}
-				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
+					`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
 				cli.PoolFileSmoothWeightChangeParams, cli.PoolFileDuration, cli.PoolFileTargetPoolWeights, cli.PoolFileStartTime,
 			),
 			false,
 		},
 		"smooth change params - no start time": {
 			fmt.Sprintf(`
-				{
-					"%s": "1node0token,3stake",
-					"%s": "100node0token,100stake",
-					"%s": "0.001",
-					"%s": "0.001",
-					"%s": {
-						"%s": "864h",
-						"%s": "2node0token,1stake"
+					{
+						"%s": "1node0token,3stake",
+						"%s": "100node0token,100stake",
+						"%s": "0.001",
+						"%s": "0.001",
+						"%s": {
+							"%s": "864h",
+							"%s": "2node0token,1stake"
+						}
 					}
-				}
-				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
+					`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
 				cli.PoolFileSmoothWeightChangeParams, cli.PoolFileDuration, cli.PoolFileTargetPoolWeights,
 			),
 			false,
 		},
 		"empty smooth change params": {
 			fmt.Sprintf(`
-				{
-					"%s": "1node0token,3stake",
-					"%s": "100node0token,100stake",
-					"%s": "0.001",
-					"%s": "0.001",
-					"%s": {}
-				}
-				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
+					{
+						"%s": "1node0token,3stake",
+						"%s": "100node0token,100stake",
+						"%s": "0.001",
+						"%s": "0.001",
+						"%s": {}
+					}
+					`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
 				cli.PoolFileSmoothWeightChangeParams,
 			),
 			false,
 		},
 		"smooth change params wrong type": {
 			fmt.Sprintf(`
-				{
-					"%s": "1node0token,3stake",
-					"%s": "100node0token,100stake",
-					"%s": "0.001",
-					"%s": "0.001",
-					"%s": "invalid string"
-				}
-				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
+					{
+						"%s": "1node0token,3stake",
+						"%s": "100node0token,100stake",
+						"%s": "0.001",
+						"%s": "0.001",
+						"%s": "invalid string"
+					}
+					`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
 				cli.PoolFileSmoothWeightChangeParams,
 			),
 			true,
 		},
 		"smooth change params missing duration": {
 			fmt.Sprintf(`
-				{
-					"%s": "1node0token,3stake",
-					"%s": "100node0token,100stake",
-					"%s": "0.001",
-					"%s": "0.001",
-					"%s": {
-						"%s": "2node0token,1stake"
+					{
+						"%s": "1node0token,3stake",
+						"%s": "100node0token,100stake",
+						"%s": "0.001",
+						"%s": "0.001",
+						"%s": {
+							"%s": "2node0token,1stake"
+						}
 					}
-				}
-				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
+					`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee,
 				cli.PoolFileSmoothWeightChangeParams, cli.PoolFileTargetPoolWeights,
 			),
 			true,
 		},
 		"unknown fields in json": {
 			fmt.Sprintf(`
-			{
-			  "%s": "1node0token",
-			  "%s": "100node0token",
-			  "%s": "0.001",
-			  "%s": "0.001"
-			  "unknown": true,
-			}
-			`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee),
+				{
+				  "%s": "1node0token",
+				  "%s": "100node0token",
+				  "%s": "0.001",
+				  "%s": "0.001"
+				  "unknown": true,
+				}
+				`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee),
 			true,
 		},
 	}
@@ -335,10 +335,10 @@ func TestGetCmdSpotPrice(t *testing.T) {
 	desc, _ := cli.GetCmdSpotPrice()
 	tcs := map[string]osmocli.QueryCliTestCase[*types.QuerySpotPriceRequest]{
 		"basic test": {
-			Cmd: "1 uosmo ibc/111",
+			Cmd: "1 udym ibc/111",
 			ExpectedQuery: &types.QuerySpotPriceRequest{
 				PoolId:          1,
-				BaseAssetDenom:  "uosmo",
+				BaseAssetDenom:  "udym",
 				QuoteAssetDenom: "ibc/111",
 			},
 		},

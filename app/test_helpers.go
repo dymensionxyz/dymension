@@ -80,6 +80,9 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Codec)
 	}
+
+	params.SetAddressPrefixes()
+
 	return app, GenesisState{}
 }
 

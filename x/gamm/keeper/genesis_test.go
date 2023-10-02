@@ -5,7 +5,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	simapp "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
@@ -73,8 +73,8 @@ func TestGammExportGenesis(t *testing.T) {
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	acc1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	err := simapp.FundAccount(app.BankKeeper, ctx, acc1, sdk.NewCoins(
-		sdk.NewCoin("uosmo", sdk.NewInt(10000000000)),
+	err := bankutil.FundAccount(app.BankKeeper, ctx, acc1, sdk.NewCoins(
+		sdk.NewCoin("udym", sdk.NewInt(10000000000)),
 		sdk.NewInt64Coin("foo", 100000),
 		sdk.NewInt64Coin("bar", 100000),
 	))
@@ -124,8 +124,8 @@ func TestMarshalUnmarshalGenesis(t *testing.T) {
 	appCodec := encodingConfig.Codec
 	am := gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper)
 	acc1 := sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address().Bytes())
-	err := simapp.FundAccount(app.BankKeeper, ctx, acc1, sdk.NewCoins(
-		sdk.NewCoin("uosmo", sdk.NewInt(10000000000)),
+	err := bankutil.FundAccount(app.BankKeeper, ctx, acc1, sdk.NewCoins(
+		sdk.NewCoin("udym", sdk.NewInt(10000000000)),
 		sdk.NewInt64Coin("foo", 100000),
 		sdk.NewInt64Coin("bar", 100000),
 	))

@@ -310,7 +310,7 @@ func (s *IntegrationTestSuite) TestNewCreatePoolCmd() {
 			  "%s": "100node0token,100stake",
 			  "%s": "0.001",
 			  "%s": "0.001",
-			  "%s": "dym1feufr4gpvdg043hww7x9dksqed5xksweg59nnm"
+			  "%s": "dym1celvklgrnfmpxwknlvyxlxvtns2szsm8sey5u5"
 			}
 			`, cli.PoolFileWeights, cli.PoolFileInitialDeposit, cli.PoolFileSwapFee, cli.PoolFileExitFee, cli.PoolFileFutureGovernor),
 			false, &sdk.TxResponse{}, 0,

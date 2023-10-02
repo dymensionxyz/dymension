@@ -7,7 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/tests/mocks"
+	"github.com/dymensionxyz/dymension/testutil/tests/mocks"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
