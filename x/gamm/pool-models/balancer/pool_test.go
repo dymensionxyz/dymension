@@ -642,6 +642,7 @@ func TestCalcSingleAssetInAndOut_InverseRelationship(t *testing.T) {
 	}
 
 	swapFeeCases := []string{"0", "0.001", "0.1", "0.5", "0.99"}
+	// swapFeeCases := []string{"0"}
 
 	getTestCaseName := func(tc testcase, swapFeeCase string) string {
 		return fmt.Sprintf("initialPoolOut: %d, initialCalcOut: %d, initialWeightOut: %d, initialWeightIn: %d, swapFee: %s",
@@ -659,32 +660,32 @@ func TestCalcSingleAssetInAndOut_InverseRelationship(t *testing.T) {
 				swapFeeDec, err := sdk.NewDecFromStr(swapFee)
 				require.NoError(t, err)
 
-				initialPoolBalanceOut := sdk.NewDec(tc.initialPoolOut)
+				initialPoolBalanceOut := sdk.NewInt(tc.initialPoolOut)
 
-				initialWeightOut := sdk.NewDec(tc.initialWeightOut)
-				initialWeightIn := sdk.NewDec(tc.initialWeightIn)
+				initialWeightOut := sdk.NewInt(tc.initialWeightOut)
+				initialWeightIn := sdk.NewInt(tc.initialWeightIn)
 
 				initialTotalShares := types.InitPoolSharesSupply.ToDec().SDKDec()
-				initialCalcTokenOut := sdk.NewDec(tc.tokenOut)
+				initialCalcTokenOut := sdk.NewInt(tc.tokenOut)
 
 				actualSharesOut := balancer.CalcPoolSharesOutGivenSingleAssetIn(
-					initialPoolBalanceOut,
-					initialWeightOut.Quo(initialWeightOut).Add(initialWeightIn),
+					sdk.NewDecFromBigInt(initialPoolBalanceOut.BigInt()),
+					sdk.NewDecFromBigInt(initialWeightOut.BigInt()).Quo(sdk.NewDecFromBigInt(initialWeightOut.Add(initialWeightIn).BigInt())),
 					initialTotalShares,
-					initialCalcTokenOut,
+					sdk.NewDecFromBigInt(initialCalcTokenOut.BigInt()),
 					swapFeeDec,
 				)
 
 				inverseCalcTokenOut := balancer.CalcSingleAssetInGivenPoolSharesOut(
-					initialPoolBalanceOut.Add(initialCalcTokenOut),
-					initialWeightOut.Quo(initialWeightOut.Add(initialWeightIn)),
+					sdk.NewDecFromBigInt(initialPoolBalanceOut.Add(initialCalcTokenOut).BigInt()),
+					sdk.NewDecFromBigInt(initialWeightOut.BigInt()).Quo(sdk.NewDecFromBigInt(initialWeightOut.Add(initialWeightIn).BigInt())),
 					initialTotalShares.Add(actualSharesOut),
 					actualSharesOut,
 					swapFeeDec,
 				)
 
 				tol := sdk.NewDec(1)
-				osmoassert.DecApproxEq(t, initialCalcTokenOut, inverseCalcTokenOut, tol)
+				osmoassert.DecApproxEq(t, sdk.NewDecFromBigInt(initialCalcTokenOut.BigInt()), inverseCalcTokenOut, tol)
 			})
 		}
 	}
