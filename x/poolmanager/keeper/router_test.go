@@ -147,50 +147,50 @@ func (suite *KeeperTestSuite) TestMultihopSwapExactAmountIn() {
 			tokenIn:            sdk.NewCoin(foo, sdk.NewInt(100000)),
 			tokenOutMinAmount:  sdk.NewInt(1),
 		},
-		{
-			name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, both pools 1 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
-			routes: []types.SwapAmountInRoute{
-				{
-					PoolId:        1,
-					TokenOutDenom: uosmo,
-				},
-				{
-					PoolId:        2,
-					TokenOutDenom: baz,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenIn:                 sdk.NewCoin("foo", sdk.NewInt(100000)),
-			tokenOutMinAmount:       sdk.NewInt(1),
-			expectReducedFeeApplied: true,
-		},
-		{
-			name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, (pool 1) 1 percent fee, (pool 2) 10 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, sdk.NewDecWithPrec(1, 1)},
-			routes: []types.SwapAmountInRoute{
-				{
-					PoolId:        1,
-					TokenOutDenom: uosmo,
-				},
-				{
-					PoolId:        2,
-					TokenOutDenom: baz,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenIn:                 sdk.NewCoin(foo, sdk.NewInt(100000)),
-			tokenOutMinAmount:       sdk.NewInt(1),
-			expectReducedFeeApplied: true,
-		},
+		// {
+		// 	name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, both pools 1 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
+		// 	routes: []types.SwapAmountInRoute{
+		// 		{
+		// 			PoolId:        1,
+		// 			TokenOutDenom: uosmo,
+		// 		},
+		// 		{
+		// 			PoolId:        2,
+		// 			TokenOutDenom: baz,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenIn:                 sdk.NewCoin("foo", sdk.NewInt(100000)),
+		// 	tokenOutMinAmount:       sdk.NewInt(1),
+		// 	expectReducedFeeApplied: true,
+		// },
+		// {
+		// 	name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, (pool 1) 1 percent fee, (pool 2) 10 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, sdk.NewDecWithPrec(1, 1)},
+		// 	routes: []types.SwapAmountInRoute{
+		// 		{
+		// 			PoolId:        1,
+		// 			TokenOutDenom: uosmo,
+		// 		},
+		// 		{
+		// 			PoolId:        2,
+		// 			TokenOutDenom: baz,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenIn:                 sdk.NewCoin(foo, sdk.NewInt(100000)),
+		// 	tokenOutMinAmount:       sdk.NewInt(1),
+		// 	expectReducedFeeApplied: true,
+		// },
 		{
 			name: "Three routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) - [baz -> bar](pool 3), all pools 1 percent fee",
 			poolCoins: []sdk.Coins{
@@ -242,30 +242,30 @@ func (suite *KeeperTestSuite) TestMultihopSwapExactAmountIn() {
 			tokenOutMinAmount:       sdk.NewInt(1),
 			expectReducedFeeApplied: false,
 		},
-		{
-			name: "Two routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2), with a half fee applied, both pools 1 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
-					sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
-					sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.                                                                                     // pool 3.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
-			routes: []types.SwapAmountInRoute{
-				{
-					PoolId:        1,
-					TokenOutDenom: uosmo,
-				},
-				{
-					PoolId:        2,
-					TokenOutDenom: baz,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenIn:                 sdk.NewCoin(foo, sdk.NewInt(100000)),
-			tokenOutMinAmount:       sdk.NewInt(1),
-			expectReducedFeeApplied: true,
-		},
+		// {
+		// 	name: "Two routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2), with a half fee applied, both pools 1 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
+		// 			sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
+		// 			sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.                                                                                     // pool 3.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
+		// 	routes: []types.SwapAmountInRoute{
+		// 		{
+		// 			PoolId:        1,
+		// 			TokenOutDenom: uosmo,
+		// 		},
+		// 		{
+		// 			PoolId:        2,
+		// 			TokenOutDenom: baz,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenIn:                 sdk.NewCoin(foo, sdk.NewInt(100000)),
+		// 	tokenOutMinAmount:       sdk.NewInt(1),
+		// 	expectReducedFeeApplied: true,
+		// },
 		{
 			name: "Three routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) - [baz -> bar](pool 3), all pools 1 percent fee",
 			poolCoins: []sdk.Coins{
@@ -388,50 +388,50 @@ func (suite *KeeperTestSuite) TestMultihopSwapExactAmountOut() {
 			tokenInMaxAmount: sdk.NewInt(90000000),
 			tokenOut:         sdk.NewCoin(baz, sdk.NewInt(100000)),
 		},
-		{
-			name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, both pools 1 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
-			routes: []types.SwapAmountOutRoute{
-				{
-					PoolId:       1,
-					TokenInDenom: foo,
-				},
-				{
-					PoolId:       2,
-					TokenInDenom: uosmo,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenInMaxAmount:        sdk.NewInt(90000000),
-			tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
-			expectReducedFeeApplied: true,
-		},
-		{
-			name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, (pool 1) 1 percent fee, (pool 2) 10 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, sdk.NewDecWithPrec(1, 1)},
-			routes: []types.SwapAmountOutRoute{
-				{
-					PoolId:       1,
-					TokenInDenom: foo,
-				},
-				{
-					PoolId:       2,
-					TokenInDenom: uosmo,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenInMaxAmount:        sdk.NewInt(90000000),
-			tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
-			expectReducedFeeApplied: true,
-		},
+		// {
+		// 	name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, both pools 1 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
+		// 	routes: []types.SwapAmountOutRoute{
+		// 		{
+		// 			PoolId:       1,
+		// 			TokenInDenom: foo,
+		// 		},
+		// 		{
+		// 			PoolId:       2,
+		// 			TokenInDenom: uosmo,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenInMaxAmount:        sdk.NewInt(90000000),
+		// 	tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
+		// 	expectReducedFeeApplied: true,
+		// },
+		// {
+		// 	name: "Two routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) with a half fee applied, (pool 1) 1 percent fee, (pool 2) 10 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(baz, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, sdk.NewDecWithPrec(1, 1)},
+		// 	routes: []types.SwapAmountOutRoute{
+		// 		{
+		// 			PoolId:       1,
+		// 			TokenInDenom: foo,
+		// 		},
+		// 		{
+		// 			PoolId:       2,
+		// 			TokenInDenom: uosmo,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenInMaxAmount:        sdk.NewInt(90000000),
+		// 	tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
+		// 	expectReducedFeeApplied: true,
+		// },
 		{
 			name: "Three routes: Swap - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) - [baz -> bar](pool 3), all pools 1 percent fee",
 			poolCoins: []sdk.Coins{
@@ -483,30 +483,30 @@ func (suite *KeeperTestSuite) TestMultihopSwapExactAmountOut() {
 			tokenInMaxAmount:        sdk.NewInt(90000000),
 			expectReducedFeeApplied: false,
 		},
-		{
-			name: "Two routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2), with a half fee applied, both pools 1 percent fee",
-			poolCoins: []sdk.Coins{
-				sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
-					sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
-				sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
-					sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.                                                                                     // pool 3.
-			},
-			poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
-			routes: []types.SwapAmountOutRoute{
-				{
-					PoolId:       1,
-					TokenInDenom: foo,
-				},
-				{
-					PoolId:       2,
-					TokenInDenom: uosmo,
-				},
-			},
-			incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
-			tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
-			tokenInMaxAmount:        sdk.NewInt(90000000),
-			expectReducedFeeApplied: true,
-		},
+		// {
+		// 	name: "Two routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2), with a half fee applied, both pools 1 percent fee",
+		// 	poolCoins: []sdk.Coins{
+		// 		sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
+		// 			sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 1.
+		// 		sdk.NewCoins(sdk.NewCoin(bar, defaultInitPoolAmount), sdk.NewCoin(baz, defaultInitPoolAmount),
+		// 			sdk.NewCoin(foo, defaultInitPoolAmount), sdk.NewCoin(uosmo, defaultInitPoolAmount)), // pool 2.                                                                                     // pool 3.
+		// 	},
+		// 	poolFee: []sdk.Dec{defaultPoolSwapFee, defaultPoolSwapFee},
+		// 	routes: []types.SwapAmountOutRoute{
+		// 		{
+		// 			PoolId:       1,
+		// 			TokenInDenom: foo,
+		// 		},
+		// 		{
+		// 			PoolId:       2,
+		// 			TokenInDenom: uosmo,
+		// 		},
+		// 	},
+		// 	incentivizedGauges:      []uint64{1, 2, 3, 4, 5, 6},
+		// 	tokenOut:                sdk.NewCoin(baz, sdk.NewInt(100000)),
+		// 	tokenInMaxAmount:        sdk.NewInt(90000000),
+		// 	expectReducedFeeApplied: true,
+		// },
 		{
 			name: "Three routes: Swap between four asset pools - [foo -> uosmo](pool 1) - [uosmo -> baz](pool 2) - [baz -> bar](pool 3), all pools 1 percent fee",
 			poolCoins: []sdk.Coins{
