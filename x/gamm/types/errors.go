@@ -92,4 +92,5 @@ var (
 	ErrHitMinScaledAssets         = sdkerrors.Register(ModuleName, 66, "post-scaled pool assets can not be less than 1")
 
 	ErrPoolAssetNotAllowed = sdkerrors.Register(ModuleName, 67, "pool must cointain one of the whitelisted assets")
+	ErrPoolAlreadyExists   = sdkerrors.Register(ModuleName, 68, "pool with same assets already exists")
 )

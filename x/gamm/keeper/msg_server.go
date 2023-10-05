@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/dymensionxyz/dymension/osmoutils"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/stableswap"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
@@ -42,7 +43,8 @@ var (
 
 // CreateBalancerPool is a create balancer pool message.
 func (server msgServer) CreateBalancerPool(goCtx context.Context, msg *balancer.MsgCreateBalancerPool) (*balancer.MsgCreateBalancerPoolResponse, error) {
-	params := server.keeper.GetParams(sdk.UnwrapSDKContext(goCtx))
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	params := server.keeper.GetParams(ctx)
 
 	//validate the pool contains asset which is whitelisted
 	found := false
@@ -62,8 +64,48 @@ func (server msgServer) CreateBalancerPool(goCtx context.Context, msg *balancer.
 		msg.PoolParams.ExitFee = params.PoolParams.ExitFee
 	}
 
+	//validate uniqueness of pool assets
+	poolAlreadyExists := false
+	iter := server.keeper.iterator(ctx, types.KeyPrefixPools)
+	defer iter.Close()
+
+	for ; iter.Valid(); iter.Next() {
+		pool, err := server.keeper.UnmarshalPool(iter.Value())
+		if err != nil {
+			return nil, err
+		}
+
+		existingPoolDenoms := osmoutils.CoinsDenoms(pool.GetTotalPoolLiquidity(ctx))
+		sameAssets := true
+		for _, asset := range msg.PoolAssets {
+			if contains(existingPoolDenoms, asset.Token.Denom) {
+				continue
+			}
+			sameAssets = false
+			break
+		}
+		if sameAssets {
+			poolAlreadyExists = true
+			break
+		}
+	}
+
+	if poolAlreadyExists {
+		return nil, types.ErrPoolAlreadyExists
+	}
+
 	poolId, err := server.CreatePool(goCtx, msg)
 	return &balancer.MsgCreateBalancerPoolResponse{PoolID: poolId}, err
+}
+
+// Function to check if a slice contains a string
+func contains(slice []string, str string) bool {
+	for _, v := range slice {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }
 
 func (server msgServer) CreateStableswapPool(goCtx context.Context, msg *stableswap.MsgCreateStableswapPool) (*stableswap.MsgCreateStableswapPoolResponse, error) {
