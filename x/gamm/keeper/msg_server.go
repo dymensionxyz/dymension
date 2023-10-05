@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -42,6 +43,23 @@ var (
 
 // CreateBalancerPool is a create balancer pool message.
 func (server msgServer) CreateBalancerPool(goCtx context.Context, msg *balancer.MsgCreateBalancerPool) (*balancer.MsgCreateBalancerPoolResponse, error) {
+	params := server.keeper.GetParams(sdk.UnwrapSDKContext(goCtx))
+
+	//set global fees
+	msg.PoolParams.SwapFee = params.SwapFee
+	msg.PoolParams.ExitFee = params.ExitFee
+	//validate base denom with whitelist
+	found := false
+	for _, as := range msg.PoolAssets {
+		if ok, _ := params.PoolCreationFee.Find(as.Token.Denom); ok {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, errors.New("pool must cointain one of the whitelisted assets")
+	}
+
 	poolId, err := server.CreatePool(goCtx, msg)
 	return &balancer.MsgCreateBalancerPoolResponse{PoolID: poolId}, err
 }
