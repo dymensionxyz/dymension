@@ -12,9 +12,7 @@ import (
 
 var (
 	cubeRootTwo, _        = osmomath.NewBigDec(2).ApproxRoot(3)
-	threeRootTwo, _       = osmomath.NewBigDec(3).ApproxRoot(2)
 	cubeRootThree, _      = osmomath.NewBigDec(3).ApproxRoot(3)
-	threeCubeRootTwo      = cubeRootTwo.MulInt64(3)
 	cubeRootSixSquared, _ = (osmomath.NewBigDec(6).MulInt64(6)).ApproxRoot(3)
 	twoCubeRootThree      = cubeRootThree.MulInt64(2)
 	twentySevenRootTwo, _ = osmomath.NewBigDec(27).ApproxRoot(2)
@@ -233,15 +231,6 @@ func solveCFMMMultiDirect(xReserve, yReserve, wSumSquares, yIn osmomath.BigDec) 
 
 	return xOut
 }
-
-func approxDecEqual(a, b, tol osmomath.BigDec) bool {
-	return (a.Sub(b).Abs()).LTE(tol)
-}
-
-var (
-	twodec      = osmomath.MustNewDecFromStr("2.0")
-	k_threshold = osmomath.NewDecWithPrec(1, 1) // Correct within a factor of 1 * 10^{-1}
-)
 
 // $$k_{target} = \frac{x_0 y_0 (x_0^2 + y_0^2 + w)}{y_f} - (x_0 (y_f^2 + w) + x_0^3)$$
 func targetKCalculator(x0, y0, w, yf osmomath.BigDec) osmomath.BigDec {

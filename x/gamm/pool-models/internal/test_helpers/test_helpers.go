@@ -93,7 +93,7 @@ func TestSlippageRelationOutGivenIn(
 	createPoolWithLiquidity func(sdk.Context, sdk.Coins) types.CFMMPoolI,
 	initLiquidity sdk.Coins,
 ) {
-	r := rand.New(rand.NewSource(100))
+	r := rand.New(rand.NewSource(100)) //nolint:gosec
 	swapInAmt := sdkrand.RandCoin(r, initLiquidity[:1])
 	swapOutDenom := initLiquidity[1].Denom
 
@@ -126,7 +126,7 @@ func TestSlippageRelationInGivenOut(
 	createPoolWithLiquidity func(sdk.Context, sdk.Coins) types.CFMMPoolI,
 	initLiquidity sdk.Coins,
 ) {
-	r := rand.New(rand.NewSource(100))
+	r := rand.New(rand.NewSource(100)) //nolint:gosec
 	swapOutAmt := sdkrand.RandCoin(r, initLiquidity[:1])
 	swapInDenom := initLiquidity[1].Denom
 
