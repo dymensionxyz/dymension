@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -109,6 +110,7 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
+	ante "github.com/dymensionxyz/dymension/app/ante"
 	appparams "github.com/dymensionxyz/dymension/app/params"
 	"github.com/dymensionxyz/dymension/app/upgrades/rc"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
@@ -127,11 +129,9 @@ import (
 	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
 	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
 
-	// this line is used by starport scaffolding # stargate/app/moduleImport
+	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
-
-	ethante "github.com/evmos/ethermint/app/ante"
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
@@ -146,11 +146,6 @@ var (
 	_ = routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp
 	_ = router.AppModule{}
 	_ = routertypes.ErrIntOverflowGenesis
-)
-
-const (
-	AccountAddressPrefix = "dym"
-	Name                 = "dymension"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -242,7 +237,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
 	var BaseDenomUnit int64 = 18
 	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
@@ -341,7 +336,7 @@ func New(
 		Amino:             encodingConfig.Amino,
 	})
 
-	bApp := baseapp.NewBaseApp(Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
+	bApp := baseapp.NewBaseApp(appparams.Name, logger, db, encodingConfig.TxConfig.TxDecoder(), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
@@ -742,15 +737,14 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
-	anteHandler, err := ethante.NewAnteHandler(ethante.HandlerOptions{
+	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:   app.AccountKeeper,
 		BankKeeper:      app.BankKeeper,
-		EvmKeeper:       app.EvmKeeper,
-		FeegrantKeeper:  app.FeeGrantKeeper,
 		IBCKeeper:       app.IBCKeeper,
 		FeeMarketKeeper: app.FeeMarketKeeper,
+		EvmKeeper:       app.EvmKeeper,
+		FeegrantKeeper:  app.FeeGrantKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  ethante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
 	})
 	if err != nil {
@@ -977,6 +971,10 @@ func (app *App) GetStakingKeeper() ibctestingtypes.StakingKeeper {
 // GetTxConfig implements ibctesting.TestingApp
 func (app *App) GetTxConfig() client.TxConfig {
 	return simappparams.MakeTestEncodingConfig().TxConfig
+}
+
+func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
 func (app *App) setupUpgradeHandlers() {
