@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,19 +44,22 @@ var (
 func (server msgServer) CreateBalancerPool(goCtx context.Context, msg *balancer.MsgCreateBalancerPool) (*balancer.MsgCreateBalancerPoolResponse, error) {
 	params := server.keeper.GetParams(sdk.UnwrapSDKContext(goCtx))
 
-	//set global fees
-	msg.PoolParams.SwapFee = params.SwapFee
-	msg.PoolParams.ExitFee = params.ExitFee
-	//validate base denom with whitelist
+	//validate the pool contains asset which is whitelisted
 	found := false
-	for _, as := range msg.PoolAssets {
-		if ok, _ := params.PoolCreationFee.Find(as.Token.Denom); ok {
+	for _, asset := range msg.PoolAssets {
+		if ok, _ := params.PoolCreationFee.Find(asset.Token.Denom); ok {
 			found = true
 			break
 		}
 	}
 	if !found {
-		return nil, errors.New("pool must cointain one of the whitelisted assets")
+		return nil, types.ErrPoolAssetNotAllowed
+	}
+
+	//set global fees
+	if params.GetGlobalFees() {
+		msg.PoolParams.SwapFee = params.PoolParams.SwapFee
+		msg.PoolParams.ExitFee = params.PoolParams.ExitFee
 	}
 
 	poolId, err := server.CreatePool(goCtx, msg)

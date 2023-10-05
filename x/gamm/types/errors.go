@@ -90,4 +90,6 @@ var (
 	ErrInvalidScalingFactors      = sdkerrors.Register(ModuleName, 64, "scaling factors cannot be 0 or use more than 63 bits")
 	ErrHitMaxScaledAssets         = sdkerrors.Register(ModuleName, 65, "post-scaled pool assets can not exceed 10^34")
 	ErrHitMinScaledAssets         = sdkerrors.Register(ModuleName, 66, "post-scaled pool assets can not be less than 1")
+
+	ErrPoolAssetNotAllowed = sdkerrors.Register(ModuleName, 67, "pool must cointain one of the whitelisted assets")
 )

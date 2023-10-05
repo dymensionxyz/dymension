@@ -18,7 +18,7 @@ const (
 
 	// pools can be created with min and max number of assets defined with this constants
 	MinNumOfAssetsInPool = 2
-	MaxNumOfAssetsInPool = 8
+	MaxNumOfAssetsInPool = 2
 )
 
 var (
