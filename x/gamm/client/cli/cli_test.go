@@ -172,7 +172,7 @@ func TestNewCreatePoolCmd(t *testing.T) {
 				ExpectedErr:            tc.expectErr,
 				OnlyCheckValidateBasic: true,
 			}
-			osmocli.RunTxTestCase(tt, desc, &txTc)
+			osmocli.RunTxTestCase(tt, desc, txTc)
 		})
 	}
 }
