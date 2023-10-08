@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+
 	"github.com/dymensionxyz/dymension/app/params"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	tmjson "github.com/tendermint/tendermint/libs/json"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -58,7 +58,7 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 }
 
 var (
-	TestChainID = "dymension_100"
+	TestChainID = "dymension_100-1"
 )
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
@@ -80,48 +80,10 @@ func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
 	if withGenesis {
 		return app, NewDefaultGenesisState(encCdc.Codec)
 	}
+
+	params.SetAddressPrefixes()
+
 	return app, GenesisState{}
-}
-
-// NewSimappWithCustomOptions initializes a new SimApp with custom options.
-func NewSimappWithCustomOptions(t *testing.T, isCheckTx bool, options SetupOptions) *App {
-	t.Helper()
-
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-
-	// generate genesis account
-	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
-	}
-
-	app := New(options.Logger, options.DB, nil, true, options.SkipUpgradeHeights, options.HomePath, options.InvCheckPeriod, options.EncConfig, options.AppOpts)
-	genesisState := NewDefaultGenesisState(app.appCodec)
-	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
-
-	if !isCheckTx {
-		// init chain must be called to stop deliverState from being nil
-		stateBytes, err := tmjson.MarshalIndent(genesisState, "", " ")
-		require.NoError(t, err)
-
-		// Initialize the chain
-		app.InitChain(
-			abci.RequestInitChain{
-				Validators:      []abci.ValidatorUpdate{},
-				ConsensusParams: DefaultConsensusParams,
-				AppStateBytes:   stateBytes,
-			},
-		)
-	}
-
-	return app
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
@@ -229,7 +191,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
 		abci.RequestInitChain{
-			ChainId:         TestChainID + "-1",
+			ChainId:         TestChainID,
 			Validators:      []abci.ValidatorUpdate{},
 			ConsensusParams: DefaultConsensusParams,
 			AppStateBytes:   stateBytes,
@@ -239,7 +201,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	// commit genesis changes
 	app.Commit()
 	app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-		ChainID:            TestChainID + "-1",
+		ChainID:            TestChainID,
 		Height:             app.LastBlockHeight() + 1,
 		AppHash:            app.LastCommitID().Hash,
 		ValidatorsHash:     valSet.Hash(),
@@ -263,35 +225,6 @@ func SetupWithGenesisAccounts(t *testing.T, genAccs []authtypes.GenesisAccount, 
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 
 	return SetupWithGenesisValSet(t, valSet, genAccs, balances...)
-}
-
-// GenesisStateWithSingleValidator initializes GenesisState with a single validator and genesis accounts
-// that also act as delegators.
-func GenesisStateWithSingleValidator(t *testing.T, app *App) GenesisState {
-	t.Helper()
-
-	privVal := mock.NewPV()
-	pubKey, err := privVal.GetPubKey()
-	require.NoError(t, err)
-
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-
-	// generate genesis account
-	senderPrivKey := secp256k1.GenPrivKey()
-	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	balances := []banktypes.Balance{
-		{
-			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
-		},
-	}
-
-	genesisState := NewDefaultGenesisState(app.appCodec)
-	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
-
-	return genesisState
 }
 
 type GenerateAccountStrategy func(int) []sdk.AccAddress
