@@ -9,7 +9,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/dymensionxyz/dymension/osmoutils"
-	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
 	"github.com/dymensionxyz/dymension/x/poolmanager/types"
 )

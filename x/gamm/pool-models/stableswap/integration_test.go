@@ -13,6 +13,7 @@ import (
 
 	apptesting "github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/stableswap"
+	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
 )
 
 type TestSuite struct {
@@ -25,6 +26,7 @@ func TestTestSuite(t *testing.T) {
 
 func (suite *TestSuite) SetupTest() {
 	suite.Setup()
+	gammtypes.MaxNumOfAssetsInPool = 8
 }
 
 func (s *TestSuite) TestSetScalingFactors() {
