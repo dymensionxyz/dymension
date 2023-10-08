@@ -6,39 +6,9 @@ import (
 	"math/big"
 	"math/rand"
 	"time"
-	"unsafe"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
-
-const (
-	letterBytes   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
-)
-
-// shamelessly copied from
-// https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-golang#31832326
-
-// RandStringOfLength generates a random string of a particular length
-func RandStringOfLength(r *rand.Rand, n int) string {
-	b := make([]byte, n)
-	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := n-1, r.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = r.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
-	}
-
-	return *(*string)(unsafe.Pointer(&b))
-}
 
 // RandPositiveInt get a rand positive sdk.Int
 func RandPositiveInt(r *rand.Rand, max sdk.Int) (sdk.Int, error) {
