@@ -28,7 +28,7 @@ func NewParams(poolCreationFee sdk.Coins) Params {
 // DefaultParams are the default poolmanager module parameters.
 func DefaultParams() Params {
 	return Params{
-		PoolCreationFee: sdk.Coins{sdk.NewInt64Coin(appparams.BaseDenom, 1000_000_000)}, // 1000 OSMO
+		PoolCreationFee: sdk.Coins{sdk.NewInt64Coin(appparams.BaseDenom, 1000_000_000)},
 	}
 }
 
