@@ -42,7 +42,7 @@ func (p Params) Validate() error {
 	if err := validatePoolCreationFee(p.PoolCreationFee); err != nil {
 		return err
 	}
-	if err := validateGlobalFees(p.GlobalFees); err != nil {
+	if err := validateGlobalFees(p.PoolParams); err != nil {
 		return err
 	}
 
