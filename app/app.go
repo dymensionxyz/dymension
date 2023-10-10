@@ -153,6 +153,9 @@ import (
 	"github.com/dymensionxyz/dymension/x/gamm"
 	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
 	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
+	incentives "github.com/dymensionxyz/dymension/x/incentives"
+	incentiveskeeper "github.com/dymensionxyz/dymension/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/x/incentives/types"
 	"github.com/dymensionxyz/dymension/x/poolmanager"
 	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
@@ -227,6 +230,7 @@ var (
 		epochs.AppModuleBasic{},
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
+		incentives.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -242,9 +246,10 @@ var (
 		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:    {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -319,6 +324,7 @@ type App struct {
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
+	IncentivesKeeper  *incentiveskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -389,6 +395,7 @@ func New(
 		epochstypes.StoreKey,
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
+		incentivestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -495,7 +502,8 @@ func New(
 	app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
-		// insert epochs hooks receivers here
+			// insert epochs hooks receivers here
+			app.IncentivesKeeper.Hooks(),
 		),
 	)
 
@@ -522,6 +530,21 @@ func New(
 		app.DistrKeeper,
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
+
+	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
+		app.keys[incentivestypes.StoreKey],
+		app.GetSubspace(incentivestypes.ModuleName),
+		app.BankKeeper,
+		app.LockupKeeper,
+		app.EpochsKeeper,
+		app.DistrKeeper,
+		nil,
+	)
+	app.IncentivesKeeper.SetHooks(
+		incentivestypes.NewMultiIncentiveHooks(
+		// insert incentive hooks receivers here
+		),
+	)
 
 	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
@@ -690,6 +713,7 @@ func New(
 		epochs.NewAppModule(*app.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
+		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -725,6 +749,7 @@ func New(
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -756,6 +781,7 @@ func New(
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -792,6 +818,7 @@ func New(
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -1045,6 +1072,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
+	paramsKeeper.Subspace(incentivestypes.ModuleName)
 
 	return paramsKeeper
 }
