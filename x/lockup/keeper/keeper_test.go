@@ -5,13 +5,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/lockup/keeper"
-
-	apptesting "github.com/dymensionxyz/dymension/testutil"
 )
 
 type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 
 	querier keeper.Querier
 	cleanup func()

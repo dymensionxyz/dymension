@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/app/apptesting"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/incentives/keeper"
 )
 
 type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 
 	querier keeper.Querier
 }

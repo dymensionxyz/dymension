@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/x/incentives/types"
 	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
@@ -126,8 +127,8 @@ func (suite *KeeperTestSuite) TestCreateGauge_Fee() {
 			suite.Require().Equal(tc.accountBalanceToFund.String(), balanceAmount.String(), "test: %v", tc.name)
 		} else {
 			fee := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.CreateGaugeFee))
-			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition)
-			finalAccountBalance := accountBalance.Sub(fee)
+			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
+			finalAccountBalance := accountBalance.Sub(fee...)
 			suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
 		}
 	}
@@ -190,6 +191,7 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 
 		testAccountPubkey := secp256k1.GenPrivKeyFromSecret([]byte("acc")).PubKey()
 		testAccountAddress := sdk.AccAddress(testAccountPubkey.Address())
+		// testAccountAddress := suite.TestAccs[0]
 
 		ctx := suite.Ctx
 		bankKeeper := suite.App.BankKeeper
@@ -197,6 +199,7 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 		accountKeeper := suite.App.AccountKeeper
 		msgServer := keeper.NewMsgServerImpl(incentivesKeeper)
 
+		suite.FundAcc(testAccountAddress, testutil.DefaultAcctFunds)
 		suite.FundAcc(testAccountAddress, tc.accountBalanceToFund)
 
 		if tc.isModuleAccount {
@@ -233,8 +236,8 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 			suite.Require().Equal(tc.accountBalanceToFund.String(), bal.String(), "test: %v", tc.name)
 		} else {
 			fee := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, types.AddToGaugeFee))
-			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition)
-			finalAccountBalance := accountBalance.Sub(fee)
+			accountBalance := tc.accountBalanceToFund.Sub(tc.gaugeAddition...)
+			finalAccountBalance := accountBalance.Sub(fee...)
 			suite.Require().Equal(finalAccountBalance.String(), bal.String(), "test: %v", tc.name)
 		}
 	}

@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	apptesting "github.com/dymensionxyz/dymension/testutil"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	balancertypes "github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/stableswap"
@@ -15,7 +15,7 @@ import (
 )
 
 type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 
 	queryClient types.QueryClient
 }

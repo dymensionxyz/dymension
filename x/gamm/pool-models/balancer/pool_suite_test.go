@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/osmoutils/osmoassert"
-	apptesting "github.com/dymensionxyz/dymension/testutil"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
 )
@@ -602,7 +602,7 @@ var multiAssetUnevenInputTestCases = []calcJoinSharesTestCase{
 }
 
 type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 
 	queryClient types.QueryClient
 }
