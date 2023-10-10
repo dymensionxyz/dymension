@@ -486,6 +486,12 @@ func New(
 		app.BankKeeper,
 		app.DistrKeeper, app.GetSubspace(lockuptypes.ModuleName))
 
+	app.LockupKeeper.SetHooks(
+		lockuptypes.NewMultiLockupHooks(
+		// insert lockup hooks receivers here
+		),
+	)
+
 	// app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
 
 	gammKeeper := gammkeeper.NewKeeper(
