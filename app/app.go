@@ -500,12 +500,6 @@ func New(
 	)
 
 	app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
-	app.EpochsKeeper.SetHooks(
-		epochstypes.NewMultiEpochHooks(
-			// insert epochs hooks receivers here
-			app.IncentivesKeeper.Hooks(),
-		),
-	)
 
 	gammKeeper := gammkeeper.NewKeeper(
 		appCodec, keys[gammtypes.StoreKey],
@@ -514,11 +508,6 @@ func New(
 		// TODO: Add a mintcoins restriction
 		app.BankKeeper, app.DistrKeeper)
 	app.GAMMKeeper = &gammKeeper
-	app.GAMMKeeper.SetHooks(
-		gammtypes.NewMultiGammHooks(
-		// insert gamm hooks receivers here
-		),
-	)
 
 	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
 		keys[poolmanagertypes.StoreKey],
@@ -540,9 +529,23 @@ func New(
 		app.DistrKeeper,
 		nil,
 	)
+
+	// Set hooks
+	app.GAMMKeeper.SetHooks(
+		gammtypes.NewMultiGammHooks(
+		// insert gamm hooks receivers here
+		),
+	)
+
 	app.IncentivesKeeper.SetHooks(
 		incentivestypes.NewMultiIncentiveHooks(
 		// insert incentive hooks receivers here
+		),
+	)
+	app.EpochsKeeper.SetHooks(
+		epochstypes.NewMultiEpochHooks(
+			// insert epochs hooks receivers here
+			app.IncentivesKeeper.Hooks(),
 		),
 	)
 
