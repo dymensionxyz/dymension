@@ -54,8 +54,23 @@ func (s *KeeperTestHelper) Setup() {
 		Ctx:             s.Ctx,
 	}
 
+	s.SetEpochStartTime()
+
 	s.TestAccs = CreateRandomAccounts(3)
 	gammtypes.MaxNumOfAssetsInPool = 8
+}
+
+func (s *KeeperTestHelper) SetEpochStartTime() {
+	epochsKeeper := s.App.EpochsKeeper
+
+	for _, epoch := range epochsKeeper.AllEpochInfos(s.Ctx) {
+		epoch.StartTime = s.Ctx.BlockTime()
+		epochsKeeper.DeleteEpochInfo(s.Ctx, epoch.Identifier)
+		err := epochsKeeper.AddEpochInfo(s.Ctx, epoch)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {
