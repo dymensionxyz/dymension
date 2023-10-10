@@ -143,9 +143,9 @@ import (
 
 	/* ----------------------------- osmosis imports ---------------------------- */
 
-	// "github.com/dymensionxyz/dymension/x/epochs"
-	// epochskeeper "github.com/dymensionxyz/dymension/x/epochs/keeper"
-	// epochstypes "github.com/dymensionxyz/dymension/x/epochs/types"
+	"github.com/dymensionxyz/dymension/x/epochs"
+	epochskeeper "github.com/dymensionxyz/dymension/x/epochs/keeper"
+	epochstypes "github.com/dymensionxyz/dymension/x/epochs/types"
 	"github.com/dymensionxyz/dymension/x/lockup"
 	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
 	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
@@ -224,7 +224,7 @@ var (
 
 		// Osmosis modules
 		lockup.AppModuleBasic{},
-		// epochs.AppModuleBasic{},
+		epochs.AppModuleBasic{},
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 	)
@@ -318,7 +318,7 @@ type App struct {
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
-	// EpochsKeeper      *epochskeeper.Keeper
+	EpochsKeeper      *epochskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -386,7 +386,7 @@ func New(
 
 		// osmosis keys
 		lockuptypes.StoreKey,
-		// epochstypes.StoreKey,
+		epochstypes.StoreKey,
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 	)
@@ -492,7 +492,12 @@ func New(
 		),
 	)
 
-	// app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
+	app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
+	app.EpochsKeeper.SetHooks(
+		epochstypes.NewMultiEpochHooks(
+		// insert epochs hooks receivers here
+		),
+	)
 
 	gammKeeper := gammkeeper.NewKeeper(
 		appCodec, keys[gammtypes.StoreKey],
@@ -682,7 +687,7 @@ func New(
 
 		// osmosis modules
 		lockup.NewAppModule(*app.LockupKeeper, app.AccountKeeper, app.BankKeeper),
-		// epochs.NewAppModule(*app.EpochsKeeper),
+		epochs.NewAppModule(*app.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 	)
@@ -692,7 +697,7 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
-		// epochstypes.ModuleName,
+		epochstypes.ModuleName,
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
@@ -747,7 +752,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
-		// epochstypes.ModuleName,
+		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
@@ -783,7 +788,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
-		// epochstypes.ModuleName,
+		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
@@ -1037,7 +1042,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	// osmosis subspaces
 	paramsKeeper.Subspace(lockuptypes.ModuleName)
-	// paramsKeeper.Subspace(epochstypes.ModuleName)
+	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 
