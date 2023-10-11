@@ -8,7 +8,9 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/testutil"
+	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
 	"github.com/dymensionxyz/dymension/x/incentives/types"
+	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -22,10 +24,31 @@ func (s *QueryTestSuite) SetupSuite() {
 	s.Setup()
 	s.queryClient = types.NewQueryClient(s.QueryHelper)
 
+	gauges := s.App.IncentivesKeeper.GetGauges(s.Ctx)
+	_ = gauges
+
 	// create a pool
-	s.PrepareBalancerPool()
+	poolID := s.PrepareBalancerPool()
+
 	// set up lock with id = 1
 	s.LockTokens(s.TestAccs[0], sdk.Coins{sdk.NewCoin("gamm/pool/1", sdk.NewInt(1000000))}, time.Hour*24)
+
+	// create a gauge
+	_, err := s.App.IncentivesKeeper.CreateGauge(
+		s.Ctx,
+		true,
+		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
+		sdk.Coins{},
+		lockuptypes.QueryCondition{
+			LockQueryType: lockuptypes.ByDuration,
+			Denom:         gammtypes.GetPoolShareDenom(poolID),
+			Duration:      time.Hour,
+			Timestamp:     time.Time{},
+		},
+		s.Ctx.BlockTime(),
+		1,
+	)
+	s.NoError(err)
 
 	s.Commit()
 }
