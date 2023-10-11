@@ -24,9 +24,6 @@ func (s *QueryTestSuite) SetupSuite() {
 	s.Setup()
 	s.queryClient = types.NewQueryClient(s.QueryHelper)
 
-	gauges := s.App.IncentivesKeeper.GetGauges(s.Ctx)
-	_ = gauges
-
 	// create a pool
 	poolID := s.PrepareBalancerPool()
 
@@ -49,7 +46,6 @@ func (s *QueryTestSuite) SetupSuite() {
 		1,
 	)
 	s.NoError(err)
-
 	s.Commit()
 }
 
