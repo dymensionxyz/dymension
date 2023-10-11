@@ -254,7 +254,7 @@ func (k Keeper) beginUnlock(ctx sdk.Context, lock types.PeriodLock, coins sdk.Co
 func (k Keeper) clearKeysByPrefix(ctx sdk.Context, prefix []byte) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		store.Delete(iterator.Key())
