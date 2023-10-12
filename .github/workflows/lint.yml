@@ -18,8 +18,8 @@ jobs:
           go-version: 1.19
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.7.0
-        config-path: .golangci.yml
         with:
+          config-path: .golangci.yml
           version: v1.49
   markdownlint:
     runs-on: ubuntu-latest
