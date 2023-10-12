@@ -30,3 +30,4 @@ jobs:
         with:
           files: .
           config-file: .markdownlint.yaml
+          version: 0.37.0
