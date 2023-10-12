@@ -1,4 +1,4 @@
-name: Linters
+name: markdown-lint
 on:
   push:
     tags:
@@ -8,19 +8,6 @@ on:
   pull_request:
 
 jobs:
-  golangci:
-    name: lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: 1.19
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
-        with:
-          config-path: .golangci.yml
-          version: v1.49.0
   markdownlint:
     runs-on: ubuntu-latest
     steps:

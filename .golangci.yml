@@ -7,6 +7,7 @@ run:
     - state/indexer
     - state/txindex
     - vue
+    - x/gamm
   skip-files:
     - da/celestia/mock/server.go
     - ./*_test.go    
