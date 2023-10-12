@@ -18,3 +18,4 @@ jobs:
           files: .
           config_file: .markdownlint.yaml
           version: 0.37.0
+          ignore_files: ./x/gamm/**/*
