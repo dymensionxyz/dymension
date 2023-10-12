@@ -1,13 +1,6 @@
 run:
   timeout: 5m
   modules-download-mode: readonly
-  # mempool and indexer code is borrowed from Tendermint
-  skip-dirs:
-    - mempool
-    - state/indexer
-    - state/txindex
-    - vue
-    - ./x/gamm
   skip-files:
     - da/celestia/mock/server.go
     - ./*_test.go    
@@ -21,12 +14,9 @@ linters:
     - revive
     - deadcode
     - errcheck
-    - gofmt
-    - goimports
     - gosimple
     - govet
     - ineffassign
-    - misspell
     - staticcheck
     - structcheck
     - typecheck
@@ -37,6 +27,8 @@ linters:
 
 issues:
   exclude-use-default: false
+  exclude:
+    - "^.*SA1019.*$"  # Excluding SA1019 errors
 
 linters-settings:
   revive:
