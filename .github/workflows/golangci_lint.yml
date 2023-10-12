@@ -21,3 +21,4 @@ jobs:
         with:
           config-path: .golangci.yml
           version: v1.49.0
+          skip-cache: true
