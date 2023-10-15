@@ -55,6 +55,7 @@ func (s *KeeperTestHelper) Setup() {
 	}
 
 	s.TestAccs = CreateRandomAccounts(3)
+	gammtypes.MaxNumOfAssetsInPool = 8
 }
 
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {

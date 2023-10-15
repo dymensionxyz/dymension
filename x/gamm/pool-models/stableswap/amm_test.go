@@ -403,6 +403,7 @@ type StableSwapTestSuite struct {
 }
 
 func TestStableSwapTestSuite(t *testing.T) {
+	types.MaxNumOfAssetsInPool = 8
 	suite.Run(t, new(StableSwapTestSuite))
 }
 

@@ -13,6 +13,14 @@ message Params {
     (gogoproto.moretags) = "yaml:\"pool_creation_fee\"",
     (gogoproto.nullable) = false
   ];
+
+  bool global_fees = 2;
+
+  GlobalPoolParams pool_params = 3 [
+    (gogoproto.moretags) = "yaml:\"balancer_pool_params\"",
+    (gogoproto.nullable) = false
+  ];
+
 }
 
 option go_package = "github.com/dymensionxyz/dymension/x/gamm/types";
@@ -24,4 +32,19 @@ message GenesisState {
   // will be renamed to next_pool_id in an upcoming version
   uint64 next_pool_number = 2;
   Params params = 3 [ (gogoproto.nullable) = false ];
+}
+
+
+
+message GlobalPoolParams {
+  string swap_fee = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"swap_fee\"",
+    (gogoproto.nullable) = false
+  ];
+  string exit_fee = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"exit_fee\"",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -46,6 +46,7 @@ func TestGammInitGenesis(t *testing.T) {
 		NextPoolNumber: 2,
 		Params: types.Params{
 			PoolCreationFee: sdk.Coins{sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000_000_000)},
+			PoolParams:      types.GlobalPoolParams{SwapFee: sdk.ZeroDec(), ExitFee: sdk.ZeroDec()},
 		},
 	}, app.AppCodec())
 

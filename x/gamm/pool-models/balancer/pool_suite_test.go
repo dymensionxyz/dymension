@@ -616,6 +616,8 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.queryClient = types.NewQueryClient(suite.QueryHelper)
 	// be post-bug
 	// suite.Ctx = suite.Ctx.WithBlockHeight(v10.ForkHeight)
+
+	types.MaxNumOfAssetsInPool = 8
 }
 
 // This test sets up 2 asset pools, and then checks the spot price on them.
