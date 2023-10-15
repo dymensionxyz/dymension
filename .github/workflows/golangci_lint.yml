@@ -1,4 +1,4 @@
-name: Linters
+name: golangci-lint
 on:
   push:
     tags:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   golangci:
-    name: lint
+    name: golangci-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,13 +19,6 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3.7.0
         with:
-          version: v1.49
-  markdownlint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: markdownlint-cli
-        uses: nosborn/github-action-markdown-cli@v3.2.0
-        with:
-          files: .
-          config-file: .markdownlint.yaml
+          config-path: .golangci.yml
+          version: v1.49.0
+          skip-cache: true

@@ -92,14 +92,13 @@ dymd start
 
 You should have a running local node!
 
-
 ## Adding liquidity
+
 TODO:
 to play around with the `GAMM` module:
 
 ```sh
 sh scripts/pools/osmosis_bootstrap.sh
 ```
-
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!

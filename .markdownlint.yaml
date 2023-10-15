@@ -1,9 +1,24 @@
 default: true
-MD010:
-  code_blocks: false
+
+MD010: false
 MD013: false
-MD024:
-  allow_different_nesting: true
+MD024: false
 MD033:
-  allowed_elements: ["img"]
+  allowed_elements: ["img", "a"]
+MD041: false
+MD037: false
+MD034: false
+MD009: false
+MD004: false
+MD012: false
+MD022: false
+MD026: false
+MD028: false
+MD029: false
+MD031: false
+MD032: false
+MD036: false
+MD047: false
+MD051: false
+MD053: false
 

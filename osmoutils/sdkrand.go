@@ -7,23 +7,24 @@ import (
 	"math/rand"
 	"time"
 
+	sdk_math "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // RandPositiveInt get a rand positive sdk.Int
-func RandPositiveInt(r *rand.Rand, max sdk.Int) (sdk.Int, error) {
+func RandPositiveInt(r *rand.Rand, max sdk_math.Int) (sdk_math.Int, error) {
 	if !max.GTE(sdk.OneInt()) {
-		return sdk.Int{}, errors.New("max too small")
+		return sdk_math.Int{}, errors.New("max too small")
 	}
 
 	max = max.Sub(sdk.OneInt())
 
-	return sdk.NewIntFromBigInt(new(big.Int).Rand(r, max.BigInt())).Add(sdk.OneInt()), nil
+	return sdk_math.NewIntFromBigInt(new(big.Int).Rand(r, max.BigInt())).Add(sdk_math.OneInt()), nil
 }
 
 // RandomAmount generates a random amount
 // Note: The range of RandomAmount includes max, and is, in fact, biased to return max as well as 0.
-func RandomAmount(r *rand.Rand, max sdk.Int) sdk.Int {
+func RandomAmount(r *rand.Rand, max sdk_math.Int) sdk_math.Int {
 	randInt := big.NewInt(0)
 
 	switch r.Intn(10) {
