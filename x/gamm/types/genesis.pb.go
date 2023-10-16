@@ -187,6 +187,44 @@ func (m *GlobalPoolParams) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GlobalPoolParams proto.InternalMessageInfo
 
+type GlobalPoolParams struct {
+	SwapFee github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=swap_fee,json=swapFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"swap_fee" yaml:"swap_fee"`
+	ExitFee github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=exit_fee,json=exitFee,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"exit_fee" yaml:"exit_fee"`
+}
+
+func (m *GlobalPoolParams) Reset()         { *m = GlobalPoolParams{} }
+func (m *GlobalPoolParams) String() string { return proto.CompactTextString(m) }
+func (*GlobalPoolParams) ProtoMessage()    {}
+func (*GlobalPoolParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5a324eb7f1dd793e, []int{2}
+}
+func (m *GlobalPoolParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GlobalPoolParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GlobalPoolParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GlobalPoolParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GlobalPoolParams.Merge(m, src)
+}
+func (m *GlobalPoolParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *GlobalPoolParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_GlobalPoolParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GlobalPoolParams proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "osmosis.gamm.v1beta1.GenesisState")
 	proto.RegisterType((*Params)(nil), "osmosis.gamm.v1beta1.Params")
