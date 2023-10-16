@@ -51,8 +51,7 @@ func (k Keeper) GetAllScheduler(ctx sdk.Context) (list []types.Scheduler) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	// nolint: errcheck
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Scheduler
