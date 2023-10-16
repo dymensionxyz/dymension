@@ -144,6 +144,14 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
+	/* ----------------------------- osmosis imports ---------------------------- */
+	"github.com/dymensionxyz/dymension/x/gamm"
+	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
+	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
+	"github.com/dymensionxyz/dymension/x/poolmanager"
+	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
+	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
 )
 
 var (
@@ -210,6 +218,9 @@ var (
 		// Ethermint modules
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
+
+		gamm.AppModuleBasic{},
+		poolmanager.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -225,8 +236,8 @@ var (
 		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-
+		evmtypes.ModuleName:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -296,6 +307,10 @@ type App struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
+	// Osmostis keepers
+	GAMMKeeper        *gammkeeper.Keeper
+	PoolManagerKeeper *poolmanagerkeeper.Keeper
+
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -361,6 +376,10 @@ func New(
 
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
+
+		// osmosis keys
+		gammtypes.StoreKey,
+		poolmanagertypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -449,6 +468,31 @@ func New(
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
 		nil, geth.NewEVM, tracer, app.GetSubspace(evmtypes.ModuleName),
 	)
+
+	// Osmosis keepers
+	gammKeeper := gammkeeper.NewKeeper(
+		appCodec, keys[gammtypes.StoreKey],
+		app.GetSubspace(gammtypes.ModuleName),
+		app.AccountKeeper,
+		// TODO: Add a mintcoins restriction
+		app.BankKeeper, app.DistrKeeper)
+	app.GAMMKeeper = &gammKeeper
+	app.GAMMKeeper.SetHooks(
+		gammtypes.NewMultiGammHooks(
+		// insert gamm hooks receivers here
+		),
+	)
+
+	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
+		keys[poolmanagertypes.StoreKey],
+		app.GetSubspace(poolmanagertypes.ModuleName),
+		app.GAMMKeeper,
+		nil,
+		app.BankKeeper,
+		app.AccountKeeper,
+		app.DistrKeeper,
+	)
+	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
 	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
@@ -623,6 +667,10 @@ func New(
 		// Ethermint app modules
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
+
+		// osmosis modules
+		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
+		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -656,6 +704,8 @@ func New(
 		ircmoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -685,6 +735,8 @@ func New(
 		ircmoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -719,6 +771,9 @@ func New(
 		ircmoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
+
+		gammtypes.ModuleName,
+		poolmanagertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -968,6 +1023,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
+
+	// osmosis subspaces
+	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
+	paramsKeeper.Subspace(gammtypes.ModuleName)
 
 	return paramsKeeper
 }
