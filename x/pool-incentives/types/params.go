@@ -61,7 +61,7 @@ func validateMintedDenom(i interface{}) error {
 }
 
 func validateNumEpochsPaidOver(i interface{}) error {
-	v, ok := i.(int64)
+	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

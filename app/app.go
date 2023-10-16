@@ -555,7 +555,8 @@ func New(
 	// Set hooks
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
-		// insert gamm hooks receivers here
+			// insert gamm hooks receivers here
+			app.PoolIncentivesKeeper.Hooks(),
 		),
 	)
 
