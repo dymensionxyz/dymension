@@ -75,7 +75,7 @@ func (k Keeper) CreatePoolGauges(ctx sdk.Context, poolId uint64) error {
 			},
 			// QUESTION: Should we set the startTime as the epoch start time that the modules share or the current block time?
 			ctx.BlockTime(),
-			1,
+			k.GetParams(ctx).NumEpochsPaidOver,
 		)
 		if err != nil {
 			return err
