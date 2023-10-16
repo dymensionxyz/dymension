@@ -1,32 +1,40 @@
 package denommetadata
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	host "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/dymensionxyz/dymension/x/denommetadata/keeper"
-	"github.com/dymensionxyz/dymension/x/denommetadata/types"
+	keeper "github.com/dymensionxyz/dymension/x/irc/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
+// IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
-	app    porttypes.Middleware
-	keeper keeper.Keeper
+	app            porttypes.IBCModule
+	keeper         keeper.Keeper
+	transferkeeper transferkeeper.Keeper
+	rollappkeeper  rollappkeeper.Keeper
+	bankkeeper     bankkeeper.Keeper
 }
 
-func NewIBCMiddleware(app porttypes.Middleware, k keeper.Keeper) IBCMiddleware {
+// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:    app,
-		keeper: k,
+		app:            app,
+		keeper:         k,
+		transferkeeper: tk,
+		rollappkeeper:  rk,
+		bankkeeper:     bk,
 	}
 }
 
@@ -41,23 +49,8 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-
-	// Require portID is the portID module is bound to
-	boundPort := im.keeper.GetPort(ctx)
-	if boundPort != portID {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	}
-
-	if version != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "got %s, expected %s", version, types.Version)
-	}
-
-	// Claim channel capability passed back by IBC module
-	if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-		return "", err
-	}
-
-	return version, nil
+	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
+		chanCap, counterparty, version)
 }
 
 // OnChanOpenTry implements the IBCMiddleware interface
@@ -71,29 +64,7 @@ func (im IBCMiddleware) OnChanOpenTry(
 	counterparty channeltypes.Counterparty,
 	counterpartyVersion string,
 ) (string, error) {
-
-	// Require portID is the portID module is bound to
-	boundPort := im.keeper.GetPort(ctx)
-	if boundPort != portID {
-		return "", sdkerrors.Wrapf(porttypes.ErrInvalidPort, "invalid port: %s, expected %s", portID, boundPort)
-	}
-
-	if counterpartyVersion != types.Version {
-		return "", sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: got: %s, expected %s", counterpartyVersion, types.Version)
-	}
-
-	// Module may have already claimed capability in OnChanOpenInit in the case of crossing hellos
-	// (ie chainA and chainB both call ChanOpenInit before one of them calls ChanOpenTry)
-	// If module can already authenticate the capability then module already owns it so we don't need to claim
-	// Otherwise, module does not have channel capability and we must claim it from IBC
-	if !im.keeper.AuthenticateCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)) {
-		// Only claim channel capability passed back by IBC module if we do not already own it
-		if err := im.keeper.ClaimCapability(ctx, chanCap, host.ChannelCapabilityPath(portID, channelID)); err != nil {
-			return "", err
-		}
-	}
-
-	return types.Version, nil
+	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
 }
 
 // OnChanOpenAck implements the IBCMiddleware interface
@@ -101,13 +72,11 @@ func (im IBCMiddleware) OnChanOpenAck(
 	ctx sdk.Context,
 	portID,
 	channelID string,
-	_,
+	counterpartyChannelID string,
 	counterpartyVersion string,
 ) error {
-	if counterpartyVersion != types.Version {
-		return sdkerrors.Wrapf(types.ErrInvalidVersion, "invalid counterparty version: %s, expected %s", counterpartyVersion, types.Version)
-	}
-	return nil
+	// call underlying app's OnChanOpenAck callback with the counterparty app version.
+	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
 }
 
 // OnChanOpenConfirm implements the IBCMiddleware interface
@@ -116,7 +85,8 @@ func (im IBCMiddleware) OnChanOpenConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	// call underlying app's OnChanOpenConfirm callback.
+	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
 }
 
 // OnChanCloseInit implements the IBCMiddleware interface
@@ -125,8 +95,7 @@ func (im IBCMiddleware) OnChanCloseInit(
 	portID,
 	channelID string,
 ) error {
-	// Disallow user-initiated channel closing for channels
-	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "user cannot close channel")
+	return im.app.OnChanCloseInit(ctx, portID, channelID)
 }
 
 // OnChanCloseConfirm implements the IBCMiddleware interface
@@ -135,114 +104,125 @@ func (im IBCMiddleware) OnChanCloseConfirm(
 	portID,
 	channelID string,
 ) error {
-	return nil
+	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
-// OnRecvPacket implements the IBCMiddleware interface
+// OnRecvPacket implements the IBCMiddleware interface.
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
-	modulePacket channeltypes.Packet,
+	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
-) ibcexported.Acknowledgement {
-	var ack channeltypes.Acknowledgement
+) exported.Acknowledgement {
+	logger := ctx.Logger().With("module", "DenomMiddleware")
 
-	// this line is used by starport scaffolding # oracle/packet/module/recv
-
-	var modulePacketData types.DenommetadataPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return channeltypes.NewErrorAcknowledgement(sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error()))
-	}
-
-	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/recv
-	default:
-		err := fmt.Errorf("unrecognized %s packet type: %T", types.ModuleName, packet)
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// NOTE: acknowledgement will be written synchronously during IBC handler execution.
-	return ack
+	rollappID, err := im.keeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		logger.Error("failed to extract rollappID from channel", "err", err)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+	// no-op if rollappID is empty (i.e transfer from non-dymint chain)
+	if rollappID == "" {
+		logger.Debug("skipping IBC transfer OnRecvPacket for non-dymint chain")
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// no-op if the receiver chain is the source chain
+	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
+		logger.Debug("skipping IBC transfer OnRecvPacket for receiver chain being the source chain")
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// since SendPacket did not prefix the denomination, we must prefix denomination here
+	sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+	// NOTE: sourcePrefix contains the trailing "/"
+	prefixedDenom := sourcePrefix + data.Denom
+	// construct the denomination trace from the full raw denomination
+	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
+	traceHash := denomTrace.Hash()
+	voucherDenom := denomTrace.IBCDenom()
+
+	// no-op if token already exist
+	if im.transferkeeper.HasDenomTrace(ctx, traceHash) {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
+	if !found {
+		panic("failed to handle dymint IBC transfer packet for non-registered rollapp")
+	}
+
+	if len(rollapp.TokenMetadata) == 0 {
+		logger.Info("skipping new IBC token for rollapp with no metadata", "rollappID", rollappID, "denom", voucherDenom)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	if im.bankkeeper.HasDenomMetaData(ctx, voucherDenom) {
+		logger.Info("denom metadata already registered", "rollappID", rollappID, "denom", voucherDenom)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	for i := range rollapp.TokenMetadata {
+		if rollapp.TokenMetadata[i].Base == data.Denom {
+			metadata := banktypes.Metadata{
+				Description: "auto-generated metadata for " + voucherDenom + " from rollapp " + rollappID,
+				Base:        voucherDenom,
+				DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
+				Display:     rollapp.TokenMetadata[i].Display,
+				Name:        rollapp.TokenMetadata[i].Name,
+				Symbol:      rollapp.TokenMetadata[i].Symbol,
+				URI:         rollapp.TokenMetadata[i].URI,
+				URIHash:     rollapp.TokenMetadata[i].URIHash,
+			}
+			// Copy DenomUnits slice
+			for j, du := range rollapp.TokenMetadata[i].DenomUnits {
+				newDu := banktypes.DenomUnit{
+					Aliases:  du.Aliases,
+					Denom:    du.Denom,
+					Exponent: du.Exponent,
+				}
+				//base denom_unit should be the same as baseDenom
+				if newDu.Exponent == 0 {
+					newDu.Denom = voucherDenom
+					newDu.Aliases = append(newDu.Aliases, du.Denom)
+				}
+				metadata.DenomUnits[j] = &newDu
+			}
+
+			im.bankkeeper.SetDenomMetaData(ctx, metadata)
+
+			logger.Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", voucherDenom)
+		}
+	}
+
+	return im.app.OnRecvPacket(ctx, packet, relayer)
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
-	modulePacket channeltypes.Packet,
+	packet channeltypes.Packet,
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet acknowledgement: %v", err)
-	}
-
-	// this line is used by starport scaffolding # oracle/packet/module/ack
-
-	var modulePacketData types.DenommetadataPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
-	}
-
-	var eventType string
-
-	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/ack
-	default:
-		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			eventType,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.ModuleName),
-			sdk.NewAttribute(types.AttributeKeyAck, fmt.Sprintf("%v", ack)),
-		),
-	)
-
-	switch resp := ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Result:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(types.AttributeKeyAckSuccess, string(resp.Result)),
-			),
-		)
-	case *channeltypes.Acknowledgement_Error:
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				eventType,
-				sdk.NewAttribute(types.AttributeKeyAckError, resp.Error),
-			),
-		)
-	}
-
-	return nil
+	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
 func (im IBCMiddleware) OnTimeoutPacket(
 	ctx sdk.Context,
-	modulePacket channeltypes.Packet,
+	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	var modulePacketData types.DenommetadataPacketData
-	if err := modulePacketData.Unmarshal(modulePacket.GetData()); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "cannot unmarshal packet data: %s", err.Error())
-	}
-
-	// Dispatch packet
-	switch packet := modulePacketData.Packet.(type) {
-	// this line is used by starport scaffolding # ibc/packet/module/timeout
-	default:
-		errMsg := fmt.Sprintf("unrecognized %s packet type: %T", types.ModuleName, packet)
-		return sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
-	}
-
-	return nil
+	// call underlying callback
+	return im.app.OnTimeoutPacket(ctx, packet, relayer)
 }
+
+/* ------------------------------- ICS4Wrapper ------------------------------ */
 
 // SendPacket implements the ICS4 Wrapper interface
 func (im IBCMiddleware) SendPacket(
@@ -253,8 +233,8 @@ func (im IBCMiddleware) SendPacket(
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
-) (uint64, error) {
-	return im.app.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+) (sequence uint64, err error) {
+	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -264,10 +244,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.app.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.app.GetAppVersion(ctx, portID, channelID)
+	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
