@@ -619,7 +619,8 @@ func New(
 
 	transferIBCModule := ibctransfer.NewIBCModule(app.TransferKeeper)
 	denommetadataMiddleware := denommetadatamodule.NewIBCMiddleware(transferIBCModule, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
-	packetForwardMiddleware := packetforwardmiddleware.NewIBCMiddleware(denommetadataMiddleware, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	ircMiddleware := ircmodule.NewIBCMiddleware(denommetadataMiddleware, *app.IRCKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	packetForwardMiddleware := packetforwardmiddleware.NewIBCMiddleware(ircMiddleware, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
