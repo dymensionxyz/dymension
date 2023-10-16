@@ -64,7 +64,7 @@ func (k Keeper) CreatePoolGauges(ctx sdk.Context, poolId uint64) error {
 	for _, lockableDuration := range k.GetLockableDurations(ctx) {
 		gaugeId, err := k.incentivesKeeper.CreateGauge(
 			ctx,
-			true,
+			k.GetParams(ctx).NumEpochsPaidOver == 1,
 			k.accountKeeper.GetModuleAddress(types.ModuleName),
 			sdk.Coins{},
 			lockuptypes.QueryCondition{
