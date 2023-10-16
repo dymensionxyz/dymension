@@ -125,9 +125,13 @@ import (
 	ircmodulekeeper "github.com/dymensionxyz/dymension/x/irc/keeper"
 	ircmoduletypes "github.com/dymensionxyz/dymension/x/irc/types"
 
-	"github.com/strangelove-ventures/packet-forward-middleware/v6/router"
-	routerkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
-	routertypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
+	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
+	denommetadatakeeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
+	denommetadatatypes "github.com/dymensionxyz/dymension/x/denommetadata/types"
+
+	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
+	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
+	packetforwardtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
@@ -143,9 +147,9 @@ import (
 )
 
 var (
-	_ = routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp
-	_ = router.AppModule{}
-	_ = routertypes.ErrIntOverflowGenesis
+	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
+	_ = packetforwardmiddleware.AppModule{}
+	_ = packetforwardtypes.ErrIntOverflowGenesis
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -198,8 +202,9 @@ var (
 		vesting.AppModuleBasic{},
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
-		router.AppModuleBasic{},
+		packetforwardmiddleware.AppModuleBasic{},
 		ircmodule.AppModuleBasic{},
+		denommetadatamodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
@@ -269,23 +274,23 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper    authkeeper.AccountKeeper
-	AuthzKeeper      authzkeeper.Keeper
-	BankKeeper       bankkeeper.Keeper
-	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
-	SlashingKeeper   slashingkeeper.Keeper
-	MintKeeper       mintkeeper.Keeper
-	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        govkeeper.Keeper
-	CrisisKeeper     crisiskeeper.Keeper
-	UpgradeKeeper    upgradekeeper.Keeper
-	ParamsKeeper     paramskeeper.Keeper
-	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper   evidencekeeper.Keeper
-	TransferKeeper   ibctransferkeeper.Keeper
-	FeeGrantKeeper   feegrantkeeper.Keeper
-	RouterKeeper     *routerkeeper.Keeper
+	AccountKeeper                 authkeeper.AccountKeeper
+	AuthzKeeper                   authzkeeper.Keeper
+	BankKeeper                    bankkeeper.Keeper
+	CapabilityKeeper              *capabilitykeeper.Keeper
+	StakingKeeper                 stakingkeeper.Keeper
+	SlashingKeeper                slashingkeeper.Keeper
+	MintKeeper                    mintkeeper.Keeper
+	DistrKeeper                   distrkeeper.Keeper
+	GovKeeper                     govkeeper.Keeper
+	CrisisKeeper                  crisiskeeper.Keeper
+	UpgradeKeeper                 upgradekeeper.Keeper
+	ParamsKeeper                  paramskeeper.Keeper
+	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	EvidenceKeeper                evidencekeeper.Keeper
+	TransferKeeper                ibctransferkeeper.Keeper
+	FeeGrantKeeper                feegrantkeeper.Keeper
+	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -301,6 +306,8 @@ type App struct {
 
 	IRCKeeper *ircmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
+
+	DenomMetadataKeeper denommetadatakeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -348,7 +355,7 @@ func New(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
-		routertypes.StoreKey,
+		packetforwardtypes.StoreKey,
 		ircmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
@@ -464,6 +471,16 @@ func New(
 		isSimulation(),
 	)
 
+	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
+		appCodec,
+		keys[denommetadatatypes.StoreKey],
+		keys[denommetadatatypes.MemStoreKey],
+		app.GetSubspace(denommetadatatypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedIBCKeeper,
+	)
+
 	// register the rollapp hooks
 	app.RollappKeeper.SetHooks(
 		rollappmoduletypes.NewMultiRollappHooks(
@@ -474,6 +491,7 @@ func New(
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// ... other modules keepers
 
@@ -543,9 +561,9 @@ func New(
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
-	app.RouterKeeper = routerkeeper.NewKeeper(
-		appCodec, keys[routertypes.StoreKey],
-		app.GetSubspace(routertypes.ModuleName),
+	app.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
+		appCodec, keys[packetforwardtypes.StoreKey],
+		app.GetSubspace(packetforwardtypes.ModuleName),
 		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.DistrKeeper,
@@ -555,14 +573,13 @@ func New(
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
 
-	var transferStack ibcporttypes.IBCModule
-	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ircmodule.NewIBCMiddleware(transferStack, *app.IRCKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
-	transferStack = router.NewIBCMiddleware(transferStack, app.RouterKeeper, 0, routerkeeper.DefaultForwardTransferPacketTimeoutTimestamp, routerkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferIBCModule := ibctransfer.NewIBCModule(app.TransferKeeper)
+	denommetadataMiddleware := denommetadatamodule.NewIBCMiddleware(transferIBCModule, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	packetForwardMiddleware := packetforwardmiddleware.NewIBCMiddleware(denommetadataMiddleware, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, packetForwardMiddleware)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -595,11 +612,12 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibcModule,
 		params.NewAppModule(app.ParamsKeeper),
-		router.NewAppModule(app.RouterKeeper),
+		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper),
 		transferModule,
 		rollappModule,
 		sequencerModule,
 		ircModule,
+		denommetadataModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
@@ -624,7 +642,7 @@ func New(
 		evmtypes.ModuleName,
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
-		routertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		authtypes.ModuleName,
 		authz.ModuleName,
 		banktypes.ModuleName,
@@ -636,6 +654,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
+		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -660,10 +679,11 @@ func New(
 		upgradetypes.ModuleName,
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
-		routertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
+		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -692,11 +712,12 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		ibctransfertypes.ModuleName,
-		routertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		feegrant.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		ircmoduletypes.ModuleName,
+		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -720,10 +741,11 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibcModule,
 		transferModule,
-		router.NewAppModule(app.RouterKeeper),
+		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper),
 		rollappModule,
 		sequencerModule,
 		ircModule,
+		denommetadataModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -934,12 +956,13 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
-	paramsKeeper.Subspace(routertypes.ModuleName).WithKeyTable(routertypes.ParamKeyTable())
+	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(ircmoduletypes.ModuleName)
+	paramsKeeper.Subspace(denommetadatatypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
