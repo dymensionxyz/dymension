@@ -12,7 +12,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	keeper "github.com/dymensionxyz/dymension/x/irc/keeper"
+	keeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 )
 
@@ -22,6 +22,7 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 type IBCMiddleware struct {
 	app            porttypes.IBCModule
 	keeper         keeper.Keeper
+	ics4Wrapper    porttypes.ICS4Wrapper
 	transferkeeper transferkeeper.Keeper
 	rollappkeeper  rollappkeeper.Keeper
 	bankkeeper     bankkeeper.Keeper
@@ -120,15 +121,20 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	rollappID, err := im.keeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	rollappID, err := im.rollappkeeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("failed to extract rollappID from channel", "err", err)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 	// no-op if rollappID is empty (i.e transfer from non-dymint chain)
 	if rollappID == "" {
-		logger.Debug("skipping IBC transfer OnRecvPacket for non-dymint chain")
+		logger.Debug("skipping IBC transfer OnRecvPacket for non-tendermint chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
+	if !found {
+		panic("failed to handle IBC transfer packet for non-registered rollapp")
 	}
 
 	// no-op if the receiver chain is the source chain
@@ -149,11 +155,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	// no-op if token already exist
 	if im.transferkeeper.HasDenomTrace(ctx, traceHash) {
 		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
-	if !found {
-		panic("failed to handle dymint IBC transfer packet for non-registered rollapp")
 	}
 
 	if len(rollapp.TokenMetadata) == 0 {
@@ -234,7 +235,7 @@ func (im IBCMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
+	return im.ics4Wrapper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // WriteAcknowledgement implements the ICS4 Wrapper interface
@@ -244,10 +245,10 @@ func (im IBCMiddleware) WriteAcknowledgement(
 	packet exported.PacketI,
 	ack exported.Acknowledgement,
 ) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
+	return im.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, ack)
 }
 
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.keeper.GetAppVersion(ctx, portID, channelID)
+	return im.ics4Wrapper.GetAppVersion(ctx, portID, channelID)
 }
