@@ -1,0 +1,7 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+option go_package = "github.com/dymensionxyz/dymension/x/denommetadata/types";
+
+// Msg defines the Msg service.
+service Msg {}
