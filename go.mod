@@ -27,7 +27,7 @@ require (
 	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0
 	gonum.org/v1/gonum v0.8.2
 	google.golang.org/genproto/googleapis/api v0.0.0-20230822172742-b8732ec3820d
-	google.golang.org/grpc v1.58.2
+	google.golang.org/grpc v1.58.3
 	gopkg.in/yaml.v2 v2.4.0
 )
 
