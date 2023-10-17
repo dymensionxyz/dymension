@@ -371,6 +371,7 @@ func New(
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
+		denommetadatatypes.StoreKey,
 		ircmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
@@ -494,6 +495,16 @@ func New(
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
+	// Create IBC Keeper
+	app.IBCKeeper = ibckeeper.NewKeeper(
+		appCodec,
+		keys[ibchost.StoreKey],
+		app.GetSubspace(ibchost.ModuleName),
+		app.StakingKeeper,
+		app.UpgradeKeeper,
+		scopedIBCKeeper,
+	)
+
 	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
@@ -520,9 +531,9 @@ func New(
 		keys[denommetadatatypes.StoreKey],
 		keys[denommetadatatypes.MemStoreKey],
 		app.GetSubspace(denommetadatatypes.ModuleName),
+		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		scopedIBCKeeper,
+		app.IBCKeeper.ChannelKeeper,
 	)
 
 	// register the rollapp hooks
@@ -535,19 +546,9 @@ func New(
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
-	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper, app.AccountKeeper, app.BankKeeper)
+	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper)
 
 	// ... other modules keepers
-
-	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec,
-		keys[ibchost.StoreKey],
-		app.GetSubspace(ibchost.ModuleName),
-		app.StakingKeeper,
-		app.UpgradeKeeper,
-		scopedIBCKeeper,
-	)
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow

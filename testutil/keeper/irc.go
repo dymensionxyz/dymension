@@ -51,6 +51,7 @@ func IRCKeeper(t testing.TB) (*keeper.Keeper, *rollappkeeper.Keeper, sdk.Context
 		storeKey,
 		memStoreKey,
 		rollappParamsSubspace,
+		nil,
 	)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
