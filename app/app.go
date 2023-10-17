@@ -618,14 +618,15 @@ func New(
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
 
-	transferIBCModule := ibctransfer.NewIBCModule(app.TransferKeeper)
-	denommetadataMiddleware := denommetadatamodule.NewIBCMiddleware(transferIBCModule, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
-	ircMiddleware := ircmodule.NewIBCMiddleware(denommetadataMiddleware, *app.IRCKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
-	packetForwardMiddleware := packetforwardmiddleware.NewIBCMiddleware(ircMiddleware, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	var transferStack ibcporttypes.IBCModule
+	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	transferStack = ircmodule.NewIBCMiddleware(transferStack, *app.IRCKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, packetForwardMiddleware)
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
