@@ -959,6 +959,8 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	//exclude the pool incentives module
+	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
