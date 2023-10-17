@@ -14,6 +14,9 @@ cat <<EOL > proposal.json
 }
 EOL
 
+# Pass fund manually to the poolincentives module
+dymd tx bank send local-user dym1upfuxznarpja3sywq0tzd2kktg9wv8mczfufge 100dym --keyring-backend test -b block
+
 # Fund the community pool
 dymd tx distribution fund-community-pool 100dym --from local-user -b block -y
 
@@ -21,4 +24,8 @@ dymd tx distribution fund-community-pool 100dym --from local-user -b block -y
 dymd tx gov submit-legacy-proposal community-pool-spend proposal.json --from local-user -b block --gas auto -y
 
 # Vote on the proposal
-    dymd tx gov vote 1 yes --from local-user -b block
+last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
+dymd tx gov vote "$last_proposal_id" yes --from local-user -b block
+
+
+
