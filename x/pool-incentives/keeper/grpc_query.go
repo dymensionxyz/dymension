@@ -123,7 +123,7 @@ func (q Querier) ExternalIncentiveGauges(ctx context.Context, req *types.QueryEx
 	prefixStore := prefix.NewStore(store, []byte("pool-incentives"))
 
 	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	// map true to default gauges created with pool
 	poolGaugeIds := make(map[uint64]bool)
