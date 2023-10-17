@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	apptesting "github.com/dymensionxyz/dymension/testutil"
+	"github.com/dymensionxyz/dymension/testutil"
 	poolmanagerqueryproto "github.com/dymensionxyz/dymension/x/poolmanager/client/queryproto"
 )
 
 type QueryTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 	queryClient poolmanagerqueryproto.QueryClient
 }
 

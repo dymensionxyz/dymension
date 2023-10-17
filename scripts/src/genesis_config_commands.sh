@@ -20,7 +20,7 @@ set_gov_params() {
     jq '.app_state.gov.deposit_params.min_deposit[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.deposit_params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     #Two weeks voting_period
-    jq '.app_state.gov.voting_params.voting_period = "30s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.voting_params.voting_period = "1m"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_ibc_params() {
@@ -47,6 +47,23 @@ set_EVM_params() {
   jq '.app_state["feemarket"]["params"]["no_base_fee"] = true' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
   jq '.app_state.evm.params.evm_denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
   jq '.app_state.evm.params.enable_create = false' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+#Adding a "minute" epoch
+set_epochs_params() {
+    jq '.app_state.epochs += [{
+    "identifier": "minute",
+    "start_time": "0001-01-01T00:00:00Z",
+    "duration": "60s",
+    "current_epoch": "0",
+    "current_epoch_start_time": "0001-01-01T00:00:00Z",
+    "epoch_counting_started": false,
+    "current_epoch_start_height": "0"
+    }]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_incentives_params() {
+  jq '.app_state.incentives.params.distr_epoch_identifier = minute' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 
