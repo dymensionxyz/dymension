@@ -18,7 +18,7 @@ FROM alpine:3.16.1
 
 RUN apk add curl jq bash vim 
 
-COPY --from=go-builder /app/bin/dymd /usr/local/bin/
+COPY --from=go-builder /app/build/dymd /usr/local/bin/
 
 WORKDIR /app
 
