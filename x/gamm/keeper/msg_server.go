@@ -67,7 +67,7 @@ func (server msgServer) CreateBalancerPool(goCtx context.Context, msg *balancer.
 	//validate uniqueness of pool assets
 	poolAlreadyExists := false
 	iter := server.keeper.iterator(ctx, types.KeyPrefixPools)
-	defer iter.Close()
+	defer iter.Close() //nolint:errcheck
 
 	for ; iter.Valid(); iter.Next() {
 		pool, err := server.keeper.UnmarshalPool(iter.Value())

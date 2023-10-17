@@ -53,8 +53,7 @@ func (k Keeper) GetAllLatestStateInfoIndex(ctx sdk.Context) (list []types.StateI
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	// nolint: errcheck
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.StateInfoIndex

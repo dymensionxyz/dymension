@@ -21,7 +21,7 @@ import (
 // getGaugesFromIterator iterates over everything in a gauge's iterator, until it reaches the end. Return all gauges iterated over.
 func (k Keeper) getGaugesFromIterator(ctx sdk.Context, iterator db.Iterator) []types.Gauge {
 	gauges := []types.Gauge{}
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 	for ; iterator.Valid(); iterator.Next() {
 		gaugeIDs := []uint64{}
 		err := json.Unmarshal(iterator.Value(), &gaugeIDs)
