@@ -51,8 +51,7 @@ func (k Keeper) GetAllSequencersByRollapp(ctx sdk.Context) (list []types.Sequenc
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SequencersByRollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
-	// nolint: errcheck
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.SequencersByRollapp

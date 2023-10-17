@@ -146,9 +146,20 @@ import (
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
 	/* ----------------------------- osmosis imports ---------------------------- */
+
+	"github.com/dymensionxyz/dymension/x/epochs"
+	epochskeeper "github.com/dymensionxyz/dymension/x/epochs/keeper"
+	epochstypes "github.com/dymensionxyz/dymension/x/epochs/types"
+	"github.com/dymensionxyz/dymension/x/lockup"
+	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
+	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
+
 	"github.com/dymensionxyz/dymension/x/gamm"
 	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
 	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
+	incentives "github.com/dymensionxyz/dymension/x/incentives"
+	incentiveskeeper "github.com/dymensionxyz/dymension/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/x/incentives/types"
 	"github.com/dymensionxyz/dymension/x/poolmanager"
 	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
@@ -219,8 +230,12 @@ var (
 		evm.AppModuleBasic{},
 		feemarket.AppModuleBasic{},
 
+		// Osmosis modules
+		lockup.AppModuleBasic{},
+		epochs.AppModuleBasic{},
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
+		incentives.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -236,8 +251,10 @@ var (
 		ircmoduletypes.ModuleName:       {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -310,6 +327,9 @@ type App struct {
 	// Osmostis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
+	LockupKeeper      *lockupkeeper.Keeper
+	EpochsKeeper      *epochskeeper.Keeper
+	IncentivesKeeper  *incentiveskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -379,8 +399,11 @@ func New(
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
 
 		// osmosis keys
+		lockuptypes.StoreKey,
+		epochstypes.StoreKey,
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
+		incentivestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -471,6 +494,21 @@ func New(
 	)
 
 	// Osmosis keepers
+
+	app.LockupKeeper = lockupkeeper.NewKeeper(
+		app.keys[lockuptypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.DistrKeeper, app.GetSubspace(lockuptypes.ModuleName))
+
+	app.LockupKeeper.SetHooks(
+		lockuptypes.NewMultiLockupHooks(
+		// insert lockup hooks receivers here
+		),
+	)
+
+	app.EpochsKeeper = epochskeeper.NewKeeper(app.keys[epochstypes.StoreKey])
+
 	gammKeeper := gammkeeper.NewKeeper(
 		appCodec, keys[gammtypes.StoreKey],
 		app.GetSubspace(gammtypes.ModuleName),
@@ -478,11 +516,6 @@ func New(
 		// TODO: Add a mintcoins restriction
 		app.BankKeeper, app.DistrKeeper)
 	app.GAMMKeeper = &gammKeeper
-	app.GAMMKeeper.SetHooks(
-		gammtypes.NewMultiGammHooks(
-		// insert gamm hooks receivers here
-		),
-	)
 
 	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
 		keys[poolmanagertypes.StoreKey],
@@ -503,6 +536,35 @@ func New(
 		app.StakingKeeper,
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
+	)
+		
+	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
+		app.keys[incentivestypes.StoreKey],
+		app.GetSubspace(incentivestypes.ModuleName),
+		app.BankKeeper,
+		app.LockupKeeper,
+		app.EpochsKeeper,
+		app.DistrKeeper,
+		nil,
+	)
+
+	// Set hooks
+	app.GAMMKeeper.SetHooks(
+		gammtypes.NewMultiGammHooks(
+		// insert gamm hooks receivers here
+		),
+	)
+
+	app.IncentivesKeeper.SetHooks(
+		incentivestypes.NewMultiIncentiveHooks(
+		// insert incentive hooks receivers here
+		),
+	)
+	app.EpochsKeeper.SetHooks(
+		epochstypes.NewMultiEpochHooks(
+			// insert epochs hooks receivers here
+			app.IncentivesKeeper.Hooks(),
+		),
 	)
 
 	//--------------- dYmension specific modules
@@ -672,8 +734,11 @@ func New(
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
 
 		// osmosis modules
+		lockup.NewAppModule(*app.LockupKeeper, app.AccountKeeper, app.BankKeeper),
+		epochs.NewAppModule(*app.EpochsKeeper),
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
+		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -681,6 +746,7 @@ func New(
 	// CanWithdrawInvariant invariant.
 	// NOTE: staking module is required if HistoricalEntries param > 0
 	app.mm.SetOrderBeginBlockers(
+		epochstypes.ModuleName,
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
@@ -707,8 +773,10 @@ func New(
 		ircmoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
+		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -738,8 +806,11 @@ func New(
 		ircmoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
+		epochstypes.ModuleName,
+		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -775,8 +846,11 @@ func New(
 		denommetadatatypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
+		epochstypes.ModuleName,
+		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
+		incentivestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -1028,8 +1102,11 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(feemarkettypes.ModuleName)
 
 	// osmosis subspaces
+	paramsKeeper.Subspace(lockuptypes.ModuleName)
+	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
+	paramsKeeper.Subspace(incentivestypes.ModuleName)
 
 	return paramsKeeper
 }

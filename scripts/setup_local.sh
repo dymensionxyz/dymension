@@ -92,6 +92,8 @@ set_hub_params
 set_misc_params
 set_EVM_params
 set_bank_denom_metadata
+set_epochs_params
+set_incentives_params
 
 echo "Enable monitoring? (Y/n) "
 read -r answer
@@ -100,7 +102,7 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 
-echo "Initialize Osmosis pool accounts? (Y/n) "
+echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   dymd keys add pools --keyring-backend test

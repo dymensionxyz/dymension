@@ -7,13 +7,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	apptesting "github.com/dymensionxyz/dymension/testutil"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
 	"github.com/dymensionxyz/dymension/x/poolmanager/events"
 )
 
 type PoolManagerEventsTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 }
 
 const (

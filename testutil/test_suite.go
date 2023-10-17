@@ -29,6 +29,9 @@ import (
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
 	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
+
+	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
+	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
 )
 
 type KeeperTestHelper struct {
@@ -54,8 +57,23 @@ func (s *KeeperTestHelper) Setup() {
 		Ctx:             s.Ctx,
 	}
 
+	s.SetEpochStartTime()
+
 	s.TestAccs = CreateRandomAccounts(3)
 	gammtypes.MaxNumOfAssetsInPool = 8
+}
+
+func (s *KeeperTestHelper) SetEpochStartTime() {
+	epochsKeeper := s.App.EpochsKeeper
+
+	for _, epoch := range epochsKeeper.AllEpochInfos(s.Ctx) {
+		epoch.StartTime = s.Ctx.BlockTime()
+		epochsKeeper.DeleteEpochInfo(s.Ctx, epoch.Identifier)
+		err := epochsKeeper.AddEpochInfo(s.Ctx, epoch)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
 
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {
@@ -269,6 +287,17 @@ func (s *KeeperTestHelper) SwapAndSetSpotPrice(poolId uint64, fromAsset sdk.Coin
 	s.Require().NoError(err)
 
 	return spotPrice
+}
+
+// LockTokens funds an account, locks tokens and returns a lockID.
+func (s *KeeperTestHelper) LockTokens(addr sdk.AccAddress, coins sdk.Coins, duration time.Duration) (lockID uint64) {
+	msgServer := lockupkeeper.NewMsgServerImpl(s.App.LockupKeeper)
+	s.FundAcc(addr, coins)
+
+	msgResponse, err := msgServer.LockTokens(sdk.WrapSDKContext(s.Ctx), lockuptypes.NewMsgLockTokens(addr, duration, coins))
+	s.Require().NoError(err)
+
+	return msgResponse.ID
 }
 
 // StateNotAltered validates that app state is not altered. Fails if it is.
