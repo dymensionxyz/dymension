@@ -6,13 +6,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
-	apptesting "github.com/dymensionxyz/dymension/testutil"
+	"github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
 	"github.com/dymensionxyz/dymension/x/poolmanager/types"
 )
 
 type KeeperTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 }
 
 const testExpectedPoolId = 3

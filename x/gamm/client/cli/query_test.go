@@ -7,12 +7,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/dymensionxyz/dymension/testutil"
 	apptesting "github.com/dymensionxyz/dymension/testutil"
 	"github.com/dymensionxyz/dymension/x/gamm/types"
 )
 
 type QueryTestSuite struct {
-	apptesting.KeeperTestHelper
+	testutil.KeeperTestHelper
 	queryClient types.QueryClient
 }
 
