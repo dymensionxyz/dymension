@@ -15,6 +15,5 @@ jobs:
       - name: markdownlint-cli
         uses: nosborn/github-action-markdown-cli@v3.2.0
         with:
-          files: .
+          files: ./
           config_file: .markdownlint.yaml
-          ignore_files: ./x/gamm/**/*

@@ -51,7 +51,7 @@ set_EVM_params() {
 
 #Adding a "minute" epoch
 set_epochs_params() {
-    jq '.app_state.epochs += [{
+    jq '.app_state.epochs.epochs += [{
     "identifier": "minute",
     "start_time": "0001-01-01T00:00:00Z",
     "duration": "60s",
@@ -63,7 +63,7 @@ set_epochs_params() {
 }
 
 set_incentives_params() {
-  jq '.app_state.incentives.params.distr_epoch_identifier = minute' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+  jq '.app_state.incentives.params.distr_epoch_identifier = "minute"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 
