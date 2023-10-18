@@ -14,11 +14,12 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		hooks      types.RollappHooks
-		paramstore paramtypes.Subspace
+		cdc           codec.BinaryCodec
+		storeKey      storetypes.StoreKey
+		memKey        storetypes.StoreKey
+		hooks         types.RollappHooks
+		paramstore    paramtypes.Subspace
+		channelKeeper types.ChannelKeeper
 	}
 )
 
@@ -27,6 +28,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	channelKeeper types.ChannelKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -36,11 +38,12 @@ func NewKeeper(
 
 	return &Keeper{
 
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		hooks:      nil,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramstore:    ps,
+		hooks:         nil,
+		channelKeeper: channelKeeper,
 	}
 }
 

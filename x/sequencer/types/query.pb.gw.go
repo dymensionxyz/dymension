@@ -673,19 +673,19 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Sequencer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Sequencer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_SequencerAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "sequencer"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencerAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 2}, []string{"dymensionxyz", "dymension", "sequencer"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_SequencersByRollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencersByRollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_Scheduler_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "scheduler", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Scheduler_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "scheduler", "sequencerAddress"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_SchedulerAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "scheduler"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SchedulerAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "scheduler"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
