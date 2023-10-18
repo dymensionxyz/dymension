@@ -2,7 +2,6 @@ run:
   timeout: 5m
   modules-download-mode: readonly
   skip-files:
-    - da/celestia/mock/server.go
     - ./*_test.go    
 
 linters:

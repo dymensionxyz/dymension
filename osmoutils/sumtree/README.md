@@ -129,7 +129,7 @@ The following constraints are valid for all branch nodes:
 
 Here is an example tree data:
 
-```
+```bash
     - Level 2 nil
       - Level 1 0xaaaa 
         - Level 0 0xaaaa Value 10
