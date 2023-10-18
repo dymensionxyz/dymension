@@ -1,7 +1,0 @@
-syntax = "proto3";
-package dymensionxyz.dymension.irc;
-
-option go_package = "github.com/dymensionxyz/dymension/x/irc/types";
-
-// Msg defines the Msg service.
-service Msg {}
