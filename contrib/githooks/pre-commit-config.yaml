@@ -66,7 +66,7 @@ repos:
     #   Consider adding aliases to longer-named hooks for easier CLI usage.
     # ==========================================================================
 -   repo: https://github.com/tekwizely/pre-commit-golang
-    rev: master
+    rev: v1.0.0-rc.1
     hooks:
     #
     # Go Build
@@ -82,7 +82,9 @@ repos:
     # Go Test
     #
     -   id: go-test-mod
+        args: [-v, -race]
     -   id: go-test-repo-mod
+        args: [-v, -race]
     # GolangCI-Lint
     # - Fast Multi-Linter
     # - Can be configured to replace MOST other hooks
@@ -90,8 +92,10 @@ repos:
     # - https://github.com/golangci/golangci-lint
     #
     # -   id: golangci-lint
-    -   id: golangci-lint-mod
-    -   id: golangci-lint-repo-mod
+-   repo: https://github.com/golangci/golangci-lint
+    rev: v1.53.3
+    hooks:
+    -   id: golangci-lint
     #
     # # Invoking Custom Go Tools
     # # - Configured *entirely* through the `args` attribute, ie:
@@ -106,17 +110,10 @@ repos:
     # -   id: my-cmd-repo-mod
     # -   id: my-cmd-repo-pkg
 - repo: https://github.com/dnephin/pre-commit-golang
-  rev: master
+  rev: v0.5.1
   hooks:
     - id: validate-toml
-- repo: https://github.com/jumanjihouse/pre-commit-hooks
-  rev: master
+- repo: https://github.com/igorshubovych/markdownlint-cli
+  rev: v0.34.0
   hooks:
     - id: markdownlint
-default_language_version:
-  ruby: 2.7.2
-repos:
-- repo: https://github.com/markdownlint/markdownlint
-  rev: v0.11.0
-  hooks:
-  - id: markdownlint
