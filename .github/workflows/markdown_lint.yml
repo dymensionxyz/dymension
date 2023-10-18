@@ -17,4 +17,6 @@ jobs:
         with:
           files: .
           config_file: .markdownlint.yaml
-          ignore_files: ./x/gamm/**/*
+          ignore_files: |
+            ./x/gamm/**/*
+            ./x/lockup/**/*
