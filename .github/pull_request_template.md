@@ -22,7 +22,7 @@ For Reviewer:
 - [ ]  Reviewers assigned
 - [ ]  confirmed all author checklist items have been addressed
 
---- 
+---;
 
 After reviewer approval:
 
