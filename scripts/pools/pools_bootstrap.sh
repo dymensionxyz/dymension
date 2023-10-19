@@ -24,6 +24,8 @@ multi_hop_swap() {
     dymd tx gamm swap-exact-amount-in 50000000uatom 20000000 --swap-route-pool-ids 1,2 --swap-route-denoms udym,uusd --from user --keyring-backend test -b block
 }
 
-
+echo "Creating pools"
+echo "Creating udym/uatom pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolA.json"
+echo "Creating udym/uusd pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolB.json"

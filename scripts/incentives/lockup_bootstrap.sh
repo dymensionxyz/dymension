@@ -1,12 +1,12 @@
 #!/bin/sh
 
-LPDENOM=gamm/pool/1
+echo "locking LP1 tokens for 2 weeks"
+dymd tx lockup lock-tokens 50000000000000000000gamm/pool/1 --duration="336h" --from pools --keyring-backend=test -b block -y
 
-# Define the functions using the new function
-dymd tx lockup lock-tokens 50000000000000000000gamm/pool/1 --duration="3600s" --from pools --keyring-backend=test -b block -y
+echo "locking uatom tokens for 1h"
+dymd tx lockup lock-tokens 500000000uatom --duration="3600s" --from user --keyring-backend=test -b block -y
 
-
+echo "locking dym tokens for 1 day"
 dymd tx lockup lock-tokens 100dym --duration="24h" --from user --keyring-backend=test -b block -y
+echo "unlocking dym tokens"
 dymd tx lockup begin-unlock-by-id 2 --from user --keyring-backend=test -b block -y
-
-
