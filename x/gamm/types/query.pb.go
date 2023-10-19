@@ -35,7 +35,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-//=============================== Pool
+// =============================== Pool
 type QueryPoolRequest struct {
 	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 }
@@ -124,7 +124,7 @@ func (m *QueryPoolResponse) GetPool() *types.Any {
 	return nil
 }
 
-//=============================== Pools
+// =============================== Pools
 type QueryPoolsRequest struct {
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -223,7 +223,7 @@ func (m *QueryPoolsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-//=============================== NumPools
+// =============================== NumPools
 //
 // Deprecated: Do not use.
 type QueryNumPoolsRequest struct {
@@ -307,7 +307,7 @@ func (m *QueryNumPoolsResponse) GetNumPools() uint64 {
 	return 0
 }
 
-//=============================== PoolType
+// =============================== PoolType
 type QueryPoolTypeRequest struct {
 	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 }
@@ -396,7 +396,7 @@ func (m *QueryPoolTypeResponse) GetPoolType() string {
 	return ""
 }
 
-//=============================== CalcJoinPoolShares
+// =============================== CalcJoinPoolShares
 type QueryCalcJoinPoolSharesRequest struct {
 	PoolId   uint64                                   `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 	TokensIn github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=tokens_in,json=tokensIn,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens_in"`
@@ -494,7 +494,7 @@ func (m *QueryCalcJoinPoolSharesResponse) GetTokensOut() github_com_cosmos_cosmo
 	return nil
 }
 
-//=============================== CalcExitPoolCoinsFromShares
+// =============================== CalcExitPoolCoinsFromShares
 type QueryCalcExitPoolCoinsFromSharesRequest struct {
 	PoolId        uint64                                 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty"`
 	ShareInAmount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=share_in_amount,json=shareInAmount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"share_in_amount"`
@@ -588,7 +588,7 @@ func (m *QueryCalcExitPoolCoinsFromSharesResponse) GetTokensOut() github_com_cos
 	return nil
 }
 
-//=============================== PoolParams
+// =============================== PoolParams
 type QueryPoolParamsRequest struct {
 	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 }
@@ -677,7 +677,7 @@ func (m *QueryPoolParamsResponse) GetParams() *types.Any {
 	return nil
 }
 
-//=============================== PoolLiquidity
+// =============================== PoolLiquidity
 type QueryTotalPoolLiquidityRequest struct {
 	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 }
@@ -766,7 +766,7 @@ func (m *QueryTotalPoolLiquidityResponse) GetLiquidity() github_com_cosmos_cosmo
 	return nil
 }
 
-//=============================== TotalShares
+// =============================== TotalShares
 type QueryTotalSharesRequest struct {
 	PoolId uint64 `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 }
@@ -855,7 +855,7 @@ func (m *QueryTotalSharesResponse) GetTotalShares() types1.Coin {
 	return types1.Coin{}
 }
 
-//=============================== CalcJoinPoolNoSwapShares
+// =============================== CalcJoinPoolNoSwapShares
 type QueryCalcJoinPoolNoSwapSharesRequest struct {
 	PoolId   uint64                                   `protobuf:"varint,1,opt,name=pool_id,json=poolId,proto3" json:"pool_id,omitempty" yaml:"pool_id"`
 	TokensIn github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=tokens_in,json=tokensIn,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"tokens_in"`
@@ -1181,7 +1181,7 @@ func (m *QuerySpotPriceResponse) GetSpotPrice() string {
 	return ""
 }
 
-//=============================== EstimateSwapExactAmountIn
+// =============================== EstimateSwapExactAmountIn
 //
 // Deprecated: Do not use.
 type QuerySwapExactAmountInRequest struct {
@@ -1290,7 +1290,7 @@ func (m *QuerySwapExactAmountInResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QuerySwapExactAmountInResponse proto.InternalMessageInfo
 
-//=============================== EstimateSwapExactAmountOut
+// =============================== EstimateSwapExactAmountOut
 //
 // Deprecated: Do not use.
 type QuerySwapExactAmountOutRequest struct {

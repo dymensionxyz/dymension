@@ -36,7 +36,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-//=============================== Params
+// =============================== Params
 type ParamsRequest struct {
 }
 
@@ -117,7 +117,7 @@ func (m *ParamsResponse) GetParams() types.Params {
 	return types.Params{}
 }
 
-//=============================== EstimateSwapExactAmountIn
+// =============================== EstimateSwapExactAmountIn
 type EstimateSwapExactAmountInRequest struct {
 	// TODO: CHANGE THIS TO RESERVED IN A PATCH RELEASE
 	Sender  string                    `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
@@ -224,7 +224,7 @@ func (m *EstimateSwapExactAmountInResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EstimateSwapExactAmountInResponse proto.InternalMessageInfo
 
-//=============================== EstimateSwapExactAmountOut
+// =============================== EstimateSwapExactAmountOut
 type EstimateSwapExactAmountOutRequest struct {
 	// TODO: CHANGE THIS TO RESERVED IN A PATCH RELEASE
 	Sender   string                     `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty" yaml:"sender"`
@@ -331,7 +331,7 @@ func (m *EstimateSwapExactAmountOutResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EstimateSwapExactAmountOutResponse proto.InternalMessageInfo
 
-//=============================== NumPools
+// =============================== NumPools
 type NumPoolsRequest struct {
 }
 

@@ -1,0 +1,7 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
+
+// Msg defines the Msg service.
+service Msg {}

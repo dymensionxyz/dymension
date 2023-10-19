@@ -9,8 +9,8 @@ import (
 	time "time"
 
 	types "github.com/cosmos/cosmos-sdk/types"
-	gomock "github.com/golang/mock/gomock"
 	types0 "github.com/dymensionxyz/dymension/x/poolmanager/types"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockCFMMPoolI is a mock of CFMMPoolI interface.
