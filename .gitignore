@@ -6,3 +6,4 @@ build/
 .idea/
 .vscode/
 .DS_Store
+proposal.json

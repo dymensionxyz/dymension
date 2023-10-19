@@ -24,6 +24,10 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
   - [Adding liquidity](#adding-liquidity)
+  - [Adding incentives](#adding-incentives)
+    - [Setting incentivised pools and weights](#setting-incentivised-pools-and-weights)
+    - [Locking tokens](#locking-tokens)
+    - [Fund the incentives](#fund-the-incentives)
 
 ## Prerequisites
 
@@ -94,11 +98,57 @@ You should have a running local node!
 
 ## Adding liquidity
 
-TODO:
-to play around with the `GAMM` module:
+To bootstrap the `GAMM` module with pools:
 
 ```sh
-sh scripts/pools/osmosis_bootstrap.sh
+sh scripts/pools/pools_bootstrap.sh
+```
+
+## Adding incentives
+
+### Setting incentivised pools and weights
+
+After creating the pools above, set the incentives weights through gov:
+
+```sh
+sh scripts/incentives/incentive_pools_bootstrap.sh
+```
+
+wait for the gov proposal to pass, and valitate with:
+
+```sh
+dymd q poolincentives distr-info
+```
+
+### Locking tokens
+
+To get incentives, we need to lock the LP tokens:
+
+```sh
+sh scripts/incentives/lockup_bootstrap.sh
+```
+
+Valitate with:
+
+```sh
+dymd q lockup module-balance
+```
+
+### Fund the incentives
+
+Now we fund the pool incentives.
+The funds will be distributed between the incentivised pools according to weights.
+The following script funds the pool incentives both by external funds (direct funds transfer from some user)
+and using the community pool (using gov proposal)
+
+```sh
+sh scripts/incentives/fund_incentives.sh
+```
+
+validate with:
+
+```sh
+dymd q incentives gauges
 ```
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
