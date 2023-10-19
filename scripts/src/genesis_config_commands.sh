@@ -52,7 +52,6 @@ set_EVM_params() {
 #Adding a "minute" epoch
 set_epochs_params() {
     jq '.app_state.epochs.epochs += [{
-    jq '.app_state.epochs.epochs += [{
     "identifier": "minute",
     "start_time": "0001-01-01T00:00:00Z",
     "duration": "60s",
