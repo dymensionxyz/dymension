@@ -11,6 +11,8 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
+	// KeyRollappsEnabled is store's key for RollappsEnabled Params
+	KeyRollappsEnabled = []byte("RollappsEnabled")
 	// DeployerWhitelist is store's key for DeployerWhitelist Params
 	KeyDeployerWhitelist = []byte("DeployerWhitelist")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
@@ -28,19 +30,21 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
+	enabled bool,
 	disputePeriodInBlocks uint64,
 	deployerWhitelist []DeployerParams,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		DeployerWhitelist:     deployerWhitelist,
+		RollappsEnabled:       enabled,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		DefaultDisputePeriodInBlocks, []DeployerParams{},
+		true, DefaultDisputePeriodInBlocks, []DeployerParams{},
 	)
 }
 
@@ -49,6 +53,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
 		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
+		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
 	}
 }
 
