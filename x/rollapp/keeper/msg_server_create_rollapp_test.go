@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	fmt "fmt"
+	"math/rand"
 
 	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
@@ -10,14 +11,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error, rollappsExpect *[]*types.RollappSummary) {
+func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error) types.RollappSummary {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	// generate sequences address
 	addresses := sample.GenerateAddresses(numOfAddresses)
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
-		RollappId:             fmt.Sprintf("%s%d", "rollapp", numOfAddresses),
+		RollappId:             fmt.Sprintf("%s%d", "rollapp", rand.Int63()),
 		MaxSequencers:         1,
 		PermissionedAddresses: sharedtypes.Sequencers{Addresses: addresses},
 	}
@@ -33,7 +34,7 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	if expectedErr != nil {
 		suite.EqualError(err, expectedErr.Error())
-		return
+		return types.RollappSummary{}
 	}
 	suite.Require().Nil(err)
 	suite.Require().EqualValues(types.MsgCreateRollappResponse{}, *createResponse)
@@ -48,18 +49,10 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	suite.Require().Nil(err)
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
-	rollappSummaryExpect := &types.RollappSummary{
+	rollappSummaryExpect := types.RollappSummary{
 		RollappId: rollappExpect.RollappId,
 	}
-
-	// add the rollapp to the list of get all expected list
-	newRollappsExpect := *rollappsExpect
-	newRollappsExpect = append(newRollappsExpect, rollappSummaryExpect)
-	// verify that query all contains all the rollapps that were created
-	rollappsRes, totalRes := getAll(suite)
-	suite.Require().EqualValues(totalRes, numOfAddresses+1)
-	vereifyAll(suite, newRollappsExpect, rollappsRes)
-	*rollappsExpect = newRollappsExpect
+	return rollappSummaryExpect
 }
 
 func (suite *RollappTestSuite) createRollappFromWhitelist(expectedErr error, deployerWhitelist []types.DeployerParams) {
@@ -70,9 +63,19 @@ func (suite *RollappTestSuite) createRollappFromWhitelist(expectedErr error, dep
 
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {
-		suite.createRollappAndVerify(i, expectedErr, &rollappsExpect)
+		res := suite.createRollappAndVerify(i, expectedErr)
+		rollappsExpect = append(rollappsExpect, &res)
 	}
 
+	// verify that query all contains all the rollapps that were created
+	rollappsRes, totalRes := getAll(suite)
+	if expectedErr != nil {
+		suite.Require().EqualValues(totalRes, 0)
+		return
+	} else {
+		suite.Require().EqualValues(totalRes, 10)
+		verifyAll(suite, rollappsExpect, rollappsRes)
+	}
 }
 
 func (suite *RollappTestSuite) TestCreateRollapp() {
@@ -115,8 +118,25 @@ func (suite *RollappTestSuite) TestCreateRollappExceedMaxRollapps() {
 
 	// test 10 rollap creations
 	for i := 0; i < 10; i++ {
-		suite.createRollappAndVerify(i, nil, &rollappsExpect)
+		res := suite.createRollappAndVerify(i, nil)
+		rollappsExpect = append(rollappsExpect, &res)
 	}
 
-	suite.createRollappAndVerify(10, types.ErrRollappCreatorExceedMaximumRollapps, &rollappsExpect)
+	// verify that query all contains all the rollapps that were created
+	rollappsRes, totalRes := getAll(suite)
+	suite.Require().EqualValues(totalRes, 10)
+	verifyAll(suite, rollappsExpect, rollappsRes)
+
+	suite.createRollappAndVerify(1, types.ErrRollappCreatorExceedMaximumRollapps)
+}
+
+func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
+	suite.SetupTest()
+
+	suite.createRollappAndVerify(1, nil)
+	params := suite.app.RollappKeeper.GetParams(suite.ctx)
+	params.RollappsEnabled = false
+
+	suite.app.RollappKeeper.SetParams(suite.ctx, params)
+	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
 }
