@@ -548,7 +548,7 @@ func New(
 		app.UpgradeKeeper,
 		scopedIBCKeeper,
 	)
-		
+
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
