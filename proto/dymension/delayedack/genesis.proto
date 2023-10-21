@@ -3,10 +3,26 @@ package dymensionxyz.dymension.delayedack;
 
 import "gogoproto/gogo.proto";
 import "dymension/delayedack/params.proto";
+// import "google/protobuf/wrappers.proto";
+import "ibc/core/channel/v1/channel.proto"; // import statement for channel.proto
+
+
 
 option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
 
 // GenesisState defines the delayedack module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message RollappPacket {
+  ibc.core.channel.v1.Packet packet = 1;
+  enum Status {
+    PENDING = 0;
+    ACCEPTED = 1;
+    REJECTED = 2;
+  }
+  Status status = 2;
+  string error = 3;
+
 }
