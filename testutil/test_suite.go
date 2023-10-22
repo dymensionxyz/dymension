@@ -26,12 +26,12 @@ import (
 
 	"github.com/dymensionxyz/dymension/app"
 
-	"github.com/dymensionxyz/dymension/x/gamm/pool-models/balancer"
-	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
-	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
+	"github.com/osmosis-labs/osmosis/v15/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
-	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
-	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
+	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 )
 
 type KeeperTestHelper struct {
