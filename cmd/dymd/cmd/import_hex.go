@@ -1,19 +1,27 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
+)
+
+const flagKeyType = "key-type"
 
 func ImportHexCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "import_hex <key-name> <private-key>",
-		Short: "Add a genesis account to genesis.json",
-		Long: `Add a genesis account to genesis.json. The provided account must specify
-the account address or key name and a list of initial coins. If a key name is given,
-the address will be looked up in the local Keybase. The list of initial tokens must
-contain valid denominations. Accounts may optionally be supplied with vesting parameters.
-`,
-		Args: cobra.ExactArgs(2),
+		Use:   "import-hex <name> <hex>",
+		Short: "Import private keys into the local keybase",
+		Long:  fmt.Sprintf("Import hex encoded private key into the local keybase.\nSupported key-types can be obtained with:\n%s list-key-types", version.AppName),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			keyType, _ := cmd.Flags().GetString(flagKeyType)
+			return clientCtx.Keyring.ImportPrivKeyHex(args[0], args[1], keyType)
 		},
 	}
 	return cmd
