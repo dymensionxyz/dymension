@@ -1,0 +1,132 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymension/streamer/stream.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+
+
+// Query defines the gRPC querier service
+service Query {
+  // ModuleToDistributeCoins returns coins that are going to be distributed
+  rpc ModuleToDistributeCoins(ModuleToDistributeCoinsRequest)
+      returns (ModuleToDistributeCoinsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/module_to_distribute_coins";
+  }
+
+  // StreamByID returns gauges by their respective ID
+  rpc StreamByID(StreamByIDRequest) returns (StreamByIDResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/gauge_by_id/{id}";
+  }
+  // Streams returns both upcoming and active streams
+  rpc Streams(StreamsRequest) returns (StreamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/gauges";
+  }
+  // ActiveStreams returns active gauges
+  rpc ActiveStreams(ActiveStreamsRequest) returns (ActiveStreamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_gauges";
+  }
+  // ActiveStreamsPerDenom returns active gauges by denom
+  rpc ActiveStreamsPerDenom(ActiveStreamsPerDenomRequest)
+      returns (ActiveStreamsPerDenomResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/active_gauges_per_denom";
+  }
+  // Returns scheduled gauges that have not yet occured
+  rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/upcoming_gauges";
+  }
+  // UpcomingStreamsPerDenom returns scheduled gauges that have not yet occured
+  // by denom
+  rpc UpcomingStreamsPerDenom(UpcomingStreamsPerDenomRequest)
+      returns (UpcomingStreamsPerDenomResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/streamer/upcoming_gauges_per_denom";
+  }
+}
+
+message ModuleToDistributeCoinsRequest {}
+message ModuleToDistributeCoinsResponse {
+  // Coins that have yet to be distributed
+  repeated cosmos.base.v1beta1.Coin coins = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message StreamByIDRequest {
+  // Gague ID being queried
+  uint64 id = 1;
+}
+message StreamByIDResponse {
+  // Gauge that corresponds to provided gague ID
+  Stream stream = 1;
+}
+
+message StreamsRequest {
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message StreamsResponse {
+  // Upcoming and active gauges
+  repeated Stream data = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message ActiveStreamsRequest {
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message ActiveStreamsResponse {
+  // Active gagues only
+  repeated Stream data = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message ActiveStreamsPerDenomRequest {
+  // Desired denom when querying active gagues
+  string denom = 1;
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+message ActiveStreamsPerDenomResponse {
+  // Active gagues that match denom in query
+  repeated Stream data = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message UpcomingStreamsRequest {
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message UpcomingStreamsResponse {
+  // Gauges whose distribution is upcoming
+  repeated Stream data = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message UpcomingStreamsPerDenomRequest {
+  // Filter for upcoming gagues that match specific denom
+  string denom = 1;
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message UpcomingStreamsPerDenomResponse {
+  // Upcoming gagues that match denom in query
+  repeated Stream upcoming_gauges = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
