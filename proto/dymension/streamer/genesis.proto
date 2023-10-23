@@ -14,9 +14,9 @@ option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
 message GenesisState {
   // params are all the parameters of the module
   Params params = 1 [ (gogoproto.nullable) = false ];
-  // gauges are all gauges that should exist at genesis
+  // streams are all streams that should exist at genesis
   repeated Stream streams = 2 [ (gogoproto.nullable) = false ];
-  // last_gauge_id is what the gauge number will increment from when creating
-  // the next gauge after genesis
+  // last_stream_id is what the stream number will increment from when creating
+  // the next stream after genesis
   uint64 last_stream_id = 3;
 }

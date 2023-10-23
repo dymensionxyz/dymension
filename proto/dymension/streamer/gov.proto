@@ -10,9 +10,9 @@ option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
 
 
 message CreateStreamContent {
-  // distribute_to show which lock the gauge should distribute to by time
+  // distribute_to show which lock the stream should distribute to by time
   string distribute_to = 1;
-  // coins are coin(s) to be distributed by the gauge
+  // coins are coin(s) to be distributed by the stream
   repeated cosmos.base.v1beta1.Coin coins = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"

@@ -20,36 +20,36 @@ service Query {
         "/dymensionxyz/dymension/streamer/module_to_distribute_coins";
   }
 
-  // StreamByID returns gauges by their respective ID
+  // StreamByID returns streams by their respective ID
   rpc StreamByID(StreamByIDRequest) returns (StreamByIDResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/gauge_by_id/{id}";
+        "/dymensionxyz/dymension/streamer/stream_by_id/{id}";
   }
   // Streams returns both upcoming and active streams
   rpc Streams(StreamsRequest) returns (StreamsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/streamer/gauges";
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/streams";
   }
-  // ActiveStreams returns active gauges
+  // ActiveStreams returns active streams
   rpc ActiveStreams(ActiveStreamsRequest) returns (ActiveStreamsResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_gauges";
+    option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_streams";
   }
-  // ActiveStreamsPerDenom returns active gauges by denom
+  // ActiveStreamsPerDenom returns active streams by denom
   rpc ActiveStreamsPerDenom(ActiveStreamsPerDenomRequest)
       returns (ActiveStreamsPerDenomResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/active_gauges_per_denom";
+        "/dymensionxyz/dymension/streamer/active_streams_per_denom";
   }
-  // Returns scheduled gauges that have not yet occured
+  // Returns scheduled streams that have not yet occured
   rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/upcoming_gauges";
+        "/dymensionxyz/dymension/streamer/upcoming_streams";
   }
-  // UpcomingStreamsPerDenom returns scheduled gauges that have not yet occured
+  // UpcomingStreamsPerDenom returns scheduled streams that have not yet occured
   // by denom
   rpc UpcomingStreamsPerDenom(UpcomingStreamsPerDenomRequest)
       returns (UpcomingStreamsPerDenomResponse) {
     option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/upcoming_gauges_per_denom";
+        "/dymensionxyz/dymension/streamer/upcoming_streams_per_denom";
   }
 }
 
@@ -67,7 +67,7 @@ message StreamByIDRequest {
   uint64 id = 1;
 }
 message StreamByIDResponse {
-  // Gauge that corresponds to provided gague ID
+  // Stream that corresponds to provided gague ID
   Stream stream = 1;
 }
 
@@ -76,7 +76,7 @@ message StreamsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 message StreamsResponse {
-  // Upcoming and active gauges
+  // Upcoming and active streams
   repeated Stream data = 1 [ (gogoproto.nullable) = false ];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -111,7 +111,7 @@ message UpcomingStreamsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 message UpcomingStreamsResponse {
-  // Gauges whose distribution is upcoming
+  // Streams whose distribution is upcoming
   repeated Stream data = 1 [ (gogoproto.nullable) = false ];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
@@ -126,7 +126,7 @@ message UpcomingStreamsPerDenomRequest {
 
 message UpcomingStreamsPerDenomResponse {
   // Upcoming gagues that match denom in query
-  repeated Stream upcoming_gauges = 1 [ (gogoproto.nullable) = false ];
+  repeated Stream upcoming_streams = 1 [ (gogoproto.nullable) = false ];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
