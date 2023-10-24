@@ -2,12 +2,10 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	db "github.com/tendermint/tm-db"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -71,80 +69,60 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
 		return err
 	}
-	if err := k.deleteStreamIDForDenom(ctx, stream.Id, stream.DistributeTo.Denom); err != nil {
-		return err
-	}
-	return nil
-}
-
-// doDistributionSends utilizes provided distributionInfo to send coins from the module account to various recipients.
-func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *types.DistributionInfo) error {
-	numIDs := len(distrs.idToDecodedAddr)
-	if len(distrs.idToDistrCoins) != numIDs {
-		return fmt.Errorf("number of addresses and coins to distribute to must be equal")
-	}
-	ctx.Logger().Debug(fmt.Sprintf("Beginning distribution to %d users", numIDs))
-
-	for id := 0; id < numIDs; id++ {
-		err := k.bk.SendCoinsFromModuleToAccount(
-			ctx,
-			types.ModuleName,
-			distrs.idToDecodedAddr[id],
-			distrs.idToDistrCoins[id])
-
-		if err != nil {
+	for _, coin := range stream.Coins {
+		if err := k.deleteStreamIDForDenom(ctx, stream.Id, coin.Denom); err != nil {
 			return err
 		}
 	}
-	ctx.Logger().Debug("Finished sending, now creating liquidity add events")
-	for id := 0; id < numIDs; id++ {
-		ctx.EventManager().EmitEvents(sdk.Events{
-			sdk.NewEvent(
-				types.TypeEvtDistribution,
-				sdk.NewAttribute(types.AttributeReceiver, distrs.idToBech32Addr[id]),
-				sdk.NewAttribute(types.AttributeAmount, distrs.idToDistrCoins[id].String()),
-			),
-		})
-	}
-	ctx.Logger().Debug(fmt.Sprintf("Finished Distributing to %d users", numIDs))
 	return nil
 }
 
 // distributeInternal runs the distribution logic for a stream, and adds the sends to
 // the distrInfo struct. It also updates the stream for the distribution.
 func (k Keeper) distributeInternal(
-	ctx sdk.Context, stream types.Stream, distrInfo *distributionInfo,
+	ctx sdk.Context, stream types.Stream,
 ) (sdk.Coins, error) {
 	totalDistrCoins := sdk.NewCoins()
-	denom := lockuptypes.NativeDenom(stream.DistributeTo.Denom)
-
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
 	remainEpochs := uint64(stream.NumEpochsPaidOver - stream.FilledEpochs)
 
-	distrCoins := sdk.Coins{}
 	for _, coin := range remainCoins {
-		// distribution amount = stream_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
-		denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
-		amt := coin.Amount.Mul(denomLockAmt).Quo(lockSum.Mul(sdk.NewInt(int64(remainEpochs))))
-		if amt.IsPositive() {
-			newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: amt}
-			distrCoins = distrCoins.Add(newlyDistributedCoin)
+		epochAmt := coin.Amount.Quo(sdk.NewInt(int64(remainEpochs)))
+		if epochAmt.IsPositive() {
+			newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: epochAmt}
+			totalDistrCoins = totalDistrCoins.Add(newlyDistributedCoin)
 		}
 	}
-	distrCoins = distrCoins.Sort()
-	if distrCoins.Empty() {
-		continue
-	}
-	// update the amount for that address
-	err := distrInfo.addLockRewards(lock.Owner, distrCoins)
+	totalDistrCoins = totalDistrCoins.Sort()
+
+	err := k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
 	if err != nil {
 		return nil, err
 	}
 
-	totalDistrCoins = totalDistrCoins.Add(distrCoins...)
+	distAddr, err := sdk.AccAddressFromBech32(stream.DistributeTo)
+	if err != nil {
+		return nil, err
+	}
 
-	err = k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
-	return totalDistrCoins, err
+	err = k.bk.SendCoinsFromModuleToAccount(
+		ctx,
+		types.ModuleName,
+		distAddr,
+		totalDistrCoins,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtDistribution,
+			sdk.NewAttribute(types.AttributeReceiver, distAddr.String()),
+			sdk.NewAttribute(types.AttributeAmount, totalDistrCoins.String()),
+		),
+	})
+	return nil, nil
 }
 
 // updateStreamPostDistribute increments the stream's filled epochs field.
@@ -158,41 +136,15 @@ func (k Keeper) updateStreamPostDistribute(ctx sdk.Context, stream types.Stream,
 	return nil
 }
 
-// getDistributeToBaseLocks takes a stream along with cached period locks by denom and returns locks that must be distributed to
-func (k Keeper) getDistributeToBaseLocks(ctx sdk.Context, stream types.Stream, cache map[string][]lockuptypes.PeriodLock) []lockuptypes.PeriodLock {
-	// if stream is empty, don't get the locks
-	if stream.Coins.Empty() {
-		return []lockuptypes.PeriodLock{}
-	}
-	// Confusingly, there is no way to get all synthetic lockups. Thus we use a separate method `distributeSyntheticInternal` to separately get lockSum for synthetic lockups.
-	// All streams have a precondition of being ByDuration.
-	distributeBaseDenom := lockuptypes.NativeDenom(stream.DistributeTo.Denom)
-	if _, ok := cache[distributeBaseDenom]; !ok {
-		cache[distributeBaseDenom] = k.getLocksToDistributionWithMaxDuration(
-			ctx, stream.DistributeTo, time.Millisecond)
-	}
-	// get this from memory instead of hitting iterators / underlying stores.
-	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
-	allLocks := cache[distributeBaseDenom]
-	return FilterLocksByMinDuration(allLocks, stream.DistributeTo.Duration)
-}
-
 // Distribute distributes coins from an array of streams to all eligible locks.
 func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
-	distrInfo := types.NewDistributionInfo()
-
 	totalDistributedCoins := sdk.Coins{}
 	for _, stream := range streams {
-		streamDistributedCoins, err := k.distributeInternal(ctx, stream, &distrInfo)
+		streamDistributedCoins, err := k.distributeInternal(ctx, stream)
 		if err != nil {
 			return nil, err
 		}
 		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
-	}
-
-	err := k.doDistributionSends(ctx, &distrInfo)
-	if err != nil {
-		return nil, err
 	}
 
 	k.checkFinishDistribution(ctx, streams)
