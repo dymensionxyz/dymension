@@ -74,127 +74,11 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 	if err := k.deleteStreamIDForDenom(ctx, stream.Id, stream.DistributeTo.Denom); err != nil {
 		return err
 	}
-	k.hooks.AfterFinishDistribution(ctx, stream.Id)
-	return nil
-}
-
-// getLocksToDistributionWithMaxDuration returns locks that match the provided lockuptypes QueryCondition,
-// are greater than the provided minDuration, AND have yet to be distributed to.
-func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo lockuptypes.QueryCondition, minDuration time.Duration) []lockuptypes.PeriodLock {
-	switch distrTo.LockQueryType {
-	case lockuptypes.ByDuration:
-		denom := lockuptypes.NativeDenom(distrTo.Denom)
-		if distrTo.Duration > minDuration {
-			return k.lk.GetLocksLongerThanDurationDenom(ctx, denom, minDuration)
-		}
-		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, distrTo.Duration)
-	case lockuptypes.ByTime:
-		panic("Stream by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
-	default:
-	}
-	return []lockuptypes.PeriodLock{}
-}
-
-// FilteredLocksDistributionEst estimates distribution amount of coins from stream.
-// It also applies an update for the stream, handling the sending of the rewards.
-// (Note this update is in-memory, it does not change state.)
-func (k Keeper) FilteredLocksDistributionEst(ctx sdk.Context, stream types.Stream, filteredLocks []lockuptypes.PeriodLock) (types.Stream, sdk.Coins, bool, error) {
-	TotalAmtLocked := k.lk.GetPeriodLocksAccumulation(ctx, stream.DistributeTo)
-	if TotalAmtLocked.IsZero() {
-		return types.Stream{}, nil, false, nil
-	}
-	if TotalAmtLocked.IsNegative() {
-		return types.Stream{}, nil, true, nil
-	}
-
-	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
-	// remainEpochs is the number of remaining epochs that the stream will pay out its rewards.
-	// for a perpetual stream, it will pay out everything in the next epoch, and we don't make
-	// an assumption of the rate at which it will get refilled at.
-	remainEpochs := uint64(1)
-	if !stream.IsPerpetual {
-		remainEpochs = stream.NumEpochsPaidOver - stream.FilledEpochs
-	}
-	if remainEpochs == 0 {
-		return stream, sdk.Coins{}, false, nil
-	}
-
-	remainCoinsPerEpoch := sdk.Coins{}
-	for _, coin := range remainCoins {
-		// distribution amount per epoch = stream_size / (remain_epochs)
-		amt := coin.Amount.QuoRaw(int64(remainEpochs))
-		remainCoinsPerEpoch = remainCoinsPerEpoch.Add(sdk.NewCoin(coin.Denom, amt))
-	}
-
-	// now we compute the filtered coins
-	filteredDistrCoins := sdk.Coins{}
-	if len(filteredLocks) == 0 {
-		// if were doing no filtering, we want to calculate the total amount to distributed in
-		// the next epoch.
-		// distribution in next epoch = stream_size  / (remain_epochs)
-		filteredDistrCoins = remainCoinsPerEpoch
-	}
-	for _, lock := range filteredLocks {
-		denomLockAmt := lock.Coins.AmountOf(stream.DistributeTo.Denom)
-
-		for _, coin := range remainCoinsPerEpoch {
-			// distribution amount = stream_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
-			// distribution amount = stream_size_per_epoch * denom_lock_amount / total_denom_lock_amount
-			amt := coin.Amount.Mul(denomLockAmt).Quo(TotalAmtLocked)
-			filteredDistrCoins = filteredDistrCoins.Add(sdk.NewCoin(coin.Denom, amt))
-		}
-	}
-
-	// increase filled epochs after distribution
-	stream.FilledEpochs += 1
-	stream.DistributedCoins = stream.DistributedCoins.Add(remainCoinsPerEpoch...)
-
-	return stream, filteredDistrCoins, false, nil
-}
-
-// distributionInfo stores all of the information for pent up sends for rewards distributions.
-// This enables us to lower the number of events and calls to back.
-type distributionInfo struct {
-	nextID            int
-	lockOwnerAddrToID map[string]int
-	idToBech32Addr    []string
-	idToDecodedAddr   []sdk.AccAddress
-	idToDistrCoins    []sdk.Coins
-}
-
-// newDistributionInfo creates a new distributionInfo struct
-func newDistributionInfo() distributionInfo {
-	return distributionInfo{
-		nextID:            0,
-		lockOwnerAddrToID: make(map[string]int),
-		idToBech32Addr:    []string{},
-		idToDecodedAddr:   []sdk.AccAddress{},
-		idToDistrCoins:    []sdk.Coins{},
-	}
-}
-
-// addLockRewards adds the provided rewards to the lockID mapped to the provided owner address.
-func (d *distributionInfo) addLockRewards(owner string, rewards sdk.Coins) error {
-	if id, ok := d.lockOwnerAddrToID[owner]; ok {
-		oldDistrCoins := d.idToDistrCoins[id]
-		d.idToDistrCoins[id] = rewards.Add(oldDistrCoins...)
-	} else {
-		id := d.nextID
-		d.nextID += 1
-		d.lockOwnerAddrToID[owner] = id
-		decodedOwnerAddr, err := sdk.AccAddressFromBech32(owner)
-		if err != nil {
-			return err
-		}
-		d.idToBech32Addr = append(d.idToBech32Addr, owner)
-		d.idToDecodedAddr = append(d.idToDecodedAddr, decodedOwnerAddr)
-		d.idToDistrCoins = append(d.idToDistrCoins, rewards)
-	}
 	return nil
 }
 
 // doDistributionSends utilizes provided distributionInfo to send coins from the module account to various recipients.
-func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *distributionInfo) error {
+func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *types.DistributionInfo) error {
 	numIDs := len(distrs.idToDecodedAddr)
 	if len(distrs.idToDistrCoins) != numIDs {
 		return fmt.Errorf("number of addresses and coins to distribute to must be equal")
@@ -226,92 +110,40 @@ func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *distributionInfo) e
 	return nil
 }
 
-// distributeSyntheticInternal runs the distribution logic for a synthetic rewards distribution stream, and adds the sends to
-// the distrInfo struct. It also updates the stream for the distribution.
-// locks is expected to be the correct set of lock recipients for this stream.
-func (k Keeper) distributeSyntheticInternal(
-	ctx sdk.Context, stream types.Stream, locks []lockuptypes.PeriodLock, distrInfo *distributionInfo,
-) (sdk.Coins, error) {
-	qualifiedLocks := k.lk.GetLocksLongerThanDurationDenom(ctx, stream.DistributeTo.Denom, stream.DistributeTo.Duration)
-
-	// map from lockID to present index in resultant list
-	// to be state compatible with what we had before, we iterate over locks, to get qualified locks
-	// to be in the same order as what is present in locks.
-	// in a future release, we can just use qualified locks directly.
-	type lockIndexPair struct {
-		lock  lockuptypes.PeriodLock
-		index int
-	}
-	qualifiedLocksMap := make(map[uint64]lockIndexPair, len(qualifiedLocks))
-	for _, lock := range qualifiedLocks {
-		qualifiedLocksMap[lock.ID] = lockIndexPair{lock, -1}
-	}
-	curIndex := 0
-	for _, lock := range locks {
-		if v, ok := qualifiedLocksMap[lock.ID]; ok {
-			qualifiedLocksMap[lock.ID] = lockIndexPair{v.lock, curIndex}
-			curIndex += 1
-		}
-	}
-
-	sortedAndTrimmedQualifiedLocks := make([]lockuptypes.PeriodLock, curIndex)
-	for _, v := range qualifiedLocksMap {
-		if v.index < 0 {
-			continue
-		}
-		sortedAndTrimmedQualifiedLocks[v.index] = v.lock
-	}
-
-	return k.distributeInternal(ctx, stream, sortedAndTrimmedQualifiedLocks, distrInfo)
-}
-
 // distributeInternal runs the distribution logic for a stream, and adds the sends to
 // the distrInfo struct. It also updates the stream for the distribution.
-// Locks is expected to be the correct set of lock recipients for this stream.
 func (k Keeper) distributeInternal(
-	ctx sdk.Context, stream types.Stream, locks []lockuptypes.PeriodLock, distrInfo *distributionInfo,
+	ctx sdk.Context, stream types.Stream, distrInfo *distributionInfo,
 ) (sdk.Coins, error) {
 	totalDistrCoins := sdk.NewCoins()
 	denom := lockuptypes.NativeDenom(stream.DistributeTo.Denom)
-	lockSum := lockuptypes.SumLocksByDenom(locks, denom)
-
-	if lockSum.IsZero() {
-		return nil, nil
-	}
 
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
-	// if its a perpetual stream, we set remaining epochs to 1.
-	// otherwise is is a non perpetual stream and we determine how many epoch payouts are left
-	remainEpochs := uint64(1)
-	if !stream.IsPerpetual {
-		remainEpochs = stream.NumEpochsPaidOver - stream.FilledEpochs
+	remainEpochs := uint64(stream.NumEpochsPaidOver - stream.FilledEpochs)
+
+	distrCoins := sdk.Coins{}
+	for _, coin := range remainCoins {
+		// distribution amount = stream_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
+		denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
+		amt := coin.Amount.Mul(denomLockAmt).Quo(lockSum.Mul(sdk.NewInt(int64(remainEpochs))))
+		if amt.IsPositive() {
+			newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: amt}
+			distrCoins = distrCoins.Add(newlyDistributedCoin)
+		}
+	}
+	distrCoins = distrCoins.Sort()
+	if distrCoins.Empty() {
+		continue
+	}
+	// update the amount for that address
+	err := distrInfo.addLockRewards(lock.Owner, distrCoins)
+	if err != nil {
+		return nil, err
 	}
 
-	for _, lock := range locks {
-		distrCoins := sdk.Coins{}
-		for _, coin := range remainCoins {
-			// distribution amount = stream_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
-			denomLockAmt := lock.Coins.AmountOfNoDenomValidation(denom)
-			amt := coin.Amount.Mul(denomLockAmt).Quo(lockSum.Mul(sdk.NewInt(int64(remainEpochs))))
-			if amt.IsPositive() {
-				newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: amt}
-				distrCoins = distrCoins.Add(newlyDistributedCoin)
-			}
-		}
-		distrCoins = distrCoins.Sort()
-		if distrCoins.Empty() {
-			continue
-		}
-		// update the amount for that address
-		err := distrInfo.addLockRewards(lock.Owner, distrCoins)
-		if err != nil {
-			return nil, err
-		}
+	totalDistrCoins = totalDistrCoins.Add(distrCoins...)
 
-		totalDistrCoins = totalDistrCoins.Add(distrCoins...)
-	}
-
-	err := k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
+	err = k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
 	return totalDistrCoins, err
 }
 
@@ -347,20 +179,11 @@ func (k Keeper) getDistributeToBaseLocks(ctx sdk.Context, stream types.Stream, c
 
 // Distribute distributes coins from an array of streams to all eligible locks.
 func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
-	distrInfo := newDistributionInfo()
+	distrInfo := types.NewDistributionInfo()
 
-	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
 	totalDistributedCoins := sdk.Coins{}
 	for _, stream := range streams {
-		filteredLocks := k.getDistributeToBaseLocks(ctx, stream, locksByDenomCache)
-		// send based on synthetic lockup coins if it's distributing to synthetic lockups
-		var streamDistributedCoins sdk.Coins
-		var err error
-		if lockuptypes.IsSyntheticDenom(stream.DistributeTo.Denom) {
-			streamDistributedCoins, err = k.distributeSyntheticInternal(ctx, stream, filteredLocks, &distrInfo)
-		} else {
-			streamDistributedCoins, err = k.distributeInternal(ctx, stream, filteredLocks, &distrInfo)
-		}
+		streamDistributedCoins, err := k.distributeInternal(ctx, stream, &distrInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -371,7 +194,6 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 	if err != nil {
 		return nil, err
 	}
-	k.hooks.AfterEpochDistribution(ctx)
 
 	k.checkFinishDistribution(ctx, streams)
 	return totalDistributedCoins, nil
@@ -382,7 +204,7 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 func (k Keeper) checkFinishDistribution(ctx sdk.Context, streams []types.Stream) {
 	for _, stream := range streams {
 		// filled epoch is increased in this step and we compare with +1
-		if !stream.IsPerpetual && stream.NumEpochsPaidOver <= stream.FilledEpochs+1 {
+		if stream.NumEpochsPaidOver <= stream.FilledEpochs+1 {
 			if err := k.moveActiveStreamToFinishedStream(ctx, stream); err != nil {
 				panic(err)
 			}

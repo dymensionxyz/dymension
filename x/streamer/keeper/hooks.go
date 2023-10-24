@@ -3,7 +3,6 @@ package keeper
 import (
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -15,38 +14,32 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 
 // AfterEpochEnd is the epoch end hook.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	params := k.GetParams(ctx)
-	if epochIdentifier == params.DistrEpochIdentifier {
-		// begin distribution if it's start time
-		streams := k.GetUpcomingStreams(ctx)
-		for _, stream := range streams {
-			if !ctx.BlockTime().Before(stream.StartTime) {
-				if err := k.moveUpcomingStreamToActiveStream(ctx, stream); err != nil {
-					return err
-				}
+	streams := k.GetUpcomingStreams(ctx)
+	for _, stream := range streams {
+		if !ctx.BlockTime().Before(stream.StartTime) {
+			if err := k.moveUpcomingStreamToActiveStream(ctx, stream); err != nil {
+				return err
 			}
 		}
+	}
 
-		// if len(streams) > 10 {
-		// 	ctx.EventManager().IncreaseCapacity(2e6)
-		// }
+	// if len(streams) > 10 {
+	// 	ctx.EventManager().IncreaseCapacity(2e6)
+	// }
 
-		// distribute due to epoch event
-		streams = k.GetActiveStreams(ctx)
-		// only distribute to active streams that are for native denoms
-		// or non-perpetual and for synthetic denoms.
-		// We distribute to perpetual synthetic denoms elsewhere in superfluid.
-		distrStreams := []types.Stream{}
-		for _, stream := range streams {
-			isSynthetic := lockuptypes.IsSyntheticDenom(stream.DistributeTo.Denom)
-			if !(isSynthetic && stream.IsPerpetual) {
-				distrStreams = append(distrStreams, stream)
-			}
+	// distribute due to epoch event
+	streams = k.GetActiveStreams(ctx)
+	distrStreams := []types.Stream{}
+	for _, stream := range streams {
+		// begin distribution if it's correct epoch
+		if epochIdentifier != stream.DistrEpochIdentifier {
+			continue
 		}
-		_, err := k.Distribute(ctx, distrStreams)
-		if err != nil {
-			return err
-		}
+		distrStreams = append(distrStreams, stream)
+	}
+	_, err := k.Distribute(ctx, distrStreams)
+	if err != nil {
+		return err
 	}
 	return nil
 }

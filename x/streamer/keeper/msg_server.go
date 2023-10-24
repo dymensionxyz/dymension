@@ -28,16 +28,13 @@ var _ types.MsgServer = msgServer{}
 // Emits create stream event and returns the create stream response.
 func (server msgServer) CreateStream(goCtx context.Context, msg *types.MsgCreateStream) (*types.MsgCreateStreamResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+
+	distributeTo, err := sdk.AccAddressFromBech32(msg.DistributeTo)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := server.keeper.chargeFeeIfSufficientFeeDenomBalance(ctx, owner, types.CreateStreamFee, msg.Coins); err != nil {
-		return nil, err
-	}
-
-	streamID, err := server.keeper.CreateStream(ctx, msg.IsPerpetual, owner, msg.Coins, msg.DistributeTo, msg.StartTime, msg.NumEpochsPaidOver)
+	streamID, err := server.keeper.CreateStream(ctx, msg.Coins, distributeTo, msg.StartTime, msg.DistrEpochIdentifier, msg.NumEpochsPaidOver)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}

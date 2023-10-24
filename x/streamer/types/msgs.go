@@ -32,10 +32,11 @@ func (m MsgCreateStream) Type() string { return TypeMsgCreateStream }
 
 // ValidateBasic checks that the create stream message is valid.
 func (m MsgCreateStream) ValidateBasic() error {
-	if m.DistributeTo == "" {
-		return errors.New("owner should be set")
+	_, err := sdk.AccAddressFromBech32(m.DistributeTo)
+	if err != nil {
+		return errors.New("distribute_to should be set")
 	}
-	//todo: validate address
+
 	if m.Coins.Empty() {
 		return errors.New("initial rewards should not be empty")
 	}
@@ -49,7 +50,9 @@ func (m MsgCreateStream) ValidateBasic() error {
 		return errors.New("distribution start time should be set")
 	}
 
-	//TODO: validate epoch identifier
+	if m.DistrEpochIdentifier == "" {
+		return errors.New("distribution epoch identifier should be set")
+	}
 
 	if m.NumEpochsPaidOver == 0 {
 		return errors.New("distribution period should be at least 1 epoch")
