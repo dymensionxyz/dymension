@@ -1,0 +1,312 @@
+package keeper
+
+import (
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/gogo/protobuf/proto"
+	db "github.com/tendermint/tm-db"
+
+	"github.com/dymensionxyz/dymension/x/streamer/types"
+	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// getStreamsFromIterator iterates over everything in a stream's iterator, until it reaches the end. Return all streams iterated over.
+func (k Keeper) getStreamsFromIterator(ctx sdk.Context, iterator db.Iterator) []types.Stream {
+	streams := []types.Stream{}
+	defer iterator.Close() // nolint: errcheck
+	for ; iterator.Valid(); iterator.Next() {
+		streamIDs := []uint64{}
+		err := json.Unmarshal(iterator.Value(), &streamIDs)
+		if err != nil {
+			panic(err)
+		}
+		for _, streamID := range streamIDs {
+			stream, err := k.GetStreamByID(ctx, streamID)
+			if err != nil {
+				panic(err)
+			}
+			streams = append(streams, *stream)
+		}
+	}
+	return streams
+}
+
+// setStream set the stream inside store.
+func (k Keeper) setStream(ctx sdk.Context, stream *types.Stream) error {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := proto.Marshal(stream)
+	if err != nil {
+		return err
+	}
+	store.Set(streamStoreKey(stream.Id), bz)
+	return nil
+}
+
+// CreateStreamRefKeys takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
+// If stream is active or upcoming, creates reference between the denom and stream ID.
+// Used to consolidate codepaths for InitGenesis and CreateStream.
+func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combinedKeys []byte, activeOrUpcomingStream bool) error {
+	if err := k.addStreamRefByKey(ctx, combinedKeys, stream.Id); err != nil {
+		return err
+	}
+	if activeOrUpcomingStream {
+		for _, coin := range stream.Coins {
+			if err := k.addStreamIDForDenom(ctx, stream.Id, coin.Denom); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// SetStreamWithRefKey takes a single stream and assigns a key.
+// Takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
+// If this stream is active or upcoming, creates reference between the denom and stream ID.
+func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error {
+	err := k.setStream(ctx, stream)
+	if err != nil {
+		return err
+	}
+
+	curTime := ctx.BlockTime()
+	timeKey := getTimeKey(stream.StartTime)
+	activeOrUpcomingStream := stream.IsActiveStream(curTime) || stream.IsUpcomingStream(curTime)
+
+	if stream.IsUpcomingStream(curTime) {
+		combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
+	} else if stream.IsActiveStream(curTime) {
+		combinedKeys := combineKeys(types.KeyPrefixActiveStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
+	} else {
+		combinedKeys := combineKeys(types.KeyPrefixFinishedStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
+	}
+}
+
+// CreateStream creates a stream and sends coins to the stream.
+func (k Keeper) CreateStream(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error) {
+	// Ensure that this stream's duration is one of the allowed durations on chain
+	durations := k.GetLockableDurations(ctx)
+	if distrTo.LockQueryType == lockuptypes.ByDuration {
+		durationOk := false
+		for _, duration := range durations {
+			if duration == distrTo.Duration {
+				durationOk = true
+				break
+			}
+		}
+		if !durationOk {
+			return 0, fmt.Errorf("invalid duration: %d", distrTo.Duration)
+		}
+	}
+
+	// Ensure that the denom this stream pays out to exists on-chain
+	if !k.bk.HasSupply(ctx, distrTo.Denom) && !strings.Contains(distrTo.Denom, "osmovaloper") {
+		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
+	}
+
+	stream := types.Stream{
+		Id:                k.GetLastStreamID(ctx) + 1,
+		IsPerpetual:       isPerpetual,
+		DistributeTo:      distrTo,
+		Coins:             coins,
+		StartTime:         startTime,
+		NumEpochsPaidOver: numEpochsPaidOver,
+	}
+
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, stream.Coins); err != nil {
+		return 0, err
+	}
+
+	err := k.setStream(ctx, &stream)
+	if err != nil {
+		return 0, err
+	}
+	k.SetLastStreamID(ctx, stream.Id)
+
+	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
+	activeOrUpcomingStream := true
+
+	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys, activeOrUpcomingStream)
+	if err != nil {
+		return 0, err
+	}
+	k.hooks.AfterCreateStream(ctx, stream.Id)
+	return stream.Id, nil
+}
+
+// AddToStreamRewards adds coins to stream.
+func (k Keeper) AddToStreamRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, streamID uint64) error {
+	stream, err := k.GetStreamByID(ctx, streamID)
+	if err != nil {
+		return err
+	}
+	if err := k.bk.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, coins); err != nil {
+		return err
+	}
+
+	stream.Coins = stream.Coins.Add(coins...)
+	err = k.setStream(ctx, stream)
+	if err != nil {
+		return err
+	}
+	k.hooks.AfterAddToStream(ctx, stream.Id)
+	return nil
+}
+
+// GetStreamByID returns stream from stream ID.
+func (k Keeper) GetStreamByID(ctx sdk.Context, streamID uint64) (*types.Stream, error) {
+	stream := types.Stream{}
+	store := ctx.KVStore(k.storeKey)
+	streamKey := streamStoreKey(streamID)
+	if !store.Has(streamKey) {
+		return nil, fmt.Errorf("stream with ID %d does not exist", streamID)
+	}
+	bz := store.Get(streamKey)
+	if err := proto.Unmarshal(bz, &stream); err != nil {
+		return nil, err
+	}
+	return &stream, nil
+}
+
+// GetStreamFromIDs returns multiple streams from a streamIDs array.
+func (k Keeper) GetStreamFromIDs(ctx sdk.Context, streamIDs []uint64) ([]types.Stream, error) {
+	streams := []types.Stream{}
+	for _, streamID := range streamIDs {
+		stream, err := k.GetStreamByID(ctx, streamID)
+		if err != nil {
+			return []types.Stream{}, err
+		}
+		streams = append(streams, *stream)
+	}
+	return streams, nil
+}
+
+// GetStreams returns upcoming, active, and finished streams.
+func (k Keeper) GetStreams(ctx sdk.Context) []types.Stream {
+	return k.getStreamsFromIterator(ctx, k.StreamsIterator(ctx))
+}
+
+// GetNotFinishedStreams returns both upcoming and active streams.
+func (k Keeper) GetNotFinishedStreams(ctx sdk.Context) []types.Stream {
+	return append(k.GetActiveStreams(ctx), k.GetUpcomingStreams(ctx)...)
+}
+
+// GetActiveStreams returns active streams.
+func (k Keeper) GetActiveStreams(ctx sdk.Context) []types.Stream {
+	return k.getStreamsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
+}
+
+// GetUpcomingStreams returns upcoming streams.
+func (k Keeper) GetUpcomingStreams(ctx sdk.Context) []types.Stream {
+	return k.getStreamsFromIterator(ctx, k.UpcomingStreamsIterator(ctx))
+}
+
+// GetFinishedStreams returns finished streams.
+func (k Keeper) GetFinishedStreams(ctx sdk.Context) []types.Stream {
+	return k.getStreamsFromIterator(ctx, k.FinishedStreamsIterator(ctx))
+}
+
+// GetRewardsEst returns rewards estimation at a future specific time (by epoch)
+// If locks are nil, it returns the rewards between now and the end epoch associated with address.
+// If locks are not nil, it returns all the rewards for the given locks between now and end epoch.
+func (k Keeper) GetRewardsEst(ctx sdk.Context, addr sdk.AccAddress, locks []lockuptypes.PeriodLock, endEpoch int64) sdk.Coins {
+	// if locks are nil, populate with all locks associated with the address
+	if len(locks) == 0 {
+		locks = k.lk.GetAccountPeriodLocks(ctx, addr)
+	}
+	// get all streams that reward to these locks
+	// first get all the denominations being locked up
+	denomSet := map[string]bool{}
+	for _, l := range locks {
+		for _, c := range l.Coins {
+			denomSet[c.Denom] = true
+		}
+	}
+	streams := []types.Stream{}
+	// initialize streams to active and upcomings if not set
+	for s := range denomSet {
+		streamIDs := k.getAllStreamIDsByDenom(ctx, s)
+		// each stream only rewards locks to one denom, so no duplicates
+		for _, id := range streamIDs {
+			stream, err := k.GetStreamByID(ctx, id)
+			// shouldn't happen
+			if err != nil {
+				return sdk.Coins{}
+			}
+			streams = append(streams, *stream)
+		}
+	}
+
+	// estimate rewards
+	estimatedRewards := sdk.Coins{}
+	epochInfo := k.GetEpochInfo(ctx)
+
+	// no need to change storage while doing estimation as we use cached context
+	cacheCtx, _ := ctx.CacheContext()
+	for _, stream := range streams {
+		distrBeginEpoch := epochInfo.CurrentEpoch
+		blockTime := ctx.BlockTime()
+		if stream.StartTime.After(blockTime) {
+			distrBeginEpoch = epochInfo.CurrentEpoch + 1 + int64(stream.StartTime.Sub(blockTime)/epochInfo.Duration)
+		}
+
+		for epoch := distrBeginEpoch; epoch <= endEpoch; epoch++ {
+			newStream, distrCoins, isBuggedStream, err := k.FilteredLocksDistributionEst(cacheCtx, stream, locks)
+			if err != nil {
+				continue
+			}
+			if isBuggedStream {
+				ctx.Logger().Error("Reward estimation does not include stream " + strconv.Itoa(int(stream.Id)) + " due to accumulation store bug")
+			}
+			estimatedRewards = estimatedRewards.Add(distrCoins...)
+			stream = newStream
+		}
+	}
+
+	return estimatedRewards
+}
+
+// GetEpochInfo returns EpochInfo struct given context.
+func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
+	params := k.GetParams(ctx)
+	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
+}
+
+// chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has
+// balance that is less than fee + amount of the coin from streamCoins that is of base denom.
+// streamCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
+// The fee is sent to the community pool.
+// Returns nil on success, error otherwise.
+func (k Keeper) chargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, streamCoins sdk.Coins) (err error) {
+	var feeDenom string
+	if k.tk == nil {
+		feeDenom, err = sdk.GetBaseDenom()
+	} else {
+		feeDenom, err = k.tk.GetBaseDenom(ctx)
+	}
+	if err != nil {
+		return err
+	}
+
+	totalCost := streamCoins.AmountOf(feeDenom).Add(fee)
+	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
+
+	if accountBalance.LT(totalCost) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance of %s (%s) is less than the total cost of the message (%s)", feeDenom, accountBalance, totalCost)
+	}
+
+	if err := k.ck.FundCommunityPool(ctx, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)), address); err != nil {
+		return err
+	}
+	return nil
+}
