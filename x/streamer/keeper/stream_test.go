@@ -13,8 +13,8 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-// TestInvalidDurationGaugeCreationValidation tests error handling for creating a gauge with an invalid duration.
-func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
+// TestInvalidDurationStreamCreationValidation tests error handling for creating a stream with an invalid duration.
+func (suite *KeeperTestSuite) TestInvalidDurationStreamCreationValidation() {
 	suite.SetupTest()
 
 	addrs := suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
@@ -23,34 +23,34 @@ func (suite *KeeperTestSuite) TestInvalidDurationGaugeCreationValidation() {
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration / 2, // 0.5 second, invalid duration
 	}
-	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
 	distrTo.Duration = defaultLockDuration
-	_, err = suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().NoError(err)
 }
 
-// TestNonExistentDenomGaugeCreation tests error handling for creating a gauge with an invalid denom.
-func (suite *KeeperTestSuite) TestNonExistentDenomGaugeCreation() {
+// TestNonExistentDenomStreamCreation tests error handling for creating a stream with an invalid denom.
+func (suite *KeeperTestSuite) TestNonExistentDenomStreamCreation() {
 	suite.SetupTest()
 
-	addrNoSupply := sdk.AccAddress([]byte("Gauge_Creation_Addr_"))
+	addrNoSupply := sdk.AccAddress([]byte("Stream_Creation_Addr_"))
 	addrs := suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
 	distrTo := lockuptypes.QueryCondition{
 		LockQueryType: lockuptypes.ByDuration,
 		Denom:         defaultLPDenom,
 		Duration:      defaultLockDuration,
 	}
-	_, err := suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, false, addrNoSupply, defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().Error(err)
 
-	_, err = suite.App.IncentivesKeeper.CreateGauge(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, false, addrs[0], defaultLiquidTokens, distrTo, time.Time{}, 1)
 	suite.Require().NoError(err)
 }
 
-// TestGaugeOperations tests perpetual and non-perpetual gauge distribution logic using the gauges by denom keeper.
-func (suite *KeeperTestSuite) TestGaugeOperations() {
+// TestStreamOperations tests perpetual and non-perpetual stream distribution logic using the streams by denom keeper.
+func (suite *KeeperTestSuite) TestStreamOperations() {
 	testCases := []struct {
 		isPerpetual bool
 		numLocks    int
@@ -73,18 +73,18 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		},
 	}
 	for _, tc := range testCases {
-		// test for module get gauges
+		// test for module get streams
 		suite.SetupTest()
 
-		// initial module gauges check
-		gauges := suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-		suite.Require().Len(gauges, 0)
-		gaugeIdsByDenom := suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-		suite.Require().Len(gaugeIdsByDenom, 0)
+		// initial module streams check
+		streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+		suite.Require().Len(streams, 0)
+		streamIdsByDenom := suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+		suite.Require().Len(streamIdsByDenom, 0)
 
-		// setup lock and gauge
+		// setup lock and stream
 		lockOwners := suite.SetupManyLocks(tc.numLocks, defaultLiquidTokens, defaultLPTokens, time.Second)
-		gaugeID, _, coins, startTime := suite.SetupNewGauge(tc.isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 12)})
+		streamID, _, coins, startTime := suite.SetupNewStream(tc.isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 12)})
 		// evenly distributed per lock
 		expectedCoinsPerLock := sdk.Coins{sdk.NewInt64Coin("stake", 12/int64(tc.numLocks))}
 		// set expected epochs
@@ -95,11 +95,11 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			expectedNumEpochsPaidOver = 2
 		}
 
-		// check gauges
-		gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-		suite.Require().Len(gauges, 1)
-		expectedGauge := types.Gauge{
-			Id:          gaugeID,
+		// check streams
+		streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+		suite.Require().Len(streams, 1)
+		expectedStream := types.Stream{
+			Id:          streamID,
 			IsPerpetual: tc.isPerpetual,
 			DistributeTo: lockuptypes.QueryCondition{
 				LockQueryType: lockuptypes.ByDuration,
@@ -112,128 +112,128 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			DistributedCoins:  sdk.Coins{},
 			StartTime:         startTime,
 		}
-		suite.Require().Equal(expectedGauge.String(), gauges[0].String())
+		suite.Require().Equal(expectedStream.String(), streams[0].String())
 
-		// check gauge ids by denom
-		gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-		suite.Require().Len(gaugeIdsByDenom, 1)
-		suite.Require().Equal(gaugeID, gaugeIdsByDenom[0])
+		// check stream ids by denom
+		streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+		suite.Require().Len(streamIdsByDenom, 1)
+		suite.Require().Equal(streamID, streamIdsByDenom[0])
 
 		// check rewards estimation
-		rewardsEst := suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
+		rewardsEst := suite.App.StreamerKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
 		suite.Require().Equal(expectedCoinsPerLock.String(), rewardsEst.String())
 
-		// check gauges
-		gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-		suite.Require().Len(gauges, 1)
-		suite.Require().Equal(expectedGauge.String(), gauges[0].String())
+		// check streams
+		streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+		suite.Require().Len(streams, 1)
+		suite.Require().Equal(expectedStream.String(), streams[0].String())
 
-		// check upcoming gauges
-		gauges = suite.App.IncentivesKeeper.GetUpcomingGauges(suite.Ctx)
-		suite.Require().Len(gauges, 1)
+		// check upcoming streams
+		streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
+		suite.Require().Len(streams, 1)
 
 		// start distribution
 		suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-		gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+		stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 		suite.Require().NoError(err)
-		err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+		err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 		suite.Require().NoError(err)
 
-		// check active gauges
-		gauges = suite.App.IncentivesKeeper.GetActiveGauges(suite.Ctx)
-		suite.Require().Len(gauges, 1)
+		// check active streams
+		streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
+		suite.Require().Len(streams, 1)
 
-		// check upcoming gauges
-		gauges = suite.App.IncentivesKeeper.GetUpcomingGauges(suite.Ctx)
-		suite.Require().Len(gauges, 0)
+		// check upcoming streams
+		streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
+		suite.Require().Len(streams, 0)
 
-		// check gauge ids by denom
-		gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-		suite.Require().Len(gaugeIdsByDenom, 1)
+		// check stream ids by denom
+		streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+		suite.Require().Len(streamIdsByDenom, 1)
 
-		// check gauge ids by other denom
-		gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lpt")
-		suite.Require().Len(gaugeIdsByDenom, 0)
+		// check stream ids by other denom
+		streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lpt")
+		suite.Require().Len(streamIdsByDenom, 0)
 
 		// distribute coins to stakers
-		distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+		distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 		suite.Require().NoError(err)
-		// We hardcoded 12 "stake" tokens when initializing gauge
+		// We hardcoded 12 "stake" tokens when initializing stream
 		suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", int64(12/expectedNumEpochsPaidOver))}, distrCoins)
 
 		if tc.isPerpetual {
-			// distributing twice without adding more for perpetual gauge
-			gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+			// distributing twice without adding more for perpetual stream
+			stream, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 			suite.Require().NoError(err)
-			distrCoins, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+			distrCoins, err = suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 			suite.Require().NoError(err)
 			suite.Require().True(distrCoins.Empty())
 
-			// add to gauge
+			// add to stream
 			addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
-			suite.AddToGauge(addCoins, gaugeID)
+			suite.AddToStream(addCoins, streamID)
 
-			// distributing twice with adding more for perpetual gauge
-			gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+			// distributing twice with adding more for perpetual stream
+			stream, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 			suite.Require().NoError(err)
-			distrCoins, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+			distrCoins, err = suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 			suite.Require().NoError(err)
 			suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 200)}, distrCoins)
 		} else {
-			// add to gauge
+			// add to stream
 			addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
-			suite.AddToGauge(addCoins, gaugeID)
+			suite.AddToStream(addCoins, streamID)
 		}
 
-		// check active gauges
-		gauges = suite.App.IncentivesKeeper.GetActiveGauges(suite.Ctx)
-		suite.Require().Len(gauges, 1)
+		// check active streams
+		streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
+		suite.Require().Len(streams, 1)
 
-		// check gauge ids by denom
-		gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-		suite.Require().Len(gaugeIdsByDenom, 1)
+		// check stream ids by denom
+		streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+		suite.Require().Len(streamIdsByDenom, 1)
 
-		// finish distribution for non perpetual gauge
+		// finish distribution for non perpetual stream
 		if !tc.isPerpetual {
-			err = suite.App.IncentivesKeeper.MoveActiveGaugeToFinishedGauge(suite.Ctx, *gauge)
+			err = suite.App.StreamerKeeper.MoveActiveStreamToFinishedStream(suite.Ctx, *stream)
 			suite.Require().NoError(err)
 		}
 
-		// check non-perpetual gauges (finished + rewards estimate empty)
+		// check non-perpetual streams (finished + rewards estimate empty)
 		if !tc.isPerpetual {
 
-			// check finished gauges
-			gauges = suite.App.IncentivesKeeper.GetFinishedGauges(suite.Ctx)
-			suite.Require().Len(gauges, 1)
+			// check finished streams
+			streams = suite.App.StreamerKeeper.GetFinishedStreams(suite.Ctx)
+			suite.Require().Len(streams, 1)
 
-			// check gauge by ID
-			gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+			// check stream by ID
+			stream, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 			suite.Require().NoError(err)
-			suite.Require().NotNil(gauge)
-			suite.Require().Equal(gauges[0], *gauge)
+			suite.Require().NotNil(stream)
+			suite.Require().Equal(streams[0], *stream)
 
-			// check invalid gauge ID
-			_, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID+1000)
+			// check invalid stream ID
+			_, err = suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID+1000)
 			suite.Require().Error(err)
-			rewardsEst = suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
+			rewardsEst = suite.App.StreamerKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
 			suite.Require().Equal(sdk.Coins{}, rewardsEst)
 
-			// check gauge ids by denom
-			gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-			suite.Require().Len(gaugeIdsByDenom, 0)
-		} else { // check perpetual gauges (not finished + rewards estimate empty)
+			// check stream ids by denom
+			streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+			suite.Require().Len(streamIdsByDenom, 0)
+		} else { // check perpetual streams (not finished + rewards estimate empty)
 
-			// check finished gauges
-			gauges = suite.App.IncentivesKeeper.GetFinishedGauges(suite.Ctx)
-			suite.Require().Len(gauges, 0)
+			// check finished streams
+			streams = suite.App.StreamerKeeper.GetFinishedStreams(suite.Ctx)
+			suite.Require().Len(streams, 0)
 
 			// check rewards estimation
-			rewardsEst = suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
+			rewardsEst = suite.App.StreamerKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
 			suite.Require().Equal(sdk.Coins(nil), rewardsEst)
 
-			// check gauge ids by denom
-			gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
-			suite.Require().Len(gaugeIdsByDenom, 1)
+			// check stream ids by denom
+			streamIdsByDenom = suite.App.StreamerKeeper.GetAllStreamIDsByDenom(suite.Ctx, "lptoken")
+			suite.Require().Len(streamIdsByDenom, 1)
 		}
 	}
 }
@@ -244,54 +244,54 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 	testcases := map[string]struct {
 		accountBalanceToFund sdk.Coin
 		feeToCharge          int64
-		gaugeCoins           sdk.Coins
+		streamCoins          sdk.Coins
 
 		expectError bool
 	}{
-		"fee + base denom gauge coin == acount balance, success": {
+		"fee + base denom stream coin == acount balance, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee / 2,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
 		},
-		"fee + base denom gauge coin < acount balance, success": {
+		"fee + base denom stream coin < acount balance, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee/2 - 1,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
 		},
-		"fee + base denom gauge coin > acount balance, error": {
+		"fee + base denom stream coin > acount balance, error": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee/2 + 1,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
 			expectError:          true,
 		},
-		"fee + base denom gauge coin < acount balance, custom values, success": {
+		"fee + base denom stream coin < acount balance, custom values, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(11793193112)),
 			feeToCharge:          55,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(328812))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(328812))),
 		},
 		"account funded with coins other than base denom, error": {
 			accountBalanceToFund: sdk.NewCoin("usdc", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
 			expectError:          true,
 		},
-		"fee == account balance, no gauge coins, success": {
+		"fee == account balance, no stream coins, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee,
 		},
-		"gauge coins == account balance, no fee, success": {
+		"stream coins == account balance, no fee, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(baseFee))),
 		},
-		"fee == account balance, gauge coins in denom other than base, success": {
+		"fee == account balance, stream coins in denom other than base, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2))),
 		},
-		"fee + gauge coins == account balance, multiple gauge coins, one in denom other than base, success": {
+		"fee + stream coins == account balance, multiple stream coins, one in denom other than base, success": {
 			accountBalanceToFund: sdk.NewCoin("udym", sdk.NewInt(baseFee)),
 			feeToCharge:          baseFee / 2,
-			gaugeCoins:           sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2)), sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
+			streamCoins:          sdk.NewCoins(sdk.NewCoin("usdc", sdk.NewInt(baseFee*2)), sdk.NewCoin("udym", sdk.NewInt(baseFee/2))),
 		},
 	}
 
@@ -302,7 +302,7 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			testAccount := suite.TestAccs[0]
 
 			ctx := suite.Ctx
-			incentivesKeepers := suite.App.IncentivesKeeper
+			StreamerKeepers := suite.App.StreamerKeeper
 			bankKeeper := suite.App.BankKeeper
 
 			// Pre-fund account.
@@ -312,7 +312,7 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			oldBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "udym").Amount
 
 			// System under test.
-			err := incentivesKeepers.ChargeFeeIfSufficientFeeDenomBalance(ctx, testAccount, sdk.NewInt(tc.feeToCharge), tc.gaugeCoins)
+			err := StreamerKeepers.ChargeFeeIfSufficientFeeDenomBalance(ctx, testAccount, sdk.NewInt(tc.feeToCharge), tc.streamCoins)
 
 			// Assertions.
 			newBalanceAmount := bankKeeper.GetBalance(ctx, testAccount, "udym").Amount

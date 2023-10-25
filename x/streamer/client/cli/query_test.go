@@ -31,7 +31,7 @@ func (s *QueryTestSuite) SetupSuite() {
 	s.LockTokens(s.TestAccs[0], sdk.Coins{sdk.NewCoin("gamm/pool/1", sdk.NewInt(1000000))}, time.Hour*24)
 
 	// create a gauge
-	_, err := s.App.IncentivesKeeper.CreateGauge(
+	_, err := s.App.StreamerKeeper.CreateGauge(
 		s.Ctx,
 		true,
 		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),

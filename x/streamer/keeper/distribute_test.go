@@ -14,20 +14,20 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-// TestDistribute tests that when the distribute command is executed on a provided gauge
+// TestDistribute tests that when the distribute command is executed on a provided stream
 // that the correct amount of rewards is sent to the correct lock owners.
 func (suite *KeeperTestSuite) TestDistribute() {
-	defaultGauge := perpGaugeDesc{
+	defaultStream := perpStreamDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: defaultLockDuration,
 		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
 	}
-	doubleLengthGauge := perpGaugeDesc{
+	doubleLengthStream := perpStreamDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: 2 * defaultLockDuration,
 		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
 	}
-	noRewardGauge := perpGaugeDesc{
+	noRewardStream := perpStreamDesc{
 		lockDenom:    defaultLPDenom,
 		lockDuration: defaultLockDuration,
 		rewardAmount: sdk.Coins{},
@@ -39,50 +39,50 @@ func (suite *KeeperTestSuite) TestDistribute() {
 	tests := []struct {
 		name            string
 		users           []userLocks
-		gauges          []perpGaugeDesc
+		streams         []perpStreamDesc
 		expectedRewards []sdk.Coins
 	}{
-		// gauge 1 gives 3k coins. three locks, all eligible. 1k coins per lock.
+		// stream 1 gives 3k coins. three locks, all eligible. 1k coins per lock.
 		// 1k should go to oneLockupUser and 2k to twoLockupUser.
 		{
-			name:            "One user with one lockup, another user with two lockups, single default gauge",
+			name:            "One user with one lockup, another user with two lockups, single default stream",
 			users:           []userLocks{oneLockupUser, twoLockupUser},
-			gauges:          []perpGaugeDesc{defaultGauge},
+			streams:         []perpStreamDesc{defaultStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, twoKRewardCoins},
 		},
-		// gauge 1 gives 3k coins. three locks, all eligible.
-		// gauge 2 gives 3k coins. one lock, to twoLockupUser.
+		// stream 1 gives 3k coins. three locks, all eligible.
+		// stream 2 gives 3k coins. one lock, to twoLockupUser.
 		// 1k should to oneLockupUser and 5k to twoLockupUser.
 		{
-			name:            "One user with one lockup (default gauge), another user with two lockups (double length gauge)",
+			name:            "One user with one lockup (default stream), another user with two lockups (double length stream)",
 			users:           []userLocks{oneLockupUser, twoLockupUser},
-			gauges:          []perpGaugeDesc{defaultGauge, doubleLengthGauge},
+			streams:         []perpStreamDesc{defaultStream, doubleLengthStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, fiveKRewardCoins},
 		},
-		// gauge 1 gives zero rewards.
+		// stream 1 gives zero rewards.
 		// both oneLockupUser and twoLockupUser should get no rewards.
 		{
-			name:            "One user with one lockup, another user with two lockups, both with no rewards gauge",
+			name:            "One user with one lockup, another user with two lockups, both with no rewards stream",
 			users:           []userLocks{oneLockupUser, twoLockupUser},
-			gauges:          []perpGaugeDesc{noRewardGauge},
+			streams:         []perpStreamDesc{noRewardStream},
 			expectedRewards: []sdk.Coins{noRewardCoins, noRewardCoins},
 		},
-		// gauge 1 gives no rewards.
-		// gauge 2 gives 3k coins. three locks, all eligible. 1k coins per lock.
+		// stream 1 gives no rewards.
+		// stream 2 gives 3k coins. three locks, all eligible. 1k coins per lock.
 		// 1k should to oneLockupUser and 2k to twoLockupUser.
 		{
-			name:            "One user with one lockup and another user with two lockups. No rewards and a default gauge",
+			name:            "One user with one lockup and another user with two lockups. No rewards and a default stream",
 			users:           []userLocks{oneLockupUser, twoLockupUser},
-			gauges:          []perpGaugeDesc{noRewardGauge, defaultGauge},
+			streams:         []perpStreamDesc{noRewardStream, defaultStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, twoKRewardCoins},
 		},
 	}
 	for _, tc := range tests {
 		suite.SetupTest()
-		// setup gauges and the locks defined in the above tests, then distribute to them
-		gauges := suite.SetupGauges(tc.gauges, defaultLPDenom)
+		// setup streams and the locks defined in the above tests, then distribute to them
+		streams := suite.SetupStreams(tc.streams, defaultLPDenom)
 		addrs := suite.SetupUserLocks(tc.users)
-		_, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, gauges)
+		_, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
 		for i, addr := range addrs {
@@ -92,20 +92,20 @@ func (suite *KeeperTestSuite) TestDistribute() {
 	}
 }
 
-// TestSyntheticDistribute tests that when the distribute command is executed on a provided gauge
+// TestSyntheticDistribute tests that when the distribute command is executed on a provided stream
 // the correct amount of rewards is sent to the correct synthetic lock owners.
 func (suite *KeeperTestSuite) TestSyntheticDistribute() {
-	defaultGauge := perpGaugeDesc{
+	defaultStream := perpStreamDesc{
 		lockDenom:    defaultLPSyntheticDenom,
 		lockDuration: defaultLockDuration,
 		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
 	}
-	doubleLengthGauge := perpGaugeDesc{
+	doubleLengthStream := perpStreamDesc{
 		lockDenom:    defaultLPSyntheticDenom,
 		lockDuration: 2 * defaultLockDuration,
 		rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
 	}
-	noRewardGauge := perpGaugeDesc{
+	noRewardStream := perpStreamDesc{
 		lockDenom:    defaultLPSyntheticDenom,
 		lockDuration: defaultLockDuration,
 		rewardAmount: sdk.Coins{},
@@ -117,50 +117,50 @@ func (suite *KeeperTestSuite) TestSyntheticDistribute() {
 	tests := []struct {
 		name            string
 		users           []userLocks
-		gauges          []perpGaugeDesc
+		streams         []perpStreamDesc
 		expectedRewards []sdk.Coins
 	}{
-		// gauge 1 gives 3k coins. three locks, all eligible. 1k coins per lock.
+		// stream 1 gives 3k coins. three locks, all eligible. 1k coins per lock.
 		// 1k should go to oneLockupUser and 2k to twoLockupUser.
 		{
-			name:            "One user with one synthetic lockup, another user with two synthetic lockups, both with default gauge",
+			name:            "One user with one synthetic lockup, another user with two synthetic lockups, both with default stream",
 			users:           []userLocks{oneSyntheticLockupUser, twoSyntheticLockupUser},
-			gauges:          []perpGaugeDesc{defaultGauge},
+			streams:         []perpStreamDesc{defaultStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, twoKRewardCoins},
 		},
-		// gauge 1 gives 3k coins. three locks, all eligible.
-		// gauge 2 gives 3k coins. one lock, to twoLockupUser.
+		// stream 1 gives 3k coins. three locks, all eligible.
+		// stream 2 gives 3k coins. one lock, to twoLockupUser.
 		// 1k should to oneLockupUser and 5k to twoLockupUser.
 		{
-			name:            "One user with one synthetic lockup (default gauge), another user with two synthetic lockups (double length gauge)",
+			name:            "One user with one synthetic lockup (default stream), another user with two synthetic lockups (double length stream)",
 			users:           []userLocks{oneSyntheticLockupUser, twoSyntheticLockupUser},
-			gauges:          []perpGaugeDesc{defaultGauge, doubleLengthGauge},
+			streams:         []perpStreamDesc{defaultStream, doubleLengthStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, fiveKRewardCoins},
 		},
-		// gauge 1 gives zero rewards.
+		// stream 1 gives zero rewards.
 		// both oneLockupUser and twoLockupUser should get no rewards.
 		{
-			name:            "One user with one synthetic lockup, another user with two synthetic lockups, both with no rewards gauge",
+			name:            "One user with one synthetic lockup, another user with two synthetic lockups, both with no rewards stream",
 			users:           []userLocks{oneSyntheticLockupUser, twoSyntheticLockupUser},
-			gauges:          []perpGaugeDesc{noRewardGauge},
+			streams:         []perpStreamDesc{noRewardStream},
 			expectedRewards: []sdk.Coins{noRewardCoins, noRewardCoins},
 		},
-		// gauge 1 gives no rewards.
-		// gauge 2 gives 3k coins. three locks, all eligible. 1k coins per lock.
+		// stream 1 gives no rewards.
+		// stream 2 gives 3k coins. three locks, all eligible. 1k coins per lock.
 		// 1k should to oneLockupUser and 2k to twoLockupUser.
 		{
-			name:            "One user with one synthetic lockup (no rewards gauge), another user with two synthetic lockups (default gauge)",
+			name:            "One user with one synthetic lockup (no rewards stream), another user with two synthetic lockups (default stream)",
 			users:           []userLocks{oneSyntheticLockupUser, twoSyntheticLockupUser},
-			gauges:          []perpGaugeDesc{noRewardGauge, defaultGauge},
+			streams:         []perpStreamDesc{noRewardStream, defaultStream},
 			expectedRewards: []sdk.Coins{oneKRewardCoins, twoKRewardCoins},
 		},
 	}
 	for _, tc := range tests {
 		suite.SetupTest()
-		// setup gauges and the synthetic locks defined in the above tests, then distribute to them
-		gauges := suite.SetupGauges(tc.gauges, defaultLPSyntheticDenom)
+		// setup streams and the synthetic locks defined in the above tests, then distribute to them
+		streams := suite.SetupStreams(tc.streams, defaultLPSyntheticDenom)
 		addrs := suite.SetupUserSyntheticLocks(tc.users)
-		_, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, gauges)
+		_, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
 		for i, addr := range addrs {
@@ -181,43 +181,43 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	suite.SetupTest()
 
 	// check that the sum of coins yet to be distributed is nil
-	coins := suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	coins := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coins, sdk.Coins(nil))
 
-	// setup a non perpetual lock and gauge
-	_, gaugeID, gaugeCoins, startTime := suite.SetupLockAndGauge(false)
+	// setup a non perpetual lock and stream
+	_, streamID, streamCoins, startTime := suite.SetupLockAndStream(false)
 
-	// check that the sum of coins yet to be distributed is equal to the newly created gaugeCoins
-	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, gaugeCoins)
+	// check that the sum of coins yet to be distributed is equal to the newly created streamCoins
+	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	suite.Require().Equal(coins, streamCoins)
 
-	// add coins to the previous gauge and check that the sum of coins yet to be distributed includes these new coins
+	// add coins to the previous stream and check that the sum of coins yet to be distributed includes these new coins
 	addCoins := sdk.Coins{sdk.NewInt64Coin("stake", 200)}
-	suite.AddToGauge(addCoins, gaugeID)
-	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, gaugeCoins.Add(addCoins...))
+	suite.AddToStream(addCoins, streamID)
+	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	suite.Require().Equal(coins, streamCoins.Add(addCoins...))
 
-	// create a new gauge
-	// check that the sum of coins yet to be distributed is equal to the gauge1 and gauge2 coins combined
-	_, _, gaugeCoins2, _ := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 1000)})
-	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, gaugeCoins.Add(addCoins...).Add(gaugeCoins2...))
+	// create a new stream
+	// check that the sum of coins yet to be distributed is equal to the stream1 and stream2 coins combined
+	_, _, streamCoins2, _ := suite.SetupNewStream(false, sdk.Coins{sdk.NewInt64Coin("stake", 1000)})
+	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	suite.Require().Equal(coins, streamCoins.Add(addCoins...).Add(streamCoins2...))
 
-	// move all created gauges from upcoming to active
+	// move all created streams from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
-	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
 	// distribute coins to stakers
-	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 105)})
 
-	// check gauge changes after distribution
-	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, gaugeCoins.Add(addCoins...).Add(gaugeCoins2...).Sub(distrCoins...))
+	// check stream changes after distribution
+	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	suite.Require().Equal(coins, streamCoins.Add(addCoins...).Add(streamCoins2...).Sub(distrCoins...))
 }
 
 // TestGetModuleDistributedCoins tests that the sum of coins that have been distributed so far for all of the module is correct.
@@ -225,48 +225,48 @@ func (suite *KeeperTestSuite) TestGetModuleDistributedCoins() {
 	suite.SetupTest()
 
 	// check that the sum of coins yet to be distributed is nil
-	coins := suite.App.IncentivesKeeper.GetModuleDistributedCoins(suite.Ctx)
+	coins := suite.App.StreamerKeeper.GetModuleDistributedCoins(suite.Ctx)
 	suite.Require().Equal(coins, sdk.Coins(nil))
 
-	// setup a non perpetual lock and gauge
-	_, gaugeID, _, startTime := suite.SetupLockAndGauge(false)
+	// setup a non perpetual lock and stream
+	_, streamID, _, startTime := suite.SetupLockAndStream(false)
 
-	// check that the sum of coins yet to be distributed is equal to the newly created gaugeCoins
-	coins = suite.App.IncentivesKeeper.GetModuleDistributedCoins(suite.Ctx)
+	// check that the sum of coins yet to be distributed is equal to the newly created streamCoins
+	coins = suite.App.StreamerKeeper.GetModuleDistributedCoins(suite.Ctx)
 	suite.Require().Equal(coins, sdk.Coins(nil))
 
-	// move all created gauges from upcoming to active
+	// move all created streams from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
-	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
 	// distribute coins to stakers
-	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 5)})
 
-	// check gauge changes after distribution
-	coins = suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
+	// check stream changes after distribution
+	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coins, distrCoins)
 }
 
-// TestNoLockPerpetualGaugeDistribution tests that the creation of a perp gauge that has no locks associated does not distribute any tokens.
-func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
+// TestNoLockPerpetualStreamDistribution tests that the creation of a perp stream that has no locks associated does not distribute any tokens.
+func (suite *KeeperTestSuite) TestNoLockPerpetualStreamDistribution() {
 	suite.SetupTest()
 
-	// setup a perpetual gauge with no associated locks
+	// setup a perpetual stream with no associated locks
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
-	gaugeID, _, _, startTime := suite.SetupNewGauge(true, coins)
+	streamID, _, _, startTime := suite.SetupNewStream(true, coins)
 
-	// ensure the created gauge has not completed distribution
-	gauges := suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-	suite.Require().Len(gauges, 1)
+	// ensure the created stream has not completed distribution
+	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
 
-	// ensure the not finished gauge matches the previously created gauge
-	expectedGauge := types.Gauge{
-		Id:          gaugeID,
+	// ensure the not finished stream matches the previously created stream
+	expectedStream := types.Stream{
+		Id:          streamID,
 		IsPerpetual: true,
 		DistributeTo: lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
@@ -279,41 +279,41 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 		DistributedCoins:  sdk.Coins{},
 		StartTime:         startTime,
 	}
-	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+	suite.Require().Equal(streams[0].String(), expectedStream.String())
 
-	// move the created gauge from upcoming to active
+	// move the created stream from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
-	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
 	// distribute coins to stakers, since it's perpetual distribute everything on single distribution
-	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins(nil))
 
 	// check state is same after distribution
-	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-	suite.Require().Len(gauges, 1)
-	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
+	suite.Require().Equal(streams[0].String(), expectedStream.String())
 }
 
-// TestNoLockNonPerpetualGaugeDistribution tests that the creation of a non perp gauge that has no locks associated does not distribute any tokens.
-func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
+// TestNoLockNonPerpetualStreamDistribution tests that the creation of a non perp stream that has no locks associated does not distribute any tokens.
+func (suite *KeeperTestSuite) TestNoLockNonPerpetualStreamDistribution() {
 	suite.SetupTest()
 
-	// setup non-perpetual gauge with no associated locks
+	// setup non-perpetual stream with no associated locks
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
-	gaugeID, _, _, startTime := suite.SetupNewGauge(false, coins)
+	streamID, _, _, startTime := suite.SetupNewStream(false, coins)
 
-	// ensure the created gauge has not completed distribution
-	gauges := suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-	suite.Require().Len(gauges, 1)
+	// ensure the created stream has not completed distribution
+	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
 
-	// ensure the not finished gauge matches the previously created gauge
-	expectedGauge := types.Gauge{
-		Id:          gaugeID,
+	// ensure the not finished stream matches the previously created stream
+	expectedStream := types.Stream{
+		Id:          streamID,
 		IsPerpetual: false,
 		DistributeTo: lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
@@ -326,22 +326,22 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 		DistributedCoins:  sdk.Coins{},
 		StartTime:         startTime,
 	}
-	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+	suite.Require().Equal(streams[0].String(), expectedStream.String())
 
-	// move the created gauge from upcoming to active
+	// move the created stream from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime)
-	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
-	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
 	// distribute coins to stakers
-	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
+	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
 	suite.Require().NoError(err)
 	suite.Require().Equal(distrCoins, sdk.Coins(nil))
 
 	// check state is same after distribution
-	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
-	suite.Require().Len(gauges, 1)
-	suite.Require().Equal(gauges[0].String(), expectedGauge.String())
+	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
+	suite.Require().Equal(streams[0].String(), expectedStream.String())
 }

@@ -31,16 +31,17 @@ func StreamerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	cdc := codec.NewProtoCodec(registry)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
-		types.Amino,
+		types.ModuleCdc.LegacyAmino,
 		storeKey,
 		memStoreKey,
 		"StreamerParams",
 	)
 	k := keeper.NewKeeper(
-		cdc,
 		storeKey,
-		memStoreKey,
 		paramsSubspace,
+		nil,
+		nil,
+		nil,
 		nil,
 	)
 

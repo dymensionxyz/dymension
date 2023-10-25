@@ -2,27 +2,29 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
+	keeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
+	"github.com/dymensionxyz/dymension/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
-	"github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
 )
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
 
+	moduleAddress sdk.AccAddress
+
 	querier keeper.Querier
 }
 
-// SetupTest sets incentives parameters from the suite's context
+// SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.Setup()
-	suite.querier = keeper.NewQuerier(*suite.App.IncentivesKeeper)
-	lockableDurations := suite.App.IncentivesKeeper.GetLockableDurations(suite.Ctx)
-	lockableDurations = append(lockableDurations, 2*time.Second)
-	suite.App.IncentivesKeeper.SetLockableDurations(suite.Ctx, lockableDurations)
+	suite.moduleAddress = authtypes.NewModuleAddress(types.ModuleName)
+	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

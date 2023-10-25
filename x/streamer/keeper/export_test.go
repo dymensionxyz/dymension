@@ -6,37 +6,32 @@ import (
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 )
 
-// AddGaugeRefByKey appends the provided gauge ID into an array associated with the provided key.
-func (k Keeper) AddGaugeRefByKey(ctx sdk.Context, key []byte, gaugeID uint64) error {
-	return k.addGaugeRefByKey(ctx, key, gaugeID)
+// AddStreamRefByKey appends the provided stream ID into an array associated with the provided key.
+func (k Keeper) AddStreamRefByKey(ctx sdk.Context, key []byte, streamID uint64) error {
+	return k.addStreamRefByKey(ctx, key, streamID)
 }
 
-// DeleteGaugeRefByKey removes the provided gauge ID from an array associated with the provided key.
-func (k Keeper) DeleteGaugeRefByKey(ctx sdk.Context, key []byte, guageID uint64) error {
-	return k.deleteGaugeRefByKey(ctx, key, guageID)
+// DeleteStreamRefByKey removes the provided stream ID from an array associated with the provided key.
+func (k Keeper) DeleteStreamRefByKey(ctx sdk.Context, key []byte, guageID uint64) error {
+	return k.deleteStreamRefByKey(ctx, key, guageID)
 }
 
-// GetGaugeRefs returns the gauge IDs specified by the provided key.
-func (k Keeper) GetGaugeRefs(ctx sdk.Context, key []byte) []uint64 {
-	return k.getGaugeRefs(ctx, key)
+// GetStreamRefs returns the stream IDs specified by the provided key.
+func (k Keeper) GetStreamRefs(ctx sdk.Context, key []byte) []uint64 {
+	return k.getStreamRefs(ctx, key)
 }
 
-// GetAllGaugeIDsByDenom returns all active gauge-IDs associated with lockups of the provided denom.
-func (k Keeper) GetAllGaugeIDsByDenom(ctx sdk.Context, denom string) []uint64 {
-	return k.getAllGaugeIDsByDenom(ctx, denom)
+// GetAllStreamIDsByDenom returns all active stream-IDs associated with lockups of the provided denom.
+func (k Keeper) GetAllStreamIDsByDenom(ctx sdk.Context, denom string) []uint64 {
+	return k.getAllStreamIDsByDenom(ctx, denom)
 }
 
-// MoveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
-func (k Keeper) MoveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
-	return k.moveUpcomingGaugeToActiveGauge(ctx, gauge)
+// MoveUpcomingStreamToActiveStream moves a stream that has reached it's start time from an upcoming to an active status.
+func (k Keeper) MoveUpcomingStreamToActiveStream(ctx sdk.Context, stream types.Stream) error {
+	return k.moveUpcomingStreamToActiveStream(ctx, stream)
 }
 
-// MoveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
-func (k Keeper) MoveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
-	return k.moveActiveGaugeToFinishedGauge(ctx, gauge)
-}
-
-// ChargeFeeIfSufficientFeeDenomBalance see chargeFeeIfSufficientFeeDenomBalance spec.
-func (k Keeper) ChargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) error {
-	return k.chargeFeeIfSufficientFeeDenomBalance(ctx, address, fee, gaugeCoins)
+// MoveActiveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
+func (k Keeper) MoveActiveStreamToFinishedStream(ctx sdk.Context, stream types.Stream) error {
+	return k.moveActiveStreamToFinishedStream(ctx, stream)
 }
