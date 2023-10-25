@@ -13,13 +13,13 @@ var (
 	ModuleCdc = codec.NewAminoCodec(amino)
 )
 
-// RegisterCodec registers the necessary x/incentives interfaces and concrete types on the provided
+// RegisterCodec registers the necessary x/streamer interfaces and concrete types on the provided
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateStream{}, "dymensionxyz/streamer/create-stream", nil)
 }
 
-// RegisterInterfaces registers interfaces and implementations of the incentives module.
+// RegisterInterfaces registers interfaces and implementations of the streamer module.
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),

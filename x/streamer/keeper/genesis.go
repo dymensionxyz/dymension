@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 )
 
-// InitGenesis initializes the incentives module's state from a provided genesis state.
+// InitGenesis initializes the streamer module's state from a provided genesis state.
 func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	//FIXME: initilize module account
 	// recipientAcc := k. .GetModuleAccount(ctx, types.ModuleName)
@@ -25,7 +25,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 	k.SetLastStreamID(ctx, genState.LastStreamId)
 }
 
-// ExportGenesis returns the x/incentives module's exported genesis.
+// ExportGenesis returns the x/streamer module's exported genesis.
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Params:       k.GetParams(ctx),

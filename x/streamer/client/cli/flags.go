@@ -4,7 +4,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// Flags for incentives module tx commands.
+// Flags for streamer module tx commands.
 const (
 	FlagStartTime       = "start-time"
 	FlagEpochIdentifier = "epoch-identifier"

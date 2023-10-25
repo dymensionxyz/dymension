@@ -16,7 +16,7 @@ import (
 
 var _ types.QueryServer = Querier{}
 
-// Querier defines a wrapper around the incentives module keeper providing gRPC method handlers.
+// Querier defines a wrapper around the streamer module keeper providing gRPC method handlers.
 type Querier struct {
 	Keeper
 }
