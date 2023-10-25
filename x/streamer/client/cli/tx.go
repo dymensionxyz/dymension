@@ -1,7 +1,16 @@
 package cli
 
 import (
+	"errors"
+	"strconv"
+	"time"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
@@ -11,77 +20,75 @@ import (
 func GetTxCmd() *cobra.Command {
 	cmd := osmocli.TxIndexCmd(types.ModuleName)
 	cmd.AddCommand(
-	// NewCreateStreamCmd(),
+		NewCreateStreamCmd(),
 	)
 
 	return cmd
 }
 
 // NewCreateStreamCmd broadcasts a CreateStream message.
-// func NewCreateStreamCmd() *cobra.Command {
-// 	cmd := &cobra.Command{
-// 		Use:   "create-gauge [lockup_denom] [reward] [flags]",
-// 		Short: "create a gauge to distribute rewards to users",
-// 		Args:  cobra.ExactArgs(2),
-// 		RunE: func(cmd *cobra.Command, args []string) error {
-// 			clientCtx, err := client.GetClientTxContext(cmd)
-// 			if err != nil {
-// 				return err
-// 			}
+func NewCreateStreamCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-stream [dest addr] [reward] [flags]",
+		Short: "create a stream to distribute rewards to users",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
 
-// 			denom := args[0]
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 
-// 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-// 			coins, err := sdk.ParseCoinsNormalized(args[1])
-// 			if err != nil {
-// 				return err
-// 			}
+			distributeTo, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
 
-// 			var startTime time.Time
-// 			timeStr, err := cmd.Flags().GetString(FlagStartTime)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			if timeStr == "" { // empty start time
-// 				startTime = time.Unix(0, 0)
-// 			} else if timeUnix, err := strconv.ParseInt(timeStr, 10, 64); err == nil { // unix time
-// 				startTime = time.Unix(timeUnix, 0)
-// 			} else if timeRFC, err := time.Parse(time.RFC3339, timeStr); err == nil { // RFC time
-// 				startTime = timeRFC
-// 			} else { // invalid input
-// 				return errors.New("invalid start time format")
-// 			}
+			coins, err := sdk.ParseCoinsNormalized(args[1])
+			if err != nil {
+				return err
+			}
 
-// 			epochs, err := cmd.Flags().GetUint64(FlagEpochs)
-// 			if err != nil {
-// 				return err
-// 			}
+			var startTime time.Time
+			timeStr, err := cmd.Flags().GetString(FlagStartTime)
+			if err != nil {
+				return err
+			}
+			if timeStr == "" { // empty start time
+				startTime = time.Unix(0, 0)
+			} else if timeUnix, err := strconv.ParseInt(timeStr, 10, 64); err == nil { // unix time
+				startTime = time.Unix(timeUnix, 0)
+			} else if timeRFC, err := time.Parse(time.RFC3339, timeStr); err == nil { // RFC time
+				startTime = timeRFC
+			} else { // invalid input
+				return errors.New("invalid start time format")
+			}
 
-// 			perpetual, err := cmd.Flags().GetBool(FlagPerpetual)
-// 			if err != nil {
-// 				return err
-// 			}
+			epochIdentifier, err := cmd.Flags().GetString(FlagEpochIdentifier)
+			if err != nil {
+				return err
+			}
 
-// 			if perpetual {
-// 				epochs = 1
-// 			}
+			epochs, err := cmd.Flags().GetUint64(FlagEpochs)
+			if err != nil {
+				return err
+			}
 
-// 			msg := types.NewMsgCreateStream(
-// 				// epochs == 1,
-// 				// clientCtx.GetFromAddress(),
-// 				distributeTo,
-// 				coins,
-// 				startTime,
-// 				//TODO: fix epoch identifier
-// 				"day",
-// 				epochs,
-// 			)
+			msg := types.NewMsgCreateStream(
+				clientCtx.GetFromAddress(),
+				distributeTo,
+				coins,
+				startTime,
+				epochIdentifier,
+				epochs,
+			)
 
-// 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
-// 		},
-// 	}
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
 
-// 	cmd.Flags().AddFlagSet(FlagSetCreateStream())
-// 	flags.AddTxFlagsToCmd(cmd)
-// 	return cmd
-// }
+	cmd.Flags().AddFlagSet(FlagSetCreateStream())
+	flags.AddTxFlagsToCmd(cmd)
+	return cmd
+}

@@ -14,8 +14,9 @@ const (
 var _ sdk.Msg = &MsgCreateStream{}
 
 // NewMsgCreateStream creates a message to create a stream with the provided parameters.
-func NewMsgCreateStream(distributeTo sdk.AccAddress, coins sdk.Coins, startTime time.Time, distrEpochIdentifier string, numEpochsPaidOver uint64) *MsgCreateStream {
+func NewMsgCreateStream(owner, distributeTo sdk.AccAddress, coins sdk.Coins, startTime time.Time, distrEpochIdentifier string, numEpochsPaidOver uint64) *MsgCreateStream {
 	return &MsgCreateStream{
+		Owner:                owner.String(),
 		DistributeTo:         distributeTo.String(),
 		Coins:                coins,
 		StartTime:            startTime,
@@ -68,6 +69,6 @@ func (m MsgCreateStream) GetSignBytes() []byte {
 
 // GetSigners takes a create stream message and returns the owner in a byte array.
 func (m MsgCreateStream) GetSigners() []sdk.AccAddress {
-	// owner, _ := sdk.AccAddressFromBech32(m.Owner)
-	return []sdk.AccAddress{}
+	owner, _ := sdk.AccAddressFromBech32(m.Owner)
+	return []sdk.AccAddress{owner}
 }

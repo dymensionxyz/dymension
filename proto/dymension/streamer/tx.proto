@@ -16,26 +16,27 @@ service Msg {
 
 // MsgCreateStream creates a gague to distribute rewards to users
 message MsgCreateStream {
+  string owner = 1;
   // distribute_to show which lock the stream should distribute to by time
-  string distribute_to = 1;
+  string distribute_to = 2;
   // coins are coin(s) to be distributed by the stream
-  repeated cosmos.base.v1beta1.Coin coins = 2 [
+  repeated cosmos.base.v1beta1.Coin coins = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
   // start_time is the distribution start time
-  google.protobuf.Timestamp start_time = 3 [
+  google.protobuf.Timestamp start_time = 4 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"timestamp\""
   ];
 
-  string distr_epoch_identifier = 4
+  string distr_epoch_identifier = 5
   [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
 
   // num_epochs_paid_over is the number of epochs distribution will be completed
   // over
-  uint64 num_epochs_paid_over = 5;
+  uint64 num_epochs_paid_over = 6;
 }
 
 message MsgCreateStreamResponse {}
