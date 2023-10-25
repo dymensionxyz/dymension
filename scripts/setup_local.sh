@@ -115,7 +115,13 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 
+
 dymd keys add "$KEY_NAME" --keyring-backend test
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+
+
+# fund streamer
+dymd add-genesis-account dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv 10000000000000000000000udym
+
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs

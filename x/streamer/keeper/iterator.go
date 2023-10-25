@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,15 +59,4 @@ func (k Keeper) ActiveStreamsIterator(ctx sdk.Context) sdk.Iterator {
 // FinishedStreamsIterator returns the iterator for all finished streams.
 func (k Keeper) FinishedStreamsIterator(ctx sdk.Context) sdk.Iterator {
 	return k.iterator(ctx, types.KeyPrefixFinishedStreams)
-}
-
-// FilterLocksByMinDuration returns locks whose lock duration is greater than the provided minimum duration.
-func FilterLocksByMinDuration(locks []lockuptypes.PeriodLock, minDuration time.Duration) []lockuptypes.PeriodLock {
-	filteredLocks := make([]lockuptypes.PeriodLock, 0, len(locks)/2)
-	for _, lock := range locks {
-		if lock.Duration >= minDuration {
-			filteredLocks = append(filteredLocks, lock)
-		}
-	}
-	return filteredLocks
 }

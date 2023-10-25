@@ -8,7 +8,9 @@ import (
 	"github.com/gogo/protobuf/proto"
 	db "github.com/tendermint/tm-db"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/x/streamer/types"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -105,10 +107,6 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 		StartTime:            startTime,
 		DistrEpochIdentifier: epochIdentifier,
 		NumEpochsPaidOver:    numEpochsPaidOver,
-	}
-
-	if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, distrTo, stream.Coins); err != nil {
-		return 0, err
 	}
 
 	err := k.setStream(ctx, &stream)
