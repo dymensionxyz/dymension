@@ -8,10 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	osmoapp "github.com/dymensionxyz/dymension/app"
+	app "github.com/dymensionxyz/dymension/app"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 )
 

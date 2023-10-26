@@ -37,9 +37,6 @@ var (
 	// KeyPrefixFinishedStreams defines prefix key for storing reference key for finished streams.
 	KeyPrefixFinishedStreams = []byte{0x04, 0x02}
 
-	// KeyPrefixStreamsByDenom defines prefix key for storing indexes of stream IDs by denomination.
-	KeyPrefixStreamsByDenom = []byte{0x05}
-
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}
 )

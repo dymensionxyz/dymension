@@ -21,11 +21,6 @@ func (k Keeper) GetStreamRefs(ctx sdk.Context, key []byte) []uint64 {
 	return k.getStreamRefs(ctx, key)
 }
 
-// GetAllStreamIDsByDenom returns all active stream-IDs associated with lockups of the provided denom.
-func (k Keeper) GetAllStreamIDsByDenom(ctx sdk.Context, denom string) []uint64 {
-	return k.getAllStreamIDsByDenom(ctx, denom)
-}
-
 // MoveUpcomingStreamToActiveStream moves a stream that has reached it's start time from an upcoming to an active status.
 func (k Keeper) MoveUpcomingStreamToActiveStream(ctx sdk.Context, stream types.Stream) error {
 	return k.moveUpcomingStreamToActiveStream(ctx, stream)

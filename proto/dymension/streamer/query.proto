@@ -93,19 +93,6 @@ message ActiveStreamsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message ActiveStreamsPerDenomRequest {
-  // Desired denom when querying active gagues
-  string denom = 1;
-  // Pagination defines pagination for the request
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-message ActiveStreamsPerDenomResponse {
-  // Active gagues that match denom in query
-  repeated Stream data = 1 [ (gogoproto.nullable) = false ];
-  // Pagination defines pagination for the response
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
 message UpcomingStreamsRequest {
   // Pagination defines pagination for the request
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
@@ -113,20 +100,6 @@ message UpcomingStreamsRequest {
 message UpcomingStreamsResponse {
   // Streams whose distribution is upcoming
   repeated Stream data = 1 [ (gogoproto.nullable) = false ];
-  // Pagination defines pagination for the response
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message UpcomingStreamsPerDenomRequest {
-  // Filter for upcoming gagues that match specific denom
-  string denom = 1;
-  // Pagination defines pagination for the request
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-
-message UpcomingStreamsPerDenomResponse {
-  // Upcoming gagues that match denom in query
-  repeated Stream upcoming_streams = 1 [ (gogoproto.nullable) = false ];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
