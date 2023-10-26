@@ -24,14 +24,8 @@ func (s *QueryTestSuite) SetupSuite() {
 	s.Setup()
 	s.queryClient = types.NewQueryClient(s.QueryHelper)
 
-	// create a pool
-	poolID := s.PrepareBalancerPool()
-
-	// set up lock with id = 1
-	s.LockTokens(s.TestAccs[0], sdk.Coins{sdk.NewCoin("gamm/pool/1", sdk.NewInt(1000000))}, time.Hour*24)
-
-	// create a gauge
-	_, err := s.App.StreamerKeeper.CreateGauge(
+	// create a stream
+	_, err := s.App.StreamerKeeper.CreateStream(
 		s.Ctx,
 		true,
 		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
@@ -57,28 +51,28 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 		output interface{}
 	}{
 		{
-			"Query active gauges",
-			"/osmosis.incentives.Query/ActiveGauges",
-			&types.ActiveGaugesRequest{},
-			&types.ActiveGaugesResponse{},
+			"Query active streams",
+			"/osmosis.incentives.Query/ActiveStreams",
+			&types.ActiveStreamsRequest{},
+			&types.ActiveStreamsResponse{},
 		},
 		{
-			"Query active gauges per denom",
-			"/osmosis.incentives.Query/ActiveGaugesPerDenom",
-			&types.ActiveGaugesPerDenomRequest{Denom: "stake"},
-			&types.ActiveGaugesPerDenomResponse{},
+			"Query active streams per denom",
+			"/osmosis.incentives.Query/ActiveStreamsPerDenom",
+			&types.ActiveStreamsPerDenomRequest{Denom: "stake"},
+			&types.ActiveStreamsPerDenomResponse{},
 		},
 		{
-			"Query gauge by id",
-			"/osmosis.incentives.Query/GaugeByID",
-			&types.GaugeByIDRequest{Id: 1},
-			&types.GaugeByIDResponse{},
+			"Query stream by id",
+			"/osmosis.incentives.Query/StreamByID",
+			&types.StreamByIDRequest{Id: 1},
+			&types.StreamByIDResponse{},
 		},
 		{
-			"Query all gauges",
-			"/osmosis.incentives.Query/Gauges",
-			&types.GaugesRequest{},
-			&types.GaugesResponse{},
+			"Query all streams",
+			"/osmosis.incentives.Query/Streams",
+			&types.StreamsRequest{},
+			&types.StreamsResponse{},
 		},
 		{
 			"Query lockable durations",
@@ -99,16 +93,16 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 			&types.RewardsEstResponse{},
 		},
 		{
-			"Query upcoming gauges",
-			"/osmosis.incentives.Query/UpcomingGauges",
-			&types.UpcomingGaugesRequest{},
-			&types.UpcomingGaugesResponse{},
+			"Query upcoming streams",
+			"/osmosis.incentives.Query/UpcomingStreams",
+			&types.UpcomingStreamsRequest{},
+			&types.UpcomingStreamsResponse{},
 		},
 		{
-			"Query upcoming gauges",
-			"/osmosis.incentives.Query/UpcomingGaugesPerDenom",
-			&types.UpcomingGaugesPerDenomRequest{Denom: "stake"},
-			&types.UpcomingGaugesPerDenomResponse{},
+			"Query upcoming streams",
+			"/osmosis.incentives.Query/UpcomingStreamsPerDenom",
+			&types.UpcomingStreamsPerDenomRequest{Denom: "stake"},
+			&types.UpcomingStreamsPerDenomResponse{},
 		},
 	}
 

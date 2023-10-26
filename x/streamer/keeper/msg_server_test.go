@@ -3,133 +3,109 @@ package keeper_test
 import (
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	keeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
-
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/stretchr/testify/suite"
 )
 
 var _ = suite.TestingSuite(nil)
 
-func (suite *KeeperTestSuite) TestCreateStream_Fee() {
+// TestNonExistentDenomStreamCreation tests error handling for creating a stream with an invalid denom.
+func (suite *KeeperTestSuite) TestNonExistentDenomStreamCreation() {
+	suite.SetupTest()
+
+	//udym exists
+	coins := sdk.Coins{sdk.NewInt64Coin("udym", 10)}
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDestAddr, time.Time{}, "day", 1)
+	suite.Require().NoError(err)
+
+	//udym and stake exist
+	coins = sdk.Coins{sdk.NewInt64Coin("udym", 10), sdk.NewInt64Coin("stake", 10)}
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDestAddr, time.Time{}, "day", 1)
+	suite.Require().NoError(err)
+
+	//udym2 doesn't exist
+	coins = sdk.Coins{sdk.NewInt64Coin("udym", 10), sdk.NewInt64Coin("udym2", 10)}
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDestAddr, time.Time{}, "day", 1)
+	suite.Require().Error(err)
+
+	//udym2 doesn't exist
+	coins = sdk.Coins{sdk.NewInt64Coin("udym2", 10)}
+	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDestAddr, time.Time{}, "day", 1)
+	suite.Require().Error(err)
+}
+
+// TODO: test stream coins are spendable.
+func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
+	suite.SetupTest()
+
+	currModuleBalance := suite.App.BankKeeper.GetAllBalances(suite.Ctx, authtypes.NewModuleAddress(types.ModuleName))
+
+	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.NewCoins(currModuleBalance[0]), defaultDestAddr, time.Time{}, "day", 1)
+	suite.Require().NoError(err)
+
+	// TODO:  check after funding the module again
+}
+
+func (suite *KeeperTestSuite) TestCreateStream() {
 	tests := []struct {
-		name                 string
-		accountBalanceToFund sdk.Coins
-		streamAddition       sdk.Coins
-		expectedEndBalance   sdk.Coins
-		isPerpetual          bool
-		isModuleAccount      bool
-		expectErr            bool
+		name              string
+		coins             sdk.Coins
+		distrTo           string
+		epochIdentifier   string
+		numEpochsPaidOver uint64
+		expectErr         bool
 	}{
 		{
-			name:                 "user creates a non-perpetual stream and fills stream with all remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(60000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
+			name:              "happy flow",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo:           defaultDestAddr.String(),
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         false,
 		},
 		{
-			name:                 "user creates a non-perpetual stream and fills stream with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(70000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
+			name:              "non existing denom",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udasdas", 10)},
+			distrTo:           defaultDestAddr.String(),
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
 		},
 		{
-			name:                 "user with multiple denoms creates a non-perpetual stream and fills stream with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(70000000)), sdk.NewCoin("foo", sdk.NewInt(70000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
+			name:              "bad destination addr",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo:           "dasdasdasdasda",
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
 		},
 		{
-			name:                 "module account creates a perpetual stream and fills stream with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(70000000)), sdk.NewCoin("foo", sdk.NewInt(70000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
-			isPerpetual:          true,
-			isModuleAccount:      true,
+			name:              "bad epoch identifier",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo:           defaultDestAddr.String(),
+			epochIdentifier:   "thththt",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
 		},
 		{
-			name:                 "user with multiple denoms creates a perpetual stream and fills stream with some remaining tokens",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(70000000)), sdk.NewCoin("foo", sdk.NewInt(70000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
-			isPerpetual:          true,
-		},
-		{
-			name:                 "user tries to create a non-perpetual stream but does not have enough funds to pay for the create stream fee",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(40000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(10000000))),
-			expectErr:            true,
-		},
-		{
-			name:                 "user tries to create a non-perpetual stream but does not have the correct fee denom",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("foo", sdk.NewInt(60000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("foo", sdk.NewInt(10000000))),
-			expectErr:            true,
-		},
-		{
-			name:                 "one user tries to create a stream, has enough funds to pay for the create stream fee but not enough to fill the stream",
-			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(60000000))),
-			streamAddition:       sdk.NewCoins(sdk.NewCoin("udym", sdk.NewInt(30000000))),
-			expectErr:            true,
+			name:              "bad num of epochs",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo:           defaultDestAddr.String(),
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 0,
+			expectErr:         true,
 		},
 	}
 
 	for _, tc := range tests {
 		suite.SetupTest()
-
-		testAccountPubkey := secp256k1.GenPrivKeyFromSecret([]byte("acc")).PubKey()
-		testAccountAddress := sdk.AccAddress(testAccountPubkey.Address())
-
-		ctx := suite.Ctx
-		bankKeeper := suite.App.BankKeeper
-		accountKeeper := suite.App.AccountKeeper
-		msgServer := keeper.NewMsgServerImpl(suite.App.StreamerKeeper)
-
-		suite.FundAcc(testAccountAddress, tc.accountBalanceToFund)
-
-		if tc.isModuleAccount {
-			modAcc := authtypes.NewModuleAccount(authtypes.NewBaseAccount(testAccountAddress, testAccountPubkey, 1, 0),
-				"module",
-				"permission",
-			)
-			accountKeeper.SetModuleAccount(ctx, modAcc)
-		}
-
-		suite.SetupManyLocks(1, defaultLiquidTokens, defaultLPTokens, defaultLockDuration)
-		distrTo := lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         defaultLPDenom,
-			Duration:      defaultLockDuration,
-		}
-
-		msg := &types.MsgCreateStream{
-			IsPerpetual:       tc.isPerpetual,
-			Owner:             testAccountAddress.String(),
-			DistributeTo:      distrTo,
-			Coins:             tc.streamAddition,
-			StartTime:         time.Now(),
-			NumEpochsPaidOver: 1,
-		}
-		// System under test.
-		_, err := msgServer.CreateStream(sdk.WrapSDKContext(ctx), msg)
-
+		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, defaultDestAddr, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver)
 		if tc.expectErr {
-			suite.Require().Error(err)
+			suite.Require().Error(err, tc.name)
 		} else {
-			suite.Require().NoError(err)
-		}
-
-		balanceAmount := bankKeeper.GetAllBalances(ctx, testAccountAddress)
-
-		if tc.expectErr {
-			suite.Require().Equal(tc.accountBalanceToFund.String(), balanceAmount.String(), "test: %v", tc.name)
-		} else {
-			fee := sdk.NewCoins(sdk.NewCoin("udym", types.CreateStreamFee))
-			accountBalance := tc.accountBalanceToFund.Sub(tc.streamAddition...)
-			finalAccountBalance := accountBalance.Sub(fee...)
-			suite.Require().Equal(finalAccountBalance.String(), balanceAmount.String(), "test: %v", tc.name)
+			suite.Require().NoError(err, tc.name)
 		}
 	}
 }

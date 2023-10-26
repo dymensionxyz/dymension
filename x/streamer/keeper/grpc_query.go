@@ -165,18 +165,7 @@ func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, deno
 			return false, err
 		}
 		if accumulate {
-			if denom != "" {
-				for _, stream := range newStreams {
-					for _, coin := range stream.Coins {
-						if coin.Denom != denom {
-							return false, nil
-						}
-						streams = append(streams, stream)
-					}
-				}
-			} else {
-				streams = append(streams, newStreams...)
-			}
+			streams = append(streams, newStreams...)
 		}
 		return true, nil
 	})

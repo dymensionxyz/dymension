@@ -69,11 +69,6 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
 		return err
 	}
-	for _, coin := range stream.Coins {
-		if err := k.deleteStreamIDForDenom(ctx, stream.Id, coin.Denom); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 

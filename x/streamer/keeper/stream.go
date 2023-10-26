@@ -54,13 +54,7 @@ func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combi
 	if err := k.addStreamRefByKey(ctx, combinedKeys, stream.Id); err != nil {
 		return err
 	}
-	if activeOrUpcomingStream {
-		for _, coin := range stream.Coins {
-			if err := k.addStreamIDForDenom(ctx, stream.Id, coin.Denom); err != nil {
-				return err
-			}
-		}
-	}
+
 	return nil
 }
 
@@ -104,6 +98,11 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
 	}
 
+	_, err := sdk.AccAddressFromBech32(distrTo.String())
+	if err != nil {
+		return 0, err
+	}
+
 	stream := types.Stream{
 		Id:                   k.GetLastStreamID(ctx) + 1,
 		DistributeTo:         distrTo.String(),
@@ -113,7 +112,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 		NumEpochsPaidOver:    numEpochsPaidOver,
 	}
 
-	err := k.setStream(ctx, &stream)
+	err = k.setStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}

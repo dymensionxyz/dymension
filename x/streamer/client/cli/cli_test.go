@@ -13,12 +13,12 @@ import (
 
 var testAddresses = apptesting.CreateRandomAccounts(3)
 
-func TestGetCmdGauges(t *testing.T) {
-	desc, _ := cli.GetCmdGauges()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.GaugesRequest]{
+func TestGetCmdStreams(t *testing.T) {
+	desc, _ := cli.GetCmdStreams()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.StreamsRequest]{
 		"basic test": {
 			Cmd: "--offset=2",
-			ExpectedQuery: &types.GaugesRequest{
+			ExpectedQuery: &types.StreamsRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			},
 		},
@@ -36,34 +36,34 @@ func TestGetCmdToDistributeCoins(t *testing.T) {
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdGaugeByID(t *testing.T) {
-	desc, _ := cli.GetCmdGaugeByID()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.GaugeByIDRequest]{
+func TestGetCmdStreamByID(t *testing.T) {
+	desc, _ := cli.GetCmdStreamByID()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.StreamByIDRequest]{
 		"basic test": {
-			Cmd: "1", ExpectedQuery: &types.GaugeByIDRequest{Id: 1},
+			Cmd: "1", ExpectedQuery: &types.StreamByIDRequest{Id: 1},
 		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdActiveGauges(t *testing.T) {
-	desc, _ := cli.GetCmdActiveGauges()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.ActiveGaugesRequest]{
+func TestGetCmdActiveStreams(t *testing.T) {
+	desc, _ := cli.GetCmdActiveStreams()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.ActiveStreamsRequest]{
 		"basic test": {
 			Cmd: "--offset=2",
-			ExpectedQuery: &types.ActiveGaugesRequest{
+			ExpectedQuery: &types.ActiveStreamsRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			}},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdActiveGaugesPerDenom(t *testing.T) {
-	desc, _ := cli.GetCmdActiveGaugesPerDenom()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.ActiveGaugesPerDenomRequest]{
+func TestGetCmdActiveStreamsPerDenom(t *testing.T) {
+	desc, _ := cli.GetCmdActiveStreamsPerDenom()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.ActiveStreamsPerDenomRequest]{
 		"basic test": {
 			Cmd: "uosmo --offset=2",
-			ExpectedQuery: &types.ActiveGaugesPerDenomRequest{
+			ExpectedQuery: &types.ActiveStreamsPerDenomRequest{
 				Denom:      "uosmo",
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			}},
@@ -71,24 +71,24 @@ func TestGetCmdActiveGaugesPerDenom(t *testing.T) {
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdUpcomingGauges(t *testing.T) {
-	desc, _ := cli.GetCmdUpcomingGauges()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingGaugesRequest]{
+func TestGetCmdUpcomingStreams(t *testing.T) {
+	desc, _ := cli.GetCmdUpcomingStreams()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingStreamsRequest]{
 		"basic test": {
 			Cmd: "--offset=2",
-			ExpectedQuery: &types.UpcomingGaugesRequest{
+			ExpectedQuery: &types.UpcomingStreamsRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			}},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdUpcomingGaugesPerDenom(t *testing.T) {
-	desc, _ := cli.GetCmdUpcomingGaugesPerDenom()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingGaugesPerDenomRequest]{
+func TestGetCmdUpcomingStreamsPerDenom(t *testing.T) {
+	desc, _ := cli.GetCmdUpcomingStreamsPerDenom()
+	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingStreamsPerDenomRequest]{
 		"basic test": {
 			Cmd: "uosmo --offset=2",
-			ExpectedQuery: &types.UpcomingGaugesPerDenomRequest{
+			ExpectedQuery: &types.UpcomingStreamsPerDenomRequest{
 				Denom:      "uosmo",
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			}},
