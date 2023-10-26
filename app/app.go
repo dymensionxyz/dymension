@@ -143,27 +143,27 @@ import (
 
 	/* ----------------------------- osmosis imports ---------------------------- */
 
-	"github.com/dymensionxyz/dymension/x/epochs"
-	epochskeeper "github.com/dymensionxyz/dymension/x/epochs/keeper"
-	epochstypes "github.com/dymensionxyz/dymension/x/epochs/types"
-	"github.com/dymensionxyz/dymension/x/lockup"
-	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
-	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
+	"github.com/osmosis-labs/osmosis/v15/x/epochs"
+	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	"github.com/osmosis-labs/osmosis/v15/x/lockup"
+	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	"github.com/dymensionxyz/dymension/x/gamm"
-	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
-	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
-	incentives "github.com/dymensionxyz/dymension/x/incentives"
-	incentiveskeeper "github.com/dymensionxyz/dymension/x/incentives/keeper"
-	incentivestypes "github.com/dymensionxyz/dymension/x/incentives/types"
-	"github.com/dymensionxyz/dymension/x/poolmanager"
-	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
-	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
+	"github.com/osmosis-labs/osmosis/v15/x/gamm"
+	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	incentives "github.com/osmosis-labs/osmosis/v15/x/incentives"
+	incentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
+	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
+	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
+	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
-	poolincentives "github.com/dymensionxyz/dymension/x/pool-incentives"
-	poolincentivesclient "github.com/dymensionxyz/dymension/x/pool-incentives/client"
-	poolincentiveskeeper "github.com/dymensionxyz/dymension/x/pool-incentives/keeper"
-	poolincentivestypes "github.com/dymensionxyz/dymension/x/pool-incentives/types"
+	poolincentives "github.com/osmosis-labs/osmosis/v15/x/pool-incentives"
+	poolincentivesclient "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/client"
+	poolincentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/keeper"
+	poolincentivestypes "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/types"
 )
 
 var (
