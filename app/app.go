@@ -599,7 +599,7 @@ func New(
 	)
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
-	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper)
 
 	// ... other modules keepers

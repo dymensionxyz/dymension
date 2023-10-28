@@ -34,6 +34,12 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			k.SetStateInfo(ctx, stateInfo)
 			// uppdate the LatestStateInfoIndex of the rollapp
 			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+			// call the after-update-state hook
+			keeperHooks := k.GetHooks()
+			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+			if err != nil {
+				panic(err)
+			}
 
 			// emit event
 			ctx.EventManager().EmitEvent(
