@@ -82,13 +82,3 @@ func GetCmdUpcomingStreamsPerDenom() (*osmocli.QueryDescriptor, *types.UpcomingS
 		Short: "Query scheduled streams per denom",
 		Long:  `{{.Short}}`}, &types.UpcomingStreamsPerDenomRequest{}
 }
-
-func contains(s []uint64, value uint64) bool {
-	for _, v := range s {
-		if v == value {
-			return true
-		}
-	}
-
-	return false
-}

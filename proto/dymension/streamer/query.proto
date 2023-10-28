@@ -33,23 +33,10 @@ service Query {
   rpc ActiveStreams(ActiveStreamsRequest) returns (ActiveStreamsResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/streamer/active_streams";
   }
-  // ActiveStreamsPerDenom returns active streams by denom
-  rpc ActiveStreamsPerDenom(ActiveStreamsPerDenomRequest)
-      returns (ActiveStreamsPerDenomResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/active_streams_per_denom";
-  }
   // Returns scheduled streams that have not yet occured
   rpc UpcomingStreams(UpcomingStreamsRequest) returns (UpcomingStreamsResponse) {
     option (google.api.http).get =
         "/dymensionxyz/dymension/streamer/upcoming_streams";
-  }
-  // UpcomingStreamsPerDenom returns scheduled streams that have not yet occured
-  // by denom
-  rpc UpcomingStreamsPerDenom(UpcomingStreamsPerDenomRequest)
-      returns (UpcomingStreamsPerDenomResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/streamer/upcoming_streams_per_denom";
   }
 }
 

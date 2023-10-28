@@ -9,7 +9,6 @@ import (
 
 	"testing"
 
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/suite"
 
 	keeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
@@ -22,17 +21,13 @@ var (
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper
-
-	moduleAddress sdk.AccAddress
-
 	querier keeper.Querier
 }
 
 // SetupTest sets streamer parameters from the suite's context
 func (suite *KeeperTestSuite) SetupTest() {
 	suite.Setup()
-	suite.moduleAddress = authtypes.NewModuleAddress(types.ModuleName)
-	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
+	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500000)), sdk.NewCoin("udym", sdk.NewInt(2500000)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
 }
@@ -51,15 +46,15 @@ func (suite *KeeperTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coi
 }
 
 func (suite *KeeperTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
-	return suite.CreateStream(defaultDestAddr, coins, time.Time{}, "day", 30)
+	return suite.CreateStream(defaultDestAddr, coins, time.Now().Add(-1*time.Minute), "day", 30)
 }
 
-func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, coins sdk.Coins) types.Stream {
+func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, starttime time.Time, coins sdk.Coins) types.Stream {
 	return types.Stream{
 		Id:                   streamID,
 		DistributeTo:         defaultDestAddr.String(),
 		Coins:                coins,
-		StartTime:            time.Time{},
+		StartTime:            starttime,
 		DistrEpochIdentifier: "day",
 		NumEpochsPaidOver:    30,
 		FilledEpochs:         0,

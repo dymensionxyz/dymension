@@ -85,7 +85,6 @@ func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error
 
 // CreateStream creates a stream and sends coins to the stream.
 func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAddress, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
-	// 	//TODO: validate having supply
 	for _, coin := range coins {
 		currentSupply := k.bk.GetBalance(ctx, authtypes.NewModuleAddress(types.ModuleName), coin.Denom)
 		//FIXME: subtract existing streams from current supply
@@ -96,6 +95,10 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 
 	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {
 		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
+	}
+
+	if numEpochsPaidOver <= 0 {
+		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
 
 	_, err := sdk.AccAddressFromBech32(distrTo.String())

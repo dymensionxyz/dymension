@@ -117,7 +117,7 @@ func (k Keeper) distributeInternal(
 			sdk.NewAttribute(types.AttributeAmount, totalDistrCoins.String()),
 		),
 	})
-	return nil, nil
+	return totalDistrCoins, nil
 }
 
 // updateStreamPostDistribute increments the stream's filled epochs field.

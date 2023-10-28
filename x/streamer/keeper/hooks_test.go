@@ -22,55 +22,99 @@ var (
 )
 
 func (suite *KeeperTestSuite) TestHookOperation() {
-	// test for module get streams
 	suite.SetupTest()
 
 	// initial module streams check
 	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
 	suite.Require().Len(streams, 0)
 
-	// setup stream
-	coins := sdk.Coins{sdk.NewInt64Coin("stake", 12)}
-	streamID, _ := suite.CreateDefaultStream(coins)
-	var expectedNumEpochsPaidOver int = 30
+	// setup streams
 
-	//FIXME: another stream with 2 epochs
-	//FIXME: stream with differnt epoch identifeir
+	//daily stream, 30 epochs
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 30000)}
+	_, _ = suite.CreateDefaultStream(coins)
+
+	//daily stream, 2 epochs
+	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
+	_, _ = suite.CreateStream(defaultDestAddr, coins2, time.Now(), "day", 2)
+
+	//weekly stream
+	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
+	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now(), "week", 5)
+
+	//future stream - non-active
+	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now().Add(10*time.Minute), "day", 5)
 
 	// check streams
 	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
-	suite.Require().Len(streams, 1)
-	expectedStream := defaultExpectedStream
-	expectedStream.Id = streamID
-	expectedStream.Coins = coins
-	suite.Require().Equal(expectedStream.String(), streams[0].String())
+	suite.Require().Len(streams, 4)
 
 	// check upcoming streams
 	streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
-	suite.Require().Len(streams, 1)
+	suite.Require().Len(streams, 4)
 
-	// start distribution
-	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
-	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
+	// check active streams
+	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
+	suite.Require().Len(streams, 0)
+
+	/* ----------- call the epoch hook with month (no stream related) ----------- */
+	ctx := suite.Ctx.WithBlockTime(time.Now())
+	err := suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "month", 0)
 	suite.Require().NoError(err)
-	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
+
+	// check active streams - none is active
+	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
+	suite.Require().Len(streams, 0)
+
+	/* --------- call the epoch hook with day (2 active and one future) --------- */
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
 	suite.Require().NoError(err)
 
 	// check active streams
 	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
-	suite.Require().Len(streams, 1)
+	suite.Require().Len(streams, 2)
 
 	// check upcoming streams
 	streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
-	suite.Require().Len(streams, 0)
+	suite.Require().Len(streams, 2)
 
-	// distribute coins to stakers
-	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, []types.Stream{*stream})
+	// check distribution
+	balance := suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
+	suite.Require().Equal(sdk.NewInt64Coin("stake", 2000), balance)
+
+	/* ------------------------- call weekly epoch hook ------------------------- */
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "week", 0)
 	suite.Require().NoError(err)
-	// We hardcoded 12 "stake" tokens when initializing stream
-	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", int64(12/expectedNumEpochsPaidOver))}, distrCoins)
 
-	//TODO: start epoch hook, check for activeness and distribution
-	// check 2 stream distibuted, and one not
-	//check 2nd stream finished after few eopchs
+	// check active streams
+	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
+	suite.Require().Len(streams, 3)
+
+	// check upcoming streams
+	streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
+
+	// check distribution
+	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
+	suite.Require().Equal(sdk.NewInt64Coin("stake", 3000), balance)
+
+	/* ------- call daily epoch hook again, check both stream distirubute ------- */
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
+	suite.Require().NoError(err)
+
+	// check distribution
+	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
+	suite.Require().Equal(sdk.NewInt64Coin("stake", 5000), balance)
+
+	/* ------- call daily epoch hook again, check both stream distirubute ------- */
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
+	suite.Require().NoError(err)
+
+	//check finisihed stream
+	streams = suite.App.StreamerKeeper.GetFinishedStreams(suite.Ctx)
+	suite.Require().Len(streams, 1)
+
+	// check distribution
+	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
+	suite.Require().Equal(sdk.NewInt64Coin("stake", 6000), balance)
 }

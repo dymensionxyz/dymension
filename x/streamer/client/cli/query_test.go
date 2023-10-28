@@ -9,10 +9,12 @@ import (
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+var (
+	defaultDestAddr sdk.AccAddress = sdk.AccAddress([]byte("addr1---------------"))
 )
 
 type QueryTestSuite struct {
@@ -20,27 +22,24 @@ type QueryTestSuite struct {
 	queryClient types.QueryClient
 }
 
-func (s *QueryTestSuite) SetupSuite() {
-	s.Setup()
-	s.queryClient = types.NewQueryClient(s.QueryHelper)
+// CreateStream creates a stream struct given the required params.
+func (suite *QueryTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
+	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch)
+	suite.Require().NoError(err)
+	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
+	suite.Require().NoError(err)
+	return streamID, stream
+}
 
-	// create a stream
-	_, err := s.App.StreamerKeeper.CreateStream(
-		s.Ctx,
-		true,
-		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
-		sdk.Coins{},
-		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         gammtypes.GetPoolShareDenom(poolID),
-			Duration:      time.Hour,
-			Timestamp:     time.Time{},
-		},
-		s.Ctx.BlockTime(),
-		1,
-	)
-	s.NoError(err)
-	s.Commit()
+func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
+	return suite.CreateStream(defaultDestAddr, coins, time.Now(), "day", 30)
+}
+
+func (suite *QueryTestSuite) SetupSuite() {
+	suite.Setup()
+	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
+	suite.FundModuleAcc(types.ModuleName, streamerCoins)
+	suite.queryClient = types.NewQueryClient(suite.QueryHelper)
 }
 
 func (s *QueryTestSuite) TestQueriesNeverAlterState() {
@@ -52,57 +51,33 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	}{
 		{
 			"Query active streams",
-			"/osmosis.incentives.Query/ActiveStreams",
+			"/dymensionxyz.dymension.streamer.Query/ActiveStreams",
 			&types.ActiveStreamsRequest{},
 			&types.ActiveStreamsResponse{},
 		},
 		{
-			"Query active streams per denom",
-			"/osmosis.incentives.Query/ActiveStreamsPerDenom",
-			&types.ActiveStreamsPerDenomRequest{Denom: "stake"},
-			&types.ActiveStreamsPerDenomResponse{},
-		},
-		{
 			"Query stream by id",
-			"/osmosis.incentives.Query/StreamByID",
+			"/dymensionxyz.dymension.streamer.Query/StreamByID",
 			&types.StreamByIDRequest{Id: 1},
 			&types.StreamByIDResponse{},
 		},
 		{
 			"Query all streams",
-			"/osmosis.incentives.Query/Streams",
+			"/dymensionxyz.dymension.streamer.Query/Streams",
 			&types.StreamsRequest{},
 			&types.StreamsResponse{},
 		},
 		{
-			"Query lockable durations",
-			"/osmosis.incentives.Query/LockableDurations",
-			&types.QueryLockableDurationsRequest{},
-			&types.QueryLockableDurationsResponse{},
-		},
-		{
 			"Query module to distibute coins",
-			"/osmosis.incentives.Query/ModuleToDistributeCoins",
+			"/dymensionxyz.dymension.streamer.Query/ModuleToDistributeCoins",
 			&types.ModuleToDistributeCoinsRequest{},
 			&types.ModuleToDistributeCoinsResponse{},
 		},
 		{
-			"Query reward estimate",
-			"/osmosis.incentives.Query/RewardsEst",
-			&types.RewardsEstRequest{Owner: s.TestAccs[0].String()},
-			&types.RewardsEstResponse{},
-		},
-		{
 			"Query upcoming streams",
-			"/osmosis.incentives.Query/UpcomingStreams",
+			"/dymensionxyz.dymension.streamer.Query/UpcomingStreams",
 			&types.UpcomingStreamsRequest{},
 			&types.UpcomingStreamsResponse{},
-		},
-		{
-			"Query upcoming streams",
-			"/osmosis.incentives.Query/UpcomingStreamsPerDenom",
-			&types.UpcomingStreamsPerDenomRequest{Denom: "stake"},
-			&types.UpcomingStreamsPerDenomResponse{},
 		},
 	}
 
@@ -111,6 +86,7 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 
 		s.Run(tc.name, func() {
 			s.SetupSuite()
+			s.CreateDefaultStream(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500))))
 			err := s.QueryHelper.Invoke(gocontext.Background(), tc.query, tc.input, tc.output)
 			s.Require().NoError(err)
 			s.StateNotAltered()

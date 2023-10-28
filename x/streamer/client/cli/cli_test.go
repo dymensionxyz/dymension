@@ -7,11 +7,8 @@ import (
 
 	cli "github.com/dymensionxyz/dymension/x/streamer/client/cli"
 	"github.com/dymensionxyz/dymension/x/streamer/types"
-	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
-
-var testAddresses = apptesting.CreateRandomAccounts(3)
 
 func TestGetCmdStreams(t *testing.T) {
 	desc, _ := cli.GetCmdStreams()

@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		var destAddrsExpectedRewards = make(map[string]sdk.Coins)
 		for _, stream := range tc.streams {
 			// create a stream
-			_, newstream := suite.CreateStream(stream.destAddr, stream.coins, time.Time{}, "day", stream.numOfEpochs)
+			_, newstream := suite.CreateStream(stream.destAddr, stream.coins, time.Now(), "day", stream.numOfEpochs)
 			streams = append(streams, *newstream)
 
 			// calculate expected rewards
@@ -98,7 +98,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	suite.Require().Equal(coins, sdk.Coins(nil))
 
 	// setup a non perpetual lock and stream
-	streamCoins := sdk.Coins{sdk.NewInt64Coin("stake", 100)}
+	streamCoins := sdk.Coins{sdk.NewInt64Coin("stake", 600000)}
 	_, _ = suite.CreateDefaultStream(streamCoins)
 
 	// check that the sum of coins yet to be distributed is equal to the newly created streamCoins
@@ -108,8 +108,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	// create a new stream
 	// check that the sum of coins yet to be distributed is equal to the stream1 and stream2 coins combined
 
-	streamCoins2 := sdk.Coins{sdk.NewInt64Coin("udym", 300)}
-	suite.FundModuleAcc(types.ModuleName, streamCoins2)
+	streamCoins2 := sdk.Coins{sdk.NewInt64Coin("udym", 300000)}
 	_, _ = suite.CreateDefaultStream(streamCoins2)
 
 	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -126,7 +125,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	// distribute coins to stakers
 	distrCoins, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins{sdk.NewInt64Coin("stake", 105)})
+	suite.Require().Equal(sdk.Coins{sdk.NewInt64Coin("stake", 20000), sdk.NewInt64Coin("udym", 10000)}, distrCoins)
 
 	// check stream changes after distribution
 	coins = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)

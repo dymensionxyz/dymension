@@ -52,7 +52,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	tests := []struct {
 		name              string
 		coins             sdk.Coins
-		distrTo           string
+		distrTo           sdk.AccAddress
 		epochIdentifier   string
 		numEpochsPaidOver uint64
 		expectErr         bool
@@ -60,7 +60,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "happy flow",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo:           defaultDestAddr.String(),
+			distrTo:           defaultDestAddr,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
 			expectErr:         false,
@@ -68,7 +68,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "non existing denom",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udasdas", 10)},
-			distrTo:           defaultDestAddr.String(),
+			distrTo:           defaultDestAddr,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
 			expectErr:         true,
@@ -76,7 +76,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "bad destination addr",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo:           "dasdasdasdasda",
+			distrTo:           sdk.AccAddress("dasdasdasdasda"),
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
 			expectErr:         true,
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "bad epoch identifier",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo:           defaultDestAddr.String(),
+			distrTo:           defaultDestAddr,
 			epochIdentifier:   "thththt",
 			numEpochsPaidOver: 30,
 			expectErr:         true,
@@ -92,7 +92,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "bad num of epochs",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo:           defaultDestAddr.String(),
+			distrTo:           defaultDestAddr,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 0,
 			expectErr:         true,
@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 
 	for _, tc := range tests {
 		suite.SetupTest()
-		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, defaultDestAddr, time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver)
+		_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, tc.coins, sdk.AccAddress(tc.distrTo), time.Time{}, tc.epochIdentifier, tc.numEpochsPaidOver)
 		if tc.expectErr {
 			suite.Require().Error(err, tc.name)
 		} else {
