@@ -147,22 +147,27 @@ import (
 
 	/* ----------------------------- osmosis imports ---------------------------- */
 
-	"github.com/dymensionxyz/dymension/x/epochs"
-	epochskeeper "github.com/dymensionxyz/dymension/x/epochs/keeper"
-	epochstypes "github.com/dymensionxyz/dymension/x/epochs/types"
-	"github.com/dymensionxyz/dymension/x/lockup"
-	lockupkeeper "github.com/dymensionxyz/dymension/x/lockup/keeper"
-	lockuptypes "github.com/dymensionxyz/dymension/x/lockup/types"
+	"github.com/osmosis-labs/osmosis/v15/x/epochs"
+	epochskeeper "github.com/osmosis-labs/osmosis/v15/x/epochs/keeper"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	"github.com/osmosis-labs/osmosis/v15/x/lockup"
+	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
-	"github.com/dymensionxyz/dymension/x/gamm"
-	gammkeeper "github.com/dymensionxyz/dymension/x/gamm/keeper"
-	gammtypes "github.com/dymensionxyz/dymension/x/gamm/types"
-	incentives "github.com/dymensionxyz/dymension/x/incentives"
-	incentiveskeeper "github.com/dymensionxyz/dymension/x/incentives/keeper"
-	incentivestypes "github.com/dymensionxyz/dymension/x/incentives/types"
-	"github.com/dymensionxyz/dymension/x/poolmanager"
-	poolmanagerkeeper "github.com/dymensionxyz/dymension/x/poolmanager/keeper"
-	poolmanagertypes "github.com/dymensionxyz/dymension/x/poolmanager/types"
+	"github.com/osmosis-labs/osmosis/v15/x/gamm"
+	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	incentives "github.com/osmosis-labs/osmosis/v15/x/incentives"
+	incentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
+	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
+	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
+	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+
+	poolincentives "github.com/osmosis-labs/osmosis/v15/x/pool-incentives"
+	poolincentivesclient "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/client"
+	poolincentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/keeper"
+	poolincentivestypes "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/types"
 )
 
 var (
@@ -184,7 +189,9 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
-		// this line is used by starport scaffolding # stargate/app/govProposalHandler
+
+		poolincentivesclient.UpdatePoolIncentivesHandler,
+		poolincentivesclient.ReplacePoolIncentivesHandler,
 	)
 
 	return govProposalHandlers
@@ -236,6 +243,7 @@ var (
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
+		poolincentives.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -250,10 +258,11 @@ var (
 		sequencermoduletypes.ModuleName: {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		poolincentivestypes.ModuleName: nil,
 	}
 )
 
@@ -324,11 +333,12 @@ type App struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// Osmostis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
+	GAMMKeeper           *gammkeeper.Keeper
+	PoolManagerKeeper    *poolmanagerkeeper.Keeper
+	LockupKeeper         *lockupkeeper.Keeper
+	EpochsKeeper         *epochskeeper.Keeper
+	IncentivesKeeper     *incentiveskeeper.Keeper
+	PoolIncentivesKeeper *poolincentiveskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -403,6 +413,7 @@ func New(
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
+		poolincentivestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -547,10 +558,22 @@ func New(
 		nil,
 	)
 
+	poolIncentivesKeeper := poolincentiveskeeper.NewKeeper(
+		app.keys[poolincentivestypes.StoreKey],
+		app.GetSubspace(poolincentivestypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IncentivesKeeper,
+		app.DistrKeeper,
+		app.PoolManagerKeeper,
+	)
+	app.PoolIncentivesKeeper = &poolIncentivesKeeper
+
 	// Set hooks
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
-		// insert gamm hooks receivers here
+			// insert gamm hooks receivers here
+			app.PoolIncentivesKeeper.Hooks(),
 		),
 	)
 
@@ -623,7 +646,8 @@ func New(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
+		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -731,6 +755,7 @@ func New(
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
+		poolincentives.NewAppModule(*app.PoolIncentivesKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -769,6 +794,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -803,6 +829,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		poolincentivestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -843,6 +870,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -953,6 +981,8 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
+	//exclude the pool incentives module
+	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -1098,6 +1128,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
+	paramsKeeper.Subspace(poolincentivestypes.ModuleName)
 
 	return paramsKeeper
 }
