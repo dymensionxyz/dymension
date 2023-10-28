@@ -23,6 +23,8 @@ message RollappPacket {
     REJECTED = 2;
   }
   Status status = 2;
-  string error = 3;
+  uint64 ProofHeight = 3;
+  string error = 4;
+  bytes relayer = 5;
 
 }
