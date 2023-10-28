@@ -8,7 +8,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/dymension/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
 	"github.com/stretchr/testify/require"
@@ -16,6 +21,56 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 )
+
+type ChannelKeeperStub struct{}
+
+func (ChannelKeeperStub) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
+	return "", nil, nil
+}
+
+func (ChannelKeeperStub) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
+	return channeltypes.Channel{}, false
+}
+
+type ICS4WrapperStub struct{}
+
+func (ICS4WrapperStub) SendPacket(ctx sdk.Context, chanCap *capabilitytypes.Capability, sourcePort string, sourceChannel string, timeoutHeight clienttypes.Height, timeoutTimestamp uint64, data []byte) (sequence uint64, err error) {
+	return 0, nil
+}
+
+func (ICS4WrapperStub) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.Capability, packet exported.PacketI, ack exported.Acknowledgement) error {
+	return nil
+}
+
+func (ICS4WrapperStub) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
+	return "", true
+}
+
+type ClientKeeperStub struct{}
+
+func (ClientKeeperStub) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	return nil, false
+}
+
+func (ClientKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
+	return connectiontypes.ConnectionEnd{}, false
+}
+
+type ConnectionKeeperStub struct{}
+
+func (ConnectionKeeperStub) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
+	return nil, false
+}
+
+func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
+	return connectiontypes.ConnectionEnd{}, false
+}
+
+type RollappKeeperStub struct{}
+
+func (RollappKeeperStub) ExtractRollappIDFromChannel(ctx sdk.Context, destinationPort string, destinationChannel string) (string, error) {
+	return "", nil
+}
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
@@ -41,6 +96,11 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
+		RollappKeeperStub{},
+		ICS4WrapperStub{},
+		ChannelKeeperStub{},
+		ClientKeeperStub{},
+		ConnectionKeeperStub{},
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())

@@ -14,10 +14,11 @@ const (
 	RollappPacketKeyPrefix = "RollappPacket/value/"
 )
 
-// StateInfoKey returns the store key to retrieve a StateInfo from the index fields
-func RollappPacketKey(
+// GetRollappPacketKey constructs a key for a specific RollappPacket
+func GetRollappPacketKey(
 	rollappId string,
-	packetHeight int64,
+	status RollappPacket_Status,
+	packetProofHeight uint64,
 	IBCPacket channeltypes.Packet,
 ) []byte {
 	var key []byte
@@ -26,11 +27,20 @@ func RollappPacketKey(
 	key = append(key, rollappIdBytes...)
 	key = append(key, []byte("/")...)
 
-	packetHeightBytes := []byte(fmt.Sprint(packetHeight))
+	statusBytes := []byte(fmt.Sprint(status))
+	key = append(key, statusBytes...)
+	key = append(key, []byte("/")...)
+
+	// %020d formats the integer with leading zeros, up to a width of 20 digits.
+	// This is done in order to easily iterate over the keys in order.
+	// This width is chosen to accommodate the range of uint64 which can be up to 20 digits long
+	// The leading zero is not limited to one, it will add as many zeros as needed to reach the width of 20 digits
+	// For example, the number 342234 will be formatted as 00000000000000342234
+	packetHeightBytes := []byte(fmt.Sprintf("%020d", packetProofHeight))
 	key = append(key, packetHeightBytes...)
 	key = append(key, []byte("/")...)
 
-	packetUID := IBCPacket.SourceChannel + "-" + IBCPacket.DestinationChannel + "-" + fmt.Sprint(IBCPacket.Sequence)
+	packetUID := IBCPacket.DestinationChannel + "-" + fmt.Sprint(IBCPacket.Sequence)
 	packetUIDBytes := []byte(packetUID)
 	key = append(key, packetUIDBytes...)
 	key = append(key, []byte("/")...)

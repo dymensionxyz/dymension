@@ -38,7 +38,7 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 			keeperHooks := k.GetHooks()
 			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 			if err != nil {
-				panic(err)
+				ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
 			}
 
 			// emit event

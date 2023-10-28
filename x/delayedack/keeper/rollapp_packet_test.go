@@ -14,7 +14,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 	rollappID := "testRollappID"
 
 	// Create and set some RollappPackets
-	for i := 0; i < 5; i++ {
+	for i := 1; i < 6; i++ {
 		packet := types.RollappPacket{
 			Packet: &channeltypes.Packet{
 				SourcePort:         "testSourcePort",
@@ -24,18 +24,22 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 				Data:               []byte("testData"),
 				Sequence:           uint64(i),
 			},
-			Status: types.RollappPacket_PENDING,
+			Status:      types.RollappPacket_PENDING,
+			ProofHeight: uint64(i * 2),
 		}
-		// Set the context BlockHeight
-		ctx = ctx.WithBlockHeight(int64(i%2) + 1) // This should create 3 packets with height 1 and 2 packets with sequence 2
 		keeper.SetRollappPacket(ctx, rollappID, packet)
 	}
 
-	// Get the packets with height 1
-	packets := keeper.ListRollappPacketsForRollappAtHeight(ctx, rollappID, 1)
+	// Get the packets until height 6
+	packets := keeper.ListRollappPendingPackets(ctx, rollappID, 6)
 	require.Equal(t, 3, len(packets))
 
-	// Get the packets with height 2
-	packets = keeper.ListRollappPacketsForRollappAtHeight(ctx, rollappID, 2)
+	// Update the packet status to approve
+	for _, packet := range packets {
+		keeper.UpdateRollappPacketStatus(ctx, rollappID, packet, types.RollappPacket_ACCEPTED)
+	}
+
+	// Get the packets until height 14
+	packets = keeper.ListRollappPendingPackets(ctx, rollappID, 14)
 	require.Equal(t, 2, len(packets))
 }
