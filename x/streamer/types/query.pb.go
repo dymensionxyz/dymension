@@ -402,114 +402,6 @@ func (m *ActiveStreamsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-type ActiveStreamsPerDenomRequest struct {
-	// Desired denom when querying active gagues
-	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// Pagination defines pagination for the request
-	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *ActiveStreamsPerDenomRequest) Reset()         { *m = ActiveStreamsPerDenomRequest{} }
-func (m *ActiveStreamsPerDenomRequest) String() string { return proto.CompactTextString(m) }
-func (*ActiveStreamsPerDenomRequest) ProtoMessage()    {}
-func (*ActiveStreamsPerDenomRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{8}
-}
-func (m *ActiveStreamsPerDenomRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ActiveStreamsPerDenomRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ActiveStreamsPerDenomRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ActiveStreamsPerDenomRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActiveStreamsPerDenomRequest.Merge(m, src)
-}
-func (m *ActiveStreamsPerDenomRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *ActiveStreamsPerDenomRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActiveStreamsPerDenomRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActiveStreamsPerDenomRequest proto.InternalMessageInfo
-
-func (m *ActiveStreamsPerDenomRequest) GetDenom() string {
-	if m != nil {
-		return m.Denom
-	}
-	return ""
-}
-
-func (m *ActiveStreamsPerDenomRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type ActiveStreamsPerDenomResponse struct {
-	// Active gagues that match denom in query
-	Data []Stream `protobuf:"bytes,1,rep,name=data,proto3" json:"data"`
-	// Pagination defines pagination for the response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *ActiveStreamsPerDenomResponse) Reset()         { *m = ActiveStreamsPerDenomResponse{} }
-func (m *ActiveStreamsPerDenomResponse) String() string { return proto.CompactTextString(m) }
-func (*ActiveStreamsPerDenomResponse) ProtoMessage()    {}
-func (*ActiveStreamsPerDenomResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{9}
-}
-func (m *ActiveStreamsPerDenomResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ActiveStreamsPerDenomResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ActiveStreamsPerDenomResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ActiveStreamsPerDenomResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ActiveStreamsPerDenomResponse.Merge(m, src)
-}
-func (m *ActiveStreamsPerDenomResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *ActiveStreamsPerDenomResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ActiveStreamsPerDenomResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ActiveStreamsPerDenomResponse proto.InternalMessageInfo
-
-func (m *ActiveStreamsPerDenomResponse) GetData() []Stream {
-	if m != nil {
-		return m.Data
-	}
-	return nil
-}
-
-func (m *ActiveStreamsPerDenomResponse) GetPagination() *query.PageResponse {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
 type UpcomingStreamsRequest struct {
 	// Pagination defines pagination for the request
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
@@ -519,7 +411,7 @@ func (m *UpcomingStreamsRequest) Reset()         { *m = UpcomingStreamsRequest{}
 func (m *UpcomingStreamsRequest) String() string { return proto.CompactTextString(m) }
 func (*UpcomingStreamsRequest) ProtoMessage()    {}
 func (*UpcomingStreamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{10}
+	return fileDescriptor_c9c3279da5f3c595, []int{8}
 }
 func (m *UpcomingStreamsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -566,7 +458,7 @@ func (m *UpcomingStreamsResponse) Reset()         { *m = UpcomingStreamsResponse
 func (m *UpcomingStreamsResponse) String() string { return proto.CompactTextString(m) }
 func (*UpcomingStreamsResponse) ProtoMessage()    {}
 func (*UpcomingStreamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{11}
+	return fileDescriptor_c9c3279da5f3c595, []int{9}
 }
 func (m *UpcomingStreamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -609,114 +501,6 @@ func (m *UpcomingStreamsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-type UpcomingStreamsPerDenomRequest struct {
-	// Filter for upcoming gagues that match specific denom
-	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// Pagination defines pagination for the request
-	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *UpcomingStreamsPerDenomRequest) Reset()         { *m = UpcomingStreamsPerDenomRequest{} }
-func (m *UpcomingStreamsPerDenomRequest) String() string { return proto.CompactTextString(m) }
-func (*UpcomingStreamsPerDenomRequest) ProtoMessage()    {}
-func (*UpcomingStreamsPerDenomRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{12}
-}
-func (m *UpcomingStreamsPerDenomRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *UpcomingStreamsPerDenomRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_UpcomingStreamsPerDenomRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *UpcomingStreamsPerDenomRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpcomingStreamsPerDenomRequest.Merge(m, src)
-}
-func (m *UpcomingStreamsPerDenomRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *UpcomingStreamsPerDenomRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpcomingStreamsPerDenomRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpcomingStreamsPerDenomRequest proto.InternalMessageInfo
-
-func (m *UpcomingStreamsPerDenomRequest) GetDenom() string {
-	if m != nil {
-		return m.Denom
-	}
-	return ""
-}
-
-func (m *UpcomingStreamsPerDenomRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type UpcomingStreamsPerDenomResponse struct {
-	// Upcoming gagues that match denom in query
-	UpcomingStreams []Stream `protobuf:"bytes,1,rep,name=upcoming_streams,json=upcomingStreams,proto3" json:"upcoming_streams"`
-	// Pagination defines pagination for the response
-	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *UpcomingStreamsPerDenomResponse) Reset()         { *m = UpcomingStreamsPerDenomResponse{} }
-func (m *UpcomingStreamsPerDenomResponse) String() string { return proto.CompactTextString(m) }
-func (*UpcomingStreamsPerDenomResponse) ProtoMessage()    {}
-func (*UpcomingStreamsPerDenomResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c9c3279da5f3c595, []int{13}
-}
-func (m *UpcomingStreamsPerDenomResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *UpcomingStreamsPerDenomResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_UpcomingStreamsPerDenomResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *UpcomingStreamsPerDenomResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpcomingStreamsPerDenomResponse.Merge(m, src)
-}
-func (m *UpcomingStreamsPerDenomResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *UpcomingStreamsPerDenomResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpcomingStreamsPerDenomResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpcomingStreamsPerDenomResponse proto.InternalMessageInfo
-
-func (m *UpcomingStreamsPerDenomResponse) GetUpcomingStreams() []Stream {
-	if m != nil {
-		return m.UpcomingStreams
-	}
-	return nil
-}
-
-func (m *UpcomingStreamsPerDenomResponse) GetPagination() *query.PageResponse {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
 func init() {
 	proto.RegisterType((*ModuleToDistributeCoinsRequest)(nil), "dymensionxyz.dymension.streamer.ModuleToDistributeCoinsRequest")
 	proto.RegisterType((*ModuleToDistributeCoinsResponse)(nil), "dymensionxyz.dymension.streamer.ModuleToDistributeCoinsResponse")
@@ -726,71 +510,58 @@ func init() {
 	proto.RegisterType((*StreamsResponse)(nil), "dymensionxyz.dymension.streamer.StreamsResponse")
 	proto.RegisterType((*ActiveStreamsRequest)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsRequest")
 	proto.RegisterType((*ActiveStreamsResponse)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsResponse")
-	proto.RegisterType((*ActiveStreamsPerDenomRequest)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsPerDenomRequest")
-	proto.RegisterType((*ActiveStreamsPerDenomResponse)(nil), "dymensionxyz.dymension.streamer.ActiveStreamsPerDenomResponse")
 	proto.RegisterType((*UpcomingStreamsRequest)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsRequest")
 	proto.RegisterType((*UpcomingStreamsResponse)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsResponse")
-	proto.RegisterType((*UpcomingStreamsPerDenomRequest)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsPerDenomRequest")
-	proto.RegisterType((*UpcomingStreamsPerDenomResponse)(nil), "dymensionxyz.dymension.streamer.UpcomingStreamsPerDenomResponse")
 }
 
 func init() { proto.RegisterFile("dymension/streamer/query.proto", fileDescriptor_c9c3279da5f3c595) }
 
 var fileDescriptor_c9c3279da5f3c595 = []byte{
-	// 833 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x97, 0x4d, 0x4f, 0x1b, 0x47,
-	0x18, 0xc7, 0x3d, 0x2e, 0x50, 0xf5, 0x41, 0x85, 0x76, 0x44, 0x0b, 0xb5, 0xe8, 0x1a, 0xb9, 0x52,
-	0x6b, 0x21, 0x75, 0x07, 0x9b, 0xb6, 0x94, 0x22, 0x4a, 0x31, 0xa8, 0x55, 0xa5, 0x56, 0xa2, 0x6e,
-	0x91, 0x50, 0x0f, 0xd9, 0xac, 0xbd, 0x93, 0xcd, 0x2a, 0x78, 0xc7, 0xec, 0xec, 0x22, 0x9c, 0xb7,
-	0x43, 0x94, 0x0f, 0x10, 0x29, 0xe7, 0xe4, 0x12, 0xe5, 0x92, 0x9c, 0x72, 0xca, 0x31, 0x97, 0x1c,
-	0x38, 0x22, 0xe5, 0x92, 0x5c, 0xf2, 0x02, 0xf9, 0x18, 0x39, 0x44, 0x9e, 0x99, 0xf5, 0xcb, 0xc6,
-	0x66, 0x6d, 0x2b, 0x44, 0x9c, 0xd8, 0x61, 0x9e, 0x97, 0xdf, 0xf3, 0x9f, 0xd9, 0xe7, 0x59, 0x83,
-	0x66, 0xd5, 0x2a, 0xd4, 0xe5, 0x0e, 0x73, 0x09, 0xf7, 0x3d, 0x6a, 0x56, 0xa8, 0x47, 0x76, 0x02,
-	0xea, 0xd5, 0xf4, 0xaa, 0xc7, 0x7c, 0x86, 0xd3, 0x8d, 0xfd, 0xbd, 0xda, 0x45, 0xbd, 0xb1, 0xd0,
-	0x43, 0xe3, 0xd4, 0x84, 0xcd, 0x6c, 0x26, 0x6c, 0x49, 0xfd, 0x49, 0xba, 0xa5, 0xa6, 0x6d, 0xc6,
-	0xec, 0x6d, 0x4a, 0xcc, 0xaa, 0x43, 0x4c, 0xd7, 0x65, 0xbe, 0xe9, 0x3b, 0xcc, 0xe5, 0x6a, 0x57,
-	0x53, 0xbb, 0x62, 0x55, 0x0a, 0xce, 0x11, 0x2b, 0xf0, 0x84, 0x41, 0xb8, 0x5f, 0x66, 0xbc, 0xc2,
-	0x38, 0x29, 0x99, 0x9c, 0x92, 0xdd, 0x5c, 0x89, 0xfa, 0x66, 0x8e, 0x94, 0x99, 0x13, 0xee, 0xcf,
-	0xb6, 0xee, 0x0b, 0xda, 0x86, 0x55, 0xd5, 0xb4, 0x1d, 0xb7, 0x35, 0x56, 0xba, 0x43, 0x81, 0xf2,
-	0x41, 0x1a, 0x64, 0x66, 0x40, 0xfb, 0x9b, 0x59, 0xc1, 0x36, 0xfd, 0x8f, 0xad, 0x3b, 0xdc, 0xf7,
-	0x9c, 0x52, 0xe0, 0xd3, 0x35, 0xe6, 0xb8, 0xbc, 0x48, 0x77, 0x02, 0xca, 0xfd, 0xcc, 0x75, 0x04,
-	0xe9, 0xae, 0x26, 0xbc, 0xca, 0x5c, 0x4e, 0xb1, 0x09, 0xc3, 0x75, 0x40, 0x3e, 0x85, 0x66, 0x3e,
-	0xca, 0x8e, 0xe6, 0xbf, 0xd2, 0x25, 0xa2, 0x5e, 0x47, 0xd4, 0x15, 0x9c, 0x5e, 0x77, 0x29, 0xcc,
-	0xed, 0x3f, 0x4f, 0x27, 0xee, 0xbd, 0x48, 0x67, 0x6d, 0xc7, 0x3f, 0x1f, 0x94, 0xf4, 0x32, 0xab,
-	0x10, 0x55, 0x8f, 0xfc, 0xf3, 0x3d, 0xb7, 0x2e, 0x10, 0xbf, 0x56, 0xa5, 0x5c, 0x97, 0x39, 0x64,
-	0xe4, 0xcc, 0x37, 0xf0, 0xf9, 0xbf, 0x02, 0xbc, 0x50, 0xfb, 0x73, 0x5d, 0xb1, 0xe1, 0x31, 0x48,
-	0x3a, 0xd6, 0x14, 0x9a, 0x41, 0xd9, 0xa1, 0x62, 0xd2, 0xb1, 0x32, 0x9b, 0x80, 0x5b, 0x8d, 0x14,
-	0xdd, 0x0a, 0x8c, 0xc8, 0x9a, 0x85, 0xe5, 0x68, 0xfe, 0x3b, 0x3d, 0xe6, 0x58, 0x75, 0x19, 0xa4,
-	0xa8, 0xdc, 0x32, 0x5b, 0x30, 0x26, 0xff, 0x13, 0x8a, 0x82, 0x7f, 0x07, 0x68, 0x6a, 0xad, 0xc2,
-	0x7e, 0xdb, 0x56, 0xb5, 0xbc, 0x46, 0x61, 0xed, 0x1b, 0xa6, 0x4d, 0x95, 0x6f, 0xb1, 0xc5, 0x33,
-	0x73, 0x0b, 0xc1, 0x78, 0x23, 0xb4, 0xc2, 0x5d, 0x85, 0x21, 0xcb, 0xf4, 0x4d, 0xa5, 0x65, 0xaf,
-	0xb0, 0x85, 0xa1, 0xba, 0xb2, 0x45, 0xe1, 0x8a, 0xff, 0x68, 0xc3, 0x4b, 0xaa, 0xaa, 0xe3, 0xf0,
-	0x64, 0xfe, 0x36, 0xbe, 0x33, 0x30, 0xb1, 0x5a, 0xf6, 0x9d, 0x5d, 0x7a, 0x42, 0xf5, 0xdf, 0x41,
-	0xf0, 0x45, 0x24, 0xc1, 0x29, 0x54, 0xe1, 0x32, 0x4c, 0xb7, 0x41, 0x6e, 0x50, 0x6f, 0x9d, 0xba,
-	0xac, 0x12, 0xaa, 0x31, 0x01, 0xc3, 0x56, 0x7d, 0x2d, 0x84, 0xf8, 0xa4, 0x28, 0x17, 0x11, 0x8d,
-	0x92, 0x03, 0x6b, 0x74, 0x1f, 0xc1, 0xd7, 0x5d, 0xd2, 0x9f, 0x42, 0xad, 0xce, 0xc2, 0x97, 0x9b,
-	0xd5, 0x32, 0xab, 0x38, 0xae, 0x7d, 0x42, 0x77, 0xe6, 0x2e, 0x82, 0xc9, 0x77, 0x52, 0x9c, 0x42,
-	0x25, 0xae, 0x82, 0x16, 0xc1, 0xfc, 0xb0, 0xf7, 0xe6, 0x31, 0x82, 0x74, 0x57, 0x00, 0xa5, 0xd7,
-	0x16, 0x7c, 0x16, 0x28, 0x13, 0x43, 0x8a, 0xc2, 0x07, 0xd3, 0x6e, 0x3c, 0x68, 0xcf, 0xf4, 0xde,
-	0x64, 0xcc, 0xbf, 0x01, 0x18, 0xfe, 0xa7, 0x6e, 0x8a, 0x5f, 0x21, 0x98, 0xec, 0x32, 0x89, 0xf0,
-	0x4a, 0x2c, 0xee, 0xf1, 0x63, 0x2e, 0xf5, 0xdb, 0xe0, 0x01, 0x24, 0x74, 0x66, 0xed, 0xda, 0x93,
-	0xd7, 0x37, 0x93, 0xcb, 0x78, 0x89, 0xb4, 0x46, 0x22, 0x1d, 0x26, 0x70, 0x45, 0x44, 0x32, 0x7c,
-	0x66, 0x58, 0x8d, 0x58, 0x86, 0x18, 0x73, 0xf8, 0x01, 0x02, 0x68, 0x8e, 0x30, 0x9c, 0xef, 0xf5,
-	0x14, 0x9a, 0x43, 0x31, 0x35, 0xdf, 0x97, 0x8f, 0x82, 0xff, 0x45, 0xc0, 0xff, 0x80, 0xf3, 0xb1,
-	0xf0, 0xf2, 0xc1, 0x28, 0xd5, 0x0c, 0xc7, 0x22, 0x97, 0x1c, 0xeb, 0x0a, 0xbe, 0x8d, 0xe0, 0xe3,
-	0xf0, 0xd8, 0x49, 0x8f, 0xc9, 0x1b, 0xba, 0xcf, 0xf5, 0xee, 0xa0, 0x50, 0xe7, 0x04, 0xea, 0x2c,
-	0xce, 0xf6, 0x88, 0xca, 0xf1, 0x43, 0x04, 0x9f, 0xb6, 0x75, 0x50, 0xfc, 0x63, 0x6c, 0xd6, 0x4e,
-	0x63, 0x2f, 0xf5, 0x53, 0xbf, 0x6e, 0x0a, 0x79, 0x41, 0x20, 0xe7, 0x30, 0x89, 0x45, 0x36, 0x85,
-	0x7f, 0xf8, 0x2e, 0xe2, 0x67, 0xd1, 0xf9, 0x18, 0xbe, 0xc1, 0x78, 0xb9, 0x3f, 0x94, 0x48, 0xeb,
-	0x49, 0xfd, 0x3a, 0xa8, 0xbb, 0xaa, 0x68, 0x55, 0x54, 0xb4, 0x84, 0x17, 0xfb, 0xac, 0xc8, 0xa8,
-	0x52, 0xcf, 0x90, 0x7d, 0xee, 0x11, 0x82, 0xf1, 0x48, 0x7f, 0xc2, 0x0b, 0xb1, 0x58, 0x9d, 0x87,
-	0x4b, 0xea, 0xe7, 0xfe, 0x1d, 0x55, 0x25, 0x8b, 0xa2, 0x92, 0x79, 0x9c, 0x8b, 0xad, 0x24, 0xda,
-	0x29, 0x45, 0x43, 0xea, 0xd2, 0x61, 0x7b, 0x68, 0x48, 0xc7, 0x0f, 0x87, 0x1e, 0x1a, 0x52, 0x4c,
-	0x73, 0xef, 0xa3, 0x21, 0x45, 0x2b, 0x6b, 0x9e, 0x52, 0xe1, 0xaf, 0xfd, 0x43, 0x0d, 0x1d, 0x1c,
-	0x6a, 0xe8, 0xe5, 0xa1, 0x86, 0x6e, 0x1c, 0x69, 0x89, 0x83, 0x23, 0x2d, 0xf1, 0xf4, 0x48, 0x4b,
-	0xfc, 0x9f, 0x6f, 0xf9, 0x84, 0xef, 0x92, 0x60, 0xaf, 0x99, 0x42, 0x7c, 0xd2, 0x97, 0x46, 0xc4,
-	0xaf, 0x8e, 0xf9, 0xb7, 0x01, 0x00, 0x00, 0xff, 0xff, 0xa2, 0x0b, 0xd1, 0xaa, 0x79, 0x0d, 0x00,
-	0x00,
+	// 693 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x96, 0xcd, 0x6b, 0x13, 0x4f,
+	0x18, 0xc7, 0x33, 0xf9, 0xf5, 0x05, 0x9e, 0xf2, 0x6b, 0x71, 0xa8, 0xb6, 0x06, 0xd9, 0x94, 0x15,
+	0x34, 0x14, 0xdc, 0x69, 0x52, 0xb5, 0xbe, 0x20, 0xb5, 0x69, 0x51, 0x04, 0x05, 0x8d, 0x16, 0xc4,
+	0x83, 0x71, 0x37, 0x3b, 0xae, 0x83, 0xcd, 0x4e, 0x9a, 0x99, 0x2d, 0x8d, 0xe2, 0x45, 0xfc, 0x03,
+	0x04, 0xcf, 0x7a, 0x11, 0x2f, 0xde, 0x3c, 0x79, 0x11, 0xbc, 0xf6, 0x58, 0xf0, 0xe2, 0xc9, 0x97,
+	0xd6, 0x3f, 0x44, 0x32, 0x33, 0x9b, 0x97, 0x9a, 0xba, 0xa9, 0x50, 0xe8, 0x29, 0xb3, 0x79, 0x9e,
+	0xef, 0xf7, 0xf9, 0x3c, 0x4f, 0x76, 0x9f, 0x0d, 0x58, 0x7e, 0xa3, 0x4a, 0x43, 0xc1, 0x78, 0x48,
+	0x84, 0xac, 0x53, 0xb7, 0x4a, 0xeb, 0x64, 0x35, 0xa2, 0xf5, 0x86, 0x53, 0xab, 0x73, 0xc9, 0x71,
+	0xb6, 0x15, 0x5f, 0x6f, 0x3c, 0x71, 0x5a, 0x17, 0x4e, 0x9c, 0x9c, 0x19, 0x0f, 0x78, 0xc0, 0x55,
+	0x2e, 0x69, 0x9e, 0xb4, 0x2c, 0x73, 0x2c, 0xe0, 0x3c, 0x58, 0xa1, 0xc4, 0xad, 0x31, 0xe2, 0x86,
+	0x21, 0x97, 0xae, 0x64, 0x3c, 0x14, 0x26, 0x6a, 0x99, 0xa8, 0xba, 0xf2, 0xa2, 0x87, 0xc4, 0x8f,
+	0xea, 0x2a, 0x21, 0x8e, 0x57, 0xb8, 0xa8, 0x72, 0x41, 0x3c, 0x57, 0x50, 0xb2, 0x96, 0xf7, 0xa8,
+	0x74, 0xf3, 0xa4, 0xc2, 0x59, 0x1c, 0x9f, 0xee, 0x8c, 0x2b, 0xda, 0x56, 0x56, 0xcd, 0x0d, 0x58,
+	0xd8, 0xe9, 0x95, 0xed, 0xd1, 0xa0, 0x3e, 0xe8, 0x04, 0x7b, 0x0a, 0xac, 0x1b, 0xdc, 0x8f, 0x56,
+	0xe8, 0x1d, 0xbe, 0xc4, 0x84, 0xac, 0x33, 0x2f, 0x92, 0x74, 0x91, 0xb3, 0x50, 0x94, 0xe8, 0x6a,
+	0x44, 0x85, 0xb4, 0x5f, 0x20, 0xc8, 0xee, 0x9a, 0x22, 0x6a, 0x3c, 0x14, 0x14, 0xbb, 0x30, 0xd8,
+	0x04, 0x14, 0x93, 0x68, 0xea, 0xbf, 0xdc, 0x48, 0xe1, 0xa8, 0xa3, 0x11, 0x9d, 0x26, 0xa2, 0x63,
+	0xe0, 0x9c, 0xa6, 0xa4, 0x38, 0xb3, 0xf1, 0x2d, 0x9b, 0x7a, 0xff, 0x3d, 0x9b, 0x0b, 0x98, 0x7c,
+	0x14, 0x79, 0x4e, 0x85, 0x57, 0x89, 0xe9, 0x47, 0x7f, 0x9c, 0x12, 0xfe, 0x63, 0x22, 0x1b, 0x35,
+	0x2a, 0x1c, 0x5d, 0x43, 0x3b, 0xdb, 0xc7, 0xe1, 0xd0, 0x6d, 0x05, 0x5e, 0x6c, 0x5c, 0x5b, 0x32,
+	0x6c, 0x78, 0x14, 0xd2, 0xcc, 0x9f, 0x44, 0x53, 0x28, 0x37, 0x50, 0x4a, 0x33, 0xdf, 0x5e, 0x06,
+	0xdc, 0x99, 0x64, 0xe8, 0xe6, 0x61, 0x48, 0xf7, 0xac, 0x32, 0x47, 0x0a, 0x27, 0x9d, 0x84, 0x9f,
+	0xd5, 0xd1, 0x26, 0x25, 0x23, 0xb3, 0xef, 0xc2, 0xa8, 0xfe, 0x26, 0x1e, 0x0a, 0xbe, 0x02, 0xd0,
+	0x9e, 0xb5, 0xb1, 0x3d, 0xd1, 0xd5, 0xb5, 0xbe, 0x8d, 0xe2, 0xde, 0x6f, 0xba, 0x01, 0x35, 0xda,
+	0x52, 0x87, 0xd2, 0x7e, 0x8d, 0x60, 0xac, 0x65, 0x6d, 0x70, 0x17, 0x60, 0xc0, 0x77, 0xa5, 0x6b,
+	0x66, 0xd9, 0x2f, 0x6c, 0x71, 0xa0, 0x39, 0xd9, 0x92, 0x92, 0xe2, 0xab, 0x5d, 0x78, 0x69, 0xd3,
+	0x75, 0x12, 0x9e, 0xae, 0xdf, 0xc5, 0x77, 0x1f, 0xc6, 0x17, 0x2a, 0x92, 0xad, 0xd1, 0x7d, 0xea,
+	0xff, 0x2d, 0x82, 0xc3, 0x3b, 0x0a, 0x1c, 0xc0, 0x29, 0x3c, 0x80, 0x23, 0xcb, 0xb5, 0x0a, 0xaf,
+	0xb2, 0x30, 0xd8, 0xa7, 0x39, 0xbc, 0x43, 0x30, 0xf1, 0x47, 0x89, 0x83, 0x37, 0x89, 0xc2, 0xa7,
+	0x61, 0x18, 0xbc, 0xd5, 0x4c, 0xc5, 0x3f, 0x11, 0x4c, 0xec, 0xb2, 0x16, 0xf0, 0x7c, 0x22, 0xe3,
+	0xdf, 0x77, 0x4e, 0xe6, 0xf2, 0xbf, 0x1b, 0x68, 0x68, 0x7b, 0xf1, 0xf9, 0x97, 0x5f, 0xaf, 0xd2,
+	0x97, 0xf0, 0x45, 0xd2, 0xe9, 0x44, 0x7a, 0xac, 0xc3, 0xaa, 0x72, 0x2a, 0x4b, 0x5e, 0xf6, 0x5b,
+	0x5e, 0x65, 0xb5, 0x73, 0xf0, 0x07, 0x04, 0xd0, 0xde, 0x27, 0xb8, 0xd0, 0xef, 0xe8, 0xdb, 0x1b,
+	0x2a, 0x33, 0xbb, 0x27, 0x8d, 0x81, 0xbf, 0xa0, 0xe0, 0x4f, 0xe3, 0x42, 0x22, 0xbc, 0x3e, 0x94,
+	0xbd, 0x46, 0x99, 0xf9, 0xe4, 0x29, 0xf3, 0x9f, 0xe1, 0x37, 0x08, 0x86, 0xcd, 0x1d, 0x84, 0x49,
+	0x9f, 0xc5, 0x5b, 0x73, 0x9f, 0xe9, 0x5f, 0x60, 0x50, 0x67, 0x14, 0xea, 0x34, 0xce, 0xf5, 0x89,
+	0x2a, 0xf0, 0x47, 0x04, 0xff, 0x77, 0x3d, 0xf2, 0xf8, 0x4c, 0x62, 0xd5, 0x5e, 0x3b, 0x28, 0x73,
+	0x76, 0xaf, 0x32, 0x83, 0x3c, 0xa7, 0x90, 0xf3, 0x98, 0x24, 0x22, 0xbb, 0x4a, 0x5f, 0x8e, 0xc9,
+	0x3f, 0x23, 0x18, 0xdb, 0xf1, 0x90, 0xe2, 0xb9, 0x44, 0x88, 0xde, 0x9b, 0x23, 0x73, 0x6e, 0xef,
+	0x42, 0xc3, 0x7f, 0x5e, 0xf1, 0xcf, 0xe2, 0x7c, 0x22, 0x7f, 0x64, 0x1c, 0xe2, 0x0e, 0x8a, 0xd7,
+	0x37, 0xb6, 0x2c, 0xb4, 0xb9, 0x65, 0xa1, 0x1f, 0x5b, 0x16, 0x7a, 0xb9, 0x6d, 0xa5, 0x36, 0xb7,
+	0xad, 0xd4, 0xd7, 0x6d, 0x2b, 0x75, 0xaf, 0xd0, 0xf1, 0x3e, 0xde, 0xc5, 0x76, 0xbd, 0x6d, 0xac,
+	0xde, 0xcf, 0xde, 0x90, 0xfa, 0x0b, 0x31, 0xfb, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x9b, 0x56, 0x78,
+	0x2a, 0x46, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -813,13 +584,8 @@ type QueryClient interface {
 	Streams(ctx context.Context, in *StreamsRequest, opts ...grpc.CallOption) (*StreamsResponse, error)
 	// ActiveStreams returns active streams
 	ActiveStreams(ctx context.Context, in *ActiveStreamsRequest, opts ...grpc.CallOption) (*ActiveStreamsResponse, error)
-	// ActiveStreamsPerDenom returns active streams by denom
-	ActiveStreamsPerDenom(ctx context.Context, in *ActiveStreamsPerDenomRequest, opts ...grpc.CallOption) (*ActiveStreamsPerDenomResponse, error)
 	// Returns scheduled streams that have not yet occured
 	UpcomingStreams(ctx context.Context, in *UpcomingStreamsRequest, opts ...grpc.CallOption) (*UpcomingStreamsResponse, error)
-	// UpcomingStreamsPerDenom returns scheduled streams that have not yet occured
-	// by denom
-	UpcomingStreamsPerDenom(ctx context.Context, in *UpcomingStreamsPerDenomRequest, opts ...grpc.CallOption) (*UpcomingStreamsPerDenomResponse, error)
 }
 
 type queryClient struct {
@@ -866,27 +632,9 @@ func (c *queryClient) ActiveStreams(ctx context.Context, in *ActiveStreamsReques
 	return out, nil
 }
 
-func (c *queryClient) ActiveStreamsPerDenom(ctx context.Context, in *ActiveStreamsPerDenomRequest, opts ...grpc.CallOption) (*ActiveStreamsPerDenomResponse, error) {
-	out := new(ActiveStreamsPerDenomResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/ActiveStreamsPerDenom", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *queryClient) UpcomingStreams(ctx context.Context, in *UpcomingStreamsRequest, opts ...grpc.CallOption) (*UpcomingStreamsResponse, error) {
 	out := new(UpcomingStreamsResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/UpcomingStreams", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) UpcomingStreamsPerDenom(ctx context.Context, in *UpcomingStreamsPerDenomRequest, opts ...grpc.CallOption) (*UpcomingStreamsPerDenomResponse, error) {
-	out := new(UpcomingStreamsPerDenomResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.streamer.Query/UpcomingStreamsPerDenom", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -903,13 +651,8 @@ type QueryServer interface {
 	Streams(context.Context, *StreamsRequest) (*StreamsResponse, error)
 	// ActiveStreams returns active streams
 	ActiveStreams(context.Context, *ActiveStreamsRequest) (*ActiveStreamsResponse, error)
-	// ActiveStreamsPerDenom returns active streams by denom
-	ActiveStreamsPerDenom(context.Context, *ActiveStreamsPerDenomRequest) (*ActiveStreamsPerDenomResponse, error)
 	// Returns scheduled streams that have not yet occured
 	UpcomingStreams(context.Context, *UpcomingStreamsRequest) (*UpcomingStreamsResponse, error)
-	// UpcomingStreamsPerDenom returns scheduled streams that have not yet occured
-	// by denom
-	UpcomingStreamsPerDenom(context.Context, *UpcomingStreamsPerDenomRequest) (*UpcomingStreamsPerDenomResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -928,14 +671,8 @@ func (*UnimplementedQueryServer) Streams(ctx context.Context, req *StreamsReques
 func (*UnimplementedQueryServer) ActiveStreams(ctx context.Context, req *ActiveStreamsRequest) (*ActiveStreamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ActiveStreams not implemented")
 }
-func (*UnimplementedQueryServer) ActiveStreamsPerDenom(ctx context.Context, req *ActiveStreamsPerDenomRequest) (*ActiveStreamsPerDenomResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ActiveStreamsPerDenom not implemented")
-}
 func (*UnimplementedQueryServer) UpcomingStreams(ctx context.Context, req *UpcomingStreamsRequest) (*UpcomingStreamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpcomingStreams not implemented")
-}
-func (*UnimplementedQueryServer) UpcomingStreamsPerDenom(ctx context.Context, req *UpcomingStreamsPerDenomRequest) (*UpcomingStreamsPerDenomResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpcomingStreamsPerDenom not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1014,24 +751,6 @@ func _Query_ActiveStreams_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ActiveStreamsPerDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ActiveStreamsPerDenomRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ActiveStreamsPerDenom(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/ActiveStreamsPerDenom",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ActiveStreamsPerDenom(ctx, req.(*ActiveStreamsPerDenomRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Query_UpcomingStreams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpcomingStreamsRequest)
 	if err := dec(in); err != nil {
@@ -1046,24 +765,6 @@ func _Query_UpcomingStreams_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).UpcomingStreams(ctx, req.(*UpcomingStreamsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_UpcomingStreamsPerDenom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpcomingStreamsPerDenomRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).UpcomingStreamsPerDenom(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.streamer.Query/UpcomingStreamsPerDenom",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).UpcomingStreamsPerDenom(ctx, req.(*UpcomingStreamsPerDenomRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1089,16 +790,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_ActiveStreams_Handler,
 		},
 		{
-			MethodName: "ActiveStreamsPerDenom",
-			Handler:    _Query_ActiveStreamsPerDenom_Handler,
-		},
-		{
 			MethodName: "UpcomingStreams",
 			Handler:    _Query_UpcomingStreams_Handler,
-		},
-		{
-			MethodName: "UpcomingStreamsPerDenom",
-			Handler:    _Query_UpcomingStreamsPerDenom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1396,97 +1089,6 @@ func (m *ActiveStreamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ActiveStreamsPerDenomRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ActiveStreamsPerDenomRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ActiveStreamsPerDenomRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Denom) > 0 {
-		i -= len(m.Denom)
-		copy(dAtA[i:], m.Denom)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Denom)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ActiveStreamsPerDenomResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ActiveStreamsPerDenomResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ActiveStreamsPerDenomResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Data) > 0 {
-		for iNdEx := len(m.Data) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Data[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *UpcomingStreamsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1558,97 +1160,6 @@ func (m *UpcomingStreamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		for iNdEx := len(m.Data) - 1; iNdEx >= 0; iNdEx-- {
 			{
 				size, err := m.Data[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintQuery(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *UpcomingStreamsPerDenomRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *UpcomingStreamsPerDenomRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *UpcomingStreamsPerDenomRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Denom) > 0 {
-		i -= len(m.Denom)
-		copy(dAtA[i:], m.Denom)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.Denom)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *UpcomingStreamsPerDenomResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *UpcomingStreamsPerDenomResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *UpcomingStreamsPerDenomResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.UpcomingStreams) > 0 {
-		for iNdEx := len(m.UpcomingStreams) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.UpcomingStreams[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1786,42 +1297,6 @@ func (m *ActiveStreamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *ActiveStreamsPerDenomRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Denom)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *ActiveStreamsPerDenomResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.Data) > 0 {
-		for _, e := range m.Data {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
 func (m *UpcomingStreamsRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1843,42 +1318,6 @@ func (m *UpcomingStreamsResponse) Size() (n int) {
 	_ = l
 	if len(m.Data) > 0 {
 		for _, e := range m.Data {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *UpcomingStreamsPerDenomRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Denom)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *UpcomingStreamsPerDenomResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.UpcomingStreams) > 0 {
-		for _, e := range m.UpcomingStreams {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -2597,244 +2036,6 @@ func (m *ActiveStreamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ActiveStreamsPerDenomRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ActiveStreamsPerDenomRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ActiveStreamsPerDenomRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Denom = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ActiveStreamsPerDenomResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ActiveStreamsPerDenomResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ActiveStreamsPerDenomResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Data = append(m.Data, Stream{})
-			if err := m.Data[len(m.Data)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageResponse{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *UpcomingStreamsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2981,244 +2182,6 @@ func (m *UpcomingStreamsResponse) Unmarshal(dAtA []byte) error {
 			}
 			m.Data = append(m.Data, Stream{})
 			if err := m.Data[len(m.Data)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageResponse{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *UpcomingStreamsPerDenomRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: UpcomingStreamsPerDenomRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UpcomingStreamsPerDenomRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Denom", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Denom = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *UpcomingStreamsPerDenomResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: UpcomingStreamsPerDenomResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: UpcomingStreamsPerDenomResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UpcomingStreams", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.UpcomingStreams = append(m.UpcomingStreams, Stream{})
-			if err := m.UpcomingStreams[len(m.UpcomingStreams)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

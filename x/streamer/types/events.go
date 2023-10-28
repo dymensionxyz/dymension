@@ -5,8 +5,7 @@ const (
 	TypeEvtCreateStream = "create_stream"
 	TypeEvtDistribution = "distribution"
 
-	AttributeStreamID    = "stream_id"
-	AttributeLockedDenom = "denom"
-	AttributeReceiver    = "receiver"
-	AttributeAmount      = "amount"
+	AttributeStreamID = "stream_id"
+	AttributeReceiver = "receiver"
+	AttributeAmount   = "amount"
 )

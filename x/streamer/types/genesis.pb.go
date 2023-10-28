@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the incentives module's various parameters when first
+// GenesisState defines the streamer module's various parameters when first
 // initialized
 type GenesisState struct {
 	// params are all the parameters of the module

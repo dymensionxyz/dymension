@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Params holds parameters for the incentives module
+// Params holds parameters for the streamer module
 type Params struct {
 }
 

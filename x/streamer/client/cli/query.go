@@ -16,10 +16,7 @@ func GetQueryCmd() *cobra.Command {
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdToDistributeCoins)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdStreamByID)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdActiveStreams)
-	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdActiveStreamsPerDenom)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingStreams)
-	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingStreamsPerDenom)
-
 	return cmd
 }
 
@@ -58,27 +55,10 @@ func GetCmdActiveStreams() (*osmocli.QueryDescriptor, *types.ActiveStreamsReques
 		Long:  `{{.Short}}`}, &types.ActiveStreamsRequest{}
 }
 
-// GetCmdActiveStreamsPerDenom returns active streams for a specified denom.
-func GetCmdActiveStreamsPerDenom() (*osmocli.QueryDescriptor, *types.ActiveStreamsPerDenomRequest) {
-	return &osmocli.QueryDescriptor{
-		Use:   "active-streams-per-den [den]denom [denom]",
-		Short: "Query active streams per denom",
-		Long: `{{.Short}}{{.ExampleHeader}}
-{{.CommandPrefix}} active-streams-per-denom gamm/pool/1`}, &types.ActiveStreamsPerDenomRequest{}
-}
-
 // GetCmdUpcomingStreams returns scheduled streams.
 func GetCmdUpcomingStreams() (*osmocli.QueryDescriptor, *types.UpcomingStreamsRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "upcoming-streams",
 		Short: "Query upcoming streams",
 		Long:  `{{.Short}}`}, &types.UpcomingStreamsRequest{}
-}
-
-// GetCmdUpcomingStreamsPerDenom returns scheduled streams for specified denom..
-func GetCmdUpcomingStreamsPerDenom() (*osmocli.QueryDescriptor, *types.UpcomingStreamsPerDenomRequest) {
-	return &osmocli.QueryDescriptor{
-		Use:   "upcoming-streams-per-denom [denom]",
-		Short: "Query scheduled streams per denom",
-		Long:  `{{.Short}}`}, &types.UpcomingStreamsPerDenomRequest{}
 }

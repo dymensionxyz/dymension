@@ -55,38 +55,12 @@ func TestGetCmdActiveStreams(t *testing.T) {
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
 
-func TestGetCmdActiveStreamsPerDenom(t *testing.T) {
-	desc, _ := cli.GetCmdActiveStreamsPerDenom()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.ActiveStreamsPerDenomRequest]{
-		"basic test": {
-			Cmd: "uosmo --offset=2",
-			ExpectedQuery: &types.ActiveStreamsPerDenomRequest{
-				Denom:      "uosmo",
-				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
-	}
-	osmocli.RunQueryTestCases(t, desc, tcs)
-}
-
 func TestGetCmdUpcomingStreams(t *testing.T) {
 	desc, _ := cli.GetCmdUpcomingStreams()
 	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingStreamsRequest]{
 		"basic test": {
 			Cmd: "--offset=2",
 			ExpectedQuery: &types.UpcomingStreamsRequest{
-				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
-	}
-	osmocli.RunQueryTestCases(t, desc, tcs)
-}
-
-func TestGetCmdUpcomingStreamsPerDenom(t *testing.T) {
-	desc, _ := cli.GetCmdUpcomingStreamsPerDenom()
-	tcs := map[string]osmocli.QueryCliTestCase[*types.UpcomingStreamsPerDenomRequest]{
-		"basic test": {
-			Cmd: "uosmo --offset=2",
-			ExpectedQuery: &types.UpcomingStreamsPerDenomRequest{
-				Denom:      "uosmo",
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
 			}},
 	}

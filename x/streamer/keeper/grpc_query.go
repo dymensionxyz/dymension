@@ -79,21 +79,6 @@ func (q Querier) ActiveStreams(goCtx context.Context, req *types.ActiveStreamsRe
 	return &types.ActiveStreamsResponse{Data: streams, Pagination: pageRes}, nil
 }
 
-// ActiveStreamsPerDenom returns all active streams for the specified denom.
-func (q Querier) ActiveStreamsPerDenom(goCtx context.Context, req *types.ActiveStreamsPerDenomRequest) (*types.ActiveStreamsPerDenomResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	pageRes, streams, err := q.filterByPrefixAndDenom(ctx, types.KeyPrefixActiveStreams, req.Denom, req.Pagination)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &types.ActiveStreamsPerDenomResponse{Data: streams, Pagination: pageRes}, nil
-}
-
 // UpcomingStreams returns all upcoming streams.
 func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStreamsRequest) (*types.UpcomingStreamsResponse, error) {
 	if req == nil {
@@ -108,25 +93,6 @@ func (q Querier) UpcomingStreams(goCtx context.Context, req *types.UpcomingStrea
 	}
 
 	return &types.UpcomingStreamsResponse{Data: streams, Pagination: pageRes}, nil
-}
-
-// UpcomingStreamsPerDenom returns all upcoming streams for the specified denom.
-func (q Querier) UpcomingStreamsPerDenom(goCtx context.Context, req *types.UpcomingStreamsPerDenomRequest) (*types.UpcomingStreamsPerDenomResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if req.Denom == "" {
-		return nil, status.Error(codes.InvalidArgument, "invalid denom")
-	}
-
-	pageRes, streams, err := q.filterByPrefixAndDenom(ctx, types.KeyPrefixUpcomingStreams, req.Denom, req.Pagination)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-
-	return &types.UpcomingStreamsPerDenomResponse{UpcomingStreams: streams, Pagination: pageRes}, nil
 }
 
 // getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
