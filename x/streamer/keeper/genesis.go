@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
@@ -8,11 +10,10 @@ import (
 
 // InitGenesis initializes the streamer module's state from a provided genesis state.
 func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
-	//FIXME: initilize module account
-	// recipientAcc := k. .GetModuleAccount(ctx, types.ModuleName)
-	// if recipientAcc == nil {
-	// 	panic(fmt.Sprintf("module account %s does not exist", types.ModuleName))
-	// }
+	recipientAcc := k.ak.GetModuleAccount(ctx, types.ModuleName)
+	if recipientAcc == nil {
+		panic(fmt.Sprintf("module account %s does not exist", types.ModuleName))
+	}
 
 	k.SetParams(ctx, genState.Params)
 	for _, stream := range genState.Streams {

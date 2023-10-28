@@ -18,12 +18,11 @@ type Keeper struct {
 	paramSpace paramtypes.Subspace
 	bk         types.BankKeeper
 	ek         types.EpochKeeper
-	ck         types.CommunityPoolKeeper
-	tk         types.TxFeesKeeper
+	ak         types.AccountKeeper
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ck types.CommunityPoolKeeper, txfk types.TxFeesKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -33,8 +32,7 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 		paramSpace: paramSpace,
 		bk:         bk,
 		ek:         ek,
-		ck:         ck,
-		tk:         txfk,
+		ak:         ak,
 	}
 }
 

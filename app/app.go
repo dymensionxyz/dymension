@@ -596,8 +596,7 @@ func New(
 
 		app.BankKeeper,
 		app.EpochsKeeper,
-		app.DistrKeeper,
-		nil,
+		app.AccountKeeper,
 	)
 
 	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
