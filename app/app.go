@@ -616,6 +616,7 @@ func New(
 		keys[denommetadatatypes.MemStoreKey],
 		app.GetSubspace(denommetadatatypes.ModuleName),
 		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
 	)
 
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
@@ -691,6 +692,7 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	// TODO(omritoptix): Move external keepers to be part of the keeper and not the middleware
 	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
