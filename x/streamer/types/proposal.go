@@ -61,7 +61,13 @@ func (csp *CreateStreamProposal) ValidateBasic() error {
 func (csp CreateStreamProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Create stream Proposal:
-	%s
-`, csp.String()))
+	  Title:       %s
+	  Description: %s
+	  DistributeTo: %s
+	  Coins:       %s
+	  StartTime:   %s
+	  EpochIdentifier:   %s
+	  NumEpochsPaidOver:   %d
+`, csp.Title, csp.Description, csp.DistributeTo, csp.Coins, csp.StartTime, csp.DistrEpochIdentifier, csp.NumEpochsPaidOver))
 	return b.String()
 }
