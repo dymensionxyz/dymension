@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "locking LP1 tokens for 2 weeks"
-dymd tx lockup lock-tokens 50000000000000000000gamm/pool/1 --duration="336h" --from pools --keyring-backend=test -b block -y
+dymd tx lockup lock-tokens 50000000000000000000gamm/pool/1 --duration="60s" --from pools --keyring-backend=test -b block -y
 
 echo "locking uatom tokens for 1h"
 dymd tx lockup lock-tokens 500000000uatom --duration="3600s" --from user --keyring-backend=test -b block -y
