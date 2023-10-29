@@ -19,12 +19,6 @@ import (
 
 // GetTxCmd returns the transaction commands for this module.
 func GetTxCmd() *cobra.Command {
-	// cmd := osmocli.TxIndexCmd(types.ModuleName)
-	// cmd.AddCommand(
-	// 	NewCmdSubmitCreateStreamProposal(),
-	// )
-
-	// return cmd
 	return nil
 }
 

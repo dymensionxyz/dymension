@@ -91,20 +91,15 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 		return 0, err
 	}
 
-	if coins.Empty() {
-		return 0, fmt.Errorf("coins cannot be empty")
+	if !coins.IsAllPositive() {
+		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
-	for _, coin := range coins {
-		if !coin.IsPositive() {
-			return 0, fmt.Errorf("coin %s must be positive", coin.Denom)
-		}
+	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	spendedCoins := k.GetModuleToDistributeCoins(ctx)
 
-		currentSupply := k.bk.GetBalance(ctx, authtypes.NewModuleAddress(types.ModuleName), coin.Denom)
-		//FIXME: subtract existing streams from current supply
-		if currentSupply.Amount.LT(coin.Amount) {
-			return 0, fmt.Errorf("insufficient supply of %s", coin.Denom)
-		}
+	if !coins.IsAllLTE(moduleBalance.Sub(spendedCoins...)) {
+		return 0, fmt.Errorf("insufficient module balance to distribute coins")
 	}
 
 	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {

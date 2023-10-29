@@ -52,7 +52,6 @@ func (csp *CreateStreamProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	//TODO: valiate streams?
 
 	return nil
 }
