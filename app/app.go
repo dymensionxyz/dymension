@@ -122,6 +122,7 @@ import (
 	sequencermoduletypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
 	streamermodule "github.com/dymensionxyz/dymension/x/streamer"
+	streamermoduleclient "github.com/dymensionxyz/dymension/x/streamer/client"
 	streamermodulekeeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
 
@@ -192,6 +193,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 
 		poolincentivesclient.UpdatePoolIncentivesHandler,
 		poolincentivesclient.ReplacePoolIncentivesHandler,
+
+		streamermoduleclient.CreateStreamHandler,
 	)
 
 	return govProposalHandlers
@@ -656,7 +659,8 @@ func New(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper))
+		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper)).
+		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(

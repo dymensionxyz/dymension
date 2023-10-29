@@ -10,6 +10,7 @@ import (
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -85,7 +86,20 @@ func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error
 
 // CreateStream creates a stream and sends coins to the stream.
 func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAddress, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+	_, err := sdk.AccAddressFromBech32(distrTo.String())
+	if err != nil {
+		return 0, err
+	}
+
+	if coins.Empty() {
+		return 0, fmt.Errorf("coins cannot be empty")
+	}
+
 	for _, coin := range coins {
+		if !coin.IsPositive() {
+			return 0, fmt.Errorf("coin %s must be positive", coin.Denom)
+		}
+
 		currentSupply := k.bk.GetBalance(ctx, authtypes.NewModuleAddress(types.ModuleName), coin.Denom)
 		//FIXME: subtract existing streams from current supply
 		if currentSupply.Amount.LT(coin.Amount) {
@@ -99,11 +113,6 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 
 	if numEpochsPaidOver <= 0 {
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
-	}
-
-	_, err := sdk.AccAddressFromBech32(distrTo.String())
-	if err != nil {
-		return 0, err
 	}
 
 	stream := types.Stream{
@@ -128,6 +137,13 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 	if err != nil {
 		return 0, err
 	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtCreateStream,
+			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
+		),
+	})
 
 	return stream.Id, nil
 }

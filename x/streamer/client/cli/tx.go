@@ -6,31 +6,33 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
+
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // GetTxCmd returns the transaction commands for this module.
 func GetTxCmd() *cobra.Command {
-	cmd := osmocli.TxIndexCmd(types.ModuleName)
-	cmd.AddCommand(
-		NewCreateStreamCmd(),
-	)
+	// cmd := osmocli.TxIndexCmd(types.ModuleName)
+	// cmd.AddCommand(
+	// 	NewCmdSubmitCreateStreamProposal(),
+	// )
 
-	return cmd
+	// return cmd
+	return nil
 }
 
 // NewCreateStreamCmd broadcasts a CreateStream message.
-func NewCreateStreamCmd() *cobra.Command {
+func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-stream [dest addr] [reward] [flags]",
-		Short: "create a stream to distribute rewards to users",
+		Use:   "create-stream-proposal [dest addr] [reward] [flags]",
+		Short: "proposal to create a stream to distribute rewards to a recipient over a period of time",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -75,20 +77,41 @@ func NewCreateStreamCmd() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateStream(
-				clientCtx.GetFromAddress(),
-				distributeTo,
-				coins,
-				startTime,
-				epochIdentifier,
-				epochs,
-			)
+			title, _ := cmd.Flags().GetString(govcli.FlagTitle)
+			description, _ := cmd.Flags().GetString(govcli.FlagDescription)
+			deposit, _ := cmd.Flags().GetString(govcli.FlagDeposit)
+
+			depositAmt, err := sdk.ParseCoinsNormalized(deposit)
+			if err != nil {
+				return err
+			}
+
+			reqStream := types.Stream{
+				DistributeTo:         distributeTo.String(),
+				Coins:                coins,
+				StartTime:            startTime,
+				DistrEpochIdentifier: epochIdentifier,
+				NumEpochsPaidOver:    epochs,
+			}
+			content := types.NewCreateStreamProposal(title, description, reqStream)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, depositAmt, clientCtx.GetFromAddress())
+			if err != nil {
+				return err
+			}
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
 
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
 
+	cmd.Flags().String(govcli.FlagTitle, "", "The proposal title")
+	cmd.Flags().String(govcli.FlagDescription, "", "The proposal description")
+	cmd.Flags().String(govcli.FlagDeposit, "", "The proposal deposit")
+
 	cmd.Flags().AddFlagSet(FlagSetCreateStream())
-	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

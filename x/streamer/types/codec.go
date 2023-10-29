@@ -4,8 +4,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 var (
@@ -16,17 +16,16 @@ var (
 // RegisterCodec registers the necessary x/streamer interfaces and concrete types on the provided
 // LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterCodec(cdc *codec.LegacyAmino) {
-	cdc.RegisterConcrete(&MsgCreateStream{}, "dymensionxyz/streamer/create-stream", nil)
+	//FIXME: needed???
+	cdc.RegisterConcrete(&CreateStreamProposal{}, "dymensionxyz/streamer/create-stream", nil)
 }
 
 // RegisterInterfaces registers interfaces and implementations of the streamer module.
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
-		(*sdk.Msg)(nil),
-		&MsgCreateStream{},
+		(*govtypes.Content)(nil),
+		&CreateStreamProposal{},
 	)
-
-	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
 func init() {
