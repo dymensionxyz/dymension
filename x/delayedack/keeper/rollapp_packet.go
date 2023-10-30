@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -73,9 +71,7 @@ func (k Keeper) ListRollappPendingPackets(
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.RollappPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		keyParts := strings.Split(string(iterator.Key()), "/")
-		packetProofHeight, _ := strconv.ParseUint(keyParts[2], 10, 64)
-		if packetProofHeight <= maxProofHeight {
+		if val.ProofHeight <= maxProofHeight {
 			list = append(list, val)
 		} else {
 			break
