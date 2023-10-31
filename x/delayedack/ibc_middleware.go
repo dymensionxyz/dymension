@@ -201,13 +201,6 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 
 /* ------------------------------- Custom Logic ------------------------------ */
 
-// AfterStateFinalized implements the RollappHooks interface
-func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
-	// Finalize the packets for the rollapp at the given height
-	stateEndHeight := stateInfo.StartHeight + stateInfo.NumBlocks - 1
-	im.FinalizeRollappPackets(ctx, rollappID, stateEndHeight)
-	return nil
-}
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
