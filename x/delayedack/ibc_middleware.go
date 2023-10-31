@@ -201,7 +201,6 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 
 /* ------------------------------- Custom Logic ------------------------------ */
 
-
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) {
