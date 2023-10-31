@@ -223,7 +223,7 @@ func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
-	// update state of version diffrent than the rollapp
+	// update state of version different than the rollapp
 	updateState := types.MsgUpdateState{
 		Creator:     bob,
 		RollappId:   rollapp.GetRollappId(),
