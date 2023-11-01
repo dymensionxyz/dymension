@@ -6,7 +6,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/app/apptesting"
+	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
+
 	"github.com/dymensionxyz/dymension/x/lockdrop/types"
 )
 
@@ -33,37 +34,13 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	}{
 		{
 			"Query distribution info",
-			"/osmosis.poolincentives.v1beta1.Query/DistrInfo",
+			"/dymensionxyz.dymension.lockdrop.Query/DistrInfo",
 			&types.QueryDistrInfoRequest{},
 			&types.QueryDistrInfoResponse{},
 		},
 		{
-			"Query external incentive gauges",
-			"/osmosis.poolincentives.v1beta1.Query/ExternalIncentiveGauges",
-			&types.QueryExternalIncentiveGaugesRequest{},
-			&types.QueryExternalIncentiveGaugesResponse{},
-		},
-		{
-			"Query all gauge ids",
-			"/osmosis.poolincentives.v1beta1.Query/GaugeIds",
-			&types.QueryGaugeIdsRequest{PoolId: 1},
-			&types.QueryGaugeIdsResponse{},
-		},
-		{
-			"Query all incentivized pools",
-			"/osmosis.poolincentives.v1beta1.Query/IncentivizedPools",
-			&types.QueryIncentivizedPoolsRequest{},
-			&types.QueryIncentivizedPoolsResponse{},
-		},
-		{
-			"Query lockable durations",
-			"/osmosis.poolincentives.v1beta1.Query/LockableDurations",
-			&types.QueryLockableDurationsRequest{},
-			&types.QueryLockableDurationsResponse{},
-		},
-		{
 			"Query params",
-			"/osmosis.poolincentives.v1beta1.Query/Params",
+			"/dymensionxyz.dymension.lockdrop.Query/Params",
 			&types.QueryParamsRequest{},
 			&types.QueryParamsResponse{},
 		},

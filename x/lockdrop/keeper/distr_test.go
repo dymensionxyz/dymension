@@ -88,17 +88,9 @@ func (suite *KeeperTestSuite) TestAllocateAsset() {
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			suite.Setup()
-			keeper := suite.App.PoolIncentivesKeeper
+			keeper := suite.App.LockdropKeeper
 			suite.FundModuleAcc(types.ModuleName, sdk.NewCoins(test.mintedCoins))
 			suite.PrepareBalancerPool()
-
-			// LockableDurations should be 1, 3, 7 hours from the default genesis state.
-			lockableDurations := keeper.GetLockableDurations(suite.Ctx)
-			suite.Equal(3, len(lockableDurations))
-
-			for i, duration := range lockableDurations {
-				suite.Equal(duration, types.DefaultGenesisState().GetLockableDurations()[i])
-			}
 
 			feePoolOrigin := suite.App.DistrKeeper.GetFeePool(suite.Ctx)
 
@@ -208,7 +200,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
-			keeper := suite.App.PoolIncentivesKeeper
+			keeper := suite.App.LockdropKeeper
 
 			if test.isPoolPrepared {
 				suite.PrepareBalancerPool()
@@ -315,7 +307,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 	for _, test := range tests {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
-			keeper := suite.App.PoolIncentivesKeeper
+			keeper := suite.App.LockdropKeeper
 
 			if test.isPoolPrepared {
 				suite.PrepareBalancerPool()

@@ -11,33 +11,33 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func TestUpdatePoolIncentivesProposalMarshalUnmarshal(t *testing.T) {
+func TestUpdateLockdropProposalMarshalUnmarshal(t *testing.T) {
 	tests := []struct {
-		proposal *types.UpdatePoolIncentivesProposal
+		proposal *types.UpdateLockdropProposal
 	}{
 		{ // empty title
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "",
 				Description: "proposal to update pool incentives",
 				Records:     []types.DistrRecord(nil),
 			},
 		},
 		{ // empty description
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "title",
 				Description: "",
 				Records:     []types.DistrRecord(nil),
 			},
 		},
 		{ // empty records
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "title",
 				Description: "proposal to update pool incentives",
 				Records:     []types.DistrRecord(nil),
 			},
 		},
 		{ // one record
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "title",
 				Description: "proposal to update pool incentives",
 				Records: []types.DistrRecord{
@@ -49,7 +49,7 @@ func TestUpdatePoolIncentivesProposalMarshalUnmarshal(t *testing.T) {
 			},
 		},
 		{ // zero-weight record
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "title",
 				Description: "proposal to update pool incentives",
 				Records: []types.DistrRecord{
@@ -61,7 +61,7 @@ func TestUpdatePoolIncentivesProposalMarshalUnmarshal(t *testing.T) {
 			},
 		},
 		{ // two records
-			proposal: &types.UpdatePoolIncentivesProposal{
+			proposal: &types.UpdateLockdropProposal{
 				Title:       "title",
 				Description: "proposal to update pool incentives",
 				Records: []types.DistrRecord{
@@ -81,7 +81,7 @@ func TestUpdatePoolIncentivesProposalMarshalUnmarshal(t *testing.T) {
 	for _, test := range tests {
 		bz, err := proto.Marshal(test.proposal)
 		require.NoError(t, err)
-		decoded := types.UpdatePoolIncentivesProposal{}
+		decoded := types.UpdateLockdropProposal{}
 		err = proto.Unmarshal(bz, &decoded)
 		require.NoError(t, err)
 		require.Equal(t, *test.proposal, decoded)

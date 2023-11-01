@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"testing"
-	"time"
 
 	proto "github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
@@ -35,35 +34,6 @@ func TestParamsMarshalUnmarshal(t *testing.T) {
 		err = proto.Unmarshal(bz, &decoded)
 		require.NoError(t, err)
 		require.Equal(t, *test.params, decoded)
-	}
-}
-
-func TestLockableDurationsInfoMarshalUnmarshal(t *testing.T) {
-	tests := []struct {
-		durations *types.LockableDurationsInfo
-	}{
-		{ // empty struct
-			durations: &types.LockableDurationsInfo{},
-		},
-		{ // empty lockable durations
-			durations: &types.LockableDurationsInfo{
-				LockableDurations: []time.Duration(nil),
-			},
-		},
-		{ // filled
-			durations: &types.LockableDurationsInfo{
-				LockableDurations: []time.Duration{time.Second, time.Hour},
-			},
-		},
-	}
-
-	for _, test := range tests {
-		bz, err := proto.Marshal(test.durations)
-		require.NoError(t, err)
-		decoded := types.LockableDurationsInfo{}
-		err = proto.Unmarshal(bz, &decoded)
-		require.NoError(t, err)
-		require.Equal(t, *test.durations, decoded)
 	}
 }
 

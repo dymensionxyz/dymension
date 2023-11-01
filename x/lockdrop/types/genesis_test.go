@@ -2,7 +2,6 @@ package types_test
 
 import (
 	"testing"
-	"time"
 
 	proto "github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/require"
@@ -21,8 +20,7 @@ func TestGenesisStateMarshalUnmarshal(t *testing.T) {
 		},
 		{ // empty lock durations
 			state: &types.GenesisState{
-				Params:            types.DefaultParams(),
-				LockableDurations: []time.Duration(nil),
+				Params: types.DefaultParams(),
 				DistrInfo: &types.DistrInfo{
 					TotalWeight: sdk.ZeroInt(),
 					Records:     nil,
@@ -31,8 +29,7 @@ func TestGenesisStateMarshalUnmarshal(t *testing.T) {
 		},
 		{ // empty array distribution info
 			state: &types.GenesisState{
-				Params:            types.DefaultParams(),
-				LockableDurations: []time.Duration(nil),
+				Params: types.DefaultParams(),
 				DistrInfo: &types.DistrInfo{
 					TotalWeight: sdk.ZeroInt(),
 					Records:     nil,
@@ -41,8 +38,7 @@ func TestGenesisStateMarshalUnmarshal(t *testing.T) {
 		},
 		{ // one record distribution info
 			state: &types.GenesisState{
-				Params:            types.DefaultParams(),
-				LockableDurations: []time.Duration(nil),
+				Params: types.DefaultParams(),
 				DistrInfo: &types.DistrInfo{
 					TotalWeight: sdk.NewInt(1),
 					Records: []types.DistrRecord{
@@ -56,8 +52,7 @@ func TestGenesisStateMarshalUnmarshal(t *testing.T) {
 		},
 		{ // empty params
 			state: &types.GenesisState{
-				Params:            types.Params{},
-				LockableDurations: []time.Duration(nil),
+				Params: types.Params{},
 				DistrInfo: &types.DistrInfo{
 					TotalWeight: sdk.ZeroInt(),
 					Records:     nil,
