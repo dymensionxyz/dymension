@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/dymensionxyz/dymension/osmoutils"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
 	"github.com/dymensionxyz/dymension/x/lockdrop/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

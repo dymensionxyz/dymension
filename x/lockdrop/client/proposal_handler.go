@@ -7,6 +7,6 @@ import (
 )
 
 var (
-	UpdatePoolIncentivesHandler  = govclient.NewProposalHandler(cli.NewCmdSubmitUpdatePoolIncentivesProposal)
-	ReplacePoolIncentivesHandler = govclient.NewProposalHandler(cli.NewCmdSubmitReplacePoolIncentivesProposal)
+	UpdateLockdropHandler  = govclient.NewProposalHandler(cli.NewCmdSubmitUpdateLockdropProposal)
+	ReplaceLockdropHandler = govclient.NewProposalHandler(cli.NewCmdSubmitReplaceLockdropProposal)
 )

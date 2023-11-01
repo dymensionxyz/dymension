@@ -125,6 +125,11 @@ import (
 	denommetadatakeeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
 	denommetadatatypes "github.com/dymensionxyz/dymension/x/denommetadata/types"
 
+	lockdropmodule "github.com/dymensionxyz/dymension/x/lockdrop"
+	lockdropclient "github.com/dymensionxyz/dymension/x/lockdrop/client"
+	lockdropkeeper "github.com/dymensionxyz/dymension/x/lockdrop/keeper"
+	lockdroptypes "github.com/dymensionxyz/dymension/x/lockdrop/types"
+
 	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
 	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
 	packetforwardtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
@@ -188,6 +193,9 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 
 		poolincentivesclient.UpdatePoolIncentivesHandler,
 		poolincentivesclient.ReplacePoolIncentivesHandler,
+
+		lockdropclient.UpdateLockdropHandler,
+		lockdropclient.ReplaceLockdropHandler,
 	)
 
 	return govProposalHandlers
@@ -239,6 +247,7 @@ var (
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
 		poolincentives.AppModuleBasic{},
+		lockdropmodule.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -258,6 +267,7 @@ var (
 		lockuptypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
 		incentivestypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		poolincentivestypes.ModuleName: nil,
+		lockdroptypes.ModuleName:       nil,
 	}
 )
 
@@ -334,6 +344,7 @@ type App struct {
 	EpochsKeeper         *epochskeeper.Keeper
 	IncentivesKeeper     *incentiveskeeper.Keeper
 	PoolIncentivesKeeper *poolincentiveskeeper.Keeper
+	LockdropKeeper       *lockdropkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -407,6 +418,7 @@ func New(
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
 		poolincentivestypes.StoreKey,
+		lockdroptypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -531,16 +543,6 @@ func New(
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
-	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec,
-		keys[ibchost.StoreKey],
-		app.GetSubspace(ibchost.ModuleName),
-		app.StakingKeeper,
-		app.UpgradeKeeper,
-		scopedIBCKeeper,
-	)
-
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
@@ -562,6 +564,16 @@ func New(
 	)
 	app.PoolIncentivesKeeper = &poolIncentivesKeeper
 
+	app.LockdropKeeper = lockdropkeeper.NewKeeper(
+		app.keys[lockdroptypes.StoreKey],
+		app.GetSubspace(lockdroptypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.IncentivesKeeper,
+		app.DistrKeeper,
+		app.PoolManagerKeeper,
+	)
+
 	// Set hooks
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
@@ -580,6 +592,16 @@ func New(
 			// insert epochs hooks receivers here
 			app.IncentivesKeeper.Hooks(),
 		),
+	)
+
+	// Create IBC Keeper
+	app.IBCKeeper = ibckeeper.NewKeeper(
+		appCodec,
+		keys[ibchost.StoreKey],
+		app.GetSubspace(ibchost.ModuleName),
+		app.StakingKeeper,
+		app.UpgradeKeeper,
+		scopedIBCKeeper,
 	)
 
 	//--------------- dYmension specific modules
@@ -637,7 +659,8 @@ func New(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper))
+		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper)).
+		AddRoute(lockdroptypes.RouterKey, lockdropmodule.NewLockdropProposalHandler(*app.LockdropKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -737,6 +760,7 @@ func New(
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
 		poolincentives.NewAppModule(*app.PoolIncentivesKeeper),
+		lockdropmodule.NewAppModule(*app.LockdropKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -775,6 +799,7 @@ func New(
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
 		poolincentivestypes.ModuleName,
+		lockdroptypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -809,6 +834,7 @@ func New(
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
 		poolincentivestypes.ModuleName,
+		lockdroptypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -849,6 +875,7 @@ func New(
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
 		poolincentivestypes.ModuleName,
+		lockdroptypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -960,6 +987,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 
 	//exclude the pool incentives module
 	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(lockdroptypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -1106,6 +1134,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
 	paramsKeeper.Subspace(poolincentivestypes.ModuleName)
+	paramsKeeper.Subspace(lockdroptypes.ModuleName)
 
 	return paramsKeeper
 }

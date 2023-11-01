@@ -9,8 +9,8 @@ import (
 	"github.com/dymensionxyz/dymension/x/lockdrop/types"
 )
 
-// NewPoolIncentivesProposalHandler is a handler for governance proposals on new pool incentives.
-func NewPoolIncentivesProposalHandler(k keeper.Keeper) govtypes.Handler {
+// NewLockdropProposalHandler is a handler for governance proposals on new pool incentives.
+func NewLockdropProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.UpdateLockdropProposal:
@@ -24,7 +24,7 @@ func NewPoolIncentivesProposalHandler(k keeper.Keeper) govtypes.Handler {
 	}
 }
 
-// handleReplacePoolIncentivesProposal is a handler for replacing pool incentives governance proposals
+// handleReplaceLockdropProposal is a handler for replacing pool incentives governance proposals
 func handleReplaceLockdropProposal(ctx sdk.Context, k keeper.Keeper, p *types.ReplaceLockdropProposal) error {
 	return k.HandleReplaceLockdropProposal(ctx, p)
 }

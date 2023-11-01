@@ -24,7 +24,7 @@ type Keeper struct {
 	poolmanagerKeeper types.PoolManagerKeeper
 }
 
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, incentivesKeeper types.IncentivesKeeper, distrKeeper types.DistrKeeper, poolmanagerKeeper types.PoolManagerKeeper) Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, incentivesKeeper types.IncentivesKeeper, distrKeeper types.DistrKeeper, poolmanagerKeeper types.PoolManagerKeeper) *Keeper {
 	// ensure lockdrop module account is set
 	if addr := accountKeeper.GetModuleAddress(types.ModuleName); addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
@@ -35,7 +35,7 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, acc
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return Keeper{
+	return &Keeper{
 		storeKey: storeKey,
 
 		paramSpace: paramSpace,

@@ -84,19 +84,19 @@ type DistrRecord struct {
 
 `DistrInfo` internally manages the `DistrRecord` and total weight of all
 `DistrRecord`. Governance can modify DistrInfo via
-`UpdatePoolIncentivesProposal` proposal.
+`UpdateLockdropProposal` proposal.
 
-### UpdatePoolIncentivesProposal
+### UpdateLockdropProposal
 
 ```go
-type UpdatePoolIncentivesProposal struct {
+type UpdateLockdropProposal struct {
  Title       string       
  Description string      
  Records     []DistrRecord 
 }
 ```
 
-`UpdatePoolIncentivesProposal` can be used by governance to update
+`UpdateLockdropProposal` can be used by governance to update
 `DistrRecord`s.
 
 ```shell

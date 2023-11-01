@@ -12,11 +12,12 @@ import (
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/dymensionxyz/dymension/osmoutils"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
 	"github.com/dymensionxyz/dymension/x/lockdrop/types"
 )
 
-func NewCmdSubmitUpdatePoolIncentivesProposal() *cobra.Command {
+func NewCmdSubmitUpdateLockdropProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-lockdrop [gaugeIds] [weights]",
 		Args:  cobra.ExactArgs(2),
@@ -65,7 +66,7 @@ func NewCmdSubmitUpdatePoolIncentivesProposal() *cobra.Command {
 				return err
 			}
 
-			content := types.NewUpdatePoolIncentivesProposal(proposal.Title, proposal.Description, records)
+			content := types.NewUpdateLockdropProposal(proposal.Title, proposal.Description, records)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
@@ -88,7 +89,7 @@ func NewCmdSubmitUpdatePoolIncentivesProposal() *cobra.Command {
 	return cmd
 }
 
-func NewCmdSubmitReplacePoolIncentivesProposal() *cobra.Command {
+func NewCmdSubmitReplaceLockdropProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "replace-lockdrop [gaugeIds] [weights]",
 		Args:  cobra.ExactArgs(2),
@@ -137,7 +138,7 @@ func NewCmdSubmitReplacePoolIncentivesProposal() *cobra.Command {
 				return err
 			}
 
-			content := types.NewReplacePoolIncentivesProposal(proposal.Title, proposal.Description, records)
+			content := types.NewReplaceLockdropProposal(proposal.Title, proposal.Description, records)
 
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
 			if err != nil {
