@@ -17,7 +17,7 @@ type (
 		cdc           codec.BinaryCodec
 		storeKey      storetypes.StoreKey
 		memKey        storetypes.StoreKey
-		hooks         types.RollappHooks
+		hooks         types.MultiRollappHooks
 		paramstore    paramtypes.Subspace
 		channelKeeper types.ChannelKeeper
 	}
@@ -52,16 +52,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // Set the rollapp hooks
-func (k *Keeper) SetHooks(sh types.RollappHooks) *Keeper {
+func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
 	}
-
 	k.hooks = sh
-
-	return k
 }
 
-func (k *Keeper) GetHooks() types.RollappHooks {
+func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
 }

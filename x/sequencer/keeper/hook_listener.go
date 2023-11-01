@@ -11,12 +11,16 @@ var _ rollapptypes.RollappHooks = rollapphook{}
 
 // Hooks wrapper struct for rollapp keeper.
 type rollapphook struct {
+	rollapptypes.BaseRollappHook
 	k Keeper
 }
 
 // Return the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
-	return rollapphook{k}
+	return rollapphook{
+		rollapptypes.BaseRollappHook{},
+		k,
+	}
 }
 
 func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
