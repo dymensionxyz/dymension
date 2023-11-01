@@ -12,6 +12,10 @@ import (
 func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState) (*types.MsgUpdateStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+
 	// load rollapp object for stateful validations
 	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {

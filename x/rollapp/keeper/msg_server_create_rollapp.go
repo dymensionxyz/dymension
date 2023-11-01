@@ -10,6 +10,10 @@ import (
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.RollappsEnabled(ctx) {
+		return nil, types.ErrRollappsDisabled
+	}
+
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
 		return nil, types.ErrRollappExists

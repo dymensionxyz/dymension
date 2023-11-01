@@ -59,7 +59,7 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2, deployerWhitelist))
+	app.RollappKeeper.SetParams(ctx, types.NewParams(true, 2, deployerWhitelist))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
