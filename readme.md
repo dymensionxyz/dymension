@@ -60,7 +60,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 - Using the setup script:
 
-    This method is preffered as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
+    This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
 
     ```sh
     bash scripts/setup_local.sh
@@ -114,7 +114,7 @@ After creating the pools above, set the incentives weights through gov:
 sh scripts/incentives/incentive_pools_bootstrap.sh
 ```
 
-wait for the gov proposal to pass, and valitate with:
+wait for the gov proposal to pass, and validate with:
 
 ```sh
 dymd q poolincentives distr-info
@@ -128,7 +128,7 @@ To get incentives, we need to lock the LP tokens:
 sh scripts/incentives/lockup_bootstrap.sh
 ```
 
-Valitate with:
+validate with:
 
 ```sh
 dymd q lockup module-balance
