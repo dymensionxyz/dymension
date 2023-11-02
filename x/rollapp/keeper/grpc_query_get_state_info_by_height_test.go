@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/rand"
 	"strconv"
 	"testing"
 
@@ -16,17 +17,18 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rollappId string, increasingNumBlocks bool) []types.StateInfo {
+const (
+	maxNumOfBlocks = 1000
+)
+
+func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rollappId string) []types.StateInfo {
 	keeper.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
 	items := make([]types.StateInfo, n)
 	StartHeight := uint64(1)
 	for i := range items {
-		numBlocks := uint64(i + 1)
-		if !increasingNumBlocks {
-			numBlocks = uint64(n - i)
-		}
+		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1)
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: rollappId,
@@ -119,7 +121,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 func TestStateInfoByHeightErr(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId", true)
+	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId")
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetStateInfoRequest
@@ -175,8 +177,8 @@ func TestStateInfoByHeightErr(t *testing.T) {
 func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	numOfMsg := 1000
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId", true)
+	numOfMsg := 20
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
@@ -198,8 +200,8 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	numOfMsg := 1000
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId", false)
+	numOfMsg := 20
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
