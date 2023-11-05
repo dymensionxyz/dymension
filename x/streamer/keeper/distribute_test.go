@@ -17,9 +17,10 @@ var (
 	destAddr2 = sdk.AccAddress([]byte("addr2---------------"))
 )
 
-//TODO: destination is account/module
-
 func (suite *KeeperTestSuite) TestDistribute() {
+	moduleAddr := suite.App.AccountKeeper.GetModuleAddress("poolincentives")
+	suite.Require().NotNil(moduleAddr)
+
 	tests := []struct {
 		name    string
 		streams []struct {
@@ -35,6 +36,14 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				numOfEpochs uint64
 				destAddr    sdk.AccAddress
 			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, destAddr1}},
+		},
+		{
+			name: "single stream single coin destionation is module address",
+			streams: []struct {
+				coins       sdk.Coins
+				numOfEpochs uint64
+				destAddr    sdk.AccAddress
+			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, moduleAddr}},
 		},
 		{
 			name: "single stream multiple coins",
@@ -68,15 +77,15 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			streams = append(streams, *newstream)
 
 			// calculate expected rewards
-			expectedCoinsFromSream := destAddrsExpectedRewards[stream.destAddr.String()]
+			expectedCoinsFromStream := destAddrsExpectedRewards[stream.destAddr.String()]
 			for _, coin := range stream.coins {
 				epochAmt := coin.Amount.Quo(sdk.NewInt(int64(stream.numOfEpochs)))
 				if epochAmt.IsPositive() {
 					newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: epochAmt}
-					expectedCoinsFromSream = expectedCoinsFromSream.Add(newlyDistributedCoin)
+					expectedCoinsFromStream = expectedCoinsFromStream.Add(newlyDistributedCoin)
 				}
 			}
-			destAddrsExpectedRewards[stream.destAddr.String()] = expectedCoinsFromSream
+			destAddrsExpectedRewards[stream.destAddr.String()] = expectedCoinsFromStream
 		}
 
 		_, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
@@ -97,7 +106,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 	coins := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(coins, sdk.Coins(nil))
 
-	// setup a non perpetual lock and stream
+	// setup a stream
 	streamCoins := sdk.Coins{sdk.NewInt64Coin("stake", 600000)}
 	_, _ = suite.CreateDefaultStream(streamCoins)
 
