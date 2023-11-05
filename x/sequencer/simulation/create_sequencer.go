@@ -4,8 +4,10 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
 	"github.com/dymensionxyz/dymension/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
@@ -22,6 +24,10 @@ func SimulateMsgCreateSequencer(
 		// choose creator and rollappId
 		creatorAccount, _ := simtypes.RandomAcc(r, accs)
 		seqAddress := creatorAccount.Address.String()
+		pkAny, err := codectypes.NewAnyWithValue(creatorAccount.PubKey)
+		if err != nil {
+			panic(err)
+		}
 
 		// choose rollappID and whether or not to fail the transaction
 		rollappId := "NoSuchRollapp"
@@ -35,7 +41,7 @@ func SimulateMsgCreateSequencer(
 
 		msg := &types.MsgCreateSequencer{
 			Creator:      seqAddress,
-			DymintPubKey: nil,
+			DymintPubKey: pkAny,
 			RollappId:    rollappId,
 			Description:  types.Description{},
 		}

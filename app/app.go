@@ -198,9 +198,6 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 }
 
 var (
-	// bSimulation whether the blockchain is in simulation mode
-	bSimulation = false
-
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
@@ -286,10 +283,6 @@ func init() {
 	var TokensToStake int64 = 100000 //100K DYM minimal stake
 	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
 
-}
-
-func isSimulation() bool {
-	return bSimulation
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -606,8 +599,6 @@ func New(
 
 		app.BankKeeper,
 		app.RollappKeeper,
-
-		isSimulation(),
 	)
 
 	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
