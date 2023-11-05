@@ -223,7 +223,7 @@ func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
-	// update state of version diffrent than the rollapp
+	// update state of version different than the rollapp
 	updateState := types.MsgUpdateState{
 		Creator:     bob,
 		RollappId:   rollapp.GetRollappId(),
@@ -689,9 +689,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 }
 
 // ---------------------------------------
-// vereifyAll receives a list of expected results and a map of rollapId->rollapp
+// verifyAll receives a list of expected results and a map of rollapId->rollapp
 // the function verifies that the map contains all the rollapps that are in the list and only them
-func vereifyAll(suite *RollappTestSuite, rollappsExpect []*types.RollappSummary, rollappsRes map[string]*types.RollappSummary) {
+func verifyAll(suite *RollappTestSuite, rollappsExpect []*types.RollappSummary, rollappsRes map[string]*types.RollappSummary) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(rollappsExpect), len(rollappsRes))
 	for i := 0; i < len(rollappsExpect); i++ {

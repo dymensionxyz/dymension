@@ -23,9 +23,8 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		transferKeeper types.TransferKeeper
-		channelKeeper  types.ChannelKeeper
-		ics4Wrapper    porttypes.ICS4Wrapper
+		channelKeeper types.ChannelKeeper
+		ics4Wrapper   porttypes.ICS4Wrapper
 	}
 )
 
@@ -34,7 +33,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	transferKeeper types.TransferKeeper,
+
 	channelKeeper types.ChannelKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 
@@ -50,9 +49,8 @@ func NewKeeper(
 		memKey:     memKey,
 		paramstore: ps,
 
-		transferKeeper: transferKeeper,
-		channelKeeper:  channelKeeper,
-		ics4Wrapper:    ics4Wrapper,
+		channelKeeper: channelKeeper,
+		ics4Wrapper:   ics4Wrapper,
 	}
 }
 

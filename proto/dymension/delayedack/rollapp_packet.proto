@@ -1,0 +1,21 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "gogoproto/gogo.proto";
+import "ibc/core/channel/v1/channel.proto"; 
+
+option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
+
+message RollappPacket {
+    ibc.core.channel.v1.Packet packet = 1;
+    enum Status {
+      PENDING = 0;
+      ACCEPTED = 1;
+      REJECTED = 2;
+    }
+    Status status = 2;
+    uint64 ProofHeight = 3;
+    string error = 4;
+    bytes relayer = 5;
+  
+  }

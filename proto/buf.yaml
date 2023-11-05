@@ -4,6 +4,7 @@ deps:
   - buf.build/cosmos/cosmos-sdk
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
+  - buf.build/cosmos/ibc:48efd8e99666d9206e61167c248fb384a7a21989
   - buf.build/googleapis/googleapis
 breaking:
   use:
