@@ -127,6 +127,14 @@ func (k Keeper) updateStreamPostDistribute(ctx sdk.Context, stream types.Stream,
 	if err := k.setStream(ctx, &stream); err != nil {
 		return err
 	}
+
+	// Check if stream has completed its distribution
+	if stream.FilledEpochs >= stream.NumEpochsPaidOver {
+		if err := k.moveActiveStreamToFinishedStream(ctx, stream); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -141,21 +149,7 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
 	}
 
-	k.checkFinishDistribution(ctx, streams)
 	return totalDistributedCoins, nil
-}
-
-// checkFinishDistribution checks if all non perpetual streams provided have completed their required distributions.
-// If complete, move the stream from an active to a finished status.
-func (k Keeper) checkFinishDistribution(ctx sdk.Context, streams []types.Stream) {
-	for _, stream := range streams {
-		// filled epoch is increased in this step and we compare with +1
-		if stream.NumEpochsPaidOver <= stream.FilledEpochs+1 {
-			if err := k.moveActiveStreamToFinishedStream(ctx, stream); err != nil {
-				panic(err)
-			}
-		}
-	}
 }
 
 // GetModuleToDistributeCoins returns sum of coins yet to be distributed for all of the module.
