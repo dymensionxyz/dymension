@@ -96,7 +96,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 	}
 
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
-	spendedCoins := k.GetModuleToDistributeCoins(ctx)
+	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
 
 	if !coins.IsAllLTE(moduleBalance.Sub(spendedCoins...)) {
 		return 0, fmt.Errorf("insufficient module balance to distribute coins")

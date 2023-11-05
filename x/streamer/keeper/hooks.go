@@ -41,10 +41,17 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 		}
 		distrStreams = append(distrStreams, stream)
 	}
-	_, err := k.Distribute(ctx, distrStreams)
+
+	if len(distrStreams) == 0 {
+		return nil
+	}
+
+	distributedAmt, err := k.Distribute(ctx, distrStreams)
 	if err != nil {
 		return err
 	}
+
+	ctx.Logger().Info("Streamer distributed coins", "amount", distributedAmt.String())
 	return nil
 }
 
