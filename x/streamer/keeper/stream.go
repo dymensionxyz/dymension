@@ -48,42 +48,6 @@ func (k Keeper) setStream(ctx sdk.Context, stream *types.Stream) error {
 	return nil
 }
 
-// CreateStreamRefKeys takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
-// If stream is active or upcoming, creates reference between the denom and stream ID.
-// Used to consolidate codepaths for InitGenesis and CreateStream.
-func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combinedKeys []byte, activeOrUpcomingStream bool) error {
-	if err := k.addStreamRefByKey(ctx, combinedKeys, stream.Id); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// SetStreamWithRefKey takes a single stream and assigns a key.
-// Takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
-// If this stream is active or upcoming, creates reference between the denom and stream ID.
-func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error {
-	err := k.setStream(ctx, stream)
-	if err != nil {
-		return err
-	}
-
-	curTime := ctx.BlockTime()
-	timeKey := getTimeKey(stream.StartTime)
-	activeOrUpcomingStream := stream.IsActiveStream(curTime) || stream.IsUpcomingStream(curTime)
-
-	if stream.IsUpcomingStream(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, timeKey)
-		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
-	} else if stream.IsActiveStream(curTime) {
-		combinedKeys := combineKeys(types.KeyPrefixActiveStreams, timeKey)
-		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
-	} else {
-		combinedKeys := combineKeys(types.KeyPrefixFinishedStreams, timeKey)
-		return k.CreateStreamRefKeys(ctx, stream, combinedKeys, activeOrUpcomingStream)
-	}
-}
-
 // CreateStream creates a stream and sends coins to the stream.
 func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAddress, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
 	_, err := sdk.AccAddressFromBech32(distrTo.String())
@@ -126,9 +90,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 	k.SetLastStreamID(ctx, stream.Id)
 
 	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
-	activeOrUpcomingStream := true
-
-	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys, activeOrUpcomingStream)
+	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
 	if err != nil {
 		return 0, err
 	}

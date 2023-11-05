@@ -27,6 +27,40 @@ func (k Keeper) SetLastStreamID(ctx sdk.Context, ID uint64) {
 	store.Set(types.KeyLastStreamID, sdk.Uint64ToBigEndian(ID))
 }
 
+// CreateStreamRefKeys takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
+// If stream is active or upcoming, creates reference between the denom and stream ID.
+// Used to consolidate codepaths for InitGenesis and CreateStream.
+func (k Keeper) CreateStreamRefKeys(ctx sdk.Context, stream *types.Stream, combinedKeys []byte) error {
+	if err := k.addStreamRefByKey(ctx, combinedKeys, stream.Id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetStreamWithRefKey takes a single stream and assigns a key.
+// Takes combinedKey (the keyPrefix for upcoming, active, or finished streams combined with stream start time) and adds a reference to the respective stream ID.
+func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error {
+	err := k.setStream(ctx, stream)
+	if err != nil {
+		return err
+	}
+
+	curTime := ctx.BlockTime()
+	timeKey := getTimeKey(stream.StartTime)
+
+	if stream.IsUpcomingStream(curTime) {
+		combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
+	} else if stream.IsActiveStream(curTime) {
+		combinedKeys := combineKeys(types.KeyPrefixActiveStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
+	} else {
+		combinedKeys := combineKeys(types.KeyPrefixFinishedStreams, timeKey)
+		return k.CreateStreamRefKeys(ctx, stream, combinedKeys)
+	}
+}
+
 // streamStoreKey returns the combined byte array (store key) of the provided stream ID's key prefix and the ID itself.
 func streamStoreKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
