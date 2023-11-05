@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -26,7 +27,6 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		rollappkeeper    types.RollappKeeper
 		ics4Wrapper      porttypes.ICS4Wrapper
 		channelKeeper    types.ChannelKeeper
 		connectionKeeper types.ConnectionKeeper
@@ -40,7 +40,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	rollappKeeper types.RollappKeeper,
+
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -57,7 +57,6 @@ func NewKeeper(
 		storeKey:         storeKey,
 		memKey:           memKey,
 		paramstore:       ps,
-		rollappkeeper:    rollappKeeper,
 		ics4Wrapper:      ics4Wrapper,
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
@@ -70,9 +69,23 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
+	}
+
+	tmClientState, ok := clientState.(*ibctypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return tmClientState.ChainId, nil
+}
+
 // GetRollappIDFromPacket retrieves the Rollapp ID from a given packet.
 func (k Keeper) GetRollappIDFromPacket(ctx sdk.Context, packet channeltypes.Packet) (string, error) {
-	rollappID, err := k.rollappkeeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	rollappID, err := k.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		return "", err
 	}

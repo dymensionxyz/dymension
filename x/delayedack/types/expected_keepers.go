@@ -12,6 +12,7 @@ import (
 type ChannelKeeper interface {
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
 	GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool)
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
 type ClientKeeper interface {
@@ -20,8 +21,4 @@ type ClientKeeper interface {
 
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
-}
-
-type RollappKeeper interface {
-	ExtractRollappIDFromChannel(ctx sdk.Context, destinationPort string, destinationChannel string) (string, error)
 }

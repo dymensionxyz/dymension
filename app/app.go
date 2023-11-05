@@ -595,7 +595,6 @@ func New(
 		keys[rollappmoduletypes.StoreKey],
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
 	)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
@@ -624,7 +623,6 @@ func New(
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
-		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
