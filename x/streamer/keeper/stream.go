@@ -113,7 +113,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo sdk.AccAd
 	stream := types.Stream{
 		Id:                   k.GetLastStreamID(ctx) + 1,
 		DistributeTo:         distrTo.String(),
-		Coins:                coins,
+		Coins:                coins.Sort(),
 		StartTime:            startTime,
 		DistrEpochIdentifier: epochIdentifier,
 		NumEpochsPaidOver:    numEpochsPaidOver,

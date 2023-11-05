@@ -14,7 +14,7 @@ import (
 func (k Keeper) getDistributedCoinsFromStreams(streams []types.Stream) sdk.Coins {
 	coins := sdk.Coins{}
 	for _, stream := range streams {
-		coins = coins.Add(stream.DistributedCoins.Sort()...)
+		coins = coins.Add(stream.DistributedCoins...)
 	}
 	return coins
 }
@@ -25,7 +25,7 @@ func (k Keeper) getToDistributeCoinsFromStreams(streams []types.Stream) sdk.Coin
 	distributed := sdk.Coins{}
 
 	for _, stream := range streams {
-		coins = coins.Add(stream.Coins.Sort()...)
+		coins = coins.Add(stream.Coins...)
 		distributed = distributed.Add(stream.DistributedCoins...)
 	}
 	return coins.Sub(distributed...)
@@ -88,7 +88,6 @@ func (k Keeper) distributeInternal(
 			totalDistrCoins = totalDistrCoins.Add(newlyDistributedCoin)
 		}
 	}
-	totalDistrCoins = totalDistrCoins.Sort()
 
 	err := k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
 	if err != nil {
