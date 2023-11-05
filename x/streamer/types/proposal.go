@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -52,7 +53,18 @@ func (csp *CreateStreamProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
+	_, err = sdk.AccAddressFromBech32(csp.DistributeTo)
+	if err != nil {
+		return err
+	}
 
+	if !csp.Coins.IsAllPositive() {
+		return fmt.Errorf("all coins %s must be positive", csp.Coins)
+	}
+
+	if csp.NumEpochsPaidOver <= 0 {
+		return fmt.Errorf("numEpochsPaidOver must be greater than 0")
+	}
 	return nil
 }
 
