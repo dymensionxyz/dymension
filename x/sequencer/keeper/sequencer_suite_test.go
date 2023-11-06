@@ -18,7 +18,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
-type IntegrationTestSuite struct {
+type SequencerTestSuite struct {
 	suite.Suite
 
 	app         *app.App
@@ -28,10 +28,10 @@ type IntegrationTestSuite struct {
 }
 
 func TestSequencerKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
+	suite.Run(t, new(SequencerTestSuite))
 }
 
-func (suite *IntegrationTestSuite) SetupTest() {
+func (suite *SequencerTestSuite) SetupTest() {
 	app := app.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 

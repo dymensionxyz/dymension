@@ -42,7 +42,7 @@ var (
 	sequencerModuleAddress string
 )
 
-func (suite *IntegrationTestSuite) TestCreateSequencer() {
+func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -135,7 +135,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
+func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -167,7 +167,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.ErrorIs(err, types.ErrSequencerAlreadyRegistered)
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
+func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -186,7 +186,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
-func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
+func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -233,7 +233,7 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
+func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -263,7 +263,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.EqualError(err, types.ErrSequencerNotPermissioned.Error())
 }
 
-func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
+func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	maxSequencers := 3
@@ -312,7 +312,7 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
+func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -368,7 +368,7 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
-func verifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
+func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
 	for i := 0; i < len(sequencersExpect); i++ {
@@ -379,7 +379,7 @@ func verifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer,
 }
 
 // getAll quires for all exsisting sequencers and returns a map of sequencerId->sequencer
-func getAll(suite *IntegrationTestSuite) (map[string]*types.Sequencer, int) {
+func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	totalChecked := 0
 	totalRes := 0
@@ -417,7 +417,7 @@ func getAll(suite *IntegrationTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
-func equalSequencer(suite *IntegrationTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
+func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
 	// Pubkey does not pass standard equality checks, check it separately
 	s1Pubkey := s1.DymintPubKey
 	s2Pubkey := s2.DymintPubKey
