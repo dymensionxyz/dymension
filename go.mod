@@ -13,7 +13,7 @@ require (
 	github.com/evmos/ethermint v0.22.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.3
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/osmosis-labs/osmosis/v15 v15.0.0-00010101000000-000000000000
 	github.com/rakyll/statik v0.1.7
