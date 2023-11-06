@@ -1,4 +1,4 @@
-package app_test
+package simulation_test
 
 import (
 	"os"

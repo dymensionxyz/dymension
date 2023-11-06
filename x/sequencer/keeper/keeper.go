@@ -22,8 +22,6 @@ type (
 
 		bankKeeper    types.BankKeeper
 		rollappKeeper types.RollappKeeper
-
-		isSimulation bool
 	}
 )
 
@@ -34,8 +32,6 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 
 	bankKeeper types.BankKeeper, rollappKeeper types.RollappKeeper,
-
-	isSimulation bool,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -49,7 +45,6 @@ func NewKeeper(
 		memKey:     memKey,
 		paramstore: ps,
 		bankKeeper: bankKeeper, rollappKeeper: rollappKeeper,
-		isSimulation: isSimulation,
 	}
 }
 

@@ -14,13 +14,9 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Pubkey can be nil only in simulation mode
-	if !k.isSimulation {
-		if msg.DymintPubKey == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
-		}
+	if msg.DymintPubKey == nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
-
 	// load rollapp object for stateful validations
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	// check to see if the rollapp has been registered before

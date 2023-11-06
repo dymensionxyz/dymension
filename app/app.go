@@ -198,9 +198,6 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 }
 
 var (
-	// bSimulation whether the blockchain is in simulation mode
-	bSimulation = false
-
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
@@ -288,10 +285,6 @@ func init() {
 
 }
 
-func isSimulation() bool {
-	return bSimulation
-}
-
 // App extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
@@ -355,9 +348,6 @@ type App struct {
 
 	// the module manager
 	mm *module.Manager
-
-	// simulation manager
-	sm *module.SimulationManager
 
 	// module configurator
 	configurator module.Configurator
@@ -606,8 +596,6 @@ func New(
 
 		app.BankKeeper,
 		app.RollappKeeper,
-
-		isSimulation(),
 	)
 
 	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
@@ -879,30 +867,6 @@ func New(
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
-	// create the simulation manager and define the order of the modules for deterministic simulations
-	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		params.NewAppModule(app.ParamsKeeper),
-		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
-		transferModule,
-		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper),
-		rollappModule,
-		sequencerModule,
-		denommetadataModule,
-		delayedackModule,
-		// this line is used by starport scaffolding # stargate/app/appModule
-	)
-	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
@@ -1137,7 +1101,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
+	return nil
 }
 
 // GetIBCKeeper implements ibctesting.TestingApp
