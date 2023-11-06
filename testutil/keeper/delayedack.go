@@ -17,6 +17,7 @@ import (
 	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -71,6 +72,12 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 	return connectiontypes.ConnectionEnd{}, false
 }
 
+type RollappKeeperStub struct{}
+
+func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
+	return rollapptypes.Rollapp{}, false
+}
+
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -96,6 +103,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		paramsSubspace,
 
+		RollappKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
 		ClientKeeperStub{},

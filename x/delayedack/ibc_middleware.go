@@ -117,13 +117,15 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	// Check if the packet is destined for a rollapp
-	rollappID, err := im.keeper.GetRollappIDFromPacket(ctx, packet)
+	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		logger.Error("failed to extract rollappID from channel", "err", err)
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		logger.Error("Failed to extract chain id from channel", "err", err)
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	if rollappID == "" {
-		logger.Debug("skipping IBC transfer OnRecvPacket for non-tendermint chain")
+
+	_, found := im.keeper.GetRollapp(ctx, chainID)
+	if !found {
+		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -144,7 +146,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
 	}
-	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+	im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
 
 	return nil
 }

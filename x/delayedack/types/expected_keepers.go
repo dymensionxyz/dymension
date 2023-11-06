@@ -6,6 +6,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper
@@ -21,4 +22,8 @@ type ClientKeeper interface {
 
 type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+}
+
+type RollappKeeper interface {
+	GetRollapp(ctx sdk.Context, chainID string) (rollapp rollapptypes.Rollapp, found bool)
 }

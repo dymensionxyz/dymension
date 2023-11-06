@@ -27,6 +27,7 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
+		rollappKeeper    types.RollappKeeper
 		ics4Wrapper      porttypes.ICS4Wrapper
 		channelKeeper    types.ChannelKeeper
 		connectionKeeper types.ConnectionKeeper
@@ -41,6 +42,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 
+	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -57,6 +59,7 @@ func NewKeeper(
 		storeKey:         storeKey,
 		memKey:           memKey,
 		paramstore:       ps,
+		rollappKeeper:    rollappKeeper,
 		ics4Wrapper:      ics4Wrapper,
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
@@ -83,13 +86,8 @@ func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channe
 	return tmClientState.ChainId, nil
 }
 
-// GetRollappIDFromPacket retrieves the Rollapp ID from a given packet.
-func (k Keeper) GetRollappIDFromPacket(ctx sdk.Context, packet channeltypes.Packet) (string, error) {
-	rollappID, err := k.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
-	if err != nil {
-		return "", err
-	}
-	return rollappID, nil
+func (k Keeper) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
+	return k.rollappKeeper.GetRollapp(ctx, chainID)
 }
 
 // GetClientState retrieves the client state for a given packet.

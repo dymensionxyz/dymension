@@ -623,6 +623,7 @@ func New(
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
+		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
