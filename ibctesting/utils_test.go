@@ -7,6 +7,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	app "github.com/dymensionxyz/dymension/app"
+	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,6 +23,13 @@ func init() {
 	}
 
 	// sdk.DefaultPowerReduction = sdk.NewIntFromUint64(1000000)
+}
+
+func ConvertToApp(chain *ibctesting.TestChain) *app.App {
+	app, ok := chain.App.(*app.App)
+	require.True(chain.T, ok)
+
+	return app
 }
 
 // KeeperTestSuite is a testing suite to test keeper functions.
@@ -49,6 +59,48 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))     // convenience and readability
 	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2))  // convenience and readability
 	suite.rollappChain = suite.coordinator.GetChain(ibctesting.GetChainID(3)) // convenience and readability
+}
+
+func (suite *KeeperTestSuite) CreateRollapp() {
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.ChainID,
+		10,
+		&sharedtypes.Sequencers{},
+		nil,
+	)
+	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	suite.Require().NoError(err) // message committed
+}
+
+func (suite *KeeperTestSuite) CreateRollappWithMetadata() {
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.ChainID,
+		10,
+		&sharedtypes.Sequencers{},
+		[]rollapptypes.TokenMetadata{
+			{
+				Description: "test",
+				DenomUnits: []*rollapptypes.DenomUnit{
+					{
+						Denom:    "utest",
+						Exponent: 0,
+					},
+					{
+						Denom:    "utest",
+						Exponent: 0,
+					},
+				},
+				Base:    "utest",
+				Display: "TST",
+				Name:    "test",
+				Symbol:  "TST",
+			},
+		},
+	)
+	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	suite.Require().NoError(err) // message committed
 }
 
 func (suite *KeeperTestSuite) NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

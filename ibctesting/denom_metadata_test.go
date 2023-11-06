@@ -6,10 +6,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
-
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 //transfer from cosmos -nothing
@@ -20,18 +16,10 @@ func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
 	path := suite.NewTransferPath(suite.rollappChain, suite.hubChain)
 	suite.coordinator.Setup(path)
 
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.ChainID,
-		10,
-		&sharedtypes.Sequencers{},
-		nil,
-	)
-	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
-	suite.Require().NoError(err) // message committed
+	suite.CreateRollappWithMetadata()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
+	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -44,5 +32,10 @@ func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
 
 	// relay send
 	err = path.RelayPacket(packet)
+	//expect error as no AcknowledgePacket expected
 	suite.Require().Error(err) // relay committed
+
+	metatdata, found := suite.hubChain.GetSimApp().BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), "utest")
+	suite.Require().True(found)
+	suite.Require().Equal("test", metatdata.Name)
 }
