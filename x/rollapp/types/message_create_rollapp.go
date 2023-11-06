@@ -3,19 +3,18 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/shared/types"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses *types.Sequencers, metadatas []TokenMetadata) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, metadatas []TokenMetadata) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
 		MaxSequencers:         maxSequencers,
-		PermissionedAddresses: *permissionedAddresses,
+		PermissionedAddresses: permissionedAddresses,
 		Metadatas:             metadatas,
 	}
 }
@@ -53,9 +52,9 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := msg.GetPermissionedAddresses()
-	if permissionedAddresses.Size() > 0 {
+	if len(permissionedAddresses) > 0 {
 		duplicateAddresses := make(map[string]bool)
-		for _, item := range permissionedAddresses.GetAddresses() {
+		for _, item := range permissionedAddresses {
 			// check if the item/element exist in the duplicateAddresses map
 			_, exist := duplicateAddresses[item]
 			if exist {

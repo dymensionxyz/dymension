@@ -13,17 +13,21 @@ import (
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-
-	shared "github.com/dymensionxyz/dymension/shared/types"
 )
 
 var _ = strconv.Itoa(0)
 
+// TODO: refactor to be flag of []string
+type PermissionedAddresses struct {
+	Addresses []string `json:"addresses"`
+}
+
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
-		Short: "Create a new rollapp",
-		Args:  cobra.RangeArgs(3, 4),
+		Use:     "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
+		Short:   "Create a new rollapp",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
+		Args:    cobra.RangeArgs(3, 4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
@@ -31,8 +35,8 @@ func CmdCreateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			argPermissionedAddresses := new(shared.Sequencers)
-			err = json.Unmarshal([]byte(args[2]), argPermissionedAddresses)
+			var argPermissionedAddresses PermissionedAddresses
+			err = json.Unmarshal([]byte(args[2]), &argPermissionedAddresses)
 			if err != nil {
 				return err
 			}
@@ -54,7 +58,7 @@ func CmdCreateRollapp() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
 				argMaxSequencers,
-				argPermissionedAddresses,
+				argPermissionedAddresses.Addresses,
 				metadatas,
 			)
 

@@ -32,8 +32,7 @@ func (k Keeper) SequencersByRollappAll(c context.Context, req *types.QueryAllSeq
 		}
 
 		var sequencerInfoList []types.SequencerInfo
-		for _, sequencerAddress := range sequencersByRollapp.Sequencers.Addresses {
-
+		for _, sequencerAddress := range sequencersByRollapp.Sequencers {
 			sequencerVal := sequencerStore.Get(types.SequencerKey(
 				sequencerAddress,
 			))
@@ -95,7 +94,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	schedulerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 
 	var sequencerInfoList []types.SequencerInfo
-	for _, sequencerAddress := range val.Sequencers.Addresses {
+	for _, sequencerAddress := range val.Sequencers {
 
 		sequencerVal := sequencerStore.Get(types.SequencerKey(
 			sequencerAddress,
