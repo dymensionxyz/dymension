@@ -129,31 +129,54 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		err      error
 	}{
 		{
-			desc: "LatestStateInfoIndex",
-			request: &types.QueryGetStateInfoRequest{
-				RollappId: "UnknownRollappId",
-				Height:    100,
-			},
-			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{}},
-			err:      types.ErrUnknownRollappID,
-		},
-		{
-			desc: "NoFlagsReturnLatestStateInfoIndex",
+			desc: "StateInfoByHeight",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
-				Height:    0,
+				Height:    msgs[3].StartHeight + 1,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 4},
-				StartHeight:    7,
-				NumBlocks:      4,
+				StartHeight:    msgs[3].StartHeight,
+				NumBlocks:      msgs[3].NumBlocks,
 			}},
 		},
 		{
-			desc: "ErrStateNotExists",
+			desc: "StateInfoByHeight_firstBlockInBatch",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
-				Height:    msgs[len(msgs)-1].StartHeight + msgs[len(msgs)-1].NumBlocks,
+				Height:    msgs[2].StartHeight,
+			},
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
+				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StartHeight:    msgs[2].StartHeight,
+				NumBlocks:      msgs[2].NumBlocks,
+			}},
+		},
+		{
+			desc: "StateInfoByHeight_lastBlockInBatch",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "rollappId",
+				Height:    msgs[2].StartHeight + msgs[2].NumBlocks - 1,
+			},
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
+				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StartHeight:    msgs[2].StartHeight,
+				NumBlocks:      msgs[2].NumBlocks,
+			}},
+		},
+		{
+			desc: "StateInfoByHeight_unknownRollappId",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "UnknownRollappId",
+				Height:    5,
+			},
+			err: types.ErrUnknownRollappID,
+		},
+		{
+			desc: "StateInfoByHeight_invalidHeight",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "rollappId",
+				Height:    10000000,
 			},
 			err: types.ErrStateNotExists,
 		},
