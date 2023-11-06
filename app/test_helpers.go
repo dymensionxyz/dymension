@@ -72,18 +72,13 @@ type SetupOptions struct {
 	AppOpts            types.AppOptions
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
+func SetupTestingApp() (*App, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-
-	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
-	if withGenesis {
-		return app, NewDefaultGenesisState(encCdc.Codec)
-	}
-
 	params.SetAddressPrefixes()
 
-	return app, GenesisState{}
+	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encCdc, EmptyAppOptions{})
+	return app, NewDefaultGenesisState(encCdc.Codec)
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
@@ -182,7 +177,7 @@ func genesisStateWithValSet(t *testing.T,
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *App {
 	t.Helper()
 
-	app, genesisState := setup(true, 5)
+	app, genesisState := SetupTestingApp()
 	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, genAccs, balances...)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -197,16 +192,6 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			AppStateBytes:   stateBytes,
 		},
 	)
-
-	// commit genesis changes
-	// app.Commit()
-	// app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-	// 	ChainID:            TestChainID,
-	// 	Height:             app.LastBlockHeight() + 1,
-	// 	AppHash:            app.LastCommitID().Hash,
-	// 	ValidatorsHash:     valSet.Hash(),
-	// 	NextValidatorsHash: valSet.Hash(),
-	// }})
 
 	return app
 }
