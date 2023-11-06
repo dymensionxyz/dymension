@@ -6,9 +6,12 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+
+	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
+
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
-//transfer from rollapp to hub - delay
 //transfer from rollapp to hub - check delay is finialized eventually
 // timeout??
 
@@ -39,11 +42,18 @@ func (suite *KeeperTestSuite) TestTransferCosmosToHub() {
 }
 
 func (suite *KeeperTestSuite) TestTransferRollappToHub() {
-	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.rollappChain, suite.hubChain)
 	suite.coordinator.Setup(path)
 
-	//TODO: register rollapp
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.ChainID,
+		10,
+		&sharedtypes.Sequencers{},
+		nil,
+	)
+	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	suite.Require().NoError(err) // message committed
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("9223372036854775808") // 2^63 (one above int64)
@@ -51,7 +61,7 @@ func (suite *KeeperTestSuite) TestTransferRollappToHub() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 	msg := types.NewMsgTransfer(path.EndpointA.ChannelConfig.PortID, path.EndpointA.ChannelID, coinToSendToB, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
-	res, err := suite.hubChain.SendMsgs(msg)
+	res, err := suite.rollappChain.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -62,43 +72,7 @@ func (suite *KeeperTestSuite) TestTransferRollappToHub() {
 	suite.Require().Error(err) // relay committed
 }
 
-func (suite *KeeperTestSuite) TestTransfer() {
-	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain) // clientID, connectionID, channelID empty
-	suite.coordinator.Setup(path)                                    // clientID, connectionID, channelID filled
-
-	suite.Require().Equal("07-tendermint-0", path.EndpointA.ClientID)
-	suite.Require().Equal("connection-0", path.EndpointA.ConnectionID)
-	suite.Require().Equal("channel-0", path.EndpointA.ChannelID)
-
-	// // send on endpointA
-	// sequence, err := path.EndpointA.SendPacket(timeoutHeight1, timeoutTimestamp1, packet1Data)
-
-	// // create packet 1
-	// packet1 := NewPacket() // NewPacket would construct your packet
-
-	// // receive on endpointB
-	// path.EndpointB.RecvPacket(packet1)
-
-	// // acknowledge the receipt of the packet
-	// path.EndpointA.AcknowledgePacket(packet1, ack)
-
-	// // we can also relay
-	// sequence, err := path.EndpointA.SendPacket(timeoutHeight2, timeoutTimestamp2, packet2Data)
-
-	// packet2 := NewPacket()
-
-	// path.Relay(packet2, expectedAck)
-
-	// // if needed we can update our clients
-	// path.EndpointB.UpdateClient()
-
-}
-
 /*
-
-
-
-
 func (suite *InterchainQueriesTestSuite) TestOnChanOpenInit() {
 	var (
 		channel      *channeltypes.Channel
