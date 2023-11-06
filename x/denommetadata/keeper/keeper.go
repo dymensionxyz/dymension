@@ -11,6 +11,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/x/denommetadata/types"
@@ -56,6 +57,20 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
+	}
+
+	tmClientState, ok := clientState.(*ibctypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return tmClientState.ChainId, nil
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function

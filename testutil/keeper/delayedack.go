@@ -14,8 +14,10 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -30,6 +32,10 @@ func (ChannelKeeperStub) LookupModuleByChannel(ctx sdk.Context, portID, channelI
 
 func (ChannelKeeperStub) GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool) {
 	return channeltypes.Channel{}, false
+}
+
+func (ChannelKeeperStub) GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) {
+	return "", &ibctypes.ClientState{}, nil
 }
 
 type ICS4WrapperStub struct{}
@@ -68,8 +74,8 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 
 type RollappKeeperStub struct{}
 
-func (RollappKeeperStub) ExtractRollappIDFromChannel(ctx sdk.Context, destinationPort string, destinationChannel string) (string, error) {
-	return "", nil
+func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
+	return rollapptypes.Rollapp{}, false
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -96,6 +102,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
+
 		RollappKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},

@@ -7,6 +7,7 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 )
 
 // TransferKeeper defines the expected transfer keeper
@@ -21,4 +22,5 @@ type ChannelKeeper interface {
 	GetPacketCommitment(ctx sdk.Context, portID, channelID string, sequence uint64) []byte
 	GetNextSequenceSend(ctx sdk.Context, portID, channelID string) (uint64, bool)
 	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }

@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -26,7 +27,7 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		rollappkeeper    types.RollappKeeper
+		rollappKeeper    types.RollappKeeper
 		ics4Wrapper      porttypes.ICS4Wrapper
 		channelKeeper    types.ChannelKeeper
 		connectionKeeper types.ConnectionKeeper
@@ -40,6 +41,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+
 	rollappKeeper types.RollappKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
@@ -57,7 +59,7 @@ func NewKeeper(
 		storeKey:         storeKey,
 		memKey:           memKey,
 		paramstore:       ps,
-		rollappkeeper:    rollappKeeper,
+		rollappKeeper:    rollappKeeper,
 		ics4Wrapper:      ics4Wrapper,
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
@@ -70,13 +72,22 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetRollappIDFromPacket retrieves the Rollapp ID from a given packet.
-func (k Keeper) GetRollappIDFromPacket(ctx sdk.Context, packet channeltypes.Packet) (string, error) {
-	rollappID, err := k.rollappkeeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
 	}
-	return rollappID, nil
+
+	tmClientState, ok := clientState.(*ibctypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return tmClientState.ChainId, nil
+}
+
+func (k Keeper) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
+	return k.rollappKeeper.GetRollapp(ctx, chainID)
 }
 
 // GetClientState retrieves the client state for a given packet.
