@@ -17,19 +17,12 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	streams := k.GetUpcomingStreams(ctx)
 	// move to active if it's correct epoch and start time reached
 	for _, stream := range streams {
-		if epochIdentifier != stream.DistrEpochIdentifier {
-			continue
-		}
 		if !ctx.BlockTime().Before(stream.StartTime) {
 			if err := k.moveUpcomingStreamToActiveStream(ctx, stream); err != nil {
 				return err
 			}
 		}
 	}
-
-	// if len(streams) > 10 {
-	// 	ctx.EventManager().IncreaseCapacity(2e6)
-	// }
 
 	// distribute due to epoch event
 	streams = k.GetActiveStreams(ctx)

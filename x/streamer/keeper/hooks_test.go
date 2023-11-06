@@ -62,9 +62,9 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	err := suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "month", 0)
 	suite.Require().NoError(err)
 
-	// check active streams - none is active
+	// check active streams - all 3 but the future are active
 	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
-	suite.Require().Len(streams, 0)
+	suite.Require().Len(streams, 3)
 
 	/* --------- call the epoch hook with day (2 active and one future) --------- */
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
@@ -72,11 +72,11 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	// check active streams
 	streams = suite.App.StreamerKeeper.GetActiveStreams(suite.Ctx)
-	suite.Require().Len(streams, 2)
+	suite.Require().Len(streams, 3)
 
 	// check upcoming streams
 	streams = suite.App.StreamerKeeper.GetUpcomingStreams(suite.Ctx)
-	suite.Require().Len(streams, 2)
+	suite.Require().Len(streams, 1)
 
 	// check distribution
 	balance := suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
