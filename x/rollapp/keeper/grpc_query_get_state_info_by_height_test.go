@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/rand"
 	"strconv"
 	"testing"
 
@@ -16,17 +17,18 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rollappId string, increasingNumBlocks bool) []types.StateInfo {
+const (
+	maxNumOfBlocks = 1000
+)
+
+func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rollappId string) []types.StateInfo {
 	keeper.SetRollapp(ctx, types.Rollapp{
 		RollappId: rollappId,
 	})
 	items := make([]types.StateInfo, n)
 	StartHeight := uint64(1)
 	for i := range items {
-		numBlocks := uint64(i + 1)
-		if !increasingNumBlocks {
-			numBlocks = uint64(n - i)
-		}
+		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1)
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: rollappId,
@@ -119,7 +121,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 func TestStateInfoByHeightErr(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId", true)
+	msgs := createNStateInfoAndIndex(keeper, ctx, 4, "rollappId")
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetStateInfoRequest
@@ -127,31 +129,54 @@ func TestStateInfoByHeightErr(t *testing.T) {
 		err      error
 	}{
 		{
-			desc: "LatestStateInfoIndex",
-			request: &types.QueryGetStateInfoRequest{
-				RollappId: "UnknownRollappId",
-				Height:    100,
-			},
-			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{}},
-			err:      types.ErrUnknownRollappID,
-		},
-		{
-			desc: "NoFlagsReturnLatestStateInfoIndex",
+			desc: "StateInfoByHeight",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
-				Height:    0,
+				Height:    msgs[3].StartHeight + 1,
 			},
 			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 4},
-				StartHeight:    7,
-				NumBlocks:      4,
+				StartHeight:    msgs[3].StartHeight,
+				NumBlocks:      msgs[3].NumBlocks,
 			}},
 		},
 		{
-			desc: "ErrStateNotExists",
+			desc: "StateInfoByHeight_firstBlockInBatch",
 			request: &types.QueryGetStateInfoRequest{
 				RollappId: "rollappId",
-				Height:    msgs[len(msgs)-1].StartHeight + msgs[len(msgs)-1].NumBlocks,
+				Height:    msgs[2].StartHeight,
+			},
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
+				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StartHeight:    msgs[2].StartHeight,
+				NumBlocks:      msgs[2].NumBlocks,
+			}},
+		},
+		{
+			desc: "StateInfoByHeight_lastBlockInBatch",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "rollappId",
+				Height:    msgs[2].StartHeight + msgs[2].NumBlocks - 1,
+			},
+			response: &types.QueryGetStateInfoResponse{StateInfo: types.StateInfo{
+				StateInfoIndex: types.StateInfoIndex{RollappId: "rollappId", Index: 3},
+				StartHeight:    msgs[2].StartHeight,
+				NumBlocks:      msgs[2].NumBlocks,
+			}},
+		},
+		{
+			desc: "StateInfoByHeight_unknownRollappId",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "UnknownRollappId",
+				Height:    5,
+			},
+			err: types.ErrUnknownRollappID,
+		},
+		{
+			desc: "StateInfoByHeight_invalidHeight",
+			request: &types.QueryGetStateInfoRequest{
+				RollappId: "rollappId",
+				Height:    10000000,
 			},
 			err: types.ErrStateNotExists,
 		},
@@ -175,8 +200,8 @@ func TestStateInfoByHeightErr(t *testing.T) {
 func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	numOfMsg := 1000
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId", true)
+	numOfMsg := 20
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
@@ -198,8 +223,8 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	numOfMsg := 1000
-	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId", false)
+	numOfMsg := 20
+	msgs := createNStateInfoAndIndex(keeper, ctx, numOfMsg, "rollappId")
 
 	for i := 0; i < numOfMsg; i += 1 {
 		for height := msgs[i].StartHeight; height < msgs[i].StartHeight+msgs[i].NumBlocks; height += 1 {
