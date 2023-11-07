@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/simulation/types"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
@@ -56,12 +55,10 @@ func SimulateMsgCreateRollapp(
 		}
 
 		msg := &types.MsgCreateRollapp{
-			Creator:       simAccount.Address.String(),
-			RollappId:     rollappId,
-			MaxSequencers: maxSequencers,
-			PermissionedAddresses: sharedtypes.Sequencers{
-				Addresses: permissionedAddresses,
-			},
+			Creator:               simAccount.Address.String(),
+			RollappId:             rollappId,
+			MaxSequencers:         maxSequencers,
+			PermissionedAddresses: permissionedAddresses,
 		}
 
 		// fmt.Printf("SimulateMsgCreateRollapp: RollappId(%s) bFailMaxSequencers(%t) bFailMaxWithholdingBlocks(%t) bFailDuplicateSequencer(%t)\n",

@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"strconv"
 
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
@@ -307,13 +306,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{carol},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{carol},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -345,13 +342,11 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeightInitial() 
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -389,13 +384,11 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -433,13 +426,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -500,13 +491,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -545,13 +534,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -610,13 +597,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicNotRegisteredInScheduler()
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 	// skip register sequncer in sequencer as Proposer
@@ -649,13 +634,11 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 
 	// set rollapp
 	rollapp := types.Rollapp{
-		RollappId:     "rollapp1",
-		Creator:       alice,
-		Version:       3,
-		MaxSequencers: 1,
-		PermissionedAddresses: sharedtypes.Sequencers{
-			Addresses: []string{},
-		},
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               3,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 

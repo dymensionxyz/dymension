@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/network"
 	"github.com/dymensionxyz/dymension/testutil/nullify"
 	"github.com/dymensionxyz/dymension/x/sequencer/client/cli"
@@ -44,10 +43,8 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 		state.SchedulerList = append(state.SchedulerList, scheduler)
 
 		sequencersByRollapp := types.SequencersByRollapp{
-			RollappId: strconv.Itoa(i),
-			Sequencers: sharedtypes.Sequencers{
-				Addresses: []string{sequencer.SequencerAddress},
-			},
+			RollappId:  strconv.Itoa(i),
+			Sequencers: []string{sequencer.SequencerAddress},
 		}
 		state.SequencersByRollappList = append(state.SequencersByRollappList, sequencersByRollapp)
 

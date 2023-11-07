@@ -2,28 +2,19 @@ package keeper_test
 
 import (
 	"fmt"
-	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/dymensionxyz/dymension/app"
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
-	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/x/sequencer/types"
 	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 const (
@@ -51,39 +42,7 @@ var (
 	sequencerModuleAddress string
 )
 
-type IntegrationTestSuite struct {
-	suite.Suite
-
-	app         *app.App
-	msgServer   types.MsgServer
-	ctx         sdk.Context
-	queryClient types.QueryClient
-}
-
-func TestSequencerKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuite))
-}
-
-func (suite *IntegrationTestSuite) SetupTest() {
-	app := app.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
-
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
-	app.RollappKeeper.SetParams(ctx, rollapptypes.DefaultParams())
-	sequencerModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
-
-	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
-	queryClient := types.NewQueryClient(queryHelper)
-
-	suite.app = app
-	suite.msgServer = keeper.NewMsgServerImpl(app.SequencerKeeper)
-	suite.ctx = ctx
-	suite.queryClient = queryClient
-}
-
-func (suite *IntegrationTestSuite) TestCreateSequencer() {
+func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -106,7 +65,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			Creator:               alice,
 			Version:               0,
 			MaxSequencers:         uint64(maxSequencers),
-			PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
+			PermissionedAddresses: []string{},
 		}
 		suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -150,7 +109,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 			sequencersRes, totalRes := getAll(suite)
 			suite.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
-			vereifyAll(suite, sequencersExpect, sequencersRes)
+			verifyAll(suite, sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of spesific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] =
@@ -176,7 +135,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencer() {
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
+func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -185,7 +144,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 		Creator:               alice,
 		Version:               0,
 		MaxSequencers:         1,
-		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -208,7 +167,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.ErrorIs(err, types.ErrSequencerAlreadyRegistered)
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
+func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -227,7 +186,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
-func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
+func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -240,7 +199,7 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 		Creator:               alice,
 		Version:               0,
 		MaxSequencers:         1,
-		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sequencerAddress}},
+		PermissionedAddresses: []string{sequencerAddress},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -274,7 +233,7 @@ func (suite *IntegrationTestSuite) TestCreatePermissionedSequencer() {
 	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 }
 
-func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
+func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -283,7 +242,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 		Creator:               alice,
 		Version:               0,
 		MaxSequencers:         1,
-		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{sample.AccAddress()}},
+		PermissionedAddresses: []string{sample.AccAddress()},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -304,7 +263,7 @@ func (suite *IntegrationTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.EqualError(err, types.ErrSequencerNotPermissioned.Error())
 }
 
-func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
+func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	maxSequencers := 3
@@ -314,7 +273,7 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 		Creator:               alice,
 		Version:               0,
 		MaxSequencers:         uint64(maxSequencers),
-		PermissionedAddresses: sharedtypes.Sequencers{Addresses: []string{}},
+		PermissionedAddresses: []string{},
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 
@@ -353,7 +312,7 @@ func (suite *IntegrationTestSuite) TestMaxSequencersLimit() {
 	}
 }
 
-func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
+func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 
@@ -407,9 +366,9 @@ func (suite *IntegrationTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer
 }
 
 // ---------------------------------------
-// vereifyAll receives a list of expected results and a map of sequencerAddress->sequencer
+// verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
-func vereifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
+func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
 	for i := 0; i < len(sequencersExpect); i++ {
@@ -420,7 +379,7 @@ func vereifyAll(suite *IntegrationTestSuite, sequencersExpect []*types.Sequencer
 }
 
 // getAll quires for all exsisting sequencers and returns a map of sequencerId->sequencer
-func getAll(suite *IntegrationTestSuite) (map[string]*types.Sequencer, int) {
+func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
 	totalChecked := 0
 	totalRes := 0
@@ -458,7 +417,7 @@ func getAll(suite *IntegrationTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
-func equalSequencer(suite *IntegrationTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
+func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
 	// Pubkey does not pass standard equality checks, check it separately
 	s1Pubkey := s1.DymintPubKey
 	s2Pubkey := s2.DymintPubKey

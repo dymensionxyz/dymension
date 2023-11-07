@@ -4,7 +4,6 @@ import (
 	fmt "fmt"
 	"math/rand"
 
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 
@@ -20,7 +19,7 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 		Creator:               alice,
 		RollappId:             fmt.Sprintf("%s%d", "rollapp", rand.Int63()),
 		MaxSequencers:         1,
-		PermissionedAddresses: sharedtypes.Sequencers{Addresses: addresses},
+		PermissionedAddresses: addresses,
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
@@ -43,8 +42,8 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
 		RollappId: rollapp.GetRollappId(),
 	})
-	if queryResponse.Rollapp.PermissionedAddresses.Addresses == nil {
-		queryResponse.Rollapp.PermissionedAddresses.Addresses = []string{}
+	if queryResponse.Rollapp.PermissionedAddresses == nil {
+		queryResponse.Rollapp.PermissionedAddresses = []string{}
 	}
 	suite.Require().Nil(err)
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
@@ -99,7 +98,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:               alice,
 		RollappId:             "rollapp1",
 		MaxSequencers:         1,
-		PermissionedAddresses: sharedtypes.Sequencers{},
+		PermissionedAddresses: []string{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
