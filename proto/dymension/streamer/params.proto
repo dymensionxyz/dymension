@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+
+
+// Params holds parameters for the streamer module
+message Params {
+}

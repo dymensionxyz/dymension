@@ -1,0 +1,22 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+import "dymension/streamer/params.proto";
+import "dymension/streamer/stream.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+
+
+// GenesisState defines the streamer module's various parameters when first
+// initialized
+message GenesisState {
+  // params are all the parameters of the module
+  Params params = 1 [ (gogoproto.nullable) = false ];
+  // streams are all streams that should exist at genesis
+  repeated Stream streams = 2 [ (gogoproto.nullable) = false ];
+  // last_stream_id is what the stream number will increment from when creating
+  // the next stream after genesis
+  uint64 last_stream_id = 3;
+}

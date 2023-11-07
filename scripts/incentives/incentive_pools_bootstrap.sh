@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+
+# Pass fund manually to the poolincentives module
+# dymd tx bank send local-user dym1upfuxznarpja3sywq0tzd2kktg9wv8mczfufge 30000dym --keyring-backend test -b block
+
+
 # create new gauges for lockdrop
 echo "Creating gauges for lockdrop of uatom"
 dymd tx incentives create-gauge uatom 30dym --duration="3600s" --epochs 30 --from local-user -b block --gas auto -y
