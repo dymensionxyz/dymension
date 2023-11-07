@@ -2,6 +2,7 @@ package ibctesting_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -21,8 +22,6 @@ func init() {
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		return app.SetupTestingApp()
 	}
-
-	// sdk.DefaultPowerReduction = sdk.NewIntFromUint64(1000000)
 }
 
 func ConvertToApp(chain *ibctesting.TestChain) *app.App {
@@ -42,10 +41,6 @@ type KeeperTestSuite struct {
 	hubChain     *ibctesting.TestChain
 	cosmosChain  *ibctesting.TestChain
 	rollappChain *ibctesting.TestChain
-
-	pathHubCosmos   *ibctesting.Path
-	pathCosmosEvmos *ibctesting.Path
-	pathHubRollapp  *ibctesting.Path
 }
 
 // TestKeeperTestSuite runs all the tests within this package.
@@ -71,9 +66,25 @@ func (suite *KeeperTestSuite) CreateRollapp() {
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
+
+	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
+	ctx := suite.hubChain.GetContext()
+
+	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: suite.rollappChain.ChainID, Index: 1}
+	stateInfo := rollapptypes.StateInfo{
+		StateInfoIndex: stateInfoIdx,
+		StartHeight:    0,
+		NumBlocks:      uint64(ctx.BlockHeader().Height - 1),
+		Status:         rollapptypes.STATE_STATUS_FINALIZED,
+	}
+
+	// update the status of the stateInfo
+	rollappKeeper.SetStateInfo(ctx, stateInfo)
+	// uppdate the LatestStateInfoIndex of the rollapp
+	rollappKeeper.SetLatestFinalizedStateIndex(ctx, stateInfoIdx)
 }
 
-func (suite *KeeperTestSuite) CreateRollappWithMetadata() {
+func (suite *KeeperTestSuite) CreateRollappWithMetadata(denom string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
@@ -81,26 +92,51 @@ func (suite *KeeperTestSuite) CreateRollappWithMetadata() {
 		&sharedtypes.Sequencers{},
 		[]rollapptypes.TokenMetadata{
 			{
-				Description: "test",
+				Base: denom,
 				DenomUnits: []*rollapptypes.DenomUnit{
 					{
-						Denom:    "utest",
+						Denom:    denom,
 						Exponent: 0,
 					},
 					{
-						Denom:    "utest",
-						Exponent: 0,
+						Denom:    "big" + denom,
+						Exponent: 6,
 					},
 				},
-				Base:    "utest",
-				Display: "TST",
-				Name:    "test",
-				Symbol:  "TST",
+				Description: "stake as rollapp token",
+				Display:     strings.ToUpper(denom),
+				Name:        strings.ToUpper(denom),
+				Symbol:      strings.ToUpper(denom),
 			},
 		},
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
+}
+
+func (suite *KeeperTestSuite) FinalizeRollapp() error {
+	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
+	ctx := suite.hubChain.GetContext()
+
+	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: suite.rollappChain.ChainID, Index: 2}
+	stateInfo := rollapptypes.StateInfo{
+		StateInfoIndex: stateInfoIdx,
+		StartHeight:    uint64(ctx.BlockHeader().Height),
+		NumBlocks:      10,
+		Status:         rollapptypes.STATE_STATUS_FINALIZED,
+	}
+
+	// update the status of the stateInfo
+	rollappKeeper.SetStateInfo(ctx, stateInfo)
+	// uppdate the LatestStateInfoIndex of the rollapp
+	rollappKeeper.SetLatestFinalizedStateIndex(ctx, stateInfoIdx)
+
+	err := rollappKeeper.GetHooks().AfterStateFinalized(
+		suite.hubChain.GetContext(),
+		suite.rollappChain.ChainID,
+		&stateInfo,
+	)
+	return err
 }
 
 func (suite *KeeperTestSuite) NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
