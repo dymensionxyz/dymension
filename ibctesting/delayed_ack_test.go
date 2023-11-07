@@ -10,15 +10,6 @@ import (
 
 //TODO: test hub -> rollapp
 // eventhough the ackwonledgement from the rollapp is delayed, the tokens should be available on the rollapp chain
-//this is to verify the tokens:
-/*
-	// check that voucher exists on chain B
-	voucherDenomTrace := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
-	balance := suite.chainB.GetSimApp().BankKeeper.GetBalance(suite.chainB.GetContext(), suite.chainB.SenderAccount.GetAddress(), voucherDenomTrace.IBCDenom())
-
-	coinSentFromAToB := types.GetTransferCoin(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, sdk.DefaultBondDenom, amount)
-	suite.Require().Equal(coinSentFromAToB, balance)
-*/
 
 // Transfer from cosmos chain to the hub. No delay expected
 func (suite *KeeperTestSuite) TestTransferCosmosToHub() {

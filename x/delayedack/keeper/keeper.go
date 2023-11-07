@@ -99,7 +99,7 @@ func (k Keeper) GetRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 		return 0, err
 	}
 
-	return (res.StateInfo.StartHeight + res.StateInfo.NumBlocks), nil
+	return (res.StateInfo.StartHeight + res.StateInfo.NumBlocks - 1), nil
 }
 
 // GetClientState retrieves the client state for a given packet.
