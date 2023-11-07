@@ -138,6 +138,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	// TODO(omritoptix): Currently we use this height as the proofHeight as the real proofHeight from the ibc lower stack is not available.
 	// using this height is secured but may cause extra delay as at best it will be equal to the proof height (but could be higher).
 	ibcClientLatestHeight := clientState.GetLatestHeight()
+	finalizedHeight, err := im.keeper.GetRollappFinalizedHeight(ctx, chainID)
+	if err == nil && finalizedHeight > ibcClientLatestHeight.GetRevisionHeight() {
+		logger.Debug("Skipping IBC transfer OnRecvPacket as the packet proof height is already finalized")
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
 
 	// Save the packet data to the store for later processing
 	rollappPacket := types.RollappPacket{
