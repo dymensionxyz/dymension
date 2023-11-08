@@ -1,11 +1,14 @@
 package types
 
 import (
+	context "context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
@@ -26,4 +29,5 @@ type ConnectionKeeper interface {
 
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, chainID string) (rollapp rollapptypes.Rollapp, found bool)
+	StateInfo(c context.Context, req *types.QueryGetStateInfoRequest) (*types.QueryGetStateInfoResponse, error)
 }
