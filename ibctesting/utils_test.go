@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	app "github.com/dymensionxyz/dymension/app"
-	sharedtypes "github.com/dymensionxyz/dymension/shared/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -61,7 +60,7 @@ func (suite *KeeperTestSuite) CreateRollapp() {
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
 		10,
-		&sharedtypes.Sequencers{},
+		[]string{},
 		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
@@ -89,7 +88,7 @@ func (suite *KeeperTestSuite) CreateRollappWithMetadata(denom string) {
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
 		10,
-		&sharedtypes.Sequencers{},
+		[]string{},
 		[]rollapptypes.TokenMetadata{
 			{
 				Base: denom,
