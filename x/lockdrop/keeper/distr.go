@@ -53,7 +53,8 @@ func (k Keeper) AllocateAsset(ctx sdk.Context) error {
 			continue
 		}
 
-		if record.GaugeId == 0 { // fund community pool if gaugeId is zero
+		_, err := k.incentivesKeeper.GetGaugeByID(ctx, record.GaugeId)
+		if err != nil {
 			if err := k.FundCommunityPoolFromModule(ctx, sdk.NewCoin(asset.Denom, allocatingAmount)); err != nil {
 				return err
 			}
@@ -61,9 +62,10 @@ func (k Keeper) AllocateAsset(ctx sdk.Context) error {
 		}
 
 		coins := sdk.NewCoins(sdk.NewCoin(asset.Denom, allocatingAmount))
-		err := k.incentivesKeeper.AddToGaugeRewards(ctx, k.accountKeeper.GetModuleAddress(types.ModuleName), coins, record.GaugeId)
+		err = k.incentivesKeeper.AddToGaugeRewards(ctx, k.accountKeeper.GetModuleAddress(types.ModuleName), coins, record.GaugeId)
 		if err != nil {
-			return err
+			logger.Error("failed to add to gauge rewards", "error", err.Error())
+			continue
 		}
 	}
 
