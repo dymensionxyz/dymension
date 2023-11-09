@@ -14,13 +14,9 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Pubkey can be nil only in simulation mode
-	if !k.isSimulation {
-		if msg.DymintPubKey == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
-		}
+	if msg.DymintPubKey == nil {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
-
 	// load rollapp object for stateful validations
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	// check to see if the rollapp has been registered before
@@ -29,7 +25,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses.Addresses
+	permissionedAddresses := rollapp.PermissionedAddresses
 	if len(permissionedAddresses) > 0 {
 		bPermissioned := false
 		// check to see if the sequencer is in the permissioned list
@@ -81,7 +77,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		// check to see if we reached maxsimum number of sequeners
 		maxSequencers := int(rollapp.MaxSequencers)
 		activeSequencers := sequencersByRollapp.Sequencers
-		currentNumOfSequencers := len(activeSequencers.Addresses)
+		currentNumOfSequencers := len(activeSequencers)
 		if maxSequencers < currentNumOfSequencers {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
 		}
@@ -89,7 +85,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrMaxSequencersLimit
 		}
 		// add sequencer to list
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
+		sequencersByRollapp.Sequencers = append(sequencersByRollapp.Sequencers, sequencer.SequencerAddress)
 		// it's not the first sequencer, make it INACTIVE
 		scheduler := types.Scheduler{
 			SequencerAddress: msg.Creator,
@@ -99,7 +95,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	} else {
 		// this is the first sequencer, make it a PROPOSER
 		sequencersByRollapp.RollappId = msg.RollappId
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
+		sequencersByRollapp.Sequencers = append(sequencersByRollapp.Sequencers, msg.Creator)
 		scheduler := types.Scheduler{
 			SequencerAddress: msg.Creator,
 			Status:           types.Proposer,

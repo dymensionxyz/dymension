@@ -121,6 +121,11 @@ import (
 	sequencermodulekeeper "github.com/dymensionxyz/dymension/x/sequencer/keeper"
 	sequencermoduletypes "github.com/dymensionxyz/dymension/x/sequencer/types"
 
+	streamermodule "github.com/dymensionxyz/dymension/x/streamer"
+	streamermoduleclient "github.com/dymensionxyz/dymension/x/streamer/client"
+	streamermodulekeeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
+	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
+
 	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
 	denommetadatakeeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
 	denommetadatatypes "github.com/dymensionxyz/dymension/x/denommetadata/types"
@@ -129,6 +134,10 @@ import (
 	lockdropclient "github.com/dymensionxyz/dymension/x/lockdrop/client"
 	lockdropkeeper "github.com/dymensionxyz/dymension/x/lockdrop/keeper"
 	lockdroptypes "github.com/dymensionxyz/dymension/x/lockdrop/types"
+
+	delayedackmodule "github.com/dymensionxyz/dymension/x/delayedack"
+	delayedackkeeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
+	delayedacktypes "github.com/dymensionxyz/dymension/x/delayedack/types"
 
 	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
 	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
@@ -196,15 +205,14 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 
 		lockdropclient.UpdateLockdropHandler,
 		lockdropclient.ReplaceLockdropHandler,
+
+		streamermoduleclient.CreateStreamHandler,
 	)
 
 	return govProposalHandlers
 }
 
 var (
-	// bSimulation whether the blockchain is in simulation mode
-	bSimulation = false
-
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
@@ -232,8 +240,10 @@ var (
 		vesting.AppModuleBasic{},
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
+		streamermodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		denommetadatamodule.AppModuleBasic{},
+		delayedackmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
@@ -260,6 +270,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName: {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
 		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
@@ -291,10 +302,6 @@ func init() {
 	var TokensToStake int64 = 100000 //100K DYM minimal stake
 	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
 
-}
-
-func isSimulation() bool {
-	return bSimulation
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -350,19 +357,17 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper rollappmodulekeeper.Keeper
-
+	RollappKeeper   rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
+	StreamerKeeper  streamermodulekeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	DenomMetadataKeeper denommetadatakeeper.Keeper
+	DelayedAckKeeper    delayedackkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
-
-	// simulation manager
-	sm *module.SimulationManager
 
 	// module configurator
 	configurator module.Configurator
@@ -404,8 +409,10 @@ func New(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
+		streamermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		denommetadatatypes.StoreKey,
+		delayedacktypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
 		// ethermint keys
@@ -543,6 +550,16 @@ func New(
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
+	// Create IBC Keeper
+	app.IBCKeeper = ibckeeper.NewKeeper(
+		appCodec,
+		keys[ibchost.StoreKey],
+		app.GetSubspace(ibchost.ModuleName),
+		app.StakingKeeper,
+		app.UpgradeKeeper,
+		scopedIBCKeeper,
+	)
+
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
@@ -574,6 +591,55 @@ func New(
 		app.PoolManagerKeeper,
 	)
 
+	//--------------- dYmension specific modules
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		keys[rollappmoduletypes.MemStoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+	)
+
+	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		keys[sequencermoduletypes.StoreKey],
+		keys[sequencermoduletypes.MemStoreKey],
+		app.GetSubspace(sequencermoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.RollappKeeper,
+	)
+
+	app.StreamerKeeper = *streamermodulekeeper.NewKeeper(
+		keys[streamermoduletypes.StoreKey],
+		app.GetSubspace(streamermoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.EpochsKeeper,
+		app.AccountKeeper,
+	)
+
+	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
+		appCodec,
+		keys[denommetadatatypes.StoreKey],
+		keys[denommetadatatypes.MemStoreKey],
+		app.GetSubspace(denommetadatatypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+	)
+
+	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
+		appCodec,
+		keys[delayedacktypes.StoreKey],
+		keys[delayedacktypes.MemStoreKey],
+		app.GetSubspace(delayedacktypes.ModuleName),
+		app.RollappKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ConnectionKeeper,
+		app.IBCKeeper.ClientKeeper,
+	)
+
+	/* -------------------------------- set hooks ------------------------------- */
 	// Set hooks
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
@@ -591,61 +657,15 @@ func New(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
 			app.IncentivesKeeper.Hooks(),
-		),
-	)
-
-	// Create IBC Keeper
-	app.IBCKeeper = ibckeeper.NewKeeper(
-		appCodec,
-		keys[ibchost.StoreKey],
-		app.GetSubspace(ibchost.ModuleName),
-		app.StakingKeeper,
-		app.UpgradeKeeper,
-		scopedIBCKeeper,
-	)
-
-	//--------------- dYmension specific modules
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-	)
-
-	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
-		appCodec,
-		keys[sequencermoduletypes.StoreKey],
-		keys[sequencermoduletypes.MemStoreKey],
-		app.GetSubspace(sequencermoduletypes.ModuleName),
-
-		app.BankKeeper,
-		app.RollappKeeper,
-
-		isSimulation(),
-	)
-
-	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
-		appCodec,
-		keys[denommetadatatypes.StoreKey],
-		keys[denommetadatatypes.MemStoreKey],
-		app.GetSubspace(denommetadatatypes.ModuleName),
-		app.TransferKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-	)
-
-	// register the rollapp hooks
-	app.RollappKeeper.SetHooks(
-		rollappmoduletypes.NewMultiRollappHooks(
-			// insert rollapp hooks receivers here
-			app.SequencerKeeper.RollappHooks(),
+			app.StreamerKeeper.Hooks(),
 		),
 	)
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
-	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper)
+	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
 
 	// ... other modules keepers
 
@@ -660,7 +680,8 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper)).
-		AddRoute(lockdroptypes.RouterKey, lockdropmodule.NewLockdropProposalHandler(*app.LockdropKeeper))
+		AddRoute(lockdroptypes.RouterKey, lockdropmodule.NewLockdropProposalHandler(*app.LockdropKeeper)).
+		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -704,14 +725,23 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	// TODO(omritoptix): Move external keepers to be part of the keeper and not the middleware
 	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
+
+	// register the rollapp hooks
+	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
+		// insert rollapp hooks receivers here
+		app.SequencerKeeper.RollappHooks(),
+		transferStack.(delayedackmodule.IBCMiddleware),
+	))
 
 	/****  Module Options ****/
 
@@ -746,7 +776,9 @@ func New(
 		transferModule,
 		rollappModule,
 		sequencerModule,
+		streamerModule,
 		denommetadataModule,
+		delayedackModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
@@ -792,7 +824,9 @@ func New(
 		paramstypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		streamermoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
+		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -826,7 +860,9 @@ func New(
 		packetforwardtypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		streamermoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
+		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -866,7 +902,9 @@ func New(
 		feegrant.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
+		streamermoduletypes.ModuleName,
 		denommetadatatypes.ModuleName,
+		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
@@ -882,29 +920,6 @@ func New(
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
-	// create the simulation manager and define the order of the modules for deterministic simulations
-	app.sm = module.NewSimulationManager(
-		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
-		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
-		capability.NewAppModule(appCodec, *app.CapabilityKeeper),
-		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		gov.NewAppModule(appCodec, app.GovKeeper, app.AccountKeeper, app.BankKeeper),
-		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
-		params.NewAppModule(app.ParamsKeeper),
-		evidence.NewAppModule(app.EvidenceKeeper),
-		ibc.NewAppModule(app.IBCKeeper),
-		transferModule,
-		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper),
-		rollappModule,
-		sequencerModule,
-		denommetadataModule,
-		// this line is used by starport scaffolding # stargate/app/appModule
-	)
-	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
@@ -988,6 +1003,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 	//exclude the pool incentives module
 	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
 	modAccAddrs[authtypes.NewModuleAddress(lockdroptypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -1120,6 +1136,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
+	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
 	paramsKeeper.Subspace(denommetadatatypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
@@ -1141,7 +1158,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
-	return app.sm
+	return nil
 }
 
 // GetIBCKeeper implements ibctesting.TestingApp

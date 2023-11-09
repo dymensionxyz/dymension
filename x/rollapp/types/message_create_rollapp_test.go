@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/shared/types"
 	"github.com/dymensionxyz/dymension/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
@@ -41,14 +40,14 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
-				PermissionedAddresses: types.Sequencers{Addresses: []string{sample.AccAddress(), sample.AccAddress()}},
+				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		}, {
 			name: "duplicate permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
-				PermissionedAddresses: types.Sequencers{Addresses: []string{seqDupAddr, seqDupAddr}},
+				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
 		}, {
@@ -56,7 +55,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
-				PermissionedAddresses: types.Sequencers{Addresses: []string{seqDupAddr, "invalid permissioned address"}},
+				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
 		},

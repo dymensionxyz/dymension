@@ -36,7 +36,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses.Addresses
+	permissionedAddresses := rollapp.PermissionedAddresses
 	if len(permissionedAddresses) > 0 {
 		bPermissioned := false
 		// check to see if the sequencer is in the permissioned list

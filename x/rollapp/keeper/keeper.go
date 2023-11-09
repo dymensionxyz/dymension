@@ -14,12 +14,11 @@ import (
 
 type (
 	Keeper struct {
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		hooks         types.RollappHooks
-		paramstore    paramtypes.Subspace
-		channelKeeper types.ChannelKeeper
+		cdc        codec.BinaryCodec
+		storeKey   storetypes.StoreKey
+		memKey     storetypes.StoreKey
+		hooks      types.MultiRollappHooks
+		paramstore paramtypes.Subspace
 	}
 )
 
@@ -28,7 +27,6 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -38,12 +36,11 @@ func NewKeeper(
 
 	return &Keeper{
 
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
-		hooks:         nil,
-		channelKeeper: channelKeeper,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		memKey:     memKey,
+		paramstore: ps,
+		hooks:      nil,
 	}
 }
 
@@ -52,16 +49,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // Set the rollapp hooks
-func (k *Keeper) SetHooks(sh types.RollappHooks) *Keeper {
+func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
 	}
-
 	k.hooks = sh
-
-	return k
 }
 
-func (k *Keeper) GetHooks() types.RollappHooks {
+func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
 }

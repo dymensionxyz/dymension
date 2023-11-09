@@ -2,7 +2,6 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
-import "dymension/shared/sequencers.proto";
 import "gogoproto/gogo.proto";
 import "dymension/rollapp/state_info.proto";
 import "dymension/rollapp/bank.proto";
@@ -29,7 +28,7 @@ message Rollapp {
   uint64 maxSequencers = 7;
   // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
-  shared.Sequencers permissionedAddresses = 8 [(gogoproto.nullable) = false];
+  repeated string permissionedAddresses = 8;
   // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
   repeated TokenMetadata tokenMetadata = 9;
 }

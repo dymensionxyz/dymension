@@ -72,18 +72,13 @@ type SetupOptions struct {
 	AppOpts            types.AppOptions
 }
 
-func setup(withGenesis bool, invCheckPeriod uint) (*App, GenesisState) {
+func SetupTestingApp() (*App, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-
-	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, invCheckPeriod, encCdc, EmptyAppOptions{})
-	if withGenesis {
-		return app, NewDefaultGenesisState(encCdc.Codec)
-	}
-
 	params.SetAddressPrefixes()
 
-	return app, GenesisState{}
+	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encCdc, EmptyAppOptions{})
+	return app, NewDefaultGenesisState(encCdc.Codec)
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.
@@ -182,7 +177,7 @@ func genesisStateWithValSet(t *testing.T,
 func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *App {
 	t.Helper()
 
-	app, genesisState := setup(true, 5)
+	app, genesisState := SetupTestingApp()
 	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, genAccs, balances...)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -197,16 +192,6 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 			AppStateBytes:   stateBytes,
 		},
 	)
-
-	// commit genesis changes
-	// app.Commit()
-	// app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{
-	// 	ChainID:            TestChainID,
-	// 	Height:             app.LastBlockHeight() + 1,
-	// 	AppHash:            app.LastCommitID().Hash,
-	// 	ValidatorsHash:     valSet.Hash(),
-	// 	NextValidatorsHash: valSet.Hash(),
-	// }})
 
 	return app
 }
@@ -267,7 +252,7 @@ func AddTestAddrsFromPubKeys(app *App, ctx sdk.Context, pubKeys []cryptotypes.Pu
 	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
 
 	for _, pk := range pubKeys {
-		initAccountWithCoins(app, ctx, sdk.AccAddress(pk.Address()), initCoins)
+		FundAccount(app, ctx, sdk.AccAddress(pk.Address()), initCoins)
 	}
 }
 
@@ -289,13 +274,13 @@ func addTestAddrs(app *App, ctx sdk.Context, accNum int, accAmt math.Int, strate
 	initCoins := sdk.NewCoins(sdk.NewCoin(app.StakingKeeper.BondDenom(ctx), accAmt))
 
 	for _, addr := range testAddrs {
-		initAccountWithCoins(app, ctx, addr, initCoins)
+		FundAccount(app, ctx, addr, initCoins)
 	}
 
 	return testAddrs
 }
 
-func initAccountWithCoins(app *App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
+func FundAccount(app *App, ctx sdk.Context, addr sdk.AccAddress, coins sdk.Coins) {
 	err := app.BankKeeper.MintCoins(ctx, minttypes.ModuleName, coins)
 	if err != nil {
 		panic(err)

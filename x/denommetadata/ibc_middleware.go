@@ -121,25 +121,21 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	rollappID, err := im.rollappkeeper.ExtractRollappIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
-	if err != nil {
-		logger.Error("failed to extract rollappID from channel", "err", err)
-		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-	// no-op if rollappID is empty (i.e transfer from non-dymint chain)
-	if rollappID == "" {
-		logger.Debug("skipping IBC transfer OnRecvPacket for non-tendermint chain")
-		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	rollapp, found := im.rollappkeeper.GetRollapp(ctx, rollappID)
-	if !found {
-		panic("failed to handle IBC transfer packet for non-registered rollapp")
-	}
-
 	// no-op if the receiver chain is the source chain
 	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
-		logger.Debug("skipping IBC transfer OnRecvPacket for receiver chain being the source chain")
+		logger.Debug("Skipping IBC transfer OnRecvPacket for receiver chain being the source chain")
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		logger.Error("Failed to extract chain id from channel", "err", err)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	rollapp, found := im.rollappkeeper.GetRollapp(ctx, chainID)
+	if !found {
+		logger.Debug("Skipping denommetadata middleware. Chain is not a rollapp. ", "chain_id", chainID, "err", err)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -158,19 +154,19 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	if len(rollapp.TokenMetadata) == 0 {
-		logger.Info("skipping new IBC token for rollapp with no metadata", "rollappID", rollappID, "denom", voucherDenom)
+		logger.Info("skipping new IBC token for rollapp with no metadata", "rollappID", chainID, "denom", voucherDenom)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	if im.bankkeeper.HasDenomMetaData(ctx, voucherDenom) {
-		logger.Info("denom metadata already registered", "rollappID", rollappID, "denom", voucherDenom)
+		logger.Info("denom metadata already registered", "rollappID", chainID, "denom", voucherDenom)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	for i := range rollapp.TokenMetadata {
 		if rollapp.TokenMetadata[i].Base == data.Denom {
 			metadata := banktypes.Metadata{
-				Description: "auto-generated metadata for " + voucherDenom + " from rollapp " + rollappID,
+				Description: "auto-generated metadata for " + voucherDenom + " from rollapp " + chainID,
 				Base:        voucherDenom,
 				DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
 				Display:     rollapp.TokenMetadata[i].Display,
@@ -196,7 +192,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 			im.bankkeeper.SetDenomMetaData(ctx, metadata)
 
-			logger.Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", voucherDenom)
+			logger.Info("registered denom metadata for IBC token", "rollappID", chainID, "denom", voucherDenom)
 		}
 	}
 

@@ -2,18 +2,6 @@
 
 tmp=$(mktemp)
 
-set_minting_params() {
-    echo "setting minting params"
-
-    # jq '.app_state.mint.minter.inflation = "0.300000000000000000"' genesis.json > "$tmp" && mv "$tmp" genesis.json
-    # jq '.app_state.mint.params.blocks_per_year = "6311520"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    # jq '.app_state.mint.params.goal_bonded = "0.670000000000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
-set_distribution_params() {
-    echo "setting distribution params"
-}
-
 set_gov_params() {
     echo "setting gov params"
 
@@ -23,23 +11,9 @@ set_gov_params() {
     jq '.app_state.gov.voting_params.voting_period = "1m"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
-set_ibc_params() {
-    echo "setting IBC params"
-    # jq '.app_state.packetforwardmiddleware.params.fee_percentage = "0.00"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
 set_hub_params() {
     echo "setting hub params"
     jq '.app_state.rollapp.params.dispute_period_in_blocks = "2"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-}
-
-set_staking_slashing_params() {
-    echo "setting slashing params"
-    # jq '.app_state.slashing.params.slash_fraction_downtime = "0.01"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-
-    echo "setting staking params"
-    jq '.app_state.staking.params.max_validators = 110' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-
 }
 
 set_EVM_params() {
@@ -65,8 +39,11 @@ set_epochs_params() {
 #should be set to days on live net and lockable duration to 2 weeks
 set_incentives_params() {
   jq '.app_state.incentives.params.distr_epoch_identifier = "minute"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+  jq '.app_state.incentives.params.distr_epoch_identifier = "minute"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+  jq '.app_state.incentives.lockable_durations = ["60s"]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+
   jq '.app_state.poolincentives.params.minted_denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-  jq '.app_state.poolincentives.lockable_durations = ["3600s"]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+  jq '.app_state.poolincentives.lockable_durations = ["60s"]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 
@@ -108,14 +85,4 @@ enable_monitoring() {
     sed -ie 's/enabled-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
     sed -ie 's/enable-unsafe-cors.*$/enabled-unsafe-cors = true/' "$APP_CONFIG_FILE"
     sed -ie 's/cors_allowed_origins.*$/cors_allowed_origins = ["*"]/' "$TENDERMINT_CONFIG_FILE"
-}
-
-set_rollapp_deployer_whitelist() {
-  echo "NOT SUPPORTED"
-  #TODO
-}
-
-add_genesis_accounts() {
-    echo "NOT SUPPORTED"
-  #TODO
 }
