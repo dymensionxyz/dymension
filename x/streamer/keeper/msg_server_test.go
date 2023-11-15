@@ -160,7 +160,6 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 			name:  "bad distribution info",
 			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
 			distrTo: &types.DistrInfo{
-				Name:        "",
 				TotalWeight: math.NewInt(100),
 				Records: []types.DistrRecord{{
 					GaugeId: 0,

@@ -36,14 +36,14 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	//daily stream, 2 epochs
 	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
-	_, _ = suite.CreateStream(defaultDestAddr, coins2, time.Now(), "day", 2)
+	_, _ = suite.CreateStream(defaultDistrInfo, coins2, time.Now(), "day", 2)
 
 	//weekly stream
 	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
-	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now(), "week", 5)
+	_, _ = suite.CreateStream(defaultDistrInfo, coins3, time.Now(), "week", 5)
 
 	//future stream - non-active
-	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now().Add(10*time.Minute), "day", 5)
+	_, _ = suite.CreateStream(defaultDistrInfo, coins3, time.Now().Add(10*time.Minute), "day", 5)
 
 	// check streams
 	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)

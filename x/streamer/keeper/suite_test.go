@@ -19,7 +19,6 @@ import (
 
 var (
 	defaultDistrInfo *types.DistrInfo = &types.DistrInfo{
-		Name:        "",
 		TotalWeight: math.NewInt(100),
 		Records: []types.DistrRecord{{
 			GaugeId: 1,

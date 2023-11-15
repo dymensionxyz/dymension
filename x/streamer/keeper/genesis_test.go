@@ -32,7 +32,6 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// create a stream that distributes coins to earlier created LP token and duration
 	startTime := time.Now()
 	distr := types.DistrInfo{
-		Name:        "",
 		TotalWeight: math.NewInt(100),
 		Records: []types.DistrRecord{{
 			GaugeId: 1,
@@ -79,7 +78,6 @@ func TestStreamerInitGenesis(t *testing.T) {
 	startTime := time.Now()
 
 	distr := types.DistrInfo{
-		Name:        "",
 		TotalWeight: math.NewInt(100),
 		Records: []types.DistrRecord{{
 			GaugeId: 1,
