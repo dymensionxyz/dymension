@@ -3,80 +3,76 @@ package keeper
 import (
 	"fmt"
 
-	db "github.com/tendermint/tm-db"
-
 	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// getDistributedCoinsFromStreams returns coins that have been distributed already from the provided streams
-func (k Keeper) getDistributedCoinsFromStreams(streams []types.Stream) sdk.Coins {
-	coins := sdk.Coins{}
+// DistributeByWeights allocates and distributes coin according a gauge’s proportional weight that is recorded in the record.
+func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo *types.DistrInfo) (sdk.Coins, error) {
+	logger := k.Logger(ctx)
+
+	if coins.Empty() {
+		return coins, fmt.Errorf("coins to allocate cannot be empty")
+	}
+
+	if distrInfo.TotalWeight.IsZero() {
+		return sdk.Coins{}, fmt.Errorf("distribution total weight cannot be zero")
+	}
+
+	totalDistrCoins := sdk.NewCoins()
+	totalWeightDec := sdk.NewDecFromInt(distrInfo.TotalWeight)
+	for _, coin := range coins {
+		if coin.IsZero() {
+			continue
+		}
+		assetAmountDec := sdk.NewDecFromInt(coin.Amount)
+		for _, record := range distrInfo.Records {
+			allocatingAmount := assetAmountDec.Mul(sdk.NewDecFromInt(record.Weight).Quo(totalWeightDec)).TruncateInt()
+
+			// when weight is too small and no amount is allocated, just skip this to avoid zero coin send issues
+			if !allocatingAmount.IsPositive() {
+				logger.Info(fmt.Sprintf("allocating amount for (%d, %s) record is not positive", record.GaugeId, record.Weight.String()))
+				continue
+			}
+
+			_, err := k.ik.GetGaugeByID(ctx, record.GaugeId)
+			if err != nil {
+				logger.Error(fmt.Sprintf("failed to get gauge %d", record.GaugeId), "error", err.Error())
+				continue
+			}
+
+			allocatedCoin := sdk.Coin{Denom: coin.Denom, Amount: allocatingAmount}
+			err = k.ik.AddToGaugeRewards(ctx, k.ak.GetModuleAddress(types.ModuleName), sdk.NewCoins(allocatedCoin), record.GaugeId)
+			if err != nil {
+				logger.Error("failed to add to gauge rewards", "error", err.Error())
+				continue
+			}
+			totalDistrCoins = totalDistrCoins.Add(allocatedCoin)
+		}
+	}
+
+	return totalDistrCoins, nil
+}
+
+// Distribute distributes coins from an array of streams to all eligible locks.
+func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
+	totalDistributedCoins := sdk.Coins{}
 	for _, stream := range streams {
-		coins = coins.Add(stream.DistributedCoins...)
+		streamDistributedCoins, err := k.distributeStream(ctx, stream)
+		if err != nil {
+			return nil, err
+		}
+		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
 	}
-	return coins
+
+	return totalDistributedCoins, nil
 }
 
-// getToDistributeCoinsFromStreams returns coins that have not been distributed yet from the provided streams
-func (k Keeper) getToDistributeCoinsFromStreams(streams []types.Stream) sdk.Coins {
-	coins := sdk.Coins{}
-	distributed := sdk.Coins{}
-
-	for _, stream := range streams {
-		coins = coins.Add(stream.Coins...)
-		distributed = distributed.Add(stream.DistributedCoins...)
-	}
-	return coins.Sub(distributed...)
-}
-
-// getToDistributeCoinsFromIterator utilizes iterator to return a list of streams.
-// From these streams, coins that have not yet been distributed are returned
-func (k Keeper) getToDistributeCoinsFromIterator(ctx sdk.Context, iterator db.Iterator) sdk.Coins {
-	return k.getToDistributeCoinsFromStreams(k.getStreamsFromIterator(ctx, iterator))
-}
-
-// getDistributedCoinsFromIterator utilizes iterator to return a list of streams.
-// From these streams, coins that have already been distributed are returned
-func (k Keeper) getDistributedCoinsFromIterator(ctx sdk.Context, iterator db.Iterator) sdk.Coins {
-	return k.getDistributedCoinsFromStreams(k.getStreamsFromIterator(ctx, iterator))
-}
-
-// moveUpcomingStreamToActiveStream moves a stream that has reached it's start time from an upcoming to an active status.
-func (k Keeper) moveUpcomingStreamToActiveStream(ctx sdk.Context, stream types.Stream) error {
-	// validation for current time and distribution start time
-	if ctx.BlockTime().Before(stream.StartTime) {
-		return fmt.Errorf("stream is not able to start distribution yet: %s >= %s", ctx.BlockTime().String(), stream.StartTime.String())
-	}
-
-	timeKey := getTimeKey(stream.StartTime)
-	if err := k.deleteStreamRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingStreams, timeKey), stream.Id); err != nil {
-		return err
-	}
-	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixActiveStreams, timeKey), stream.Id); err != nil {
-		return err
-	}
-	return nil
-}
-
-// moveActiveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
-func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.Stream) error {
-	timeKey := getTimeKey(stream.StartTime)
-	if err := k.deleteStreamRefByKey(ctx, combineKeys(types.KeyPrefixActiveStreams, timeKey), stream.Id); err != nil {
-		return err
-	}
-	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
-		return err
-	}
-	return nil
-}
-
-// distributeInternal runs the distribution logic for a stream, and adds the sends to
+// distributeStream runs the distribution logic for a stream, and adds the sends to
 // the distrInfo struct. It also updates the stream for the distribution.
-func (k Keeper) distributeInternal(
-	ctx sdk.Context, stream types.Stream,
-) (sdk.Coins, error) {
+func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coins, error) {
 	totalDistrCoins := sdk.NewCoins()
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
 	remainEpochs := uint64(stream.NumEpochsPaidOver - stream.FilledEpochs)
@@ -84,27 +80,16 @@ func (k Keeper) distributeInternal(
 	for _, coin := range remainCoins {
 		epochAmt := coin.Amount.Quo(sdk.NewInt(int64(remainEpochs)))
 		if epochAmt.IsPositive() {
-			newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: epochAmt}
-			totalDistrCoins = totalDistrCoins.Add(newlyDistributedCoin)
+			totalDistrCoins = totalDistrCoins.Add(sdk.Coin{Denom: coin.Denom, Amount: epochAmt})
 		}
 	}
 
-	err := k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
+	totalDistrCoins, err := k.DistributeByWeights(ctx, totalDistrCoins, stream.DistributeTo)
 	if err != nil {
 		return nil, err
 	}
 
-	distAddr, err := sdk.AccAddressFromBech32(stream.DistributeTo)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.bk.SendCoinsFromModuleToAccount(
-		ctx,
-		types.ModuleName,
-		distAddr,
-		totalDistrCoins,
-	)
+	err = k.updateStreamPostDistribute(ctx, stream, totalDistrCoins)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +97,7 @@ func (k Keeper) distributeInternal(
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeEvtDistribution,
-			sdk.NewAttribute(types.AttributeReceiver, distAddr.String()),
+			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
 			sdk.NewAttribute(types.AttributeAmount, totalDistrCoins.String()),
 		),
 	})
@@ -136,32 +121,4 @@ func (k Keeper) updateStreamPostDistribute(ctx sdk.Context, stream types.Stream,
 	}
 
 	return nil
-}
-
-// Distribute distributes coins from an array of streams to all eligible locks.
-func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
-	totalDistributedCoins := sdk.Coins{}
-	for _, stream := range streams {
-		streamDistributedCoins, err := k.distributeInternal(ctx, stream)
-		if err != nil {
-			return nil, err
-		}
-		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
-	}
-
-	return totalDistributedCoins, nil
-}
-
-// GetModuleToDistributeCoins returns sum of coins yet to be distributed for all of the module.
-func (k Keeper) GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins {
-	activeStreamsDistr := k.getToDistributeCoinsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
-	upcomingStreamsDistr := k.getToDistributeCoinsFromIterator(ctx, k.UpcomingStreamsIterator(ctx))
-	return activeStreamsDistr.Add(upcomingStreamsDistr...)
-}
-
-// GetModuleDistributedCoins returns sum of coins that have been distributed so far for all of the module.
-func (k Keeper) GetModuleDistributedCoins(ctx sdk.Context) sdk.Coins {
-	activeStreamsDistr := k.getDistributedCoinsFromIterator(ctx, k.ActiveStreamsIterator(ctx))
-	finishedStreamsDistr := k.getDistributedCoinsFromIterator(ctx, k.FinishedStreamsIterator(ctx))
-	return activeStreamsDistr.Add(finishedStreamsDistr...)
 }
