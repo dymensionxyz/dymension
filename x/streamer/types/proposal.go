@@ -3,7 +3,9 @@ package types
 import (
 	"fmt"
 	"strings"
+	time "time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -21,16 +23,18 @@ func init() {
 
 // NewCreateStreamProposal creates a new community pool spend proposal.
 //
+// coins sdk.Coins, distrTo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+//
 //nolint:interfacer
-func NewCreateStreamProposal(title, description string, stream Stream) *CreateStreamProposal {
+func NewCreateStreamProposal(title, description string, coins sdk.Coins, distrToRecords []DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) *CreateStreamProposal {
 	return &CreateStreamProposal{
 		Title:                title,
 		Description:          description,
-		DistributeToRecords:  stream.DistributeTo.Records,
-		Coins:                stream.Coins,
-		StartTime:            stream.StartTime,
-		DistrEpochIdentifier: stream.DistrEpochIdentifier,
-		NumEpochsPaidOver:    stream.NumEpochsPaidOver,
+		DistributeToRecords:  distrToRecords,
+		Coins:                coins,
+		StartTime:            startTime,
+		DistrEpochIdentifier: epochIdentifier,
+		NumEpochsPaidOver:    numEpochsPaidOver,
 	}
 }
 

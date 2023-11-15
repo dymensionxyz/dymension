@@ -22,11 +22,11 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 
 // HandleCreateStreamProposal is a handler for executing a passed community spend proposal
 func HandleCreateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.CreateStreamProposal) error {
-	destAddr, err := sdk.AccAddressFromBech32(p.DistributeTo)
+	distrInfo, err := k.NewDistrInfo(ctx, p.DistributeToRecords...)
 	if err != nil {
 		return err
 	}
-	_, err = k.CreateStream(ctx, p.Coins, destAddr, p.StartTime, p.DistrEpochIdentifier, p.NumEpochsPaidOver)
+	_, err = k.CreateStream(ctx, p.Coins, distrInfo, p.StartTime, p.DistrEpochIdentifier, p.NumEpochsPaidOver)
 	if err != nil {
 		return err
 	}
