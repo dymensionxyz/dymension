@@ -2,6 +2,7 @@ package types
 
 import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -24,4 +25,13 @@ type EpochKeeper interface {
 
 type AccountKeeper interface {
 	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+	GetModuleAddress(name string) sdk.AccAddress
+}
+
+// IncentivesKeeper creates and gets gauges, and also allows additions to gauge rewards.
+type IncentivesKeeper interface {
+	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
+	GetGauges(ctx sdk.Context) []incentivestypes.Gauge
+
+	AddToGaugeRewards(ctx sdk.Context, owner sdk.AccAddress, coins sdk.Coins, gaugeID uint64) error
 }

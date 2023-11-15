@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -27,7 +26,7 @@ func NewCreateStreamProposal(title, description string, stream Stream) *CreateSt
 	return &CreateStreamProposal{
 		Title:                title,
 		Description:          description,
-		DistributeTo:         stream.DistributeTo,
+		DistributeToRecords:  stream.DistributeTo.Records,
 		Coins:                stream.Coins,
 		StartTime:            stream.StartTime,
 		DistrEpochIdentifier: stream.DistrEpochIdentifier,
@@ -53,9 +52,12 @@ func (csp *CreateStreamProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	_, err = sdk.AccAddressFromBech32(csp.DistributeTo)
-	if err != nil {
-		return err
+
+	for _, record := range csp.DistributeToRecords {
+		err := record.ValidateBasic()
+		if err != nil {
+			return err
+		}
 	}
 
 	if !csp.Coins.IsAllPositive() {
@@ -74,11 +76,11 @@ func (csp CreateStreamProposal) String() string {
 	b.WriteString(fmt.Sprintf(`Create stream Proposal:
 	  Title:       %s
 	  Description: %s
-	  DistributeTo: %s
+	  DistributeTo: %v
 	  Coins:       %s
 	  StartTime:   %s
 	  EpochIdentifier:   %s
 	  NumEpochsPaidOver:   %d
-`, csp.Title, csp.Description, csp.DistributeTo, csp.Coins, csp.StartTime, csp.DistrEpochIdentifier, csp.NumEpochsPaidOver))
+`, csp.Title, csp.Description, &csp.DistributeToRecords, csp.Coins, csp.StartTime, csp.DistrEpochIdentifier, csp.NumEpochsPaidOver))
 	return b.String()
 }
