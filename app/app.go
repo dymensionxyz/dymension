@@ -170,7 +170,6 @@ import (
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
 	poolincentives "github.com/osmosis-labs/osmosis/v15/x/pool-incentives"
-	poolincentivesclient "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/client"
 	poolincentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/keeper"
 	poolincentivestypes "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/types"
 )
@@ -194,10 +193,6 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
-
-		poolincentivesclient.UpdatePoolIncentivesHandler,
-		poolincentivesclient.ReplacePoolIncentivesHandler,
-
 		streamermoduleclient.CreateStreamHandler,
 	)
 
@@ -658,7 +653,6 @@ func New(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper))
 
 	// Create Transfer Keepers
@@ -974,8 +968,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	//exclude the pool incentives module
-	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
+	//exclude the streamer module
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	return modAccAddrs
 }
