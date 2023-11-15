@@ -1,43 +1,25 @@
 #!/bin/bash
 
 # fund streamer
-dymd tx bank send local-user dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv 300000dym --keyring-backend test -b block
+dymd tx bank send local-user dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv 300000dym --keyring-backend test -b block -y
 
 
-# create stream governance proposal
-dymd tx gov submit-legacy-proposal create-stream-proposal dym1upfuxznarpja3sywq0tzd2kktg9wv8mczfufge 100000dym --from local-user -b block --title sfasfas --description ddasda --deposit 1dym
+# create new gauges for lockdrop
+echo "Creating gauges for lockdrop of uatom"
+dymd tx incentives create-gauge uatom 30dym --duration="60s" --perpetual --from local-user -b block --gas auto -y
 
-# Vote on the proposal
+
+# create first stream for the LP holders
+echo "Gov proposal for creating new stream with LP1 and LP2 as incentives targets"
+dymd tx gov submit-legacy-proposal create-stream-proposal 1,2 40,60 200000dym --epoch-identifier minute --from local-user -b block --title sfasfas --description ddasda --deposit 1dym -y
 last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
-dymd tx gov vote "$last_proposal_id" yes --from local-user -b block
+dymd tx gov vote "$last_proposal_id" yes --from local-user -b block -y
 
 
-
-
-# --------------------- Fund streamer through governance --------------------- #
-# Retrieve the streamer module address
-recipient_address=$(dymd q auth module-account streamer -o json | jq -r '.account.base_account.address' | tr -d '"')
-
-# Create the proposal JSON file
-cat <<EOL > proposal.json
-{
-  "title": "Community Pool Spend",
-  "description": "Fund streamer from the community pool",
-  "recipient": "$recipient_address",
-  "amount": "30dym",
-  "deposit": "1dym"
-}
-EOL
-
-# Fund the community pool
-dymd tx distribution fund-community-pool 100dym --from local-user -b block -y
-
-# Submit the proposal
-dymd tx gov submit-legacy-proposal community-pool-spend proposal.json --from local-user -b block --gas auto -y
-
-# Vote on the proposal
+# create second stream for the Lockdrop
+echo "Gov proposal for creating new stream for lockdrop"
+dymd tx gov submit-legacy-proposal create-stream-proposal 3 100 100000dym --epoch-identifier minute --from local-user -b block --title sfasfas --description ddasda --deposit 1dym -y
 last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
-dymd tx gov vote "$last_proposal_id" yes --from local-user -b block
-
+dymd tx gov vote "$last_proposal_id" yes --from local-user -b block -y
 
 
