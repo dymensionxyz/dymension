@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -28,12 +29,22 @@ func TestStreamerExportGenesis(t *testing.T) {
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	err := bankutil.FundModuleAccount(app.BankKeeper, ctx, types.ModuleName, coins)
 
-	// create an address and fund with coins
-	addr := sdk.AccAddress([]byte("addr1---------------"))
-
 	// create a stream that distributes coins to earlier created LP token and duration
 	startTime := time.Now()
-	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, addr, startTime, "day", 30)
+	distr := types.DistrInfo{
+		Name:        "",
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+			{
+				GaugeId: 2,
+				Weight:  math.NewInt(50),
+			},
+		},
+	}
+	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, &distr, startTime, "day", 30)
 	require.NoError(t, err)
 
 	// export genesis using default configurations
@@ -44,7 +55,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// ensure the first stream listed in the exported genesis explicitly matches expectation
 	require.Equal(t, genesis.Streams[0], types.Stream{
 		Id:                   streamID,
-		DistributeTo:         addr.String(),
+		DistributeTo:         &distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    30,
 		DistrEpochIdentifier: "day",
@@ -64,13 +75,26 @@ func TestStreamerInitGenesis(t *testing.T) {
 	require.NoError(t, validateGenesis)
 
 	// create coins, lp tokens with lockup durations, and a stream for this lockup
-	addr := sdk.AccAddress([]byte("addr1---------------"))
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	startTime := time.Now()
 
+	distr := types.DistrInfo{
+		Name:        "",
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+			{
+				GaugeId: 2,
+				Weight:  math.NewInt(50),
+			},
+		},
+	}
+
 	stream := types.Stream{
 		Id:                   1,
-		DistributeTo:         addr.String(),
+		DistributeTo:         &distr,
 		Coins:                coins,
 		NumEpochsPaidOver:    2,
 		DistrEpochIdentifier: "day",

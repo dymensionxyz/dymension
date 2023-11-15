@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
@@ -14,7 +15,19 @@ import (
 )
 
 var (
-	defaultDestAddr sdk.AccAddress = sdk.AccAddress([]byte("addr1---------------"))
+	defaultDistrInfo *types.DistrInfo = &types.DistrInfo{
+		Name:        "",
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+			{
+				GaugeId: 2,
+				Weight:  math.NewInt(50),
+			},
+		},
+	}
 )
 
 type QueryTestSuite struct {
@@ -23,7 +36,7 @@ type QueryTestSuite struct {
 }
 
 // CreateStream creates a stream struct given the required params.
-func (suite *QueryTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
+func (suite *QueryTestSuite) CreateStream(distrTo *types.DistrInfo, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
@@ -32,7 +45,7 @@ func (suite *QueryTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coin
 }
 
 func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
-	return suite.CreateStream(defaultDestAddr, coins, time.Now(), "day", 30)
+	return suite.CreateStream(defaultDistrInfo, coins, time.Now(), "day", 30)
 }
 
 func (suite *QueryTestSuite) SetupSuite() {

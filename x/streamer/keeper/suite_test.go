@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,10 +14,23 @@ import (
 
 	keeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 )
 
 var (
-	defaultDestAddr sdk.AccAddress = sdk.AccAddress([]byte("addr1---------------"))
+	defaultDistrInfo *types.DistrInfo = &types.DistrInfo{
+		Name:        "",
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+			{
+				GaugeId: 2,
+				Weight:  math.NewInt(50),
+			},
+		},
+	}
 )
 
 type KeeperTestSuite struct {
@@ -36,8 +50,23 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+func (suite *KeeperTestSuite) CreateGauge() error {
+	_, err := suite.App.IncentivesKeeper.CreateGauge(
+		suite.Ctx,
+		true,
+		suite.App.AccountKeeper.GetModuleAddress(types.ModuleName),
+		sdk.Coins{},
+		lockuptypes.QueryCondition{
+			LockQueryType: lockuptypes.ByTime,
+			Denom:         "stake",
+			Duration:      time.Hour,
+			Timestamp:     time.Time{},
+		}, time.Now(), 1)
+	return err
+}
+
 // CreateStream creates a stream struct given the required params.
-func (suite *KeeperTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
+func (suite *KeeperTestSuite) CreateStream(distrTo *types.DistrInfo, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
@@ -46,13 +75,13 @@ func (suite *KeeperTestSuite) CreateStream(distrTo sdk.AccAddress, coins sdk.Coi
 }
 
 func (suite *KeeperTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *types.Stream) {
-	return suite.CreateStream(defaultDestAddr, coins, time.Now().Add(-1*time.Minute), "day", 30)
+	return suite.CreateStream(defaultDistrInfo, coins, time.Now().Add(-1*time.Minute), "day", 30)
 }
 
 func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, starttime time.Time, coins sdk.Coins) types.Stream {
 	return types.Stream{
 		Id:                   streamID,
-		DistributeTo:         defaultDestAddr.String(),
+		DistributeTo:         defaultDistrInfo,
 		Coins:                coins,
 		StartTime:            starttime,
 		DistrEpochIdentifier: "day",

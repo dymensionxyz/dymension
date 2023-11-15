@@ -12,6 +12,7 @@ var (
 	ErrDistrRecordRegisteredGauge    = sdkerrors.Register(ModuleName, 4, "gauge was already registered")
 	ErrDistrRecordNotSorted          = sdkerrors.Register(ModuleName, 5, "gauges are not sorted")
 
-	ErrEmptyProposalRecords  = sdkerrors.Register(ModuleName, 10, "records are empty")
-	ErrEmptyProposalGaugeIds = sdkerrors.Register(ModuleName, 11, "gauge ids are empty")
+	ErrEmptyProposalRecords         = sdkerrors.Register(ModuleName, 10, "records are empty")
+	ErrEmptyProposalGaugeIds        = sdkerrors.Register(ModuleName, 11, "gauge ids are empty")
+	ErrDistrInfoTotalWeightNotEqual = sdkerrors.Register(ModuleName, 12, "total weight is not equal to sum of weights in records")
 )

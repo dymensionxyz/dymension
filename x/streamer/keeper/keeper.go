@@ -69,6 +69,10 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.Di
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
 
+	if err := distrTo.Validate(); err != nil {
+		return 0, err
+	}
+
 	stream := types.NewStream(
 		k.GetLastStreamID(ctx)+1,
 		distrTo,

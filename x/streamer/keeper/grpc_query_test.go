@@ -165,7 +165,12 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 
 // TestGRPCToDistributeCoins tests querying coins that are going to be distributed via gRPC returns the correct response.
 func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
+	var err error
 	suite.SetupTest()
+	err = suite.CreateGauge()
+	suite.Require().NoError(err)
+	err = suite.CreateGauge()
+	suite.Require().NoError(err)
 
 	// ensure initially querying to distribute coins returns no coins
 	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
