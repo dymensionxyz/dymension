@@ -23,11 +23,11 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Installation](#installation)
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
-  - [Adding liquidity](#adding-liquidity)
+  - [Bootstraping liquidity pools](#bootstraping-liquidity-pools)
   - [Adding incentives](#adding-incentives)
-    - [Setting incentivised pools and weights](#setting-incentivised-pools-and-weights)
+    - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
-    - [Fund the incentives](#fund-the-incentives)
+    - [check rewards](#check-rewards)
 
 ## Prerequisites
 
@@ -96,7 +96,7 @@ dymd start
 
 You should have a running local node!
 
-## Adding liquidity
+## Bootstraping liquidity pools
 
 To bootstrap the `GAMM` module with pools:
 
@@ -106,18 +106,18 @@ sh scripts/pools/pools_bootstrap.sh
 
 ## Adding incentives
 
-### Setting incentivised pools and weights
+### Creating incentives streams
 
-After creating the pools above, set the incentives weights through gov:
+After creating the pools above, we create 2 incentive streams through gov:
 
 ```sh
-sh scripts/incentives/incentive_pools_bootstrap.sh
+sh scripts/incentives/fund_incentives.sh
 ```
 
 wait for the gov proposal to pass, and validate with:
 
 ```sh
-dymd q poolincentives distr-info
+dymd q streamer streams
 ```
 
 ### Locking tokens
@@ -134,21 +134,15 @@ validate with:
 dymd q lockup module-balance
 ```
 
-### Fund the incentives
+### check rewards
 
-Now we fund the pool incentives.
-The funds will be distributed between the incentivised pools according to weights.
-The following script funds the pool incentives both by external funds (direct funds transfer from some user)
-and using the community pool (using gov proposal)
+Every minute a share of the rewards will be distributed!
 
-```sh
-sh scripts/incentives/fund_incentives.sh
-```
 
 validate with:
 
 ```sh
-dymd q incentives gauges
+dymd q incentives active-gauges
 ```
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!

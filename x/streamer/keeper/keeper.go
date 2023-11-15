@@ -27,7 +27,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper, ik types.IncentivesKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -38,6 +38,7 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 		bk:         bk,
 		ek:         ek,
 		ak:         ak,
+		ik:         ik,
 	}
 }
 
@@ -52,6 +53,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.Di
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
+	//TODO: it's better to check only the denoms of the requested coins. No need to itereate entire balance.
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
 	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
 
