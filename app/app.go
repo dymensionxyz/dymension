@@ -127,8 +127,6 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
-	denommetadatakeeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
-	denommetadatatypes "github.com/dymensionxyz/dymension/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
@@ -225,7 +223,6 @@ var (
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
-		denommetadatamodule.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
@@ -339,9 +336,7 @@ type App struct {
 	StreamerKeeper  streamermodulekeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-
-	DenomMetadataKeeper denommetadatakeeper.Keeper
-	DelayedAckKeeper    delayedackkeeper.Keeper
+	DelayedAckKeeper delayedackkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -388,7 +383,6 @@ func New(
 		sequencermoduletypes.StoreKey,
 		streamermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
-		denommetadatatypes.StoreKey,
 		delayedacktypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
@@ -572,20 +566,10 @@ func New(
 		app.IncentivesKeeper,
 	)
 
-	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
-		appCodec,
-		keys[denommetadatatypes.StoreKey],
-		keys[denommetadatatypes.MemStoreKey],
-		app.GetSubspace(denommetadatatypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-	)
-
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
-		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
@@ -618,7 +602,6 @@ func New(
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
-	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
 
 	// ... other modules keepers
@@ -677,9 +660,8 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	// TODO(omritoptix): Move external keepers to be part of the keeper and not the middleware
-	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -729,7 +711,6 @@ func New(
 		rollappModule,
 		sequencerModule,
 		streamerModule,
-		denommetadataModule,
 		delayedackModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 
@@ -775,7 +756,6 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
@@ -809,7 +789,6 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
@@ -849,7 +828,6 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
@@ -1079,7 +1057,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
-	paramsKeeper.Subspace(denommetadatatypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
