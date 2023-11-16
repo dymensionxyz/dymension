@@ -2,13 +2,17 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -19,10 +23,11 @@ type Keeper struct {
 	bk         types.BankKeeper
 	ek         types.EpochKeeper
 	ak         types.AccountKeeper
+	ik         types.IncentivesKeeper
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper, ik types.IncentivesKeeper) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -33,10 +38,68 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 		bk:         bk,
 		ek:         ek,
 		ak:         ak,
+		ik:         ik,
 	}
 }
 
 // Logger returns a logger instance for the streamer module.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// CreateStream creates a stream and sends coins to the stream.
+func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+	if !coins.IsAllPositive() {
+		return 0, fmt.Errorf("all coins %s must be positive", coins)
+	}
+
+	//TODO: it's better to check only the denoms of the requested coins. No need to itereate entire balance.
+	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
+	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
+
+	if !coins.IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
+		return 0, fmt.Errorf("insufficient module balance to distribute coins")
+	}
+
+	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {
+		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
+	}
+
+	if numEpochsPaidOver <= 0 {
+		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
+	}
+
+	if err := distrTo.Validate(); err != nil {
+		return 0, err
+	}
+
+	stream := types.NewStream(
+		k.GetLastStreamID(ctx)+1,
+		distrTo,
+		coins.Sort(),
+		startTime,
+		epochIdentifier,
+		numEpochsPaidOver,
+	)
+
+	err := k.setStream(ctx, &stream)
+	if err != nil {
+		return 0, err
+	}
+	k.SetLastStreamID(ctx, stream.Id)
+
+	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
+	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtCreateStream,
+			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
+		),
+	})
+
+	return stream.Id, nil
 }

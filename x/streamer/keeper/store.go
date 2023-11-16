@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -64,6 +65,17 @@ func (k Keeper) SetStreamWithRefKey(ctx sdk.Context, stream *types.Stream) error
 // streamStoreKey returns the combined byte array (store key) of the provided stream ID's key prefix and the ID itself.
 func streamStoreKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixPeriodStream, sdk.Uint64ToBigEndian(ID))
+}
+
+// setStream set the stream inside store.
+func (k Keeper) setStream(ctx sdk.Context, stream *types.Stream) error {
+	store := ctx.KVStore(k.storeKey)
+	bz, err := proto.Marshal(stream)
+	if err != nil {
+		return err
+	}
+	store.Set(streamStoreKey(stream.Id), bz)
+	return nil
 }
 
 // getStreamRefs returns the stream IDs specified by the provided key.

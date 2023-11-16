@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -15,33 +16,74 @@ import (
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// GetTxCmd returns the transaction commands for this module.
-func GetTxCmd() *cobra.Command {
-	return nil
+// TODO: move to utils/cli package
+func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {
+	gaugeIds, err := osmoutils.ParseUint64SliceFromString(gaugesRaw, ",")
+	if err != nil {
+		return nil, err
+	}
+
+	weights, err := osmoutils.ParseSdkIntFromString(weightsRaw, ",")
+	if err != nil {
+		return nil, err
+	}
+
+	if len(gaugeIds) != len(weights) {
+		return nil, fmt.Errorf("the length of gauge ids and weights not matched")
+	}
+
+	if len(gaugeIds) == 0 {
+		return nil, fmt.Errorf("records is empty")
+	}
+
+	var records []types.DistrRecord
+	for i, gaugeId := range gaugeIds {
+		records = append(records, types.DistrRecord{
+			GaugeId: gaugeId,
+			Weight:  weights[i],
+		})
+	}
+	return records, nil
+}
+
+func parseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
+	proposal, err := osmoutils.ParseProposalFlags(cmd.Flags())
+	if err != nil {
+		return osmoutils.Proposal{}, nil, fmt.Errorf("failed to parse proposal: %w", err)
+	}
+
+	deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+	if err != nil {
+		return osmoutils.Proposal{}, nil, err
+	}
+	return *proposal, deposit, nil
 }
 
 // NewCreateStreamCmd broadcasts a CreateStream message.
 func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-stream-proposal [dest addr] [reward] [flags]",
-		Short: "proposal to create a stream to distribute rewards to a recipient over a period of time",
-		Args:  cobra.ExactArgs(2),
+		Use:   "create-stream-proposal gaugeIds weights reward [flags]",
+		Short: "proposal to create a stream of incentives rewards over a period of time",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-
-			distributeTo, err := sdk.AccAddressFromBech32(args[0])
+			proposal, deposit, err := parseProposal(cmd)
+			if err != nil {
+				return err
+			}
+			records, err := parseRecords(args[0], args[1])
 			if err != nil {
 				return err
 			}
 
-			coins, err := sdk.ParseCoinsNormalized(args[1])
+			coins, err := sdk.ParseCoinsNormalized(args[2])
 			if err != nil {
 				return err
 			}
@@ -71,25 +113,8 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 				return err
 			}
 
-			title, _ := cmd.Flags().GetString(govcli.FlagTitle)
-			description, _ := cmd.Flags().GetString(govcli.FlagDescription)
-			deposit, _ := cmd.Flags().GetString(govcli.FlagDeposit)
-
-			depositAmt, err := sdk.ParseCoinsNormalized(deposit)
-			if err != nil {
-				return err
-			}
-
-			reqStream := types.Stream{
-				DistributeTo:         distributeTo.String(),
-				Coins:                coins,
-				StartTime:            startTime,
-				DistrEpochIdentifier: epochIdentifier,
-				NumEpochsPaidOver:    epochs,
-			}
-			content := types.NewCreateStreamProposal(title, description, reqStream)
-
-			msg, err := govtypes.NewMsgSubmitProposal(content, depositAmt, clientCtx.GetFromAddress())
+			content := types.NewCreateStreamProposal(proposal.Title, proposal.Description, coins, records, startTime, epochIdentifier, epochs)
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
 			}
@@ -98,6 +123,7 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 				return err
 			}
 
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
