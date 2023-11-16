@@ -10,25 +10,21 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	keeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
-var _ rollapptypes.RollappHooks = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	app    porttypes.IBCModule
 	keeper keeper.Keeper
-	rollapptypes.BaseRollappHook
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:             app,
-		keeper:          keeper,
-		BaseRollappHook: rollapptypes.BaseRollappHook{},
+		app:    app,
+		keeper: keeper,
 	}
 }
 

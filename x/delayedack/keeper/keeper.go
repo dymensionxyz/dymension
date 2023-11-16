@@ -32,7 +32,6 @@ type (
 		channelKeeper    types.ChannelKeeper
 		connectionKeeper types.ConnectionKeeper
 		clientKeeper     types.ClientKeeper
-		rollapptypes.BaseRollappHook
 	}
 )
 
@@ -64,7 +63,6 @@ func NewKeeper(
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
-		BaseRollappHook:  rollapptypes.BaseRollappHook{},
 	}
 }
 
