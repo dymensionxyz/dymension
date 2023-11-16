@@ -12,8 +12,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	keeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
+	"github.com/dymensionxyz/dymension/x/denommetadata/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
+
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -21,18 +23,18 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	app            porttypes.IBCModule
-	keeper         keeper.Keeper
+	channelKeeper  types.ChannelKeeper
 	ics4Wrapper    porttypes.ICS4Wrapper
-	transferkeeper transferkeeper.Keeper
-	rollappkeeper  rollappkeeper.Keeper
-	bankkeeper     bankkeeper.Keeper
+	transferkeeper types.TransferKeeper
+	rollappkeeper  types.RollappKeeper
+	bankkeeper     types.BankKeeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, ck types.ChannelKeeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:            app,
-		keeper:         k,
+		channelKeeper:  ck,
 		transferkeeper: tk,
 		rollappkeeper:  rk,
 		bankkeeper:     bk,
@@ -127,12 +129,19 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	_, clientState, err := im.channelKeeper.GetChannelClientState(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
-		logger.Error("Failed to extract chain id from channel", "err", err)
+		logger.Error("failed to extract clientID from channel", "err", err)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	tmClientState, ok := clientState.(*ibctypes.ClientState)
+	if !ok {
+		logger.Error("failed to extract chainID from clientState")
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	chainID := tmClientState.ChainId
 	rollapp, found := im.rollappkeeper.GetRollapp(ctx, chainID)
 	if !found {
 		logger.Debug("Skipping denommetadata middleware. Chain is not a rollapp. ", "chain_id", chainID, "err", err)
