@@ -116,6 +116,10 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	if !im.rollappkeeper.GetParams(ctx).RollappsEnabled {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	logger := ctx.Logger().With("module", "DenomMiddleware")
 
 	var data transfertypes.FungibleTokenPacketData
