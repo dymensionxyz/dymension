@@ -77,7 +77,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		// check to see if we reached maxsimum number of sequeners
 		maxSequencers := int(rollapp.MaxSequencers)
 		activeSequencers := sequencersByRollapp.Sequencers
-		currentNumOfSequencers := len(activeSequencers)
+		currentNumOfSequencers := len(activeSequencers.Addresses)
 		if maxSequencers < currentNumOfSequencers {
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
 		}
@@ -85,7 +85,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrMaxSequencersLimit
 		}
 		// add sequencer to list
-		sequencersByRollapp.Sequencers = append(sequencersByRollapp.Sequencers, sequencer.SequencerAddress)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, sequencer.SequencerAddress)
 		// it's not the first sequencer, make it INACTIVE
 		scheduler := types.Scheduler{
 			SequencerAddress: msg.Creator,
@@ -95,7 +95,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	} else {
 		// this is the first sequencer, make it a PROPOSER
 		sequencersByRollapp.RollappId = msg.RollappId
-		sequencersByRollapp.Sequencers = append(sequencersByRollapp.Sequencers, msg.Creator)
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
 		scheduler := types.Scheduler{
 			SequencerAddress: msg.Creator,
 			Status:           types.Proposer,

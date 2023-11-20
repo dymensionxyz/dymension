@@ -25,7 +25,7 @@ func TestSequencersByRollappQuerySingle(t *testing.T) {
 	var SequencersByRollappResponseList []types.QueryGetSequencersByRollappResponse
 	for _, sequencerByRollapp := range sequencersByRollappList {
 		var sequencerInfoList []types.SequencerInfo
-		for _, sequencerAddr := range sequencerByRollapp.Sequencers {
+		for _, sequencerAddr := range sequencerByRollapp.Sequencers.Addresses {
 			sequencer, found := keeper.GetSequencer(ctx, sequencerAddr)
 			require.True(t, found)
 			sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
@@ -90,7 +90,7 @@ func TestSequencersByRollappQueryPaginated(t *testing.T) {
 	var SequencersByRollappResponseList []types.QueryGetSequencersByRollappResponse
 	for _, sequencerByRollapp := range sequencersByRollappList {
 		var sequencerInfoList []types.SequencerInfo
-		for _, sequencerAddr := range sequencerByRollapp.Sequencers {
+		for _, sequencerAddr := range sequencerByRollapp.Sequencers.Addresses {
 			sequencer, found := keeper.GetSequencer(ctx, sequencerAddr)
 			require.True(t, found)
 			sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{

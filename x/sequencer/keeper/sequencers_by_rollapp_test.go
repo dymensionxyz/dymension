@@ -21,7 +21,7 @@ func createNSequencersByRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) [
 		items[i].RollappId = strconv.Itoa(i)
 		sequencers := createNSequencer(keeper, ctx, n)
 		for _, sequencer := range sequencers {
-			items[i].Sequencers = append(items[i].Sequencers, sequencer.SequencerAddress)
+			items[i].Sequencers.Addresses = append(items[i].Sequencers.Addresses, sequencer.SequencerAddress)
 		}
 
 		keeper.SetSequencersByRollapp(ctx, items[i])

@@ -12,6 +12,12 @@ message SequencersByRollapp {
   // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1; 
   // list of sequencers' account address
-  repeated string sequencers = 2;
+  // repeated string sequencers = 2;
+  Sequencers sequencers = 2 [(gogoproto.nullable) = false];
 }
 
+
+// Sequencers defines list of sequencers addresses.
+message Sequencers {  
+  repeated string addresses = 1; 
+}
