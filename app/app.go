@@ -492,7 +492,7 @@ func New(
 		app.keys[lockuptypes.StoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.DistrKeeper, app.GetSubspace(lockuptypes.ModuleName))
+		app.StreamerKeeper, app.GetSubspace(lockuptypes.ModuleName))
 
 	app.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
@@ -506,8 +506,8 @@ func New(
 		appCodec, keys[gammtypes.StoreKey],
 		app.GetSubspace(gammtypes.ModuleName),
 		app.AccountKeeper,
-		// TODO: Add a mintcoins restriction
-		app.BankKeeper, app.DistrKeeper)
+		app.BankKeeper,
+		app.StreamerKeeper)
 	app.GAMMKeeper = &gammKeeper
 
 	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
@@ -517,7 +517,7 @@ func New(
 		nil,
 		app.BankKeeper,
 		app.AccountKeeper,
-		app.DistrKeeper,
+		&app.StreamerKeeper,
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
@@ -537,7 +537,7 @@ func New(
 		app.BankKeeper,
 		app.LockupKeeper,
 		app.EpochsKeeper,
-		app.DistrKeeper,
+		&app.StreamerKeeper,
 		nil,
 	)
 
@@ -665,7 +665,7 @@ func New(
 		app.GetSubspace(packetforwardtypes.ModuleName),
 		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.DistrKeeper,
+		&app.StreamerKeeper,
 		app.BankKeeper,
 		app.IBCKeeper.ChannelKeeper,
 	)
