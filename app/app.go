@@ -165,10 +165,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-
-	poolincentives "github.com/osmosis-labs/osmosis/v15/x/pool-incentives"
-	poolincentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/keeper"
-	poolincentivestypes "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/types"
 )
 
 var (
@@ -239,7 +235,6 @@ var (
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
-		poolincentives.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -255,11 +250,10 @@ var (
 		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
-		incentivestypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		poolincentivestypes.ModuleName: nil,
+		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -321,12 +315,11 @@ type App struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// Osmostis keepers
-	GAMMKeeper           *gammkeeper.Keeper
-	PoolManagerKeeper    *poolmanagerkeeper.Keeper
-	LockupKeeper         *lockupkeeper.Keeper
-	EpochsKeeper         *epochskeeper.Keeper
-	IncentivesKeeper     *incentiveskeeper.Keeper
-	PoolIncentivesKeeper *poolincentiveskeeper.Keeper
+	GAMMKeeper        *gammkeeper.Keeper
+	PoolManagerKeeper *poolmanagerkeeper.Keeper
+	LockupKeeper      *lockupkeeper.Keeper
+	EpochsKeeper      *epochskeeper.Keeper
+	IncentivesKeeper  *incentiveskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -396,7 +389,6 @@ func New(
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
-		poolincentivestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -539,18 +531,6 @@ func New(
 		nil,
 	)
 
-	poolIncentivesKeeper := poolincentiveskeeper.NewKeeper(
-		app.keys[poolincentivestypes.StoreKey],
-		app.GetSubspace(poolincentivestypes.ModuleName),
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.IncentivesKeeper,
-		app.DistrKeeper,
-		app.PoolManagerKeeper,
-	)
-	app.PoolIncentivesKeeper = &poolIncentivesKeeper
-
-	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
@@ -594,7 +574,7 @@ func New(
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
-			app.PoolIncentivesKeeper.Hooks(),
+			app.StreamerKeeper.Hooks(),
 		),
 	)
 
@@ -736,7 +716,6 @@ func New(
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
-		poolincentives.NewAppModule(*app.PoolIncentivesKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -775,7 +754,6 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -810,7 +788,6 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -851,7 +828,6 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -1084,7 +1060,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
-	paramsKeeper.Subspace(poolincentivestypes.ModuleName)
 
 	return paramsKeeper
 }

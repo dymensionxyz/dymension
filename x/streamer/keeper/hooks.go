@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/dymensionxyz/dymension/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -56,6 +57,7 @@ type Hooks struct {
 }
 
 var _ epochstypes.EpochHooks = Hooks{}
+var _ gammtypes.GammHooks = Hooks{}
 
 // Hooks returns the hook wrapper struct.
 func (k Keeper) Hooks() Hooks {
@@ -70,4 +72,24 @@ func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNu
 // AfterEpochEnd is the epoch end hook.
 func (h Hooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
+}
+
+// AfterPoolCreated creates a gauge for each pool’s lockable duration.
+func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId uint64) {
+	err := h.k.CreatePoolGauge(ctx, poolId)
+	if err != nil {
+		ctx.Logger().Error("Failed to create pool gauge", "error", err)
+	}
+}
+
+// AfterJoinPool hook is a noop.
+func (h Hooks) AfterJoinPool(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, enterCoins sdk.Coins, shareOutAmount sdk.Int) {
+}
+
+// AfterExitPool hook is a noop.
+func (h Hooks) AfterExitPool(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, shareInAmount sdk.Int, exitCoins sdk.Coins) {
+}
+
+// AfterSwap hook is a noop.
+func (h Hooks) AfterSwap(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, input sdk.Coins, output sdk.Coins) {
 }
