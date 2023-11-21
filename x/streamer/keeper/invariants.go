@@ -49,8 +49,8 @@ func StreamerBalanceInvariant(k Keeper) sdk.Invariant {
 		toDistCoins := k.GetModuleToDistributeCoins(ctx)
 		balance := k.bk.GetAllBalances(ctx, k.ak.GetModuleAddress(types.ModuleName))
 
-		insufficent := !toDistCoins.IsAllLTE(balance)
-		if insufficent {
+		insufficient := !toDistCoins.IsAllLTE(balance)
+		if insufficient {
 			msg += "streamer balance < toDistCoins"
 			broken = true
 		}
