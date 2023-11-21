@@ -490,9 +490,10 @@ func New(
 
 	app.LockupKeeper = lockupkeeper.NewKeeper(
 		app.keys[lockuptypes.StoreKey],
+		app.GetSubspace(lockuptypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.DistrKeeper, app.GetSubspace(lockuptypes.ModuleName))
+	)
 
 	app.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
@@ -515,7 +516,6 @@ func New(
 		app.GAMMKeeper,
 		app.BankKeeper,
 		app.AccountKeeper,
-		app.DistrKeeper,
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
