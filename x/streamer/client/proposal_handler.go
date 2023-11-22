@@ -6,6 +6,7 @@ import (
 )
 
 var (
-	CreateStreamHandler = govclient.NewProposalHandler(cli.NewCmdSubmitCreateStreamProposal)
-	StopStreamHandler   = govclient.NewProposalHandler(cli.NewCmdSubmitStopStreamProposal)
+	CreateStreamHandler  = govclient.NewProposalHandler(cli.NewCmdSubmitCreateStreamProposal)
+	StopStreamHandler    = govclient.NewProposalHandler(cli.NewCmdSubmitStopStreamProposal)
+	ReplaceStreamHandler = govclient.NewProposalHandler(cli.NewCmdSubmitReplaceStreamDistributionProposal)
 )
