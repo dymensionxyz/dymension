@@ -103,3 +103,22 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.Di
 
 	return stream.Id, nil
 }
+
+// StopStream cancels a stream.
+func (k Keeper) StopStream(ctx sdk.Context, streamID uint64) error {
+	stream, err := k.GetStreamByID(ctx, streamID)
+	if err != nil {
+		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return fmt.Errorf("stream %d is already finished", streamID)
+	}
+
+	err = k.moveStreamToFinishedStream(ctx, *stream)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

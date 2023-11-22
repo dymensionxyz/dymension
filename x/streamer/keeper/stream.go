@@ -80,6 +80,18 @@ func (k Keeper) moveUpcomingStreamToActiveStream(ctx sdk.Context, stream types.S
 	return nil
 }
 
+// moveUpcomingStreamToFinishedStream moves a stream that is still upcoming to a finished status.
+func (k Keeper) moveUpcomingStreamToFinishedStream(ctx sdk.Context, stream types.Stream) error {
+	timeKey := getTimeKey(stream.StartTime)
+	if err := k.deleteStreamRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingStreams, timeKey), stream.Id); err != nil {
+		return err
+	}
+	if err := k.addStreamRefByKey(ctx, combineKeys(types.KeyPrefixFinishedStreams, timeKey), stream.Id); err != nil {
+		return err
+	}
+	return nil
+}
+
 // moveActiveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
 func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.Stream) error {
 	timeKey := getTimeKey(stream.StartTime)
@@ -90,4 +102,15 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 		return err
 	}
 	return nil
+}
+
+// moveActiveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
+func (k Keeper) moveStreamToFinishedStream(ctx sdk.Context, stream types.Stream) error {
+	if stream.IsActiveStream(ctx.BlockTime()) {
+		return k.moveActiveStreamToFinishedStream(ctx, stream)
+	} else if stream.IsUpcomingStream(ctx.BlockTime()) {
+		return k.moveUpcomingStreamToFinishedStream(ctx, stream)
+	}
+
+	return fmt.Errorf("stream %d is not active or upcoming", stream.Id)
 }

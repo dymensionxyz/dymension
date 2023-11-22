@@ -13,6 +13,8 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.CreateStreamProposal:
 			return HandleCreateStreamProposal(ctx, k, c)
+		case *types.StopStreamProposal:
+			return HandleStopStreamProposal(ctx, k, c)
 
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
@@ -31,4 +33,18 @@ func HandleCreateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.Creat
 		return err
 	}
 	return nil
+}
+
+// HandleStopStreamProposal is a handler for executing a passed community spend proposal
+func HandleStopStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.StopStreamProposal) error {
+	stream, err := k.GetStreamByID(ctx, p.StreamId)
+	if err != nil {
+		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+	}
+
+	return k.StopStream(ctx, p.StreamId)
 }
