@@ -48,9 +48,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateStream creates a stream and sends coins to the stream.
-func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
 	if !coins.IsAllPositive() {
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
+	}
+
+	if err := distrInfo.Validate(); err != nil {
+		return 0, err
 	}
 
 	//TODO: it's better to check only the denoms of the requested coins. No need to itereate entire balance.
@@ -69,13 +73,9 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrTo *types.Di
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
 
-	if err := distrTo.Validate(); err != nil {
-		return 0, err
-	}
-
 	stream := types.NewStream(
 		k.GetLastStreamID(ctx)+1,
-		distrTo,
+		distrInfo,
 		coins.Sort(),
 		startTime,
 		epochIdentifier,
