@@ -16,7 +16,7 @@ func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochN
 // AfterEpochEnd is the epoch end hook.
 func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	streams := k.GetUpcomingStreams(ctx)
-	// move to active if it's correct epoch and start time reached
+	// move to active if start time reached
 	for _, stream := range streams {
 		if !ctx.BlockTime().Before(stream.StartTime) {
 			if err := k.moveUpcomingStreamToActiveStream(ctx, stream); err != nil {
