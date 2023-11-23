@@ -72,6 +72,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
@@ -112,7 +113,7 @@ import (
 
 	ante "github.com/dymensionxyz/dymension/app/ante"
 	appparams "github.com/dymensionxyz/dymension/app/params"
-	"github.com/dymensionxyz/dymension/app/upgrades/rc"
+	v2upgrade "github.com/dymensionxyz/dymension/app/upgrades/v2"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
@@ -759,8 +760,8 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
-		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName)),
-		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName)),
+		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
+		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
 		// osmosis modules
 		lockup.NewAppModule(*app.LockupKeeper, app.AccountKeeper, app.BankKeeper),
@@ -1156,14 +1157,18 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
+// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
-	UpgradeName := "rc"
+	UpgradeName := "v2"
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
-		rc.CreateUpgradeHandler(
+		v2upgrade.CreateUpgradeHandler(
 			app.mm, app.configurator,
 			app.BankKeeper,
+			app.IBCKeeper.ClientKeeper.(clientkeeper.Keeper),
+			app.RollappKeeper,
+			app.appCodec,
 		),
 	)
 
@@ -1175,20 +1180,13 @@ func (app *App) setupUpgradeHandlers() {
 		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
 	}
 
-	if app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		return
-	}
-
-	var storeUpgrades *storetypes.StoreUpgrades
-
+	// Pre upgrade handler
 	switch upgradeInfo.Name {
-	case "UpgradeName":
-		// do nothing
-
+	// do nothing
 	}
 
-	if storeUpgrades != nil {
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, storeUpgrades))
+	if upgradeInfo.Name == "v2" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// configure store loader with the store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v2upgrade.GetStoreUpgrades()))
 	}
 }
