@@ -111,7 +111,7 @@ func CreateUpgradeHandler(
 func GetStoreUpgrades() *storetypes.StoreUpgrades {
 	storeUpgrades := storetypes.StoreUpgrades{
 		// Set migrations for all new modules
-		Added: []string{"poolmanager", "delayedack", "denommetadata", "gamm", "incentives", "lockup", "poolincentives", "streamer", "epochs"},
+		Added: []string{"poolmanager", "delayedack", "denommetadata", "gamm", "incentives", "lockup", "streamer", "epochs"},
 	}
 	return &storeUpgrades
 }
