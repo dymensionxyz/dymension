@@ -6,6 +6,8 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymension/streamer/distr_info.proto";
+
 
 option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
 
@@ -16,8 +18,9 @@ message Stream {
   // id is the unique ID of a Stream
   uint64 id = 1;
 
-  // distribute_to is where the stream rewards are distributed to.
-  string distribute_to = 2;
+  // distribute_to is the distr_info.
+  DistrInfo distribute_to = 2;
+  
   // coins is the total amount of coins that have been in the stream
   // Can distribute multiple coin denoms
   repeated cosmos.base.v1beta1.Coin coins = 3 [
@@ -31,7 +34,7 @@ message Stream {
     (gogoproto.moretags) = "yaml:\"start_time\""
   ];
 
-    // distr_epoch_identifier is what epoch type distribution will be triggered by
+    // distr_epoch_identifier is what epoch type di-stribution will be triggered by
   // (day, week, etc.)
   string distr_epoch_identifier = 5
       [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];

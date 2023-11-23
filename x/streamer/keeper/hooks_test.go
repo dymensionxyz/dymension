@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/x/streamer/types"
@@ -13,16 +14,22 @@ import (
 var _ = suite.TestingSuite(nil)
 
 var (
-	defaultExpectedStream = types.Stream{
-		NumEpochsPaidOver: uint64(30),
-		FilledEpochs:      0,
-		DistributedCoins:  sdk.Coins{},
-		StartTime:         time.Time{},
+	singleDistrInfo *types.DistrInfo = &types.DistrInfo{
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{
+			{
+				GaugeId: 1,
+				Weight:  math.NewInt(100),
+			},
+		},
 	}
 )
 
 func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.SetupTest()
+
+	err := suite.CreateGauge()
+	suite.Require().NoError(err)
 
 	// initial module streams check
 	streams := suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
@@ -32,18 +39,18 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	//daily stream, 30 epochs
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 30000)}
-	_, _ = suite.CreateDefaultStream(coins)
+	_, _ = suite.CreateStream(singleDistrInfo, coins, time.Now(), "day", 30)
 
 	//daily stream, 2 epochs
 	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
-	_, _ = suite.CreateStream(defaultDestAddr, coins2, time.Now(), "day", 2)
+	_, _ = suite.CreateStream(singleDistrInfo, coins2, time.Now(), "day", 2)
 
 	//weekly stream
 	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
-	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now(), "week", 5)
+	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now(), "week", 5)
 
 	//future stream - non-active
-	_, _ = suite.CreateStream(defaultDestAddr, coins3, time.Now().Add(10*time.Minute), "day", 5)
+	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now().Add(10*time.Minute), "day", 5)
 
 	// check streams
 	streams = suite.App.StreamerKeeper.GetNotFinishedStreams(suite.Ctx)
@@ -59,7 +66,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	/* ----------- call the epoch hook with month (no stream related) ----------- */
 	ctx := suite.Ctx.WithBlockTime(time.Now())
-	err := suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "month", 0)
+	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "month", 0)
 	suite.Require().NoError(err)
 
 	// check active streams - all 3 but the future are active
@@ -79,8 +86,9 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.Require().Len(streams, 1)
 
 	// check distribution
-	balance := suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
-	suite.Require().Equal(sdk.NewInt64Coin("stake", 2000), balance)
+	gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 2000)).String(), gauge.Coins.String())
 
 	/* ------------------------- call weekly epoch hook ------------------------- */
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "week", 0)
@@ -95,16 +103,18 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.Require().Len(streams, 1)
 
 	// check distribution
-	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
-	suite.Require().Equal(sdk.NewInt64Coin("stake", 3000), balance)
+	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 3000)).String(), gauge.Coins.String())
 
 	/* ------- call daily epoch hook again, check both stream distirubute ------- */
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
 	suite.Require().NoError(err)
 
 	// check distribution
-	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
-	suite.Require().Equal(sdk.NewInt64Coin("stake", 5000), balance)
+	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 5000)).String(), gauge.Coins.String())
 
 	/* ------- call daily epoch hook again, check both stream distirubute ------- */
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
@@ -115,6 +125,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.Require().Len(streams, 1)
 
 	// check distribution
-	balance = suite.App.BankKeeper.GetBalance(ctx, defaultDestAddr, "stake")
-	suite.Require().Equal(sdk.NewInt64Coin("stake", 6000), balance)
+	gauge, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, 1)
+	suite.Require().NoError(err)
+	suite.Require().Equal(sdk.NewCoins(sdk.NewInt64Coin("stake", 6000)).String(), gauge.Coins.String())
 }

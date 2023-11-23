@@ -6,6 +6,12 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
+var _ rollapptypes.RollappHooks = &IBCMiddleware{}
+
+func (im IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+	return nil
+}
+
 // AfterStateFinalized implements the RollappHooks interface
 func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	// Finalize the packets for the rollapp at the given height

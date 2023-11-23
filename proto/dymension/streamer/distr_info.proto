@@ -1,0 +1,28 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+
+
+message DistrInfo {
+  string total_weight = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"total_weight\"",
+    (gogoproto.nullable) = false
+  ];
+
+  repeated DistrRecord records =  2[ (gogoproto.nullable) = false ];
+}
+
+message DistrRecord {
+  option (gogoproto.equal) = true;
+
+  uint64 gauge_id = 1 [ (gogoproto.moretags) = "yaml:\"gauge_id\"" ];
+  string weight = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}

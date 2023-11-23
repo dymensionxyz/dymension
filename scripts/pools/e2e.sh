@@ -18,14 +18,6 @@ streamer_addr=$(dymd q auth module-account streamer -o json | jq '.account.base_
 echo "Sending 300000dym to $streamer_addr"
 dymd tx bank send local-user $streamer_addr 300000dym --keyring-backend test -b block -y
 
-# set the LP1 and LP2 as incentivised pool
-echo "====================="
-echo "Gov proposal for incentivised pools weights"
-echo "Setting the LP1 and LP2 as incentives targets"
-dymd tx gov submit-legacy-proposal update-pool-incentives 1,2 40,60  --from local-user -b block --gas auto -y --title sdasd --description dasdas --deposit 1dym
-last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
-dymd tx gov vote "$last_proposal_id" yes --from local-user -b block -y
-
 # lock LP tokens
 echo "====================="
 echo "Locking LP tokens"
@@ -37,8 +29,7 @@ dymd tx lockup lock-tokens 50000000000000000000gamm/pool/2 --duration="1m" --fro
 
 # create new stream
 echo "====================="
-echo "Gov proposal for creating new stream"
-poolincentives_addr=$(dymd q auth module-account poolincentives -o json | jq .account.base_account.address | tr -d '"')
-dymd tx gov submit-legacy-proposal create-stream-proposal "$poolincentives_addr" 10000dym --epoch-identifier minute --from local-user -b block --title sfasfas --description ddasda --deposit 1dym -y
+echo "Gov proposal for creating new stream with LP1 and LP2 as incentives targets"
+dymd tx gov submit-legacy-proposal create-stream-proposal 1,2 40,60 10000dym --epoch-identifier minute --from local-user -b block --title sfasfas --description ddasda --deposit 1dym -y
 last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
 dymd tx gov vote "$last_proposal_id" yes --from local-user -b block -y

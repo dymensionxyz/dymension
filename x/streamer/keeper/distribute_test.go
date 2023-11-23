@@ -12,21 +12,13 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-var (
-	destAddr1 = sdk.AccAddress([]byte("addr1---------------"))
-	destAddr2 = sdk.AccAddress([]byte("addr2---------------"))
-)
-
 func (suite *KeeperTestSuite) TestDistribute() {
-	moduleAddr := suite.App.AccountKeeper.GetModuleAddress("poolincentives")
-	suite.Require().NotNil(moduleAddr)
-
 	tests := []struct {
 		name    string
 		streams []struct {
 			coins       sdk.Coins
 			numOfEpochs uint64
-			destAddr    sdk.AccAddress
+			distrInfo   *types.DistrInfo
 		}
 	}{
 		{
@@ -34,34 +26,26 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				destAddr    sdk.AccAddress
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, destAddr1}},
-		},
-		{
-			name: "single stream single coin destionation is module address",
-			streams: []struct {
-				coins       sdk.Coins
-				numOfEpochs uint64
-				destAddr    sdk.AccAddress
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, moduleAddr}},
+				distrInfo   *types.DistrInfo
+			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, defaultDistrInfo}},
 		},
 		{
 			name: "single stream multiple coins",
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				destAddr    sdk.AccAddress
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, destAddr1}},
+				distrInfo   *types.DistrInfo
+			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo}},
 		},
 		{
 			name: "multiple streams multiple coins multiple epochs",
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				destAddr    sdk.AccAddress
-			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, destAddr1},
-				{sdk.Coins{sdk.NewInt64Coin("stake", 1000)}, 365, destAddr1},
-				{sdk.Coins{sdk.NewInt64Coin("udym", 1000)}, 730, destAddr2},
+				distrInfo   *types.DistrInfo
+			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
+				{sdk.Coins{sdk.NewInt64Coin("stake", 1000)}, 365, defaultDistrInfo},
+				{sdk.Coins{sdk.NewInt64Coin("udym", 1000)}, 730, defaultDistrInfo},
 			},
 		},
 	}
@@ -69,38 +53,51 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		suite.SetupTest()
 		// setup streams and defined in the above tests, then distribute to them
 
+		err := suite.CreateGauge()
+		suite.Require().NoError(err)
+		err = suite.CreateGauge()
+		suite.Require().NoError(err)
+
 		var streams []types.Stream
-		var destAddrsExpectedRewards = make(map[string]sdk.Coins)
+		var gaugesExpectedRewards = make(map[uint64]sdk.Coins)
 		for _, stream := range tc.streams {
 			// create a stream
-			_, newstream := suite.CreateStream(stream.destAddr, stream.coins, time.Now(), "day", stream.numOfEpochs)
+			_, newstream := suite.CreateStream(stream.distrInfo, stream.coins, time.Now(), "day", stream.numOfEpochs)
 			streams = append(streams, *newstream)
 
 			// calculate expected rewards
-			expectedCoinsFromStream := destAddrsExpectedRewards[stream.destAddr.String()]
 			for _, coin := range stream.coins {
 				epochAmt := coin.Amount.Quo(sdk.NewInt(int64(stream.numOfEpochs)))
-				if epochAmt.IsPositive() {
-					newlyDistributedCoin := sdk.Coin{Denom: coin.Denom, Amount: epochAmt}
-					expectedCoinsFromStream = expectedCoinsFromStream.Add(newlyDistributedCoin)
+				if !epochAmt.IsPositive() {
+					continue
+				}
+				for _, record := range stream.distrInfo.Records {
+					expectedAmtFromStream := epochAmt.Mul(record.Weight).Quo(stream.distrInfo.TotalWeight)
+					expectedCoins := sdk.Coin{Denom: coin.Denom, Amount: expectedAmtFromStream}
+					gaugesExpectedRewards[record.GaugeId] = gaugesExpectedRewards[record.GaugeId].Add(expectedCoins)
 				}
 			}
-			destAddrsExpectedRewards[stream.destAddr.String()] = expectedCoinsFromStream
 		}
 
-		_, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
+		_, err = suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
-		for addr, expecetedBalance := range destAddrsExpectedRewards {
-			bal := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.MustAccAddressFromBech32(addr))
-			suite.Require().Equal(expecetedBalance.String(), bal.String(), "test %v, dest %s", tc.name, addr)
+		gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
+		suite.Require().Equal(len(gaugesExpectedRewards), len(gauges))
+		for _, gauge := range gauges {
+			suite.Require().Equal(gaugesExpectedRewards[gauge.Id], gauge.Coins)
 		}
 	}
 }
 
 // TestGetModuleToDistributeCoins tests the sum of coins yet to be distributed for all of the module is correct.
 func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
+	var err error
 	suite.SetupTest()
+	err = suite.CreateGauge()
+	suite.Require().NoError(err)
+	err = suite.CreateGauge()
+	suite.Require().NoError(err)
 
 	// check that the sum of coins yet to be distributed is nil
 	coins := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)

@@ -4,12 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
-
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
@@ -128,8 +125,6 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
-	denommetadatakeeper "github.com/dymensionxyz/dymension/x/denommetadata/keeper"
-	denommetadatatypes "github.com/dymensionxyz/dymension/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
@@ -142,6 +137,8 @@ import (
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
+	ethermint "github.com/evmos/ethermint/types"
+
 	"github.com/evmos/ethermint/server/flags"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
@@ -169,11 +166,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
-
-	poolincentives "github.com/osmosis-labs/osmosis/v15/x/pool-incentives"
-	poolincentivesclient "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/client"
-	poolincentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/keeper"
-	poolincentivestypes "github.com/osmosis-labs/osmosis/v15/x/pool-incentives/types"
 )
 
 var (
@@ -195,10 +187,6 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
-
-		poolincentivesclient.UpdatePoolIncentivesHandler,
-		poolincentivesclient.ReplacePoolIncentivesHandler,
-
 		streamermoduleclient.CreateStreamHandler,
 	)
 
@@ -235,7 +223,6 @@ var (
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
-		denommetadatamodule.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
@@ -249,7 +236,6 @@ var (
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
-		poolincentives.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -265,11 +251,10 @@ var (
 		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:           {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName:         {authtypes.Minter, authtypes.Burner},
-		incentivestypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		poolincentivestypes.ModuleName: nil,
+		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 	}
 )
 
@@ -287,12 +272,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
-	var BaseDenomUnit int64 = 18
-	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
-
-	var TokensToStake int64 = 100000 //100K DYM minimal stake
-	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
-
+	sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -336,12 +316,11 @@ type App struct {
 	FeeMarketKeeper feemarketkeeper.Keeper
 
 	// Osmostis keepers
-	GAMMKeeper           *gammkeeper.Keeper
-	PoolManagerKeeper    *poolmanagerkeeper.Keeper
-	LockupKeeper         *lockupkeeper.Keeper
-	EpochsKeeper         *epochskeeper.Keeper
-	IncentivesKeeper     *incentiveskeeper.Keeper
-	PoolIncentivesKeeper *poolincentiveskeeper.Keeper
+	GAMMKeeper        *gammkeeper.Keeper
+	PoolManagerKeeper *poolmanagerkeeper.Keeper
+	LockupKeeper      *lockupkeeper.Keeper
+	EpochsKeeper      *epochskeeper.Keeper
+	IncentivesKeeper  *incentiveskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -352,9 +331,7 @@ type App struct {
 	StreamerKeeper  streamermodulekeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-
-	DenomMetadataKeeper denommetadatakeeper.Keeper
-	DelayedAckKeeper    delayedackkeeper.Keeper
+	DelayedAckKeeper delayedackkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -401,7 +378,6 @@ func New(
 		sequencermoduletypes.StoreKey,
 		streamermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
-		denommetadatatypes.StoreKey,
 		delayedacktypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
@@ -414,7 +390,6 @@ func New(
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
-		poolincentivestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -559,18 +534,6 @@ func New(
 		nil,
 	)
 
-	poolIncentivesKeeper := poolincentiveskeeper.NewKeeper(
-		app.keys[poolincentivestypes.StoreKey],
-		app.GetSubspace(poolincentivestypes.ModuleName),
-		app.AccountKeeper,
-		app.BankKeeper,
-		app.IncentivesKeeper,
-		app.DistrKeeper,
-		app.PoolManagerKeeper,
-	)
-	app.PoolIncentivesKeeper = &poolIncentivesKeeper
-
-	//--------------- dYmension specific modules
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
@@ -595,22 +558,13 @@ func New(
 		app.BankKeeper,
 		app.EpochsKeeper,
 		app.AccountKeeper,
-	)
-
-	app.DenomMetadataKeeper = *denommetadatakeeper.NewKeeper(
-		appCodec,
-		keys[denommetadatatypes.StoreKey],
-		keys[denommetadatatypes.MemStoreKey],
-		app.GetSubspace(denommetadatatypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
+		app.IncentivesKeeper,
 	)
 
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
-		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
@@ -623,7 +577,7 @@ func New(
 	app.GAMMKeeper.SetHooks(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
-			app.PoolIncentivesKeeper.Hooks(),
+			app.StreamerKeeper.Hooks(),
 		),
 	)
 
@@ -643,7 +597,6 @@ func New(
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
-	denommetadataModule := denommetadatamodule.NewAppModule(appCodec, app.DenomMetadataKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
 
 	// ... other modules keepers
@@ -658,7 +611,6 @@ func New(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(poolincentivestypes.RouterKey, poolincentives.NewPoolIncentivesProposalHandler(*app.PoolIncentivesKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper))
 
 	// Create Transfer Keepers
@@ -703,9 +655,8 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	// TODO(omritoptix): Move external keepers to be part of the keeper and not the middleware
-	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.DenomMetadataKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -755,7 +706,6 @@ func New(
 		rollappModule,
 		sequencerModule,
 		streamerModule,
-		denommetadataModule,
 		delayedackModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 
@@ -769,7 +719,6 @@ func New(
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
-		poolincentives.NewAppModule(*app.PoolIncentivesKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -802,14 +751,12 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -837,7 +784,6 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
@@ -845,7 +791,6 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -878,7 +823,6 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatatypes.ModuleName,
 		delayedacktypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
@@ -887,7 +831,6 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
-		poolincentivestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -974,8 +917,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	//exclude the pool incentives module
-	modAccAddrs[authtypes.NewModuleAddress(poolincentivestypes.ModuleName).String()] = false
+	//exclude the streamer module
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
 	return modAccAddrs
 }
@@ -1110,7 +1052,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
-	paramsKeeper.Subspace(denommetadatatypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
@@ -1123,7 +1064,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
-	paramsKeeper.Subspace(poolincentivestypes.ModuleName)
 
 	return paramsKeeper
 }
