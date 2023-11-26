@@ -27,9 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // If a ReplaceStreamDistributionProposal passes, the proposal’s records
 // override the existing DistrRecords set in the module. Each record has a
 // specified gauge id and weight, and the incentives are distributed to each
-// gauge according to weight/total_weight. The incentives are put in the fee
-// pool and it is allocated to gauges and community pool by the DistrRecords
-// configuration. Note that gaugeId=0 represents the community pool.
+// gauge according to weight/total_weight.
 type ReplaceStreamDistributionProposal struct {
 	Title       string        `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Description string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`

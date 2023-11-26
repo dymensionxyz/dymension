@@ -10,9 +10,7 @@ option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
 // If a ReplaceStreamDistributionProposal passes, the proposal’s records
 // override the existing DistrRecords set in the module. Each record has a
 // specified gauge id and weight, and the incentives are distributed to each
-// gauge according to weight/total_weight. The incentives are put in the fee
-// pool and it is allocated to gauges and community pool by the DistrRecords
-// configuration. Note that gaugeId=0 represents the community pool.
+// gauge according to weight/total_weight.
 message ReplaceStreamDistributionProposal {
   option (gogoproto.equal) = true;
   option (gogoproto.goproto_getters) = false;

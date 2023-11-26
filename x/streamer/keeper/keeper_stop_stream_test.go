@@ -33,7 +33,7 @@ var createFinishedStreamFunc = func(suite *KeeperTestSuite) uint64 {
 	return id
 }
 
-func (suite *KeeperTestSuite) TestStopStream() {
+func (suite *KeeperTestSuite) TestTerminateStream() {
 	tests := []struct {
 		name             string
 		expectErr        bool
@@ -66,19 +66,19 @@ func (suite *KeeperTestSuite) TestStopStream() {
 		id := tc.createStreamFunc(suite)
 
 		if tc.expectErr {
-			err := suite.App.StreamerKeeper.StopStream(suite.Ctx, id)
+			err := suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id)
 			suite.Require().Error(err, tc.name)
 		} else {
 			_, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, id)
 			suite.Require().NoError(err, tc.name)
-			err = suite.App.StreamerKeeper.StopStream(suite.Ctx, id)
+			err = suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id)
 			suite.Require().NoError(err, tc.name)
 		}
 	}
 }
 
 // test GetModuleToDistributeCoins
-func (suite *KeeperTestSuite) TestStopStream_ModuleToDistributeCoins() {
+func (suite *KeeperTestSuite) TestTerminateStream_ModuleToDistributeCoins() {
 	coinUpcoming := sdk.NewInt64Coin("stake", 10000)
 	coinActive := coinUpcoming
 
@@ -94,9 +94,9 @@ func (suite *KeeperTestSuite) TestStopStream_ModuleToDistributeCoins() {
 	suite.Require().Equal(coinUpcoming.Add(coinActive).Amount, toDist.AmountOf("stake"))
 
 	// stop streams
-	err = suite.App.StreamerKeeper.StopStream(suite.Ctx, id1)
+	err = suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id1)
 	suite.Require().NoError(err)
-	err = suite.App.StreamerKeeper.StopStream(suite.Ctx, id2)
+	err = suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id2)
 	suite.Require().NoError(err)
 
 	toDist = suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestStopStream_ModuleToDistributeCoins() {
 }
 
 // test GetModuleDistributedCoins
-func (suite *KeeperTestSuite) TestStopStream_ModuleDistributedCoins() {
+func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 	coinUpcoming := sdk.NewInt64Coin("stake", 10000)
 	coinActive := coinUpcoming
 
@@ -125,9 +125,9 @@ func (suite *KeeperTestSuite) TestStopStream_ModuleDistributedCoins() {
 	suite.Require().Equal(coinUpcoming.Add(coinActive).Amount, toDist.AmountOf("stake"))
 
 	// stop streams
-	err = suite.App.StreamerKeeper.StopStream(suite.Ctx, id1)
+	err = suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id1)
 	suite.Require().NoError(err)
-	err = suite.App.StreamerKeeper.StopStream(suite.Ctx, id2)
+	err = suite.App.StreamerKeeper.TerminateStream(suite.Ctx, id2)
 	suite.Require().NoError(err)
 
 	/* ---------------------- check ModuleToDistributeCoins --------------------- */

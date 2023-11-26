@@ -14,7 +14,7 @@ import (
 )
 
 // NewCreateStreamCmd broadcasts a CreateStream message.
-func NewCmdSubmitStopStreamProposal() *cobra.Command {
+func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "stop-stream-proposal streamID [flags]",
 		Short: "proposal to stop an exisiting stream",
@@ -35,7 +35,7 @@ func NewCmdSubmitStopStreamProposal() *cobra.Command {
 				return err
 			}
 
-			content := types.NewStopStreamProposal(proposal.Title, proposal.Description, streamID)
+			content := types.NewTerminateStreamProposal(proposal.Title, proposal.Description, streamID)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err

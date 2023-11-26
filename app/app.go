@@ -187,7 +187,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		ibcclientclient.UpdateClientProposalHandler,
 		ibcclientclient.UpgradeProposalHandler,
 		streamermoduleclient.CreateStreamHandler,
-		streamermoduleclient.StopStreamHandler,
+		streamermoduleclient.TerminateStreamHandler,
 	)
 
 	return govProposalHandlers

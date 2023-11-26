@@ -13,17 +13,17 @@ const (
 	// ProposalTypeCreateStream defines the type for a CreateStreamProposal
 	ProposalTypeCreateStream = "CreateStream"
 
-	// ProposalTypeStopStream defines the type for a StopStreamProposal
-	ProposalTypeStopStream = "StopStream"
+	// ProposalTypeTerminateStream defines the type for a TerminateStreamProposal
+	ProposalTypeTerminateStream = "TerminateStream"
 )
 
 // Assert CreateStreamProposal implements govtypes.Content at compile-time
 var _ govtypes.Content = &CreateStreamProposal{}
-var _ govtypes.Content = &StopStreamProposal{}
+var _ govtypes.Content = &TerminateStreamProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCreateStream)
-	govtypes.RegisterProposalType(ProposalTypeStopStream)
+	govtypes.RegisterProposalType(ProposalTypeTerminateStream)
 
 }
 
@@ -93,11 +93,11 @@ func (csp CreateStreamProposal) String() string {
 	return b.String()
 }
 
-// NewStopStreamProposal creates a new stop stream proposal.
+// NewTerminateStreamProposal creates a new stop stream proposal.
 //
 //nolint:interfacer
-func NewStopStreamProposal(title, description string, streamId uint64) *StopStreamProposal {
-	return &StopStreamProposal{
+func NewTerminateStreamProposal(title, description string, streamId uint64) *TerminateStreamProposal {
+	return &TerminateStreamProposal{
 		Title:       title,
 		Description: description,
 		StreamId:    streamId,
@@ -105,19 +105,19 @@ func NewStopStreamProposal(title, description string, streamId uint64) *StopStre
 }
 
 // GetTitle returns the title of a community pool spend proposal.
-func (csp *StopStreamProposal) GetTitle() string { return csp.Title }
+func (csp *TerminateStreamProposal) GetTitle() string { return csp.Title }
 
 // GetDescription returns the description of a community pool spend proposal.
-func (csp *StopStreamProposal) GetDescription() string { return csp.Description }
+func (csp *TerminateStreamProposal) GetDescription() string { return csp.Description }
 
 // GetDescription returns the routing key of a community pool spend proposal.
-func (csp *StopStreamProposal) ProposalRoute() string { return RouterKey }
+func (csp *TerminateStreamProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.
-func (csp *StopStreamProposal) ProposalType() string { return ProposalTypeCreateStream }
+func (csp *TerminateStreamProposal) ProposalType() string { return ProposalTypeCreateStream }
 
 // ValidateBasic runs basic stateless validity checks
-func (csp *StopStreamProposal) ValidateBasic() error {
+func (csp *TerminateStreamProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(csp)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (csp *StopStreamProposal) ValidateBasic() error {
 }
 
 // String implements the Stringer interface.
-func (csp StopStreamProposal) String() string {
+func (csp TerminateStreamProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Create stream Proposal:
 	  Title:       %s

@@ -104,8 +104,8 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.
 	return stream.Id, nil
 }
 
-// StopStream cancels a stream.
-func (k Keeper) StopStream(ctx sdk.Context, streamID uint64) error {
+// TerminateStream cancels a stream.
+func (k Keeper) TerminateStream(ctx sdk.Context, streamID uint64) error {
 	stream, err := k.GetStreamByID(ctx, streamID)
 	if err != nil {
 		return err
