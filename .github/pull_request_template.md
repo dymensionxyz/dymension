@@ -11,6 +11,7 @@ For Author:
 - [ ]  Linked to Github issue with discussion and accepted design
 - [ ]  Targets only one github issue
 - [ ]  Wrote unit and integration tests
+- [ ]  Wrote relevant migration scripts if necessary
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
 
