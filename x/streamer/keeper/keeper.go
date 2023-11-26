@@ -111,14 +111,11 @@ func (k Keeper) StopStream(ctx sdk.Context, streamID uint64) error {
 		return err
 	}
 
-	if stream.IsFinishedStream(ctx.BlockTime()) {
-		return fmt.Errorf("stream %d is already finished", streamID)
+	if stream.IsActiveStream(ctx.BlockTime()) {
+		return k.moveActiveStreamToFinishedStream(ctx, *stream)
+	} else if stream.IsUpcomingStream(ctx.BlockTime()) {
+		return k.moveUpcomingStreamToFinishedStream(ctx, *stream)
+	} else {
+		return fmt.Errorf("stream %d is not active or upcoming", streamID)
 	}
-
-	err = k.moveStreamToFinishedStream(ctx, *stream)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
