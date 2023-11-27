@@ -23,7 +23,7 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Installation](#installation)
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
-  - [Bootstraping liquidity pools](#bootstraping-liquidity-pools)
+  - [Bootstrapping liquidity pools](#bootstrapping-liquidity-pools)
   - [Adding incentives](#adding-incentives)
     - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
@@ -96,7 +96,7 @@ dymd start
 
 You should have a running local node!
 
-## Bootstraping liquidity pools
+## Bootstrapping liquidity pools
 
 To bootstrap the `GAMM` module with pools:
 
@@ -114,7 +114,7 @@ After creating the pools above, we create 2 incentive streams through gov:
 sh scripts/incentives/fund_incentives.sh
 ```
 
-wait for the gov proposal to pass, and validate with:
+Wait for the gov proposal to pass, and validate with:
 
 ```sh
 dymd q streamer streams
