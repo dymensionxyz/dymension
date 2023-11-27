@@ -16,8 +16,8 @@ import (
 // NewCreateStreamCmd broadcasts a CreateStream message.
 func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stop-stream-proposal streamID [flags]",
-		Short: "proposal to stop an exisiting stream",
+		Use:   "terminate-stream-proposal streamID [flags]",
+		Short: "proposal to terminate an exisiting stream",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
