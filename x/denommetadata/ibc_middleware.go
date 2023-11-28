@@ -31,10 +31,11 @@ type IBCMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, ck types.ChannelKeeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, ck types.ChannelKeeper, ics4 porttypes.ICS4Wrapper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:            app,
 		channelKeeper:  ck,
+		ics4Wrapper:    ics4,
 		transferkeeper: tk,
 		rollappkeeper:  rk,
 		bankkeeper:     bk,
@@ -129,7 +130,6 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// no-op if the receiver chain is the source chain
 	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), data.Denom) {
-		logger.Debug("Skipping IBC transfer OnRecvPacket for receiver chain being the source chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
