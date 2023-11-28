@@ -9,7 +9,6 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 
-	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -20,25 +19,21 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
-	app            porttypes.IBCModule
-	accountKeeper  types.AccountKeeper
-	channelKeeper  types.ChannelKeeper
-	ics4Wrapper    porttypes.ICS4Wrapper
-	transferkeeper types.TransferKeeper
-	stakingkeeper  types.StakingKeeper
-	lockupkeeper   types.LockupKeeper
+	app           porttypes.IBCModule
+	accountKeeper types.AccountKeeper
+	ics4Wrapper   porttypes.ICS4Wrapper
+	stakingkeeper types.StakingKeeper
+	lockupkeeper  types.LockupKeeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, ak types.AccountKeeper, ck types.ChannelKeeper, ics4 porttypes.ICS4Wrapper, tk transferkeeper.Keeper, sk types.StakingKeeper, lk types.LockupKeeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, ak types.AccountKeeper, ics4 porttypes.ICS4Wrapper, sk types.StakingKeeper, lk types.LockupKeeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:            app,
-		channelKeeper:  ck,
-		accountKeeper:  ak,
-		ics4Wrapper:    ics4,
-		transferkeeper: tk,
-		stakingkeeper:  sk,
-		lockupkeeper:   lk,
+		app:           app,
+		accountKeeper: ak,
+		ics4Wrapper:   ics4,
+		stakingkeeper: sk,
+		lockupkeeper:  lk,
 	}
 }
 
@@ -135,16 +130,28 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	lockMemoData, ok := d[types.LockMemoName].([]byte)
+	lockObject, ok := d[types.LockMemoName].(map[string]interface{})
 	if !ok {
-		logger.Error("empty lock metadata")
+		logger.Error("failed to parse lock object", "memo", data.Memo)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	// Marshal the map back into a JSON byte slice
+	lockMemoData, err := json.Marshal(lockObject)
+	if err != nil {
+		logger.Error("error parsing lock metadata", "error", err, "memo", data.Memo)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	m := &types.LockMemo{}
 	err = json.Unmarshal(lockMemoData, m)
 	if err != nil {
-		logger.Error("error parsing lock metadata", "error", err)
+		logger.Error("error parsing lock metadata", "error", err, "memo", data.Memo)
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	if !m.ToLock {
+		logger.Error("skipping locking", "error", err, "memo", data.Memo)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 

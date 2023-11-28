@@ -23,12 +23,12 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 		},
 		{
 			name:           "missing bridge_and_lock memo",
-			memo:           "{test: {}}",
+			memo:           "{\"test\": {}}",
 			expectedLocked: false,
 		},
 		{
 			name:           "happy flow",
-			memo:           "{bridge_and_lock: {to_lock:true}}}",
+			memo:           "{\"bridge_and_lock\": {\"to_lock\":true}}",
 			expectedLocked: true,
 		},
 		// {
@@ -43,18 +43,20 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 		// },
 		{
 			name:           "bridge_and_lock - false",
-			memo:           "{bridge_and_lock: {to_lock:false}}}",
+			memo:           "{\"bridge_and_lock\": {\"to_lock\":false}}",
 			expectedLocked: false,
 		},
 		{
 			name:           "bridge_and_lock - dest is module addr",
-			memo:           "{bridge_and_lock: {to_lock:true}}}",
+			memo:           "{\"bridge_and_lock\": {\"to_lock\":true}}",
 			expectedLocked: false,
 			DstIsModule:    true,
 		},
 	}
 
 	for _, tc := range testCases {
+		suite.SetupTest()
+
 		// setup between cosmosChain and hubChain
 		path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
 		suite.coordinator.Setup(path)
@@ -68,29 +70,29 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 		coinToSend := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 		// send from cosmosChain to hubChain
-		dstAddr := hubEndpoint.Chain.SenderAccount.GetAddress().String()
+		dstAcc := hubEndpoint.Chain.SenderAccount.GetAddress()
 		if tc.DstIsModule {
-			dstAddr = ConvertToApp(suite.hubChain).AccountKeeper.GetModuleAddress("streamer").String()
+			dstAcc = ConvertToApp(suite.hubChain).AccountKeeper.GetModuleAddress("streamer")
 		}
-		msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSend, cosmosEndpoint.Chain.SenderAccount.GetAddress().String(), dstAddr, timeoutHeight, 0, tc.memo)
+		msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSend, cosmosEndpoint.Chain.SenderAccount.GetAddress().String(), dstAcc.String(), timeoutHeight, 0, tc.memo)
 		res, err := cosmosEndpoint.Chain.SendMsgs(msg)
 		suite.Require().NoError(err, tc.name) // message committed
 
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		suite.Require().NoError(err)
 		stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
-		balanceBefore := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), hubEndpoint.Chain.SenderAccount.GetAddress(), stakeVoucherDenom.IBCDenom())
+		balanceBefore := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, stakeVoucherDenom.IBCDenom())
 
 		// relay send
 		err = path.RelayPacket(packet)
 		suite.Require().NoError(err, tc.name) // relay committed
 
-		balanceAfter := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), hubEndpoint.Chain.SenderAccount.GetAddress(), stakeVoucherDenom.IBCDenom())
+		balanceAfter := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, stakeVoucherDenom.IBCDenom())
 		if !tc.expectedLocked {
 			suite.Require().True(balanceBefore.IsLT(balanceAfter), tc.name)
 		} else {
-			suite.Require().Equal(balanceBefore, balanceAfter, tc.name)
-			locks := ConvertToApp(suite.hubChain).LockupKeeper.GetAccountPeriodLocks(suite.hubChain.GetContext(), hubEndpoint.Chain.SenderAccount.GetAddress())
+			suite.Require().Equal(balanceBefore.String(), balanceAfter.String(), tc.name)
+			locks := ConvertToApp(suite.hubChain).LockupKeeper.GetAccountPeriodLocks(suite.hubChain.GetContext(), dstAcc)
 			suite.Require().Len(locks, 1, tc.name)
 			suite.Require().Equal(locks[0].Coins[0].Denom, stakeVoucherDenom.IBCDenom(), tc.name)
 		}

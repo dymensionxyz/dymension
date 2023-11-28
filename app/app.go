@@ -123,6 +123,7 @@ import (
 	streamermodulekeeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
 	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
 
+	bridgeandlockmodule "github.com/dymensionxyz/dymension/x/bridge_and_lock"
 	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/x/delayedack"
@@ -655,8 +656,9 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferStack = bridgeandlockmodule.NewIBCMiddleware(transferStack, app.AccountKeeper, app.IBCKeeper.ChannelKeeper, app.StakingKeeper, app.LockupKeeper)
 	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
