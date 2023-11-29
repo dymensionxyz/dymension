@@ -9,7 +9,6 @@ const (
 	FlagStartTime       = "start-time"
 	FlagEpochIdentifier = "epoch-identifier"
 	FlagEpochs          = "epochs"
-	FlagOwner           = "owner"
 )
 
 // FlagSetCreateStream returns flags for creating gauges.

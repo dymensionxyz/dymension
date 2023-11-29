@@ -6,11 +6,12 @@
 
 For Author:
 
-- [ ]  Targeted PR against correct branch
+- [ ]  Targeted PR against the correct branch
 - [ ]  included the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
-- [ ]  Linked to Github issue with discussion and accepted design
-- [ ]  Targets only one github issue
+- [ ]  Linked to the GitHub issue with discussion and accepted design
+- [ ]  Targets only one GitHub issue
 - [ ]  Wrote unit and integration tests
+- [ ]  Wrote relevant migration scripts if necessary
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
 
@@ -26,5 +27,5 @@ For Reviewer:
 
 After reviewer approval:
 
-- [ ]  In case targets main branch, PR should be squashed and merged.
-- [ ]  In case PR targets a release branch, PR should be rebased.
+- [ ]  In case it targets the main branch, PR should be squashed and merged.
+- [ ]  In case the PR targets a release branch, PR should be rebased.

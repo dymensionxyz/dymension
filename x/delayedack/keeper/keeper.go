@@ -75,6 +75,10 @@ func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channe
 	return tmClientState.ChainId, nil
 }
 
+func (k Keeper) IsRollappsEnabled(ctx sdk.Context) bool {
+	return k.rollappKeeper.GetParams(ctx).RollappsEnabled
+}
+
 func (k Keeper) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
 	return k.rollappKeeper.GetRollapp(ctx, chainID)
 }

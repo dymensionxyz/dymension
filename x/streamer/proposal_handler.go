@@ -13,7 +13,12 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 		switch c := content.(type) {
 		case *types.CreateStreamProposal:
 			return HandleCreateStreamProposal(ctx, k, c)
-
+		case *types.TerminateStreamProposal:
+			return HandleTerminateStreamProposal(ctx, k, c)
+		case *types.ReplaceStreamDistributionProposal:
+			return HandleReplaceStreamDistributionProposal(ctx, k, c)
+		case *types.UpdateStreamDistributionProposal:
+			return HandleUpdateStreamDistributionProposal(ctx, k, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
 		}
@@ -22,13 +27,56 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 
 // HandleCreateStreamProposal is a handler for executing a passed community spend proposal
 func HandleCreateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.CreateStreamProposal) error {
-	distrInfo, err := k.NewDistrInfo(ctx, p.DistributeToRecords...)
+	distrInfo, err := k.NewDistrInfo(ctx, p.DistributeToRecords)
 	if err != nil {
 		return err
 	}
+
 	_, err = k.CreateStream(ctx, p.Coins, distrInfo, p.StartTime, p.DistrEpochIdentifier, p.NumEpochsPaidOver)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// HandleTerminateStreamProposal is a handler for executing a passed community spend proposal
+func HandleTerminateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.TerminateStreamProposal) error {
+	stream, err := k.GetStreamByID(ctx, p.StreamId)
+	if err != nil {
+		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+	}
+
+	return k.TerminateStream(ctx, p.StreamId)
+}
+
+// HandleReplaceStreamDistributionProposal is a handler for executing a passed community spend proposal
+func HandleReplaceStreamDistributionProposal(ctx sdk.Context, k keeper.Keeper, p *types.ReplaceStreamDistributionProposal) error {
+	stream, err := k.GetStreamByID(ctx, p.StreamId)
+	if err != nil {
+		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+	}
+
+	return k.ReplaceDistrRecords(ctx, p.StreamId, p.Records)
+}
+
+// HandleUpdateStreamDistributionProposal is a handler for executing a passed community spend proposal
+func HandleUpdateStreamDistributionProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateStreamDistributionProposal) error {
+	stream, err := k.GetStreamByID(ctx, p.StreamId)
+	if err != nil {
+		return err
+	}
+
+	if stream.IsFinishedStream(ctx.BlockTime()) {
+		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+	}
+
+	return k.UpdateDistrRecords(ctx, p.StreamId, p.Records)
 }

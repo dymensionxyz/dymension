@@ -104,6 +104,10 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	if !im.keeper.IsRollappsEnabled(ctx) {
+		return im.app.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
 	// no-op if the packet is not a fungible token packet
