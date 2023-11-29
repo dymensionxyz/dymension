@@ -21,7 +21,6 @@ func NewDistrInfo(records []DistrRecord) (*DistrInfo, error) {
 	return &distrInfo, nil
 }
 
-// TODO: add validate for DistrInfo
 func (d DistrInfo) Validate() error {
 	totalWeight := sdk.NewInt(0)
 	for _, record := range d.Records {

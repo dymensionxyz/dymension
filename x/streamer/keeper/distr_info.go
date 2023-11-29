@@ -7,31 +7,25 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func (k Keeper) NewDistrInfo(ctx sdk.Context, records ...types.DistrRecord) (*types.DistrInfo, error) {
-	distrInfo := types.DistrInfo{}
-
-	err := k.validateRecords(ctx, records...)
+func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (*types.DistrInfo, error) {
+	err := k.validateGauges(ctx, records)
 	if err != nil {
 		return nil, err
 	}
 
-	totalWeight := sdk.NewInt(0)
-
-	for _, record := range records {
-		totalWeight = totalWeight.Add(record.Weight)
+	distrInfo, err := types.NewDistrInfo(records)
+	if err != nil {
+		return nil, err
 	}
 
-	distrInfo.Records = records
-	distrInfo.TotalWeight = totalWeight
-
-	return &distrInfo, nil
+	return distrInfo, nil
 }
 
-// validateRecords validates a list of records to ensure that:
+// validateGauges validates a list of records to ensure that:
 // 1) there are no duplicates,
 // 2) the records are in sorted order.
 // 3) the records only pay to gauges that exist.
-func (k Keeper) validateRecords(ctx sdk.Context, records ...types.DistrRecord) error {
+func (k Keeper) validateGauges(ctx sdk.Context, records []types.DistrRecord) error {
 	lastGaugeID := uint64(0)
 	gaugeIdFlags := make(map[uint64]bool)
 

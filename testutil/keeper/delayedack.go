@@ -74,6 +74,10 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 
 type RollappKeeperStub struct{}
 
+func (RollappKeeperStub) GetParams(ctx sdk.Context) rollapptypes.Params {
+	return rollapptypes.Params{}
+}
+
 func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
 	return rollapptypes.Rollapp{}, false
 }
