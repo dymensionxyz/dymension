@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	app "github.com/dymensionxyz/dymension/app"
 )
 
 // Transfer from cosmos chain to the hub. No delay expected
@@ -15,6 +16,8 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 		memo           string
 		expectedLocked bool
 		DstIsModule    bool
+		srcToken       bool
+		dymToken       bool
 	}{
 		{
 			name:           "missing memo",
@@ -31,16 +34,19 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 			memo:           "{\"bridge_and_lock\": {\"to_lock\":true}}",
 			expectedLocked: true,
 		},
-		// {
-		// 	name:           "happy flow - token originated from hub",
-		// 	memo:           "bridge_and_lock",
-		// 	expectedLocked: true,
-		// },
-		// {
-		// 	name:           "not locking native token (DYM)",
-		// 	memo:           "bridge_and_lock",
-		// 	expectedLocked: false,
-		// },
+		{
+			name:           "happy flow - token originated from hub",
+			memo:           "{\"bridge_and_lock\": {\"to_lock\":true}}",
+			expectedLocked: true,
+			srcToken:       true,
+		},
+		{
+			name:           "not locking native token (DYM)",
+			memo:           "{\"bridge_and_lock\": {\"to_lock\":true}}",
+			expectedLocked: false,
+			dymToken:       true,
+			srcToken:       true,
+		},
 		{
 			name:           "bridge_and_lock - false",
 			memo:           "{\"bridge_and_lock\": {\"to_lock\":false}}",
@@ -68,6 +74,32 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 		amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
 		suite.Require().True(ok)
 		coinToSend := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+		expectedLockDenom := ""
+
+		//send from hubChain to cosmosChain, than send it back and lock it
+		if tc.srcToken {
+			expectedLockDenom = sdk.DefaultBondDenom
+			if !tc.dymToken {
+				coinToSend = sdk.NewCoin("atom", amount)
+				app.FundAccount(ConvertToApp(suite.hubChain), suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.Coins{coinToSend})
+				expectedLockDenom = "atom"
+			}
+
+			// send from cosmosChain to hubChain
+			dstAcc := cosmosEndpoint.Chain.SenderAccount.GetAddress()
+			msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSend, hubEndpoint.Chain.SenderAccount.GetAddress().String(), dstAcc.String(), timeoutHeight, 0, "")
+			res, err := hubEndpoint.Chain.SendMsgs(msg)
+			suite.Require().NoError(err, tc.name) // message committed
+
+			packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+			suite.Require().NoError(err)
+
+			// relay send
+			err = path.RelayPacket(packet)
+			suite.Require().NoError(err, tc.name) // relay committed
+
+			coinToSend = sdk.NewCoin(types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), coinToSend.Denom)).IBCDenom(), amount)
+		}
 
 		// send from cosmosChain to hubChain
 		dstAcc := hubEndpoint.Chain.SenderAccount.GetAddress()
@@ -80,21 +112,25 @@ func (suite *KeeperTestSuite) Test_Bridge_n_Lock() {
 
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		suite.Require().NoError(err)
-		stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
-		balanceBefore := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, stakeVoucherDenom.IBCDenom())
+
+		if expectedLockDenom == "" {
+			stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
+			expectedLockDenom = stakeVoucherDenom.IBCDenom()
+		}
+		balanceBefore := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, expectedLockDenom)
 
 		// relay send
 		err = path.RelayPacket(packet)
 		suite.Require().NoError(err, tc.name) // relay committed
 
-		balanceAfter := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, stakeVoucherDenom.IBCDenom())
+		balanceAfter := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), dstAcc, expectedLockDenom)
 		if !tc.expectedLocked {
 			suite.Require().True(balanceBefore.IsLT(balanceAfter), tc.name)
 		} else {
 			suite.Require().Equal(balanceBefore.String(), balanceAfter.String(), tc.name)
 			locks := ConvertToApp(suite.hubChain).LockupKeeper.GetAccountPeriodLocks(suite.hubChain.GetContext(), dstAcc)
 			suite.Require().Len(locks, 1, tc.name)
-			suite.Require().Equal(locks[0].Coins[0].Denom, stakeVoucherDenom.IBCDenom(), tc.name)
+			suite.Require().Equal(locks[0].Coins[0].Denom, expectedLockDenom, tc.name)
 		}
 	}
 }

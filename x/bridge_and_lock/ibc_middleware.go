@@ -3,7 +3,6 @@ package bridgeandlock
 import (
 	"encoding/json"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -151,20 +150,21 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	if !m.ToLock {
-		logger.Error("skipping locking", "error", err, "memo", data.Memo)
+		logger.Error("skipping locking", "memo", data.Memo)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	/* --------------------------- handle the transfer -------------------------- */
 	ack := im.app.OnRecvPacket(ctx, packet, relayer)
-	if !ack.Success() {
+
+	if ack == nil {
+		// no acknoledgement, return
 		return ack
 	}
 
-	// use a zero gas config to avoid extra costs for the relayers
-	ctx = ctx.
-		WithKVGasConfig(storetypes.GasConfig{}).
-		WithTransientKVGasConfig(storetypes.GasConfig{})
+	if !ack.Success() {
+		return ack
+	}
 
 	// decode the receiver address
 	owner, err := sdk.AccAddressFromBech32(data.Receiver)
