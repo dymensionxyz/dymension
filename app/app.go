@@ -483,9 +483,10 @@ func New(
 
 	app.LockupKeeper = lockupkeeper.NewKeeper(
 		app.keys[lockuptypes.StoreKey],
+		app.GetSubspace(lockuptypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.DistrKeeper, app.GetSubspace(lockuptypes.ModuleName))
+	)
 
 	app.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
@@ -505,12 +506,9 @@ func New(
 
 	app.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
 		keys[poolmanagertypes.StoreKey],
-		app.GetSubspace(poolmanagertypes.ModuleName),
 		app.GAMMKeeper,
-		nil,
 		app.BankKeeper,
 		app.AccountKeeper,
-		app.DistrKeeper,
 	)
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 
@@ -1061,7 +1059,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	// osmosis subspaces
 	paramsKeeper.Subspace(lockuptypes.ModuleName)
 	paramsKeeper.Subspace(epochstypes.ModuleName)
-	paramsKeeper.Subspace(poolmanagertypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
 

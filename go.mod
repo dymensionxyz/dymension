@@ -215,8 +215,8 @@ replace (
 )
 
 replace (
-	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.1
 	// use dymension forks
+	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.2
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1
-	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.2
+	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.3
 )
