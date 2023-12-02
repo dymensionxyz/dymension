@@ -1,0 +1,33 @@
+{
+  "chainId": "Mutu",
+  "chainName": "mutuu_2589295-1",
+  "rpc": "185.193.67.136:26657",
+  "rest": "185.193.67.136:1317",
+  "bech32Prefix": "ethm",
+  "currencies": [
+    {
+      "displayDenom": "MTU",
+      "baseDenom": "uMTU",
+      "decimals": 18,
+      "logo": "/devnet/logos/mutuu_2589295-1.png",
+      "type": "main"
+    }
+  ],
+  "coinType": 60,
+  "faucetUrl": "https://discord.com/channels/956961633165529098/1143231362468434022",
+  "website": "mutuecosystem.xyz",
+  "logo": "/logos/mutuu_2589295-1.png",
+  "ibc": {
+    "hubChannel": "channel-7700",
+    "channel": "channel-0",
+    "timeout": 172800000
+  },
+  "evm": {
+    "chainId": "0x27826f",
+    "rpc": "185.193.67.136:8545"
+  },
+  "type": "RollApp",
+  "da": "Celestia",
+  "description": "",
+  "analytics": true
+}
