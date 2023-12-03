@@ -28,18 +28,24 @@ func CreateUpgradeHandler(
 	cdc codec.BinaryCodec,
 
 ) upgradetypes.UpgradeHandler {
+
+	// Create a map from client id to status where the statuses will be saved
+	clientStatuses := make(map[string]exported.Status)
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
 
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		// Iterate over all clients and change they client state to Tendermint client state
+		// Iterate over all clients and change their client state to Tendermint client state
 		clientKeeper.IterateClients(ctx, func(clientID string, clientState exported.ClientState) bool {
+			logger.Info("Trying to upgrade client", "clientID", clientID, "clientState", clientState)
 			dmClientState, ok := clientState.(*dmtypes.ClientState)
 			if !ok {
-				logger.Info("Not a Dymint client state. Skipping", "clientID", clientID)
+				logger.Info("Not a Dymint client state. Skipping", "clientID", clientID, "clientState", clientState)
 				return false
 			}
+			logger.Info("Found dymint state. Upgrading client", "clientID", clientID, "clientState", clientState)
 			prevStatus := dmClientState.Status(ctx, clientKeeper.ClientStore(ctx, clientID), cdc)
+			clientStatuses[clientID] = prevStatus
 			newClientState := tmtypes.NewClientState(
 				dmClientState.ChainId,
 				tmtypes.DefaultTrustLevel,
@@ -54,39 +60,54 @@ func CreateUpgradeHandler(
 			)
 			clientKeeper.SetClientState(ctx, clientID, newClientState)
 
-			// Iterate over all consensus states and change them to Tendermint consensus state
-			clientKeeper.IterateConsensusStates(ctx, func(clientID string, consensusStateWithHeight clienttypes.ConsensusStateWithHeight) bool {
-				// Get the consensus state
-				exportedConsensusState, found := clientKeeper.GetClientConsensusState(ctx, clientID, consensusStateWithHeight.Height)
-				dmConsensusState, ok := exportedConsensusState.(*dmtypes.ConsensusState)
-				if !ok {
-					logger.Info("Not a Dymint consensus state. Skipping", "clientID", clientID)
-					return false
-				}
-				if !found {
-					logger.Info("Consensus state not found. Skipping", "clientID", clientID)
-					return false
-				}
-				// Convert to Tendermint consensus state
-				tmConsensusState := &tmtypes.ConsensusState{
-					Timestamp:          dmConsensusState.Timestamp,
-					Root:               dmConsensusState.Root,
-					NextValidatorsHash: dmConsensusState.NextValidatorsHash,
-				}
-
-				clientKeeper.SetClientConsensusState(ctx, clientID, consensusStateWithHeight.Height, tmConsensusState)
-				return false
-			})
-
-			// Check the status of the client is active after the upgrade
-			status := newClientState.Status(ctx, clientKeeper.ClientStore(ctx, clientID), cdc)
-			if status != prevStatus {
-				msg := fmt.Sprintf("client status has changed after upgrade. Expected: %s, got: %s", prevStatus, status)
-				panic(msg)
-			}
-
 			return false
 		})
+
+		logger.Info("Upgraded all clients Successfully. Length", "length", len(clientStatuses))
+
+		// Iterate over all consensus states and change them to Tendermint consensus state
+		clientKeeper.IterateConsensusStates(ctx, func(clientID string, consensusStateWithHeight clienttypes.ConsensusStateWithHeight) bool {
+			// Get the consensus state
+			logger.Info("Trying to upgrade consensus state", "clientID", clientID)
+			exportedConsensusState, found := clientKeeper.GetClientConsensusState(ctx, clientID, consensusStateWithHeight.Height)
+			dmConsensusState, ok := exportedConsensusState.(*dmtypes.ConsensusState)
+			if !ok {
+				logger.Info("Not a Dymint consensus state. Skipping", "clientID", clientID)
+				return false
+			}
+			if !found {
+				logger.Info("Consensus state not found. Skipping", "clientID", clientID)
+				return false
+			}
+			// Convert to Tendermint consensus state
+			tmConsensusState := &tmtypes.ConsensusState{
+				Timestamp:          dmConsensusState.Timestamp,
+				Root:               dmConsensusState.Root,
+				NextValidatorsHash: dmConsensusState.NextValidatorsHash,
+			}
+
+			clientKeeper.SetClientConsensusState(ctx, clientID, consensusStateWithHeight.Height, tmConsensusState)
+			logger.Info("Upgraded consensus state", "clientID", clientID, "consensusStateHeight", consensusStateWithHeight.Height)
+			return false
+		})
+
+		// Iterate over all clients and change their client state to Tendermint client state
+		clientKeeper.IterateClients(ctx, func(clientID string, clientState exported.ClientState) bool {
+			// Check the status of the client is active after the upgrade
+			logger.Info("Checking client status after upgrade", "clientID", clientID)
+			status := clientState.Status(ctx, clientKeeper.ClientStore(ctx, clientID), cdc)
+			if _, ok := clientStatuses[clientID]; ok {
+				if status != clientStatuses[clientID] {
+					msg := fmt.Sprintf("client status has changed after upgrade. Expected: %s, got: %s", clientStatuses[clientID], status)
+					panic(msg)
+				}
+				return false
+			} else {
+				panic(fmt.Sprintf("client status not found for clientID: %s", clientID))
+			}
+		})
+
+		logger.Info("Upgraded all consensus states successfully")
 
 		// Update the denom metadata for DYM token
 		bankKeeper.SetDenomMetaData(ctx, DYMTokenMetata)
