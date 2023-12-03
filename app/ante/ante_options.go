@@ -2,22 +2,25 @@ package ante
 
 import (
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 )
 
 type HandlerOptions struct {
-	AccountKeeper          evmtypes.AccountKeeper
-	BankKeeper             evmtypes.BankKeeper
+	AccountKeeper          *authkeeper.AccountKeeper
+	BankKeeper             bankkeeper.Keeper
 	IBCKeeper              *ibckeeper.Keeper
 	FeeMarketKeeper        ethante.FeeMarketKeeper
 	EvmKeeper              ethante.EVMKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
+	TxFeesKeeper           *txfeeskeeper.Keeper
 	SignModeHandler        authsigning.SignModeHandler
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
@@ -39,6 +42,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.EvmKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "evm keeper is required for AnteHandler")
+	}
+	if options.TxFeesKeeper == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
 	}
 	return nil
 }

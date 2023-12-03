@@ -165,6 +165,10 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+
+	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 var (
@@ -236,6 +240,7 @@ var (
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
+		txfees.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -255,6 +260,7 @@ var (
 		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		txfeestypes.ModuleName:     {authtypes.Burner},
 	}
 )
 
@@ -315,12 +321,13 @@ type App struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
-	// Osmostis keepers
+	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
 	IncentivesKeeper  *incentiveskeeper.Keeper
+	TxFeesKeeper      *txfeeskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -390,6 +397,7 @@ func New(
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
+		txfeestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -532,6 +540,15 @@ func New(
 		nil,
 	)
 
+	txfeeskeeper := txfeeskeeper.NewKeeper(
+		app.keys[txfeestypes.StoreKey],
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.PoolManagerKeeper,
+		app.GAMMKeeper,
+	)
+	app.TxFeesKeeper = &txfeeskeeper
+
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
@@ -576,6 +593,7 @@ func New(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
 			app.StreamerKeeper.Hooks(),
+			app.TxFeesKeeper.Hooks(),
 		),
 	)
 
@@ -717,6 +735,7 @@ func New(
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
+		txfees.NewAppModule(*app.TxFeesKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -755,6 +774,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -789,6 +809,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -829,6 +850,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -847,14 +869,18 @@ func New(
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:   app.AccountKeeper,
-		BankKeeper:      app.BankKeeper,
-		IBCKeeper:       app.IBCKeeper,
-		FeeMarketKeeper: app.FeeMarketKeeper,
-		EvmKeeper:       app.EvmKeeper,
-		FeegrantKeeper:  app.FeeGrantKeeper,
-		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		MaxTxGasWanted:  maxGasWanted,
+		AccountKeeper:          &app.AccountKeeper,
+		BankKeeper:             app.BankKeeper,
+		IBCKeeper:              app.IBCKeeper,
+		FeeMarketKeeper:        app.FeeMarketKeeper,
+		EvmKeeper:              app.EvmKeeper,
+		FeegrantKeeper:         app.FeeGrantKeeper,
+		TxFeesKeeper:           app.TxFeesKeeper,
+		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
+		MaxTxGasWanted:         maxGasWanted,
+		ExtensionOptionChecker: nil, //uses default
+		TxFeeChecker:           nil, //uses default
+
 	})
 	if err != nil {
 		panic(err)
