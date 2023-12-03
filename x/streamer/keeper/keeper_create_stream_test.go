@@ -13,31 +13,6 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-// TestNonExistentDenomStreamCreation tests error handling for creating a stream with an invalid denom.
-func (suite *KeeperTestSuite) TestNonExistentDenomStreamCreation() {
-	suite.SetupTest()
-
-	//udym exists
-	coins := sdk.Coins{sdk.NewInt64Coin("udym", 1000)}
-	_, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDistrInfo, time.Time{}, "day", 30)
-	suite.Require().NoError(err)
-
-	//udym and stake exist
-	coins = sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("stake", 10000)}
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDistrInfo, time.Time{}, "day", 30)
-	suite.Require().NoError(err)
-
-	//udym2 doesn't exist
-	coins = sdk.Coins{sdk.NewInt64Coin("udym", 1000), sdk.NewInt64Coin("udym2", 1000)}
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDistrInfo, time.Time{}, "day", 30)
-	suite.Require().Error(err)
-
-	//udym2 doesn't exist
-	coins = sdk.Coins{sdk.NewInt64Coin("udym2", 10000)}
-	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, defaultDistrInfo, time.Time{}, "day", 30)
-	suite.Require().Error(err)
-}
-
 func TestSpendable(t *testing.T) {
 	tests := []struct {
 		balance      sdk.Coins
@@ -151,6 +126,14 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 		{
 			name:              "non existing denom",
 			coins:             sdk.Coins{sdk.NewInt64Coin("udasdas", 10)},
+			distrTo:           defaultDistrInfo,
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
+		},
+		{
+			name:              "multiple tokens - one is non existing denom",
+			coins:             sdk.Coins{sdk.NewInt64Coin("udym", 100000), sdk.NewInt64Coin("udasdas", 10)},
 			distrTo:           defaultDistrInfo,
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
