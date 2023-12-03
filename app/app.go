@@ -607,6 +607,7 @@ func New(
 			// insert epochs hooks receivers here
 			app.IncentivesKeeper.Hooks(),
 			app.StreamerKeeper.Hooks(),
+			app.TxFeesKeeper.Hooks(),
 		),
 	)
 
