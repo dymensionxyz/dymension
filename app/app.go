@@ -543,6 +543,7 @@ func New(
 	txfeeskeeper := txfeeskeeper.NewKeeper(
 		app.keys[txfeestypes.StoreKey],
 		app.AccountKeeper,
+		app.EpochsKeeper,
 		app.BankKeeper,
 		app.PoolManagerKeeper,
 		app.GAMMKeeper,
