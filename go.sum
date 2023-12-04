@@ -450,8 +450,8 @@ github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac h1:opbrjaN/L8
 github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQxaLAeM=
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.2 h1:CPBHlnxAEJ7wW7P4/mStenwb9w2r70P9xQCByjSgHfI=
-github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.2/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3 h1:iAtAivMtJh2Ublnq2KasC7EIa5/gfsff5EJ7kUlnd9A=
+github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
 github.com/dymensionxyz/ibc-go/v6 v6.0.0-rc0.0.20231123152216-df3f798086fa h1:LVNWH4Fm3yaaQY+jEhVCZ0zvWen7V5YSNeNF7ZfzECk=
 github.com/dymensionxyz/ibc-go/v6 v6.0.0-rc0.0.20231123152216-df3f798086fa/go.mod h1:CY3zh2HLfetRiW8LY6kVHMATe90Wj/UOoY8T6cuB0is=
 github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1 h1:R8yipQFGrLYa8yRUTeDBU66LAHMU3hHZbR+xd0G/shU=
