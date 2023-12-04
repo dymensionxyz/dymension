@@ -942,8 +942,9 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	//exclude the streamer module
+	//exclude the streamer and txfees modules
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 

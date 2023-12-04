@@ -6,7 +6,6 @@ import (
 	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
-	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -26,11 +25,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 }
 
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
-
-	//FIXME: get options
-	// mempoolFeeOptions := txfeestypes.NewMempoolFeeOptions(options)
-	mempoolFeeOptions := txfeestypes.NewDefaultMempoolFeeOptions()
-	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper, mempoolFeeOptions)
+	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
