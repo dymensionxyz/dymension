@@ -458,8 +458,6 @@ github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1 h1:R8yipQFGrLYa8y
 github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1/go.mod h1:SkB6rRJ3m6cXqW5q9/36P4Z74+DSjXpBSCnvJ4LT1Iw=
 github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.3 h1:HcTikFMC11bFWHlG1FbgEqs+7qn+CCxV+8XMORGc6Ig=
 github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.3/go.mod h1:moC0/sz97SlUHTuzhkaFbzyIGl1nSVnPhkCXGLTcZUM=
-github.com/dymensionxyz/tm-db v0.1.0-v0.6.8-tmdb h1:dsWqa9/BDa05IaYnZJi5vwabIpCtqprkcEahDqhDytU=
-github.com/dymensionxyz/tm-db v0.1.0-v0.6.8-tmdb/go.mod h1:ADqbS9NOSnBRK9R2RtYC61CdsHmVMD/yXAzcMuPexbU=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
@@ -1151,6 +1149,8 @@ github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c h1:g+WoO5jjkqGAzH
 github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c/go.mod h1:ahpPrc7HpcfEWDQRZEmnXMzHY03mLDYMCxeDzy46i+8=
 github.com/tendermint/go-amino v0.16.0 h1:GyhmgQKvqF82e2oZeuMSp9JTN0N09emoSZlb2lyGa2E=
 github.com/tendermint/go-amino v0.16.0/go.mod h1:TQU0M1i/ImAo+tYpZi73AU3V/dKeCoMC9Sphe2ZwGME=
+github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b h1:Y3ZPG6gdDCAV2sdGkD759ji/09GzaNu1X3qKTmZIbTo=
+github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b/go.mod h1:ADqbS9NOSnBRK9R2RtYC61CdsHmVMD/yXAzcMuPexbU=
 github.com/tidwall/btree v1.5.0 h1:iV0yVY/frd7r6qGBXfEYs7DH0gTDgrKTrDjS7xt/IyQ=
 github.com/tidwall/btree v1.5.0/go.mod h1:LGm8L/DZjPLmeWGjv5kFrY8dL4uVhMmzmmLYmsObdKE=
 github.com/tidwall/gjson v1.12.1/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=

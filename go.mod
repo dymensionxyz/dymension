@@ -206,19 +206,17 @@ require (
 replace (
 	// dragonberry
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+
+	// use dymension forks
+	github.com/cosmos/ibc-go/v6 => github.com/dymensionxyz/ibc-go/v6 v6.0.0-rc0.0.20231123152216-df3f798086fa
+	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1
+	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.3
 
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// use cometbft
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
-)
 
-replace (
-	github.com/cosmos/ibc-go/v6 => github.com/dymensionxyz/ibc-go/v6 v6.0.0-rc0.0.20231123152216-df3f798086fa
-	// use dymension forks
-	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3
-	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.4-dymension-v0.1
-	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.3
-	github.com/tendermint/tm-db => github.com/dymensionxyz/tm-db v0.1.0-v0.6.8-tmdb
 )
