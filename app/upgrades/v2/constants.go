@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	UpgradeName = "rc-TBD"
+	UpgradeName = "v2"
 )
 
 var (

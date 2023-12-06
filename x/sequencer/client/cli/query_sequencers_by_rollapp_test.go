@@ -44,7 +44,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 
 		sequencersByRollapp := types.SequencersByRollapp{
 			RollappId:  strconv.Itoa(i),
-			Sequencers: []string{sequencer.SequencerAddress},
+			Sequencers: types.Sequencers{[]string{sequencer.SequencerAddress}},
 		}
 		state.SequencersByRollappList = append(state.SequencersByRollappList, sequencersByRollapp)
 

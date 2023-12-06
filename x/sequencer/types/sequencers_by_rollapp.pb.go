@@ -30,7 +30,8 @@ type SequencersByRollapp struct {
 	// The rollappId follows the same standard as cosmos chain_id.
 	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
 	// list of sequencers' account address
-	Sequencers []string `protobuf:"bytes,2,rep,name=sequencers,proto3" json:"sequencers,omitempty"`
+	// repeated string sequencers = 2;
+	Sequencers Sequencers `protobuf:"bytes,2,opt,name=sequencers,proto3" json:"sequencers"`
 }
 
 func (m *SequencersByRollapp) Reset()         { *m = SequencersByRollapp{} }
@@ -73,15 +74,61 @@ func (m *SequencersByRollapp) GetRollappId() string {
 	return ""
 }
 
-func (m *SequencersByRollapp) GetSequencers() []string {
+func (m *SequencersByRollapp) GetSequencers() Sequencers {
 	if m != nil {
 		return m.Sequencers
+	}
+	return Sequencers{}
+}
+
+// Sequencers defines list of sequencers addresses.
+type Sequencers struct {
+	Addresses []string `protobuf:"bytes,1,rep,name=addresses,proto3" json:"addresses,omitempty"`
+}
+
+func (m *Sequencers) Reset()         { *m = Sequencers{} }
+func (m *Sequencers) String() string { return proto.CompactTextString(m) }
+func (*Sequencers) ProtoMessage()    {}
+func (*Sequencers) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f5a5805ac29a8f67, []int{1}
+}
+func (m *Sequencers) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Sequencers) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Sequencers.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Sequencers) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Sequencers.Merge(m, src)
+}
+func (m *Sequencers) XXX_Size() int {
+	return m.Size()
+}
+func (m *Sequencers) XXX_DiscardUnknown() {
+	xxx_messageInfo_Sequencers.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Sequencers proto.InternalMessageInfo
+
+func (m *Sequencers) GetAddresses() []string {
+	if m != nil {
+		return m.Addresses
 	}
 	return nil
 }
 
 func init() {
 	proto.RegisterType((*SequencersByRollapp)(nil), "dymensionxyz.dymension.sequencer.SequencersByRollapp")
+	proto.RegisterType((*Sequencers)(nil), "dymensionxyz.dymension.sequencer.Sequencers")
 }
 
 func init() {
@@ -89,20 +136,22 @@ func init() {
 }
 
 var fileDescriptor_f5a5805ac29a8f67 = []byte{
-	// 194 bytes of a gzipped FileDescriptorProto
+	// 234 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4f, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xd3, 0x2f, 0x4e, 0x2d, 0x2c, 0x4d, 0xcd, 0x4b, 0x4e, 0x2d, 0x42,
 	0xb0, 0x8a, 0xe3, 0x93, 0x2a, 0xe3, 0x8b, 0xf2, 0x73, 0x72, 0x12, 0x0b, 0x0a, 0xf4, 0x0a, 0x8a,
 	0xf2, 0x4b, 0xf2, 0x85, 0x14, 0xe0, 0x1a, 0x2a, 0x2a, 0xab, 0xf4, 0xe0, 0x1c, 0x3d, 0xb8, 0x1e,
-	0x29, 0x91, 0xf4, 0xfc, 0xf4, 0x7c, 0xb0, 0x62, 0x7d, 0x10, 0x0b, 0xa2, 0x4f, 0x29, 0x98, 0x4b,
-	0x38, 0x18, 0x6e, 0xac, 0x53, 0x65, 0x10, 0xc4, 0x50, 0x21, 0x19, 0x2e, 0x4e, 0xa8, 0xf9, 0x9e,
-	0x29, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x08, 0x01, 0x21, 0x39, 0x2e, 0x2e, 0x84, 0x5b,
-	0x24, 0x98, 0x14, 0x98, 0x35, 0x38, 0x83, 0x90, 0x44, 0x9c, 0x7c, 0x4f, 0x3c, 0x92, 0x63, 0xbc,
-	0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39, 0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63,
-	0xb8, 0xf1, 0x58, 0x8e, 0x21, 0xca, 0x38, 0x3d, 0xb3, 0x24, 0xa3, 0x34, 0x49, 0x2f, 0x39, 0x3f,
-	0x57, 0x1f, 0xd9, 0xc5, 0x48, 0xfe, 0xad, 0x40, 0xf2, 0x71, 0x49, 0x65, 0x41, 0x6a, 0x71, 0x12,
-	0x1b, 0xd8, 0xa9, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x90, 0x95, 0xca, 0xb2, 0x15, 0x01,
-	0x00, 0x00,
+	0x29, 0x91, 0xf4, 0xfc, 0xf4, 0x7c, 0xb0, 0x62, 0x7d, 0x10, 0x0b, 0xa2, 0x4f, 0xa9, 0x9d, 0x91,
+	0x4b, 0x38, 0x18, 0x6e, 0xae, 0x53, 0x65, 0x10, 0xc4, 0x54, 0x21, 0x19, 0x2e, 0x4e, 0xa8, 0x05,
+	0x9e, 0x29, 0x12, 0x8c, 0x0a, 0x8c, 0x1a, 0x9c, 0x41, 0x08, 0x01, 0xa1, 0x20, 0x2e, 0x2e, 0x84,
+	0x63, 0x24, 0x98, 0x14, 0x18, 0x35, 0xb8, 0x8d, 0x74, 0xf4, 0x08, 0x39, 0x41, 0x0f, 0xc9, 0x22,
+	0x96, 0x13, 0xf7, 0xe4, 0x19, 0x82, 0x90, 0x4c, 0x51, 0xd2, 0xe2, 0xe2, 0x42, 0xc8, 0x83, 0xec,
+	0x4f, 0x4c, 0x49, 0x29, 0x4a, 0x2d, 0x2e, 0x4e, 0x2d, 0x96, 0x60, 0x54, 0x60, 0x06, 0xd9, 0x0f,
+	0x17, 0x70, 0xf2, 0x3d, 0xf1, 0x48, 0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18,
+	0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0, 0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0xe3, 0xf4,
+	0xcc, 0x92, 0x8c, 0xd2, 0x24, 0xbd, 0xe4, 0xfc, 0x5c, 0x7d, 0x64, 0xf7, 0x20, 0x05, 0x68, 0x05,
+	0x52, 0x90, 0x96, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xc3, 0xc2, 0x18, 0x10, 0x00, 0x00,
+	0xff, 0xff, 0x78, 0xcc, 0xbd, 0x09, 0x76, 0x01, 0x00, 0x00,
 }
 
 func (m *SequencersByRollapp) Marshal() (dAtA []byte, err error) {
@@ -125,21 +174,54 @@ func (m *SequencersByRollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Sequencers) > 0 {
-		for iNdEx := len(m.Sequencers) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Sequencers[iNdEx])
-			copy(dAtA[i:], m.Sequencers[iNdEx])
-			i = encodeVarintSequencersByRollapp(dAtA, i, uint64(len(m.Sequencers[iNdEx])))
-			i--
-			dAtA[i] = 0x12
+	{
+		size, err := m.Sequencers.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
+		i -= size
+		i = encodeVarintSequencersByRollapp(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x12
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
 		copy(dAtA[i:], m.RollappId)
 		i = encodeVarintSequencersByRollapp(dAtA, i, uint64(len(m.RollappId)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *Sequencers) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Sequencers) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Sequencers) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for iNdEx := len(m.Addresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Addresses[iNdEx])
+			copy(dAtA[i:], m.Addresses[iNdEx])
+			i = encodeVarintSequencersByRollapp(dAtA, i, uint64(len(m.Addresses[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
 	}
 	return len(dAtA) - i, nil
 }
@@ -165,8 +247,19 @@ func (m *SequencersByRollapp) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSequencersByRollapp(uint64(l))
 	}
-	if len(m.Sequencers) > 0 {
-		for _, s := range m.Sequencers {
+	l = m.Sequencers.Size()
+	n += 1 + l + sovSequencersByRollapp(uint64(l))
+	return n
+}
+
+func (m *Sequencers) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Addresses) > 0 {
+		for _, s := range m.Addresses {
 			l = len(s)
 			n += 1 + l + sovSequencersByRollapp(uint64(l))
 		}
@@ -245,6 +338,89 @@ func (m *SequencersByRollapp) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Sequencers", wireType)
 			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSequencersByRollapp
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthSequencersByRollapp
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthSequencersByRollapp
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Sequencers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSequencersByRollapp(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthSequencersByRollapp
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Sequencers) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSequencersByRollapp
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Sequencers: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Sequencers: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Addresses", wireType)
+			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
@@ -271,7 +447,7 @@ func (m *SequencersByRollapp) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Sequencers = append(m.Sequencers, string(dAtA[iNdEx:postIndex]))
+			m.Addresses = append(m.Addresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
