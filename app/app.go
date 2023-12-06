@@ -518,7 +518,18 @@ func New(
 		app.BankKeeper,
 		app.AccountKeeper,
 	)
+
+	txfeeskeeper := txfeeskeeper.NewKeeper(
+		app.keys[txfeestypes.StoreKey],
+		app.AccountKeeper,
+		app.EpochsKeeper,
+		app.BankKeeper,
+		app.PoolManagerKeeper,
+		app.GAMMKeeper,
+	)
+	app.TxFeesKeeper = &txfeeskeeper
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
+	app.GAMMKeeper.SetTxFees(app.TxFeesKeeper)
 
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
@@ -537,18 +548,8 @@ func New(
 		app.LockupKeeper,
 		app.EpochsKeeper,
 		app.DistrKeeper,
-		nil,
+		app.TxFeesKeeper,
 	)
-
-	txfeeskeeper := txfeeskeeper.NewKeeper(
-		app.keys[txfeestypes.StoreKey],
-		app.AccountKeeper,
-		app.EpochsKeeper,
-		app.BankKeeper,
-		app.PoolManagerKeeper,
-		app.GAMMKeeper,
-	)
-	app.TxFeesKeeper = &txfeeskeeper
 
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
@@ -616,8 +617,6 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-
-	// ... other modules keepers
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
