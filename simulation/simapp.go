@@ -27,14 +27,14 @@ func FindAccount(accs []simtypes.Account, address string) (simtypes.Account, boo
 	return simtypes.FindAccount(accs, creator)
 }
 
-// RandomRollapp picks and returns a random rollapp from an array and returs its
+// RandomRollapp picks and returns a random rollapp from an array and returns its
 // position in the array.
 func RandomRollapp(r *rand.Rand, rollappList []types.SimRollapp) (types.SimRollapp, int) {
 	idx := r.Intn(len(rollappList))
 	return rollappList[idx], idx
 }
 
-// RandomSequencer picks and returns a random sequencer from an array and returs its
+// RandomSequencer picks and returns a random sequencer from an array and returns its
 // position in the array.
 func RandomSequencer(r *rand.Rand, sequencerList []types.SimSequencer) (types.SimSequencer, int) {
 	idx := r.Intn(len(sequencerList))
