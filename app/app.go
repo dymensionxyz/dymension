@@ -521,6 +521,7 @@ func New(
 
 	txfeeskeeper := txfeeskeeper.NewKeeper(
 		app.keys[txfeestypes.StoreKey],
+		app.GetSubspace(txfeestypes.ModuleName),
 		app.AccountKeeper,
 		app.EpochsKeeper,
 		app.BankKeeper,
@@ -1089,6 +1090,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
+	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	return paramsKeeper
 }
