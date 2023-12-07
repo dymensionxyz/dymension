@@ -882,8 +882,6 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, //uses default
-		TxFeeChecker:           nil, //uses default
-
 	})
 	if err != nil {
 		panic(err)
