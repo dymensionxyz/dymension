@@ -8,14 +8,22 @@ option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
 
 message RollappPacket {
     ibc.core.channel.v1.Packet packet = 1;
+
+    enum PacketType {
+      OnRecv = 0;
+      OnAcknowledgement = 1;
+      OnTimeout = 2;
+    }
+    PacketType packetType = 2;
+
     enum Status {
       PENDING = 0;
       ACCEPTED = 1;
       REJECTED = 2;
     }
-    Status status = 2;
-    uint64 ProofHeight = 3;
-    string error = 4;
-    bytes relayer = 5;
-  
+    Status status = 3;
+
+    uint64 ProofHeight = 4;
+    bytes relayer = 6;
+    bytes ack = 7;
   }
