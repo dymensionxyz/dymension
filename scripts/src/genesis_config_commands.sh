@@ -20,10 +20,11 @@ set_hub_params() {
     jq '.app_state.auth.params.tx_size_cost_per_byte = "100"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
 
-    # jail validators faster, and shorten recovery time
+    # jail validators faster, and shorten recovery time, no slash for downtime
     jq '.app_state.slashing.params.signed_blocks_window = "10000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.slashing.params.min_signed_per_window = "0.800000000000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.slashing.params.downtime_jail_duration = "120s"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.slashing.params.slash_fraction_downtime = "0.0"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_consenus_params() {
