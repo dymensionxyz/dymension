@@ -74,7 +74,7 @@ func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
 	//expect error as no AcknowledgePacket expected
 	suite.Require().NoError(err) // relay committed
 
-	metatdata, found := ConvertToApp(suite.hubChain).BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
+	metadata, found := ConvertToApp(suite.hubChain).BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
 	suite.Require().True(found)
-	suite.Require().Equal("STAKE", metatdata.Display)
+	suite.Require().Equal("STAKE", metadata.Display)
 }
