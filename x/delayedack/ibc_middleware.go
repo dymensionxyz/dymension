@@ -133,6 +133,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	// Save the packet data to the store for later processing
 	rollappPacket := types.RollappPacket{
 		Packet:      &packet,
+		PacketType:  types.RollappPacket_OnRecv,
 		Status:      types.RollappPacket_PENDING,
 		Relayer:     relayer,
 		ProofHeight: proofHeight,
@@ -178,9 +179,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	// Save the packet data to the store for later processing
 	rollappPacket := types.RollappPacket{
 		Packet:      &packet,
+		PacketType:  types.RollappPacket_OnAcknowledgement,
 		Status:      types.RollappPacket_PENDING,
-		Relayer:     relayer,
 		ProofHeight: proofHeight,
+		Relayer:     relayer,
+		Ack:         acknowledgement,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
 	return nil
@@ -192,8 +195,43 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	// call underlying callback
-	return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	if !im.keeper.IsRollappsEnabled(ctx) {
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+
+	rollappID, err := im.ExtractRollappID(ctx, packet)
+	if err != nil {
+		logger.Error("Failed to extract rollappID from packet", "err", err)
+		return err
+	}
+	if rollappID == "" {
+		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain")
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	finalized, proofHeight, err := im.CheckIfFinalized(ctx, rollappID, packet)
+	if err != nil {
+		logger.Error("Failed to check if packet is finalized", "err", err)
+		return err
+	}
+	if finalized {
+		logger.Debug("Skipping IBC transfer OnTimeoutPacket as the packet proof height is already finalized")
+		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+	}
+
+	// Save the packet data to the store for later processing
+	rollappPacket := types.RollappPacket{
+		Packet:      &packet,
+		PacketType:  types.RollappPacket_OnTimeout,
+		Status:      types.RollappPacket_PENDING,
+		ProofHeight: proofHeight,
+		Relayer:     relayer,
+	}
+	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+
+	return nil
 }
 
 /* ------------------------------- ICS4Wrapper ------------------------------ */
