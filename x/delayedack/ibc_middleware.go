@@ -110,36 +110,22 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	// no-op if the packet is not a fungible token packet
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	// Check if the packet is destined for a rollapp
-	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	rollappID, err := im.ExtractRollappID(ctx, packet)
 	if err != nil {
-		logger.Error("Failed to extract chain id from channel", "err", err)
+		logger.Error("Failed to extract rollappID from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-
-	_, found := im.keeper.GetRollapp(ctx, chainID)
-	if !found {
+	if rollappID == "" {
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	// Get the light client height at this block height as a proxy for the packet proof height
-	clientState, err := im.keeper.GetClientState(ctx, packet)
+	finalized, proofHeight, err := im.CheckIfFinalized(ctx, rollappID, packet)
 	if err != nil {
+		logger.Error("Failed to check if packet is finalized", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-
-	// TODO(omritoptix): Currently we use this height as the proofHeight as the real proofHeight from the ibc lower stack is not available.
-	// using this height is secured but may cause extra delay as at best it will be equal to the proof height (but could be higher).
-	ibcClientLatestHeight := clientState.GetLatestHeight()
-	finalizedHeight, err := im.keeper.GetRollappFinalizedHeight(ctx, chainID)
-	if err == nil && finalizedHeight >= ibcClientLatestHeight.GetRevisionHeight() {
+	if finalized {
 		logger.Debug("Skipping IBC transfer OnRecvPacket as the packet proof height is already finalized")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -149,9 +135,9 @@ func (im IBCMiddleware) OnRecvPacket(
 		Packet:      &packet,
 		Status:      types.RollappPacket_PENDING,
 		Relayer:     relayer,
-		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
+		ProofHeight: proofHeight,
 	}
-	im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
 
 	return nil
 }
@@ -163,7 +149,41 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if !im.keeper.IsRollappsEnabled(ctx) {
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+
+	rollappID, err := im.ExtractRollappID(ctx, packet)
+	if err != nil {
+		logger.Error("Failed to extract rollappID from packet", "err", err)
+		return err
+	}
+	if rollappID == "" {
+		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	finalized, proofHeight, err := im.CheckIfFinalized(ctx, rollappID, packet)
+	if err != nil {
+		logger.Error("Failed to check if packet is finalized", "err", err)
+		return err
+	}
+	if finalized {
+		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
+		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	// Save the packet data to the store for later processing
+	rollappPacket := types.RollappPacket{
+		Packet:      &packet,
+		Status:      types.RollappPacket_PENDING,
+		Relayer:     relayer,
+		ProofHeight: proofHeight,
+	}
+	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -204,4 +224,45 @@ func (im IBCMiddleware) WriteAcknowledgement(
 // GetAppVersion returns the application version of the underlying application
 func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
+}
+
+// extract rollapp from packet
+func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Packet) (string, error) {
+	// no-op if the packet is not a fungible token packet
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return "", err
+	}
+
+	// Check if the packet is destined for a rollapp
+	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		return "", err
+	}
+
+	_, found := im.keeper.GetRollapp(ctx, chainID)
+	if !found {
+		return "", nil
+	}
+
+	return chainID, nil
+}
+
+// CheckIfFinalized checks if the packet is finalized and if so, updates the packet status
+func (im IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, packet channeltypes.Packet) (bool, uint64, error) {
+	// Get the light client height at this block height as a proxy for the packet proof height
+	clientState, err := im.keeper.GetClientState(ctx, packet)
+	if err != nil {
+		return false, 0, err
+	}
+	proofHeight := clientState.GetLatestHeight().GetRevisionHeight()
+
+	// TODO(omritoptix): Currently we use this height as the proofHeight as the real proofHeight from the ibc lower stack is not available.
+	// using this height is secured but may cause extra delay as at best it will be equal to the proof height (but could be higher).
+	finalizedHeight, err := im.keeper.GetRollappFinalizedHeight(ctx, rollappID)
+	if err != nil {
+		return false, 0, err
+	}
+
+	return finalizedHeight >= proofHeight, proofHeight, nil
 }
