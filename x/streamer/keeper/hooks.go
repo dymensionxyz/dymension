@@ -8,6 +8,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Hooks is the wrapper struct for the streamer keeper.
+type Hooks struct {
+	k Keeper
+}
+
+var _ epochstypes.EpochHooks = Hooks{}
+var _ gammtypes.GammHooks = Hooks{}
+
+// Hooks returns the hook wrapper struct.
+func (k Keeper) Hooks() Hooks {
+	return Hooks{k}
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 epoch hooks                                */
+/* -------------------------------------------------------------------------- */
+
 // BeforeEpochStart is the epoch start hook.
 func (k Keeper) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return nil
@@ -49,21 +66,6 @@ func (k Keeper) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumb
 	return nil
 }
 
-// ___________________________________________________________________________________________________
-
-// Hooks is the wrapper struct for the streamer keeper.
-type Hooks struct {
-	k Keeper
-}
-
-var _ epochstypes.EpochHooks = Hooks{}
-var _ gammtypes.GammHooks = Hooks{}
-
-// Hooks returns the hook wrapper struct.
-func (k Keeper) Hooks() Hooks {
-	return Hooks{k}
-}
-
 // BeforeEpochStart is the epoch start hook.
 func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.BeforeEpochStart(ctx, epochIdentifier, epochNumber)
@@ -73,6 +75,10 @@ func (h Hooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNu
 func (h Hooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	return h.k.AfterEpochEnd(ctx, epochIdentifier, epochNumber)
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                 pool hooks                                 */
+/* -------------------------------------------------------------------------- */
 
 // AfterPoolCreated creates a gauge for each pool’s lockable duration.
 func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId uint64) {
