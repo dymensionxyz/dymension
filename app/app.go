@@ -166,6 +166,10 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+
+	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
+	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 )
 
 var (
@@ -237,6 +241,7 @@ var (
 		gamm.AppModuleBasic{},
 		poolmanager.AppModuleBasic{},
 		incentives.AppModuleBasic{},
+		txfees.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -256,6 +261,7 @@ var (
 		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
 		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		txfeestypes.ModuleName:     {authtypes.Burner},
 	}
 )
 
@@ -316,12 +322,13 @@ type App struct {
 	EvmKeeper       *evmkeeper.Keeper
 	FeeMarketKeeper feemarketkeeper.Keeper
 
-	// Osmostis keepers
+	// Osmosis keepers
 	GAMMKeeper        *gammkeeper.Keeper
 	PoolManagerKeeper *poolmanagerkeeper.Keeper
 	LockupKeeper      *lockupkeeper.Keeper
 	EpochsKeeper      *epochskeeper.Keeper
 	IncentivesKeeper  *incentiveskeeper.Keeper
+	TxFeesKeeper      *txfeeskeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -391,6 +398,7 @@ func New(
 		gammtypes.StoreKey,
 		poolmanagertypes.StoreKey,
 		incentivestypes.StoreKey,
+		txfeestypes.StoreKey,
 	)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
@@ -511,7 +519,19 @@ func New(
 		app.BankKeeper,
 		app.AccountKeeper,
 	)
+
+	txfeeskeeper := txfeeskeeper.NewKeeper(
+		app.keys[txfeestypes.StoreKey],
+		app.GetSubspace(txfeestypes.ModuleName),
+		app.AccountKeeper,
+		app.EpochsKeeper,
+		app.BankKeeper,
+		app.PoolManagerKeeper,
+		app.GAMMKeeper,
+	)
+	app.TxFeesKeeper = &txfeeskeeper
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
+	app.GAMMKeeper.SetTxFees(app.TxFeesKeeper)
 
 	// Create IBC Keeper
 	app.IBCKeeper = ibckeeper.NewKeeper(
@@ -530,7 +550,7 @@ func New(
 		app.LockupKeeper,
 		app.EpochsKeeper,
 		app.DistrKeeper,
-		nil,
+		app.TxFeesKeeper,
 	)
 
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
@@ -577,6 +597,7 @@ func New(
 		gammtypes.NewMultiGammHooks(
 			// insert gamm hooks receivers here
 			app.StreamerKeeper.Hooks(),
+			app.TxFeesKeeper.Hooks(),
 		),
 	)
 
@@ -590,6 +611,7 @@ func New(
 			// insert epochs hooks receivers here
 			app.IncentivesKeeper.Hooks(),
 			app.StreamerKeeper.Hooks(),
+			app.TxFeesKeeper.Hooks(),
 		),
 	)
 
@@ -597,8 +619,6 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-
-	// ... other modules keepers
 
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
@@ -718,6 +738,7 @@ func New(
 		gamm.NewAppModule(appCodec, *app.GAMMKeeper, app.AccountKeeper, app.BankKeeper),
 		poolmanager.NewAppModule(*app.PoolManagerKeeper, app.GAMMKeeper),
 		incentives.NewAppModule(*app.IncentivesKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper),
+		txfees.NewAppModule(*app.TxFeesKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -756,6 +777,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -790,6 +812,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -830,6 +853,7 @@ func New(
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
 		incentivestypes.ModuleName,
+		txfeestypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.CrisisKeeper)
@@ -848,14 +872,16 @@ func New(
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:   app.AccountKeeper,
-		BankKeeper:      app.BankKeeper,
-		IBCKeeper:       app.IBCKeeper,
-		FeeMarketKeeper: app.FeeMarketKeeper,
-		EvmKeeper:       app.EvmKeeper,
-		FeegrantKeeper:  app.FeeGrantKeeper,
-		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		MaxTxGasWanted:  maxGasWanted,
+		AccountKeeper:          &app.AccountKeeper,
+		BankKeeper:             app.BankKeeper,
+		IBCKeeper:              app.IBCKeeper,
+		FeeMarketKeeper:        app.FeeMarketKeeper,
+		EvmKeeper:              app.EvmKeeper,
+		FeegrantKeeper:         app.FeeGrantKeeper,
+		TxFeesKeeper:           app.TxFeesKeeper,
+		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
+		MaxTxGasWanted:         maxGasWanted,
+		ExtensionOptionChecker: nil, //uses default
 	})
 	if err != nil {
 		panic(err)
@@ -916,8 +942,9 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	//exclude the streamer module
+	//exclude the streamer and txfees modules
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
@@ -1062,6 +1089,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(epochstypes.ModuleName)
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 	paramsKeeper.Subspace(incentivestypes.ModuleName)
+	paramsKeeper.Subspace(txfeestypes.ModuleName)
 
 	return paramsKeeper
 }

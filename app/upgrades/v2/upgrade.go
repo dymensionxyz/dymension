@@ -155,7 +155,7 @@ func verifyClientStatus(ctx sdk.Context, clientKeeper clientkeeper.Keeper, clien
 func GetStoreUpgrades() *storetypes.StoreUpgrades {
 	storeUpgrades := storetypes.StoreUpgrades{
 		// Set migrations for all new modules
-		Added: []string{"poolmanager", "delayedack", "denommetadata", "gamm", "incentives", "lockup", "streamer", "epochs"},
+		Added: []string{"poolmanager", "delayedack", "denommetadata", "gamm", "incentives", "lockup", "streamer", "epochs", "txfees"},
 	}
 	return &storeUpgrades
 }
