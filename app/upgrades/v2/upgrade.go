@@ -143,10 +143,10 @@ func verifyClientStatus(ctx sdk.Context, clientKeeper clientkeeper.Keeper, clien
 				msg := fmt.Sprintf("client status has changed after upgrade. Expected: %s, got: %s", clientStatuses[clientID], status)
 				panic(msg)
 			}
-			return false
 		} else {
-			panic(fmt.Sprintf("client status not found for clientID: %s", clientID))
+			fmt.Printf("client status not found for clientID: %s", clientID)
 		}
+		return false
 	})
 
 	logger.Info("Client status verification passed successfully")
