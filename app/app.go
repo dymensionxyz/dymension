@@ -1140,6 +1140,7 @@ func (app *App) setupUpgradeHandlers() {
 			app.BankKeeper,
 			app.IBCKeeper.ClientKeeper.(clientkeeper.Keeper),
 			app.RollappKeeper,
+			app.StakingKeeper,
 			app.appCodec,
 		),
 	)

@@ -2,6 +2,7 @@ package rc
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -10,6 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	stakingKeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -27,6 +30,7 @@ func CreateUpgradeHandler(
 	bankKeeper bankkeeper.Keeper,
 	clientKeeper clientkeeper.Keeper,
 	rollappKeeper rollappKeeper.Keeper,
+	stakingKeeper stakingKeeper.Keeper,
 	cdc codec.BinaryCodec,
 
 ) upgradetypes.UpgradeHandler {
@@ -43,6 +47,9 @@ func CreateUpgradeHandler(
 
 		// Verify the client statuses are the same after the upgrade
 		verifyClientStatus(ctx, clientKeeper, clientStatuses, logger, cdc)
+
+		// Update delegations
+		updateDelegation(ctx, stakingKeeper, logger)
 
 		// Update the denom metadata for DYM token
 		bankKeeper.SetDenomMetaData(ctx, DYMTokenMetata)
@@ -150,6 +157,52 @@ func verifyClientStatus(ctx sdk.Context, clientKeeper clientkeeper.Keeper, clien
 	})
 
 	logger.Info("Client status verification passed successfully")
+}
+
+// updateDelegation updates the delegation for a single node in order to overcome the froopyland chain halt.
+// this is a hotfix and should be removed after the chain is upgraded to v2 and enough nodes migrated.
+func updateDelegation(ctx sdk.Context, stakingKeeper stakingKeeper.Keeper, logger log.Logger) {
+
+	const (
+		// SilkNode validator address
+		valBech32Addr = "dymvaloper1kkmputh26f6tyjtdajvwgpjztgcvls7t797jn5"
+		// Dymension delegator address
+		delBech32Addr = "dym1g3djlajjyqe6lcfz4lphc97csdgnnw249vru73"
+	)
+
+	valAddr, valErr := sdk.ValAddressFromBech32(valBech32Addr)
+	if valErr != nil {
+		logger.Error("error while converting validator address from bech32", "error", valErr)
+		panic(valErr)
+	}
+
+	validator, found := stakingKeeper.GetValidator(ctx, valAddr)
+	if !found {
+		logger.Error("validator not found")
+		panic("validator not found")
+	}
+
+	delegatorAddress, err := sdk.AccAddressFromBech32(delBech32Addr)
+	if err != nil {
+		logger.Error("error while converting delegator address from bech32", "error", err)
+		panic(err)
+	}
+
+	bondDenom := stakingKeeper.BondDenom(ctx)
+	bigIntValue, ok := big.NewInt(0).SetString("27384040000000000000000000", 10)
+	if !ok {
+		logger.Error("error while converting string to big.Int")
+		panic("error while converting string to big.Int")
+	}
+	amount := sdk.NewCoin(bondDenom, sdk.NewIntFromBigInt(bigIntValue))
+
+	// NOTE: source funds are always unbonded
+	_, err = stakingKeeper.Delegate(ctx, delegatorAddress, amount.Amount, stakingtypes.Unbonded, validator, true)
+	if err != nil {
+		logger.Error("error while delegating", "error", err)
+		panic(err)
+	}
+
 }
 
 func GetStoreUpgrades() *storetypes.StoreUpgrades {
