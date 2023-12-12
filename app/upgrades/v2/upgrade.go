@@ -159,8 +159,18 @@ func verifyClientStatus(ctx sdk.Context, clientKeeper clientkeeper.Keeper, clien
 	logger.Info("Client status verification passed successfully")
 }
 
+// updateDelegation updates the delegation for a single node in order to overcome the froopyland chain halt.
+// this is a hotfix and should be removed after the chain is upgraded to v2 and enough nodes migrated.
 func updateDelegation(ctx sdk.Context, stakingKeeper stakingKeeper.Keeper, logger log.Logger) {
-	valAddr, valErr := sdk.ValAddressFromBech32("dymvaloper1kkmputh26f6tyjtdajvwgpjztgcvls7t797jn5")
+
+	const (
+		// SilkNode validator address
+		valBech32Addr = "dymvaloper1kkmputh26f6tyjtdajvwgpjztgcvls7t797jn5"
+		// Dymension delegator address
+		delBech32Addr = "dym1g3djlajjyqe6lcfz4lphc97csdgnnw249vru73"
+	)
+
+	valAddr, valErr := sdk.ValAddressFromBech32(valBech32Addr)
 	if valErr != nil {
 		logger.Error("error while converting validator address from bech32", "error", valErr)
 		panic(valErr)
@@ -172,7 +182,7 @@ func updateDelegation(ctx sdk.Context, stakingKeeper stakingKeeper.Keeper, logge
 		panic("validator not found")
 	}
 
-	delegatorAddress, err := sdk.AccAddressFromBech32("dym1g3djlajjyqe6lcfz4lphc97csdgnnw249vru73")
+	delegatorAddress, err := sdk.AccAddressFromBech32(delBech32Addr)
 	if err != nil {
 		logger.Error("error while converting delegator address from bech32", "error", err)
 		panic(err)
