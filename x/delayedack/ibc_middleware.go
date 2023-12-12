@@ -1,6 +1,8 @@
 package delayedack
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -186,7 +188,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Ack:         acknowledgement,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
-	return nil
+
+	return fmt.Errorf("ackwowledgment handling failed as rollapp state is not yet finialized")
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -231,7 +234,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
 
-	return nil
+	return fmt.Errorf("timeout handling failed as rollapp state is not yet finialized")
 }
 
 /* ------------------------------- ICS4Wrapper ------------------------------ */
