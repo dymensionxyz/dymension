@@ -20,6 +20,8 @@ func (im IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	// Finalize the packets for the rollapp at the given height
 	stateEndHeight := stateInfo.StartHeight + stateInfo.NumBlocks - 1
+	im.SetFinalizedHeight(stateEndHeight)
+
 	im.FinalizeRollappPackets(ctx, rollappID, stateEndHeight)
 	return nil
 }
@@ -27,6 +29,8 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) {
+	//TODO: validate im.finalizedHeight is less than or equal to stateEndHeight
+
 	rollappPendingPackets := im.keeper.ListRollappPendingPackets(ctx, rollappID, stateEndHeight)
 	if len(rollappPendingPackets) == 0 {
 		return

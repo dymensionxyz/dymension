@@ -18,15 +18,17 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
-	keeper keeper.Keeper
+	app             porttypes.IBCModule
+	keeper          keeper.Keeper
+	finalizedHeight uint64
 }
 
 // NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:    app,
-		keeper: keeper,
+		app:             app,
+		keeper:          keeper,
+		finalizedHeight: 0,
 	}
 }
 
@@ -224,6 +226,18 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
+	//FIXME: check if already saved before, than check whether it's finizliaed
+	list := im.keeper.ListRollappPendingPackets(ctx, rollappID, im.finalizedHeight)
+	for _, p := range list {
+		if p.PacketType != types.RollappPacket_OnTimeout {
+			continue
+		}
+		if p.Packet.GetSequence() == packet.GetSequence() {
+			//FIXME: updarte packet status
+			return nil
+		}
+	}
+
 	// Save the packet data to the store for later processing
 	rollappPacket := types.RollappPacket{
 		Packet:      &packet,
@@ -306,4 +320,9 @@ func (im IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, pack
 	}
 
 	return finalizedHeight >= proofHeight, proofHeight, nil
+}
+
+// SetFinalizedHeight sets the finalized height for the middleware
+func (im IBCMiddleware) SetFinalizedHeight(height uint64) {
+	im.finalizedHeight = height
 }
