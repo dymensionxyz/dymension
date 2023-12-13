@@ -50,8 +50,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 
 			//TODO: fix to flag
 			if len(args) > 0 && args[0] == "tendermint" {
-				getTendermintState(serverCtx.Config)
-				return nil
+				return getTendermintState(serverCtx.Config)
 			}
 
 			/* --------------------------- read rollapps state from db --------------------------- */
