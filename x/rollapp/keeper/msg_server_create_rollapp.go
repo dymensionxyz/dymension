@@ -52,6 +52,15 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
+	if len(msg.Metadatas) > 0 { // allow rollapp to be created without token metadata but if exists, must validate
+		for _, metadata := range msg.Metadatas {
+			err := metadata.Validate()
+			if err != nil {
+				return nil, types.ErrInvalidTokenMetadata.Wrap(err.Error())
+			}
+		}
+	}
+
 	// Create an updated rollapp record
 	rollapp := types.Rollapp{
 		RollappId:             msg.RollappId,
@@ -61,7 +70,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		PermissionedAddresses: msg.PermissionedAddresses,
 	}
 
-	//copy Tokenmetadata
+	//copy TokenMetadata
 	rollapp.TokenMetadata = make([]*types.TokenMetadata, len(msg.Metadatas))
 	for i := range msg.Metadatas {
 		rollapp.TokenMetadata[i] = &msg.Metadatas[i]
@@ -70,6 +79,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	if len(msg.Metadatas) == 0 {
 		ctx.Logger().Info("No token metadata provided")
 	}
+
 	// Write rollapp information to the store
 	k.SetRollapp(ctx, rollapp)
 
