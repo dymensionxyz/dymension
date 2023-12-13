@@ -30,4 +30,5 @@ var (
 	ErrInvalidRollappID                    = sdkerrors.Register(ModuleName, 1020, "invalid rollapp-id")
 	ErrEIP155Exists                        = sdkerrors.Register(ModuleName, 1021, "EIP155 already exist; must use unique EIP155 identifier")
 	ErrRollappsDisabled                    = sdkerrors.Register(ModuleName, 1022, "rollapps are disabled")
+	ErrInvalidTokenMetadata                = sdkerrors.Register(ModuleName, 1023, "invalid token metadata")
 )
