@@ -32,7 +32,7 @@ const (
 func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "inspect",
-		Short: "Inspect db state",
+		Short: "Inspect db state [tendermint]",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.OutOrStderr())
@@ -46,6 +46,11 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 
 			if _, err := os.Stat(config.GenesisFile()); os.IsNotExist(err) {
 				return err
+			}
+
+			//TODO: fix to flag
+			if len(args) > 0 && args[0] == "tendermint" {
+				return getTendermintState(serverCtx.Config)
 			}
 
 			/* --------------------------- read rollapps state from db --------------------------- */
