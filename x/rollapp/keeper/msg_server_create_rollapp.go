@@ -52,15 +52,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
-	if len(msg.Metadatas) > 0 { // allow rollapp to be created without token metadata but if exists, must validate
-		for _, metadata := range msg.Metadatas {
-			err := metadata.Validate()
-			if err != nil {
-				return nil, types.ErrInvalidTokenMetadata.Wrap(err.Error())
-			}
-		}
-	}
-
 	// Create an updated rollapp record
 	rollapp := types.Rollapp{
 		RollappId:             msg.RollappId,

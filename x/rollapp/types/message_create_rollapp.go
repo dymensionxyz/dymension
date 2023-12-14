@@ -69,5 +69,16 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		}
 	}
 
+	// verifies that token metadata is valid if not empty
+	if len(msg.GetMetadatas()) > 0 {
+		for _, metadata := range msg.GetMetadatas() {
+			// validate follow specification of x/bank
+			bankDenomMetadata := metadata.ConvertToBankMetadata()
+			if err := bankDenomMetadata.Validate(); err != nil {
+				return sdkerrors.Wrap(ErrInvalidTokenMetadata, bankDenomMetadata.Base)
+			}
+		}
+	}
+
 	return nil
 }
