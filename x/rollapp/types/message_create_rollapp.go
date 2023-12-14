@@ -69,7 +69,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		}
 	}
 
-	// verifies that token metadata is valid if not empty
+	// verifies that token metadata, if any, must be valid
 	if len(msg.GetMetadatas()) > 0 {
 		for _, metadata := range msg.GetMetadatas() {
 			// validate follow specification of x/bank
