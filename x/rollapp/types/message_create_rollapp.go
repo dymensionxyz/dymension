@@ -75,7 +75,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 			// validate follow specification of x/bank
 			bankDenomMetadata := metadata.ConvertToBankMetadata()
 			if err := bankDenomMetadata.Validate(); err != nil {
-				return sdkerrors.Wrap(ErrInvalidTokenMetadata, bankDenomMetadata.Base)
+				return sdkerrors.Wrapf(ErrInvalidTokenMetadata, "%s: %v", metadata.Base, err)
 			}
 		}
 	}
