@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"math/big"
 	"net/http"
@@ -72,7 +71,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
@@ -113,7 +111,6 @@ import (
 
 	ante "github.com/dymensionxyz/dymension/app/ante"
 	appparams "github.com/dymensionxyz/dymension/app/params"
-	v2upgrade "github.com/dymensionxyz/dymension/app/upgrades/v2"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
@@ -895,7 +892,6 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
-	app.setupUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1127,39 +1123,4 @@ func (app *App) GetTxConfig() client.TxConfig {
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
-}
-
-// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
-func (app *App) setupUpgradeHandlers() {
-	UpgradeName := "v2"
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		v2upgrade.CreateUpgradeHandler(
-			app.mm, app.configurator,
-			app.BankKeeper,
-			app.IBCKeeper.ClientKeeper.(clientkeeper.Keeper),
-			app.RollappKeeper,
-			app.StakingKeeper,
-			app.appCodec,
-		),
-	)
-
-	// When a planned update height is reached, the old binary will panic
-	// writing on disk the height and name of the update that triggered it
-	// This will read that value, and execute the preparations for the upgrade.
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
-	}
-
-	// Pre upgrade handler
-	switch upgradeInfo.Name {
-	// do nothing
-	}
-
-	if upgradeInfo.Name == "v2" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		// configure store loader with the store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v2upgrade.GetStoreUpgrades()))
-	}
 }
