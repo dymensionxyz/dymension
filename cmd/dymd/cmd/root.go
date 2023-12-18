@@ -151,7 +151,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 	)
 
 	rootCmd.AddCommand(InspectCmd(a.appExport, a.newApp, app.DefaultNodeHome))
-	rootCmd.AddCommand(HotfixCmd(a.appExport, a.newApp, app.DefaultNodeHome))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
