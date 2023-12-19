@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"io"
-	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -29,7 +28,6 @@ import (
 	simapp "github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 
-	sdkmath "cosmossdk.io/math"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -139,6 +137,7 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 
 	"github.com/evmos/ethermint/server/flags"
+	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -278,11 +277,7 @@ func init() {
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+appparams.Name)
 
-	var BaseDenomUnit int64 = 18
-	originalPoweReduction := new(big.Int).Exp(big.NewInt(10), big.NewInt(BaseDenomUnit), nil)
-
-	var TokensToStake int64 = 100000 //100K DYM minimal stake
-	sdk.DefaultPowerReduction = sdkmath.NewIntFromBigInt(originalPoweReduction.Mul(originalPoweReduction, big.NewInt(TokensToStake)))
+	sdk.DefaultPowerReduction = ethermint.PowerReduction
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
