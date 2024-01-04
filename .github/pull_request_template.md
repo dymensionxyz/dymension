@@ -20,11 +20,11 @@ For Author:
 
 For Reviewer:
 
-- [ ]  confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
+- [ ]  Confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ]  Reviewers assigned
-- [ ]  confirmed all author checklist items have been addressed
+- [ ]  Confirmed all author checklist items have been addressed
 
----;
+---
 
 After reviewer approval:
 
