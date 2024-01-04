@@ -1,10 +1,19 @@
-# PR Standards
+## Description
 
-## Opening a pull request should be able to meet the following requirements:
+<!-- Add a description of the changes that this PR introduces and the files that
+are the most critical to review.
+-->
 
----
+----
 
-For Author:
+Closes #XXX
+
+**All** items are required. Please add a note to the item if the item is not applicable and
+please add links to any relevant follow-up issues.
+
+PR review checkboxes:
+
+I have...
 
 - [ ]  Added a relevant changelog entry to the `Unreleased` section in `CHANGELOG.md`
 - [ ]  Targeted PR against the correct branch
