@@ -6,6 +6,7 @@
 
 For Author:
 
+- [ ]  Added a relevant changelog entry to the `Unreleased` section in `CHANGELOG.md`
 - [ ]  Targeted PR against the correct branch
 - [ ]  included the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ]  Linked to the GitHub issue with discussion and accepted design
