@@ -28,5 +28,5 @@ For Reviewer:
 
 After reviewer approval:
 
-- [ ]  In case it targets the main branch, PR should be squashed and merged.
-- [ ]  In case the PR targets a release branch, PR should be rebased.
+- [ ]  In case the PR targets the main branch, PR should not be squash merge in order to keep meaningful git history.
+- [ ]  In case the PR targets a release branch, PR must be rebased.
