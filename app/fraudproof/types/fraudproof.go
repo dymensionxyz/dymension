@@ -94,11 +94,8 @@ func GetExistenceProof(proofOp tmcrypto.ProofOp) (storetypes.CommitmentOp, *ics2
 	}
 	commitmentOp := op.(storetypes.CommitmentOp)
 
-	//FIXME: This is a hack to get the existence proof
-	// commitmentProof := commitmentOp.GetProof()
-	// return commitmentOp, commitmentProof.GetExist(), nil
-
-	return commitmentOp, nil, nil
+	commitmentProof := commitmentOp.GetProof()
+	return commitmentOp, commitmentProof.GetExist(), nil
 }
 
 func (fraudProof *FraudProof) GetModules() []string {

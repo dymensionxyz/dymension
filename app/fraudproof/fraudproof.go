@@ -64,12 +64,9 @@ func (fpv *FraudProofVerifier) InitFromFraudProof(fraudProof *types.FraudProof) 
 
 	fpv.app.MountStores(iavlStoreKeys...)
 
-	//FIXME: should use deep iavl tree
 	cmsStore := fpv.app.CommitMultiStore().(*rootmulti.Store)
 	for storeKey, iavlTree := range storeKeyToIAVLTree {
-		// cmsStore.SetDeepIAVLTree(storeKey, iavlTree)
-		_ = storeKey
-		_ = iavlTree
+		cmsStore.SetDeepIAVLTree(storeKey, iavlTree)
 	}
 	_ = cmsStore
 	err = fpv.app.LoadLatestVersion()
@@ -93,8 +90,7 @@ func (fpv *FraudProofVerifier) VerifyFraudProof(fraudProof *types.FraudProof) er
 	appHash := fpv.app.GetAppHash(abci.RequestGetAppHash{}).AppHash
 
 	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
-		//TODO: rename error
-		return types.ErrInvalidAppHash
+		return types.ErrInvalidPreStateAppHash
 	}
 
 	//FIXME: let's try to run all
@@ -119,10 +115,8 @@ func (fpv *FraudProofVerifier) VerifyFraudProof(fraudProof *types.FraudProof) er
 	*/
 
 	appHash = fpv.app.GetAppHash(abci.RequestGetAppHash{}).AppHash
-	success = bytes.Equal(appHash, req.ExpectedValidAppHash)
-
-	res = abci.ResponseVerifyFraudProof{
-		Success: success,
+	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
+		return types.ErrInvalidAppHash
 	}
-	return res
+	return nil
 }
