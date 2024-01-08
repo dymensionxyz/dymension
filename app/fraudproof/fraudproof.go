@@ -87,7 +87,7 @@ func (fpv *FraudProofVerifier) VerifyFraudProof(fraudProof *types.FraudProof) er
 
 	//TODO: pass rollapp name as well
 	fpv.app.InitChain(abci.RequestInitChain{InitialHeight: fraudProof.BlockHeight})
-	appHash := fpv.app.GetAppHash(abci.RequestGetAppHash{}).AppHash
+	appHash := fpv.app.GetAppHash()
 
 	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
 		return types.ErrInvalidPreStateAppHash
@@ -114,7 +114,7 @@ func (fpv *FraudProofVerifier) VerifyFraudProof(fraudProof *types.FraudProof) er
 		}
 	*/
 
-	appHash = fpv.app.GetAppHash(abci.RequestGetAppHash{}).AppHash
+	appHash = fpv.app.GetAppHash()
 	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash
 	}
