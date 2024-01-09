@@ -2,7 +2,6 @@ package fraudproof
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,15 +19,13 @@ import (
 )
 
 type FraudProofVerifier struct {
-	ctx context.Context
 	app *baseapp.BaseApp
 }
 
 // New creates a new FraudProofVerifier
-func New(ctx context.Context, appName string, logger log.Logger, txDecoder sdk.TxDecoder) *FraudProofVerifier {
+func New(appName string, logger log.Logger, txDecoder sdk.TxDecoder) *FraudProofVerifier {
 	newApp := baseapp.NewBaseApp(appName, logger, db.NewMemDB(), txDecoder)
 	return &FraudProofVerifier{
-		ctx: ctx,
 		app: newApp,
 	}
 }

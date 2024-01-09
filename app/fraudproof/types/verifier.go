@@ -1,6 +1,6 @@
 package types
 
-type FraudProofVerifierInterface interface {
-	InitFromFraudProof(fraudProof *FraudProof)
-	VerifyFraudProof(fraudProof *FraudProof) bool
+type FraudProofVerifier interface {
+	InitFromFraudProof(fraudProof *FraudProof) error
+	VerifyFraudProof(fraudProof *FraudProof) error
 }

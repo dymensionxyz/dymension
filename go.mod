@@ -221,3 +221,5 @@ replace (
 	// use cometbft
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 )
+
+replace github.com/cosmos/cosmos-sdk => /Users/mtsitrin/Applications/dymension/cosmos-sdk

@@ -108,6 +108,7 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
 	ante "github.com/dymensionxyz/dymension/app/ante"
+	"github.com/dymensionxyz/dymension/app/fraudproof"
 	appparams "github.com/dymensionxyz/dymension/app/params"
 	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
@@ -418,6 +419,9 @@ func New(
 		memKeys:           memKeys,
 	}
 
+	//FraudProof verifier
+	fraudProofVerifier := fraudproof.New("rollapp_fraudproof", logger, encodingConfig.TxConfig.TxDecoder())
+
 	app.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
@@ -555,6 +559,7 @@ func New(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
 		keys[rollappmoduletypes.MemStoreKey],
+		fraudProofVerifier,
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 	)
 
