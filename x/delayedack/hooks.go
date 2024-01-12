@@ -57,6 +57,11 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			_ = im.app.OnAcknowledgementPacket(ctx, *rollappPacket.Packet, rollappPacket.Acknowledgement, rollappPacket.Relayer)
+		case types.RollappPacket_ON_TIMEOUT:
+			logger.Debug("Calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
+			_ = im.app.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+		default:
+			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		}
 
 	}
