@@ -14,7 +14,7 @@ import (
 func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket) {
 	logger := ctx.Logger()
 	logger.Debug("Saving rollapp packet", "rollappID", rollappID, "channel", rollappPacket.Packet.DestinationChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight)
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(types.GetRollappPacketKey(

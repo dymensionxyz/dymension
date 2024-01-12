@@ -32,24 +32,32 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	// Get the packets for the rollapp until height
 	logger.Debug("Finalizing IBC rollapp packets", "rollappID", rollappID, "state end height", stateEndHeight, "num packets", len(rollappPendingPackets))
 	for _, rollappPacket := range rollappPendingPackets {
-		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
+		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		// Update the packet status
 		im.keeper.UpdateRollappPacketStatus(ctx, rollappID, rollappPacket, types.RollappPacket_ACCEPTED)
-		// Call the onRecvPacket callback for each packet
-		ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		// Write the acknowledgement to the chain only if it is synchronous
-		if ack != nil {
-			_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-			if err != nil {
-				logger.Error("Error looking up module by channel", "rollappID", rollappID, "error", "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-				continue
-			}
-			err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-			if err != nil {
-				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-				continue
-			}
+		// Call the relevant callback for each packet
+		switch rollappPacket.Type {
+		case types.RollappPacket_ON_RECV:
+			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
+			ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+			// Write the acknowledgement to the chain only if it is synchronous
+			if ack != nil {
+				_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
+				if err != nil {
+					logger.Error("Error looking up module by channel", "rollappID", rollappID, "error", "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					continue
+				}
+				err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+				if err != nil {
+					logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					continue
+				}
 
+			}
+		case types.RollappPacket_ON_ACK:
+			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
+			_ = im.app.OnAcknowledgementPacket(ctx, *rollappPacket.Packet, rollappPacket.Acknowledgement, rollappPacket.Relayer)
 		}
+
 	}
 }
