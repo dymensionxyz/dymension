@@ -74,10 +74,6 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 				return err
 			}
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
-
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
