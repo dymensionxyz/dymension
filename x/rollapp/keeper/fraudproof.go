@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	fraudtypes "github.com/dymensionxyz/dymension/app/fraudproof/types"
+	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 )
 
 func (k *Keeper) VerifyFraudProof(fp fraudtypes.FraudProof) error {

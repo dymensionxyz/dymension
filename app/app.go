@@ -419,9 +419,6 @@ func New(
 		memKeys:           memKeys,
 	}
 
-	//FraudProof verifier
-	fraudProofVerifier := fraudproof.New("rollapp_fraudproof", logger, encodingConfig.TxConfig.TxDecoder())
-
 	app.ParamsKeeper = initParamsKeeper(appCodec, cdc, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
 	// set the BaseApp's parameter store
@@ -559,7 +556,6 @@ func New(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
 		keys[rollappmoduletypes.MemStoreKey],
-		fraudProofVerifier,
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 	)
 
@@ -892,6 +888,11 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+
+	//FraudProof verifier
+	// var fraudProofVerifier fraudproof.FraudProofVerifier = nil
+	fraudProofVerifier := fraudproof.New(bApp, "rollapp_fraudproof", logger)
+	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier)
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {

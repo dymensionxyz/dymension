@@ -9,7 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	fraudtypes "github.com/dymensionxyz/dymension/app/fraudproof/types"
+	fraudtypes "github.com/dymensionxyz/dymension/app/fraudproof"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 )
 
@@ -29,7 +29,6 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey storetypes.StoreKey,
-	fraudProofVerifier fraudtypes.FraudProofVerifier,
 	ps paramtypes.Subspace,
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -38,12 +37,11 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:                cdc,
-		storeKey:           storeKey,
-		memKey:             memKey,
-		fraudProofVerifier: fraudProofVerifier,
-		paramstore:         ps,
-		hooks:              nil,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		memKey:     memKey,
+		paramstore: ps,
+		hooks:      nil,
 	}
 }
 
@@ -61,4 +59,9 @@ func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 
 func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
+}
+
+// SetFraudProofVerifier
+func (k *Keeper) SetFraudProofVerifier(fpv fraudtypes.FraudProofVerifier) {
+	k.fraudProofVerifier = fpv
 }

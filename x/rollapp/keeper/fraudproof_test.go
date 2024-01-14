@@ -1,23 +1,37 @@
 package keeper_test
 
 import (
-	fraudtypes "github.com/dymensionxyz/dymension/app/fraudproof/types"
+	"encoding/json"
+	"log"
+	"os"
+
+	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/stretchr/testify/assert"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
 
 func (suite *RollappTestSuite) TestFraudProof() {
 	suite.SetupTest()
 
-	// // set rollapp
-	// rollapp := types.Rollapp{
-	// 	RollappId:     "rollapp1",
-	// 	Creator:       alice,
-	// 	Version:       3,
-	// 	MaxSequencers: 1,
-	// }
-	// suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	// file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_hub_full_block.json")
+	// file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_rollapp.json")
+	file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_hub_with_tx.json")
+	if err != nil {
+		log.Fatalf("failed opening file: %s", err)
+	}
+	defer file.Close()
 
-	fp := fraudtypes.FraudProof{}
+	// Decode the JSON-encoded data into your struct
+	jsonDecoder := json.NewDecoder(file)
+	fp := abcitypes.FraudProof{}
+	err = jsonDecoder.Decode(&fp)
+	if err != nil {
+		log.Fatalf("failed decoding JSON: %s", err)
+	}
 
-	suite.app.RollappKeeper.VerifyFraudProof(fp)
-
+	fraud := fraudtypes.FraudProof{}
+	err = fraud.FromABCI(fp)
+	assert.NoError(suite.T(), err)
+	err = suite.app.RollappKeeper.VerifyFraudProof(fraud)
+	assert.NoError(suite.T(), err)
 }

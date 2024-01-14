@@ -10,8 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/dymensionxyz/dymension/app"
-	"github.com/dymensionxyz/dymension/app/fraudproof"
 	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 
@@ -34,10 +32,6 @@ func RollappKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
-	encodingConfig := app.MakeEncodingConfig()
-
-	fraudProofVerifier := fraudproof.New("rollapp_fraudproof", nil, encodingConfig.TxConfig.TxDecoder())
-
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
 		storeKey,
@@ -48,7 +42,6 @@ func RollappKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKey,
 		memStoreKey,
-		fraudProofVerifier,
 		paramsSubspace,
 	)
 
