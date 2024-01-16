@@ -186,10 +186,10 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	// init chain will set the validator set and initialize the genesis accounts
 	app.InitChain(
 		abci.RequestInitChain{
-			ChainId:         TestChainID,
-			Validators:      []abci.ValidatorUpdate{},
-			ConsensusParams: DefaultConsensusParams,
-			AppStateBytes:   stateBytes,
+			ChainId:    TestChainID,
+			Validators: []abci.ValidatorUpdate{},
+			// ConsensusParams: DefaultConsensusParams,
+			AppStateBytes: stateBytes,
 		},
 	)
 

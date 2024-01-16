@@ -57,9 +57,6 @@ func New(host *baseapp.BaseApp, appName string, logger log.Logger) *RollappFPV {
 		newApp.SetBeginBlocker(host.GetBeginBlocker())
 		newApp.SetEndBlocker(host.GetEndBlocker())
 	}
-	// newApp.msgServiceRouter = app.msgServiceRouter
-	// newApp.beginBlocker = app.beginBlocker
-	// newApp.endBlocker = app.endBlocker
 
 	return &RollappFPV{
 		host: host,
@@ -111,7 +108,9 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 	//is it enough? rollkit uses:
 	//	// This initial height is used in `BeginBlock` in `validateHeight`
 	// options = append(options, SetInitialHeight(blockHeight))
-	fpv.app.InitChain(abci.RequestInitChain{InitialHeight: fraudProof.BlockHeight})
+	fpv.app.InitChain(abci.RequestInitChain{
+		InitialHeight: fraudProof.BlockHeight,
+		ChainId:       fpv.app.Name()})
 
 	return nil
 
