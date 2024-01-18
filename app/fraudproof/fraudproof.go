@@ -9,17 +9,25 @@ import (
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	db "github.com/tendermint/tm-db"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+
+	rollappevm "github.com/dymensionxyz/rollapp-evm/app"
+
+	appparams "github.com/dymensionxyz/dymension/app/params"
+
+	_ "github.com/evmos/evmos/v12/crypto/codec"
+	_ "github.com/evmos/evmos/v12/crypto/ethsecp256k1"
+	_ "github.com/evmos/evmos/v12/types"
 )
 
 var (
@@ -40,7 +48,7 @@ type RollappFPV struct {
 var _ FraudProofVerifier = (*RollappFPV)(nil)
 
 // New creates a new FraudProofVerifier
-func New(host *baseapp.BaseApp, appName string, logger log.Logger, txdecoder sdk.TxDecoder) *RollappFPV {
+func New(host *baseapp.BaseApp, appName string, logger log.Logger, _ appparams.EncodingConfig) *RollappFPV {
 	//TODO: use logger?
 	//TODO: default home directory?
 
@@ -51,17 +59,29 @@ func New(host *baseapp.BaseApp, appName string, logger log.Logger, txdecoder sdk
 
 	// rollapp := app.New(log.NewNopLogger(), db.NewMemDB(), nil, true, map[int64]bool{}, "/tmp", 0, encCdc, nil)
 
-	newApp := baseapp.NewBaseApp(appName, log.NewNopLogger(), db.NewMemDB(), txdecoder)
+	//TODO: need to create here a rollapp app, and use it's begin block and txdecoder
+
+	// cfg := appparams.MakeEncodingConfigFP()
+
+	// encodingConfig := simappparams.MakeTestEncodingConfig()
+
+	cfg := rollappevm.MakeEncodingConfig()
+
+	rollapp := rollappevm.NewBaseAppRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
+	// _ = rollappevm.GetMaccPerms()
+	// baseapp := rollapp.GetBaseApp()
+
+	// rollapp := baseapp.NewBaseApp(appName, log.NewNopLogger(), dbm.NewMemDB(), encodingCfg.TxConfig.TxDecoder())
 	//FIXME: remove this
-	if host != nil {
-		newApp.SetMsgServiceRouter(host.MsgServiceRouter())
-		newApp.SetBeginBlocker(host.GetBeginBlocker())
-		newApp.SetEndBlocker(host.GetEndBlocker())
-	}
+	// if host != nil {
+	// 	newApp.SetMsgServiceRouter(host.MsgServiceRouter())
+	// newApp.SetBeginBlocker(host.GetBeginBlocker())
+	// 	newApp.SetEndBlocker(host.GetEndBlocker())
+	// }
 
 	return &RollappFPV{
 		host: host,
-		app:  newApp,
+		app:  rollapp,
 	}
 }
 

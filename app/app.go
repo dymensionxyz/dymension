@@ -135,17 +135,18 @@ import (
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
-	"github.com/evmos/ethermint/ethereum/eip712"
+	"github.com/evmos/evmos/v12/ethereum/eip712"
 
-	"github.com/evmos/ethermint/server/flags"
-	ethermint "github.com/evmos/ethermint/types"
-	"github.com/evmos/ethermint/x/evm"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/evmos/ethermint/x/evm/vm/geth"
-	"github.com/evmos/ethermint/x/feemarket"
-	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
-	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	evmante "github.com/evmos/evmos/v12/app/ante"
+
+	"github.com/evmos/evmos/v12/server/flags"
+	ethermint "github.com/evmos/evmos/v12/types"
+	"github.com/evmos/evmos/v12/x/evm"
+	evmkeeper "github.com/evmos/evmos/v12/x/evm/keeper"
+	evmtypes "github.com/evmos/evmos/v12/x/evm/types"
+	"github.com/evmos/evmos/v12/x/feemarket"
+	feemarketkeeper "github.com/evmos/evmos/v12/x/feemarket/keeper"
+	feemarkettypes "github.com/evmos/evmos/v12/x/feemarket/types"
 
 	/* ----------------------------- osmosis imports ---------------------------- */
 
@@ -484,7 +485,7 @@ func New(
 	app.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], authtypes.NewModuleAddress(govtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
-		nil, geth.NewEVM, tracer, app.GetSubspace(evmtypes.ModuleName),
+		tracer, app.GetSubspace(evmtypes.ModuleName),
 	)
 
 	// Osmosis keepers
@@ -875,12 +876,15 @@ func New(
 		BankKeeper:             app.BankKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
+		StakingKeeper:          app.StakingKeeper,
+		DistributionKeeper:     app.DistrKeeper,
 		EvmKeeper:              app.EvmKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
 		TxFeesKeeper:           app.TxFeesKeeper,
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
-		ExtensionOptionChecker: nil, //uses default
+		SigGasConsumer:         evmante.SigVerificationGasConsumer,
+		ExtensionOptionChecker: nil,
 	})
 	if err != nil {
 		panic(err)

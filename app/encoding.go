@@ -11,8 +11,8 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	cryptocodec "github.com/evmos/ethermint/crypto/codec"
-	ethermint "github.com/evmos/ethermint/types"
+	cryptocodec "github.com/evmos/evmos/v12/crypto/codec"
+	ethermint "github.com/evmos/evmos/v12/types"
 )
 
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.
