@@ -8,11 +8,13 @@ import (
 
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	db "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -38,7 +40,7 @@ type RollappFPV struct {
 var _ FraudProofVerifier = (*RollappFPV)(nil)
 
 // New creates a new FraudProofVerifier
-func New(host *baseapp.BaseApp, appName string, logger log.Logger) *RollappFPV {
+func New(host *baseapp.BaseApp, appName string, logger log.Logger, txdecoder sdk.TxDecoder) *RollappFPV {
 	//TODO: use logger?
 	//TODO: default home directory?
 
@@ -47,10 +49,9 @@ func New(host *baseapp.BaseApp, appName string, logger log.Logger) *RollappFPV {
 	// encCdc := rollappparams.MakeEncodingConfig()
 	// rollapp := rollappevm.NewRollapp(log.NewNopLogger(), db.NewMemDB(), nil, true, map[int64]bool{}, "/tmp", 0, encCdc, nil)
 
-	// encCdc := app.MakeEncodingConfig()
 	// rollapp := app.New(log.NewNopLogger(), db.NewMemDB(), nil, true, map[int64]bool{}, "/tmp", 0, encCdc, nil)
 
-	newApp := baseapp.NewBaseApp(appName, log.NewNopLogger(), db.NewMemDB(), nil)
+	newApp := baseapp.NewBaseApp(appName, log.NewNopLogger(), db.NewMemDB(), txdecoder)
 	//FIXME: remove this
 	if host != nil {
 		newApp.SetMsgServiceRouter(host.MsgServiceRouter())
@@ -76,6 +77,8 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 	if err != nil {
 		return err
 	}
+
+	fpv.app.SetInitialHeight(fraudProof.BlockHeight)
 
 	cmsHost := fpv.host.CommitMultiStore().(*rootmulti.Store)
 	storeKeys := cmsHost.StoreKeysByName()
@@ -108,9 +111,9 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 	//is it enough? rollkit uses:
 	//	// This initial height is used in `BeginBlock` in `validateHeight`
 	// options = append(options, SetInitialHeight(blockHeight))
-	fpv.app.InitChain(abci.RequestInitChain{
-		InitialHeight: fraudProof.BlockHeight,
-		ChainId:       fpv.app.Name()})
+	fpv.app.InitChain(abci.RequestInitChain{})
+
+	// fpv.app.ResetDeliverState()
 
 	return nil
 
@@ -135,20 +138,34 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 	//TODO: verifyy all data exists in fraud proof
 
 	// Execute fraudulent state transition
-	fpv.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
-	fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+	if fraudProof.FraudulentBeginBlock != nil {
+		fpv.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
+		fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+	} else {
+		// Need to add some dummy begin block here since its a new app
+		fpv.app.ResetDeliverState()
+		fpv.app.SetBeginBlocker(nil)
+		fpv.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight}})
+		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 
-	for _, tx := range fraudProof.FraudulentDeliverTx {
-		resp := fpv.app.DeliverTx(*tx)
-		if !resp.IsOK() {
-			panic(resp.Log)
+		// skip IncrementSequenceDecorator check in AnteHandler
+		fpv.app.SetAnteHandler(nil)
+
+		if fraudProof.FraudulentDeliverTx != nil {
+			resp := fpv.app.DeliverTx(*fraudProof.FraudulentDeliverTx)
+			if !resp.IsOK() {
+				panic(resp.Log)
+			}
+			fmt.Println("appHash - posttx", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+
+		} else {
+			fpv.app.EndBlock(*fraudProof.FraudulentEndBlock)
+			fmt.Println("appHash - endblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 		}
 	}
-	fmt.Println("appHash - posttx", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 
-	fpv.app.EndBlock(*fraudProof.FraudulentEndBlock)
 	appHash = fpv.app.GetAppHashInternal()
-	fmt.Println("appHash - endblock", hex.EncodeToString(appHash))
+	fmt.Println("appHash - final", hex.EncodeToString(appHash))
 	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash
 	}

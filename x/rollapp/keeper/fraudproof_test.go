@@ -13,8 +13,6 @@ import (
 func (suite *RollappTestSuite) TestFraudProof() {
 	suite.SetupTest()
 
-	// file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_hub_full_block.json")
-	// file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_rollapp.json")
 	file, err := os.Open("/Users/mtsitrin/Applications/dymension/settelment/fraudProof_hub_with_tx.json")
 	if err != nil {
 		log.Fatalf("failed opening file: %s", err)
