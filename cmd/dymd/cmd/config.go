@@ -3,7 +3,7 @@ package cmd
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ethcmd "github.com/evmos/ethermint/cmd/config"
+	ethcmd "github.com/evmos/evmos/v12/cmd/config"
 )
 
 func initSDKConfig() {

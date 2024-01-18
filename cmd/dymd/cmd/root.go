@@ -34,10 +34,10 @@ import (
 	"github.com/dymensionxyz/dymension/app"
 	appparams "github.com/dymensionxyz/dymension/app/params"
 
-	ethermintclient "github.com/evmos/ethermint/client"
-	"github.com/evmos/ethermint/crypto/hd"
-	ethermintserver "github.com/evmos/ethermint/server"
-	servercfg "github.com/evmos/ethermint/server/config"
+	ethermintclient "github.com/evmos/evmos/v12/client"
+	"github.com/evmos/evmos/v12/crypto/hd"
+	ethermintserver "github.com/evmos/evmos/v12/server"
+	servercfg "github.com/evmos/evmos/v12/server/config"
 )
 
 // NewRootCmd creates a new root command for dymension hub

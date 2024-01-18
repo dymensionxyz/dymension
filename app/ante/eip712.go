@@ -12,22 +12,17 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the Ethermint library. If not, see https://github.com/evmos/ethermint/blob/main/LICENSE
+// along with the Ethermint library. If not, see https://github.com/evmos/evmos/v12/blob/main/LICENSE
 package ante
 
 import (
-	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
 
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
@@ -36,6 +31,7 @@ import (
 	"github.com/evmos/ethermint/ethereum/eip712"
 	ethermint "github.com/evmos/ethermint/types"
 
+	ethante "github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
@@ -47,8 +43,33 @@ func init() {
 	ethermintCodec = codec.NewProtoCodec(registry)
 }
 
-// LegacyEip712SigVerificationDecorator Verify all signatures for a tx and return an error if any are invalid.
-// Note, the LegacyEip712SigVerificationDecorator decorator will not get executed on ReCheck.
+// Deprecated: NewLegacyCosmosAnteHandlerEip712 creates an AnteHandler to process legacy EIP-712
+// transactions, as defined by the presence of an ExtensionOptionsWeb3Tx extension.
+func NewLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
+	return sdk.ChainAnteDecorators(
+		ethante.RejectMessagesDecorator{}, // reject MsgEthereumTxs
+		authante.NewSetUpContextDecorator(),
+		authante.NewValidateBasicDecorator(),
+		authante.NewTxTimeoutHeightDecorator(),
+		ethante.NewMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper),
+		authante.NewValidateMemoDecorator(options.AccountKeeper),
+		authante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
+		authante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, nil),
+		// SetPubKeyDecorator must be called before all signature verification decorators
+		authante.NewSetPubKeyDecorator(options.AccountKeeper),
+		authante.NewValidateSigCountDecorator(options.AccountKeeper),
+		authante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
+		// Note: signature verification uses EIP instead of the cosmos signature validator
+		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		authante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
+		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+	)
+}
+
+// Deprecated: LegacyEip712SigVerificationDecorator Verify all signatures for a tx and return an error if any are invalid. Note,
+// the LegacyEip712SigVerificationDecorator decorator will not get executed on ReCheck.
+// NOTE: As of v0.20.0, EIP-712 signature verification is handled by the ethsecp256k1 public key (see ethsecp256k1.go)
 //
 // CONTRACT: Pubkeys are set in context for all signers before this decorator runs
 // CONTRACT: Tx must implement SigVerifiableTx interface
@@ -57,7 +78,7 @@ type LegacyEip712SigVerificationDecorator struct {
 	signModeHandler authsigning.SignModeHandler
 }
 
-// NewLegacyEip712SigVerificationDecorator creates a new LegacyEip712SigVerificationDecorator
+// Deprecated: NewLegacyEip712SigVerificationDecorator creates a new LegacyEip712SigVerificationDecorator
 func NewLegacyEip712SigVerificationDecorator(
 	ak evmtypes.AccountKeeper,
 	signModeHandler authsigning.SignModeHandler,
