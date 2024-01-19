@@ -27,13 +27,20 @@ func networkWithRollappObjects(t *testing.T, n int) (*network.Network, []types.R
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
+	stateInfos := make([]types.StateInfo, n)
 	for i := 0; i < n; i++ {
 		rollapp := types.Rollapp{
 			RollappId: strconv.Itoa(i),
 		}
 		nullify.Fill(&rollapp)
 		state.RollappList = append(state.RollappList, rollapp)
+
+		stateInfos[i].StateInfoIndex.RollappId = strconv.Itoa(i)
+		stateInfos[i].StateInfoIndex.Index = 1 + uint64(i)
+		stateInfos[i].StartHeight = uint64(i)
+		stateInfos[i].NumBlocks = 1
 	}
+	state.StateInfoList = stateInfos
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
@@ -105,7 +112,7 @@ func TestListRollapp(t *testing.T) {
 	}
 
 	ctx := net.Validators[0].ClientCtx
-	request := func(next []byte, offset, limit uint64, total bool) []string {
+	request := func(next []byte, offset, limit uint64, total bool, height uint64) []string {
 		args := []string{
 			fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 		}
@@ -118,12 +125,15 @@ func TestListRollapp(t *testing.T) {
 		if total {
 			args = append(args, fmt.Sprintf("--%s", flags.FlagCountTotal))
 		}
+		if height > 0 {
+			args = append(args, fmt.Sprintf("--%s=%d", flags.FlagHeight, height))
+		}
 		return args
 	}
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(objs); i += step {
-			args := request(nil, uint64(i), uint64(step), false)
+			args := request(nil, uint64(i), uint64(step), false, 0)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollapp(), args)
 			require.NoError(t, err)
 			var resp types.QueryAllRollappResponse
@@ -139,7 +149,7 @@ func TestListRollapp(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(objs); i += step {
-			args := request(next, 0, uint64(step), false)
+			args := request(next, 0, uint64(step), false, 0)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollapp(), args)
 			require.NoError(t, err)
 			var resp types.QueryAllRollappResponse
@@ -153,7 +163,7 @@ func TestListRollapp(t *testing.T) {
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		args := request(nil, 0, uint64(len(objs)), true)
+		args := request(nil, 0, uint64(len(objs)), true, 0)
 		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollapp(), args)
 		require.NoError(t, err)
 		var resp types.QueryAllRollappResponse
@@ -164,5 +174,20 @@ func TestListRollapp(t *testing.T) {
 			nullify.Fill(objs),
 			nullify.Fill(resp.Rollapp),
 		)
+	})
+	t.Run("ByHeight", func(t *testing.T) {
+		step := 2
+		for i := 0; i < len(objs); i += step {
+			args := request(nil, uint64(i), uint64(step), false, 1)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRollapp(), args)
+			require.NoError(t, err)
+			var resp types.QueryAllRollappResponse
+			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
+			require.LessOrEqual(t, len(resp.Rollapp), step)
+			require.Subset(t,
+				nullify.Fill(objs),
+				nullify.Fill(resp.Rollapp),
+			)
+		}
 	})
 }

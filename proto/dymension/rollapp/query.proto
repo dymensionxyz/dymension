@@ -8,6 +8,7 @@ import "dymension/rollapp/params.proto";
 import "dymension/rollapp/rollapp.proto";
 // this line is used by starport scaffolding # 1
 import "dymension/rollapp/state_info.proto";
+import "google/protobuf/wrappers.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
 
@@ -86,6 +87,7 @@ message QueryGetRollappResponse {
 
 message QueryAllRollappRequest {
 	cosmos.base.query.v1beta1.PageRequest pagination = 1;
+	google.protobuf.UInt64Value height = 2;
 }
 
 message QueryAllRollappResponse {

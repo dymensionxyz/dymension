@@ -2,11 +2,12 @@ package cli
 
 import (
 	"context"
+	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	"github.com/spf13/cobra"
+	gType "github.com/gogo/protobuf/types"
 )
 
 func CmdListRollapp() *cobra.Command {
@@ -23,8 +24,12 @@ func CmdListRollapp() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
+			flagSet := cmd.Flags()
+			argHeight, _ := flagSet.GetInt64(flags.FlagHeight)
+			val := &gType.UInt64Value{Value: uint64(argHeight)}
 			params := &types.QueryAllRollappRequest{
 				Pagination: pageReq,
+				Height:     val,
 			}
 
 			res, err := queryClient.RollappAll(context.Background(), params)

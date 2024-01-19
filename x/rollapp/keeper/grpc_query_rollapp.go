@@ -30,7 +30,19 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		var rollappSummary = types.RollappSummary{
 			RollappId: rollapp.RollappId,
 		}
-		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+
+		var latestStateInfoIndex types.StateInfoIndex
+		found := false
+		if req.Height != nil && req.Height.Value > 0 {
+			stateInfo, err := k.FindStateInfoByHeight(ctx, rollapp.RollappId, req.Height.Value)
+			if err == nil {
+				found = true
+				latestStateInfoIndex = stateInfo.StateInfoIndex
+			}
+		} else {
+			latestStateInfoIndex, found = k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+		}
+
 		if found {
 			rollappSummary.LatestStateIndex = &latestStateInfoIndex
 		}
