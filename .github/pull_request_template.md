@@ -25,7 +25,7 @@ I have...
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
 
----
+---;
 
 For Reviewer:
 
@@ -33,7 +33,7 @@ For Reviewer:
 - [ ]  Reviewers assigned
 - [ ]  Confirmed all author checklist items have been addressed
 
----
+---;
 
 After reviewer approval:
 
