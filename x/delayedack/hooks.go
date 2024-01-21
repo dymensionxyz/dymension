@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/x/common/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
 )
@@ -27,14 +28,13 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	if len(rollappPendingPackets) == 0 {
 		return
 	}
-
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	// Get the packets for the rollapp until height
 	logger.Debug("Finalizing IBC rollapp packets", "rollappID", rollappID, "state end height", stateEndHeight, "num packets", len(rollappPendingPackets))
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
-		// Update the packet status
-		im.keeper.UpdateRollappPacketStatus(ctx, rollappID, rollappPacket, types.RollappPacket_ACCEPTED)
+		// Update status to finalized
+		im.keeper.UpdateRollappPacketWithStatus(ctx, rollappID, rollappPacket, commontypes.Status_FINALIZED)
 		// Call the relevant callback for each packet
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
@@ -52,7 +52,6 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 					logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 					continue
 				}
-
 			}
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
