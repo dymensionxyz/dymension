@@ -24,12 +24,15 @@ type (
 		cdc      codec.BinaryCodec
 		storeKey storetypes.StoreKey
 		memKey   storetypes.StoreKey
+		hooks    types.MultiDelayedAckHooks
 
 		rollappKeeper    types.RollappKeeper
 		ics4Wrapper      porttypes.ICS4Wrapper
 		channelKeeper    types.ChannelKeeper
 		connectionKeeper types.ConnectionKeeper
 		clientKeeper     types.ClientKeeper
+		types.EIBCKeeper
+		bankKeeper types.BankKeeper
 	}
 )
 
@@ -43,6 +46,8 @@ func NewKeeper(
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
 	clientKeeper types.ClientKeeper,
+	eibcKeeper types.EIBCKeeper,
+	bankKeeper types.BankKeeper,
 
 ) *Keeper {
 	return &Keeper{
@@ -54,6 +59,8 @@ func NewKeeper(
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
+		bankKeeper:       bankKeeper,
+		EIBCKeeper:       eibcKeeper,
 	}
 }
 
@@ -112,6 +119,28 @@ func (k Keeper) GetClientState(ctx sdk.Context, packet channeltypes.Packet) (exp
 	}
 
 	return clientState, nil
+}
+
+func (k Keeper) BlockedAddr(addr string) bool {
+	account, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return false
+	}
+	return k.bankKeeper.BlockedAddr(account)
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Hooks handling                               */
+/* -------------------------------------------------------------------------- */
+func (k *Keeper) SetHooks(hooks types.MultiDelayedAckHooks) {
+	if k.hooks != nil {
+		panic("DelayedAckHooks already set")
+	}
+	k.hooks = hooks
+}
+
+func (k *Keeper) GetHooks() types.MultiDelayedAckHooks {
+	return k.hooks
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function

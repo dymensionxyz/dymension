@@ -5,6 +5,7 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
+	commontypes "github.com/dymensionxyz/dymension/x/common/types"
 	"github.com/dymensionxyz/dymension/x/delayedack/types"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 				Data:               []byte("testData"),
 				Sequence:           uint64(i),
 			},
-			Status:      types.RollappPacket_PENDING,
+			Status:      commontypes.Status_PENDING,
 			ProofHeight: uint64(i * 2),
 		}
 		keeper.SetRollappPacket(ctx, rollappID, packet)
@@ -36,7 +37,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 	// Update the packet status to approve
 	for _, packet := range packets {
-		keeper.UpdateRollappPacketStatus(ctx, rollappID, packet, types.RollappPacket_ACCEPTED)
+		keeper.UpdateRollappPacketWithStatus(ctx, rollappID, packet, commontypes.Status_PENDING)
 	}
 
 	// Get the packets until height 14

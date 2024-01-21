@@ -5,6 +5,7 @@ import (
 	fmt "fmt"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commontypes "github.com/dymensionxyz/dymension/x/common/types"
 )
 
 var _ binary.ByteOrder
@@ -17,7 +18,7 @@ const (
 // GetRollappPacketKey constructs a key for a specific RollappPacket
 func GetRollappPacketKey(
 	rollappId string,
-	status RollappPacket_Status,
+	status commontypes.Status,
 	packetProofHeight uint64,
 	IBCPacket channeltypes.Packet,
 ) []byte {
