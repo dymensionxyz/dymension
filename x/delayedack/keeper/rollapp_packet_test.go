@@ -35,9 +35,9 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 	packets := keeper.ListRollappPendingPackets(ctx, rollappID, 6)
 	require.Equal(t, 3, len(packets))
 
-	// Update the packet status to approve
+	// Update the packet status to finalized
 	for _, packet := range packets {
-		keeper.UpdateRollappPacketWithStatus(ctx, rollappID, packet, commontypes.Status_PENDING)
+		keeper.UpdateRollappPacketWithStatus(ctx, rollappID, packet, commontypes.Status_FINALIZED)
 	}
 
 	// Get the packets until height 14
