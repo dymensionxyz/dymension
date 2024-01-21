@@ -1,18 +1,31 @@
 package ibctesting_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
-//TODO: test hub -> rollapp
-// eventhough the ackwonledgement from the rollapp is delayed, the tokens should be available on the rollapp chain
+type DelayedAckTestSuite struct {
+	IBCTestUtilSuite
+	ctx sdk.Context
+}
+
+func TestDelayedAckTestSuite(t *testing.T) {
+	suite.Run(t, new(DelayedAckTestSuite))
+}
+
+func (suite *DelayedAckTestSuite) SetupTest() {
+	suite.IBCTestUtilSuite.SetupTest()
+}
 
 // Transfer from cosmos chain to the hub. No delay expected
-func (suite *KeeperTestSuite) TestTransferCosmosToHub() {
+func (suite *IBCTestUtilSuite) TestTransferCosmosToHub() {
 	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
 	suite.coordinator.Setup(path)
@@ -42,7 +55,7 @@ func (suite *KeeperTestSuite) TestTransferCosmosToHub() {
 	suite.Require().True(found)
 }
 
-func (suite *KeeperTestSuite) TestTransferHubToCosmos() {
+func (suite *IBCTestUtilSuite) TestTransferHubToCosmos() {
 	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
 	suite.coordinator.Setup(path)
@@ -72,7 +85,7 @@ func (suite *KeeperTestSuite) TestTransferHubToCosmos() {
 	suite.Require().True(found)
 }
 
-func (suite *KeeperTestSuite) TestTransferRollappToHub_NotFinalized() {
+func (suite *IBCTestUtilSuite) TestTransferRollappToHubNotFinalized() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
@@ -104,7 +117,7 @@ func (suite *KeeperTestSuite) TestTransferRollappToHub_NotFinalized() {
 
 // rollapp w/o state updates. should return ErrAck
 
-func (suite *KeeperTestSuite) TestTransferRollappToHub_Finalization() {
+func (suite *IBCTestUtilSuite) TestTransferRollappToHubFinalization() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
@@ -115,6 +128,10 @@ func (suite *KeeperTestSuite) TestTransferRollappToHub_Finalization() {
 	rollappIBCKeeper := suite.rollappChain.App.GetIBCKeeper()
 
 	suite.CreateRollapp()
+
+	// Upate rollapp state
+	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	suite.UpdateRollappState(1, currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
@@ -139,13 +156,10 @@ func (suite *KeeperTestSuite) TestTransferRollappToHub_Finalization() {
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().False(found)
 
-	err = suite.FinalizeRollapp()
-	suite.Require().NoError(err)
+	// Finalize the rollapp state
+	currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
+	suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	// Validate ack is found
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().True(found)
 }
-
-//state was already finalized
-
-//TODO:
-// timeout??

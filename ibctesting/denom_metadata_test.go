@@ -1,27 +1,46 @@
 package ibctesting_test
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/app"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
-//transfer from cosmos -nothing
-//transfer from rollapp w/o token registration - nothing
-//transfer from rollapp w/ token registration - success
+type DenomMetaDataTestSuite struct {
+	IBCTestUtilSuite
+	ctx sdk.Context
+}
 
-//same token not for the first time - no double registration
+func TestDenomMetaDataTestSuite(t *testing.T) {
+	suite.Run(t, new(DenomMetaDataTestSuite))
+}
 
-func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
+func (suite *DenomMetaDataTestSuite) SetupTest() {
+	suite.IBCTestUtilSuite.SetupTest()
+}
+
+// TestDenomRegistationHubToRollapp tests the following scenario:
+// 1. transfer from cosmos -nothing
+// 2. transfer from rollapp w/o token registration - nothing
+// 3. transfer from rollapp w/ token registration - success
+// 4. same token not for the first time - no double registration
+func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
 	//register rollapp with metadata for stake denom
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
-	suite.FinalizeRollapp()
+	
+	// Finalize the rollapp 100 blocks later so all packets are received immediately
+	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	suite.UpdateRollappState(1, currentRollappBlockHeight)
+	suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
 
 	found := ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
 	suite.Require().False(found)
@@ -44,8 +63,7 @@ func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	//expect error as no AcknowledgePacket expected
-	suite.Require().NoError(err) // relay committed
+	suite.Require().NoError(err)
 
 	udymVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), "udym"))
 	stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
@@ -71,8 +89,7 @@ func (suite *KeeperTestSuite) TestDenomRegistation_RollappToHub() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	//expect error as no AcknowledgePacket expected
-	suite.Require().NoError(err) // relay committed
+	suite.Require().NoError(err)
 
 	metadata, found := ConvertToApp(suite.hubChain).BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
 	suite.Require().True(found)
