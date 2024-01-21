@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -172,6 +173,10 @@ import (
 	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	/* ---------------------------- upgrade handlers ---------------------------- */
+
+	v3upgrade "github.com/dymensionxyz/dymension/app/upgrades/v3"
 )
 
 var (
@@ -919,6 +924,7 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+	app.setupUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1151,4 +1157,34 @@ func (app *App) GetTxConfig() client.TxConfig {
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
+}
+
+// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
+func (app *App) setupUpgradeHandlers() {
+	UpgradeName := "v3"
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		UpgradeName,
+		v3upgrade.CreateUpgradeHandler(
+			app.mm, app.configurator,
+		),
+	)
+
+	// When a planned update height is reached, the old binary will panic
+	// writing on disk the height and name of the update that triggered it
+	// This will read that value, and execute the preparations for the upgrade.
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
+	}
+
+	// Pre upgrade handler
+	switch upgradeInfo.Name {
+	// do nothing
+	}
+
+	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// configure store loader with the store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+	}
 }
