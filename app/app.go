@@ -128,6 +128,10 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/x/delayedack/types"
 
+	eibcmodule "github.com/dymensionxyz/dymension/x/eibc"
+	eibckeeper "github.com/dymensionxyz/dymension/x/eibc/keeper"
+	eibcmoduletypes "github.com/dymensionxyz/dymension/x/eibc/types"
+
 	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
 	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
 	packetforwardtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
@@ -227,6 +231,7 @@ var (
 		streamermodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
+		eibcmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
@@ -335,6 +340,7 @@ type App struct {
 	RollappKeeper   rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
 	StreamerKeeper  streamermodulekeeper.Keeper
+	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper delayedackkeeper.Keeper
@@ -385,6 +391,7 @@ func New(
 		streamermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
+		eibcmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
 		// ethermint keys
@@ -578,6 +585,15 @@ func New(
 		app.IncentivesKeeper,
 	)
 
+	app.EIBCKeeper = *eibckeeper.NewKeeper(
+		appCodec,
+		keys[eibcmoduletypes.StoreKey],
+		keys[eibcmoduletypes.MemStoreKey],
+		app.GetSubspace(eibcmoduletypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+	)
+
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
@@ -587,6 +603,8 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
+		app.EIBCKeeper,
+		app.BankKeeper,
 	)
 
 	/* -------------------------------- set hooks ------------------------------- */
@@ -612,6 +630,16 @@ func New(
 			app.TxFeesKeeper.Hooks(),
 		),
 	)
+
+	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
+		// insert delayedAck hooks receivers here
+		app.EIBCKeeper.GetDelayedAckHooks(),
+	))
+
+	app.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
+		// insert eibc hooks receivers here
+		app.DelayedAckKeeper.GetEIBCHooks(),
+	))
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
@@ -724,6 +752,7 @@ func New(
 		sequencerModule,
 		streamerModule,
 		delayedackModule,
+		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
@@ -770,6 +799,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -804,6 +834,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -844,6 +875,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
@@ -1075,6 +1107,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
