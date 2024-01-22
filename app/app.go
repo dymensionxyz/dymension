@@ -894,8 +894,8 @@ func New(
 	app.SetEndBlocker(app.EndBlocker)
 
 	//FraudProof verifier
-	// var fraudProofVerifier fraudproof.FraudProofVerifier = nil
-	fraudProofVerifier := fraudproof.New(bApp, "rollapp_fraudproof", logger)
+	// var fraudProofVerifier fraudproof.FraudProofVerifier = ni
+	fraudProofVerifier := fraudproof.New(bApp, "dymension", logger, encodingConfig)
 	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier)
 
 	if loadLatest {

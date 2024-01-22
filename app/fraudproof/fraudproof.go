@@ -15,6 +15,7 @@ import (
 	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -43,6 +44,7 @@ type FraudProofVerifier interface {
 type RollappFPV struct {
 	host *baseapp.BaseApp
 	app  *baseapp.BaseApp
+	keys map[string]storetypes.StoreKey
 }
 
 var _ FraudProofVerifier = (*RollappFPV)(nil)
@@ -52,36 +54,27 @@ func New(host *baseapp.BaseApp, appName string, logger log.Logger, _ appparams.E
 	//TODO: use logger?
 	//TODO: default home directory?
 
-	//TODO: test with dymension app for working reference
-	// encCdc := rollappparams.MakeEncodingConfig()
-	// encCdc := rollappparams.MakeEncodingConfig()
-	// rollapp := rollappevm.NewRollapp(log.NewNopLogger(), db.NewMemDB(), nil, true, map[int64]bool{}, "/tmp", 0, encCdc, nil)
-
-	// rollapp := app.New(log.NewNopLogger(), db.NewMemDB(), nil, true, map[int64]bool{}, "/tmp", 0, encCdc, nil)
-
-	//TODO: need to create here a rollapp app, and use it's begin block and txdecoder
-
-	// cfg := appparams.MakeEncodingConfigFP()
-
-	// encodingConfig := simappparams.MakeTestEncodingConfig()
-
 	cfg := rollappevm.MakeEncodingConfig()
 
-	rollapp := rollappevm.NewBaseAppRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
-	// _ = rollappevm.GetMaccPerms()
-	// baseapp := rollapp.GetBaseApp()
+	//FIXNE: the export key hack doesnt work. need to get it from the app after a mount
+	// rollapp, exportKeys := rollappevm.NewBaseAppRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
+	rollappApp := rollappevm.NewRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
 
-	// rollapp := baseapp.NewBaseApp(appName, log.NewNopLogger(), dbm.NewMemDB(), encodingCfg.TxConfig.TxDecoder())
+	rollapp := baseapp.NewBaseApp(appName, log.NewNopLogger(), dbm.NewMemDB(), cfg.TxConfig.TxDecoder())
 	//FIXME: remove this
 	// if host != nil {
-	// 	newApp.SetMsgServiceRouter(host.MsgServiceRouter())
-	// newApp.SetBeginBlocker(host.GetBeginBlocker())
-	// 	newApp.SetEndBlocker(host.GetEndBlocker())
+	rollapp.SetMsgServiceRouter(rollappApp.MsgServiceRouter())
+	rollapp.SetBeginBlocker(rollappApp.GetBeginBlocker())
+	rollapp.SetEndBlocker(rollappApp.GetEndBlocker())
 	// }
+
+	cms := rollappApp.CommitMultiStore().(*rootmulti.Store)
+	storeKeys := cms.StoreKeysByName()
 
 	return &RollappFPV{
 		host: host,
 		app:  rollapp,
+		keys: storeKeys,
 	}
 }
 
@@ -98,29 +91,24 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		return err
 	}
 
-	fpv.app.SetInitialHeight(fraudProof.BlockHeight)
+	fpv.app.SetInitialHeight(fraudProof.BlockHeight + 1) //FIXME: why +1?
 
-	cmsHost := fpv.host.CommitMultiStore().(*rootmulti.Store)
-	storeKeys := cmsHost.StoreKeysByName()
-	// modules := fraudProof.GetModules()
-	// iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
-	// for _, module := range modules {
-	// iavlStoreKeys = append(iavlStoreKeys, storeKeys[module])
-	// }
-
-	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(storeKeys))
-	for _, storeKey := range storeKeys {
-		iavlStoreKeys = append(iavlStoreKeys, storeKey)
+	cms := fpv.app.CommitMultiStore().(*rootmulti.Store)
+	storeKeys := fpv.keys
+	modules := fraudProof.GetModules()
+	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
+	for _, module := range modules {
+		iavlStoreKeys = append(iavlStoreKeys, storeKeys[module])
 	}
+
 	fpv.app.MountStores(iavlStoreKeys...)
 
 	storeKeyToIAVLTree, err := fraudProof.GetDeepIAVLTrees()
 	if err != nil {
 		return err
 	}
-	cmsStore := fpv.app.CommitMultiStore().(*rootmulti.Store)
 	for storeKey, iavlTree := range storeKeyToIAVLTree {
-		cmsStore.SetDeepIAVLTree(storeKey, iavlTree)
+		cms.SetDeepIAVLTree(storeKey, iavlTree)
 	}
 
 	err = fpv.app.LoadLatestVersion()
@@ -159,28 +147,32 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 
 	// Execute fraudulent state transition
 	if fraudProof.FraudulentBeginBlock != nil {
-		fpv.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
-		fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+		panic("fraudulent begin block not supported")
+		// fpv.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
+		// fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 	} else {
 		// Need to add some dummy begin block here since its a new app
 		fpv.app.ResetDeliverState()
 		fpv.app.SetBeginBlocker(nil)
-		fpv.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight}})
+		fpv.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}}) //FIXME: why +1?
 		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 
-		// skip IncrementSequenceDecorator check in AnteHandler
-		fpv.app.SetAnteHandler(nil)
-
 		if fraudProof.FraudulentDeliverTx != nil {
+			//WE NEED TO OVERWRITE THE SDK CONFIG HERE, as txs will fail due to the singleton config
+			// skip IncrementSequenceDecorator check in AnteHandler
+			fpv.app.SetAnteHandler(nil)
+			SetRollappAddressPrefixes("ethm")
+
 			resp := fpv.app.DeliverTx(*fraudProof.FraudulentDeliverTx)
 			if !resp.IsOK() {
 				panic(resp.Log)
 			}
 			fmt.Println("appHash - posttx", hex.EncodeToString(fpv.app.GetAppHashInternal()))
-
+			SetRollappAddressPrefixes("dym")
 		} else {
-			fpv.app.EndBlock(*fraudProof.FraudulentEndBlock)
-			fmt.Println("appHash - endblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+			panic("fraudulent end block not supported")
+			// fpv.app.EndBlock(*fraudProof.FraudulentEndBlock)
+			// fmt.Println("appHash - endblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 		}
 	}
 
@@ -190,4 +182,19 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		return types.ErrInvalidAppHash
 	}
 	return nil
+}
+
+func SetRollappAddressPrefixes(prefix string) {
+	// Set prefixes
+	accountPubKeyPrefix := prefix + "pub"
+	validatorAddressPrefix := prefix + "valoper"
+	validatorPubKeyPrefix := prefix + "valoperpub"
+	consNodeAddressPrefix := prefix + "valcons"
+	consNodePubKeyPrefix := prefix + "valconspub"
+
+	// Set config
+	config := sdk.GetConfig()
+	config.SetBech32PrefixForAccountNoAssert(prefix, accountPubKeyPrefix)
+	config.SetBech32PrefixForValidatorNoAssert(validatorAddressPrefix, validatorPubKeyPrefix)
+	config.SetBech32PrefixForConsensusNodeNoAssert(consNodeAddressPrefix, consNodePubKeyPrefix)
 }
