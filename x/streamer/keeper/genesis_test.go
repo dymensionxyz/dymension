@@ -115,3 +115,86 @@ func TestStreamerInitGenesis(t *testing.T) {
 	require.Equal(t, streams[0], stream)
 	require.Equal(t, lastStreamID, uint64(1))
 }
+
+func TestStreamerOrder(t *testing.T) {
+	app := app.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockTime(time.Now())
+
+	// checks that the default genesis parameters pass validation
+	validateGenesis := types.DefaultGenesis().Params.Validate()
+	require.NoError(t, validateGenesis)
+	// create coins, lp tokens with lockup durations, and a stream for this lockup
+	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
+	startTime := time.Now()
+
+	distr := types.DistrInfo{
+		TotalWeight: math.NewInt(100),
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+			{
+				GaugeId: 2,
+				Weight:  math.NewInt(50),
+			},
+		},
+	}
+
+	stream := types.Stream{
+		Id:                   1,
+		DistributeTo:         &distr,
+		Coins:                coins,
+		NumEpochsPaidOver:    2,
+		DistrEpochIdentifier: "day",
+		FilledEpochs:         2,
+		DistributedCoins:     sdk.Coins(nil),
+		// stream starts in 10 seconds
+		StartTime: startTime.Add(time.Second * 10).UTC(),
+	}
+
+	stream2 := types.Stream{
+		Id:                   2,
+		DistributeTo:         &distr,
+		Coins:                coins,
+		NumEpochsPaidOver:    2,
+		DistrEpochIdentifier: "day",
+		FilledEpochs:         0,
+		DistributedCoins:     sdk.Coins(nil),
+		// stream starts in 1 day
+		StartTime: startTime.Add(time.Second * 60 * 60 * 24 * 1).UTC(),
+	}
+
+	stream3 := types.Stream{
+		Id:                   3,
+		DistributeTo:         &distr,
+		Coins:                coins,
+		NumEpochsPaidOver:    2,
+		DistrEpochIdentifier: "day",
+		FilledEpochs:         0,
+		DistributedCoins:     sdk.Coins(nil),
+		// stream starts in 2 days
+		StartTime: startTime.Add(time.Second * 60 * 60 * 24 * 2).UTC(),
+	}
+
+	app.StreamerKeeper.InitGenesis(ctx, types.GenesisState{
+		Params:       types.Params{},
+		Streams:      []types.Stream{stream, stream2, stream3},
+		LastStreamId: 3,
+	})
+	// check that the stream created earlier was initialized through initGenesis and still exists on chain
+	streams := app.StreamerKeeper.GetStreams(ctx)
+	lastStreamID := app.StreamerKeeper.GetLastStreamID(ctx)
+	require.Len(t, streams, 3)
+	require.Equal(t, lastStreamID, streams[len(streams)-1].Id, "last stream id invariant broken")
+
+	// Forward block time by 1 minute to start the stream with id 1
+	ctx = ctx.WithBlockTime(startTime.Add(time.Second * 60))
+	// Move stream with id 1 from upcoming to active
+	err := app.StreamerKeeper.MoveUpcomingStreamToActiveStream(ctx, stream)
+	require.NoError(t, err)
+
+	streams = app.StreamerKeeper.GetStreams(ctx)
+	lastStreamID = app.StreamerKeeper.GetLastStreamID(ctx)
+	require.Len(t, streams, 3)
+	require.Equal(t, lastStreamID, streams[len(streams)-1].Id, "last stream id invariant broken")
+}
