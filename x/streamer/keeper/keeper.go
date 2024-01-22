@@ -73,6 +73,11 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
 
+	if startTime.Before(ctx.BlockTime()) {
+		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
+		startTime = ctx.BlockTime()
+	}
+
 	stream := types.NewStream(
 		k.GetLastStreamID(ctx)+1,
 		distrInfo,
