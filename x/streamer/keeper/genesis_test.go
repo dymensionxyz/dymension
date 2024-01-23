@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -28,22 +29,30 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// fund the module
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10000)}
 	err := bankutil.FundModuleAccount(app.BankKeeper, ctx, types.ModuleName, coins)
+	require.NoError(t, err)
+
+	_, err = app.IncentivesKeeper.CreateGauge(
+		ctx,
+		true,
+		app.AccountKeeper.GetModuleAddress(types.ModuleName),
+		sdk.Coins{},
+		lockuptypes.QueryCondition{
+			LockQueryType: lockuptypes.ByTime,
+			Denom:         "stake",
+			Duration:      time.Hour,
+			Timestamp:     time.Time{},
+		}, time.Now(), 1)
+	require.NoError(t, err)
 
 	// create a stream that distributes coins to earlier created LP token and duration
 	startTime := time.Now()
-	distr := types.DistrInfo{
-		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{{
+	distr := []types.DistrRecord{
+		{
 			GaugeId: 1,
 			Weight:  math.NewInt(50),
 		},
-			{
-				GaugeId: 2,
-				Weight:  math.NewInt(50),
-			},
-		},
 	}
-	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, &distr, startTime, "day", 30)
+	streamID, err := app.StreamerKeeper.CreateStream(ctx, coins, distr, startTime, "day", 30)
 	require.NoError(t, err)
 
 	// export genesis using default configurations
@@ -51,10 +60,13 @@ func TestStreamerExportGenesis(t *testing.T) {
 	genesis = app.StreamerKeeper.ExportGenesis(ctx)
 	require.Len(t, genesis.Streams, 1)
 
+	distInfo, err := types.NewDistrInfo(distr)
+	require.NoError(t, err)
+
 	// ensure the first stream listed in the exported genesis explicitly matches expectation
 	require.Equal(t, genesis.Streams[0], types.Stream{
 		Id:                   streamID,
-		DistributeTo:         &distr,
+		DistributeTo:         distInfo,
 		Coins:                coins,
 		NumEpochsPaidOver:    30,
 		DistrEpochIdentifier: "day",

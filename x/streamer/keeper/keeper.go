@@ -48,12 +48,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateStream creates a stream and sends coins to the stream.
-func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
 	if !coins.IsAllPositive() {
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
-	if err := distrInfo.Validate(); err != nil {
+	distrInfo, err := k.NewDistrInfo(ctx, records)
+	if err != nil {
 		return 0, err
 	}
 
@@ -87,7 +88,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.
 		numEpochsPaidOver,
 	)
 
-	err := k.setStream(ctx, &stream)
+	err = k.setStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}
