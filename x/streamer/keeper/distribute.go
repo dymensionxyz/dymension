@@ -62,7 +62,8 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 	for _, stream := range streams {
 		streamDistributedCoins, err := k.distributeStream(ctx, stream)
 		if err != nil {
-			return nil, err
+			ctx.Logger().Error("Failed to distribute stream", "streamID", stream.Id, "error", err.Error())
+			continue
 		}
 		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
 	}
