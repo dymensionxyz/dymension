@@ -18,6 +18,10 @@ func NewDistrInfo(records []DistrRecord) (*DistrInfo, error) {
 	distrInfo.Records = records
 	distrInfo.TotalWeight = totalWeight
 
+	if !totalWeight.IsPositive() {
+		return nil, ErrDistrInfoNotPositiveWeight
+	}
+
 	return &distrInfo, nil
 }
 

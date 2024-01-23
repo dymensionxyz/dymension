@@ -89,3 +89,27 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 		})
 	}
 }
+
+func TestNewDistrInfo(t *testing.T) {
+	// Test case: valid records
+	records := []types.DistrRecord{
+		{Weight: sdk.NewInt(1)},
+		{Weight: sdk.NewInt(2)},
+	}
+	distrInfo, err := types.NewDistrInfo(records)
+	require.NoError(t, err)
+	require.Equal(t, distrInfo.TotalWeight, sdk.NewInt(3))
+
+	// Test case: invalid record
+	records = []types.DistrRecord{
+		{Weight: sdk.NewInt(-1)},
+	}
+	distrInfo, err = types.NewDistrInfo(records)
+	require.Error(t, err)
+
+	// Test case: total weight not positive
+	records = []types.DistrRecord{}
+	distrInfo, err = types.NewDistrInfo(records)
+	require.Error(t, err)
+	require.Equal(t, err, types.ErrDistrInfoNotPositiveWeight)
+}
