@@ -27,7 +27,7 @@ func (stream Stream) IsUpcomingStream(curTime time.Time) bool {
 
 // IsActiveStream returns true if the stream is in an active state during the provided time.
 func (stream Stream) IsActiveStream(curTime time.Time) bool {
-	if curTime.After(stream.StartTime) || curTime.Equal(stream.StartTime) && (stream.FilledEpochs < stream.NumEpochsPaidOver) {
+	if (curTime.After(stream.StartTime) || curTime.Equal(stream.StartTime)) && (stream.FilledEpochs < stream.NumEpochsPaidOver) {
 		return true
 	}
 	return false
