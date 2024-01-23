@@ -10,7 +10,7 @@ import (
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	evmtypes "github.com/evmos/evmos/v12/x/evm/types"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
