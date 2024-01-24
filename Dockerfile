@@ -1,5 +1,7 @@
 FROM golang:1.19-alpine3.16 as go-builder
 
+ARG LINK_STATICALLY
+
 WORKDIR /app
 
 COPY go.mod go.sum* ./
