@@ -56,5 +56,8 @@ func (options HandlerOptions) validate() error {
 	if options.TxFeesKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
 	}
+	if options.SigGasConsumer == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "sig gas consumer is required for AnteHandler")
+	}
 	return nil
 }
