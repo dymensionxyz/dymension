@@ -18,7 +18,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		streams []struct {
 			coins       sdk.Coins
 			numOfEpochs uint64
-			distrInfo   *types.DistrInfo
+			distrInfo   []types.DistrRecord
 		}
 	}{
 		{
@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				distrInfo   *types.DistrInfo
+				distrInfo   []types.DistrRecord
 			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100)}, 30, defaultDistrInfo}},
 		},
 		{
@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				distrInfo   *types.DistrInfo
+				distrInfo   []types.DistrRecord
 			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo}},
 		},
 		{
@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 			streams: []struct {
 				coins       sdk.Coins
 				numOfEpochs uint64
-				distrInfo   *types.DistrInfo
+				distrInfo   []types.DistrRecord
 			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
 				{sdk.Coins{sdk.NewInt64Coin("stake", 1000)}, 365, defaultDistrInfo},
 				{sdk.Coins{sdk.NewInt64Coin("udym", 1000)}, 730, defaultDistrInfo},
@@ -52,11 +52,6 @@ func (suite *KeeperTestSuite) TestDistribute() {
 	for _, tc := range tests {
 		suite.SetupTest()
 		// setup streams and defined in the above tests, then distribute to them
-
-		err := suite.CreateGauge()
-		suite.Require().NoError(err)
-		err = suite.CreateGauge()
-		suite.Require().NoError(err)
 
 		var streams []types.Stream
 		var gaugesExpectedRewards = make(map[uint64]sdk.Coins)
@@ -71,21 +66,21 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				if !epochAmt.IsPositive() {
 					continue
 				}
-				for _, record := range stream.distrInfo.Records {
-					expectedAmtFromStream := epochAmt.Mul(record.Weight).Quo(stream.distrInfo.TotalWeight)
+				for _, record := range newstream.DistributeTo.Records {
+					expectedAmtFromStream := epochAmt.Mul(record.Weight).Quo(newstream.DistributeTo.TotalWeight)
 					expectedCoins := sdk.Coin{Denom: coin.Denom, Amount: expectedAmtFromStream}
 					gaugesExpectedRewards[record.GaugeId] = gaugesExpectedRewards[record.GaugeId].Add(expectedCoins)
 				}
 			}
 		}
 
-		_, err = suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
+		_, err := suite.App.StreamerKeeper.Distribute(suite.Ctx, streams)
 		suite.Require().NoError(err)
 		// check expected rewards against actual rewards received
 		gauges := suite.App.IncentivesKeeper.GetGauges(suite.Ctx)
-		suite.Require().Equal(len(gaugesExpectedRewards), len(gauges))
+		suite.Require().Equal(len(gaugesExpectedRewards), len(gauges), tc.name)
 		for _, gauge := range gauges {
-			suite.Require().Equal(gaugesExpectedRewards[gauge.Id], gauge.Coins)
+			suite.Require().Equal(gaugesExpectedRewards[gauge.Id], gauge.Coins, tc.name)
 		}
 	}
 }
