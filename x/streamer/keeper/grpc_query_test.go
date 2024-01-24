@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -45,6 +47,7 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 	// create a stream
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 10)}
 	streamID, stream := suite.CreateDefaultStream(coins)
+	suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
 	// query streams again, but this time expect the stream created earlier in the response
 	res, err = suite.querier.Streams(sdk.WrapSDKContext(suite.Ctx), &types.StreamsRequest{})
@@ -57,8 +60,8 @@ func (suite *KeeperTestSuite) TestGRPCStreams() {
 	for i := 0; i < 10; i++ {
 		// create a stream
 		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
-		_, _ = suite.CreateDefaultStream(coins)
-		// suite.Ctx = suite.Ctx.WithBlockTime(time.Now.Add(time.Second))
+		_, stream = suite.CreateDefaultStream(coins)
+		suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 	}
 
 	// check that setting page request limit to 10 will only return 10 out of the 11 streams
@@ -85,6 +88,8 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	// create a stream and move it from upcoming to active
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 	streamID, stream := suite.CreateDefaultStream(coins)
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
+
 	err = suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 	suite.Require().NoError(err)
 
@@ -100,6 +105,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 	for i := 0; i < 20; i++ {
 		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream := suite.CreateDefaultStream(coins)
+		suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 
 		// move the first 9 streams from upcoming to active (now 10 active streams, 30 total streams)
 		if i < 9 {
@@ -143,7 +149,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 	for i := 0; i < 20; i++ {
 		coins := sdk.Coins{sdk.NewInt64Coin("stake", 3)}
 		_, stream := suite.CreateDefaultStream(coins)
-		// suite.Ctx = suite.Ctx.WithBlockTime(startTime.Add(time.Second))
+		suite.Ctx = suite.Ctx.WithBlockTime(stream.StartTime.Add(time.Second))
 
 		// move the first 9 created streams to an active status
 		// 1 + (20 -9) = 12 upcoming streams
@@ -180,6 +186,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// setup a non perpetual stream
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 300000)}
 	streamID, _ := suite.CreateDefaultStream(coins)
+	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second))
 
 	stream, err := suite.querier.GetStreamByID(suite.Ctx, streamID)
 	suite.Require().NoError(err)
