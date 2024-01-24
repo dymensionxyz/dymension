@@ -31,8 +31,8 @@ API_ADDRESS=${API_ADDRESS:-"0.0.0.0:1318"}
 JSONRPC_ADDRESS=${JSONRPC_ADDRESS:-"0.0.0.0:9545"}
 JSONRPC_WS_ADDRESS=${JSONRPC_WS_ADDRESS:-"0.0.0.0:9546"}
 
-TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000udym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24udym )
-STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000udym"} #67% is staked (inflation goal)
+TOKEN_AMOUNT=${TOKEN_AMOUNT:-"1000000000000000000000000adym"} #1M DYM (1e6dym = 1e6 * 1e18 = 1e24adym )
+STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% is staked (inflation goal)
 
 # Validate dymension binary exists
 export PATH=$PATH:$HOME/go/bin
@@ -73,7 +73,7 @@ sed -i'' -e "/\[json-rpc\]/,+9 s/address *= .*/address = \"$JSONRPC_WS_ADDRESS\"
 sed -i'' -e '/\[api\]/,+3 s/enable *= .*/enable = true/' "$APP_CONFIG_FILE"
 sed -i'' -e "/\[api\]/,+9 s/address *= .*/address = \"tcp:\/\/$API_ADDRESS\"/" "$APP_CONFIG_FILE"
 
-sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "100000000udym"/' "$APP_CONFIG_FILE"
+sed -i'' -e 's/^minimum-gas-prices *= .*/minimum-gas-prices = "100000000adym"/' "$APP_CONFIG_FILE"
 
 sed -i'' -e "s/^chain-id *= .*/chain-id = \"$CHAIN_ID\"/" "$CLIENT_CONFIG_FILE"
 sed -i'' -e "s/^keyring-backend *= .*/keyring-backend = \"test\"/" "$CLIENT_CONFIG_FILE"
@@ -102,9 +102,9 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   dymd keys add user --keyring-backend test
 
   # Add genesis accounts and provide coins to the accounts
-  dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000udym,10000000000uatom,500000000000uusd
+  dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
   # Give some uatom to the local-user as well
-  dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000udym,10000000000uatom
+  dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
 fi
 
 
