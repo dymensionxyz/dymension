@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 	tests := []struct {
 		name              string
 		coins             sdk.Coins
-		distrTo           *types.DistrInfo
+		distrTo           []types.DistrRecord
 		epochIdentifier   string
 		numEpochsPaidOver uint64
 		expectErr         bool
@@ -140,14 +140,39 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 			expectErr:         true,
 		},
 		{
-			name:  "bad distribution info",
+			name:  "bad distribution info - negative weight",
 			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
-			distrTo: &types.DistrInfo{
-				TotalWeight: math.NewInt(100),
-				Records: []types.DistrRecord{{
+			distrTo: []types.DistrRecord{
+				{
+					GaugeId: 1,
+					Weight:  math.NewInt(-1),
+				},
+			},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
+		},
+		{
+			name:  "bad distribution info - invalid gauge",
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo: []types.DistrRecord{
+				{
 					GaugeId: 0,
-					Weight:  math.NewInt(11),
-				}},
+					Weight:  math.NewInt(10),
+				},
+			},
+			epochIdentifier:   "day",
+			numEpochsPaidOver: 30,
+			expectErr:         true,
+		},
+		{
+			name:  "bad distribution info - zero weight",
+			coins: sdk.Coins{sdk.NewInt64Coin("udym", 10)},
+			distrTo: []types.DistrRecord{
+				{
+					GaugeId: 2,
+					Weight:  math.NewInt(0),
+				},
 			},
 			epochIdentifier:   "day",
 			numEpochsPaidOver: 30,
