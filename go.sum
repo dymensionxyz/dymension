@@ -454,10 +454,10 @@ github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQx
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3 h1:iAtAivMtJh2Ublnq2KasC7EIa5/gfsff5EJ7kUlnd9A=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
-github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1 h1:7Q31g2/pRpyAbxRBlv1hMI5bfOvoCRUtPzdqPhaBDQU=
-github.com/dymensionxyz/osmosis/osmomath v0.0.6-dymension-v0.1/go.mod h1:2idySYJxP5YfMAEeSeqD8e7fSchfsI4jn7XFHJgNUsM=
-github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.4.1 h1:YX1kxN/sOgPrQovtX9SnvV0qUW4wTLq92m7ojeBOqWM=
-github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v0.4.1/go.mod h1:i54YtF6BN2tcemVS0a3xvEOYpz30nxn/klRkti/RecQ=
+github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1 h1:59ZE3Ocrn04MUpb5VJgfi24eDcnQ9VBfCSw0Mx1n7OI=
+github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1/go.mod h1:2idySYJxP5YfMAEeSeqD8e7fSchfsI4jn7XFHJgNUsM=
+github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.0.0 h1:0T4wQGtcgNvo/cCnO+l0PZEz4mZrhoaZ5DeBssM3m98=
+github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.0.0/go.mod h1:+450cG09Hd6UylpeweuUiONo+WvYmm0ny9BTCLROLLI=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
