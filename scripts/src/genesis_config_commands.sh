@@ -4,15 +4,15 @@ tmp=$(mktemp)
 
 set_gov_params() {
     echo "setting gov params"
-    jq '.app_state.gov.deposit_params.min_deposit[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.gov.deposit_params.min_deposit[0].denom = "adym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.deposit_params.min_deposit[0].amount = "10000000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state.gov.voting_params.voting_period = "1m"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_hub_params() {
     echo "setting hub params"
-    sed -i'' -e 's/bond_denom": ".*"/bond_denom": "udym"/' "$GENESIS_FILE"
-    sed -i'' -e 's/mint_denom": ".*"/mint_denom": "udym"/' "$GENESIS_FILE"
+    sed -i'' -e 's/bond_denom": ".*"/bond_denom": "adym"/' "$GENESIS_FILE"
+    sed -i'' -e 's/mint_denom": ".*"/mint_denom": "adym"/' "$GENESIS_FILE"
 
     jq '.app_state.rollapp.params.dispute_period_in_blocks = "2"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
@@ -38,7 +38,7 @@ set_consenus_params() {
 
 set_EVM_params() {
   jq '.app_state["feemarket"]["params"]["no_base_fee"] = true' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-  jq '.app_state.evm.params.evm_denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+  jq '.app_state.evm.params.evm_denom = "adym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
   jq '.app_state.evm.params.enable_create = false' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
@@ -63,9 +63,9 @@ set_incentives_params() {
 
 
 set_misc_params() {
-    jq '.app_state.crisis.constant_fee.denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq -r '.app_state.gamm.params.pool_creation_fee[0].denom = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq '.app_state["txfees"]["basedenom"] = "udym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.crisis.constant_fee.denom = "adym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq -r '.app_state.gamm.params.pool_creation_fee[0].denom = "adym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state["txfees"]["basedenom"] = "adym"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     jq '.app_state["txfees"]["params"]["epoch_identifier"] = "minute"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
     
     jq -r '.app_state.gamm.params.enable_global_pool_fees = true' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
@@ -74,11 +74,11 @@ set_misc_params() {
 set_bank_denom_metadata() {
     jq '.app_state.bank.denom_metadata = [
         {
-            "base": "udym",
+            "base": "adym",
             "denom_units": [
                 {
                     "aliases": [],
-                    "denom": "udym",
+                    "denom": "adym",
                     "exponent": 0
                 },
                 {
@@ -87,7 +87,7 @@ set_bank_denom_metadata() {
                     "exponent": 18
                 }
             ],
-            "description": "Denom metadata for DYM (udym)",
+            "description": "Denom metadata for DYM (adym)",
             "display": "DYM",
             "name": "DYM",
             "symbol": "DYM"

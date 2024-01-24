@@ -13,7 +13,7 @@ const (
 	BaseDenom = "udym"
 
 	// BaseDenomUnit defines the base denomination unit for Photons.
-	// 1 DYM = 1x10^{BaseDenomUnit} udym
+	// 1 DYM = 1x10^{BaseDenomUnit} adym
 	BaseDenomUnit = 18
 
 	AccountAddressPrefix = "dym"
