@@ -17,15 +17,15 @@ exit_pool() {
 
 swap_tokens() {
     # dymd tx gamm swap --exact-amount-in=$1 --exact-amount-out=$2 --from pools  --keyring-backend=test -b block --gas auto --yes
-    dymd tx gamm swap-exact-amount-in 50udym 50000000 --swap-route-pool-ids 1 --swap-route-denoms uatom --from user --keyring-backend test -b block
+    dymd tx gamm swap-exact-amount-in 50adym 50000000 --swap-route-pool-ids 1 --swap-route-denoms uatom --from user --keyring-backend test -b block
 }
 
 multi_hop_swap() {
-    dymd tx gamm swap-exact-amount-in 50000000uatom 20000000 --swap-route-pool-ids 1,2 --swap-route-denoms udym,uusd --from user --keyring-backend test -b block
+    dymd tx gamm swap-exact-amount-in 50000000uatom 20000000 --swap-route-pool-ids 1,2 --swap-route-denoms adym,uusd --from user --keyring-backend test -b block
 }
 
 echo "Creating pools"
-echo "Creating udym/uatom pool"
+echo "Creating adym/uatom pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolA.json"
-echo "Creating udym/uusd pool"
+echo "Creating adym/uusd pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolB.json"
