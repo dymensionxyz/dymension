@@ -63,7 +63,7 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 		return newRecords[i].GaugeId < newRecords[j].GaugeId
 	})
 
-	distrInfo, err := types.NewDistrInfo(newRecords)
+	distrInfo, err := k.NewDistrInfo(ctx, newRecords)
 	if err != nil {
 		return err
 	}

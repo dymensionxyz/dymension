@@ -584,7 +584,7 @@ type QueryClient interface {
 	Streams(ctx context.Context, in *StreamsRequest, opts ...grpc.CallOption) (*StreamsResponse, error)
 	// ActiveStreams returns active streams
 	ActiveStreams(ctx context.Context, in *ActiveStreamsRequest, opts ...grpc.CallOption) (*ActiveStreamsResponse, error)
-	// Returns scheduled streams that have not yet occured
+	// Returns scheduled streams that have not yet occurred
 	UpcomingStreams(ctx context.Context, in *UpcomingStreamsRequest, opts ...grpc.CallOption) (*UpcomingStreamsResponse, error)
 }
 
@@ -651,7 +651,7 @@ type QueryServer interface {
 	Streams(context.Context, *StreamsRequest) (*StreamsResponse, error)
 	// ActiveStreams returns active streams
 	ActiveStreams(context.Context, *ActiveStreamsRequest) (*ActiveStreamsResponse, error)
-	// Returns scheduled streams that have not yet occured
+	// Returns scheduled streams that have not yet occurred
 	UpcomingStreams(context.Context, *UpcomingStreamsRequest) (*UpcomingStreamsResponse, error)
 }
 

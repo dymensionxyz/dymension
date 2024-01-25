@@ -14,13 +14,10 @@ import (
 var _ = suite.TestingSuite(nil)
 
 var (
-	singleDistrInfo *types.DistrInfo = &types.DistrInfo{
-		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{
-			{
-				GaugeId: 1,
-				Weight:  math.NewInt(100),
-			},
+	singleDistrInfo []types.DistrRecord = []types.DistrRecord{
+		{
+			GaugeId: 1,
+			Weight:  math.NewInt(100),
 		},
 	}
 )

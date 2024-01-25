@@ -18,16 +18,14 @@ import (
 )
 
 var (
-	defaultDistrInfo *types.DistrInfo = &types.DistrInfo{
-		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{{
+	defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
+		{
 			GaugeId: 1,
 			Weight:  math.NewInt(50),
 		},
-			{
-				GaugeId: 2,
-				Weight:  math.NewInt(50),
-			},
+		{
+			GaugeId: 2,
+			Weight:  math.NewInt(50),
 		},
 	}
 )
@@ -43,6 +41,11 @@ func (suite *KeeperTestSuite) SetupTest() {
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500000)), sdk.NewCoin("udym", sdk.NewInt(2500000)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.querier = keeper.NewQuerier(suite.App.StreamerKeeper)
+
+	err := suite.CreateGauge()
+	suite.Require().NoError(err)
+	err = suite.CreateGauge()
+	suite.Require().NoError(err)
 }
 
 func TestKeeperTestSuite(t *testing.T) {
@@ -65,7 +68,7 @@ func (suite *KeeperTestSuite) CreateGauge() error {
 }
 
 // CreateStream creates a stream struct given the required params.
-func (suite *KeeperTestSuite) CreateStream(distrTo *types.DistrInfo, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
+func (suite *KeeperTestSuite) CreateStream(distrTo []types.DistrRecord, coins sdk.Coins, startTime time.Time, epochIdetifier string, numEpoch uint64) (uint64, *types.Stream) {
 	streamID, err := suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins, distrTo, startTime, epochIdetifier, numEpoch)
 	suite.Require().NoError(err)
 	stream, err := suite.App.StreamerKeeper.GetStreamByID(suite.Ctx, streamID)
@@ -78,9 +81,12 @@ func (suite *KeeperTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *typ
 }
 
 func (suite *KeeperTestSuite) ExpectedDefaultStream(streamID uint64, starttime time.Time, coins sdk.Coins) types.Stream {
+	distInfo, err := types.NewDistrInfo(defaultDistrInfo)
+	suite.Require().NoError(err)
+
 	return types.Stream{
 		Id:                   streamID,
-		DistributeTo:         defaultDistrInfo,
+		DistributeTo:         distInfo,
 		Coins:                coins,
 		StartTime:            starttime,
 		DistrEpochIdentifier: "day",
