@@ -40,7 +40,3 @@ var (
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}
 )
-
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
