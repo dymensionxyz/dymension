@@ -9,4 +9,5 @@ var (
 	CreateStreamHandler    = govclient.NewProposalHandler(cli.NewCmdSubmitCreateStreamProposal)
 	TerminateStreamHandler = govclient.NewProposalHandler(cli.NewCmdSubmitTerminateStreamProposal)
 	ReplaceStreamHandler   = govclient.NewProposalHandler(cli.NewCmdSubmitReplaceStreamDistributionProposal)
+	UpdateStreamHandler    = govclient.NewProposalHandler(cli.NewCmdSubmitUpdateStreamDistributionProposal)
 )
