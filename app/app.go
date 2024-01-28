@@ -191,6 +191,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		ibcclientclient.UpgradeProposalHandler,
 		streamermoduleclient.CreateStreamHandler,
 		streamermoduleclient.TerminateStreamHandler,
+		streamermoduleclient.ReplaceStreamHandler,
+		streamermoduleclient.UpdateStreamHandler,
 	)
 
 	return govProposalHandlers
@@ -939,9 +941,8 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
 	}
 
-	//exclude the streamer and txfees modules
+	//exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
-	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 
