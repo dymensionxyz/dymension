@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 

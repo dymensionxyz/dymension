@@ -8,8 +8,8 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // ChannelKeeper defines the expected IBC channel keeper

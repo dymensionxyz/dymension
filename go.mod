@@ -1,4 +1,4 @@
-module github.com/dymensionxyz/dymension
+module github.com/dymensionxyz/dymension/v3
 
 go 1.19
 
@@ -79,6 +79,7 @@ require (
 	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
 	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf // indirect
 	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
+	github.com/dymensionxyz/dymension v1.0.0-rc1.0.20231219114210-d548bc8ea087 // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -87,7 +88,6 @@ require (
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
-	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
@@ -141,7 +141,6 @@ require (
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/osmosis-labs/osmosis/osmomath v0.0.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect

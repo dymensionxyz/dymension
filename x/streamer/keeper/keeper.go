@@ -8,7 +8,7 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

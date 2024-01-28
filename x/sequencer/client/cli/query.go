@@ -10,7 +10,7 @@ import (
 	// "github.com/cosmos/cosmos-sdk/client/flags"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

@@ -12,8 +12,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/dymensionxyz/dymension/x/denommetadata/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
