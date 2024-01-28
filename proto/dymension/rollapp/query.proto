@@ -9,7 +9,7 @@ import "dymension/rollapp/rollapp.proto";
 // this line is used by starport scaffolding # 1
 import "dymension/rollapp/state_info.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 // Query defines the gRPC querier service.
 service Query {
