@@ -33,7 +33,6 @@ func getLatestBlockTime(clientCtx client.Context) (time.Time, error) {
 
 func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		latestTime, err := getLatestBlockTime(clientCtx)
 		if err != nil {
 			writeErrorResponse(w, http.StatusInternalServerError, "Failed to get latest block time")
@@ -45,6 +44,7 @@ func HealthcheckRequestHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 	}
 }
