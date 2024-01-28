@@ -13,24 +13,6 @@ import (
 	"github.com/tendermint/tendermint/store"
 )
 
-// RollbackState takes the state at the current height n and overwrites it with the state
-// at height n - 1. Note state here refers to CometBFT state not application state.
-// Returns the latest state height and app hash alongside an error if there was one.
-func RollbackState(config *cfg.Config) (int64, []byte, error) {
-	// use the parsed config to load the block and state store
-	blockStore, stateStore, err := loadStateAndBlockStore(config)
-	if err != nil {
-		return -1, nil, err
-	}
-	defer func() {
-		_ = blockStore.Close()
-		_ = stateStore.Close()
-	}()
-
-	// rollback the last state
-	return state.Rollback(blockStore, stateStore)
-}
-
 func loadStateAndBlockStore(config *cfg.Config) (*store.BlockStore, state.Store, error) {
 	dbType := dbm.BackendType(config.DBBackend)
 
