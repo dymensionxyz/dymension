@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

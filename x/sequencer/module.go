@@ -16,9 +16,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/dymensionxyz/dymension/x/sequencer/client/cli"
-	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 var (

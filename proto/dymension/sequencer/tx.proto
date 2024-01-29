@@ -8,7 +8,7 @@ import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
 // Msg defines the Msg service.
 service Msg {

@@ -4,7 +4,7 @@ package dymensionxyz.dymension.streamer;
 import "gogoproto/gogo.proto";
 import "dymension/streamer/distr_info.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 // ReplaceStreamDistributionProposal is a gov Content type for updating a stream
 // If a ReplaceStreamDistributionProposal passes, the proposal’s records

@@ -3,7 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // LatestFinalizedStateIndex defines the rollapps' current (latest) index of the latest StateInfo that was finalized

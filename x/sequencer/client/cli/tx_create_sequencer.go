@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/spf13/cobra"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"

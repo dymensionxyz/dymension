@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 

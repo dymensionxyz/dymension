@@ -4,7 +4,7 @@ package dymensionxyz.dymension.delayedack;
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
 
-option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 message RollappPacket {
     ibc.core.channel.v1.Packet packet = 1;

@@ -7,7 +7,7 @@ import "dymension/rollapp/rollapp.proto";
 import "dymension/rollapp/state_info.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
-option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 // GenesisState defines the rollapp module's genesis state.
 message GenesisState {

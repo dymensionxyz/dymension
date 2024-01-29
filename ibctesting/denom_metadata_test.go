@@ -2,7 +2,7 @@ package ibctesting_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/app"
+	"github.com/dymensionxyz/dymension/v3/app"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
