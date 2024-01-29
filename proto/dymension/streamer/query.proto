@@ -8,7 +8,7 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/streamer/stream.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 
 // Query defines the gRPC querier service

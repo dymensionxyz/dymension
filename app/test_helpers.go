@@ -12,7 +12,7 @@ import (
 
 	"cosmossdk.io/math"
 
-	"github.com/dymensionxyz/dymension/app/params"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"

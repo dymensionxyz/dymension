@@ -3,8 +3,8 @@ package types_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/testutil/sample"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 

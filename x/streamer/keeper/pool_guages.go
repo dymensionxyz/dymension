@@ -3,7 +3,7 @@ package keeper
 import (
 	"time"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 

@@ -107,26 +107,26 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
-	ante "github.com/dymensionxyz/dymension/app/ante"
-	appparams "github.com/dymensionxyz/dymension/app/params"
-	rollappmodule "github.com/dymensionxyz/dymension/x/rollapp"
-	rollappmodulekeeper "github.com/dymensionxyz/dymension/x/rollapp/keeper"
-	rollappmoduletypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	ante "github.com/dymensionxyz/dymension/v3/app/ante"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
+	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
+	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
-	sequencermodule "github.com/dymensionxyz/dymension/x/sequencer"
-	sequencermodulekeeper "github.com/dymensionxyz/dymension/x/sequencer/keeper"
-	sequencermoduletypes "github.com/dymensionxyz/dymension/x/sequencer/types"
+	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
+	sequencermodulekeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	streamermodule "github.com/dymensionxyz/dymension/x/streamer"
-	streamermoduleclient "github.com/dymensionxyz/dymension/x/streamer/client"
-	streamermodulekeeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
-	streamermoduletypes "github.com/dymensionxyz/dymension/x/streamer/types"
+	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
+	streamermoduleclient "github.com/dymensionxyz/dymension/v3/x/streamer/client"
+	streamermodulekeeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
+	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
-	denommetadatamodule "github.com/dymensionxyz/dymension/x/denommetadata"
+	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 
-	delayedackmodule "github.com/dymensionxyz/dymension/x/delayedack"
-	delayedackkeeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
-	delayedacktypes "github.com/dymensionxyz/dymension/x/delayedack/types"
+	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
 	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"

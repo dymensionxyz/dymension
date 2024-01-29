@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"strconv"
 
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"

@@ -4,8 +4,8 @@ import (
 	fmt "fmt"
 	"math/rand"
 
-	"github.com/dymensionxyz/dymension/testutil/sample"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
