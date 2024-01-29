@@ -3,7 +3,7 @@ package dymensionxyz.dymension.sequencer;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/sequencer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
 // SequencersByRollapp defines an map between rollappId to a list of 
 // all sequencers that belongs to it.

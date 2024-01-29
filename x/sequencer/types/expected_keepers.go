@@ -3,7 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.

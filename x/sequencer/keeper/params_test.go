@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/dymensionxyz/dymension/testutil/keeper"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 

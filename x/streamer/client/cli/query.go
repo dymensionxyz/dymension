@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
 

@@ -4,7 +4,7 @@ package dymensionxyz.dymension.streamer;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 
 // Params holds parameters for the streamer module

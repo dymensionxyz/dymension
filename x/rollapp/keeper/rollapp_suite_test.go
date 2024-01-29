@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/app"
-	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"

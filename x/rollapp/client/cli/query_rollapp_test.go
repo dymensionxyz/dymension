@@ -12,10 +12,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/dymensionxyz/dymension/testutil/network"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
-	"github.com/dymensionxyz/dymension/x/rollapp/client/cli"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/network"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // Prevent strconv unused error

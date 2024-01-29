@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	keeper "github.com/dymensionxyz/dymension/x/streamer/keeper"
+	keeper "github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 )

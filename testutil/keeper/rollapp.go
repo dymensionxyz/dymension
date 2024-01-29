@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"

@@ -5,11 +5,11 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 
-	"github.com/dymensionxyz/dymension/testutil/sample"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
-	sequencertypes "github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
