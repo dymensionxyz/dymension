@@ -27,7 +27,7 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappID string, rollappPacke
 
 // UpdateRollappPacketStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // It assumes that the packet has been previously stored with the pending status.
-func (k Keeper) UpdateRollappPacketStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus types.RollappPacket_Status) {
+func (k Keeper) UpdateRollappPacketStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus types.RollappPacket_Status) types.RollappPacket {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 
 	// Delete the old rollapp packet
@@ -41,6 +41,8 @@ func (k Keeper) UpdateRollappPacketStatus(ctx sdk.Context, rollappID string, rol
 	newKey := types.GetRollappPacketKey(rollappID, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(newKey, b)
+
+	return rollappPacket
 }
 
 // ListRollappPendingPackets retrieves a list of pending rollapp packets from the KVStore.
