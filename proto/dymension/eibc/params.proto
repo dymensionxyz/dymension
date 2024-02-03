@@ -3,7 +3,7 @@ package dymensionxyz.dymension.eibc;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/eibc/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Params defines the parameters for the module.
 message Params {

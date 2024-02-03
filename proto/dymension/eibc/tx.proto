@@ -1,7 +1,7 @@
 syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
-option go_package = "github.com/dymensionxyz/dymension/x/eibc/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {

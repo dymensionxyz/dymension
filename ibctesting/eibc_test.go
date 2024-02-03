@@ -13,9 +13,9 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	eibckeeper "github.com/dymensionxyz/dymension/x/eibc/keeper"
-	eibctypes "github.com/dymensionxyz/dymension/x/eibc/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 type EIBCTestSuite struct {

@@ -10,8 +10,8 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/dymensionxyz/dymension/testutil/sample"
-	eibcsimulation "github.com/dymensionxyz/dymension/x/eibc/simulation"
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	eibcsimulation "github.com/dymensionxyz/dymension/v3/x/eibc/simulation"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 // avoid unused import issue

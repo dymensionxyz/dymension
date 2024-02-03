@@ -2,9 +2,10 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 var _ rollapptypes.RollappHooks = &IBCMiddleware{}
@@ -34,7 +35,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		// Update status to finalized
-		im.keeper.UpdateRollappPacketWithStatus(ctx, rollappID, rollappPacket, commontypes.Status_FINALIZED)
+		rollappPacket = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappID, rollappPacket, commontypes.Status_FINALIZED)
 		// Call the relevant callback for each packet
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
@@ -42,23 +43,57 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			// Write the acknowledgement to the chain only if it is synchronous
 			if ack != nil {
-				_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-				if err != nil {
-					logger.Error("Error looking up module by channel", "rollappID", rollappID, "error", "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					continue
+				wrappedFunc := func(ctx sdk.Context) error {
+					_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
+					if err != nil {
+						return err
+					}
+					err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+					if err != nil {
+						return err
+					}
+					return nil
 				}
-				err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 				if err != nil {
 					logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					// Update the packet with the error
+					rollappPacket.Error = err.Error()
+					im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
 					continue
 				}
 			}
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
-			_ = im.app.OnAcknowledgementPacket(ctx, *rollappPacket.Packet, rollappPacket.Acknowledgement, rollappPacket.Relayer)
+			wrappedFunc := func(ctx sdk.Context) error {
+				err := im.app.OnAcknowledgementPacket(ctx, *rollappPacket.Packet, rollappPacket.Acknowledgement, rollappPacket.Relayer)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			if err != nil {
+				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				rollappPacket.Error = err.Error()
+				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				continue
+			}
 		case types.RollappPacket_ON_TIMEOUT:
 			logger.Debug("Calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
-			_ = im.app.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+			wrappedFunc := func(ctx sdk.Context) error {
+				err := im.app.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			if err != nil {
+				logger.Error("Error calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				rollappPacket.Error = err.Error()
+				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+			}
 		default:
 			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		}

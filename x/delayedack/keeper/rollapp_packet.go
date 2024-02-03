@@ -6,8 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.
@@ -78,7 +78,7 @@ func (k Keeper) UpdateRollappPacketRecipient(
 // UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus commontypes.Status) {
+func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus commontypes.Status) types.RollappPacket {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 
 	// Delete the old rollapp packet
@@ -99,6 +99,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappID string
 	if err != nil {
 		panic("Error after updating packet status: " + err.Error())
 	}
+	return rollappPacket
 }
 
 // ListRollappPendingPackets retrieves a list of pending rollapp packets from the KVStore.

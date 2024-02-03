@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 func NewDemandOrder(packetKey string, price string, fee string, denom string, recipient string) *DemandOrder {

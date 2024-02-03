@@ -8,8 +8,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	app "github.com/dymensionxyz/dymension/app"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	app "github.com/dymensionxyz/dymension/v3/app"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

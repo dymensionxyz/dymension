@@ -17,9 +17,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/dymensionxyz/dymension/x/streamer/client/cli"
-	"github.com/dymensionxyz/dymension/x/streamer/keeper"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 var (

@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/spf13/cobra"
 )
 

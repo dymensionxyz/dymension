@@ -4,8 +4,8 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 type msgServer struct {

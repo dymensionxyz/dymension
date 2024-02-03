@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // This is checked for no err when a proposal is made, and executed when a proposal passes.
@@ -63,7 +63,7 @@ func (k Keeper) UpdateDistrRecords(ctx sdk.Context, streamId uint64, records []t
 		return newRecords[i].GaugeId < newRecords[j].GaugeId
 	})
 
-	distrInfo, err := types.NewDistrInfo(newRecords)
+	distrInfo, err := k.NewDistrInfo(ctx, newRecords)
 	if err != nil {
 		return err
 	}

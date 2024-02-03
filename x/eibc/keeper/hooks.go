@@ -2,8 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	delayeacktypes "github.com/dymensionxyz/dymension/x/delayedack/types"
-	types "github.com/dymensionxyz/dymension/x/eibc/types"
+	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 var _ delayeacktypes.DelayedAckHooks = delayedAckHooks{}

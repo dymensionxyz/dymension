@@ -17,9 +17,9 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/dymensionxyz/dymension/x/eibc/client/cli"
-	"github.com/dymensionxyz/dymension/x/eibc/keeper"
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 var (

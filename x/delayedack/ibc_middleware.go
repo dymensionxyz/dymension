@@ -11,10 +11,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	keeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
-	eibctypes "github.com/dymensionxyz/dymension/x/eibc/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 const (
@@ -228,17 +228,26 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-
-	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
-		Packet:          &packet,
-		Acknowledgement: acknowledgement,
-		Status:          commontypes.Status_PENDING,
-		Relayer:         relayer,
-		ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
-		Type:            types.RollappPacket_ON_ACK,
+	// Run the underlying app's OnAcknowledgementPacket callback
+	// with cache context to avoid state changes and report the acknowledgement result.
+	// Only save the packet if the underlying app's callback succeeds.
+	cacheCtx, _ := ctx.CacheContext()
+	err = im.app.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
+	switch err {
+	case nil:
+		// Save the packet data to the store for later processing
+		rollappPacket := types.RollappPacket{
+			Packet:          &packet,
+			Acknowledgement: acknowledgement,
+			Status:          commontypes.Status_PENDING,
+			Relayer:         relayer,
+			ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
+			Type:            types.RollappPacket_ON_ACK,
+		}
+		im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+	default:
+		return err
 	}
-	im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
 
 	return nil
 }
@@ -288,16 +297,26 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
-		Packet:      &packet,
-		IsTimeout:   true,
-		Status:      commontypes.Status_PENDING,
-		Relayer:     relayer,
-		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-		Type:        types.RollappPacket_ON_TIMEOUT,
+	// Run the underlying app's OnTimeoutPacket callback
+	// with cache context to avoid state changes and report the timeout result.
+	// Only save the packet if the underlying app's callback succeeds.
+	cacheCtx, _ := ctx.CacheContext()
+	err = im.app.OnTimeoutPacket(cacheCtx, packet, relayer)
+	switch err {
+	case nil:
+		// Save the packet data to the store for later processing
+		rollappPacket := types.RollappPacket{
+			Packet:      &packet,
+			IsTimeout:   true,
+			Status:      commontypes.Status_PENDING,
+			Relayer:     relayer,
+			ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
+			Type:        types.RollappPacket_ON_TIMEOUT,
+		}
+		im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+	default:
+		return err
 	}
-	im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
 
 	return nil
 }

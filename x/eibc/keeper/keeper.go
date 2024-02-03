@@ -11,7 +11,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 type (

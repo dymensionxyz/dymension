@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	eibctypes "github.com/dymensionxyz/dymension/x/eibc/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 var _ eibctypes.EIBCHooks = eibcHooks{}

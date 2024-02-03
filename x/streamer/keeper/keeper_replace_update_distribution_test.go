@@ -2,11 +2,14 @@ package keeper_test
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
-	initialWeight := defaultDistrInfo.TotalWeight
+	distrInfo, err := types.NewDistrInfo(defaultDistrInfo)
+	suite.Require().NoError(err)
+
+	initialWeight := distrInfo.TotalWeight
 
 	tests := []struct {
 		name               string
@@ -32,7 +35,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 		},
 		{
 			name:               "happy flow - same gauges with same weights",
-			testingDistrRecord: defaultDistrInfo.Records,
+			testingDistrRecord: defaultDistrInfo,
 			expectErr:          false,
 			expectTotalWeight:  initialWeight,
 		},
@@ -53,7 +56,7 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 		},
 		{
 			name:               "Not existent stream.",
-			testingDistrRecord: defaultDistrInfo.Records,
+			testingDistrRecord: defaultDistrInfo,
 			expectErr:          true,
 			streamId:           12,
 		},
@@ -127,7 +130,10 @@ func (suite *KeeperTestSuite) TestReplaceDistrRecords() {
 }
 
 func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
-	initialWeight := defaultDistrInfo.TotalWeight
+	distrInfo, err := types.NewDistrInfo(defaultDistrInfo)
+	suite.Require().NoError(err)
+
+	initialWeight := distrInfo.TotalWeight
 
 	tests := []struct {
 		name               string
@@ -168,7 +174,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 		},
 		{
 			name:               "happy flow - same gauges with same weights",
-			testingDistrRecord: defaultDistrInfo.Records,
+			testingDistrRecord: defaultDistrInfo,
 			expectErr:          false,
 			expectTotalWeight:  initialWeight,
 		},
@@ -193,7 +199,7 @@ func (suite *KeeperTestSuite) TestUpdateDistrRecords() {
 		},
 		{
 			name:               "Not existent stream.",
-			testingDistrRecord: defaultDistrInfo.Records,
+			testingDistrRecord: defaultDistrInfo,
 			expectErr:          true,
 			streamId:           12,
 		},

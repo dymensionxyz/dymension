@@ -76,13 +76,19 @@ export PATH=$PATH:$(go env GOPATH)/bin
     export MONIKER_NAME="local"
     ```
 
-    Then, initialize a chain with a user:
-
+    Second, create genesis and init dymension chain:
     ```sh
     dymd init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
+    ```
+    Third, set parameters to ensure denom is udym:
+    ```sh
+    bash scripts/set_params.sh
+    ```
+    Then, add genesis account and provide token to the account:
+    ```sh 
     dymd keys add "$KEY_NAME" --keyring-backend test
-    dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 100000000000udym
-    dymd gentx "$KEY_NAME" 1000000dym --chain-id "$CHAIN_ID" --keyring-backend test
+    dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
+    dymd gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
     dymd collect-gentxs
     ```
 

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 // GetParams get all parameters as types.Params

@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
-	commontypes "github.com/dymensionxyz/dymension/x/common/types"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/stretchr/testify/require"
 )
 

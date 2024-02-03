@@ -10,7 +10,7 @@ import (
 	// "github.com/cosmos/cosmos-sdk/client/flags"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/dymension/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

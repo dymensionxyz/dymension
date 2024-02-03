@@ -4,7 +4,7 @@ package dymensionxyz.dymension.streamer;
 import "gogoproto/gogo.proto";
 import "dymension/streamer/distr_info.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 // ReplaceStreamDistributionProposal is a gov Content type for updating a stream
 // If a ReplaceStreamDistributionProposal passes, the proposal’s records
@@ -26,7 +26,7 @@ message ReplaceStreamDistributionProposal {
 
 // UpdateStreamDistributionProposal is a gov Content type for updating a stream
 // If a UpdateStreamDistributionProposal passes, all the DistrRecords
-// in the proposals are edited. An existing DistrRecord is not overriden unless
+// in the proposals are edited. An existing DistrRecord is not overridden unless
 // explicitly included in the proposal.
 // This differs from an ReplaceStreamDistributionProposal because it only does an
 // in place update of the DistrRecords for gauges explicitly mentioned in the

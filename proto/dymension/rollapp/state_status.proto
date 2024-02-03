@@ -3,7 +3,7 @@ package dymensionxyz.dymension.rollapp;
 import "gogoproto/gogo.proto";
 
 
-option go_package = "github.com/dymensionxyz/dymension/x/rollapp/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 enum StateStatus {
   option (gogoproto.goproto_enum_prefix) = false;

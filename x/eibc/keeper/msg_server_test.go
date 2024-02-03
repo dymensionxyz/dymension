@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-    "github.com/dymensionxyz/dymension/x/eibc/types"
-    "github.com/dymensionxyz/dymension/x/eibc/keeper"
-    keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {

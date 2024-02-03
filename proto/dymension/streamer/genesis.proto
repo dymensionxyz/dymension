@@ -6,7 +6,7 @@ import "google/protobuf/duration.proto";
 import "dymension/streamer/params.proto";
 import "dymension/streamer/stream.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/streamer/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 
 
 // GenesisState defines the streamer module's various parameters when first

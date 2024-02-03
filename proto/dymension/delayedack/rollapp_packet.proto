@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
 import "dymension/common/common.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/x/delayedack/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 message RollappPacket {
     ibc.core.channel.v1.Packet packet = 1;
@@ -20,6 +20,7 @@ message RollappPacket {
       ON_TIMEOUT = 2;
     } 
     Type type = 7;
+    string error = 8;
     
   
   }
