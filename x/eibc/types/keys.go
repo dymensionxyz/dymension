@@ -1,6 +1,8 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 var _ binary.ByteOrder
 
@@ -27,11 +29,17 @@ func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
 
-func GetDemandOrderKey(orderId string) []byte {
+// GetDemandOrderKey constructs a key for a specific DemandOrder.
+// The key is of the form "DemandOrder/{underlying-packet-status}/{orderId}".
+// The reason we add the status is that later we can clean up the non-active orders.
+func GetDemandOrderKey(packetStatus string, orderId string) []byte {
 	var key []byte
 
-	key = append(key, DemandOrderKeyPrefix...)
+	key = append(key, []byte(packetStatus)...)
+	key = append(key, []byte("/")...)
+
 	key = append(key, []byte(orderId)...)
+	key = append(key, []byte("/")...)
 
 	return key
 }

@@ -16,7 +16,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
 	// Add the demand orders
-	genesis.DemandOrders = k.GetAllDemandOrders(ctx)
+	genesis.DemandOrders = k.ListAllDemandOrders(ctx)
 
 	return genesis
 }

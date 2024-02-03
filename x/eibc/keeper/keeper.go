@@ -9,6 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -55,8 +56,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetDemandOrderKey(order.Id), k.cdc.MustMarshal(order))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
+	//TODO: FIXME -  Need to write a method of update demand order with status
+	store.Set(types.GetDemandOrderKey(order.TrackingPacketStatus.String(), order.Id), k.cdc.MustMarshal(order))
 
 	// Emit events
 	eventAttributes := []sdk.Attribute{
@@ -77,6 +79,25 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) {
 
 }
 
+// UpdateDemandOrderWithStatus deletes the current demand order and creates a new one with and updated packet status under a new key.
+// Updating the status should be called only with this method as it effects the key of the packet.
+// The assumption is that the passed demand order packet status field is not updated directly.
+func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types.DemandOrder, newStatus commontypes.Status) *types.DemandOrder {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
+
+	// Delete the old demand order
+	oldKey := types.GetDemandOrderKey(demandOrder.TrackingPacketStatus.String(), demandOrder.Id)
+	store.Delete(oldKey)
+
+	// Update the demand order
+	demandOrder.TrackingPacketStatus = newStatus
+
+	// Create a new demand with the updated status
+	k.SetDemandOrder(ctx, demandOrder)
+
+	return demandOrder
+}
+
 // This should be called only once per order.
 func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) {
 	order.IsFullfilled = true
@@ -89,8 +110,9 @@ func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfill
 }
 
 func (k Keeper) GetDemandOrder(ctx sdk.Context, id string) *types.DemandOrder {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetDemandOrderKey(id))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
+	// Im only interested in the pending orders
+	bz := store.Get(types.GetDemandOrderKey(commontypes.Status_PENDING.String(), id))
 	if bz == nil {
 		return nil
 	}
@@ -99,8 +121,8 @@ func (k Keeper) GetDemandOrder(ctx sdk.Context, id string) *types.DemandOrder {
 	return &order
 }
 
-// GetAllDemandOrders returns all demand orders. Shouldn't be exposed to the client.
-func (k Keeper) GetAllDemandOrders(
+// ListAllDemandOrders returns all demand orders. Shouldn't be exposed to the client.
+func (k Keeper) ListAllDemandOrders(
 	ctx sdk.Context,
 ) (list []types.DemandOrder) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
@@ -116,6 +138,28 @@ func (k Keeper) GetAllDemandOrders(
 		var val types.DemandOrder
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
+	}
+
+	return list
+}
+
+func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status) (list []*types.DemandOrder) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
+
+	// Build the prefix which is composed of  the status
+	var prefix []byte
+
+	prefix = append(prefix, []byte(status.String())...)
+	prefix = append(prefix, []byte("/")...)
+
+	// Iterate over the range from lastProofHeight to proofHeight
+	iterator := sdk.KVStorePrefixIterator(store, prefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.DemandOrder
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, &val)
 	}
 
 	return list
