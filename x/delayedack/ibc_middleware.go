@@ -8,8 +8,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	keeper "github.com/dymensionxyz/dymension/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}

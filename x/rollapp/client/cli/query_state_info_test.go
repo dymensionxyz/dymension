@@ -2,9 +2,10 @@ package cli_test
 
 import (
 	"fmt"
-	"google.golang.org/grpc/codes"
 	"strconv"
 	"testing"
+
+	"google.golang.org/grpc/codes"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
@@ -12,10 +13,10 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/status"
 
-	"github.com/dymensionxyz/dymension/testutil/network"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
-	"github.com/dymensionxyz/dymension/x/rollapp/client/cli"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/network"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // Prevent strconv unused error

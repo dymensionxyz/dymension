@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/x/delayedack/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // SetRollappPacket stores a rollapp packet in the KVStore.

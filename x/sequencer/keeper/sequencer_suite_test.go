@@ -3,11 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/app"
-	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"

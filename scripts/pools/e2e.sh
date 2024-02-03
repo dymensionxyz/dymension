@@ -7,9 +7,9 @@ create_asset_pool() {
 # create pools and pool gauges
 echo "====================="
 echo "Creating pools"
-echo "Creating udym/uatom pool 10K/10K"
+echo "Creating adym/uatom pool 10K/10K"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolA.json"
-echo "Creating udym/uusd pool 10K/10K"
+echo "Creating adym/uusd pool 10K/10K"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolB.json"
 
 # fund streamer

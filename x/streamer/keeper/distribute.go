@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,10 +59,18 @@ func (k Keeper) DistributeByWeights(ctx sdk.Context, coins sdk.Coins, distrInfo 
 // Distribute distributes coins from an array of streams to all eligible locks.
 func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, error) {
 	totalDistributedCoins := sdk.Coins{}
+	streamDistributedCoins := sdk.Coins{}
 	for _, stream := range streams {
-		streamDistributedCoins, err := k.distributeStream(ctx, stream)
+		wrappedDistributeFn := func(ctx sdk.Context) error {
+			var err error
+			streamDistributedCoins, err = k.distributeStream(ctx, stream)
+			return err
+		}
+
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrappedDistributeFn)
 		if err != nil {
-			return nil, err
+			ctx.Logger().Error("Failed to distribute stream", "streamID", stream.Id, "error", err.Error())
+			continue
 		}
 		totalDistributedCoins = totalDistributedCoins.Add(streamDistributedCoins...)
 	}
