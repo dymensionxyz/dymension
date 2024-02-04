@@ -208,22 +208,20 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	// Only save the packet if the underlying app's callback succeeds.
 	cacheCtx, _ := ctx.CacheContext()
 	err = im.app.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
-	switch err {
-	case nil:
-		// Save the packet data to the store for later processing
-		rollappPacket := types.RollappPacket{
-			RollappId:       chainID,
-			Packet:          &packet,
-			Acknowledgement: acknowledgement,
-			Status:          types.RollappPacket_PENDING,
-			Relayer:         relayer,
-			ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
-			Type:            types.RollappPacket_ON_ACK,
-		}
-		im.keeper.SetRollappPacket(ctx, rollappPacket)
-	default:
+	if err != nil {
 		return err
 	}
+	// Save the packet data to the store for later processing
+	rollappPacket := types.RollappPacket{
+		RollappId:       chainID,
+		Packet:          &packet,
+		Acknowledgement: acknowledgement,
+		Status:          types.RollappPacket_PENDING,
+		Relayer:         relayer,
+		ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
+		Type:            types.RollappPacket_ON_ACK,
+	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
 	return nil
 }
@@ -278,21 +276,19 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	// Only save the packet if the underlying app's callback succeeds.
 	cacheCtx, _ := ctx.CacheContext()
 	err = im.app.OnTimeoutPacket(cacheCtx, packet, relayer)
-	switch err {
-	case nil:
-		// Save the packet data to the store for later processing
-		rollappPacket := types.RollappPacket{
-			RollappId:   chainID,
-			Packet:      &packet,
-			Status:      types.RollappPacket_PENDING,
-			Relayer:     relayer,
-			ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-			Type:        types.RollappPacket_ON_TIMEOUT,
-		}
-		im.keeper.SetRollappPacket(ctx, rollappPacket)
-	default:
+	if err != nil {
 		return err
 	}
+	// Save the packet data to the store for later processing
+	rollappPacket := types.RollappPacket{
+		RollappId:   chainID,
+		Packet:      &packet,
+		Status:      types.RollappPacket_PENDING,
+		Relayer:     relayer,
+		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
+		Type:        types.RollappPacket_ON_TIMEOUT,
+	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
 	return nil
 }
