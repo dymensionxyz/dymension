@@ -13,15 +13,15 @@ import (
 // SetRollappPacket stores a rollapp packet in the KVStore.
 // It logs the saving of the packet and marshals the packet into bytes before storing.
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
-func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket) {
+func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPacket) {
 	logger := ctx.Logger()
-	logger.Debug("Saving rollapp packet", "rollappID", rollappID, "channel", rollappPacket.Packet.DestinationChannel,
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.DestinationChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(types.GetRollappPacketKey(
-		rollappID,
-		commontypes.Status_PENDING,
+		rollappPacket.RollappId,
+		rollappPacket.Status,
 		rollappPacket.ProofHeight,
 		*rollappPacket.Packet,
 	), b)
@@ -78,18 +78,18 @@ func (k Keeper) UpdateRollappPacketRecipient(
 // UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus commontypes.Status) types.RollappPacket {
+func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket types.RollappPacket, newStatus commontypes.Status) types.RollappPacket {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 
 	// Delete the old rollapp packet
-	oldKey := types.GetRollappPacketKey(rollappID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	oldKey := types.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	store.Delete(oldKey)
 
 	// Update the packet
 	rollappPacket.Status = newStatus
 
 	// Create a new rollapp packet with the updated status
-	newKey := types.GetRollappPacketKey(rollappID, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	newKey := types.GetRollappPacketKey(rollappPacket.RollappId, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(newKey, b)
 
@@ -135,6 +135,22 @@ func (k Keeper) ListRollappPendingPackets(
 		} else {
 			break
 		}
+	}
+
+	return list
+}
+
+func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []types.RollappPacket) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+
+	// Iterate over the range from lastProofHeight to proofHeight
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.RollappPacket
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
 	}
 
 	return list

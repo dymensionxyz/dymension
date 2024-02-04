@@ -8,11 +8,14 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-	//FIXME: should we set the rollapp packets in store?
+	for _, packet := range genState.RollappPackets {
+		k.SetRollappPacket(ctx, packet)
+	}
 }
 
 // ExportGenesis returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	genesis := types.DefaultGenesis()
-	return genesis
+	return &types.GenesisState{
+		RollappPackets: k.GetAllRollappPackets(ctx),
+	}
 }

@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -35,15 +36,18 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		// Update status to finalized
-		rollappPacket = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappID, rollappPacket, commontypes.Status_FINALIZED)
+		rollappPacket = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 		// Call the relevant callback for each packet
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
-			ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-			// Write the acknowledgement to the chain only if it is synchronous
-			if ack != nil {
-				wrappedFunc := func(ctx sdk.Context) error {
+			wrappedFunc := func(ctx sdk.Context) error {
+				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+				if !ack.Success() {
+					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
+				}
+				// Write the acknowledgement to the chain only if it is synchronous
+				if ack != nil {
 					_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
 					if err != nil {
 						return err
@@ -52,16 +56,17 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 					if err != nil {
 						return err
 					}
-					return nil
 				}
-				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-				if err != nil {
-					logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					// Update the packet with the error
-					rollappPacket.Error = err.Error()
-					im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
-					continue
-				}
+				return nil
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			if err != nil {
+				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				// Update the packet with the error
+				rollappPacket.Error = err.Error()
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
+				continue
+
 			}
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
@@ -76,7 +81,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			if err != nil {
 				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
 				continue
 			}
 		case types.RollappPacket_ON_TIMEOUT:
@@ -92,7 +97,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			if err != nil {
 				logger.Error("Error calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
 			}
 		default:
 			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)

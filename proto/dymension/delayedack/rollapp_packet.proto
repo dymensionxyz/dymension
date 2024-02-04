@@ -8,9 +8,9 @@ import "dymension/common/common.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 message RollappPacket {
-    ibc.core.channel.v1.Packet packet = 1;
-    bytes acknowledgement = 2;
-    bool isTimeout = 3;
+    string rollapp_id = 1;
+    ibc.core.channel.v1.Packet packet = 2;
+    bytes acknowledgement = 3;
     dymensionxyz.dymension.common.Status status = 4;
     uint64 ProofHeight = 5;
     bytes relayer = 6;
