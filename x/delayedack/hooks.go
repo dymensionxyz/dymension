@@ -36,7 +36,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		// Update the packet status
-		rollappPacket := im.keeper.UpdateRollappPacketStatus(ctx, rollappID, rollappPacket, types.RollappPacket_ACCEPTED)
+		rollappPacket := im.keeper.UpdateRollappPacketStatus(ctx, rollappPacket, types.RollappPacket_ACCEPTED)
 		// Call the relevant callback for each packet
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:

@@ -19,7 +19,7 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPac
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(types.GetRollappPacketKey(
 		rollappPacket.RollappId,
-		types.RollappPacket_PENDING,
+		rollappPacket.Status,
 		rollappPacket.ProofHeight,
 		*rollappPacket.Packet,
 	), b)
@@ -27,18 +27,18 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPac
 
 // UpdateRollappPacketStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // It assumes that the packet has been previously stored with the pending status.
-func (k Keeper) UpdateRollappPacketStatus(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket, newStatus types.RollappPacket_Status) types.RollappPacket {
+func (k Keeper) UpdateRollappPacketStatus(ctx sdk.Context, rollappPacket types.RollappPacket, newStatus types.RollappPacket_Status) types.RollappPacket {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 
 	// Delete the old rollapp packet
-	oldKey := types.GetRollappPacketKey(rollappID, types.RollappPacket_PENDING, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	oldKey := types.GetRollappPacketKey(rollappPacket.RollappId, types.RollappPacket_PENDING, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	store.Delete(oldKey)
 
 	// Update the packet
 	rollappPacket.Status = newStatus
 
 	// Create a new rollapp packet with the updated status
-	newKey := types.GetRollappPacketKey(rollappID, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	newKey := types.GetRollappPacketKey(rollappPacket.RollappId, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(newKey, b)
 
