@@ -36,6 +36,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	//To init the sdk config
+	_ "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -75,7 +78,6 @@ type SetupOptions struct {
 func SetupTestingApp() (*App, GenesisState) {
 	db := dbm.NewMemDB()
 	encCdc := MakeEncodingConfig()
-	params.SetAddressPrefixes()
 
 	app := New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encCdc, EmptyAppOptions{})
 	return app, NewDefaultGenesisState(encCdc.Codec)
