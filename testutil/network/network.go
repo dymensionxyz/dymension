@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmdb "github.com/tendermint/tm-db"
 
-	"github.com/dymensionxyz/dymension/app"
+	"github.com/dymensionxyz/dymension/v3/app"
 )
 
 type (

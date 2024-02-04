@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 type msgServer struct {

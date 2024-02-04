@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
 
@@ -32,9 +32,11 @@ func GetCmdStreams() (*osmocli.QueryDescriptor, *types.StreamsRequest) {
 // GetCmdToDistributeCoins returns coins that are going to be distributed.
 func GetCmdToDistributeCoins() (*osmocli.QueryDescriptor, *types.ModuleToDistributeCoinsRequest) {
 	return &osmocli.QueryDescriptor{
-		Use:   "to-distribute-coins",
-		Short: "Query coins that is going to be distributed",
-		Long:  `{{.Short}}`}, &types.ModuleToDistributeCoinsRequest{}
+			Use:   "to-distribute-coins",
+			Short: "Query coins that is going to be distributed",
+			Long: `This command allows you to query the coins that are scheduled to be distributed.
+		It returns a list of coins with their denominations and amounts.`},
+		&types.ModuleToDistributeCoinsRequest{}
 }
 
 // GetCmdStreamByID returns a stream by ID.
@@ -50,15 +52,21 @@ func GetCmdStreamByID() (*osmocli.QueryDescriptor, *types.StreamByIDRequest) {
 // GetCmdActiveStreams returns active streams.
 func GetCmdActiveStreams() (*osmocli.QueryDescriptor, *types.ActiveStreamsRequest) {
 	return &osmocli.QueryDescriptor{
-		Use:   "active-streams",
-		Short: "Query active streams",
-		Long:  `{{.Short}}`}, &types.ActiveStreamsRequest{}
+			Use:   "active-streams",
+			Short: "Query active streams",
+			Long: `This command allows you to query all active streams.
+		An active stream is a stream that is currently in progress.
+		The command returns a list of active streams with their details.`},
+		&types.ActiveStreamsRequest{}
 }
 
 // GetCmdUpcomingStreams returns scheduled streams.
 func GetCmdUpcomingStreams() (*osmocli.QueryDescriptor, *types.UpcomingStreamsRequest) {
 	return &osmocli.QueryDescriptor{
-		Use:   "upcoming-streams",
-		Short: "Query upcoming streams",
-		Long:  `{{.Short}}`}, &types.UpcomingStreamsRequest{}
+			Use:   "upcoming-streams",
+			Short: "Query upcoming streams",
+			Long: `This command allows you to query all upcoming streams.
+		An upcoming stream is a stream that is scheduled to start in the future.
+		The command returns a list of upcoming streams with their details, including the start time, end time, and the coins it contains.`},
+		&types.UpcomingStreamsRequest{}
 }

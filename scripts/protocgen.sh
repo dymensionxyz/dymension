@@ -23,7 +23,7 @@ cd ..
 # move proto files to the right places
 #
 # Note: Proto files are suffixed with the current binary version.
-cp -r github.com/dymensionxyz/dymension/* ./
+cp -r github.com/dymensionxyz/dymension/v*/* ./
 
 rm -rf github.com
 

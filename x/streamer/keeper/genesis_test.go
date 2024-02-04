@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	app "github.com/dymensionxyz/dymension/app"
+	app "github.com/dymensionxyz/dymension/v3/app"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // TestStreamerExportGenesis tests export genesis command for the streamer module.

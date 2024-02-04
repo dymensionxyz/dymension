@@ -3,7 +3,6 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-
 	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
@@ -43,11 +42,12 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		evmos_cosmosante.RejectMessagesDecorator{}, // reject MsgEthereumTxs
-		evmos_cosmosante.NewAuthzLimiterDecorator(
-			// disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator(), // reject MsgEthereumTxs
+		evmos_cosmosante.NewAuthzLimiterDecorator( // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
+			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
+			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
 		),
 
 		ante.NewSetUpContextDecorator(),
@@ -78,11 +78,12 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		evmos_cosmosante.RejectMessagesDecorator{}, // reject MsgEthereumTxs
-		evmos_cosmosante.NewAuthzLimiterDecorator(
-			// disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
+		evmos_cosmosante.NewAuthzLimiterDecorator( // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
+			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
+			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
 		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),

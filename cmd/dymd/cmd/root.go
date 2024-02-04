@@ -31,8 +31,8 @@ import (
 
 	// this line is used by starport scaffolding # root/moduleImport
 
-	"github.com/dymensionxyz/dymension/app"
-	appparams "github.com/dymensionxyz/dymension/app/params"
+	"github.com/dymensionxyz/dymension/v3/app"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	ethermintclient "github.com/evmos/evmos/v12/client"
 	"github.com/evmos/evmos/v12/crypto/hd"

@@ -5,8 +5,8 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/dymensionxyz/dymension/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
