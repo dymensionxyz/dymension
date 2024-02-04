@@ -60,42 +60,37 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
 - Using the setup script:
 
-  This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
+    This method is preferred as it preconfigured to support [running rollapps locally](https://github.com/dymensionxyz/roller)
 
-  ```sh
-  bash scripts/setup_local.sh
-  ```
+    ```sh
+    bash scripts/setup_local.sh
+    ```
 
 - Manually:
 
-  First, set the following environment variables:
+    First, set the following environment variables:
 
-  ```sh
-  export CHAIN_ID="dymension_100-1"
-  export KEY_NAME="local-user"
-  export MONIKER_NAME="local"
-  ```
+    ```sh
+    export CHAIN_ID="dymension_100-1"
+    export KEY_NAME="local-user"
+    export MONIKER_NAME="local"
+    ```
 
-  Second, create genesis and init dymension chain:
-
-  ```sh
-  dymd init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
-  ```
-
-  Third, set parameters to ensure denom is udym:
-
-  ```sh
-  bash scripts/set_params.sh
-  ```
-
-  Then, add genesis account and provide token to the account:
-
-  ```sh
-  dymd keys add "$KEY_NAME" --keyring-backend test
-  dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
-  dymd gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
-  dymd collect-gentxs
-  ```
+    Second, create genesis and init dymension chain:
+    ```sh
+    dymd init "$MONIKER_NAME" --chain-id "$CHAIN_ID"
+    ```
+    Third, set parameters to ensure denom is udym:
+    ```sh
+    bash scripts/set_params.sh
+    ```
+    Then, add genesis account and provide token to the account:
+    ```sh 
+    dymd keys add "$KEY_NAME" --keyring-backend test
+    dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" 1000dym
+    dymd gentx "$KEY_NAME" 670dym --chain-id "$CHAIN_ID" --keyring-backend test
+    dymd collect-gentxs
+    ```
 
 ## Running the Chain
 
@@ -149,13 +144,11 @@ dymd q lockup module-balance
 
 Every minute a share of the rewards will be distributed!
 
+
 validate with:
 
 ```sh
 dymd q incentives active-gauges
-
-# alternatively, watch the outpup - you will see the "amount" change every minute
-#  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
 ```
 
 If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
