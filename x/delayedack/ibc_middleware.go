@@ -146,13 +146,14 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// Save the packet data to the store for later processing
 	rollappPacket := types.RollappPacket{
+		RollappId:   chainID,
 		Packet:      &packet,
 		Status:      types.RollappPacket_PENDING,
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
 		Type:        types.RollappPacket_ON_RECV,
 	}
-	im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
 	return nil
 }
@@ -211,6 +212,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	case nil:
 		// Save the packet data to the store for later processing
 		rollappPacket := types.RollappPacket{
+			RollappId:       chainID,
 			Packet:          &packet,
 			Acknowledgement: acknowledgement,
 			Status:          types.RollappPacket_PENDING,
@@ -218,7 +220,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 			ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
 			Type:            types.RollappPacket_ON_ACK,
 		}
-		im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+		im.keeper.SetRollappPacket(ctx, rollappPacket)
 	default:
 		return err
 	}
@@ -280,13 +282,14 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	case nil:
 		// Save the packet data to the store for later processing
 		rollappPacket := types.RollappPacket{
+			RollappId:   chainID,
 			Packet:      &packet,
 			Status:      types.RollappPacket_PENDING,
 			Relayer:     relayer,
 			ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
 			Type:        types.RollappPacket_ON_TIMEOUT,
 		}
-		im.keeper.SetRollappPacket(ctx, chainID, rollappPacket)
+		im.keeper.SetRollappPacket(ctx, rollappPacket)
 	default:
 		return err
 	}

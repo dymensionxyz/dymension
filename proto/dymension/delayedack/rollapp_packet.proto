@@ -7,22 +7,23 @@ import "ibc/core/channel/v1/channel.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 message RollappPacket {
-    ibc.core.channel.v1.Packet packet = 1;
-    bytes acknowledgement = 2;
+    string rollapp_id = 1;
+    ibc.core.channel.v1.Packet packet = 2;
+    bytes acknowledgement = 3;
     enum Status {
       PENDING = 0;
       ACCEPTED = 1;
       REJECTED = 2;
     }
-    Status status = 3;
-    uint64 ProofHeight = 4;
-    string error = 5;
-    bytes relayer = 6;
+    Status status = 4;
+    uint64 ProofHeight = 5;
+    string error = 6;
+    bytes relayer = 7;
     enum Type {
       ON_RECV = 0;
       ON_ACK = 1;
       ON_TIMEOUT = 2;
     }
-    Type type = 7;
+    Type type = 8;
   
   }

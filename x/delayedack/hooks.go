@@ -64,7 +64,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
 				continue
 
 			}
@@ -81,7 +81,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			if err != nil {
 				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
 				continue
 			}
 		case types.RollappPacket_ON_TIMEOUT:
@@ -97,7 +97,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			if err != nil {
 				logger.Error("Error calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				im.keeper.SetRollappPacket(ctx, rollappPacket)
 			}
 		default:
 			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)

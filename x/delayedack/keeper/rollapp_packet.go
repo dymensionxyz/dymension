@@ -11,14 +11,14 @@ import (
 // SetRollappPacket stores a rollapp packet in the KVStore.
 // It logs the saving of the packet and marshals the packet into bytes before storing.
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
-func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappID string, rollappPacket types.RollappPacket) {
+func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPacket) {
 	logger := ctx.Logger()
-	logger.Debug("Saving rollapp packet", "rollappID", rollappID, "channel", rollappPacket.Packet.DestinationChannel,
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.DestinationChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(types.GetRollappPacketKey(
-		rollappID,
+		rollappPacket.RollappId,
 		types.RollappPacket_PENDING,
 		rollappPacket.ProofHeight,
 		*rollappPacket.Packet,
@@ -78,6 +78,22 @@ func (k Keeper) ListRollappPendingPackets(
 		} else {
 			break
 		}
+	}
+
+	return list
+}
+
+func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []types.RollappPacket) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+
+	// Iterate over the range from lastProofHeight to proofHeight
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.RollappPacket
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
 	}
 
 	return list
