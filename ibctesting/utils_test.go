@@ -31,7 +31,6 @@ func ConvertToApp(chain *ibctesting.TestChain) *app.App {
 	return app
 }
 
-// TODO: Change IBCTestUtilSuite to IBCUtilsTestSuite and wrap each test in a subsuite
 // IBCTestUtilSuite is a testing suite to test keeper functions.
 type IBCTestUtilSuite struct {
 	suite.Suite

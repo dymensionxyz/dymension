@@ -79,20 +79,17 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) {
 
 }
 
+func (k Keeper) deleteDemandOrder(ctx sdk.Context, order *types.DemandOrder) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
+	store.Delete(types.GetDemandOrderKey(order.TrackingPacketStatus.String(), order.Id))
+}
+
 // UpdateDemandOrderWithStatus deletes the current demand order and creates a new one with and updated packet status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed demand order packet status field is not updated directly.
 func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types.DemandOrder, newStatus commontypes.Status) *types.DemandOrder {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.DemandOrderKeyPrefix))
-
-	// Delete the old demand order
-	oldKey := types.GetDemandOrderKey(demandOrder.TrackingPacketStatus.String(), demandOrder.Id)
-	store.Delete(oldKey)
-
-	// Update the demand order
+	k.deleteDemandOrder(ctx, demandOrder)
 	demandOrder.TrackingPacketStatus = newStatus
-
-	// Create a new demand with the updated status
 	k.SetDemandOrder(ctx, demandOrder)
 
 	return demandOrder
