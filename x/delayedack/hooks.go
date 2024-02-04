@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -40,10 +41,13 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
-			ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-			// Write the acknowledgement to the chain only if it is synchronous
-			if ack != nil {
-				wrappedFunc := func(ctx sdk.Context) error {
+			wrappedFunc := func(ctx sdk.Context) error {
+				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+				if !ack.Success() {
+					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
+				}
+				// Write the acknowledgement to the chain only if it is synchronous
+				if ack != nil {
 					_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
 					if err != nil {
 						return err
@@ -52,16 +56,17 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 					if err != nil {
 						return err
 					}
-					return nil
 				}
-				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-				if err != nil {
-					logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					// Update the packet with the error
-					rollappPacket.Error = err.Error()
-					im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
-					continue
-				}
+				return nil
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			if err != nil {
+				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				// Update the packet with the error
+				rollappPacket.Error = err.Error()
+				im.keeper.SetRollappPacket(ctx, rollappID, rollappPacket)
+				continue
+
 			}
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
