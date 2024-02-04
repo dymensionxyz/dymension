@@ -281,7 +281,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		// Save the packet data to the store for later processing
 		rollappPacket := types.RollappPacket{
 			Packet:      &packet,
-			IsTimeout:   true,
 			Status:      types.RollappPacket_PENDING,
 			Relayer:     relayer,
 			ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
