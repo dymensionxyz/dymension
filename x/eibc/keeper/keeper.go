@@ -96,14 +96,15 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 }
 
 // This should be called only once per order.
-func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) {
+func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
 	order.IsFullfilled = true
 	k.SetDemandOrder(ctx, order)
 	// Call hooks if fulfilled. This hook should be called only once per fulfilment.
 	err := k.hooks.AfterDemandOrderFulfilled(ctx, order, fulfillerAddress.String())
 	if err != nil {
-		panic("Error calling AfterDemandOrderFulfilled hook: " + err.Error())
+		return err
 	}
+	return nil
 }
 
 func (k Keeper) GetDemandOrder(ctx sdk.Context, id string) *types.DemandOrder {

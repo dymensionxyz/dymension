@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -26,8 +24,7 @@ func (k Keeper) GetEIBCHooks() eibctypes.EIBCHooks {
 func (k eibcHooks) AfterDemandOrderFulfilled(ctx sdk.Context, demandOrder *eibctypes.DemandOrder, fulfillerAddress string) error {
 	err := k.UpdateRollappPacketRecipient(ctx, demandOrder.TrackingPacketKey, fulfillerAddress)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to update rollapp packet recipient: %v", err))
-
+		return err
 	}
 	return nil
 }
