@@ -21,7 +21,6 @@ CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
 
-
 # Setting non-default ports to avoid port conflicts when running local rollapp
 SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
 P2P_ADDRESS=${P2P_ADDRESS:-"0.0.0.0:36656"}
@@ -94,7 +93,6 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   enable_monitoring
 fi
 
-
 echo "Initialize AMM accounts? (Y/n) "
 read -r answer
 if [ ! "$answer" != "${answer#[Nn]}" ] ;then
@@ -107,9 +105,9 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
   dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
 fi
 
-
 dymd keys add "$KEY_NAME" --keyring-backend test
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
+
