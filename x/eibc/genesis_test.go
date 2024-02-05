@@ -42,6 +42,7 @@ func TestGenesis(t *testing.T) {
 	eibc.InitGenesis(ctx, *k, genesisState)
 	got := eibc.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
+	require.ElementsMatch(t, genesisState.DemandOrders, got.DemandOrders)
 
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
