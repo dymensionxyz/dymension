@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -130,7 +131,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 }
 
 // TestEIBCDemandOrderCreation tests the creation of a demand order and its fullfillment logic.
-// It starts by trannsferring the supplier the relevant IBC tokens which it will use to possibly fulfill the demand order.
+// It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
 	suite.CreateRollapp()
@@ -208,11 +209,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			demandOrders := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
-			lastDemandOrder := demandOrders[len(demandOrders)-1]
+			// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
+			lastDemandOrder := getLastDemandOrderByChannelandSequence(demandOrders)
 			// Validate demand order wasn't fulfilled but finalized
 			suite.Require().False(lastDemandOrder.IsFullfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, lastDemandOrder.TrackingPacketStatus)
-
 			// Send another EIBC packet but this time fulfill it with the fulfiller balance.
 			// Increase the block height to make sure the next ibc packet won't be considered already finalized when sent
 			suite.rollappChain.NextBlock()
@@ -220,18 +221,12 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			rollappStateIndex = rollappStateIndex + 1
 			suite.UpdateRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 			packet = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
-
 			// Validate demand order created
 			demandOrders = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			// Get the last demand order created
-			for _, order := range demandOrders {
-				if order.Id != lastDemandOrder.Id {
-					lastDemandOrder = order
-					break
-				}
-			}
+			lastDemandOrder = getLastDemandOrderByChannelandSequence(demandOrders)
 			// Try and fulfill the demand order
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
@@ -323,4 +318,21 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 	}
 	return packet
 
+}
+
+// Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence
+func getLastDemandOrderByChannelandSequence(demandOrders []eibctypes.DemandOrder) eibctypes.DemandOrder {
+	var maxPacketSequence string
+	var lastDemandOrder eibctypes.DemandOrder
+	for _, order := range demandOrders {
+		packetKey := order.TrackingPacketKey
+		splitKey := strings.Split(packetKey, "/")
+		channelInfo := splitKey[len(splitKey)-2]            // Get the channel info part
+		packetSequence := strings.Split(channelInfo, "-")[2] // Get the suffix part
+		if packetSequence > maxPacketSequence {
+			maxPacketSequence = packetSequence
+			lastDemandOrder = order
+		}
+	}
+	return lastDemandOrder
 }

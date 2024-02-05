@@ -102,25 +102,24 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket ty
 	return rollappPacket
 }
 
-// ListRollappPendingPackets retrieves a list of pending rollapp packets from the KVStore.
+// ListRollappPacketsByStatus retrieves a list of pending rollapp packets from the KVStore.
 // It builds a prefix using the rollappID and the pending status, and iterates over the range from lastProofHeight to proofHeight.
 // If the packet's proofHeight is less than or equal to the maxProofHeight, it is added to the list.
+// if maxProofHeight is 0, all packets are returned.
 // The function returns the list of pending packets.
-func (k Keeper) ListRollappPendingPackets(
+func (k Keeper) ListRollappPacketsByStatus(
 	ctx sdk.Context,
-	rollappId string,
+	status commontypes.Status,
 	maxProofHeight uint64,
 ) (list []types.RollappPacket) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
 
 	// Build the prefix which is composed of the rollappID and the status
 	var prefix []byte
-	prefix = append(prefix, []byte(rollappId)...)
-	prefix = append(prefix, []byte("/")...)
 
-	// Append the pending status to the prefix
-	pendingStatusBytes := []byte(fmt.Sprint(commontypes.Status_PENDING))
-	prefix = append(prefix, pendingStatusBytes...)
+	// Append the  status to the prefix
+	statusBytes := []byte(fmt.Sprint(status))
+	prefix = append(prefix, statusBytes...)
 	prefix = append(prefix, []byte("/")...)
 
 	// Iterate over the range from lastProofHeight to proofHeight
@@ -130,7 +129,7 @@ func (k Keeper) ListRollappPendingPackets(
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.RollappPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.ProofHeight <= maxProofHeight {
+		if maxProofHeight == 0 || val.ProofHeight <= maxProofHeight {
 			list = append(list, val)
 		} else {
 			break

@@ -37,16 +37,18 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 	require.Equal(t, 5, len(packets))
 
 	// Get the packets until height 6
-	packets = keeper.ListRollappPendingPackets(ctx, rollappID, 6)
+	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 6)
 	require.Equal(t, 3, len(packets))
 
 	// Update the packet status to finalized
 	for _, packet := range packets {
 		keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
 	}
+	finalizedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
+	require.Equal(t, 3, len(finalizedPackets))
 
 	// Get the packets until height 14
-	packets = keeper.ListRollappPendingPackets(ctx, rollappID, 14)
+	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 14)
 	require.Equal(t, 2, len(packets))
 }
 

@@ -24,12 +24,12 @@ func GetRollappPacketKey(
 ) []byte {
 	var key []byte
 
-	rollappIdBytes := []byte(rollappId)
-	key = append(key, rollappIdBytes...)
-	key = append(key, []byte("/")...)
-
 	statusBytes := []byte(fmt.Sprint(status))
 	key = append(key, statusBytes...)
+	key = append(key, []byte("/")...)
+
+	rollappIdBytes := []byte(rollappId)
+	key = append(key, rollappIdBytes...)
 	key = append(key, []byte("/")...)
 
 	// %020d formats the integer with leading zeros, up to a width of 20 digits.
