@@ -91,13 +91,13 @@ build: go.sum
 ###############################################################################
 
 # Executes IBC tests via rollup-e2e-testing
-ictest-ibc:
+e2e-test-ibc:
 	cd e2e && go test -timeout=25m -race -v -run TestIBCTransfer .
 
 # Executes all tests via rollup-e2e-testing
-ictest-all: ictest-ibc
+e2e-test-all: ictest-ibc
 
-.PHONY: ictest-ibc ictest-all
+.PHONY: e2e-test-ibc e2e-test-all
 
 ###############################################################################
 ###                                Proto                                    ###

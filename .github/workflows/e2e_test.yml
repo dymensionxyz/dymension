@@ -30,4 +30,4 @@ jobs:
           with:
             go-version: 1.19
 
-        - run: make ictest-ibc
+        - run: make e2e-test-ibc
