@@ -23,13 +23,7 @@ jobs:
       
         - name: Build image
           id: build_image
-          uses: docker/build-push-action@v3
-          with:
-            file: Dockerfile
-            context: .
-            platforms: linux/amd64
-            tags: |
-                ghcr.io/dymensionxyz/dymension:e2e
+          run: docker build . -t "ghcr.io/dymensionxyz/dymension:e2e" 
 
         - name: Set up Go 1.19
           uses: actions/setup-go@v3
