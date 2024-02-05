@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/gogo/protobuf/proto"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -40,7 +41,12 @@ func (k Keeper) GetStreamFromIDs(ctx sdk.Context, streamIDs []uint64) ([]types.S
 
 // GetStreams returns upcoming, active, and finished streams.
 func (k Keeper) GetStreams(ctx sdk.Context) []types.Stream {
-	return k.getStreamsFromIterator(ctx, k.StreamsIterator(ctx))
+	streams := k.getStreamsFromIterator(ctx, k.StreamsIterator(ctx))
+	// Assuming streams is your []Stream slice
+	sort.Slice(streams, func(i, j int) bool {
+		return streams[i].Id < streams[j].Id
+	})
+	return streams
 }
 
 // GetNotFinishedStreams returns both upcoming and active streams.

@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/dymensionxyz/dymension/x/streamer/keeper"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
@@ -27,12 +27,7 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 
 // HandleCreateStreamProposal is a handler for executing a passed community spend proposal
 func HandleCreateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.CreateStreamProposal) error {
-	distrInfo, err := k.NewDistrInfo(ctx, p.DistributeToRecords)
-	if err != nil {
-		return err
-	}
-
-	_, err = k.CreateStream(ctx, p.Coins, distrInfo, p.StartTime, p.DistrEpochIdentifier, p.NumEpochsPaidOver)
+	_, err := k.CreateStream(ctx, p.Coins, p.DistributeToRecords, p.StartTime, p.DistrEpochIdentifier, p.NumEpochsPaidOver)
 	if err != nil {
 		return err
 	}

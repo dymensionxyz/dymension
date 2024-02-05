@@ -10,9 +10,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/dymensionxyz/dymension/testutil/sample"
-	rollappsimulation "github.com/dymensionxyz/dymension/x/rollapp/simulation"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	rollappsimulation "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // avoid unused import issue

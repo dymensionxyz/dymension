@@ -5,8 +5,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
-	cli "github.com/dymensionxyz/dymension/x/streamer/client/cli"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	cli "github.com/dymensionxyz/dymension/v3/x/streamer/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
 

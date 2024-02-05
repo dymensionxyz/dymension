@@ -5,8 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/x/sequencer/keeper"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // NewHandler ...

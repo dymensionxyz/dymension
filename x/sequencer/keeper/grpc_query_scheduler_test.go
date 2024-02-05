@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/dymensionxyz/dymension/testutil/keeper"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
-	"github.com/dymensionxyz/dymension/x/sequencer/types"
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // Prevent strconv unused error

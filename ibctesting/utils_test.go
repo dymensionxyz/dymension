@@ -7,8 +7,8 @@ import (
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	app "github.com/dymensionxyz/dymension/app"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	app "github.com/dymensionxyz/dymension/v3/app"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -49,7 +49,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *KeeperTestSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)               // initializes 2 test chains
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)               // initializes 3 test chains
 	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))     // convenience and readability
 	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2))  // convenience and readability
 	suite.rollappChain = suite.coordinator.GetChain(ibctesting.GetChainID(3)) // convenience and readability
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) FinalizeRollapp() error {
 
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
-	// uppdate the LatestStateInfoIndex of the rollapp
+	// update the LatestStateInfoIndex of the rollapp
 	rollappKeeper.SetLatestFinalizedStateIndex(ctx, stateInfoIdx)
 
 	err := rollappKeeper.GetHooks().AfterStateFinalized(

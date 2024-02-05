@@ -8,7 +8,7 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -48,12 +48,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateStream creates a stream and sends coins to the stream.
-func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.DistrInfo, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
+func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) (uint64, error) {
 	if !coins.IsAllPositive() {
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
-	if err := distrInfo.Validate(); err != nil {
+	distrInfo, err := k.NewDistrInfo(ctx, records)
+	if err != nil {
 		return 0, err
 	}
 
@@ -73,6 +74,11 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.
 		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
 	}
 
+	if startTime.Before(ctx.BlockTime()) {
+		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
+		startTime = ctx.BlockTime()
+	}
+
 	stream := types.NewStream(
 		k.GetLastStreamID(ctx)+1,
 		distrInfo,
@@ -82,7 +88,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, distrInfo *types.
 		numEpochsPaidOver,
 	)
 
-	err := k.setStream(ctx, &stream)
+	err = k.setStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}

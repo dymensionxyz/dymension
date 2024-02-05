@@ -7,7 +7,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
 

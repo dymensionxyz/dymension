@@ -1,10 +1,12 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/stretchr/testify/require"
 )
 
 func (suite *KeeperTestSuite) TestAllocateToGauges() {
@@ -63,9 +65,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 			keeper := suite.App.StreamerKeeper
 
 			// create a stream
-			distInfo, err := types.NewDistrInfo(test.testingDistrRecord)
-			suite.Require().NoError(err)
-			suite.CreateStream(distInfo, sdk.NewCoins(test.mintedCoins), time.Now(), "day", 1)
+			suite.CreateStream(test.testingDistrRecord, sdk.NewCoins(test.mintedCoins), time.Now(), "day", 1)
 
 			// move all created streams from upcoming to active
 			suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -88,4 +88,28 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 			}
 		})
 	}
+}
+
+func TestNewDistrInfo(t *testing.T) {
+	// Test case: valid records
+	records := []types.DistrRecord{
+		{Weight: sdk.NewInt(1)},
+		{Weight: sdk.NewInt(2)},
+	}
+	distrInfo, err := types.NewDistrInfo(records)
+	require.NoError(t, err)
+	require.Equal(t, distrInfo.TotalWeight, sdk.NewInt(3))
+
+	// Test case: invalid record
+	records = []types.DistrRecord{
+		{Weight: sdk.NewInt(-1)},
+	}
+	distrInfo, err = types.NewDistrInfo(records)
+	require.Error(t, err)
+
+	// Test case: total weight not positive
+	records = []types.DistrRecord{}
+	distrInfo, err = types.NewDistrInfo(records)
+	require.Error(t, err)
+	require.Equal(t, err, types.ErrDistrInfoNotPositiveWeight)
 }

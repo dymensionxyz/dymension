@@ -18,8 +18,8 @@ import (
 	"gonum.org/v1/gonum/floats"
 	"gonum.org/v1/gonum/stat"
 
-	"github.com/dymensionxyz/dymension/app"
-	rollapptypes "github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/app"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 const (

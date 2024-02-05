@@ -9,8 +9,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	fraudtypes "github.com/dymensionxyz/dymension/app/fraudproof"
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	fraudtypes "github.com/dymensionxyz/dymension/v3/app/fraudproof"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type (

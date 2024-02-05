@@ -24,7 +24,7 @@ import (
 
 	rollappevm "github.com/dymensionxyz/rollapp-evm/app"
 
-	appparams "github.com/dymensionxyz/dymension/app/params"
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	_ "github.com/evmos/evmos/v12/crypto/codec"
 	_ "github.com/evmos/evmos/v12/crypto/ethsecp256k1"
