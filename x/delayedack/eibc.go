@@ -69,7 +69,10 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	demandOrderPrice := amountInt.Sub(feeInt).String()
 	demandOrderDenom := im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	// Create the demand order and validate it
-	eibcDemandOrder := eibctypes.NewDemandOrder(rollappPacketStoreKey, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
+	eibcDemandOrder, err := eibctypes.NewDemandOrder(rollappPacketStoreKey, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create eibc demand order, %s", err)
+	}
 	if err := eibcDemandOrder.Validate(); err != nil {
 		return nil, fmt.Errorf("Failed to validate eibc data, %s", err)
 	}

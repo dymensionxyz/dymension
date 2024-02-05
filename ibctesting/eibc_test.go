@@ -246,7 +246,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().NoError(err)
 
 			// Validate eibc packet recipient has been updated
-			rollappPacket := delayedAckKeeper.GetRollappPacket(suite.hubChain.GetContext(), lastDemandOrder.TrackingPacketKey)
+			rollappPacket, err := delayedAckKeeper.GetRollappPacket(suite.hubChain.GetContext(), lastDemandOrder.TrackingPacketKey)
+			suite.Require().NoError(err)
 			var data transfertypes.FungibleTokenPacketData
 			err = transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
 			suite.Require().NoError(err)

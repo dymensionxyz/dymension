@@ -36,7 +36,19 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		// Update status to finalized
-		rollappPacket = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+		wrappedFunc := func(ctx sdk.Context) error {
+			var err error
+			rollappPacket, err = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+		if err != nil {
+			logger.Error("Error finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type, "error", err.Error())
+			continue
+		}
 		// Call the relevant callback for each packet
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
@@ -64,8 +76,18 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappPacket)
-				continue
+				wrappedFunc := func(ctx sdk.Context) error {
+					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+				if err != nil {
+					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					continue
+				}
 
 			}
 		case types.RollappPacket_ON_ACK:
@@ -80,8 +102,20 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappPacket)
+				wrappedFunc := func(ctx sdk.Context) error {
+					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+				if err != nil {
+					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					continue
+				}
 				continue
 			}
 		case types.RollappPacket_ON_TIMEOUT:
@@ -96,8 +130,20 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				logger.Error("Error calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				im.keeper.SetRollappPacket(ctx, rollappPacket)
+				wrappedFunc := func(ctx sdk.Context) error {
+					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
+					if err != nil {
+						return err
+					}
+					return nil
+				}
+				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+				if err != nil {
+					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
+					continue
+				}
 			}
 		default:
 			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
