@@ -18,4 +18,5 @@ var (
 	ErrFullfillerInsufficientBalance = sdkerrors.Register(ModuleName, 8, "Fullfiller does not have enough balance")
 	ErrInvalidRecipientAddress       = sdkerrors.Register(ModuleName, 9, "Invalid recipient address")
 	ErrBlockedAddress                = sdkerrors.Register(ModuleName, 10, "Can't purchase demand order for recipient with blocked address")
+	ErrDemandAlreadyFulfilled        = sdkerrors.Register(ModuleName, 11, "Demand order already fulfilled")
 )

@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"testing"
 
+	"cosmossdk.io/math"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -18,9 +20,8 @@ func TestListDemandOrdersByStatus(t *testing.T) {
 		demandOrder := &types.DemandOrder{
 			Id:                   strconv.Itoa(i),
 			TrackingPacketKey:    "testTrackingPacketKey",
-			Price:                "100",
-			Fee:                  "10",
-			Denom:                "adym",
+			Price:                sdktypes.Coins{sdktypes.Coin{Denom: "adym", Amount: math.NewInt(100)}},
+			Fee:                  sdktypes.Coins{sdktypes.Coin{Denom: "adym", Amount: math.NewInt(10)}},
 			Recipient:            "dym1zp455m6ukuq5k9kzazjpfachf6rv2ej6rcp6v8",
 			IsFullfilled:         false,
 			TrackingPacketStatus: commontypes.Status_PENDING,

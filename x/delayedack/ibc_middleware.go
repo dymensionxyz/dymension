@@ -1,9 +1,6 @@
 package delayedack
 
 import (
-	"encoding/json"
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -14,12 +11,10 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 const (
 	eibcMemoObjectName = "eibc"
-	eibcMemoFieldFee   = "fee"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -164,21 +159,9 @@ func (im IBCMiddleware) OnRecvPacket(
 		Type:        types.RollappPacket_ON_RECV,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
-
-	// Handle eibc demand order if exists
-	memo := make(map[string]interface{})
-	err = json.Unmarshal([]byte(data.Memo), &memo)
+	err = im.handleEIBCPacket(ctx, chainID, rollappPacket, data)
 	if err != nil {
-		logger.Info("Failed to unmarshal memo field", "err", err)
-	}
-	if memo[eibcMemoObjectName] != nil {
-		rollappPacketStoreKey := types.GetRollappPacketKey(chainID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
-		eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, string(rollappPacketStoreKey), memo)
-		if err != nil {
-			return channeltypes.NewErrorAcknowledgement(fmt.Errorf("Failed to create eibc demand order, %s", err))
-		}
-		// Save the eibc order in the store
-		im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	return nil
@@ -317,74 +300,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
 	return nil
-}
-
-// createDemandOrderFromIBCPacket creates a demand order from an IBC packet.
-// It validates the fungible token packet data, extracts the fee from the memo,
-// calculates the demand order price, and creates a new demand order.
-// It returns the created demand order or an error if there is any.
-func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
-	rollappPacket *types.RollappPacket, rollappPacketStoreKey string, memoObj map[string]interface{}) (*eibctypes.DemandOrder, error) {
-	// Validate the fungible token packet data as we're going to use it to create the demand order
-	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
-		return nil, err
-	}
-	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
-	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
-		return nil, fmt.Errorf("%s is not allowed to receive funds", fungibleTokenPacketData.Receiver)
-	}
-	// Get the fee from the memo
-	fee := memoObj[eibcMemoObjectName].(map[string]interface{})[eibcMemoFieldFee].(string)
-	// Calculate the demand order price and validate it
-	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
-	if !ok || !amountInt.IsPositive() {
-		return nil, fmt.Errorf("Failed to convert amount to positive integer, %s", fungibleTokenPacketData.Amount)
-	}
-	feeInt, ok := sdk.NewIntFromString(fee)
-	if !ok || !feeInt.IsPositive() {
-		return nil, fmt.Errorf("Failed to convert fee to positive integer, %s", fee)
-	}
-	if amountInt.LT(feeInt) {
-		return nil, fmt.Errorf("Fee cannot be larger than amount")
-	}
-	demandOrderPrice := amountInt.Sub(feeInt).String()
-	demandOrderDenom := im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
-	// Create the demand order and validate it
-	eibcDemandOrder := eibctypes.NewDemandOrder(rollappPacketStoreKey, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
-	if err := eibcDemandOrder.Validate(); err != nil {
-		return nil, fmt.Errorf("Failed to validate eibc data, %s", err)
-	}
-	return eibcDemandOrder, nil
-}
-
-// getEIBCTransferDenom returns the actual denom that will be credited to the eibc fulfillter.
-// The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
-// based on the original chain it was sent from.
-func (im IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
-	var denom string
-	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fungibleTokenPacketData.Denom) {
-		// remove prefix added by sender chain
-		voucherPrefix := transfertypes.GetDenomPrefix(packet.GetSourcePort(), packet.GetSourceChannel())
-		unprefixedDenom := fungibleTokenPacketData.Denom[len(voucherPrefix):]
-		// coin denomination used in sending from the escrow address
-		denom = unprefixedDenom
-		// The denomination used to send the coins is either the native denom or the hash of the path
-		// if the denomination is not native.
-		denomTrace := transfertypes.ParseDenomTrace(unprefixedDenom)
-		if denomTrace.Path != "" {
-			denom = denomTrace.IBCDenom()
-		}
-	} else {
-		// sender chain is the source
-		// since SendPacket did not prefix the denomination, we must prefix denomination here
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		// NOTE: sourcePrefix contains the trailing "/"
-		prefixedDenom := sourcePrefix + fungibleTokenPacketData.Denom
-		// construct the denomination trace from the full raw denomination
-		denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
-		denom = denomTrace.IBCDenom()
-	}
-	return denom
 }
 
 /* ------------------------------- ICS4Wrapper ------------------------------ */

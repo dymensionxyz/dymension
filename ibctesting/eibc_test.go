@@ -119,11 +119,10 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.Require().True(ok)
 			if tc.demandOrdersCreated > 0 {
 				lastDemandOrder := demandOrders[len(demandOrders)-1]
-				priceInt, ok := sdk.NewIntFromString(lastDemandOrder.Price)
 				suite.Require().True(ok)
 				suite.Require().Equal(tc.recipient, lastDemandOrder.Recipient)
-				suite.Require().Equal(amountInt.Sub(feeInt), priceInt)
-				suite.Require().Equal(tc.fee, lastDemandOrder.Fee)
+				suite.Require().Equal(amountInt.Sub(feeInt), lastDemandOrder.Price[0].Amount)
+				suite.Require().Equal(feeInt, lastDemandOrder.Fee[0].Amount)
 			}
 
 		})

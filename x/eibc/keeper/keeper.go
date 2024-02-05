@@ -63,9 +63,8 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) {
 	// Emit events
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(types.AttributeKeyPacketKey, order.Id),
-		sdk.NewAttribute(types.AttributeKeyPrice, order.Price),
-		sdk.NewAttribute(types.AttributeKeyFee, order.Fee),
-		sdk.NewAttribute(types.AttributeKeyDenom, order.Denom),
+		sdk.NewAttribute(types.AttributeKeyPrice, order.Price.String()),
+		sdk.NewAttribute(types.AttributeKeyFee, order.Fee.String()),
 		sdk.NewAttribute(types.AttributeKeyIsFullfilled, strconv.FormatBool(order.IsFullfilled)),
 		sdk.NewAttribute(types.AttributeKeyPacketStatus, order.TrackingPacketStatus.String()),
 	}
