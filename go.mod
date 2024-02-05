@@ -11,7 +11,7 @@ require (
 	github.com/cosmos/ibc-go/v6 v6.2.1
 	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac
 	github.com/dymensionxyz/dymension v1.0.0-rc1.0.20231219114210-d548bc8ea087
-	github.com/dymensionxyz/rollapp-evm v1.0.1-beta
+	github.com/dymensionxyz/rollapp-evm v1.0.0-beta.0.20240205124854-21bb487154d9
 	github.com/ethereum/go-ethereum v1.12.0
 	github.com/evmos/ethermint v0.22.0
 	github.com/evmos/evmos/v12 v12.1.6
@@ -214,15 +214,15 @@ require (
 )
 
 replace (
+	github.com/cosmos/cosmos-sdk => github.com/dymensionxyz/cosmos-sdk v0.46.15-fraudproof-0.0.1
+
 	github.com/cosmos/iavl => github.com/celestiaorg/iavl v0.0.0-20230105192234-715b65a7ecf1
-	// use cometbft
-	// github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.29
 
 	// use Evmos geth fork
 	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26
 
 	// use dymension forks
-	// github.com/evmos/evmos/v12 => github.com/dymensionxyz/evmos/v12 v12.1.6-dymension-v0.2
+	github.com/evmos/evmos/v12 => github.com/dymensionxyz/evmos/v12 v12.1.7-0.20240204135715-145b7145c0b3
 
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
@@ -232,14 +232,6 @@ replace (
 
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	// use cometbft
+	github.com/tendermint/tendermint => github.com/dymensionxyz/cometbft v0.34.29-fraudproof-0.0.1
 )
-
-replace github.com/cosmos/cosmos-sdk => /Users/mtsitrin/Applications/dymension/cosmos-sdk
-
-replace github.com/tendermint/tendermint => /Users/mtsitrin/Applications/dymension/cometbft
-
-replace github.com/evmos/evmos/v12 => /Users/mtsitrin/Applications/dymension/evmos/
-
-replace github.com/dymensionxyz/rollapp-evm => /Users/mtsitrin/Applications/dymension/rollapp-evm/
-
-// replace github.com/cosmos/cosmos-sdk => /Users/mtsitrin/Applications/dymension/cosmos-sdk
