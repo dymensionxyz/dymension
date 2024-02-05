@@ -154,3 +154,8 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []types.RollappPacke
 
 	return list
 }
+
+func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *types.RollappPacket) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+	store.Delete(types.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet))
+}
