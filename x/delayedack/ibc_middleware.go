@@ -165,21 +165,27 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	// Handle eibc demand order if exists
+	// Handle eibc demand order if exists - Start by validating the memo
 	memo := make(map[string]interface{})
 	err = json.Unmarshal([]byte(data.Memo), &memo)
+	if err != nil || memo[eibcMemoObjectName] == nil {
+		logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
+		return nil
+	}
+	packetMetaData := &types.PacketMetadata{}
+	err = json.Unmarshal([]byte(data.Memo), packetMetaData)
+	if err != nil || packetMetaData.ValidateBasic() != nil {
+		logger.Error("error parsing packet metadata from memo", "error", err)
+		return nil
+	}
+	// Create the eibc demand order
+	rollappPacketStoreKey := types.GetRollappPacketKey(chainID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, string(rollappPacketStoreKey), *packetMetaData.EIBC)
 	if err != nil {
-		logger.Info("Failed to unmarshal memo field", "err", err)
+		return channeltypes.NewErrorAcknowledgement(fmt.Errorf("Failed to create eibc demand order, %s", err))
 	}
-	if memo[eibcMemoObjectName] != nil {
-		rollappPacketStoreKey := types.GetRollappPacketKey(chainID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
-		eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, string(rollappPacketStoreKey), memo)
-		if err != nil {
-			return channeltypes.NewErrorAcknowledgement(fmt.Errorf("Failed to create eibc demand order, %s", err))
-		}
-		// Save the eibc order in the store
-		im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
-	}
+	// Save the eibc order in the store
+	im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
 
 	return nil
 }
@@ -324,7 +330,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 // calculates the demand order price, and creates a new demand order.
 // It returns the created demand order or an error if there is any.
 func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
-	rollappPacket *types.RollappPacket, rollappPacketStoreKey string, memoObj map[string]interface{}) (*eibctypes.DemandOrder, error) {
+	rollappPacket *types.RollappPacket, rollappPacketStoreKey string, eibcMetaData types.EIBCMetadata) (*eibctypes.DemandOrder, error) {
 	// Validate the fungible token packet data as we're going to use it to create the demand order
 	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
 		return nil, err
@@ -334,7 +340,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, fmt.Errorf("%s is not allowed to receive funds", fungibleTokenPacketData.Receiver)
 	}
 	// Get the fee from the memo
-	fee := memoObj[eibcMemoObjectName].(map[string]interface{})[eibcMemoFieldFee].(string)
+	fee := eibcMetaData.Fee
 	// Calculate the demand order price and validate it
 	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
 	if !ok || !amountInt.IsPositive() {
