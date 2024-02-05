@@ -86,7 +86,22 @@ install: go.sum
 build: go.sum
 	go build $(BUILD_FLAGS) -o build/dymd ./cmd/dymd
 
+###############################################################################
+###                                E2E tests                                ###
+###############################################################################
 
+# Executes IBC tests via rollup-e2e-testing
+ictest-ibc:
+	cd e2e && go test -timeout=25m -race -v -run TestIBCTransfer .
+
+# Executes all tests via rollup-e2e-testing
+ictest-all: ictest-ibc
+
+.PHONY: ictest-ibc ictest-all
+
+###############################################################################
+###                                Proto                                    ###
+###############################################################################
 
 protoVer=v0.7
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
