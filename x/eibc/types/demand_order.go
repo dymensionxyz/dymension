@@ -6,20 +6,28 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	common "github.com/dymensionxyz/dymension/v3/x/common"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func NewDemandOrder(packetKey string, price string, fee string, denom string, recipient string) *DemandOrder {
+func NewDemandOrder(packetKey string, price string, fee string, denom string, recipient string) (*DemandOrder, error) {
+	priceInt, ok := sdk.NewIntFromString(price)
+	if !ok {
+		return nil, ErrInvalidDemandOrderPrice
+	}
+	feeInt, ok := sdk.NewIntFromString(fee)
+	if !ok {
+		return nil, ErrInvalidDemandOrderFee
+	}
+
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(packetKey),
 		TrackingPacketKey:    packetKey,
-		Price:                sdk.NewCoins(sdk.NewCoin(denom, common.StringToSdkInt(price))),
-		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, common.StringToSdkInt(fee))),
+		Price:                sdk.NewCoins(sdk.NewCoin(denom, priceInt)),
+		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, feeInt)),
 		Recipient:            recipient,
 		IsFullfilled:         false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
-	}
+	}, nil
 }
 
 func (m *DemandOrder) ValidateBasic() error {
