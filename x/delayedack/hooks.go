@@ -19,37 +19,22 @@ func (im IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	// Finalize the packets for the rollapp at the given height
 	stateEndHeight := stateInfo.StartHeight + stateInfo.NumBlocks - 1
-	im.FinalizeRollappPackets(ctx, rollappID, stateEndHeight)
-	return nil
+	return im.FinalizeRollappPackets(ctx, rollappID, stateEndHeight)
 }
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
-func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) {
+func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) error {
 	rollappPendingPackets := im.keeper.ListRollappPendingPackets(ctx, rollappID, stateEndHeight)
 	if len(rollappPendingPackets) == 0 {
-		return
+		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	// Get the packets for the rollapp until height
 	logger.Debug("Finalizing IBC rollapp packets", "rollappID", rollappID, "state end height", stateEndHeight, "num packets", len(rollappPendingPackets))
 	for _, rollappPacket := range rollappPendingPackets {
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
-		// Update status to finalized
-		wrappedFunc := func(ctx sdk.Context) error {
-			var err error
-			rollappPacket, err = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
-			if err != nil {
-				return err
-			}
-			return nil
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-		if err != nil {
-			logger.Error("Error finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type, "error", err.Error())
-			continue
-		}
-		// Call the relevant callback for each packet
+		var err error
 		switch rollappPacket.Type {
 		case types.RollappPacket_ON_RECV:
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
@@ -71,24 +56,10 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 				}
 				return nil
 			}
-			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			err = osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				wrappedFunc := func(ctx sdk.Context) error {
-					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
-					if err != nil {
-						return err
-					}
-					return nil
-				}
-				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-				if err != nil {
-					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					continue
-				}
-
 			}
 		case types.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
@@ -102,21 +73,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				wrappedFunc := func(ctx sdk.Context) error {
-					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
-					if err != nil {
-						return err
-					}
-					return nil
-				}
-				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-				if err != nil {
-					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					continue
-				}
-				continue
 			}
 		case types.RollappPacket_ON_TIMEOUT:
 			logger.Debug("Calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
@@ -130,24 +87,21 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				logger.Error("Error calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-				// Update the packet with the error
 				rollappPacket.Error = err.Error()
-				wrappedFunc := func(ctx sdk.Context) error {
-					err := im.keeper.SetRollappPacket(ctx, rollappPacket)
-					if err != nil {
-						return err
-					}
-					return nil
-				}
-				err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-				if err != nil {
-					logger.Error("Error updating rollapp packet with error", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
-					continue
-				}
 			}
 		default:
 			logger.Error("Unknown rollapp packet type", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		}
-
+		// Update the packet with the error
+		if err != nil {
+			rollappPacket.Error = err.Error()
+		}
+		// Update status to finalized
+		rollappPacket, err = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+		if err != nil {
+			logger.Error("Error finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type, "error", err.Error())
+			return err
+		}
 	}
+	return nil
 }
