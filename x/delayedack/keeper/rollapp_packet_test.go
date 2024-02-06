@@ -29,7 +29,8 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 			Status:      commontypes.Status_PENDING,
 			ProofHeight: uint64(i * 2),
 		}
-		keeper.SetRollappPacket(ctx, packet)
+		err := keeper.SetRollappPacket(ctx, packet)
+		require.NoError(t, err)
 	}
 
 	// Get all rollapp packets
@@ -42,7 +43,8 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 	// Update the packet status to finalized
 	for _, packet := range packets {
-		keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+		_, err := keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+		require.NoError(t, err)
 	}
 	finalizedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
 	require.Equal(t, 3, len(finalizedPackets))
@@ -67,14 +69,17 @@ func TestUpdateRollappPacketWithStatus(t *testing.T) {
 		Status:      commontypes.Status_PENDING,
 		ProofHeight: 1,
 	}
-	keeper.SetRollappPacket(ctx, packet)
+	err := keeper.SetRollappPacket(ctx, packet)
+	require.NoError(t, err)
 	// Update the packet status
-	packet = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+	packet, err = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+	require.NoError(t, err)
 	packets := keeper.GetAllRollappPackets(ctx)
 	require.Equal(t, commontypes.Status_FINALIZED, packet.Status)
 	require.Equal(t, 1, len(packets))
 	// Set the packet and make sure there is only one packet in the store
-	keeper.SetRollappPacket(ctx, packet)
+	err = keeper.SetRollappPacket(ctx, packet)
+	require.NoError(t, err)
 	packets = keeper.GetAllRollappPackets(ctx)
 	require.Equal(t, 1, len(packets))
 }

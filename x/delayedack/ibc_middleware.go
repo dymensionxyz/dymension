@@ -158,7 +158,10 @@ func (im IBCMiddleware) OnRecvPacket(
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
 		Type:        types.RollappPacket_ON_RECV,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 	err = im.handleEIBCPacket(ctx, chainID, rollappPacket, data)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -230,7 +233,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
 		Type:            types.RollappPacket_ON_ACK,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -297,7 +303,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
 		Type:        types.RollappPacket_ON_TIMEOUT,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

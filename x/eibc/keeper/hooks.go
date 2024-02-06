@@ -31,13 +31,14 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 // 2. The packet status can only change from PENDING
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *delayeacktypes.RollappPacket,
 	oldPacketKey string, newPacketKey string) error {
-	// Update the demand order tracking packet key
+	// Get the demand order from the old packet keyxx
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder := d.GetDemandOrder(ctx, demandOrderID)
 	// If no demand order was found, return
 	if demandOrder == nil {
 		return nil
 	}
+	// Update the demand order tracking packet key
 	demandOrder.TrackingPacketKey = newPacketKey
 	// Update the demand order status according to the underlying packet status
 	d.UpdateDemandOrderWithStatus(ctx, demandOrder, packet.Status)
