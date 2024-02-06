@@ -15,6 +15,7 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyPacketDestinationPortKey, r.Packet.DestinationPort),
 		sdk.NewAttribute(AttributeKeyPacketDestinationChannelKey, r.Packet.DestinationChannel),
 		sdk.NewAttribute(AttributeKeyPacketSequence, strconv.FormatUint(r.Packet.Sequence, 10)),
+		sdk.NewAttribute(AttributeKeyPacketError, r.Error),
 	}
 	return eventAttributes
 }
