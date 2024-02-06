@@ -35,3 +35,7 @@ linters-settings:
       - name: exported
         severity: warning
         disabled: true
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
