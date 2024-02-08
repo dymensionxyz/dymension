@@ -30,7 +30,7 @@ type IBCMiddleware struct {
 	bankkeeper     types.BankKeeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddlware given the keeper and underlying application
+// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, ck types.ChannelKeeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		app:            app,
