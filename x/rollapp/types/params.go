@@ -19,7 +19,7 @@ var (
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 	// default value
 	DefaultDisputePeriodInBlocks uint64 = 3
-	// MinDisputePeriodInBlocks is the minimum numner of blocks for dispute period
+	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 )
 
