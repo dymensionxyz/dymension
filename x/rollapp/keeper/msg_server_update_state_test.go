@@ -685,7 +685,7 @@ func verifyAll(suite *RollappTestSuite, rollappsExpect []*types.RollappSummary, 
 	}
 }
 
-// getAll queries for all exsisting rollapps and returns a tuple of:
+// getAll queries for all existing rollapps and returns a tuple of:
 // map of rollappId->rollapp and the number of retrieved rollapps
 func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 	goCtx := sdk.WrapSDKContext(suite.ctx)
