@@ -85,6 +85,7 @@ message MsgUpdateStateResponse {}
 message MsgSubmitFraud {
   string creator   = 1;
   string rollappID = 2;
+  // TODO: should take the type from forked cometbft repo
   string FraudProof = 3;
 }
 

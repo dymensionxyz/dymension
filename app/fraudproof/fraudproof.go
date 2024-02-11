@@ -24,13 +24,12 @@ import (
 
 	rollappevm "github.com/dymensionxyz/rollapp-evm/app"
 
-	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-
 	_ "github.com/evmos/evmos/v12/crypto/codec"
 	_ "github.com/evmos/evmos/v12/crypto/ethsecp256k1"
 	_ "github.com/evmos/evmos/v12/types"
 )
 
+// TODO: Move to types package
 var (
 	ErrInvalidPreStateAppHash = errors.New("invalid pre state app hash")
 	ErrInvalidAppHash         = errors.New("invalid app hash")
@@ -42,7 +41,6 @@ type FraudProofVerifier interface {
 }
 
 type RollappFPV struct {
-	host *baseapp.BaseApp
 	app  *baseapp.BaseApp
 	keys map[string]storetypes.StoreKey
 }
@@ -50,29 +48,21 @@ type RollappFPV struct {
 var _ FraudProofVerifier = (*RollappFPV)(nil)
 
 // New creates a new FraudProofVerifier
-func New(host *baseapp.BaseApp, appName string, logger log.Logger, _ appparams.EncodingConfig) *RollappFPV {
-	//TODO: use logger?
-	//TODO: default home directory?
-
+func New(appName string) *RollappFPV {
 	cfg := rollappevm.MakeEncodingConfig()
 
-	//FIXNE: the export key hack doesnt work. need to get it from the app after a mount
-	// rollapp, exportKeys := rollappevm.NewBaseAppRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
+	//TODO: use logger? default home directory?
 	rollappApp := rollappevm.NewRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
 
 	rollapp := baseapp.NewBaseApp(appName, log.NewNopLogger(), dbm.NewMemDB(), cfg.TxConfig.TxDecoder())
-	//FIXME: remove this
-	// if host != nil {
 	rollapp.SetMsgServiceRouter(rollappApp.MsgServiceRouter())
 	rollapp.SetBeginBlocker(rollappApp.GetBeginBlocker())
 	rollapp.SetEndBlocker(rollappApp.GetEndBlocker())
-	// }
 
 	cms := rollappApp.CommitMultiStore().(*rootmulti.Store)
 	storeKeys := cms.StoreKeysByName()
 
 	return &RollappFPV{
-		host: host,
 		app:  rollapp,
 		keys: storeKeys,
 	}
@@ -82,7 +72,6 @@ func New(host *baseapp.BaseApp, appName string, logger log.Logger, _ appparams.E
 func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error {
 	// check app is initialized
 	if fpv.app == nil {
-		// return types.ErrAppNotInitialized
 		return fmt.Errorf("app not initialized")
 	}
 
@@ -116,34 +105,31 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		return err
 	}
 
-	//is it enough? rollkit uses:
-	//	// This initial height is used in `BeginBlock` in `validateHeight`
-	// options = append(options, SetInitialHeight(blockHeight))
 	fpv.app.InitChain(abci.RequestInitChain{})
-
-	// fpv.app.ResetDeliverState()
 
 	return nil
 
 }
 
-// VerifyFraudProof implements the ABCI application interface. It loads a fresh BaseApp using
-// the given Fraud Proof, runs the given fraudulent state transition within the Fraud Proof,
-// and gets the app hash representing state of the resulting BaseApp. It returns a boolean
-// representing whether this app hash is equivalent to the expected app hash given.
+// VerifyFraudProof checks the validity of a given fraud proof.
+//
+// The function takes a FraudProof object as an argument and returns an error if the fraud proof is invalid.
+//
+// The function performs the following checks:
+// 1. It checks if the pre-state application hash of the fraud proof matches the current application hash.
+// 2. It executes a fraudulent state transition.
+// 3. Finally, it checks if the post-state application hash matches the expected valid application hash in the fraud proof.
+//
+// If any of these checks fail, the function returns an error. Otherwise, it returns nil.
+//
+// Note: This function modifies the state of the RollappFPV object it's called on.
 func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error {
-
-	//TODO: check app is initialized
-
-	//TODO: pass rollapp name as well
 	appHash := fpv.app.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash))
 
 	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
 		return ErrInvalidPreStateAppHash
 	}
-
-	//TODO: verifyy all data exists in fraud proof
 
 	// Execute fraudulent state transition
 	if fraudProof.FraudulentBeginBlock != nil {
@@ -158,7 +144,6 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 
 		if fraudProof.FraudulentDeliverTx != nil {
-			//WE NEED TO OVERWRITE THE SDK CONFIG HERE, as txs will fail due to the singleton config
 			// skip IncrementSequenceDecorator check in AnteHandler
 			fpv.app.SetAnteHandler(nil)
 			SetRollappAddressPrefixes("ethm")
