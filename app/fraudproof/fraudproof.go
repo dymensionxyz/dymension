@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
