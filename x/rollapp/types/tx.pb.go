@@ -321,8 +321,9 @@ func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
 type MsgSubmitFraud struct {
-	Creator    string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	RollappID  string `protobuf:"bytes,2,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
+	Creator   string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	RollappID string `protobuf:"bytes,2,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
+	// TODO: should take the type from forked cometbft repo
 	FraudProof string `protobuf:"bytes,3,opt,name=FraudProof,proto3" json:"FraudProof,omitempty"`
 }
 
