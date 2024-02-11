@@ -30,11 +30,15 @@ func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollap
 	rollappPacketStoreKey := types.GetRollappPacketKey(chainID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, string(rollappPacketStoreKey), *packetMetaData.EIBC)
 	if err != nil {
-		err = fmt.Errorf("Failed to create eibc demand order, %s", err)
+		err = fmt.Errorf("Failed to create eibc demand order with packet key %s, %s", string(rollappPacketStoreKey), err)
 		return err
 	}
 	// Save the eibc order in the store
-	im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	if err != nil {
+		err = fmt.Errorf("Failed to save eibc demand order with packet key %s, %s", string(rollappPacketStoreKey), err)
+		return err
+	}
 	return nil
 }
 
