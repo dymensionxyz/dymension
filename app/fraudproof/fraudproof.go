@@ -23,6 +23,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
 	rollappevm "github.com/dymensionxyz/rollapp-evm/app"
+	rollappevmparams "github.com/dymensionxyz/rollapp-evm/app/params"
 
 	_ "github.com/evmos/evmos/v12/crypto/codec"
 	_ "github.com/evmos/evmos/v12/crypto/ethsecp256k1"
@@ -41,8 +42,11 @@ type FraudProofVerifier interface {
 }
 
 type RollappFPV struct {
-	app  *baseapp.BaseApp
-	keys map[string]storetypes.StoreKey
+	name           string
+	storeKeys      map[string]storetypes.StoreKey
+	encCfg         rollappevmparams.EncodingConfig
+	rollappBaseApp *baseapp.BaseApp
+	runningApp     *baseapp.BaseApp
 }
 
 var _ FraudProofVerifier = (*RollappFPV)(nil)
@@ -53,25 +57,29 @@ func New(appName string) *RollappFPV {
 
 	//TODO: use logger? default home directory?
 	rollappApp := rollappevm.NewRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
-
-	rollapp := baseapp.NewBaseApp(appName, log.NewNopLogger(), dbm.NewMemDB(), cfg.TxConfig.TxDecoder())
-	rollapp.SetMsgServiceRouter(rollappApp.MsgServiceRouter())
-	rollapp.SetBeginBlocker(rollappApp.GetBeginBlocker())
-	rollapp.SetEndBlocker(rollappApp.GetEndBlocker())
-
-	cms := rollappApp.CommitMultiStore().(*rootmulti.Store)
-	storeKeys := cms.StoreKeysByName()
+	storeKeys := rollappApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
 
 	return &RollappFPV{
-		app:  rollapp,
-		keys: storeKeys,
+		name:           appName,
+		encCfg:         cfg,
+		storeKeys:      storeKeys,
+		rollappBaseApp: rollappApp.GetBaseApp(),
 	}
+}
+
+func (fpv *RollappFPV) initCleanInstance() {
+	rollapp := baseapp.NewBaseApp(fpv.name, log.NewNopLogger(), dbm.NewMemDB(), fpv.encCfg.TxConfig.TxDecoder())
+	rollapp.SetMsgServiceRouter(fpv.rollappBaseApp.MsgServiceRouter())
+	rollapp.SetBeginBlocker(fpv.rollappBaseApp.GetBeginBlocker())
+	rollapp.SetEndBlocker(fpv.rollappBaseApp.GetEndBlocker())
+
+	fpv.runningApp = rollapp
 }
 
 // InitFromFraudProof initializes the FraudProofVerifier from a fraud proof
 func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error {
 	// check app is initialized
-	if fpv.app == nil {
+	if fpv.rollappBaseApp == nil {
 		return fmt.Errorf("app not initialized")
 	}
 
@@ -80,17 +88,21 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		return err
 	}
 
-	fpv.app.SetInitialHeight(fraudProof.BlockHeight + 1) //FIXME: why +1?
+	fpv.initCleanInstance()
 
-	cms := fpv.app.CommitMultiStore().(*rootmulti.Store)
-	storeKeys := fpv.keys
+	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1) //FIXME: why +1?
+
+	cms := fpv.runningApp.CommitMultiStore().(*rootmulti.Store)
+	storeKeys := fpv.storeKeys
 	modules := fraudProof.GetModules()
 	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
 	for _, module := range modules {
 		iavlStoreKeys = append(iavlStoreKeys, storeKeys[module])
 	}
 
-	fpv.app.MountStores(iavlStoreKeys...)
+	//FIXME: make sure non is nil
+
+	fpv.runningApp.MountStores(iavlStoreKeys...)
 
 	storeKeyToIAVLTree, err := fraudProof.GetDeepIAVLTrees()
 	if err != nil {
@@ -100,12 +112,12 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		cms.SetDeepIAVLTree(storeKey, iavlTree)
 	}
 
-	err = fpv.app.LoadLatestVersion()
+	err = fpv.runningApp.LoadLatestVersion()
 	if err != nil {
 		return err
 	}
 
-	fpv.app.InitChain(abci.RequestInitChain{})
+	fpv.runningApp.InitChain(abci.RequestInitChain{})
 
 	return nil
 
@@ -124,7 +136,7 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 //
 // Note: This function modifies the state of the RollappFPV object it's called on.
 func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error {
-	appHash := fpv.app.GetAppHashInternal()
+	appHash := fpv.runningApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash))
 
 	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
@@ -138,21 +150,21 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		// fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
 	} else {
 		// Need to add some dummy begin block here since its a new app
-		fpv.app.ResetDeliverState()
-		fpv.app.SetBeginBlocker(nil)
-		fpv.app.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}}) //FIXME: why +1?
-		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+		fpv.runningApp.ResetDeliverState()
+		fpv.runningApp.SetBeginBlocker(nil)
+		fpv.runningApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}}) //FIXME: why +1?
+		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.runningApp.GetAppHashInternal()))
 
 		if fraudProof.FraudulentDeliverTx != nil {
 			// skip IncrementSequenceDecorator check in AnteHandler
-			fpv.app.SetAnteHandler(nil)
+			fpv.runningApp.SetAnteHandler(nil)
 			SetRollappAddressPrefixes("ethm")
 
-			resp := fpv.app.DeliverTx(*fraudProof.FraudulentDeliverTx)
+			resp := fpv.runningApp.DeliverTx(*fraudProof.FraudulentDeliverTx)
 			if !resp.IsOK() {
 				panic(resp.Log)
 			}
-			fmt.Println("appHash - posttx", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+			fmt.Println("appHash - posttx", hex.EncodeToString(fpv.runningApp.GetAppHashInternal()))
 			SetRollappAddressPrefixes("dym")
 		} else {
 			panic("fraudulent end block not supported")
@@ -161,7 +173,7 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		}
 	}
 
-	appHash = fpv.app.GetAppHashInternal()
+	appHash = fpv.runningApp.GetAppHashInternal()
 	fmt.Println("appHash - final", hex.EncodeToString(appHash))
 	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash

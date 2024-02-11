@@ -562,6 +562,10 @@ func New(
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 	)
 
+	//Set fraudProof verifier
+	fraudProofVerifier := fraudproof.New("dymension_rollapp")
+	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier)
+
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		keys[sequencermoduletypes.StoreKey],
@@ -894,10 +898,6 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
-
-	//FraudProof verifier
-	fraudProofVerifier := fraudproof.New("dymension_rollapp")
-	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier)
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
