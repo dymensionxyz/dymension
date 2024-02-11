@@ -3,6 +3,7 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -60,6 +61,17 @@ func (m *DemandOrder) Validate() error {
 		return err
 	}
 	return nil
+}
+
+func (m *DemandOrder) GetEvents() []sdk.Attribute {
+	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(AttributeKeyPacketKey, m.Id),
+		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
+		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
+		sdk.NewAttribute(AttributeKeyIsFullfilled, strconv.FormatBool(m.IsFullfilled)),
+		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
+	}
+	return eventAttributes
 }
 
 // GetRecipientBech32Address returns the recipient address as a string.

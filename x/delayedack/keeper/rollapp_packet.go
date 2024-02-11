@@ -28,6 +28,13 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPac
 		rollappPacket.ProofHeight,
 		*rollappPacket.Packet,
 	), b)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDelayedAck,
+			rollappPacket.GetEvents()...,
+		),
+	)
 	return nil
 }
 
@@ -94,10 +101,8 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket ty
 	// Delete the old rollapp packet
 	oldKey := types.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	store.Delete(oldKey)
-
 	// Update the packet
 	rollappPacket.Status = newStatus
-
 	// Create a new rollapp packet with the updated status
 	err := k.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
