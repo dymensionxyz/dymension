@@ -7,6 +7,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
@@ -87,7 +88,13 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	}
 	// Iterate over all demand orders
 	for _, demandOrder := range demandOrders {
-		e.deleteDemandOrder(ctx, demandOrder)
+		wrapFunc := func(ctx sdk.Context) error {
+			return e.deleteDemandOrder(ctx, demandOrder)
+		}
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFunc)
+		if err != nil {
+			e.Keeper.Logger(ctx).Error("Error deleting demand order", "orderID", demandOrder.Id, "error", err.Error())
+		}
 	}
 	return nil
 }
