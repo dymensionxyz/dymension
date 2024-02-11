@@ -6,23 +6,34 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	ethante "github.com/evmos/ethermint/app/ante"
+	evmante "github.com/evmos/evmos/v12/app/ante/evm"
+	anteutils "github.com/evmos/evmos/v12/app/ante/utils"
+
+	vestingtypes "github.com/evmos/evmos/v12/x/vesting/types"
 
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
+
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type HandlerOptions struct {
 	AccountKeeper          *authkeeper.AccountKeeper
 	BankKeeper             bankkeeper.Keeper
 	IBCKeeper              *ibckeeper.Keeper
-	FeeMarketKeeper        ethante.FeeMarketKeeper
-	EvmKeeper              ethante.EVMKeeper
+	FeeMarketKeeper        evmante.FeeMarketKeeper
+	StakingKeeper          vestingtypes.StakingKeeper
+	DistributionKeeper     anteutils.DistributionKeeper
+	EvmKeeper              evmante.EVMKeeper
 	FeegrantKeeper         ante.FeegrantKeeper
 	TxFeesKeeper           *txfeeskeeper.Keeper
 	SignModeHandler        authsigning.SignModeHandler
 	MaxTxGasWanted         uint64
+	SigGasConsumer         func(meter sdk.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
 	ExtensionOptionChecker ante.ExtensionOptionChecker
 }
 
@@ -44,6 +55,9 @@ func (options HandlerOptions) validate() error {
 	}
 	if options.TxFeesKeeper == nil {
 		return errorsmod.Wrap(errortypes.ErrLogic, "tx fees keeper is required for AnteHandler")
+	}
+	if options.SigGasConsumer == nil {
+		return errorsmod.Wrap(errortypes.ErrLogic, "sig gas consumer is required for AnteHandler")
 	}
 	return nil
 }
