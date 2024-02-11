@@ -60,23 +60,28 @@ func TestAfterEpochEnd(t *testing.T) {
 				keeper.SetDemandOrder(ctx, demandOrder)
 			}
 
-			demandOrders := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+			demandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+			require.NoError(t, err)
 			require.Equal(t, tc.pendingOrdersNum, len(demandOrders))
 
 			for _, demandOrder := range demandOrders[:tc.finalizedOrdersNum] {
 				keeper.UpdateDemandOrderWithStatus(ctx, demandOrder, commontypes.Status_FINALIZED)
 			}
-			finzliedDemandOrders := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+			finzliedDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+			require.NoError(t, err)
 			require.Equal(t, tc.finalizedOrdersNum, len(finzliedDemandOrders))
 
 			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam})
 			epochHooks := keeper.GetEpochHooks()
 			epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
 
-			finzliedDemandOrders = keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+			finzliedDemandOrders, err = keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+			require.NoError(t, err)
 			require.Equal(t, tc.finalizedOrdersNum-tc.expectedDeleted, len(finzliedDemandOrders))
 
-			totalDemandOrders := len(finzliedDemandOrders) + len(keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING))
+			pendingDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+			require.NoError(t, err)
+			totalDemandOrders := len(finzliedDemandOrders) + len(pendingDemandOrders)
 			require.Equal(t, tc.expectedTotal, totalDemandOrders)
 		})
 	}

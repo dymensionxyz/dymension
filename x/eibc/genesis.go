@@ -22,7 +22,14 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
 	// Add the demand orders
-	genesis.DemandOrders = k.ListAllDemandOrders(ctx)
+	allDemandOrders, err := k.ListAllDemandOrders(ctx)
+	if err != nil {
+		panic(err)
+	}
+	genesis.DemandOrders = make([]types.DemandOrder, len(allDemandOrders))
+	for i, order := range allDemandOrders {
+		genesis.DemandOrders[i] = *order
+	}
 
 	return genesis
 }

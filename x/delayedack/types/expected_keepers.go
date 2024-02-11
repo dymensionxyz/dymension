@@ -35,7 +35,7 @@ type RollappKeeper interface {
 }
 
 type EIBCKeeper interface {
-	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder)
+	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder) error
 }
 
 type BankKeeper interface {

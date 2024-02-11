@@ -29,9 +29,9 @@ func (m msgServer) FullfillOrder(goCtx context.Context, msg *types.MsgFulfillOrd
 		return nil, err
 	}
 	// Check that the order exists
-	demandOrder := m.GetDemandOrder(ctx, msg.OrderId)
-	if demandOrder == nil {
-		return nil, types.ErrDemandOrderDoesNotExist
+	demandOrder, err := m.GetDemandOrder(ctx, msg.OrderId)
+	if err != nil {
+		return nil, err
 	}
 	// Check that the order is not fulfilled yet
 	if demandOrder.IsFullfilled {

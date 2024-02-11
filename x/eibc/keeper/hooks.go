@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -31,17 +33,23 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 // 2. The packet status can only change from PENDING
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *delayeacktypes.RollappPacket,
 	oldPacketKey string, newPacketKey string) error {
-	// Get the demand order from the old packet keyxx
+	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
-	demandOrder := d.GetDemandOrder(ctx, demandOrderID)
-	// If no demand order was found, return
-	if demandOrder == nil {
-		return nil
+	demandOrder, err := d.GetDemandOrder(ctx, demandOrderID)
+	if err != nil {
+		// If demand order does not exist, then we don't need to do anything
+		if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
+			return nil
+		}
+		return err
 	}
 	// Update the demand order tracking packet key
 	demandOrder.TrackingPacketKey = newPacketKey
 	// Update the demand order status according to the underlying packet status
-	d.UpdateDemandOrderWithStatus(ctx, demandOrder, packet.Status)
+	_, err = d.UpdateDemandOrderWithStatus(ctx, demandOrder, packet.Status)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -73,7 +81,10 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		return nil
 	}
 	// Get all demand orders with status FINALIZED
-	demandOrders := e.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+	demandOrders, err := e.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+	if err != nil {
+		return err
+	}
 	// Iterate over all demand orders
 	for _, demandOrder := range demandOrders {
 		e.deleteDemandOrder(ctx, demandOrder)

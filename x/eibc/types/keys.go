@@ -2,6 +2,9 @@ package types
 
 import (
 	"encoding/binary"
+	fmt "fmt"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 var _ binary.ByteOrder
@@ -9,6 +12,9 @@ var _ binary.ByteOrder
 const (
 	// ModuleName defines the module name
 	ModuleName = "eibc"
+
+	//KeySeparator defines the separator for keys
+	KeySeparator = "/"
 
 	// StoreKey defines the primary module store key
 	StoreKey = ModuleName
@@ -21,8 +27,13 @@ const (
 )
 
 // Store Key Prefixes
-const (
-	DemandOrderKeyPrefix = "DemandOrder/value/"
+var (
+	// PendingDemandOrderKeyPrefix is the prefix for pending demand orders
+	PendingDemandOrderKeyPrefix = []byte{0x01}
+	// FinalizedDemandOrderKeyPrefix is the prefix for finalized demand orders
+	FinalizedDemandOrderKeyPrefix = []byte{0x02}
+	// RevertedDemandOrderKeyPrefix is the prefix for reverted demand orders
+	RevertedDemandOrderKeyPrefix = []byte{0x03}
 )
 
 func KeyPrefix(p string) []byte {
@@ -30,16 +41,18 @@ func KeyPrefix(p string) []byte {
 }
 
 // GetDemandOrderKey constructs a key for a specific DemandOrder.
-// The key is of the form "DemandOrder/{underlying-packet-status}/{orderId}".
-// The reason we add the status is that later we can clean up the non-active orders.
-func GetDemandOrderKey(packetStatus string, orderId string) []byte {
-	var key []byte
-
-	key = append(key, []byte(packetStatus)...)
-	key = append(key, []byte("/")...)
-
-	key = append(key, []byte(orderId)...)
-	key = append(key, []byte("/")...)
-
-	return key
+func GetDemandOrderKey(packetStatus commontypes.Status, orderId string) ([]byte, error) {
+	// Get the relevant key prefix based on the packet status
+	var prefix []byte
+	switch packetStatus {
+	case commontypes.Status_PENDING:
+		prefix = PendingDemandOrderKeyPrefix
+	case commontypes.Status_FINALIZED:
+		prefix = FinalizedDemandOrderKeyPrefix
+	case commontypes.Status_REVERTED:
+		prefix = RevertedDemandOrderKeyPrefix
+	default:
+		return nil, fmt.Errorf("invalid packet status: %s", packetStatus)
+	}
+	return []byte(fmt.Sprintf("%s%s%s%s%s", prefix, KeySeparator, packetStatus, KeySeparator, orderId)), nil
 }

@@ -109,7 +109,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.isAckError)
 			// Validate demand orders results
 			eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
-			demandOrders := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			demandOrders, err := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			suite.Require().NoError(err)
 			suite.Require().Equal(tc.demandOrdersCreated, len(demandOrders)-totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			amountInt, ok := sdk.NewIntFromString(tc.amount)
@@ -204,7 +205,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			}
 			suite.Require().True(isUpdated)
 			// Validate eibc demand order created
-			demandOrders := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			demandOrders, err := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			suite.Require().NoError(err)
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			lastDemandOrder := demandOrders[len(demandOrders)-1]
@@ -221,7 +223,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			packet = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
 
 			// Validate demand order created
-			demandOrders = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			demandOrders, err = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
+			suite.Require().NoError(err)
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			// Get the last demand order created
@@ -238,7 +241,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				OrderId:           lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
-			_, err := suite.msgServer.FullfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
+			_, err = suite.msgServer.FullfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			if !tc.isFulfilledSuccess {
 				suite.Require().Error(err)
 				return
@@ -269,7 +272,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().True(fullfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
 			// Validate demand order fulfilled and packet status updated
-			finalizedDemandOrders := eibcKeeper.ListDemandOrdersByStatus(suite.hubChain.GetContext(), commontypes.Status_FINALIZED)
+			finalizedDemandOrders, err := eibcKeeper.ListDemandOrdersByStatus(suite.hubChain.GetContext(), commontypes.Status_FINALIZED)
+			suite.Require().NoError(err)
 			var finalizedDemandOrder *eibctypes.DemandOrder
 			for _, order := range finalizedDemandOrders {
 				if order.Id == lastDemandOrder.Id {
