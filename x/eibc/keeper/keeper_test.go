@@ -30,7 +30,8 @@ func TestListDemandOrdersByStatus(t *testing.T) {
 	}
 
 	// Get the demand orders with status active
-	demandOrders := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+	demandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+	require.NoError(t, err)
 	require.Equal(t, demandOrdersNum, len(demandOrders))
 
 	// Update 3 of the demand orders to status finalized
@@ -38,8 +39,11 @@ func TestListDemandOrdersByStatus(t *testing.T) {
 		keeper.UpdateDemandOrderWithStatus(ctx, demandOrder, commontypes.Status_FINALIZED)
 	}
 	// Retrieve the updated demand orders after status change
-	updatedDemandOrders := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+	updatedDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+	require.NoError(t, err)
 	// Validate that there are exactly demandOrderNum packets in total
-	totalDemandOrders := len(updatedDemandOrders) + len(keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING))
+	pendingDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+	require.NoError(t, err)
+	totalDemandOrders := len(updatedDemandOrders) + len(pendingDemandOrders)
 	require.Equal(t, demandOrdersNum, totalDemandOrders)
 }
