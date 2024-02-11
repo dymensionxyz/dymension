@@ -15,10 +15,11 @@ const TypeMsgSubmitFraud = "submit_fraud"
 
 var _ sdk.Msg = &MsgSubmitFraud{}
 
-func NewMsgSubmitFraud(creator string, rollappID string) *MsgSubmitFraud {
+func NewMsgSubmitFraud(creator string, rollappID string, fraudproof string) *MsgSubmitFraud {
 	return &MsgSubmitFraud{
-		Creator:   creator,
-		RollappID: rollappID,
+		Creator:    creator,
+		RollappID:  rollappID,
+		FraudProof: fraudproof,
 	}
 }
 

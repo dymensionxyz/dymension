@@ -29,7 +29,12 @@ func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud)
 	if err != nil {
 		return nil, err
 	}
-	_ = k.VerifyFraudProof(ctx, msg.RollappID, fp)
+	err = k.VerifyFraudProof(ctx, msg.RollappID, fp)
+	if err != nil {
+		return nil, err
+	}
+
+	k.Logger(ctx).Info("fraud proof verified", "rollappID", msg.RollappID)
 
 	//FIXME: handle slashing
 
