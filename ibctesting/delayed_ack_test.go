@@ -11,6 +11,10 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
+const (
+	disabledTimeoutTimestamp = uint64(0)
+)
+
 type DelayedAckTestSuite struct {
 	IBCTestUtilSuite
 	ctx sdk.Context
@@ -25,7 +29,7 @@ func (suite *DelayedAckTestSuite) SetupTest() {
 }
 
 // Transfer from cosmos chain to the hub. No delay expected
-func (suite *IBCTestUtilSuite) TestTransferCosmosToHub() {
+func (suite *DelayedAckTestSuite) TestTransferCosmosToHub() {
 	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
 	suite.coordinator.Setup(path)
@@ -55,7 +59,7 @@ func (suite *IBCTestUtilSuite) TestTransferCosmosToHub() {
 	suite.Require().True(found)
 }
 
-func (suite *IBCTestUtilSuite) TestTransferHubToCosmos() {
+func (suite *DelayedAckTestSuite) TestTransferHubToCosmos() {
 	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
 	suite.coordinator.Setup(path)
@@ -85,7 +89,7 @@ func (suite *IBCTestUtilSuite) TestTransferHubToCosmos() {
 	suite.Require().True(found)
 }
 
-func (suite *IBCTestUtilSuite) TestTransferRollappToHubNotFinalized() {
+func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
@@ -115,9 +119,7 @@ func (suite *IBCTestUtilSuite) TestTransferRollappToHubNotFinalized() {
 	suite.Require().False(found)
 }
 
-// rollapp w/o state updates. should return ErrAck
-
-func (suite *IBCTestUtilSuite) TestTransferRollappToHubFinalization() {
+func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
@@ -162,4 +164,55 @@ func (suite *IBCTestUtilSuite) TestTransferRollappToHubFinalization() {
 	// Validate ack is found
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().True(found)
+}
+
+// TestHubToRollappTimeout tests the scenario where a packet is sent from the hub to the rollapp and the rollapp times out the packet.
+// The packet should actually get timed out and funds returned to the user only after the rollapp state is finalized.
+func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
+	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
+	suite.coordinator.Setup(path)
+
+	hubEndpoint := path.EndpointA
+	rollappEndpoint := path.EndpointB
+	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
+
+	suite.CreateRollapp()
+	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
+
+	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
+	amount, ok := sdk.NewIntFromString("1000000000000000000") //1DYM
+	suite.Require().True(ok)
+	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
+	// Setup accounts
+	senderAccount := hubEndpoint.Chain.SenderAccount.GetAddress()
+	recieverAccount := rollappEndpoint.Chain.SenderAccount.GetAddress()
+	// Check balances
+	bankKeeper := ConvertToApp(suite.hubChain).BankKeeper
+	preSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	// send from hubChain to rollappChain
+	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), recieverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
+	res, err := hubEndpoint.Chain.SendMsgs(msg)
+	suite.Require().NoError(err)
+	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+	suite.Require().NoError(err)
+	found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(hubEndpoint.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	suite.Require().True(found)
+	// Check balance decreased
+	postSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	suite.Require().Equal(preSendBalance.Amount.Sub(coinToSendToB.Amount), postSendBalance.Amount)
+	// Update the client to create timeout
+	hubEndpoint.UpdateClient()
+	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
+	err = path.EndpointA.TimeoutPacket(packet)
+	suite.Require().NoError(err)
+	// Validate funds are still not returned to the sender
+	postTimeoutBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	suite.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
+	// Finalize the rollapp state
+	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	// Validate funds are returned to the sender
+	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	suite.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
+
 }
