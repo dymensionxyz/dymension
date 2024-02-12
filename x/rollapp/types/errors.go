@@ -30,4 +30,7 @@ var (
 	ErrInvalidRollappID                    = sdkerrors.Register(ModuleName, 1020, "invalid rollapp-id")
 	ErrEIP155Exists                        = sdkerrors.Register(ModuleName, 1021, "EIP155 already exist; must use unique EIP155 identifier")
 	ErrRollappsDisabled                    = sdkerrors.Register(ModuleName, 1022, "rollapps are disabled")
+	/* ------------------------------ fraud proofs ------------------------------ */
+	ErrInvalidPreStateAppHash         = sdkerrors.Register(ModuleName, 1023, "wrong initial ISR in block and fraud proof")
+	ErrMissingIntermediateStatesRoots = sdkerrors.Register(ModuleName, 1024, "no ISRs avaialble on the block")
 )

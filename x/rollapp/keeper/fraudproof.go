@@ -1,23 +1,23 @@
 package keeper
 
 import (
-	"fmt"
+	"bytes"
 
 	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
-	err := k.fraudProofVerifier.InitFromFraudProof(&fp)
+	err := k.ValidateFraudProof(ctx, rollappID, fp)
 	if err != nil {
 		return err
 	}
 
-	err = k.ValidateFraudProof(ctx, rollappID, fp)
+	err = k.fraudProofVerifier.InitFromFraudProof(&fp)
 	if err != nil {
 		return err
 	}
-
 	err = k.fraudProofVerifier.VerifyFraudProof(&fp)
 	if err != nil {
 		return err
@@ -34,13 +34,15 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 	}
 	idx := fp.BlockHeight - int64(stateInfo.StartHeight)
 	blockDescriptor := stateInfo.BDs.BD[idx]
-	if blockDescriptor.Height != uint64(fp.BlockHeight) {
-		return fmt.Errorf("invalid block height")
+
+	if blockDescriptor.IntermediateStatesRoots == nil {
+		return types.ErrMissingIntermediateStatesRoots
 	}
-	//FIXME: validate fraud proof initial state against the current state posted on the hub
-	// if blockDescriptor.IntermediateStatesRoot[0] != fp.PreStateAppHash {
-	// 	return ErrInvalidPreStateAppHash
-	// }
+
+	expectedPreStateISR := blockDescriptor.IntermediateStatesRoots[0]
+	if !bytes.Equal(expectedPreStateISR, fp.PreStateAppHash) {
+		return types.ErrInvalidPreStateAppHash
+	}
 
 	return nil
 }
