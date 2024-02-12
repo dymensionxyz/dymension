@@ -1,8 +1,9 @@
 package streamer
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -20,7 +21,7 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 		case *types.UpdateStreamDistributionProposal:
 			return HandleUpdateStreamDistributionProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
+			return sdkerrors.Wrapf(errortypes.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
 		}
 	}
 }

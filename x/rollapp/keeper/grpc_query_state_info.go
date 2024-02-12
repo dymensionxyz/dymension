@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 
+	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"google.golang.org/grpc/codes"
@@ -57,14 +58,14 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 		if req.Finalized {
 			latestFinalizedStateIndex, found := k.GetLatestFinalizedStateIndex(ctx, req.RollappId)
 			if !found {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 					"LatestFinalizedStateIndex wasn't found for rollappId=%s", req.RollappId)
 			}
 			req.Index = latestFinalizedStateIndex.Index
 		} else {
 			latestStateIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
 			if !found {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 					"LatestStateInfoIndex wasn't found for rollappId=%s", req.RollappId)
 			}
 			req.Index = latestStateIndex.Index
@@ -102,7 +103,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+		return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 			"LatestStateInfoIndex wasn't found for rollappId=%s",
 			rollappId)
 	}
@@ -113,7 +114,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 	// get state info
 	LatestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+		return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 			"StateInfo wasn't found for rollappId=%s, index=%d",
 			rollappId, endInfoIndex)
 	}
@@ -136,7 +137,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		// we know that endInfoIndex > startInfoIndex
 		// otherwise the height should have been found
 		if endInfoIndex <= startInfoIndex {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"endInfoIndex should be != than startInfoIndex rollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
 				rollappId, startInfoIndex, endInfoIndex)
 		}
@@ -146,13 +147,13 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 			// TODO:
 			// if stateInfo is missing it won't be logic error if history deletion be implemented
 			// for that we will have to check the oldest we have
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, startInfoIndex)
 		}
 		endStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 		if !found {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, endInfoIndex)
 		}
@@ -174,7 +175,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		// 4. calculate the average blocks per batch
 		avgBlocksPerBatch := (endHeight - startHeight + 1) / (endInfoIndex - startInfoIndex + 1)
 		if avgBlocksPerBatch == 0 {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"avgBlocksPerBatch is zero!!! rollappId=%s, endHeight=%d, startHeight=%d, endInfoIndex=%d, startInfoIndex=%d",
 				rollappId, endHeight, startHeight, endInfoIndex, startInfoIndex)
 		}
@@ -194,7 +195,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		}
 		candidateStateInfo, found := k.GetStateInfo(ctx, rollappId, candidateInfoIndex)
 		if !found {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, candidateInfoIndex)
 		}
@@ -211,7 +212,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		}
 	}
 
-	return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+	return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 		"More searching steps than indexes! rollappId=%s, stepNum=%d, maxNumberOfSteps=%d",
 		rollappId, stepNum, maxNumberOfSteps)
 }

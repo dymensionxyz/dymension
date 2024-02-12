@@ -3,8 +3,8 @@ package keeper
 import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (*types.DistrInfo, error) {

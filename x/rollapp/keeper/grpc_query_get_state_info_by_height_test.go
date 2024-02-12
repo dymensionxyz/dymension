@@ -5,8 +5,9 @@ import (
 	"strconv"
 	"testing"
 
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -66,7 +67,7 @@ func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
 		Height:    100,
 	}
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
+	require.EqualError(t, err, sdkerrors.Wrapf(errortypes.ErrLogic, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
 }
 
 func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
@@ -86,7 +87,7 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 		Height:    100,
 	}
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+	require.EqualError(t, err, sdkerrors.Wrapf(errortypes.ErrLogic,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 85).Error())
 }
@@ -113,7 +114,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		NumBlocks:      1,
 	})
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+	require.EqualError(t, err, sdkerrors.Wrapf(errortypes.ErrLogic,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 1).Error())
 }

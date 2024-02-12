@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
+	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"google.golang.org/grpc/codes"
@@ -37,7 +38,7 @@ func (k Keeper) SequencersByRollappAll(c context.Context, req *types.QueryAllSeq
 				sequencerAddress,
 			))
 			if sequencerVal == nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return sdkerrors.Wrapf(errortypes.ErrLogic,
 					"sequencer was not found for address %s", sequencerAddress)
 
 			}
@@ -50,7 +51,7 @@ func (k Keeper) SequencersByRollappAll(c context.Context, req *types.QueryAllSeq
 				sequencerAddress,
 			))
 			if schedulerVal == nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return sdkerrors.Wrapf(errortypes.ErrLogic,
 					"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
 			}
 			k.cdc.MustUnmarshal(schedulerVal, &scheduler)
@@ -100,7 +101,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 			sequencerAddress,
 		))
 		if sequencerVal == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"sequencer was not found for address %s", sequencerAddress)
 
 		}
@@ -113,7 +114,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 			sequencerAddress,
 		))
 		if schedulerVal == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
 		}
 		k.cdc.MustUnmarshal(schedulerVal, &scheduler)

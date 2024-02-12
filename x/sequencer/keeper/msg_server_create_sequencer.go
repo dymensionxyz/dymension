@@ -3,11 +3,12 @@ package keeper
 import (
 	"bytes"
 	"context"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -15,7 +16,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.DymintPubKey == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+		return nil, sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
 	// load rollapp object for stateful validations
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
@@ -56,7 +57,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	} else {
 		//validate same data of the sequencer
 		if !bytes.Equal(sequencer.DymintPubKey.GetValue(), msg.DymintPubKey.GetValue()) {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey does not match")
+			return nil, sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "sequencer pubkey does not match")
 		}
 		//ignore new description
 
@@ -79,7 +80,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		activeSequencers := sequencersByRollapp.Sequencers
 		currentNumOfSequencers := len(activeSequencers.Addresses)
 		if maxSequencers < currentNumOfSequencers {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
 		}
 		if maxSequencers == currentNumOfSequencers {
 			return nil, types.ErrMaxSequencersLimit

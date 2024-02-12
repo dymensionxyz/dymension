@@ -1,8 +1,9 @@
 package keeper
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -48,7 +49,7 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	// check to see if the sequencer is active and can make the update
 	scheduler, found := hook.k.GetScheduler(ctx, seqAddr)
 	if !found {
-		return sdkerrors.Wrapf(sdkerrors.ErrLogic, "sequencer address: %s not registered in scheduler", seqAddr)
+		return sdkerrors.Wrapf(errortypes.ErrLogic, "sequencer address: %s not registered in scheduler", seqAddr)
 	}
 	if scheduler.Status != types.Proposer {
 		return types.ErrNotActiveSequencer

@@ -1,12 +1,12 @@
 package types
 
 import (
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"strings"
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
@@ -27,7 +27,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      "invalid_address",
 				DymintPubKey: pkAny,
 			},
-			err: sdkerrors.ErrInvalidAddress,
+			err: errortypes.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCreateSequencer{
@@ -54,7 +54,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Description: Description{
 					Moniker: strings.Repeat("a", MaxMonikerLength+1)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: errortypes.ErrInvalidRequest,
 		}, {
 			name: "invalid identity length",
 			msg: MsgCreateSequencer{
@@ -63,7 +63,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Description: Description{
 					Identity: strings.Repeat("a", MaxIdentityLength+1)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: errortypes.ErrInvalidRequest,
 		}, {
 			name: "invalid website length",
 			msg: MsgCreateSequencer{
@@ -72,7 +72,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Description: Description{
 					Website: strings.Repeat("a", MaxWebsiteLength+1)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: errortypes.ErrInvalidRequest,
 		}, {
 			name: "invalid security contact length",
 			msg: MsgCreateSequencer{
@@ -81,7 +81,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Description: Description{
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: errortypes.ErrInvalidRequest,
 		}, {
 			name: "invalid details length",
 			msg: MsgCreateSequencer{
@@ -90,7 +90,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Description: Description{
 					Details: strings.Repeat("a", MaxDetailsLength+1)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: errortypes.ErrInvalidRequest,
 		},
 	}
 	for _, tt := range tests {

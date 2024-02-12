@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
 
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -52,7 +53,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 			// this is a logic error, as the sequencer modules' BeforeUpdateState hook
 			// should check that the sequencer exists and register for serving this rollapp
 			// so if this check passed, an unpermissioned sequencer is registered
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"unpermissioned sequencer (%s) is registered for rollappId(%s)",
 				msg.Creator, msg.RollappId)
 		}
@@ -77,7 +78,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		// Check Error: if latestStateInfoIndex exists, there must me an info for this state
 		if !isFound {
 			// if not, it's a logic error
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
 				latestStateInfoIndex.Index, msg.RollappId)
 		}

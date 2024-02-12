@@ -1,13 +1,13 @@
 package keeper_test
 
 import (
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"strconv"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -333,7 +333,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
+	suite.ErrorIs(err, errortypes.ErrLogic)
 }
 
 func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeightInitial() {
@@ -525,7 +525,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
+	suite.ErrorIs(err, errortypes.ErrLogic)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
@@ -625,7 +625,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicNotRegisteredInScheduler()
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
+	suite.ErrorIs(err, errortypes.ErrLogic)
 }
 
 func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {

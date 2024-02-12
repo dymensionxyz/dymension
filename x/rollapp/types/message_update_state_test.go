@@ -3,7 +3,8 @@ package types
 import (
 	"testing"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
@@ -67,7 +68,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
 					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
 			},
-			err: sdkerrors.ErrInvalidAddress,
+			err: errortypes.ErrInvalidAddress,
 		}, {
 			name: "invalid zero blocks initial state",
 			msg: MsgUpdateState{

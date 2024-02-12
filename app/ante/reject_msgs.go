@@ -3,7 +3,7 @@ package ante
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -34,7 +34,7 @@ func (rmd RejectMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	for _, msg := range tx.GetMsgs() {
 		if _, ok := msg.(*evmtypes.MsgEthereumTx); ok {
 			return ctx, errorsmod.Wrapf(
-				sdkerrors.ErrInvalidType,
+				errortypes.ErrInvalidType,
 				"MsgEthereumTx needs to be contained within a tx with 'ExtensionOptionsEthereumTx' option",
 			)
 		}
@@ -43,7 +43,7 @@ func (rmd RejectMessagesDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		for _, disabledTypeURL := range rmd.disabledMsgTypeURLs {
 			if typeURL == disabledTypeURL {
 				return ctx, errorsmod.Wrapf(
-					sdkerrors.ErrUnauthorized,
+					errortypes.ErrUnauthorized,
 					"MsgTypeURL %s not supported",
 					typeURL,
 				)

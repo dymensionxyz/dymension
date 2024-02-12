@@ -1,8 +1,10 @@
 package delayedack
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -44,7 +46,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			wrappedFunc := func(ctx sdk.Context) error {
 				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 				if !ack.Success() {
-					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
+					return sdkerrors.Wrap(errortypes.ErrInvalidRequest, string(ack.Acknowledgement()))
 				}
 				// Write the acknowledgement to the chain only if it is synchronous
 				if ack != nil {

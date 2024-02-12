@@ -1,10 +1,11 @@
 package types
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const TypeMsgCreateSequencer = "create_sequencer"
@@ -60,20 +61,20 @@ func (msg *MsgCreateSequencer) GetSignBytes() []byte {
 func (msg *MsgCreateSequencer) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(errortypes.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	// public key also checked by the application logic
 	if msg.DymintPubKey != nil {
 		// check it is a pubkey
 		if _, err = codectypes.NewAnyWithValue(msg.DymintPubKey); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
+			return sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
 		}
 
 		// cast to cryptotypes.PubKey type
 		pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
 		if !ok {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+			return sdkerrors.Wrapf(errortypes.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 		}
 	}
 

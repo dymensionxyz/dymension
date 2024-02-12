@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"context"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 
+	sdkerrors "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"google.golang.org/grpc/codes"
@@ -35,7 +36,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 			sequencer.SequencerAddress,
 		))
 		if schedulerVal == nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return sdkerrors.Wrapf(errortypes.ErrLogic,
 				"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
 		}
 		k.cdc.MustUnmarshal(schedulerVal, &scheduler)
@@ -74,7 +75,7 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 		req.SequencerAddress,
 	)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+		return nil, sdkerrors.Wrapf(errortypes.ErrLogic,
 			"scheduler was not found for sequencer %s", req.SequencerAddress)
 	}
 
