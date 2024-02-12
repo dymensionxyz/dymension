@@ -17,7 +17,7 @@ jobs:
         with:
           go-version: 1.19
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v4.0.0
         with:
           config-path: .golangci.yml
           version: v1.49.0
