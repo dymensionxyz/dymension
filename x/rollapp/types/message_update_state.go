@@ -71,15 +71,16 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		}
 		// check to see stateRoot is a 32 byte array
 		if len(block.StateRoot) != 32 {
-			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block height (%d) must be 32 byte array. But received (%d) bytes",
 				block.Height, len(block.StateRoot))
 		}
 
-		// check to see IntermediateStatesRoot is a 32 byte array
+		//TODO: enforce that block contains ISRs
 		if block.IntermediateStatesRoots != nil {
 			for _, intermediateStatesRoot := range block.IntermediateStatesRoots {
+				// check to see IntermediateStatesRoot is a 32 byte array
 				if len(intermediateStatesRoot) != 32 {
-					return sdkerrors.Wrapf(ErrInvalidIntermediateStatesRoot, "IntermediateStatesRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+					return sdkerrors.Wrapf(ErrInvalidIntermediateStatesRoot, "IntermediateStatesRoot of block height (%d) must be 32 byte array. But received (%d) bytes",
 						block.Height, len(intermediateStatesRoot))
 				}
 			}
