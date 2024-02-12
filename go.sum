@@ -461,8 +461,8 @@ github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQx
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/cometbft v0.34.29-fraudproof-0.0.1 h1:yXpuP2HWaK8e2ROYLQCcn+LhyoBOBKS6iOiWXAQZbP0=
 github.com/dymensionxyz/cometbft v0.34.29-fraudproof-0.0.1/go.mod h1:L9shMfbkZ8B+7JlwANEr+NZbBcn+hBpwdbeYvA5rLCw=
-github.com/dymensionxyz/cosmos-sdk v0.46.17-0.20240211181710-4720d3725ff8 h1:rfOlzuBYF+2DdXq6Iecq9T9L2zGPXi/tnPDbkF/3j2s=
-github.com/dymensionxyz/cosmos-sdk v0.46.17-0.20240211181710-4720d3725ff8/go.mod h1:hDLmAS/e6Csmais3jZwl2ih6IqUHH6YWfYRrkn7R/Rk=
+github.com/dymensionxyz/cosmos-sdk v0.46.17-0.20240212135616-6c0aa8eab048 h1:Jly+/TFzicyusawKGcLSK2/s+P+I5/s9/PPscmtXnSw=
+github.com/dymensionxyz/cosmos-sdk v0.46.17-0.20240212135616-6c0aa8eab048/go.mod h1:hDLmAS/e6Csmais3jZwl2ih6IqUHH6YWfYRrkn7R/Rk=
 github.com/dymensionxyz/dymension-rdk v0.4.0-rc6 h1:32XFCOHyWp68yAAMWGO6V+Ct2J6WSREunvfU/a5wVnw=
 github.com/dymensionxyz/dymension-rdk v0.4.0-rc6/go.mod h1:wA0Iqwd7Vh+LifVzrcR1aaxTC9TKnFruw0BS2vlnml8=
 github.com/dymensionxyz/evmos/v12 v12.1.7-0.20240204135715-145b7145c0b3 h1:g6t9n7B4OCTm66F+TOFkwG8AnSeifLnqQeczNcx3TpY=
