@@ -33,4 +33,5 @@ var (
 	/* ------------------------------ fraud proofs ------------------------------ */
 	ErrInvalidPreStateAppHash         = sdkerrors.Register(ModuleName, 1023, "wrong initial ISR in block and fraud proof")
 	ErrMissingIntermediateStatesRoots = sdkerrors.Register(ModuleName, 1024, "no ISRs avaialble on the block")
+	ErrInvalidExpectedAppHash         = sdkerrors.Register(ModuleName, 1025, "expected hash in fraudproof is the same as commited")
 )

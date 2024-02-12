@@ -28,20 +28,36 @@ func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtyp
 
 // validate fraud proof preState Hash against the state update posted on the hub
 func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
-	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(fp.BlockHeight))
+	blockHeight := fp.BlockHeight + 1 //FIXME: why +1
+	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(blockHeight))
 	if err != nil {
 		return err
 	}
-	idx := fp.BlockHeight - int64(stateInfo.StartHeight)
+	idx := blockHeight - int64(stateInfo.StartHeight)
 	blockDescriptor := stateInfo.BDs.BD[idx]
 
 	if blockDescriptor.IntermediateStatesRoots == nil {
 		return types.ErrMissingIntermediateStatesRoots
 	}
 
-	expectedPreStateISR := blockDescriptor.IntermediateStatesRoots[0]
-	if !bytes.Equal(expectedPreStateISR, fp.PreStateAppHash) {
+	found := false
+	for idx, isr := range blockDescriptor.IntermediateStatesRoots {
+		//skip the last ISR
+		if idx == len(blockDescriptor.IntermediateStatesRoots)-1 {
+			break
+		}
+		if bytes.Equal(isr, fp.PreStateAppHash) {
+			found = true
+			break
+		}
+	}
+
+	if !found {
 		return types.ErrInvalidPreStateAppHash
+	}
+
+	if bytes.Equal(blockDescriptor.IntermediateStatesRoots[idx+1], fp.ExpectedValidAppHash) {
+		return types.ErrInvalidExpectedAppHash
 	}
 
 	return nil
