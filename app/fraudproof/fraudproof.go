@@ -90,7 +90,8 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 
 	fpv.initCleanInstance()
 
-	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1) //FIXME: why +1?
+	//using height+1 as the blockHeight is the last commited block
+	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1)
 
 	cms := fpv.runningApp.CommitMultiStore().(*rootmulti.Store)
 	storeKeys := fpv.storeKeys
@@ -143,6 +144,8 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		return ErrInvalidPreStateAppHash
 	}
 
+	SetRollappAddressPrefixes("ethm")
+
 	// Execute fraudulent state transition
 	if fraudProof.FraudulentBeginBlock != nil {
 		panic("fraudulent begin block not supported")
@@ -152,13 +155,12 @@ func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 		// Need to add some dummy begin block here since its a new app
 		fpv.runningApp.ResetDeliverState()
 		fpv.runningApp.SetBeginBlocker(nil)
-		fpv.runningApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}}) //FIXME: why +1?
+		fpv.runningApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}})
 		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.runningApp.GetAppHashInternal()))
 
 		if fraudProof.FraudulentDeliverTx != nil {
 			// skip IncrementSequenceDecorator check in AnteHandler
 			fpv.runningApp.SetAnteHandler(nil)
-			SetRollappAddressPrefixes("ethm")
 
 			resp := fpv.runningApp.DeliverTx(*fraudProof.FraudulentDeliverTx)
 			if !resp.IsOK() {

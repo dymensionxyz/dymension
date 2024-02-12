@@ -28,7 +28,7 @@ func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtyp
 
 // validate fraud proof preState Hash against the state update posted on the hub
 func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
-	blockHeight := fp.BlockHeight + 1 //FIXME: why +1
+	blockHeight := fp.BlockHeight + 1
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(blockHeight))
 	if err != nil {
 		return err
