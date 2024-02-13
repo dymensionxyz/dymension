@@ -83,11 +83,6 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		return fmt.Errorf("app not initialized")
 	}
 
-	_, err := fraudProof.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
 	fpv.initCleanInstance()
 
 	//using height+1 as the blockHeight is the last commited block
