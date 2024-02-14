@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,6 +15,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	if msg.DymintPubKey == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+	}
+
+	// check to see if the sequencer has been registered before
+	if _, found := k.GetSequencer(ctx, msg.Creator); found {
+		return nil, types.ErrSequencerExists
 	}
 	// load rollapp object for stateful validations
 	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
@@ -42,39 +46,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		}
 	}
 
-	// check to see if the sequencer has been registered before
-	sequencer, found := k.GetSequencer(ctx, msg.Creator)
-	if !found {
-		sequencer = types.Sequencer{
-			SequencerAddress: msg.Creator,
-			DymintPubKey:     msg.DymintPubKey,
-			Description:      msg.Description,
-			RollappIDs:       []string{msg.RollappId},
-		}
-
-		k.SetSequencer(ctx, sequencer)
-	} else {
-		//validate same data of the sequencer
-		if !bytes.Equal(sequencer.DymintPubKey.GetValue(), msg.DymintPubKey.GetValue()) {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey does not match")
-		}
-		//ignore new description
-
-		// check to see if the rollappId matches the one of the sequencer
-		for _, rollapp := range sequencer.RollappIDs {
-			if rollapp == msg.RollappId {
-				return nil, types.ErrSequencerAlreadyRegistered
-			}
-		}
-		// add rollappId to sequencer
-		sequencer.RollappIDs = append(sequencer.RollappIDs, msg.RollappId)
-		k.SetSequencer(ctx, sequencer)
-	}
-
 	// update sequencers list
 	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
 	if found {
-		// check to see if we reached maxsimum number of sequeners
+		// check to see if we reached the maximum number of sequeners for this rollapp
 		maxSequencers := int(rollapp.MaxSequencers)
 		activeSequencers := sequencersByRollapp.Sequencers
 		currentNumOfSequencers := len(activeSequencers.Addresses)
@@ -104,9 +79,14 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
-	if _, err := msg.Description.EnsureLength(); err != nil {
-		return nil, err
+	sequencer := types.Sequencer{
+		SequencerAddress: msg.Creator,
+		DymintPubKey:     msg.DymintPubKey,
+		Description:      msg.Description,
+		RollappId:        msg.RollappId,
 	}
+
+	k.SetSequencer(ctx, sequencer)
 
 	return &types.MsgCreateSequencerResponse{}, nil
 }

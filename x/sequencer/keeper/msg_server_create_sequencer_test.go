@@ -88,7 +88,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			sequencerExpect := types.Sequencer{
 				SequencerAddress: sequencerMsg.GetCreator(),
 				DymintPubKey:     sequencerMsg.GetDymintPubKey(),
-				RollappIDs:       []string{rollappId},
+				RollappId:        rollappId,
 				Description:      sequencerMsg.GetDescription(),
 			}
 			// create sequencer
@@ -164,7 +164,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.Require().Nil(err)
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.ErrorIs(err, types.ErrSequencerAlreadyRegistered)
+	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
 
 func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
@@ -227,7 +227,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	sequencerExpect := types.Sequencer{
 		SequencerAddress: sequencerMsg.GetCreator(),
 		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
-		RollappIDs:       []string{rollappId},
+		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
 	}
 	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
