@@ -16,6 +16,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		demandOrderFee                          string
 		demandOrderFulfillmentStatus            bool
 		demandOrderUnderlyingPacketStatus       commontypes.Status
+		demandOrderDenom                        string
 		underlyingRollappPacket                 *commontypes.RollappPacket
 		expectedFulfillmentError                error
 		eIBCdemandAddrBalance                   math.Int
@@ -33,6 +34,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFee:                       "50",
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
+			demandOrderDenom:                     sdk.DefaultBondDenom,
 			underlyingRollappPacket:              rollappPacket,
 			expectedFulfillmentError:             nil,
 			eIBCdemandAddrBalance:                math.NewInt(1000),
@@ -57,11 +59,12 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			},
 		},
 		{
-			name:                                 "Test demand order fulfillment - insufficient balance",
+			name:                                 "Test demand order fulfillment - insufficient balance same denom",
 			demandOrderPrice:                     "150",
 			demandOrderFee:                       "50",
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
+			demandOrderDenom:                     sdk.DefaultBondDenom,
 			expectedFulfillmentError:             types.ErrFullfillerInsufficientBalance,
 			eIBCdemandAddrBalance:                math.NewInt(130),
 			expectedDemandOrdefFulfillmentStatus: false,
@@ -85,11 +88,41 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			},
 		},
 		{
+			name:                                 "Test demand order fulfillment - insufficient balance different denom",
+			demandOrderPrice:                     "150",
+			demandOrderFee:                       "50",
+			demandOrderFulfillmentStatus:         false,
+			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
+			demandOrderDenom:                     "adym",
+			expectedFulfillmentError:             types.ErrFullfillerInsufficientBalance,
+			eIBCdemandAddrBalance:                math.NewInt(130),
+			expectedDemandOrdefFulfillmentStatus: false,
+			expectedPostCreationEventsType:       eibcEventType,
+			expectedPostCreationEventsCount:      1,
+			expectedPostCreationEventsAttributes: []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
+				sdk.NewAttribute(types.AttributeKeyPrice, "150adym"),
+				sdk.NewAttribute(types.AttributeKeyFee, "50adym"),
+				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			},
+			expectedPostFulfillmentEventsType:  eibcEventType,
+			expectedPostFulfillmentEventsCount: 0,
+			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
+				sdk.NewAttribute(types.AttributeKeyPrice, "150adym"),
+				sdk.NewAttribute(types.AttributeKeyFee, "50adym"),
+				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			},
+		},
+		{
 			name:                                 "Test demand order fulfillment - already fulfilled",
 			demandOrderPrice:                     "150",
 			demandOrderFee:                       "50",
 			demandOrderFulfillmentStatus:         true,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
+			demandOrderDenom:                     sdk.DefaultBondDenom,
 			expectedFulfillmentError:             types.ErrDemandAlreadyFulfilled,
 			eIBCdemandAddrBalance:                math.NewInt(300),
 			expectedDemandOrdefFulfillmentStatus: true,
@@ -118,6 +151,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFee:                       "50",
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_FINALIZED,
+			demandOrderDenom:                     sdk.DefaultBondDenom,
 			expectedFulfillmentError:             types.ErrDemandOrderDoesNotExist,
 			eIBCdemandAddrBalance:                math.NewInt(300),
 			expectedDemandOrdefFulfillmentStatus: false,
@@ -153,7 +187,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// Set the rollapp packet
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 		// Create new demand order
-		demandOrder, err := types.NewDemandOrder(*rollappPacket, tc.demandOrderPrice, tc.demandOrderFee, sdk.DefaultBondDenom, eibcSupplyAddr.String())
+		demandOrder, err := types.NewDemandOrder(*rollappPacket, tc.demandOrderPrice, tc.demandOrderFee, tc.demandOrderDenom, eibcSupplyAddr.String())
 		suite.Require().NoError(err)
 		demandOrder.IsFullfilled = tc.demandOrderFulfillmentStatus
 		err = suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
