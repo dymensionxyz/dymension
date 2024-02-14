@@ -7,10 +7,16 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgCreateSequencer = "create_sequencer"
+const (
+	TypeMsgCreateSequencer = "create_sequencer"
+	TypeMsgBond            = "bond"
+	TypeMsgUnbond          = "unbond"
+)
 
 var (
 	_ sdk.Msg                            = &MsgCreateSequencer{}
+	_ sdk.Msg                            = &MsgBond{}
+	_ sdk.Msg                            = &MsgUnbond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
@@ -20,6 +26,7 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
 }
 
+/* --------------------------- MsgCreateSequencer --------------------------- */
 func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
@@ -87,4 +94,57 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+/* --------------------------- MsgBond --------------------------- */
+func NewMsgBond(creator string, bond sdk.Coin) *MsgBond {
+	return &MsgBond{
+		Creator: creator,
+		Amount:  bond,
+	}
+}
+
+func (msg *MsgBond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if !msg.Amount.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid bond amount: %s", msg.Amount.String())
+	}
+
+	return nil
+}
+
+func (msg *MsgBond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+/* -------------------------------- MsgUnbond ------------------------------- */
+func NewMsgUnbond(creator string) *MsgUnbond {
+	return &MsgUnbond{
+		Creator: creator,
+	}
+}
+
+func (msg *MsgUnbond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
 }
