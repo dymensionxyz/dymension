@@ -28,8 +28,8 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	if err != nil {
 		return nil, err
 	}
-	// Check that the order exists
-	demandOrder, err := m.GetDemandOrder(ctx, msg.OrderId)
+	// Check that the order exists in status PENDING
+	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err
 	}
-	// Fulfill the order by updating the order status
+	// Fulfill the order by updating the order status and underlying packet recipient
 	err = m.Keeper.FullfillOrder(ctx, demandOrder, fullfillerAccount.GetAddress())
 
 	return &types.MsgFulfillOrderResponse{}, err

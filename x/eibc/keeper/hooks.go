@@ -36,7 +36,7 @@ func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commo
 	oldPacketKey string, newPacketKey string) error {
 	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
-	demandOrder, err := d.GetDemandOrder(ctx, demandOrderID)
+	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)
 	if err != nil {
 		// If demand order does not exist, then we don't need to do anything
 		if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
