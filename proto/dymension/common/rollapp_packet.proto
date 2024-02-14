@@ -1,17 +1,17 @@
 syntax = "proto3";
-package dymensionxyz.dymension.delayedack;
+package dymensionxyz.dymension.common;
 
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
-import "dymension/common/common.proto";
+import "dymension/common/status.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 
 message RollappPacket {
     string rollapp_id = 1;
     ibc.core.channel.v1.Packet packet = 2;
     bytes acknowledgement = 3;
-    dymensionxyz.dymension.common.Status status = 4;
+    Status status = 4;
     uint64 ProofHeight = 5;
     bytes relayer = 6;
     enum Type {

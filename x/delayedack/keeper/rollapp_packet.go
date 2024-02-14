@@ -13,16 +13,16 @@ import (
 // SetRollappPacket stores a rollapp packet in the KVStore.
 // It logs the saving of the packet and marshals the packet into bytes before storing.
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
-func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPacket) error {
+func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.RollappPacket) error {
 	logger := ctx.Logger()
 	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.DestinationChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
 	b, err := k.cdc.Marshal(&rollappPacket)
 	if err != nil {
 		return err
 	}
-	store.Set(types.GetRollappPacketKey(
+	store.Set(commontypes.GetRollappPacketKey(
 		rollappPacket.RollappId,
 		rollappPacket.Status,
 		rollappPacket.ProofHeight,
@@ -39,14 +39,14 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket types.RollappPac
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.
-func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*types.RollappPacket, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
 	b := store.Get([]byte(rollappPacketKey))
 	if b == nil {
 		return nil, types.ErrRollappPacketDoesNotExist
 	}
 
-	var rollappPacket types.RollappPacket
+	var rollappPacket commontypes.RollappPacket
 	if err := k.cdc.Unmarshal(b, &rollappPacket); err != nil {
 		return nil, err
 	}
@@ -95,26 +95,26 @@ func (k Keeper) UpdateRollappPacketRecipient(
 // UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket types.RollappPacket, newStatus commontypes.Status) (types.RollappPacket, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
 
 	// Delete the old rollapp packet
-	oldKey := types.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	oldKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	store.Delete(oldKey)
 	// Update the packet
 	rollappPacket.Status = newStatus
 	// Create a new rollapp packet with the updated status
 	err := k.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
-		return types.RollappPacket{}, err
+		return commontypes.RollappPacket{}, err
 	}
 
 	// Call hook subscribers
-	newKey := types.GetRollappPacketKey(rollappPacket.RollappId, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	newKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
 	keeperHooks := k.GetHooks()
 	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
-		return types.RollappPacket{}, err
+		return commontypes.RollappPacket{}, err
 	}
 	return rollappPacket, nil
 }
@@ -128,8 +128,8 @@ func (k Keeper) ListRollappPacketsByStatus(
 	ctx sdk.Context,
 	status commontypes.Status,
 	maxProofHeight uint64,
-) (list []types.RollappPacket) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+) (list []commontypes.RollappPacket) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
 
 	// Build the prefix which is composed of the rollappID and the status
 	var prefix []byte
@@ -144,7 +144,7 @@ func (k Keeper) ListRollappPacketsByStatus(
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.RollappPacket
+		var val commontypes.RollappPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if maxProofHeight == 0 || val.ProofHeight <= maxProofHeight {
 			list = append(list, val)
@@ -156,15 +156,15 @@ func (k Keeper) ListRollappPacketsByStatus(
 	return list
 }
 
-func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []types.RollappPacket) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
+func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.RollappPacket) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
 
 	// Iterate over the range from lastProofHeight to proofHeight
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.RollappPacket
+		var val commontypes.RollappPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}

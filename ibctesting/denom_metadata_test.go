@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -36,7 +36,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 
 	//register rollapp with metadata for stake denom
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
-	
+
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(1, currentRollappBlockHeight)
@@ -53,7 +53,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 
 	/* ------------------- move non-registered token from rollapp ------------------- */
 	dymTokensToSend := sdk.NewCoin("udym", amount)
-	app.FundAccount(ConvertToApp(suite.rollappChain), suite.rollappChain.GetContext(), suite.rollappChain.SenderAccount.GetAddress(), sdk.Coins{dymTokensToSend})
+	apptesting.FundAccount(ConvertToApp(suite.rollappChain), suite.rollappChain.GetContext(), suite.rollappChain.SenderAccount.GetAddress(), sdk.Coins{dymTokensToSend})
 	msg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, dymTokensToSend, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
 	res, err := suite.rollappChain.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed

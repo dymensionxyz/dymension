@@ -6,7 +6,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +15,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 	// Create and set some RollappPackets
 	for i := 1; i < 6; i++ {
-		packet := types.RollappPacket{
+		packet := commontypes.RollappPacket{
 			RollappId: rollappID,
 			Packet: &channeltypes.Packet{
 				SourcePort:         "testSourcePort",
@@ -56,7 +55,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 func TestUpdateRollappPacketWithStatus(t *testing.T) {
 	keeper, ctx := keepertest.DelayedackKeeper(t)
-	packet := types.RollappPacket{
+	packet := commontypes.RollappPacket{
 		RollappId: "testRollappID",
 		Packet: &channeltypes.Packet{
 			SourcePort:         "testSourcePort",

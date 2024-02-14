@@ -8,10 +8,10 @@ const TypeMsgFulfillOrder = "update_state"
 
 var _ = sdk.Msg(&MsgFulfillOrder{})
 
-func NewMsgFullfillOrder(fullfillerAddress string, orderId string) *MsgFulfillOrder {
+func NewMsgFulfillOrder(fulfillerAddress string, orderId string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
-		FullfillerAddress: fullfillerAddress,
-		OrderId:           orderId,
+		FulfillerAddress: fulfillerAddress,
+		OrderId:          orderId,
 	}
 }
 
@@ -24,7 +24,7 @@ func (msg *MsgFulfillOrder) Type() string {
 }
 
 func (msg *MsgFulfillOrder) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.FullfillerAddress)
+	creator, err := sdk.AccAddressFromBech32(msg.FulfillerAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func (m *MsgFulfillOrder) ValidateBasic() error {
 	if m.OrderId == "" {
 		return ErrInvalidOrderID
 	}
-	_, err := sdk.AccAddressFromBech32(m.FullfillerAddress)
+	_, err := sdk.AccAddressFromBech32(m.FulfillerAddress)
 	if err != nil {
 		return err
 	}
@@ -54,6 +54,6 @@ func (m *MsgFulfillOrder) Validate() error {
 	return nil
 }
 
-func (m *MsgFulfillOrder) GetFullfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(m.FullfillerAddress)
+func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
 }

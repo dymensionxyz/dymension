@@ -5,15 +5,15 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
 service Msg {
-    rpc FullfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
+    rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
 }
 
-// MsgFullfillOrder defines the FullfillOrder request type.
+// MsgFulfillOrder defines the FullfillOrder request type.
 message MsgFulfillOrder {
-    // fullfiller_address is the bech32-encoded address of the account which the message was sent from.
-    string fullfiller_address = 1;
+    // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
+    string fulfiller_address = 1;
     string order_id = 2;
 }
 
-// MsgFullfillOrderResponse defines the FullfillOrder response type.
+// MsgFulfillOrderResponse defines the FullfillOrder response type.
 message MsgFulfillOrderResponse {}
