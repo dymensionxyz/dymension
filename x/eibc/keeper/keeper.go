@@ -69,7 +69,7 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 
 	// Emit events
 	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(types.AttributeKeyPacketKey, order.Id),
+		sdk.NewAttribute(types.AttributeKeyId, order.Id),
 		sdk.NewAttribute(types.AttributeKeyPrice, order.Price.String()),
 		sdk.NewAttribute(types.AttributeKeyFee, order.Fee.String()),
 		sdk.NewAttribute(types.AttributeKeyIsFullfilled, strconv.FormatBool(order.IsFullfilled)),

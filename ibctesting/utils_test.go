@@ -8,7 +8,8 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	app "github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -20,7 +21,7 @@ var ChainIDPrefix = "evmos_9000-"
 func init() {
 	ibctesting.ChainIDPrefix = ChainIDPrefix
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
-		return app.SetupTestingApp()
+		return apptesting.SetupTestingApp()
 	}
 }
 
@@ -42,11 +43,6 @@ type IBCTestUtilSuite struct {
 	cosmosChain  *ibctesting.TestChain
 	rollappChain *ibctesting.TestChain
 }
-
-// TestKeeperTestSuite runs all the tests within this package.
-// func TestKeeperTestSuite(t *testing.T) {
-// 	suite.Run(t, new(IBCTestUtilSuite))
-// }
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {

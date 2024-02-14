@@ -237,11 +237,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			// Try and fulfill the demand order
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
-				FullfillerAddress: fullfillerAccount.String(),
+				FulfillerAddress: fullfillerAccount.String(),
 				OrderId:           lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
-			_, err = suite.msgServer.FullfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
+			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			if !tc.isFulfilledSuccess {
 				suite.Require().Error(err)
 				return
@@ -254,7 +254,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			var data transfertypes.FungibleTokenPacketData
 			err = transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
 			suite.Require().NoError(err)
-			suite.Require().Equal(msgFulfillDemandOrder.FullfillerAddress, data.Receiver)
+			suite.Require().Equal(msgFulfillDemandOrder.FulfillerAddress, data.Receiver)
 
 			// Validate balances of fullfiller and recipient
 			fullfillerAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)

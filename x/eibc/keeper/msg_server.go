@@ -20,7 +20,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (m msgServer) FullfillOrder(goCtx context.Context, msg *types.MsgFulfillOrder) (*types.MsgFulfillOrderResponse, error) {
+func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrder) (*types.MsgFulfillOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
 	// Check that the msg is valid
@@ -46,7 +46,7 @@ func (m msgServer) FullfillOrder(goCtx context.Context, msg *types.MsgFulfillOrd
 		return nil, types.ErrBlockedAddress
 	}
 	// Check that the fullfiller has enough balance to fulfill the order
-	fullfillerAccount := m.GetAccount(ctx, msg.GetFullfillerBech32Address())
+	fullfillerAccount := m.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fullfillerAccount == nil {
 		return nil, types.ErrFullfillerAddressDoesNotExist
 	}

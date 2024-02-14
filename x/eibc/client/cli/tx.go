@@ -44,7 +44,7 @@ func NewFullfilOrderTxCmd() *cobra.Command {
 			}
 			orderId := args[0]
 
-			msg := types.NewMsgFullfillOrder(
+			msg := types.NewMsgFulfillOrder(
 				clientCtx.GetFromAddress().String(),
 				orderId,
 			)

@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
@@ -36,7 +35,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 		logger.Debug("Finalizing IBC rollapp packet", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "type", rollappPacket.Type)
 		var err error
 		switch rollappPacket.Type {
-		case types.RollappPacket_ON_RECV:
+		case commontypes.RollappPacket_ON_RECV:
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			wrappedFunc := func(ctx sdk.Context) error {
 				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
@@ -61,7 +60,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
 			}
-		case types.RollappPacket_ON_ACK:
+		case commontypes.RollappPacket_ON_ACK:
 			logger.Debug("Calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			wrappedFunc := func(ctx sdk.Context) error {
 				err := im.app.OnAcknowledgementPacket(ctx, *rollappPacket.Packet, rollappPacket.Acknowledgement, rollappPacket.Relayer)
@@ -75,7 +74,7 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 				logger.Error("Error calling OnAcknowledgementPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel(), "error", err.Error())
 				rollappPacket.Error = err.Error()
 			}
-		case types.RollappPacket_ON_TIMEOUT:
+		case commontypes.RollappPacket_ON_TIMEOUT:
 			logger.Debug("Calling OnTimeoutPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			wrappedFunc := func(ctx sdk.Context) error {
 				err := im.app.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)

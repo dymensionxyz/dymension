@@ -7,11 +7,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollappPacket types.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
+func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	// Handle eibc demand order if exists - Start by validating the memo
 	memo := make(map[string]interface{})
@@ -27,8 +28,7 @@ func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollap
 		return nil
 	}
 	// Create the eibc demand order
-	rollappPacketStoreKey := types.GetRollappPacketKey(chainID, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
-	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, string(rollappPacketStoreKey), *packetMetaData.EIBC)
+	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, *packetMetaData.EIBC)
 	if err != nil {
 		err = fmt.Errorf("Failed to create eibc demand order, %s", err)
 		return err
@@ -43,7 +43,7 @@ func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollap
 // calculates the demand order price, and creates a new demand order.
 // It returns the created demand order or an error if there is any.
 func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
-	rollappPacket *types.RollappPacket, rollappPacketStoreKey string, eibcMetaData types.EIBCMetadata) (*eibctypes.DemandOrder, error) {
+	rollappPacket *commontypes.RollappPacket, eibcMetaData types.EIBCMetadata) (*eibctypes.DemandOrder, error) {
 	// Validate the fungible token packet data as we're going to use it to create the demand order
 	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	demandOrderPrice := amountInt.Sub(feeInt).String()
 	demandOrderDenom := im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	// Create the demand order and validate it
-	eibcDemandOrder, err := eibctypes.NewDemandOrder(rollappPacketStoreKey, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
+	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create eibc demand order, %s", err)
 	}

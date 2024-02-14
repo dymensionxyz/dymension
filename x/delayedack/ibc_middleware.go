@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 const (
@@ -150,13 +149,13 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:   chainID,
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-		Type:        types.RollappPacket_ON_RECV,
+		Type:        commontypes.RollappPacket_ON_RECV,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
@@ -224,14 +223,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:       chainID,
 		Packet:          &packet,
 		Acknowledgement: acknowledgement,
 		Status:          commontypes.Status_PENDING,
 		Relayer:         relayer,
 		ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
-		Type:            types.RollappPacket_ON_ACK,
+		Type:            commontypes.RollappPacket_ON_ACK,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
@@ -295,13 +294,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:   chainID,
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-		Type:        types.RollappPacket_ON_TIMEOUT,
+		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {

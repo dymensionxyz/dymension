@@ -26,6 +26,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tendermint/tendermint v0.34.29
 	github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b
+	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0
 	gonum.org/v1/gonum v0.8.2
 	google.golang.org/genproto/googleapis/api v0.0.0-20240102182953-50ed04b92917
 	google.golang.org/grpc v1.60.1
@@ -187,7 +188,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	golang.org/x/crypto v0.16.0 // indirect
-	golang.org/x/exp v0.0.0-20230310171629-522b1b587ee0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/oauth2 v0.15.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
@@ -211,7 +211,7 @@ replace (
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
-	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.1.2
+	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240214093651-066fb2fe1c27
 
 	//  broken goleveldb
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7

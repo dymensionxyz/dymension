@@ -3,7 +3,7 @@ package types
 const (
 	EventTypeEIBC = ModuleName
 
-	AttributeKeyPacketKey    = "packet_key"
+	AttributeKeyId           = "id"
 	AttributeKeyPrice        = "price"
 	AttributeKeyFee          = "fee"
 	AttributeKeyIsFullfilled = "is_fulfilled"
