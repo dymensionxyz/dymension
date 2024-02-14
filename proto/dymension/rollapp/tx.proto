@@ -67,3 +67,64 @@ message MsgUpdateState {
 
 message MsgUpdateStateResponse {
 }
+
+message MsgSubmitFraud {
+  string creator   = 1;
+  string rollappID = 2;
+  // startHeight is the block height of the first block in the batch
+  uint64 startHeight = 3;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 4;  
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 5;
+	// To proof non-matching span with commitment, it is required to send the blob
+	bytes blob = 6;
+  // NMT inclusion proofs for non-matching blob
+	repeated bytes nmtproofs = 7;
+  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
+  repeated bytes rproofs = 8;
+  // Data root of the DA headers at the specific height
+  bytes dataroot = 9;
+  // TODO: should take the type from forked cometbft repo
+  string FraudProof = 10;
+}
+
+message MsgSubmitFraudResponse {}
+
+
+// ===================== NotAvailableBatchMsg
+// Updating a rollapp state with the DA information and proofs for a non-available
+// batch submmited by a sequencer
+message MsgNonAvailableBatch {
+  // creator is the bech32-encoded address of the full-node sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+	// case describing what is wrong with the data committed by the sequencer
+	NonAvaliableCase case =3;
+  // startHeight is the block height of the first block in the batch
+  uint64 startHeight = 4;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 5;
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 6;
+	// Result code for the availability check
+  uint32 Code = 7;
+	// To proof non-matching span with commitment, it is required to send the blob
+	optional bytes blob = 8;
+  // NMT inclusion proofs for non-matching blob
+	repeated bytes nmtproofs = 9;
+  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
+  repeated bytes rproofs = 10;
+  // Data root of the DA headers at the specific height
+  bytes dataroot = 11;
+}
+
+enum NonAvaliableCase {
+   WrongCommitment = 0 [(gogoproto.enumvalue_customname) = "wrongcommitment"];
+   DataNotAvailable      = 1 [(gogoproto.enumvalue_customname) = "notavailable"];
+   InvalidData    = 2 [(gogoproto.enumvalue_customname) = "invaliddata"];
+}
+
+message MsgNonAvailableBatchResponse {}

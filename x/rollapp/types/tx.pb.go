@@ -28,6 +28,34 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type NonAvaliableCase int32
+
+const (
+	NonAvaliableCase_wrongcommitment NonAvaliableCase = 0
+	NonAvaliableCase_notavailable    NonAvaliableCase = 1
+	NonAvaliableCase_invaliddata     NonAvaliableCase = 2
+)
+
+var NonAvaliableCase_name = map[int32]string{
+	0: "WrongCommitment",
+	1: "DataNotAvailable",
+	2: "InvalidData",
+}
+
+var NonAvaliableCase_value = map[string]int32{
+	"WrongCommitment":  0,
+	"DataNotAvailable": 1,
+	"InvalidData":      2,
+}
+
+func (x NonAvaliableCase) String() string {
+	return proto.EnumName(NonAvaliableCase_name, int32(x))
+}
+
+func (NonAvaliableCase) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_935cc363af28220c, []int{0}
+}
+
 // ===================== MsgCreateRollapp
 type MsgCreateRollapp struct {
 	// creator is the bech32-encoded address of the rollapp creator
@@ -320,51 +348,435 @@ func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
+type MsgSubmitFraud struct {
+	Creator   string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	RollappID string `protobuf:"bytes,2,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
+	// startHeight is the block height of the first block in the batch
+	StartHeight uint64 `protobuf:"varint,3,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
+	// numBlocks is the number of blocks included in this batch update
+	NumBlocks uint64 `protobuf:"varint,4,opt,name=numBlocks,proto3" json:"numBlocks,omitempty"`
+	// DAPath is the description of the location on the DA layer
+	DAPath string `protobuf:"bytes,5,opt,name=DAPath,proto3" json:"DAPath,omitempty"`
+	// To proof non-matching span with commitment, it is required to send the blob
+	Blob []byte `protobuf:"bytes,6,opt,name=blob,proto3" json:"blob,omitempty"`
+	// NMT inclusion proofs for non-matching blob
+	Nmtproofs [][]byte `protobuf:"bytes,7,rep,name=nmtproofs,proto3" json:"nmtproofs,omitempty"`
+	// Row proofs for non-matching blobs, or to demonstrate non-inclusion
+	Rproofs [][]byte `protobuf:"bytes,8,rep,name=rproofs,proto3" json:"rproofs,omitempty"`
+	// Data root of the DA headers at the specific height
+	Dataroot []byte `protobuf:"bytes,9,opt,name=dataroot,proto3" json:"dataroot,omitempty"`
+	// TODO: should take the type from forked cometbft repo
+	FraudProof string `protobuf:"bytes,10,opt,name=FraudProof,proto3" json:"FraudProof,omitempty"`
+}
+
+func (m *MsgSubmitFraud) Reset()         { *m = MsgSubmitFraud{} }
+func (m *MsgSubmitFraud) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFraud) ProtoMessage()    {}
+func (*MsgSubmitFraud) Descriptor() ([]byte, []int) {
+	return fileDescriptor_935cc363af28220c, []int{4}
+}
+func (m *MsgSubmitFraud) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitFraud) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitFraud.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitFraud) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFraud.Merge(m, src)
+}
+func (m *MsgSubmitFraud) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitFraud) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFraud.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitFraud proto.InternalMessageInfo
+
+func (m *MsgSubmitFraud) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgSubmitFraud) GetRollappID() string {
+	if m != nil {
+		return m.RollappID
+	}
+	return ""
+}
+
+func (m *MsgSubmitFraud) GetStartHeight() uint64 {
+	if m != nil {
+		return m.StartHeight
+	}
+	return 0
+}
+
+func (m *MsgSubmitFraud) GetNumBlocks() uint64 {
+	if m != nil {
+		return m.NumBlocks
+	}
+	return 0
+}
+
+func (m *MsgSubmitFraud) GetDAPath() string {
+	if m != nil {
+		return m.DAPath
+	}
+	return ""
+}
+
+func (m *MsgSubmitFraud) GetBlob() []byte {
+	if m != nil {
+		return m.Blob
+	}
+	return nil
+}
+
+func (m *MsgSubmitFraud) GetNmtproofs() [][]byte {
+	if m != nil {
+		return m.Nmtproofs
+	}
+	return nil
+}
+
+func (m *MsgSubmitFraud) GetRproofs() [][]byte {
+	if m != nil {
+		return m.Rproofs
+	}
+	return nil
+}
+
+func (m *MsgSubmitFraud) GetDataroot() []byte {
+	if m != nil {
+		return m.Dataroot
+	}
+	return nil
+}
+
+func (m *MsgSubmitFraud) GetFraudProof() string {
+	if m != nil {
+		return m.FraudProof
+	}
+	return ""
+}
+
+type MsgSubmitFraudResponse struct {
+}
+
+func (m *MsgSubmitFraudResponse) Reset()         { *m = MsgSubmitFraudResponse{} }
+func (m *MsgSubmitFraudResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFraudResponse) ProtoMessage()    {}
+func (*MsgSubmitFraudResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_935cc363af28220c, []int{5}
+}
+func (m *MsgSubmitFraudResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSubmitFraudResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSubmitFraudResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSubmitFraudResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFraudResponse.Merge(m, src)
+}
+func (m *MsgSubmitFraudResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSubmitFraudResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFraudResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSubmitFraudResponse proto.InternalMessageInfo
+
+// ===================== NotAvailableBatchMsg
+// Updating a rollapp state with the DA information and proofs for a non-available
+// batch submmited by a sequencer
+type MsgNonAvailableBatch struct {
+	// creator is the bech32-encoded address of the full-node sending the update
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// rollappId is the rollapp that the sequencer belongs to and asking to update
+	// The rollappId follows the same standard as cosmos chain_id
+	RollappId string `protobuf:"bytes,2,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+	// case describing what is wrong with the data committed by the sequencer
+	Case NonAvaliableCase `protobuf:"varint,3,opt,name=case,proto3,enum=dymensionxyz.dymension.rollapp.NonAvaliableCase" json:"case,omitempty"`
+	// startHeight is the block height of the first block in the batch
+	StartHeight uint64 `protobuf:"varint,4,opt,name=startHeight,proto3" json:"startHeight,omitempty"`
+	// numBlocks is the number of blocks included in this batch update
+	NumBlocks uint64 `protobuf:"varint,5,opt,name=numBlocks,proto3" json:"numBlocks,omitempty"`
+	// DAPath is the description of the location on the DA layer
+	DAPath string `protobuf:"bytes,6,opt,name=DAPath,proto3" json:"DAPath,omitempty"`
+	// Result code for the availability check
+	Code uint32 `protobuf:"varint,7,opt,name=Code,proto3" json:"Code,omitempty"`
+	// Types that are valid to be assigned to XBlob:
+	//	*MsgNonAvailableBatch_Blob
+	XBlob isMsgNonAvailableBatch_XBlob `protobuf_oneof:"_blob"`
+	// NMT inclusion proofs for non-matching blob
+	Nmtproofs [][]byte `protobuf:"bytes,9,rep,name=nmtproofs,proto3" json:"nmtproofs,omitempty"`
+	// Row proofs for non-matching blobs, or to demonstrate non-inclusion
+	Rproofs [][]byte `protobuf:"bytes,10,rep,name=rproofs,proto3" json:"rproofs,omitempty"`
+	// Data root of the DA headers at the specific height
+	Dataroot []byte `protobuf:"bytes,11,opt,name=dataroot,proto3" json:"dataroot,omitempty"`
+}
+
+func (m *MsgNonAvailableBatch) Reset()         { *m = MsgNonAvailableBatch{} }
+func (m *MsgNonAvailableBatch) String() string { return proto.CompactTextString(m) }
+func (*MsgNonAvailableBatch) ProtoMessage()    {}
+func (*MsgNonAvailableBatch) Descriptor() ([]byte, []int) {
+	return fileDescriptor_935cc363af28220c, []int{6}
+}
+func (m *MsgNonAvailableBatch) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgNonAvailableBatch) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgNonAvailableBatch.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgNonAvailableBatch) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgNonAvailableBatch.Merge(m, src)
+}
+func (m *MsgNonAvailableBatch) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgNonAvailableBatch) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgNonAvailableBatch.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgNonAvailableBatch proto.InternalMessageInfo
+
+type isMsgNonAvailableBatch_XBlob interface {
+	isMsgNonAvailableBatch_XBlob()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type MsgNonAvailableBatch_Blob struct {
+	Blob []byte `protobuf:"bytes,8,opt,name=blob,proto3,oneof" json:"blob,omitempty"`
+}
+
+func (*MsgNonAvailableBatch_Blob) isMsgNonAvailableBatch_XBlob() {}
+
+func (m *MsgNonAvailableBatch) GetXBlob() isMsgNonAvailableBatch_XBlob {
+	if m != nil {
+		return m.XBlob
+	}
+	return nil
+}
+
+func (m *MsgNonAvailableBatch) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgNonAvailableBatch) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgNonAvailableBatch) GetCase() NonAvaliableCase {
+	if m != nil {
+		return m.Case
+	}
+	return NonAvaliableCase_wrongcommitment
+}
+
+func (m *MsgNonAvailableBatch) GetStartHeight() uint64 {
+	if m != nil {
+		return m.StartHeight
+	}
+	return 0
+}
+
+func (m *MsgNonAvailableBatch) GetNumBlocks() uint64 {
+	if m != nil {
+		return m.NumBlocks
+	}
+	return 0
+}
+
+func (m *MsgNonAvailableBatch) GetDAPath() string {
+	if m != nil {
+		return m.DAPath
+	}
+	return ""
+}
+
+func (m *MsgNonAvailableBatch) GetCode() uint32 {
+	if m != nil {
+		return m.Code
+	}
+	return 0
+}
+
+func (m *MsgNonAvailableBatch) GetBlob() []byte {
+	if x, ok := m.GetXBlob().(*MsgNonAvailableBatch_Blob); ok {
+		return x.Blob
+	}
+	return nil
+}
+
+func (m *MsgNonAvailableBatch) GetNmtproofs() [][]byte {
+	if m != nil {
+		return m.Nmtproofs
+	}
+	return nil
+}
+
+func (m *MsgNonAvailableBatch) GetRproofs() [][]byte {
+	if m != nil {
+		return m.Rproofs
+	}
+	return nil
+}
+
+func (m *MsgNonAvailableBatch) GetDataroot() []byte {
+	if m != nil {
+		return m.Dataroot
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MsgNonAvailableBatch) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*MsgNonAvailableBatch_Blob)(nil),
+	}
+}
+
+type MsgNonAvailableBatchResponse struct {
+}
+
+func (m *MsgNonAvailableBatchResponse) Reset()         { *m = MsgNonAvailableBatchResponse{} }
+func (m *MsgNonAvailableBatchResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgNonAvailableBatchResponse) ProtoMessage()    {}
+func (*MsgNonAvailableBatchResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_935cc363af28220c, []int{7}
+}
+func (m *MsgNonAvailableBatchResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgNonAvailableBatchResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgNonAvailableBatchResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgNonAvailableBatchResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgNonAvailableBatchResponse.Merge(m, src)
+}
+func (m *MsgNonAvailableBatchResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgNonAvailableBatchResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgNonAvailableBatchResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgNonAvailableBatchResponse proto.InternalMessageInfo
+
 func init() {
+	proto.RegisterEnum("dymensionxyz.dymension.rollapp.NonAvaliableCase", NonAvaliableCase_name, NonAvaliableCase_value)
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
 	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
 	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
+	proto.RegisterType((*MsgSubmitFraud)(nil), "dymensionxyz.dymension.rollapp.MsgSubmitFraud")
+	proto.RegisterType((*MsgSubmitFraudResponse)(nil), "dymensionxyz.dymension.rollapp.MsgSubmitFraudResponse")
+	proto.RegisterType((*MsgNonAvailableBatch)(nil), "dymensionxyz.dymension.rollapp.MsgNonAvailableBatch")
+	proto.RegisterType((*MsgNonAvailableBatchResponse)(nil), "dymensionxyz.dymension.rollapp.MsgNonAvailableBatchResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/tx.proto", fileDescriptor_935cc363af28220c) }
 
 var fileDescriptor_935cc363af28220c = []byte{
-	// 533 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x41, 0x6f, 0xd3, 0x30,
-	0x18, 0x6d, 0xda, 0xae, 0xa3, 0xae, 0x86, 0x90, 0x35, 0x26, 0x2b, 0x9a, 0x42, 0x55, 0xed, 0x90,
-	0x0b, 0x09, 0xea, 0xa6, 0x89, 0xeb, 0x4a, 0x0f, 0xe3, 0x50, 0x04, 0x19, 0x08, 0x89, 0x0b, 0x72,
-	0xe3, 0x4f, 0x69, 0xd4, 0x26, 0x0e, 0xb6, 0x3b, 0xb5, 0x70, 0xe5, 0x07, 0xf0, 0xb3, 0x76, 0xdc,
-	0x91, 0x13, 0x42, 0xed, 0xaf, 0xd8, 0x0d, 0x39, 0x4d, 0x9a, 0x74, 0x54, 0x8c, 0x69, 0x37, 0x7f,
-	0xef, 0x7d, 0xef, 0xd9, 0x7e, 0x9f, 0x65, 0x64, 0xb2, 0x79, 0x04, 0xb1, 0x0c, 0x79, 0xec, 0x0a,
-	0x3e, 0x99, 0xd0, 0x24, 0x71, 0xd5, 0xcc, 0x49, 0x04, 0x57, 0x1c, 0x5b, 0x6b, 0x6e, 0x36, 0xff,
-	0xea, 0xac, 0x0b, 0x27, 0x6b, 0x34, 0xed, 0xbf, 0xb5, 0xc3, 0x09, 0xf7, 0xc7, 0x9f, 0x19, 0x48,
-	0x5f, 0x84, 0x89, 0xe2, 0x62, 0xe5, 0x64, 0x1e, 0x6e, 0xe9, 0xa4, 0xf1, 0x38, 0x63, 0xf7, 0x03,
-	0x1e, 0xf0, 0x74, 0xe9, 0xea, 0xd5, 0x0a, 0xed, 0xdc, 0x54, 0xd1, 0x93, 0x81, 0x0c, 0x5e, 0x09,
-	0xa0, 0x0a, 0xbc, 0x95, 0x0a, 0x13, 0xb4, 0xeb, 0x6b, 0x80, 0x0b, 0x62, 0xb4, 0x0d, 0xbb, 0xe9,
-	0xe5, 0x25, 0x3e, 0x44, 0xcd, 0xcc, 0xfa, 0x35, 0x23, 0xd5, 0x94, 0x2b, 0x00, 0xdc, 0x46, 0x4d,
-	0x9f, 0x33, 0xb8, 0x50, 0x34, 0x4a, 0x48, 0x4d, 0xb3, 0xbd, 0x2a, 0x31, 0xbc, 0x02, 0xc4, 0x47,
-	0xa8, 0x15, 0x40, 0x0c, 0x32, 0x94, 0x6f, 0xa9, 0x1a, 0x91, 0xfa, 0xba, 0xa7, 0x0c, 0xe3, 0x53,
-	0xb4, 0x1f, 0xd1, 0xd9, 0xc7, 0x50, 0x8d, 0x46, 0x7c, 0xc2, 0xc2, 0x38, 0xe8, 0xe9, 0x0b, 0x4b,
-	0xb2, 0xd3, 0x36, 0xec, 0x7a, 0xda, 0xbe, 0x95, 0xc7, 0x47, 0x68, 0x2f, 0xa2, 0xb3, 0x0b, 0xf8,
-	0x32, 0x85, 0xd8, 0x07, 0x21, 0x49, 0x43, 0x0b, 0xbc, 0x4d, 0x10, 0x9f, 0xa0, 0xa7, 0x09, 0x88,
-	0x28, 0x94, 0x3a, 0x29, 0x60, 0x67, 0x8c, 0x09, 0x90, 0x12, 0x24, 0xd9, 0x6d, 0xd7, 0xec, 0xa6,
-	0xb7, 0x9d, 0xc4, 0xef, 0x50, 0x33, 0x02, 0x45, 0x19, 0x55, 0x54, 0x92, 0x47, 0xed, 0x9a, 0xdd,
-	0xea, 0x3e, 0x77, 0xfe, 0x3d, 0x3a, 0xe7, 0x3d, 0x1f, 0x43, 0x3c, 0xc8, 0x54, 0xbd, 0xfa, 0xd5,
-	0xaf, 0x67, 0x15, 0xaf, 0x70, 0xe9, 0x98, 0x88, 0xdc, 0x8e, 0xde, 0x03, 0x99, 0xf0, 0x58, 0x42,
-	0xe7, 0x7b, 0x15, 0x3d, 0x1e, 0xc8, 0xe0, 0x43, 0xc2, 0xa8, 0xd2, 0xd9, 0x29, 0x78, 0xc0, 0x54,
-	0x5a, 0x52, 0x51, 0xa1, 0xce, 0x21, 0x0c, 0x46, 0x2a, 0x9d, 0x4b, 0xdd, 0x2b, 0x43, 0x5a, 0x1f,
-	0x4f, 0xa3, 0x2c, 0xe4, 0x7a, 0xca, 0x17, 0x00, 0x3e, 0x40, 0x8d, 0xfe, 0x59, 0x3a, 0xae, 0x9d,
-	0xd4, 0x3a, 0xab, 0xf4, 0x79, 0x2e, 0x41, 0xe8, 0x0b, 0x67, 0x39, 0xe7, 0x25, 0x3e, 0x47, 0xb5,
-	0x5e, 0x5f, 0xe7, 0x69, 0xd8, 0xad, 0xee, 0x8b, 0xbb, 0x52, 0x4a, 0xb7, 0xe9, 0xaf, 0x1f, 0xb3,
-	0xcc, 0x82, 0xd2, 0x16, 0x1d, 0x82, 0x0e, 0x36, 0x53, 0xc8, 0x03, 0xea, 0xde, 0x18, 0xa8, 0x36,
-	0x90, 0x01, 0xfe, 0x86, 0xf6, 0x36, 0x1f, 0xef, 0x9d, 0xfb, 0xdd, 0xce, 0xdc, 0x7c, 0x79, 0x5f,
-	0x45, 0x7e, 0x08, 0x3c, 0x45, 0xad, 0xf2, 0x84, 0x9c, 0xff, 0x30, 0x2a, 0xf5, 0x9b, 0xa7, 0xf7,
-	0xeb, 0xcf, 0xb7, 0xed, 0xbd, 0xb9, 0x5a, 0x58, 0xc6, 0xf5, 0xc2, 0x32, 0x7e, 0x2f, 0x2c, 0xe3,
-	0xc7, 0xd2, 0xaa, 0x5c, 0x2f, 0xad, 0xca, 0xcf, 0xa5, 0x55, 0xf9, 0x74, 0x12, 0x84, 0x6a, 0x34,
-	0x1d, 0x3a, 0x3e, 0x8f, 0xdc, 0xb2, 0x77, 0x51, 0xb8, 0x97, 0xc7, 0xee, 0xac, 0xf8, 0x85, 0xe6,
-	0x09, 0xc8, 0x61, 0x23, 0xfd, 0x0b, 0x8e, 0xff, 0x04, 0x00, 0x00, 0xff, 0xff, 0xae, 0x11, 0xc4,
-	0x76, 0xa7, 0x04, 0x00, 0x00,
+	// 811 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x95, 0x4d, 0x4f, 0xdb, 0x48,
+	0x18, 0xc7, 0xe3, 0xc4, 0x09, 0xc9, 0x84, 0x97, 0x68, 0x96, 0x65, 0x2d, 0x0b, 0x79, 0xad, 0x08,
+	0xad, 0xa2, 0x95, 0x36, 0x59, 0x01, 0x42, 0x7b, 0x25, 0x89, 0x56, 0x70, 0x08, 0x62, 0xcd, 0xae,
+	0x90, 0xf6, 0x82, 0x26, 0xf6, 0xd4, 0xb1, 0xb0, 0x3d, 0xee, 0xcc, 0x84, 0x86, 0xf6, 0x5a, 0x55,
+	0x15, 0xa7, 0x7e, 0x01, 0xee, 0xfd, 0x28, 0x1c, 0x39, 0xf6, 0x54, 0x55, 0xf0, 0x1d, 0x2a, 0x71,
+	0xab, 0x66, 0xec, 0x38, 0x2f, 0x0d, 0x04, 0x5a, 0xf5, 0x36, 0xcf, 0xff, 0x79, 0x19, 0xcf, 0xef,
+	0x3f, 0xf2, 0x00, 0xdd, 0x39, 0x0f, 0x70, 0xc8, 0x3c, 0x12, 0x36, 0x28, 0xf1, 0x7d, 0x14, 0x45,
+	0x0d, 0x3e, 0xa8, 0x47, 0x94, 0x70, 0x02, 0x8d, 0x34, 0x37, 0x38, 0x7f, 0x59, 0x4f, 0x83, 0x7a,
+	0x52, 0xa8, 0xd7, 0xbe, 0xee, 0xed, 0xfa, 0xc4, 0x3e, 0x3d, 0x71, 0x30, 0xb3, 0xa9, 0x17, 0x71,
+	0x42, 0xe3, 0x49, 0xfa, 0xfa, 0x8c, 0x4a, 0x14, 0x9e, 0x26, 0xd9, 0x55, 0x97, 0xb8, 0x44, 0x2e,
+	0x1b, 0x62, 0x15, 0xab, 0xd5, 0xbb, 0x2c, 0xa8, 0x74, 0x98, 0xdb, 0xa2, 0x18, 0x71, 0x6c, 0xc5,
+	0x5d, 0x50, 0x03, 0x0b, 0xb6, 0x10, 0x08, 0xd5, 0x14, 0x53, 0xa9, 0x95, 0xac, 0x61, 0x08, 0xd7,
+	0x41, 0x29, 0x19, 0xbd, 0xef, 0x68, 0x59, 0x99, 0x1b, 0x09, 0xd0, 0x04, 0x25, 0x9b, 0x38, 0xf8,
+	0x88, 0xa3, 0x20, 0xd2, 0x72, 0x22, 0xdb, 0xcc, 0x6a, 0x8a, 0x35, 0x12, 0xe1, 0x06, 0x28, 0xbb,
+	0x38, 0xc4, 0xcc, 0x63, 0x87, 0x88, 0xf7, 0x34, 0x35, 0xad, 0x19, 0x97, 0xe1, 0x0e, 0x58, 0x0d,
+	0xd0, 0xe0, 0xd8, 0xe3, 0xbd, 0x1e, 0xf1, 0x1d, 0x2f, 0x74, 0x9b, 0xe2, 0xc0, 0x4c, 0xcb, 0x9b,
+	0x4a, 0x4d, 0x95, 0xe5, 0x33, 0xf3, 0x70, 0x03, 0x2c, 0x05, 0x68, 0x70, 0x84, 0x9f, 0xf7, 0x71,
+	0x68, 0x63, 0xca, 0xb4, 0x82, 0x68, 0xb0, 0x26, 0x45, 0xb8, 0x0d, 0x7e, 0x8e, 0x30, 0x0d, 0x3c,
+	0x26, 0x48, 0x61, 0x67, 0xd7, 0x71, 0x28, 0x66, 0x0c, 0x33, 0x6d, 0xc1, 0xcc, 0xd5, 0x4a, 0xd6,
+	0xec, 0x24, 0xfc, 0x07, 0x94, 0x02, 0xcc, 0x91, 0x83, 0x38, 0x62, 0x5a, 0xd1, 0xcc, 0xd5, 0xca,
+	0x9b, 0x7f, 0xd4, 0x1f, 0xb6, 0xae, 0xfe, 0x2f, 0x39, 0xc5, 0x61, 0x27, 0xe9, 0x6a, 0xaa, 0x57,
+	0x1f, 0x7f, 0xcd, 0x58, 0xa3, 0x29, 0x55, 0x1d, 0x68, 0xd3, 0xe8, 0x2d, 0xcc, 0x22, 0x12, 0x32,
+	0x5c, 0x7d, 0x9d, 0x05, 0xcb, 0x1d, 0xe6, 0xfe, 0x17, 0x39, 0x88, 0x0b, 0x76, 0x1c, 0x7f, 0x87,
+	0x2b, 0x65, 0xc6, 0x11, 0xe5, 0x7b, 0xd8, 0x73, 0x7b, 0x5c, 0xfa, 0xa2, 0x5a, 0xe3, 0x92, 0xe8,
+	0x0f, 0xfb, 0x41, 0x02, 0x59, 0x95, 0xf9, 0x91, 0x00, 0xd7, 0x40, 0xa1, 0xbd, 0x2b, 0xed, 0xca,
+	0xcb, 0xd1, 0x49, 0x24, 0xbe, 0xe7, 0x0c, 0x53, 0x71, 0xe0, 0x84, 0xf3, 0x30, 0x84, 0x7b, 0x20,
+	0xd7, 0x6c, 0x0b, 0x9e, 0x4a, 0xad, 0xbc, 0xf9, 0xe7, 0x3c, 0x4a, 0x72, 0x9b, 0x76, 0x7a, 0x99,
+	0x59, 0x02, 0x4a, 0x8c, 0xa8, 0x6a, 0x60, 0x6d, 0x92, 0x42, 0x0a, 0xe8, 0x7d, 0x0c, 0xe8, 0xa8,
+	0xdf, 0x0d, 0x3c, 0xfe, 0x37, 0x45, 0x7d, 0xe7, 0x71, 0x80, 0xda, 0xd3, 0x80, 0xda, 0x3f, 0x0c,
+	0x10, 0x04, 0x6a, 0xd7, 0x27, 0x5d, 0x49, 0x67, 0xd1, 0x92, 0x6b, 0x39, 0x29, 0xe0, 0x11, 0x25,
+	0xe4, 0x59, 0x7c, 0xe1, 0x16, 0xad, 0x91, 0x20, 0x4e, 0x40, 0x93, 0x5c, 0x51, 0xe6, 0x86, 0x21,
+	0xd4, 0x41, 0x51, 0x5c, 0x1a, 0x4a, 0x08, 0xd7, 0x4a, 0x72, 0x5e, 0x1a, 0x43, 0x03, 0x00, 0x09,
+	0xe0, 0x50, 0x94, 0x6a, 0x40, 0x7e, 0xc3, 0x98, 0x92, 0x40, 0x1c, 0x23, 0x95, 0x42, 0xfc, 0x9c,
+	0x05, 0xab, 0x1d, 0xe6, 0x1e, 0x90, 0x70, 0xf7, 0x0c, 0x79, 0x3e, 0xea, 0xfa, 0xb8, 0x89, 0xb8,
+	0xdd, 0xfb, 0xe6, 0xbb, 0xd6, 0x06, 0xaa, 0x8d, 0x18, 0x96, 0x0c, 0x97, 0xe7, 0x5b, 0x1f, 0x6f,
+	0xec, 0x7b, 0x62, 0xe3, 0x16, 0x62, 0xd8, 0x92, 0xdd, 0xd3, 0x86, 0xa8, 0x73, 0x0c, 0xc9, 0xdf,
+	0x6f, 0x48, 0x61, 0xda, 0x90, 0x16, 0x71, 0xb0, 0xbc, 0x98, 0x4b, 0x96, 0x5c, 0xc3, 0x5f, 0x12,
+	0x93, 0x8a, 0x02, 0xea, 0x5e, 0x26, 0xb6, 0xe9, 0xad, 0xa2, 0x4c, 0x3a, 0x55, 0x7a, 0xc0, 0x29,
+	0x70, 0xbf, 0x53, 0xe5, 0x49, 0xa7, 0x9a, 0x0b, 0x20, 0x7f, 0x22, 0xe6, 0x57, 0x0d, 0xb0, 0x3e,
+	0x8b, 0xfb, 0xd0, 0x98, 0xdf, 0xdf, 0x28, 0xa0, 0x32, 0x0d, 0x07, 0xd6, 0xc0, 0xca, 0x31, 0x25,
+	0xa1, 0xdb, 0x22, 0x41, 0xe0, 0xf1, 0x00, 0x87, 0xbc, 0x92, 0xd1, 0x7f, 0xba, 0xb8, 0x34, 0x57,
+	0x5e, 0x08, 0xd9, 0x4e, 0x65, 0xf8, 0x1b, 0xa8, 0xb4, 0x11, 0x47, 0x07, 0x84, 0xa7, 0xf3, 0x2b,
+	0x8a, 0x5e, 0xb9, 0xb8, 0x34, 0x17, 0x43, 0xc2, 0xd1, 0x50, 0x13, 0xa0, 0xf7, 0x43, 0xb1, 0x87,
+	0x23, 0xca, 0x2b, 0x59, 0x7d, 0xe5, 0xe2, 0xd2, 0x2c, 0x7b, 0xb1, 0x24, 0xbe, 0x7a, 0xf3, 0x4e,
+	0x01, 0xb9, 0x0e, 0x73, 0xe1, 0x2b, 0xb0, 0x34, 0xf9, 0x46, 0xcc, 0xf5, 0x76, 0xfa, 0xd7, 0xa6,
+	0xff, 0xf5, 0xd4, 0x8e, 0x21, 0x0d, 0xd8, 0x07, 0xe5, 0xf1, 0x1f, 0x61, 0xfd, 0x11, 0x83, 0xc6,
+	0xea, 0xf5, 0x9d, 0xa7, 0xd5, 0x0f, 0xb7, 0x6d, 0x1e, 0x5c, 0xdd, 0x18, 0xca, 0xf5, 0x8d, 0xa1,
+	0x7c, 0xba, 0x31, 0x94, 0x77, 0xb7, 0x46, 0xe6, 0xfa, 0xd6, 0xc8, 0x7c, 0xb8, 0x35, 0x32, 0xff,
+	0x6f, 0xbb, 0x1e, 0xef, 0xf5, 0xbb, 0x75, 0x9b, 0x04, 0x8d, 0xf1, 0xd9, 0xa3, 0xa0, 0x71, 0xb6,
+	0xd5, 0x18, 0x8c, 0x1e, 0xfb, 0xf3, 0x08, 0xb3, 0x6e, 0x41, 0x3e, 0xb9, 0x5b, 0x5f, 0x02, 0x00,
+	0x00, 0xff, 0xff, 0xe3, 0x96, 0x1b, 0x52, 0x0e, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -682,6 +1094,259 @@ func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgSubmitFraud) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitFraud) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitFraud) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.FraudProof) > 0 {
+		i -= len(m.FraudProof)
+		copy(dAtA[i:], m.FraudProof)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FraudProof)))
+		i--
+		dAtA[i] = 0x52
+	}
+	if len(m.Dataroot) > 0 {
+		i -= len(m.Dataroot)
+		copy(dAtA[i:], m.Dataroot)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Dataroot)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if len(m.Rproofs) > 0 {
+		for iNdEx := len(m.Rproofs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Rproofs[iNdEx])
+			copy(dAtA[i:], m.Rproofs[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Rproofs[iNdEx])))
+			i--
+			dAtA[i] = 0x42
+		}
+	}
+	if len(m.Nmtproofs) > 0 {
+		for iNdEx := len(m.Nmtproofs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Nmtproofs[iNdEx])
+			copy(dAtA[i:], m.Nmtproofs[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Nmtproofs[iNdEx])))
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if len(m.Blob) > 0 {
+		i -= len(m.Blob)
+		copy(dAtA[i:], m.Blob)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Blob)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.DAPath) > 0 {
+		i -= len(m.DAPath)
+		copy(dAtA[i:], m.DAPath)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.DAPath)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.NumBlocks != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.NumBlocks))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.StartHeight != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.StartHeight))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.RollappID) > 0 {
+		i -= len(m.RollappID)
+		copy(dAtA[i:], m.RollappID)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappID)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSubmitFraudResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSubmitFraudResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSubmitFraudResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgNonAvailableBatch) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgNonAvailableBatch) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgNonAvailableBatch) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Dataroot) > 0 {
+		i -= len(m.Dataroot)
+		copy(dAtA[i:], m.Dataroot)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Dataroot)))
+		i--
+		dAtA[i] = 0x5a
+	}
+	if len(m.Rproofs) > 0 {
+		for iNdEx := len(m.Rproofs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Rproofs[iNdEx])
+			copy(dAtA[i:], m.Rproofs[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Rproofs[iNdEx])))
+			i--
+			dAtA[i] = 0x52
+		}
+	}
+	if len(m.Nmtproofs) > 0 {
+		for iNdEx := len(m.Nmtproofs) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Nmtproofs[iNdEx])
+			copy(dAtA[i:], m.Nmtproofs[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Nmtproofs[iNdEx])))
+			i--
+			dAtA[i] = 0x4a
+		}
+	}
+	if m.XBlob != nil {
+		{
+			size := m.XBlob.Size()
+			i -= size
+			if _, err := m.XBlob.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if m.Code != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Code))
+		i--
+		dAtA[i] = 0x38
+	}
+	if len(m.DAPath) > 0 {
+		i -= len(m.DAPath)
+		copy(dAtA[i:], m.DAPath)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.DAPath)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.NumBlocks != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.NumBlocks))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.StartHeight != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.StartHeight))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Case != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.Case))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgNonAvailableBatch_Blob) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgNonAvailableBatch_Blob) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Blob != nil {
+		i -= len(m.Blob)
+		copy(dAtA[i:], m.Blob)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Blob)))
+		i--
+		dAtA[i] = 0x42
+	}
+	return len(dAtA) - i, nil
+}
+func (m *MsgNonAvailableBatchResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgNonAvailableBatchResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgNonAvailableBatchResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -778,6 +1443,139 @@ func (m *MsgUpdateState) Size() (n int) {
 }
 
 func (m *MsgUpdateStateResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgSubmitFraud) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappID)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.StartHeight != 0 {
+		n += 1 + sovTx(uint64(m.StartHeight))
+	}
+	if m.NumBlocks != 0 {
+		n += 1 + sovTx(uint64(m.NumBlocks))
+	}
+	l = len(m.DAPath)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Blob)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if len(m.Nmtproofs) > 0 {
+		for _, b := range m.Nmtproofs {
+			l = len(b)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	if len(m.Rproofs) > 0 {
+		for _, b := range m.Rproofs {
+			l = len(b)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.Dataroot)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.FraudProof)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgSubmitFraudResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgNonAvailableBatch) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Case != 0 {
+		n += 1 + sovTx(uint64(m.Case))
+	}
+	if m.StartHeight != 0 {
+		n += 1 + sovTx(uint64(m.StartHeight))
+	}
+	if m.NumBlocks != 0 {
+		n += 1 + sovTx(uint64(m.NumBlocks))
+	}
+	l = len(m.DAPath)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.Code != 0 {
+		n += 1 + sovTx(uint64(m.Code))
+	}
+	if m.XBlob != nil {
+		n += m.XBlob.Size()
+	}
+	if len(m.Nmtproofs) > 0 {
+		for _, b := range m.Nmtproofs {
+			l = len(b)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	if len(m.Rproofs) > 0 {
+		for _, b := range m.Rproofs {
+			l = len(b)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.Dataroot)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgNonAvailableBatch_Blob) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Blob != nil {
+		l = len(m.Blob)
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+func (m *MsgNonAvailableBatchResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1387,6 +2185,807 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitFraud) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitFraud: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitFraud: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappID", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappID = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartHeight", wireType)
+			}
+			m.StartHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumBlocks", wireType)
+			}
+			m.NumBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DAPath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DAPath = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Blob", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Blob = append(m.Blob[:0], dAtA[iNdEx:postIndex]...)
+			if m.Blob == nil {
+				m.Blob = []byte{}
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Nmtproofs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Nmtproofs = append(m.Nmtproofs, make([]byte, postIndex-iNdEx))
+			copy(m.Nmtproofs[len(m.Nmtproofs)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rproofs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rproofs = append(m.Rproofs, make([]byte, postIndex-iNdEx))
+			copy(m.Rproofs[len(m.Rproofs)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Dataroot", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Dataroot = append(m.Dataroot[:0], dAtA[iNdEx:postIndex]...)
+			if m.Dataroot == nil {
+				m.Dataroot = []byte{}
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FraudProof", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FraudProof = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSubmitFraudResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSubmitFraudResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSubmitFraudResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgNonAvailableBatch) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgNonAvailableBatch: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgNonAvailableBatch: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Case", wireType)
+			}
+			m.Case = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Case |= NonAvaliableCase(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartHeight", wireType)
+			}
+			m.StartHeight = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartHeight |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NumBlocks", wireType)
+			}
+			m.NumBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NumBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DAPath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DAPath = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Code", wireType)
+			}
+			m.Code = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Code |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Blob", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := make([]byte, postIndex-iNdEx)
+			copy(v, dAtA[iNdEx:postIndex])
+			m.XBlob = &MsgNonAvailableBatch_Blob{v}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Nmtproofs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Nmtproofs = append(m.Nmtproofs, make([]byte, postIndex-iNdEx))
+			copy(m.Nmtproofs[len(m.Nmtproofs)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rproofs", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Rproofs = append(m.Rproofs, make([]byte, postIndex-iNdEx))
+			copy(m.Rproofs[len(m.Rproofs)-1], dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Dataroot", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Dataroot = append(m.Dataroot[:0], dAtA[iNdEx:postIndex]...)
+			if m.Dataroot == nil {
+				m.Dataroot = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgNonAvailableBatchResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgNonAvailableBatchResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgNonAvailableBatchResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
