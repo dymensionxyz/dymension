@@ -40,10 +40,34 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 				break
 			}
 		}
-		// Err: only permissioned sequencers allowed and this one is not in the list
 		if !bPermissioned {
 			return nil, types.ErrSequencerNotPermissioned
 		}
+	}
+
+	// check to see if the sequencer has enough balance and deduct the bond
+	seqAcc, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO: use custom error codes
+	minBond := k.GetParams(ctx).MinBond
+	if msg.Bond.Denom != minBond.Denom {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Bond.Denom, minBond.Denom,
+		)
+	}
+
+	if msg.Bond.Amount.LT(minBond.Amount) {
+		return nil, sdkerrors.Wrapf(
+			sdkerrors.ErrInvalidRequest, "insufficient bond: got %s, expected %s", msg.Bond.Amount, k.GetParams(ctx).MinBond,
+		)
+	}
+
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+	if err != nil {
+		return nil, err
 	}
 
 	// update sequencers list
@@ -60,11 +84,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, types.ErrMaxSequencersLimit
 		}
 		// add sequencer to list
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, sequencer.SequencerAddress)
-		// it's not the first sequencer, make it INACTIVE
+		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
+		// it's not the first sequencer, make it bonded but not proposer
 		scheduler := types.Scheduler{
 			SequencerAddress: msg.Creator,
-			Status:           types.Inactive,
+			Status:           types.Bonded,
 		}
 		k.SetScheduler(ctx, scheduler)
 	} else {
@@ -82,8 +106,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	sequencer := types.Sequencer{
 		SequencerAddress: msg.Creator,
 		DymintPubKey:     msg.DymintPubKey,
-		Description:      msg.Description,
 		RollappId:        msg.RollappId,
+		Description:      msg.Description,
+		Status:           types.Bonded,
+		Tokens:           &msg.Bond,
 	}
 
 	k.SetSequencer(ctx, sequencer)

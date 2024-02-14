@@ -20,7 +20,7 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
 }
 
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -33,6 +33,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 		DymintPubKey: pkAny,
 		RollappId:    rollappId,
 		Description:  *description,
+		Bond:         bond,
 	}, nil
 }
 
@@ -79,6 +80,10 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 	if _, err := msg.Description.EnsureLength(); err != nil {
 		return err
+	}
+
+	if !msg.Bond.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
 	}
 
 	return nil

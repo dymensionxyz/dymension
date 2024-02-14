@@ -13,10 +13,9 @@ message Params {
   option (gogoproto.equal)            = true;
   option (gogoproto.goproto_stringer) = false;
 
-  repeated cosmos.base.v1beta1.Coin min_deposit = 1 [
+  cosmos.base.v1beta1.Coin min_bond = 1 [
     (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.jsontag)      = "min_deposit,omitempty"
+    (gogoproto.jsontag)      = "min_bond,omitempty"
   ];
 
   // unbonding_time is the time duration of unbonding.
