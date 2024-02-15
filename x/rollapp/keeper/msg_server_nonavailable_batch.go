@@ -23,7 +23,7 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 		return nil, types.ErrUnknownRollappID
 	}
 
-	err := k.VerifyNonAvailableBatch(ctx)
+	err := k.VerifyNonAvailableBatch(ctx, msg)
 
 	if err != nil {
 		return nil, err
