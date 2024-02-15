@@ -61,3 +61,23 @@ func (k Keeper) GetAllSequencer(ctx sdk.Context) (list []types.Sequencer) {
 
 	return
 }
+
+// GetUnbondingSequencers returns all unbonding sequencers
+func (k Keeper) GetUnbondingSequencers(ctx sdk.Context) (list []types.Sequencer) {
+	//FIXME: get all unbonding sequencers by dedicated store
+	// store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.UnbondingSequencerKey))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SequencerKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Sequencer
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Status == types.Unbonding {
+			list = append(list, val)
+		}
+	}
+
+	return
+}

@@ -28,7 +28,7 @@ func (k msgServer) Bond(context.Context, *types.MsgBond) (*types.MsgBondResponse
 func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	completionTime, err := k.UnbondSequencer(ctx, msg.Creator, false)
+	completionTime, err := k.StartUnbondingSequencer(ctx, msg.Creator)
 	if err != nil {
 		return nil, err
 	}
