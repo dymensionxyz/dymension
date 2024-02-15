@@ -13,6 +13,7 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc SubmitNonAvailableBatch(MsgNonAvailableBatch) returns (MsgNonAvailableBatchResponse);
 }
 
 // ===================== MsgCreateRollapp
