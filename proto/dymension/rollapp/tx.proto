@@ -93,10 +93,12 @@ message MsgNonAvailableBatch {
 	optional bytes blob = 8;
   // NMT inclusion proofs for non-matching blob
 	repeated bytes nmtproofs = 9;
+  // NMT roots
+  repeated bytes nmtroots = 10;
   // Row proofs for non-matching blobs, or to demonstrate non-inclusion
-  repeated bytes rproofs = 10;
+  repeated bytes rproofs = 11;
   // Data root of the DA headers at the specific height
-  bytes dataroot = 11;
+  bytes dataroot = 12;
 }
 
 enum NonAvaliableCase {
