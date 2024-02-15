@@ -23,6 +23,7 @@ type (
 		paramstore paramtypes.Subspace
 		types.AccountKeeper
 		types.BankKeeper
+		types.DelayedAckKeeper
 	}
 )
 
@@ -33,6 +34,7 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	delayedAckKeeper types.DelayedAckKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -41,12 +43,13 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
-		AccountKeeper: accountKeeper,
-		BankKeeper:    bankKeeper,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		memKey:           memKey,
+		paramstore:       ps,
+		AccountKeeper:    accountKeeper,
+		BankKeeper:       bankKeeper,
+		DelayedAckKeeper: delayedAckKeeper,
 	}
 }
 
@@ -200,4 +203,14 @@ func (k *Keeper) SetHooks(hooks types.EIBCHooks) {
 
 func (k *Keeper) GetHooks() types.EIBCHooks {
 	return k.hooks
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Set Keepers                                */
+/* -------------------------------------------------------------------------- */
+
+// SetDelayedAckKeeper sets the delayedack keeper.
+// must be called when initializing the keeper.
+func (k *Keeper) SetDelayedAckKeeper(delayedAckKeeper types.DelayedAckKeeper) {
+	k.DelayedAckKeeper = delayedAckKeeper
 }
