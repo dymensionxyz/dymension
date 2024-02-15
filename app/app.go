@@ -599,6 +599,7 @@ func New(
 		app.GetSubspace(eibcmoduletypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
+		nil,
 	)
 
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
@@ -613,6 +614,8 @@ func New(
 		app.EIBCKeeper,
 		app.BankKeeper,
 	)
+
+	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
 	/* -------------------------------- set hooks ------------------------------- */
 	// Set hooks
