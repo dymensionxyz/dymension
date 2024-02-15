@@ -68,29 +68,6 @@ message MsgUpdateState {
 message MsgUpdateStateResponse {
 }
 
-message MsgSubmitFraud {
-  string creator   = 1;
-  string rollappID = 2;
-  // startHeight is the block height of the first block in the batch
-  uint64 startHeight = 3;
-  // numBlocks is the number of blocks included in this batch update
-  uint64 numBlocks = 4;  
-  // DAPath is the description of the location on the DA layer
-  string DAPath = 5;
-	// To proof non-matching span with commitment, it is required to send the blob
-	bytes blob = 6;
-  // NMT inclusion proofs for non-matching blob
-	repeated bytes nmtproofs = 7;
-  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
-  repeated bytes rproofs = 8;
-  // Data root of the DA headers at the specific height
-  bytes dataroot = 9;
-  // TODO: should take the type from forked cometbft repo
-  string FraudProof = 10;
-}
-
-message MsgSubmitFraudResponse {}
-
 
 // ===================== NotAvailableBatchMsg
 // Updating a rollapp state with the DA information and proofs for a non-available
