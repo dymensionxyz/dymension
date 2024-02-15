@@ -21,7 +21,10 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee s
 	if !ok {
 		return nil, ErrInvalidDemandOrderFee
 	}
-	rollappPacketKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	rollappPacketKey, err := commontypes.GetRollappPacketKey(&rollappPacket)
+	if err != nil {
+		return nil, err
+	}
 
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
@@ -70,7 +73,7 @@ func (m *DemandOrder) Validate() error {
 
 func (m *DemandOrder) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(AttributeKeyPacketKey, m.Id),
+		sdk.NewAttribute(AttributeKeyId, m.Id),
 		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
 		sdk.NewAttribute(AttributeKeyIsFullfilled, strconv.FormatBool(m.IsFullfilled)),

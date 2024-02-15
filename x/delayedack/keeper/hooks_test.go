@@ -46,7 +46,7 @@ func TestAfterEpochEnd(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			keeper, ctx := keepertest.DelayedackKeeper(t)
 			for i := 1; i <= tc.pendingPacketsNum; i++ {
-				rollappPacket := &types.RollappPacket{
+				rollappPacket := &commontypes.RollappPacket{
 					RollappId: "testRollappId",
 					Packet: &channeltypes.Packet{
 						SourcePort:         "testSourcePort",

@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -17,30 +14,22 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.Roll
 	logger := ctx.Logger()
 	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.DestinationChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
+	store := ctx.KVStore(k.storeKey)
+	rollappPacketKey, err := commontypes.GetRollappPacketKey(&rollappPacket)
+	if err != nil {
+		return err
+	}
 	b, err := k.cdc.Marshal(&rollappPacket)
 	if err != nil {
 		return err
 	}
-	store.Set(commontypes.GetRollappPacketKey(
-		rollappPacket.RollappId,
-		rollappPacket.Status,
-		rollappPacket.ProofHeight,
-		*rollappPacket.Packet,
-	), b)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeDelayedAck,
-			rollappPacket.GetEvents()...,
-		),
-	)
+	store.Set(rollappPacketKey, b)
 	return nil
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.
 func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
+	store := ctx.KVStore(k.storeKey)
 	b := store.Get([]byte(rollappPacketKey))
 	if b == nil {
 		return nil, types.ErrRollappPacketDoesNotExist
@@ -96,21 +85,27 @@ func (k Keeper) UpdateRollappPacketRecipient(
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
 func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
+	store := ctx.KVStore(k.storeKey)
 
 	// Delete the old rollapp packet
-	oldKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	oldKey, err := commontypes.GetRollappPacketKey(&rollappPacket)
+	if err != nil {
+		return commontypes.RollappPacket{}, err
+	}
 	store.Delete(oldKey)
 	// Update the packet
 	rollappPacket.Status = newStatus
 	// Create a new rollapp packet with the updated status
-	err := k.SetRollappPacket(ctx, rollappPacket)
+	err = k.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
 		return commontypes.RollappPacket{}, err
 	}
 
 	// Call hook subscribers
-	newKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, newStatus, rollappPacket.ProofHeight, *rollappPacket.Packet)
+	newKey, err := commontypes.GetRollappPacketKey(&rollappPacket)
+	if err != nil {
+		return commontypes.RollappPacket{}, err
+	}
 	keeperHooks := k.GetHooks()
 	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
@@ -129,15 +124,20 @@ func (k Keeper) ListRollappPacketsByStatus(
 	status commontypes.Status,
 	maxProofHeight uint64,
 ) (list []commontypes.RollappPacket) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
+	store := ctx.KVStore(k.storeKey)
 
-	// Build the prefix which is composed of the rollappID and the status
+	// switch prefix based on status
 	var prefix []byte
-
-	// Append the  status to the prefix
-	statusBytes := []byte(fmt.Sprint(status))
-	prefix = append(prefix, statusBytes...)
-	prefix = append(prefix, []byte("/")...)
+	switch status {
+	case commontypes.Status_PENDING:
+		prefix = commontypes.PendingRollappPacketKeyPrefix
+	case commontypes.Status_FINALIZED:
+		prefix = commontypes.FinalizedRollappPacketKeyPrefix
+	case commontypes.Status_REVERTED:
+		prefix = commontypes.RevertedRollappPacketKeyPrefix
+	default:
+		return nil
+	}
 
 	// Iterate over the range from lastProofHeight to proofHeight
 	iterator := sdk.KVStorePrefixIterator(store, prefix)
@@ -157,10 +157,10 @@ func (k Keeper) ListRollappPacketsByStatus(
 }
 
 func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.RollappPacket) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(commontypes.RollappPacketKeyPrefix))
+	store := ctx.KVStore(k.storeKey)
 
 	// Iterate over the range from lastProofHeight to proofHeight
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := sdk.KVStorePrefixIterator(store, commontypes.AllRollappPacketKeyPrefix)
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -172,7 +172,12 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 	return list
 }
 
-func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *types.RollappPacket) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappPacketKeyPrefix))
-	store.Delete(types.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet))
+func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+	store := ctx.KVStore(k.storeKey)
+	rollappPacketKey, err := commontypes.GetRollappPacketKey(rollappPacket)
+	if err != nil {
+		return err
+	}
+	store.Delete(rollappPacketKey)
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	osmoutils "github.com/osmosis-labs/osmosis/v15/osmoutils"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
@@ -65,7 +66,9 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	finalizedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
 	for _, finalizedPacket := range finalizedRollappPackets {
 		finalizedPacketCopy := finalizedPacket
-		e.deleteRollappPacket(ctx, &finalizedPacketCopy)
+		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			return e.deleteRollappPacket(ctx, &finalizedPacketCopy)
+		})
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package ibctesting_test
 
 import (
 	"encoding/json"
+	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -233,7 +234,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
 				FulfillerAddress: fullfillerAccount.String(),
-				OrderId:           lastDemandOrder.Id,
+				OrderId:          lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
@@ -325,18 +326,11 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 }
 
 // Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence
-func getLastDemandOrderByChannelandSequence(demandOrders []eibctypes.DemandOrder) eibctypes.DemandOrder {
-	var maxPacketSequence string
-	var lastDemandOrder eibctypes.DemandOrder
-	for _, order := range demandOrders {
-		packetKey := order.TrackingPacketKey
-		splitKey := strings.Split(packetKey, "/")
-		channelInfo := splitKey[len(splitKey)-2]            // Get the channel info part
-		packetSequence := strings.Split(channelInfo, "-")[2] // Get the suffix part
-		if packetSequence > maxPacketSequence {
-			maxPacketSequence = packetSequence
-			lastDemandOrder = order
-		}
-	}
-	return lastDemandOrder
+func getLastDemandOrderByChannelandSequence(demandOrders []*eibctypes.DemandOrder) *eibctypes.DemandOrder {
+	sort.Slice(demandOrders, func(i, j int) bool {
+		iKeyParts := strings.Split((demandOrders)[i].TrackingPacketKey, "/")
+		jKeyParts := strings.Split((demandOrders)[j].TrackingPacketKey, "/")
+		return iKeyParts[len(iKeyParts)-1] < jKeyParts[len(jKeyParts)-1]
+	})
+	return demandOrders[len(demandOrders)-1]
 }
