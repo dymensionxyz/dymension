@@ -61,7 +61,7 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetSequencer(
+	seq, found := k.GetSequencer(
 		ctx,
 		req.SequencerAddress,
 	)
@@ -69,18 +69,9 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	scheduler, found := k.GetScheduler(
-		ctx,
-		req.SequencerAddress,
-	)
-	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-			"scheduler was not found for sequencer %s", req.SequencerAddress)
-	}
-
 	sequencerInfo := types.SequencerInfo{
-		Sequencer: val,
-		Status:    scheduler.Status,
+		Sequencer: seq,
+		Status:    seq.Status,
 	}
 	return &types.QueryGetSequencerResponse{SequencerInfo: sequencerInfo}, nil
 }

@@ -16,4 +16,5 @@ var (
 	ErrUnknownSequencer         = sdkerrors.Register(ModuleName, 1005, "sequencer was not registered")
 	ErrSequencerRollappMismatch = sdkerrors.Register(ModuleName, 1006, "sequencer was not registered for this rollapp")
 	ErrNotActiveSequencer       = sdkerrors.Register(ModuleName, 1007, "sequencer is not active")
+	ErrInvalidSequencerStatus   = sdkerrors.Register(ModuleName, 1008, "invalid sequencer status")
 )
