@@ -25,14 +25,26 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 
 	err := k.VerifyNonAvailableBatch(ctx, msg)
 
-	if err != nil {
-		return nil, err
+	if err == nil {
+		//FIXME: handle deposit burn on wrong FP
+		k.Logger(ctx).Info("unable to verif non-available proof ", "rollappID", msg.RollappId)
+
 	}
 
-	k.Logger(ctx).Info("non-available proof verified", "rollappID", msg.RollappId)
+	switch err {
+	case types.ErrWrongCommitment:
+		k.Logger(ctx).Info("wrong commitment proof verified", "rollappID", msg.RollappId)
 
-	//FIXME: handle slashing
+		//FIXME: handle slashing
+	case types.ErrBatchNotAvailable:
+		k.Logger(ctx).Info("non-available proof verified", "rollappID", msg.RollappId)
 
-	//FIXME: handle deposit burn on wrong FP
+		//FIXME: handle slashing
+	case types.ErrInvalidBlobData:
+		k.Logger(ctx).Info("invalid blob data verified", "rollappID", msg.RollappId)
+
+		//FIXME: handle slashing
+	}
+
 	return &types.MsgNonAvailableBatchResponse{}, nil
 }

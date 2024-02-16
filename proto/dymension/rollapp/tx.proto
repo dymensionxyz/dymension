@@ -80,25 +80,26 @@ message MsgNonAvailableBatch {
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;
 	// case describing what is wrong with the data committed by the sequencer
-	NonAvaliableCase case =3;
+  uint64 slIndex = 3;
+	NonAvaliableCase case =4;
   // startHeight is the block height of the first block in the batch
-  uint64 startHeight = 4;
+  uint64 startHeight = 5;
   // numBlocks is the number of blocks included in this batch update
-  uint64 numBlocks = 5;
+  uint64 numBlocks = 6;
   // DAPath is the description of the location on the DA layer
-  string DAPath = 6;
+  string DAPath = 7;
 	// Result code for the availability check
-  uint32 Code = 7;
+  uint32 Code = 8;
 	// To proof non-matching span with commitment, it is required to send the blob
-	optional bytes blob = 8;
+	optional bytes blob = 9;
   // NMT inclusion proofs for non-matching blob
-	repeated bytes nmtproofs = 9;
+	repeated bytes nmtproofs = 10;
   // NMT roots
-  repeated bytes nmtroots = 10;
+  repeated bytes nmtroots = 11;
   // Row proofs for non-matching blobs, or to demonstrate non-inclusion
-  repeated bytes rproofs = 11;
+  repeated bytes rproofs = 12;
   // Data root of the DA headers at the specific height
-  bytes dataroot = 12;
+  optional bytes dataroot = 13;
 }
 
 enum NonAvaliableCase {
