@@ -124,6 +124,7 @@ func (k Keeper) ListRollappPacketsByStatus(
 	status commontypes.Status,
 	maxProofHeight uint64,
 ) (list []commontypes.RollappPacket) {
+	logger := ctx.Logger()
 	store := ctx.KVStore(k.storeKey)
 
 	// switch prefix based on status
@@ -145,7 +146,11 @@ func (k Keeper) ListRollappPacketsByStatus(
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		err := k.cdc.Unmarshal(iterator.Value(), &val)
+		if err != nil {
+			logger.Error("Failed to unmarshal rollapp packet", "error", err)
+			continue
+		}
 		if maxProofHeight == 0 || val.ProofHeight <= maxProofHeight {
 			list = append(list, val)
 		} else {
@@ -165,7 +170,11 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		err := k.cdc.Unmarshal(iterator.Value(), &val)
+		if err != nil {
+			ctx.Logger().Error("Failed to unmarshal rollapp packet", "error", err)
+			continue
+		}
 		list = append(list, val)
 	}
 
