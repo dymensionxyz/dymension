@@ -24,6 +24,12 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.Roll
 		return err
 	}
 	store.Set(rollappPacketKey, b)
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDelayedAck,
+			rollappPacket.GetEvents()...,
+		),
+	)
 	return nil
 }
 
