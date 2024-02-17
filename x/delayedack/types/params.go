@@ -42,6 +42,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	if p.EpochIdentifier == "" {
+		return ErrEmptyEpochIdentifier
+	}
 	return nil
 }
 
