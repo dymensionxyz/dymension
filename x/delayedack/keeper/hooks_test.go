@@ -1,18 +1,14 @@
 package keeper_test
 
 import (
-	"testing"
-
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/stretchr/testify/require"
 )
 
 // TestAfterEpochEnd tests that the finalized of rollapp packets
 // are deleted given the correct epoch identifier
-func TestAfterEpochEnd(t *testing.T) {
+func (suite *KeeperTestSuite) TestAfterEpochEnd() {
 	tests := []struct {
 		name                 string
 		pendingPacketsNum    int
@@ -23,7 +19,7 @@ func TestAfterEpochEnd(t *testing.T) {
 		expectedTotal        int
 	}{
 		{
-			name:                 "epoch identifier matches params set",
+			name:                 "delete rollapp packets after epoch end",
 			pendingPacketsNum:    5,
 			finalizePacketsNum:   3,
 			epochIdentifierParam: "minute",
@@ -32,7 +28,7 @@ func TestAfterEpochEnd(t *testing.T) {
 			expectedTotal:        2,
 		},
 		{
-			name:                 "epoch identifer does not match params set",
+			name:                 "fail delete rollapp packets after epoch end - invalid epoch identifier",
 			pendingPacketsNum:    5,
 			finalizePacketsNum:   3,
 			epochIdentifierParam: "minute",
@@ -43,8 +39,8 @@ func TestAfterEpochEnd(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			keeper, ctx := keepertest.DelayedackKeeper(t)
+		suite.Run(tc.name, func() {
+			keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 			for i := 1; i <= tc.pendingPacketsNum; i++ {
 				rollappPacket := &commontypes.RollappPacket{
 					RollappId: "testRollappId",
@@ -63,23 +59,23 @@ func TestAfterEpochEnd(t *testing.T) {
 			}
 
 			rollappPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)
-			require.Equal(t, tc.pendingPacketsNum, len(rollappPackets))
+			suite.Require().Equal(tc.pendingPacketsNum, len(rollappPackets))
 
 			for _, rollappPacket := range rollappPackets[:tc.finalizePacketsNum] {
 				keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 			}
 			finalizedRollappPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
-			require.Equal(t, tc.finalizePacketsNum, len(finalizedRollappPackets))
+			suite.Require().Equal(tc.finalizePacketsNum, len(finalizedRollappPackets))
 
 			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam})
 			epochHooks := keeper.GetEpochHooks()
 			epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
 
 			finalizedRollappPackets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
-			require.Equal(t, tc.finalizePacketsNum-tc.expectedDeleted, len(finalizedRollappPackets))
+			suite.Require().Equal(tc.finalizePacketsNum-tc.expectedDeleted, len(finalizedRollappPackets))
 
 			totalRollappPackets := len(finalizedRollappPackets) + len(keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0))
-			require.Equal(t, tc.expectedTotal, totalRollappPackets)
+			suite.Require().Equal(tc.expectedTotal, totalRollappPackets)
 		})
 	}
 }
