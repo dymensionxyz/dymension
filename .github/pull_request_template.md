@@ -42,7 +42,7 @@ SDK Checklist
 Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
 
 
----
+----;
 
 For Reviewer:
 
