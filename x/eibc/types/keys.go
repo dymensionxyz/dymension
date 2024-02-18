@@ -28,12 +28,14 @@ const (
 
 // Store Key Prefixes
 var (
+	// AllDemandOrdersKeyPrefix is the prefix for all demand orders
+	AllDemandOrdersKeyPrefix = []byte{0x00}
 	// PendingDemandOrderKeyPrefix is the prefix for pending demand orders
-	PendingDemandOrderKeyPrefix = []byte{0x01}
+	PendingDemandOrderKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedDemandOrderKeyPrefix is the prefix for finalized demand orders
-	FinalizedDemandOrderKeyPrefix = []byte{0x02}
+	FinalizedDemandOrderKeyPrefix = []byte{0x00, 0x02}
 	// RevertedDemandOrderKeyPrefix is the prefix for reverted demand orders
-	RevertedDemandOrderKeyPrefix = []byte{0x03}
+	RevertedDemandOrderKeyPrefix = []byte{0x00, 0x03}
 )
 
 func KeyPrefix(p string) []byte {

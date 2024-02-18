@@ -155,14 +155,23 @@ func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id st
 func (k Keeper) ListAllDemandOrders(
 	ctx sdk.Context,
 ) (list []*types.DemandOrder, err error) {
-	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
-	for _, status := range statuses {
-		orders, err := k.ListDemandOrdersByStatus(ctx, status)
-		if err != nil {
-			return nil, err
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.AllDemandOrdersKeyPrefix)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.DemandOrder
+		wrapFn := func(ctx sdk.Context) error {
+			return k.cdc.Unmarshal(iterator.Value(), &val)
 		}
-		list = append(list, orders...)
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
+		if err != nil {
+			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
+			continue
+		}
+		list = append(list, &val)
 	}
+
 	return list, nil
 }
 
