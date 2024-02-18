@@ -17,10 +17,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.SequencersByRollappList {
 		k.SetSequencersByRollapp(ctx, elem)
 	}
-	// Set all the scheduler
-	for _, elem := range genState.SchedulerList {
-		k.SetScheduler(ctx, elem)
-	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -32,7 +28,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	genesis.SequencerList = k.GetAllSequencer(ctx)
 	genesis.SequencersByRollappList = k.GetAllSequencersByRollapp(ctx)
-	genesis.SchedulerList = k.GetAllScheduler(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return &genesis

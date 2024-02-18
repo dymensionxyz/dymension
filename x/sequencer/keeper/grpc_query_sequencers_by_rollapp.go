@@ -23,7 +23,6 @@ func (k Keeper) SequencersByRollappAll(c context.Context, req *types.QueryAllSeq
 	store := ctx.KVStore(k.storeKey)
 	sequencersByRollappStore := prefix.NewStore(store, types.KeyPrefix(types.SequencersByRollappKeyPrefix))
 	sequencerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SequencerKeyPrefix))
-	schedulerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 
 	pageRes, err := query.Paginate(sequencersByRollappStore, req.Pagination, func(key []byte, value []byte) error {
 		var sequencersByRollapp types.SequencersByRollapp
@@ -45,19 +44,9 @@ func (k Keeper) SequencersByRollappAll(c context.Context, req *types.QueryAllSeq
 			var sequencer types.Sequencer
 			k.cdc.MustUnmarshal(sequencerVal, &sequencer)
 
-			var scheduler types.Scheduler
-			schedulerVal := schedulerStore.Get(types.SchedulerKey(
-				sequencerAddress,
-			))
-			if schedulerVal == nil {
-				return sdkerrors.Wrapf(sdkerrors.ErrLogic,
-					"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
-			}
-			k.cdc.MustUnmarshal(schedulerVal, &scheduler)
-
 			sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
 				Sequencer: sequencer,
-				Status:    scheduler.Status,
+				Status:    sequencer.Status,
 			})
 		}
 
@@ -91,7 +80,6 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	}
 
 	sequencerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SequencerKeyPrefix))
-	schedulerStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SchedulerKeyPrefix))
 
 	var sequencerInfoList []types.SequencerInfo
 	for _, sequencerAddress := range val.Sequencers.Addresses {
@@ -108,19 +96,9 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 		var sequencer types.Sequencer
 		k.cdc.MustUnmarshal(sequencerVal, &sequencer)
 
-		var scheduler types.Scheduler
-		schedulerVal := schedulerStore.Get(types.SchedulerKey(
-			sequencerAddress,
-		))
-		if schedulerVal == nil {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"scheduler was not found for sequencer %s", sequencer.SequencerAddress)
-		}
-		k.cdc.MustUnmarshal(schedulerVal, &scheduler)
-
 		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
 			Sequencer: sequencer,
-			Status:    scheduler.Status,
+			Status:    sequencer.Status,
 		})
 	}
 

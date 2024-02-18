@@ -69,40 +69,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if err != nil {
 		return nil, err
 	}
-
-	// update sequencers list
-	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
-	if found {
-		// check to see if we reached the maximum number of sequeners for this rollapp
-		maxSequencers := int(rollapp.MaxSequencers)
-		activeSequencers := sequencersByRollapp.Sequencers
-		currentNumOfSequencers := len(activeSequencers.Addresses)
-		if maxSequencers < currentNumOfSequencers {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic, "rollapp id: %s cannot have more than %d sequencers but got: %d", msg.RollappId, maxSequencers, currentNumOfSequencers)
-		}
-		if maxSequencers == currentNumOfSequencers {
-			return nil, types.ErrMaxSequencersLimit
-		}
-		// add sequencer to list
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
-		// it's not the first sequencer, make it bonded but not proposer
-		scheduler := types.Scheduler{
-			SequencerAddress: msg.Creator,
-			Status:           types.Bonded,
-		}
-		k.SetScheduler(ctx, scheduler)
-	} else {
-		// this is the first sequencer, make it a PROPOSER
-		sequencersByRollapp.RollappId = msg.RollappId
-		sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
-		scheduler := types.Scheduler{
-			SequencerAddress: msg.Creator,
-			Status:           types.Proposer,
-		}
-		k.SetScheduler(ctx, scheduler)
-	}
-	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
-
 	sequencer := types.Sequencer{
 		SequencerAddress: msg.Creator,
 		DymintPubKey:     msg.DymintPubKey,
@@ -111,6 +77,23 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Status:           types.Bonded,
 		Tokens:           &msg.Bond,
 	}
+
+	// update sequencers list
+	//FIXME: change to get only bonded sequencers
+	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
+	// check to see if we reached the maximum number of sequeners for this rollapp
+	maxSequencers := int(rollapp.MaxSequencers)
+	currentNumOfSequencers := len(sequencersByRollapp.Sequencers.Addresses)
+	if currentNumOfSequencers >= maxSequencers {
+		return nil, types.ErrMaxSequencersLimit
+	}
+	if !found {
+		// this is the first sequencer, make it a PROPOSER
+		sequencersByRollapp.RollappId = msg.RollappId
+		sequencer.Status = types.Proposer
+	}
+	sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
+	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
 	k.SetSequencer(ctx, sequencer)
 
