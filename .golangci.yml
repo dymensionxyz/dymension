@@ -21,6 +21,7 @@ linters:
     - typecheck
     - unused
     - varcheck
+    - gosec
     - gocyclo
 
 issues:

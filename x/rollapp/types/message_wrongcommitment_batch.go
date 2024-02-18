@@ -5,21 +5,13 @@ import (
 	fmt "fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
 )
 
 const TypeMsgWrongCommitmentBatch = "submit_wrongcommitment"
 
 var _ sdk.Msg = &MsgWrongCommitmentBatch{}
-
-type InclusionProof struct {
-	Blob      []byte
-	Nmtproofs [][]byte
-	Nmtroots  [][]byte
-	RowProofs [][]byte
-	DataRoot  []byte
-}
 
 func NewMsgWrongCommitmentBatch(creator string, rollappID string, slIndex uint64, daPath string, inclusionProof string) *MsgWrongCommitmentBatch {
 
@@ -59,17 +51,17 @@ func (msg *MsgWrongCommitmentBatch) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	// Validate the JSON-encoded fraudproof data
-	//_, err = msg.DecodeInclusionProof()
+	_, err = msg.DecodeInclusionProof()
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
 	}
 	return nil
 }
 
-func (msg *MsgWrongCommitmentBatch) DecodeInclusionProof() (InclusionProof, error) {
+func (msg *MsgWrongCommitmentBatch) DecodeInclusionProof() (inclusion.InclusionProof, error) {
 	// Decode the JSON-encoded data into your struct
 	ip := BlobInclusionProof{}
-	inclusionProof := InclusionProof{}
+	inclusionProof := inclusion.InclusionProof{}
 
 	err := json.Unmarshal([]byte(msg.InclusionProof), &ip)
 	if err != nil {
