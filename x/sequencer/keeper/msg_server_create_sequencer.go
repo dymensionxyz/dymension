@@ -53,22 +53,25 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 
 	//TODO: use custom error codes
 	minBond := k.GetParams(ctx).MinBond
-	if msg.Bond.Denom != minBond.Denom {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Bond.Denom, minBond.Denom,
-		)
+	if !minBond.IsNil() && !minBond.IsZero() {
+		if msg.Bond.Denom != minBond.Denom {
+			return nil, sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Bond.Denom, minBond.Denom,
+			)
+		}
+
+		if msg.Bond.Amount.LT(minBond.Amount) {
+			return nil, sdkerrors.Wrapf(
+				sdkerrors.ErrInvalidRequest, "insufficient bond: got %s, expected %s", msg.Bond.Amount, k.GetParams(ctx).MinBond,
+			)
+		}
+
+		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	if msg.Bond.Amount.LT(minBond.Amount) {
-		return nil, sdkerrors.Wrapf(
-			sdkerrors.ErrInvalidRequest, "insufficient bond: got %s, expected %s", msg.Bond.Amount, k.GetParams(ctx).MinBond,
-		)
-	}
-
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
-	if err != nil {
-		return nil, err
-	}
 	sequencer := types.Sequencer{
 		SequencerAddress: msg.Creator,
 		DymintPubKey:     msg.DymintPubKey,

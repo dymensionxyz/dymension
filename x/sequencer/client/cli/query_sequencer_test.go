@@ -33,11 +33,6 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 		}
 		nullify.Fill(&sequencer)
 		state.SequencerList = append(state.SequencerList, sequencer)
-		scheduler := types.Scheduler{
-			SequencerAddress: sequencer.SequencerAddress,
-		}
-		nullify.Fill(&scheduler)
-		state.SchedulerList = append(state.SchedulerList, scheduler)
 	}
 
 	buf, err := cfg.Codec.MarshalJSON(&state)

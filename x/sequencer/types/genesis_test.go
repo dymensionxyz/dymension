@@ -38,14 +38,6 @@ func TestGenesisState_Validate(t *testing.T) {
 						RollappId: "1",
 					},
 				},
-				SchedulerList: []types.Scheduler{
-					{
-						SequencerAddress: "0",
-					},
-					{
-						SequencerAddress: "1",
-					},
-				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -73,20 +65,6 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 					{
 						RollappId: "0",
-					},
-				},
-			},
-			valid: false,
-		},
-		{
-			desc: "duplicated scheduler",
-			genState: &types.GenesisState{
-				SchedulerList: []types.Scheduler{
-					{
-						SequencerAddress: "0",
-					},
-					{
-						SequencerAddress: "0",
 					},
 				},
 			},

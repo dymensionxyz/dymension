@@ -18,29 +18,24 @@ import (
 )
 
 const (
-	transferEventCount            = 3 // As emitted by the bank
-	createEventCount              = 8
-	playEventCountFirst           = 8 // Extra "sender" attribute emitted by the bank
-	playEventCountNext            = 7
-	rejectEventCount              = 4
-	rejectEventCountWithTransfer  = 5 // Extra "sender" attribute emitted by the bank
-	forfeitEventCount             = 4
-	forfeitEventCountWithTransfer = 5 // Extra "sender" attribute emitted by the bank
-	alice                         = "cosmos1jmjfq0tplp9tmx4v9uemw72y4d2wa5nr3xn9d3"
-	bob                           = "cosmos1xyxs3skf3f4jfqeuv89yyaqvjc6lffavxqhc8g"
-	carol                         = "cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7"
-	balAlice                      = 50000000
-	balBob                        = 20000000
-	balCarol                      = 10000000
-	foreignToken                  = "foreignToken"
-	balTokenAlice                 = 5
-	balTokenBob                   = 2
-	balTokenCarol                 = 1
+	alice         = "cosmos1jmjfq0tplp9tmx4v9uemw72y4d2wa5nr3xn9d3"
+	bob           = "cosmos1xyxs3skf3f4jfqeuv89yyaqvjc6lffavxqhc8g"
+	carol         = "cosmos1e0w5t53nrq7p66fye6c8p0ynyhf6y24l4yuxd7"
+	balAlice      = 50000000
+	balBob        = 20000000
+	balCarol      = 10000000
+	foreignToken  = "foreignToken"
+	balTokenAlice = 5
+	balTokenBob   = 2
+	balTokenCarol = 1
 )
 
 var (
+	bond                   = sdk.NewCoin("adym", sdk.NewInt(100000000000000000))
 	sequencerModuleAddress string
 )
+
+//TODO: check min bond
 
 func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
@@ -81,6 +76,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			sequencerMsg := types.MsgCreateSequencer{
 				Creator:      addr.String(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				RollappId:    rollappId,
 				Description:  sequencertypes.Description{},
 			}
@@ -88,8 +84,13 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			sequencerExpect := types.Sequencer{
 				SequencerAddress: sequencerMsg.GetCreator(),
 				DymintPubKey:     sequencerMsg.GetDymintPubKey(),
+				Status:           types.Bonded,
 				RollappId:        rollappId,
+				Tokens:           &bond,
 				Description:      sequencerMsg.GetDescription(),
+			}
+			if i == 0 {
+				sequencerExpect.Status = types.Proposer
 			}
 			// create sequencer
 			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -135,6 +136,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
+// TODO: test with differenty sequencer status
 func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
@@ -157,6 +159,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
+		Bond:         bond,
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
@@ -178,6 +181,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
+		Bond:         bond,
 		RollappId:    "rollappId",
 		Description:  sequencertypes.Description{},
 	}
@@ -210,6 +214,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      sequencerAddress,
 		DymintPubKey: pkAny,
+		Bond:         bond,
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
@@ -217,7 +222,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
-	// query the spesific sequencer
+	// query the specific sequencer
 	queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
 		SequencerAddress: sequencerMsg.GetCreator(),
 	})
@@ -227,8 +232,10 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	sequencerExpect := types.Sequencer{
 		SequencerAddress: sequencerMsg.GetCreator(),
 		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
+		Status:           types.Proposer,
 		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
+		Tokens:           &bond,
 	}
 	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
 }
@@ -255,6 +262,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	sequencerMsg := types.MsgCreateSequencer{
 		Creator:      addr.String(),
 		DymintPubKey: pkAny,
+		Bond:         bond,
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
@@ -288,6 +296,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 		sequencerMsg := types.MsgCreateSequencer{
 			Creator:      addr.String(),
 			DymintPubKey: pkAny,
+			Bond:         bond,
 			RollappId:    rollappId,
 			Description:  sequencertypes.Description{},
 		}
@@ -304,6 +313,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 		sequencerMsg := types.MsgCreateSequencer{
 			Creator:      addr.String(),
 			DymintPubKey: pkAny,
+			Bond:         bond,
 			RollappId:    rollappId,
 			Description:  sequencertypes.Description{},
 		}
@@ -334,6 +344,7 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 	sequencerMsg1 := types.MsgCreateSequencer{
 		Creator:      addr1.String(),
 		DymintPubKey: pkAny1,
+		Bond:         bond,
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
@@ -348,6 +359,7 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 	sequencerMsg2 := types.MsgCreateSequencer{
 		Creator:      addr2.String(),
 		DymintPubKey: pkAny2,
+		Bond:         bond,
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
@@ -355,14 +367,14 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 	suite.Require().Nil(err)
 
 	// check scheduler operating status
-	scheduler, found := suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencerMsg1.GetCreator())
+	scheduler, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, sequencerMsg1.GetCreator())
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Proposer)
 
 	// check scheduler operating status
-	scheduler, found = suite.app.SequencerKeeper.GetScheduler(suite.ctx, sequencerMsg2.GetCreator())
+	scheduler, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, sequencerMsg2.GetCreator())
 	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Inactive)
+	suite.EqualValues(scheduler.Status, types.Bonded)
 }
 
 // ---------------------------------------
@@ -418,15 +430,40 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 
 // equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
 func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
-	// Pubkey does not pass standard equality checks, check it separately
+	eq := CompareSequencers(s1, s2)
+	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
+}
+
+func CompareSequencers(s1, s2 *types.Sequencer) bool {
+	if s1.SequencerAddress != s2.SequencerAddress {
+		return false
+	}
+
 	s1Pubkey := s1.DymintPubKey
 	s2Pubkey := s2.DymintPubKey
-	suite.Require().True(s1Pubkey.Equal(s2Pubkey))
-	// Pubkey does not pass standard equality checks, compare Sequencer without it
-	s1.DymintPubKey = nil
-	s2.DymintPubKey = nil
-	suite.Require().EqualValues(s1, s2)
-	// restore pubkey
-	s1.DymintPubKey = s1Pubkey
-	s2.DymintPubKey = s2Pubkey
+	if !s1Pubkey.Equal(s2Pubkey) {
+		return false
+	}
+	if s1.RollappId != s2.RollappId {
+		return false
+	}
+
+	if s1.Jailed != s2.Jailed {
+		return false
+	}
+	if s1.Status != s2.Status {
+		return false
+	}
+
+	if !s1.Tokens.Equal(s2.Tokens) {
+		return false
+	}
+
+	if s1.UnbondingHeight != s2.UnbondingHeight {
+		return false
+	}
+	if !s1.UnbondingTime.Equal(s2.UnbondingTime) {
+		return false
+	}
+	return true
 }

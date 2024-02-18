@@ -30,14 +30,6 @@ func TestGenesis(t *testing.T) {
 				RollappId: "1",
 			},
 		},
-		SchedulerList: []types.Scheduler{
-			{
-				SequencerAddress: "0",
-			},
-			{
-				SequencerAddress: "1",
-			},
-		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -51,6 +43,5 @@ func TestGenesis(t *testing.T) {
 
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
 	require.ElementsMatch(t, genesisState.SequencersByRollappList, got.SequencersByRollappList)
-	require.ElementsMatch(t, genesisState.SchedulerList, got.SchedulerList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

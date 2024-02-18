@@ -78,7 +78,11 @@ func validateMinBond(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if !v.IsValid() {
+	if v.IsNil() {
+		return nil
+	}
+
+	if v.IsZero() || !v.IsValid() {
 		return fmt.Errorf("invalid coin: %s", v)
 	}
 	return nil
