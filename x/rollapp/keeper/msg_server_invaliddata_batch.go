@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.MsgNonAvailableBatch) (*types.MsgNonAvailableBatchResponse, error) {
+func (k msgServer) SubmitInvalidDataBatch(goCtx context.Context, msg *types.MsgInvalidDataBatch) (*types.MsgInvalidDataBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
@@ -23,7 +23,7 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 		return nil, types.ErrUnknownRollappID
 	}
 
-	err := k.VerifyNonAvailableBatch(ctx, msg)
+	err := k.VerifyInvalidDataBatch(ctx, msg)
 
 	if err == nil {
 		//FIXME: handle deposit burn on wrong FP
@@ -31,5 +31,5 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 
 	}
 
-	return &types.MsgNonAvailableBatchResponse{}, nil
+	return &types.MsgInvalidDataBatchResponse{}, nil
 }

@@ -14,6 +14,9 @@ service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   rpc SubmitNonAvailableBatch(MsgNonAvailableBatch) returns (MsgNonAvailableBatchResponse);
+  rpc SubmitWrongCommitmentBatch(MsgWrongCommitmentBatch) returns (MsgWrongCommitmentBatchResponse);
+  rpc SubmitInvalidDataBatch(MsgInvalidDataBatch) returns (MsgInvalidDataBatchResponse);
+
 }
 
 // ===================== MsgCreateRollapp
@@ -70,7 +73,46 @@ message MsgUpdateStateResponse {
 }
 
 
-// ===================== NotAvailableBatchMsg
+message BlobInclusionProof {
+  // To proof non-matching span with commitment, it is required to send the blob
+	optional bytes blob = 1;
+  // NMT inclusion proofs for non-matching blob
+	repeated bytes nmtproofs = 2;
+  // NMT roots
+  repeated bytes nmtroots = 3;
+  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
+  repeated bytes rproofs = 4;
+  // Data root of the DA headers at the specific height
+  optional bytes dataroot = 5;
+}
+
+message NonInclusionProof {
+  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
+  repeated bytes rproofs = 1;
+  // Data root of the DA headers at the specific height
+  optional bytes dataroot = 2;
+}
+
+// ===================== MsgWrongCommitmentBatch
+// Updating a rollapp state with the DA information and proofs for a non-available
+// batch submmited by a sequencer
+message MsgWrongCommitmentBatch {
+  // creator is the bech32-encoded address of the full-node sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+	// case describing what is wrong with the data committed by the sequencer
+  uint64 slIndex = 3;
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 4;
+  // Inclusion proof
+  string inclusionProof = 5;
+}
+
+message MsgWrongCommitmentBatchResponse {}
+
+// ===================== MsgNonAvailableBatch
 // Updating a rollapp state with the DA information and proofs for a non-available
 // batch submmited by a sequencer
 message MsgNonAvailableBatch {
@@ -81,31 +123,31 @@ message MsgNonAvailableBatch {
   string rollappId = 2;
 	// case describing what is wrong with the data committed by the sequencer
   uint64 slIndex = 3;
-	NonAvaliableCase case =4;
-  // startHeight is the block height of the first block in the batch
-  uint64 startHeight = 5;
-  // numBlocks is the number of blocks included in this batch update
-  uint64 numBlocks = 6;
   // DAPath is the description of the location on the DA layer
-  string DAPath = 7;
-	// Result code for the availability check
-  uint32 Code = 8;
-	// To proof non-matching span with commitment, it is required to send the blob
-	optional bytes blob = 9;
-  // NMT inclusion proofs for non-matching blob
-	repeated bytes nmtproofs = 10;
-  // NMT roots
-  repeated bytes nmtroots = 11;
-  // Row proofs for non-matching blobs, or to demonstrate non-inclusion
-  repeated bytes rproofs = 12;
-  // Data root of the DA headers at the specific height
-  optional bytes dataroot = 13;
-}
-
-enum NonAvaliableCase {
-   WrongCommitment = 0 [(gogoproto.enumvalue_customname) = "wrongcommitment"];
-   DataNotAvailable      = 1 [(gogoproto.enumvalue_customname) = "notavailable"];
-   InvalidData    = 2 [(gogoproto.enumvalue_customname) = "invaliddata"];
+  string DAPath = 4;
+  // Inclusion proof
+  string nonInclusionProof = 5;
 }
 
 message MsgNonAvailableBatchResponse {}
+
+
+// ===================== MsgInvalidDataBatch
+// Updating a rollapp state with the DA information and proofs for a non-available
+// batch submmited by a sequencer
+message MsgInvalidDataBatch {
+  // creator is the bech32-encoded address of the full-node sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+	// case describing what is wrong with the data committed by the sequencer
+  uint64 slIndex = 3;
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 4;
+  // Inclusion proof
+  string inclusionProof = 5;
+}
+
+message MsgInvalidDataBatchResponse {}
+

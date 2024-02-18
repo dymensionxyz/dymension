@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.MsgNonAvailableBatch) (*types.MsgNonAvailableBatchResponse, error) {
+func (k msgServer) SubmitWrongCommitmentBatch(goCtx context.Context, msg *types.MsgWrongCommitmentBatch) (*types.MsgWrongCommitmentBatchResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
@@ -22,14 +22,20 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
-
-	err := k.VerifyNonAvailableBatch(ctx, msg)
+	ip, err := msg.DecodeInclusionProof()
+	if err != nil {
+		return nil, err
+	}
+	err = k.VerifyWrongCommitmentBatch(ctx, msg, &ip)
 
 	if err == nil {
 		//FIXME: handle deposit burn on wrong FP
-		k.Logger(ctx).Info("unable to verif non-available proof ", "rollappID", msg.RollappId)
+		k.Logger(ctx).Info("unable to verif wrong-commitment proof ", "rollappID", msg.RollappId)
 
 	}
+	//FIXME: handle slashing
 
-	return &types.MsgNonAvailableBatchResponse{}, nil
+	//FIXME: handle deposit burn on wrong proof
+
+	return &types.MsgWrongCommitmentBatchResponse{}, nil
 }

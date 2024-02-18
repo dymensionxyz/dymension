@@ -10,10 +10,13 @@ const TypeMsgNonAvailableBatch = "submit_nonavailable"
 
 var _ sdk.Msg = &MsgNonAvailableBatch{}
 
-func NewMsgSubmitNonAvailableBatch(creator string, rollappID string, fraudproof string) *MsgNonAvailableBatch {
+func NewMsgSubmitNonAvailableBatch(creator string, rollappID string, slIndex uint64, daPath string, nonInclusionProof string) *MsgNonAvailableBatch {
 	return &MsgNonAvailableBatch{
-		Creator:   creator,
-		RollappId: rollappID,
+		Creator:           creator,
+		RollappId:         rollappID,
+		SlIndex:           slIndex,
+		DAPath:            daPath,
+		NonInclusionProof: nonInclusionProof,
 	}
 }
 

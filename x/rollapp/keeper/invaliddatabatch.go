@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvailableBatch) error {
+func (k *Keeper) VerifyInvalidDataBatch(ctx sdk.Context, msg *types.MsgInvalidDataBatch) error {
 
 	/*stateInfo, found := k.GetStateInfo(ctx, msg.GetRollappId(), msg.GetSlIndex())
 	if !found {
@@ -17,10 +17,6 @@ func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvail
 		return nil
 	}
 	//var namespace []byte
-	blob, _, err := k.blobsAndCommitments(DAMetaData.GetNameSpace(), msg.GetBlob())
-	if err != nil {
-		return err
-	}
 
 	err = k.verifyBlobNonInclusion(ctx, DAMetaData.GetNameSpace(), msg.GetRproofs(), msg.GetDataroot())
 	if err != nil {
@@ -30,7 +26,7 @@ func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvail
 	return nil
 }
 
-/*func (k *Keeper) verifyBlobNonInclusion(ctx sdk.Context, namespace []byte, rProofs [][]byte, dataRoot []byte) error {
-	//TODO (srene): Implement non-inclusion proof validation
+/*func (k *Keeper) validateIncludedData(ctx sdk.Context, b *blob.Blob) error {
+	//TODO (srene): Implement check invalid data blob
 	return types.ErrUnableToVerifyProof
 }*/
