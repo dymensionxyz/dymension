@@ -52,6 +52,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	//TODO: use custom error codes
+	bond := sdk.Coin{}
 	minBond := k.GetParams(ctx).MinBond
 	if !minBond.IsNil() && !minBond.IsZero() {
 		if msg.Bond.Denom != minBond.Denom {
@@ -70,6 +71,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		if err != nil {
 			return nil, err
 		}
+		bond = msg.Bond
 	}
 
 	sequencer := types.Sequencer{
@@ -78,7 +80,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:        msg.RollappId,
 		Description:      msg.Description,
 		Status:           types.Bonded,
-		Tokens:           &msg.Bond,
+		Tokens:           &bond,
 	}
 
 	// update sequencers list

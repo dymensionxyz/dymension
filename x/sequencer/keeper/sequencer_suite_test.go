@@ -4,12 +4,17 @@ import (
 	"testing"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
@@ -46,4 +51,33 @@ func (suite *SequencerTestSuite) SetupTest() {
 	suite.msgServer = keeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.ctx = ctx
 	suite.queryClient = queryClient
+}
+
+func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
+	rollapp := rollapptypes.Rollapp{
+		RollappId:     "rollapp1",
+		Creator:       alice,
+		Version:       0,
+		MaxSequencers: 2,
+	}
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	return rollapp.GetRollappId()
+}
+
+func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
+	// create first sequencer
+	pubkey1 := secp256k1.GenPrivKey().PubKey()
+	addr1 := sdk.AccAddress(pubkey1.Address())
+	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
+	suite.Require().Nil(err)
+	sequencerMsg1 := types.MsgCreateSequencer{
+		Creator:      addr1.String(),
+		DymintPubKey: pkAny1,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  sequencertypes.Description{},
+	}
+	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
+	suite.Require().Nil(err)
+	return addr1.String()
 }

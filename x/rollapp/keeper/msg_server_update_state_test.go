@@ -569,6 +569,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	suite.ErrorIs(err, types.ErrMultiUpdateStateInBlock)
 }
 
+// TODO: should test all status other than Proposer
 func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
