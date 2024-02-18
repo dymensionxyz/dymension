@@ -10,6 +10,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      GOPROXY: https://proxy.golang.org
     steps:
     - uses: actions/checkout@v4
 
@@ -17,7 +19,6 @@ jobs:
       uses: actions/setup-go@v5
       with:
         go-version: 1.19.10
-        go-proxy: https://proxy.golang.org
 
     - name: Build
       run: go build -v ./...
