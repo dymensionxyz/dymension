@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc"
