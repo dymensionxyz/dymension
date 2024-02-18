@@ -4,18 +4,16 @@ import (
 	"fmt"
 )
 
-// DefaultIndex is the default capability global index
-const DefaultIndex uint64 = 1
-
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		SequencerList:           []Sequencer{},
 		SequencersByRollappList: []SequencersByRollapp{},
-		// this line is used by starport scaffolding # genesis/types/default
-		Params: DefaultParams(),
+		Params:                  DefaultParams(),
 	}
 }
+
+//FIXME: should run validation on the sequencer objects
 
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
@@ -41,7 +39,7 @@ func (gs GenesisState) Validate() error {
 		sequencersByRollappIndexMap[index] = struct{}{}
 	}
 
-	// this line is used by starport scaffolding # genesis/types/validate
+	//FIXME: need to validate the correlation between the two arrays
 
 	return gs.Params.Validate()
 }

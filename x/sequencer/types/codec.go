@@ -9,6 +9,7 @@ import (
 
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)
+	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
 	// this line is used by starport scaffolding # 2
 }
 

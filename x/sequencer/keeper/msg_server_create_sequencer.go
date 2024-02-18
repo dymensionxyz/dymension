@@ -21,9 +21,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if _, found := k.GetSequencer(ctx, msg.Creator); found {
 		return nil, types.ErrSequencerExists
 	}
-	// load rollapp object for stateful validations
-	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
+
 	// check to see if the rollapp has been registered before
+	rollapp, found := k.rollappKeeper.GetRollapp(ctx, msg.RollappId)
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}

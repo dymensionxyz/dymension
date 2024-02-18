@@ -9,6 +9,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -70,6 +72,11 @@ func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollapp
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 	suite.Require().Nil(err)
+
+	//fund account
+	err = bankutil.FundAccount(suite.app.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	suite.Require().Nil(err)
+
 	sequencerMsg1 := types.MsgCreateSequencer{
 		Creator:      addr1.String(),
 		DymintPubKey: pkAny1,

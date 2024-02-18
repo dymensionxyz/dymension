@@ -13,6 +13,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
 	}
+
+	//FIXME: probably can be set from the sequencer data itself
+
 	// Set all the sequencersByRollapp
 	for _, elem := range genState.SequencersByRollappList {
 		k.SetSequencersByRollapp(ctx, elem)

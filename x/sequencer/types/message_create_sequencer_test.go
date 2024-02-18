@@ -107,9 +107,9 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
-				Bond:         sdk.NewCoin("k", sdk.NewInt(0)),
+				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: sdkerrors.ErrInvalidCoins,
 		},
 	}
 	for _, tt := range tests {
