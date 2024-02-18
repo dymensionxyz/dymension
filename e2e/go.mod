@@ -1,8 +1,6 @@
 module github.com/dymensionxyz/dymension/e2e
 
-go 1.21
-
-toolchain go1.21.4
+go 1.19
 
 replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
@@ -21,6 +19,7 @@ replace (
 require (
 	cosmossdk.io/math v1.0.0-rc.0
 	github.com/cosmos/cosmos-sdk v0.46.16-0.20231025193730-41d2a21c1348
+	github.com/cosmos/ibc-go/v6 v6.2.1
 	github.com/decentrio/rollup-e2e-testing v0.0.0-20240217042554-3b5f78dba876
 	github.com/evmos/ethermint v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.8.4
@@ -59,7 +58,6 @@ require (
 	github.com/cosmos/gogoproto v1.4.7 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
 	github.com/cosmos/iavl v0.19.6 // indirect
-	github.com/cosmos/ibc-go/v6 v6.2.1 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
