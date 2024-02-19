@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -65,7 +66,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
 			demandOrderDenom:                     sdk.DefaultBondDenom,
-			expectedFulfillmentError:             types.ErrFullfillerInsufficientBalance,
+			expectedFulfillmentError:             sdkerrors.ErrInsufficientFunds,
 			eIBCdemandAddrBalance:                math.NewInt(130),
 			expectedDemandOrdefFulfillmentStatus: false,
 			expectedPostCreationEventsType:       eibcEventType,
@@ -94,7 +95,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
 			demandOrderDenom:                     "adym",
-			expectedFulfillmentError:             types.ErrFullfillerInsufficientBalance,
+			expectedFulfillmentError:             sdkerrors.ErrInsufficientFunds,
 			eIBCdemandAddrBalance:                math.NewInt(130),
 			expectedDemandOrdefFulfillmentStatus: false,
 			expectedPostCreationEventsType:       eibcEventType,

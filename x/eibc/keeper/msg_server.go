@@ -50,14 +50,14 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	if fullfillerAccount == nil {
 		return nil, types.ErrFullfillerAddressDoesNotExist
 	}
-	fullfillerBalance := m.BankKeeper.SpendableCoins(ctx, fullfillerAccount.GetAddress())
-	requiredBalance := demandOrder.Price
-	// Iterate through the coins and check if the fulfiller has enough balance
-	if !fullfillerBalance.IsAnyGTE(requiredBalance) {
-		return nil, types.ErrFullfillerInsufficientBalance
-	}
+	// fullfillerBalance := m.BankKeeper.SpendableCoins(ctx, fullfillerAccount.GetAddress())
+	// requiredBalance := demandOrder.Price
+	// // Iterate through the coins and check if the fulfiller has enough balance
+	// if !fullfillerBalance.IsAnyGTE(requiredBalance) {
+	// 	return nil, types.ErrFullfillerInsufficientBalance
+	// }
 	// Send the funds from the fullfiller to the eibc packet original recipient
-	err = m.BankKeeper.SendCoins(ctx, fullfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), requiredBalance)
+	err = m.BankKeeper.SendCoins(ctx, fullfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err
