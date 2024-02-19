@@ -68,8 +68,7 @@ func (msg *MsgNonAvailableBatch) DecodeNonInclusionProof() (inclusion.NonInclusi
 		return nonInclusionProof, fmt.Errorf("failed decoding JSON: %s", err)
 	}
 
-	nonInclusionProof.DataRoot = nip.GetDataroot()
-	nonInclusionProof.RowProofs = nip.GetRproofs()
+	nonInclusionProof.RowProof = nip.GetRproofs()
 
 	return nonInclusionProof, nil
 

@@ -1,10 +1,13 @@
 package inclusion
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"errors"
 
 	"github.com/celestiaorg/nmt"
+	"github.com/cometbft/cometbft/crypto/merkle"
+	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/rollkit/celestia-openrpc/types/blob"
 )
 
@@ -17,6 +20,11 @@ type InclusionProof struct {
 }
 
 func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte) error {
+
+	if !bytes.Equal(ip.DataRoot, dataRoot) {
+		return errors.New("data root not matching")
+	}
+
 	var nmtProofs []*nmt.Proof
 	for _, codedNMTProof := range ip.Nmtproofs {
 		var unmarshalledProof nmt.Proof
@@ -52,7 +60,23 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 
 		index += sharesNum
 	}
-	//TODO (srene): validate nmt root to data root using included merkle proofs
+
+	for j, rowProof := range ip.RowProofs {
+
+		var proof cmtcrypto.Proof
+		err := proof.Unmarshal(rowProof)
+		if err != nil {
+			return err
+		}
+		rProof, err := merkle.ProofFromProto(&proof)
+		if err != nil {
+			return err
+		}
+		err = rProof.Verify(ip.DataRoot, ip.Nmtroots[j])
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

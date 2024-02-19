@@ -86,9 +86,7 @@ message BlobInclusionProof {
 
 message NonInclusionProof {
   // Row proofs for non-matching blobs, or to demonstrate non-inclusion
-  repeated bytes rproofs = 1;
-  // Data root of the DA headers at the specific height
-  optional bytes dataroot = 2;
+  bytes rproofs = 1;
 }
 
 // ===================== MsgWrongCommitmentBatch
