@@ -97,10 +97,14 @@ docker-build-e2e:
 e2e-test-ibc:
 	cd e2e && go test -timeout=25m -race -v -run TestIBCTransfer .
 
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-ibc-timeout:
+	cd e2e && go test -timeout=25m -race -v -run TestIBCTransferTimeout .
+  
 # Executes all tests via rollup-e2e-testing
-e2e-test-all: ictest-ibc
+e2e-test-all: e2e-test-ibc e2e-test-ibc-timeout
 
-.PHONY: e2e-test-ibc e2e-test-all
+.PHONY: e2e-test-ibc e2e-test-ibc-timeout e2e-test-all
 
 ###############################################################################
 ###                                Proto                                    ###
