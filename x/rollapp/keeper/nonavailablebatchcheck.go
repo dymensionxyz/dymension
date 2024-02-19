@@ -2,35 +2,31 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvailableBatch) error {
+func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvailableBatch, nonInclusionProof *inclusion.NonInclusionProof) error {
 
-	/*stateInfo, found := k.GetStateInfo(ctx, msg.GetRollappId(), msg.GetSlIndex())
+	stateInfo, found := k.GetStateInfo(ctx, msg.GetRollappId(), msg.GetSlIndex())
 	if !found {
 		return nil
 	}
 	DAPath := stateInfo.GetDAPath()
-	DAMetaData, err := types.NewDAMetaData(DAPath)
+	DAMetaDataSequencer, err := types.NewDAMetaData(DAPath)
 	if err != nil {
 		return nil
 	}
+	DaMetaDataSubmitted, err := types.NewDAMetaData(msg.GetDAPath())
+	if err != nil {
+		return nil
+	}
+
+	err = nonInclusionProof.VerifyNonInclusion(DaMetaDataSubmitted.GetNameSpace(), DaMetaDataSubmitted.GetIndex(), DAMetaDataSequencer.GetLength(), DAMetaDataSequencer.GetDataRoot())
 	//var namespace []byte
-	blob, _, err := k.blobsAndCommitments(DAMetaData.GetNameSpace(), msg.GetBlob())
 	if err != nil {
 		return err
 	}
 
-	err = k.verifyBlobNonInclusion(ctx, DAMetaData.GetNameSpace(), msg.GetRproofs(), msg.GetDataroot())
-	if err != nil {
-		return err
-	}*/
-
 	return nil
 }
-
-/*func (k *Keeper) verifyBlobNonInclusion(ctx sdk.Context, namespace []byte, rProofs [][]byte, dataRoot []byte) error {
-	//TODO (srene): Implement non-inclusion proof validation
-	return types.ErrUnableToVerifyProof
-}*/

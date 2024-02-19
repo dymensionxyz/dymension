@@ -22,8 +22,11 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
-
-	err := k.VerifyNonAvailableBatch(ctx, msg)
+	nip, err := msg.DecodeNonInclusionProof()
+	if err != nil {
+		return nil, err
+	}
+	err = k.VerifyNonAvailableBatch(ctx, msg, &nip)
 
 	if err == nil {
 		//FIXME: handle deposit burn on wrong FP

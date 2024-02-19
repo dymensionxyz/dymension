@@ -1,7 +1,11 @@
 package types
 
 import (
+	"encoding/json"
+	fmt "fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -46,6 +50,27 @@ func (msg *MsgNonAvailableBatch) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-
+	// Validate the JSON-encoded proof data
+	_, err = msg.DecodeNonInclusionProof()
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
+	}
 	return nil
+}
+
+func (msg *MsgNonAvailableBatch) DecodeNonInclusionProof() (inclusion.NonInclusionProof, error) {
+	// Decode the JSON-encoded data into your struct
+	nip := NonInclusionProof{}
+	nonInclusionProof := inclusion.NonInclusionProof{}
+
+	err := json.Unmarshal([]byte(msg.NonInclusionProof), &nip)
+	if err != nil {
+		return nonInclusionProof, fmt.Errorf("failed decoding JSON: %s", err)
+	}
+
+	nonInclusionProof.DataRoot = nip.GetDataroot()
+	nonInclusionProof.RowProofs = nip.GetRproofs()
+
+	return nonInclusionProof, nil
+
 }
