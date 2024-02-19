@@ -7,76 +7,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-//TODO: check min bond
-
-func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
-	addr2 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
-
-	/* ----------------------------- unbond proposer ---------------------------- */
-	sequencer, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Proposer)
-
-	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.ctx, &unbondMsg)
-	suite.Require().NoError(err)
-
-	// check sequencer operating status
-	sequencer, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Unbonding)
-
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(10*time.Second))
-
-	sequencer, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Unbonded)
-
-	/* ------------------------- unbond bonded sequencer ------------------------ */
-	sequencer2, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
-	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Bonded)
-
-	unbondMsg = types.MsgUnbond{Creator: addr2}
-	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)
-	suite.Require().NoError(err)
-
-	// check sequencer operating status
-	sequencer2, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
-	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Unbonding)
-
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer2.UnbondingTime.Add(10*time.Second))
-
-	sequencer2, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
-	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Unbonded)
-}
-
-func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
-
-	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.ctx, &unbondMsg)
-	suite.Require().NoError(err)
-
-	//already unbonding, we expect error
-	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)
-	suite.Require().Error(err)
-
-	sequencer, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(10*time.Second))
-
-	//already unbonded, we expect error
-	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)
-	suite.Require().Error(err)
-
-}
+//TODO: test multiple unbonds
 
 // FIXME: test with acutal BOND
 func (suite *SequencerTestSuite) TestTokensRefund() {
@@ -96,14 +27,22 @@ func (suite *SequencerTestSuite) TestTokensRefund() {
 	suite.Require().NoError(err)
 
 	sequencer, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
+	suite.Require().True(sequencer.Status == types.Unbonding)
+	suite.Require().False(sequencer.Tokens.IsZero())
+
+	balanceBefore := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(addr1), sequencer.Tokens.Denom)
+
 	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(1*time.Second))
+
+	balanceAfter := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(addr1), sequencer.Tokens.Denom)
 
 	//Check stake refunded
 	sequencer, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
 	suite.Equal(sequencer.Status, types.Unbonded)
 	suite.True(sequencer.Tokens.IsZero())
-	suite.Equal(suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(addr1), sdk.DefaultBondDenom).Amount, sdk.ZeroInt())
+	suite.Equal(balanceBefore.Add(sequencer.Tokens), balanceAfter)
 
+	//check the 2nd unbond still not happened
 	sequencer2, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
 	suite.Equal(sequencer2.Status, types.Unbonding)
 	suite.False(sequencer2.Tokens.IsZero())

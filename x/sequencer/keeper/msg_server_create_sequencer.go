@@ -6,7 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
+	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -14,7 +15,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.DymintPubKey == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+		return nil, sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
 
 	// check to see if the sequencer has been registered before
@@ -27,6 +28,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
 	permissionedAddresses := rollapp.PermissionedAddresses
@@ -51,19 +53,18 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	//TODO: use custom error codes
 	bond := sdk.Coin{}
 	minBond := k.GetParams(ctx).MinBond
 	if !minBond.IsNil() && !minBond.IsZero() {
 		if msg.Bond.Denom != minBond.Denom {
 			return nil, sdkerrors.Wrapf(
-				sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Bond.Denom, minBond.Denom,
+				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
 			)
 		}
 
 		if msg.Bond.Amount.LT(minBond.Amount) {
 			return nil, sdkerrors.Wrapf(
-				sdkerrors.ErrInvalidRequest, "insufficient bond: got %s, expected %s", msg.Bond.Amount, k.GetParams(ctx).MinBond,
+				types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
 			)
 		}
 
@@ -80,16 +81,14 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:        msg.RollappId,
 		Description:      msg.Description,
 		Status:           types.Bonded,
-		Tokens:           &bond,
+		Tokens:           bond,
 	}
 
-	// update sequencers list
 	//FIXME: change to get only bonded sequencers
 	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
 	// check to see if we reached the maximum number of sequeners for this rollapp
-	maxSequencers := int(rollapp.MaxSequencers)
 	currentNumOfSequencers := len(sequencersByRollapp.Sequencers.Addresses)
-	if currentNumOfSequencers >= maxSequencers {
+	if currentNumOfSequencers >= int(rollapp.MaxSequencers) {
 		return nil, types.ErrMaxSequencersLimit
 	}
 	if !found {
@@ -97,6 +96,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		sequencersByRollapp.RollappId = msg.RollappId
 		sequencer.Status = types.Proposer
 	}
+	// update sequencers list
 	sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
 	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 

@@ -3,7 +3,7 @@ package types
 // DONTCOVER
 
 import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	sdkerrors "cosmossdk.io/errors"
 )
 
 // x/sequencer module sentinel errors
@@ -18,4 +18,6 @@ var (
 	ErrNotActiveSequencer       = sdkerrors.Register(ModuleName, 1007, "sequencer is not active")
 	ErrInvalidSequencerStatus   = sdkerrors.Register(ModuleName, 1008, "invalid sequencer status")
 	ErrInvalidSequencerTokens   = sdkerrors.Register(ModuleName, 1009, "invalid sequencer tokens")
+	ErrInvalidCoinDenom         = sdkerrors.Register(ModuleName, 1010, "invalid coin denomination")
+	ErrInsufficientBond         = sdkerrors.Register(ModuleName, 1011, "insufficient bond")
 )

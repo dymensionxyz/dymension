@@ -1,0 +1,66 @@
+package keeper
+
+import (
+	"context"
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+)
+
+// Unbond defines a method for removing coins from sequencer's bond
+func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	completionTime, err := k.setSequencerToUnbonding(ctx, msg.Creator)
+	if err != nil {
+		return nil, err
+	}
+
+	//TODO: emit events
+	// ctx.EventManager().EmitEvents(sdk.Events{
+	// 	sdk.NewEvent(
+	// 		types.EventTypeUnbond,
+	// 		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
+	// 		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
+	// 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+	// 	),
+	// 	sdk.NewEvent(
+	// 		sdk.EventTypeMessage,
+	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	// 		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress),
+	// 	),
+	// })
+
+	return &types.MsgUnbondResponse{
+		CompletionTime: completionTime,
+	}, nil
+}
+
+func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.Time, error) {
+	seq, found := k.GetSequencer(ctx, seqAddr)
+	if !found {
+		return time.Time{}, types.ErrUnknownSequencer
+	}
+
+	if !seq.IsBonded() {
+		return time.Time{}, sdkerrors.Wrapf(
+			types.ErrInvalidSequencerStatus,
+			"sequencer status is not bonded: got %s",
+			seq.Status.String(),
+		)
+	}
+
+	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+
+	// set the status to unbonding
+	seq.Status = types.Unbonding
+	seq.UnbondingHeight = ctx.BlockHeight()
+	seq.UnbondingTime = completionTime
+
+	k.SetSequencer(ctx, seq)
+	//FIXME: set in unbonding queue
+
+	return completionTime, nil
+}

@@ -31,7 +31,7 @@ message Sequencer {
   OperatingStatus status = 6;
 
   // tokens define the delegated tokens (incl. self-delegation).
-  cosmos.base.v1beta1.Coin tokens = 7 [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coin"];
+  cosmos.base.v1beta1.Coin tokens = 7 [(gogoproto.nullable) = false];
 
     // unbonding_height defines, if unbonding, the height at which this validator has begun unbonding.
   int64 unbonding_height = 8;

@@ -24,6 +24,8 @@ import (
 type SequencerTestSuite struct {
 	suite.Suite
 
+	sequencerModuleAddress string
+
 	app         *app.App
 	msgServer   types.MsgServer
 	ctx         sdk.Context
@@ -38,12 +40,7 @@ func (suite *SequencerTestSuite) SetupTest() {
 	app := app.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
-	seqParams := types.Params{
-		MinBond:       sdk.Coin{},
-		UnbondingTime: types.DefaultUnbondingTime,
-	}
-	app.SequencerKeeper.SetParams(ctx, seqParams)
-	sequencerModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
+	suite.sequencerModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
@@ -67,7 +64,6 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 }
 
 func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
-	// create first sequencer
 	pubkey1 := secp256k1.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)

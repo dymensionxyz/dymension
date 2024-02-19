@@ -13,6 +13,8 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store.Set(types.SequencerKey(
 		sequencer.SequencerAddress,
 	), b)
+
+	//TODO: should probably set in the "by rollapp" index too
 }
 
 // GetSequencer returns a sequencer from its index
