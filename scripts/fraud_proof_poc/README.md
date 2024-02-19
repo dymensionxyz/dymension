@@ -1,0 +1,79 @@
+this example can be executed using `podma` or `docker`
+
+1. run `podman compose up`, this will spin up all the necessary infrastructure that includes a local hub, mock da layer, sequencer with `fraud proof` feature enabled and a full node
+
+2. once you see `hub is ready with latest_block_height: 1` in the compose logs, you can attach to the nodes 
+and proceed with the following steps
+
+### hub
+
+`podman exec -it fraud_proof_poc_fraud_proof_poc_hub_1 /bin/sh`, the following commands are executed inside the hub container
+
+```sh
+# fund the wallets that were generated during rollapp initialization
+# you can find the generated wallets inside /go/rollapp_init file on the rollapp-evm and rollapp-evm-fullnode containers
+wallets=("dym1yk67wjkcu80fqegjskks3km9vz5xshknseqk4j" "dym1672tc2t0f7uq8kqlg2h8da6vm7mu5uhy08luu3" "dym1anfjre42pa7mtnqa0vce8cjpxk66d366v3gg7j" "dym137a5e6k5g2x9w5st2k2u9l80p565lx3qwl7uhp")
+
+for wallet in "${wallets[@]}"; do
+  echo "funding ${wallet}"
+  dymd tx bank send local-user $wallet \
+  10dym --gas-prices 100000000adym --yes -b block --keyring-backend test
+done
+
+```
+
+### Sequencer
+
+`podman exec -it fraud_proof_poc_rollapp-evm_1 /bin/sh`, the following commands are executed inside the sequencer container
+
+```sh
+# register the rollapp
+roller tx register
+
+rollapp-evm dymint show-node-id --home ~/.roller/rollapp
+
+# start the sequencer with fraud_proof enabled
+rollapp-evm --home ~/.roller/rollapp start --dymint.simulate_fraud &
+
+rollapp-evm --home ~/.roller/rollapp/ tx bank send \
+  rollapp_sequencer ethm1wss9w8e89ntkn73n25lm6c7ul36u282c4sq5qm 100000adum \
+  --keyring-backend test --broadcast-mode block -y --keyring-backend test
+```
+
+
+### Full Node
+
+copy the `genesis.json` file from the sequencer to the full node
+
+```sh
+podman cp fraud_proof_poc_rollapp-evm_1:/root/.roller/rollapp/config/genesis.json \
+    fraud_proof_poc_rollapp-evm-fullnode_1:/root/.roller/rollapp/config/genesis.json 
+
+```
+
+```sh
+export ROLLAPP_CHAIN_ID="dummy_9361346-1"
+export SEQUENCER_NODE_ID="12D3KooWQrNRe8ejp13aQauGze9UZw1kmgYR73K5iyzsKxVirLjz"
+
+sed -i "s/^rollapp_id.*/rollapp_id = \"${ROLLAPP_CHAIN_ID}\"/" ~/.roller/rollapp/config/dymint.toml
+
+sed -i "s/^seeds =.*/seeds = \"tcp:\/\/${SEQUENCER_NODE_ID}@$(dig +short rollapp-evm):26656\/\"/" ~/.roller/rollapp/config/config.toml
+
+rollapp-evm --home ~/.roller/rollapp start
+
+```
+
+outside the container, run
+
+```sh
+# copy and submit the fraud proof
+podman cp fraud_proof_poc_rollapp-evm-fullnode_1:/go/fraudProof_rollapp_with_tx.json  \
+  fraud_proof_poc_hub_1:/go/fraudProof_rollapp_with_tx.json 
+```
+
+```sh
+# from hub node
+dymd tx rollapp submit-fraud ${ROLLAPP_CHAIN_ID} \
+  /go/fraudProof_rollapp_with_tx.json --from local-user \
+  --gas 50000000 -b block
+```
