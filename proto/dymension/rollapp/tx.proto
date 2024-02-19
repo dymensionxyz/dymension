@@ -15,8 +15,6 @@ service Msg {
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
   rpc SubmitNonAvailableBatch(MsgNonAvailableBatch) returns (MsgNonAvailableBatchResponse);
   rpc SubmitWrongCommitmentBatch(MsgWrongCommitmentBatch) returns (MsgWrongCommitmentBatchResponse);
-  rpc SubmitInvalidDataBatch(MsgInvalidDataBatch) returns (MsgInvalidDataBatchResponse);
-
 }
 
 // ===================== MsgCreateRollapp
@@ -130,24 +128,4 @@ message MsgNonAvailableBatch {
 }
 
 message MsgNonAvailableBatchResponse {}
-
-
-// ===================== MsgInvalidDataBatch
-// Updating a rollapp state with the DA information and proofs for a non-available
-// batch submmited by a sequencer
-message MsgInvalidDataBatch {
-  // creator is the bech32-encoded address of the full-node sending the update
-  string creator = 1;
-  // rollappId is the rollapp that the sequencer belongs to and asking to update
-  // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2;
-	// case describing what is wrong with the data committed by the sequencer
-  uint64 slIndex = 3;
-  // DAPath is the description of the location on the DA layer
-  string DAPath = 4;
-  // Inclusion proof
-  string inclusionProof = 5;
-}
-
-message MsgInvalidDataBatchResponse {}
 
