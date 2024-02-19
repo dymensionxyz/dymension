@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -128,6 +129,10 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
+	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
+	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
+	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+
 	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
 	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
 	packetforwardtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
@@ -168,6 +173,10 @@ import (
 	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	/* ---------------------------- upgrade handlers ---------------------------- */
+
+	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
 )
 
 var (
@@ -229,6 +238,7 @@ var (
 		streamermodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
+		eibcmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
@@ -337,6 +347,7 @@ type App struct {
 	RollappKeeper   rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
 	StreamerKeeper  streamermodulekeeper.Keeper
+	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper delayedackkeeper.Keeper
@@ -387,6 +398,7 @@ func New(
 		streamermoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
+		eibcmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 
 		// ethermint keys
@@ -580,6 +592,16 @@ func New(
 		app.IncentivesKeeper,
 	)
 
+	app.EIBCKeeper = *eibckeeper.NewKeeper(
+		appCodec,
+		keys[eibcmoduletypes.StoreKey],
+		keys[eibcmoduletypes.MemStoreKey],
+		app.GetSubspace(eibcmoduletypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		nil,
+	)
+
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
@@ -589,7 +611,11 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
+		app.EIBCKeeper,
+		app.BankKeeper,
 	)
+
+	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
 	/* -------------------------------- set hooks ------------------------------- */
 	// Set hooks
@@ -614,6 +640,16 @@ func New(
 			app.TxFeesKeeper.Hooks(),
 		),
 	)
+
+	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
+		// insert delayedAck hooks receivers here
+		app.EIBCKeeper.GetDelayedAckHooks(),
+	))
+
+	app.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
+		// insert eibc hooks receivers here
+		app.DelayedAckKeeper.GetEIBCHooks(),
+	))
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
@@ -726,6 +762,7 @@ func New(
 		sequencerModule,
 		streamerModule,
 		delayedackModule,
+		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
@@ -772,6 +809,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -806,6 +844,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -846,6 +885,7 @@ func New(
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
+		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
@@ -889,6 +929,7 @@ func New(
 
 	app.SetAnteHandler(anteHandler)
 	app.SetEndBlocker(app.EndBlocker)
+	app.setupUpgradeHandlers()
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
@@ -1076,6 +1117,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
@@ -1119,4 +1161,34 @@ func (app *App) GetTxConfig() client.TxConfig {
 
 func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
+}
+
+// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
+func (app *App) setupUpgradeHandlers() {
+	UpgradeName := "v3"
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		UpgradeName,
+		v3upgrade.CreateUpgradeHandler(
+			app.mm, app.configurator,
+		),
+	)
+
+	// When a planned update height is reached, the old binary will panic
+	// writing on disk the height and name of the update that triggered it
+	// This will read that value, and execute the preparations for the upgrade.
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
+	}
+
+	// Pre upgrade handler
+	switch upgradeInfo.Name {
+	// do nothing
+	}
+
+	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// configure store loader with the store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+	}
 }

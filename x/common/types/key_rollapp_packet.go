@@ -17,7 +17,7 @@ const (
 // GetRollappPacketKey constructs a key for a specific RollappPacket
 func GetRollappPacketKey(
 	rollappId string,
-	status RollappPacket_Status,
+	status Status,
 	packetProofHeight uint64,
 	IBCPacket channeltypes.Packet,
 ) []byte {

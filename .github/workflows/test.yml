@@ -10,13 +10,15 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    env:
+      GOPROXY: https://proxy.golang.org
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.19
+        go-version: 1.19.10
 
     - name: Build
       run: go build -v ./...
