@@ -5,4 +5,4 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: sh ./scripts/setup_local.sh && dymd start
+    command: sh ./scripts/start_localnode.sh

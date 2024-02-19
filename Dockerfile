@@ -26,7 +26,6 @@ WORKDIR /app
 
 COPY scripts/* ./scripts/
 
-ENV CHAIN_ID=local-testnet
 ENV KEY_NAME=local-user
 ENV MONIKER_NAME=local
 
