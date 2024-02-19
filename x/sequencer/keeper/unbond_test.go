@@ -7,43 +7,60 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-//TODO: test multiple unbonds
+//TODO: test multiple unbonds in parallal
 
-// FIXME: test with acutal BOND
-func (suite *SequencerTestSuite) TestTokensRefund() {
+func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.SetupTest()
+	denom := bond.Denom
+	blockheight := 20
+	var err error
+
 	rollappId := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
-	addr2 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	sequencer1, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
+	suite.Require().True(sequencer1.Status == types.Proposer)
+	suite.Require().False(sequencer1.Tokens.IsZero())
 
+	addr2 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	sequencer2, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
+	suite.Require().True(sequencer2.Status == types.Bonded)
+	suite.Require().False(sequencer2.Tokens.IsZero())
+
+	suite.ctx = suite.ctx.WithBlockHeight(int64(blockheight))
+	suite.ctx = suite.ctx.WithBlockTime(time.Now())
+
+	//start the 1st unbond
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.ctx, &unbondMsg)
+	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)
 	suite.Require().NoError(err)
+	sequencer1, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
+	suite.Require().True(sequencer1.Status == types.Unbonding)
+	suite.Require().Equal(sequencer1.UnbondingHeight, int64(blockheight))
+	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	//start the 2nd unbond later
+	suite.ctx = suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 1)
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(200 * time.Second))
 	unbondMsg = types.MsgUnbond{Creator: addr2}
 	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)
 	suite.Require().NoError(err)
+	sequencer2, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
+	suite.Require().True(sequencer2.Status == types.Unbonding)
+	suite.Require().False(sequencer2.Tokens.IsZero())
 
-	sequencer, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.Require().True(sequencer.Status == types.Unbonding)
-	suite.Require().False(sequencer.Tokens.IsZero())
-
-	balanceBefore := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(addr1), sequencer.Tokens.Denom)
-
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(1*time.Second))
-
-	balanceAfter := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.AccAddress(addr1), sequencer.Tokens.Denom)
+	/* -------------------------- check the unbond phase ------------------------- */
+	balanceBefore := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(addr1), denom)
+	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer1.UnbondingTime.Add(1*time.Second))
+	balanceAfter := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(addr1), denom)
 
 	//Check stake refunded
-	sequencer, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.Equal(sequencer.Status, types.Unbonded)
-	suite.True(sequencer.Tokens.IsZero())
-	suite.Equal(balanceBefore.Add(sequencer.Tokens), balanceAfter)
+	sequencer1, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
+	suite.Equal(sequencer1.Status, types.Unbonded)
+	suite.True(sequencer1.Tokens.IsZero())
+	suite.True(balanceBefore.Add(bond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(bond), balanceAfter)
 
 	//check the 2nd unbond still not happened
-	sequencer2, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
+	sequencer2, _ = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
 	suite.Equal(sequencer2.Status, types.Unbonding)
 	suite.False(sequencer2.Tokens.IsZero())
 }

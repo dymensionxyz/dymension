@@ -8,7 +8,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -34,8 +33,6 @@ const (
 var (
 	bond = types.DefaultParams().MinBond
 )
-
-//TODO: check min bond (both 0, and >0)
 
 func (suite *SequencerTestSuite) TestMinBond() {
 	suite.SetupTest()
@@ -75,7 +72,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 
 	for _, tc := range testCases {
 
-		seqParams := sequencertypes.Params{
+		seqParams := types.Params{
 			MinBond:       tc.requiredBond,
 			UnbondingTime: 100,
 		}
@@ -95,7 +92,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			DymintPubKey: pkAny1,
 			Bond:         bond,
 			RollappId:    rollappId,
-			Description:  sequencertypes.Description{},
+			Description:  types.Description{},
 		}
 		_, err = suite.msgServer.CreateSequencer(suite.ctx, &sequencerMsg1)
 		if tc.expectedError != nil {
@@ -155,7 +152,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				RollappId:    rollappId,
-				Description:  sequencertypes.Description{},
+				Description:  types.Description{},
 			}
 			// sequencerExpect is the expected result of creating a sequencer
 			sequencerExpect := types.Sequencer{
@@ -231,7 +228,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Description:  types.Description{},
 	}
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
@@ -255,7 +252,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    "rollappId",
-		Description:  sequencertypes.Description{},
+		Description:  types.Description{},
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -288,7 +285,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Description:  types.Description{},
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -339,7 +336,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Description:  types.Description{},
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -376,7 +373,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 			DymintPubKey: pkAny,
 			Bond:         bond,
 			RollappId:    rollappId,
-			Description:  sequencertypes.Description{},
+			Description:  types.Description{},
 		}
 		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.Require().Nil(err)
@@ -395,7 +392,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 			DymintPubKey: pkAny,
 			Bond:         bond,
 			RollappId:    rollappId,
-			Description:  sequencertypes.Description{},
+			Description:  types.Description{},
 		}
 		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
