@@ -1,0 +1,47 @@
+FROM golang:1.20.13 AS builder
+
+RUN apt update && apt install sudo dnsutils jq -y
+RUN git clone 'https://github.com/dymensionxyz/rollapp-evm.git' --branch 'feat/fraudproofs'
+WORKDIR /go/rollapp-evm
+RUN go mod tidy
+RUN make install
+
+WORKDIR /go
+
+RUN git clone 'https://github.com/dymensionxyz/dymension.git' --branch 'fraud_proof_poc'
+
+RUN curl -L https://dymensionxyz.github.io/roller/install.sh | bash
+RUN git clone https://github.com/dymensionxyz/roller.git
+WORKDIR /go/roller
+RUN make build
+RUN mv build/roller /usr/local/bin
+
+WORKDIR /go
+COPY ./wait-for-hub.sh .
+RUN sudo chmod +x ./wait-for-hub.sh
+
+# RUN rm -rf ./rollapp-evm/
+# RUN rm -rf ./roller/
+
+FROM builder
+
+# CACHEBUST invalidates the cache so that a new roller config is created on each build and new wallets are generated
+# podman build -f Dockerfile.rollapp-evm --build-arg CACHEBUST=$(date +%s) -t dymension:fraud_proof_poc_rollapp
+ARG CACHEBUST=1
+
+ENV ROLLAPP_NAME "dummy"
+ENV ROLLAPP_DENOM "dum"
+ENV ROLLAPP_BINARY "/go/bin/rollapp-evm"
+
+RUN roller config init ${ROLLAPP_NAME} ${ROLLAPP_DENOM} --hub local --da local --rollapp-binary ${ROLLAPP_BINARY} > rollapp_init
+RUN sed -i 's/^da_layer.*/da_layer = "grpc"/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^da_config.*/da_config = "{\\\"host\\\": \\\"mock-da\\\", \\\"port\\\": 7980}"/'  ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^aggregator.*/aggregator = "false"/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^settlement_layer.*/settlement_layer = "dymension"/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^node_address.*/node_address = \"http:\/\/hub:36657\"/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^gas_limit.*/gas_limit = 0/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^gas_prices.*/gas_prices = "100000000adym"/' ~/.roller/rollapp/config/dymint.toml
+RUN sed -i 's/^gas_fees.*/gas_fees = ""/' ~/.roller/rollapp/config/dymint.toml
+RUN roller config set hub-rpc "http://hub:36657"
+
+CMD [ "sleep", "infinity" ]

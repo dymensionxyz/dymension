@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mock-da:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock-da
+    ports:
+      - "7980:7980"
+
+  hub:
+    build:
+      context: .
+      dockerfile: Dockerfile.dymd
+    ports:
+      - "36657:36657"
+
+  rollapp-evm:
+    build:
+      context: .
+      dockerfile: Dockerfile.rollapp-evm
+      args:
+        CACHEBUST: ${CACHEBUST}
+    depends_on:
+      - mock-da
+      - dymd
+    command: [ "/go/wait-for-hub.sh", "sleep", "infinity" ]
+
+  rollapp-evm-fullnode:
+    build:
+      context: .
+      dockerfile: Dockerfile.rollepp-evm-fullnode
+      args:
+        CACHEBUST: ${CACHEBUST}
+    depends_on:
+      - mock-da
+      - dymd
+    command: [ "/go/wait-for-hub.sh", "sleep", "infinity" ]
