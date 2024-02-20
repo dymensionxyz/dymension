@@ -17,12 +17,8 @@ func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvail
 	if err != nil {
 		return nil
 	}
-	DaMetaDataSubmitted, err := types.NewDAMetaData(msg.GetDAPath())
-	if err != nil {
-		return nil
-	}
 
-	err = nonInclusionProof.VerifyNonInclusion(DaMetaDataSubmitted.GetIndex(), DAMetaDataSequencer.GetLength(), DAMetaDataSequencer.GetDataRoot())
+	err = nonInclusionProof.VerifyNonInclusion(DAMetaDataSequencer.GetIndex(), DAMetaDataSequencer.GetLength(), DAMetaDataSequencer.GetDataRoot())
 	//var namespace []byte
 	if err != nil {
 		return err
