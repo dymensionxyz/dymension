@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
@@ -32,7 +33,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *SequencerTestSuite) SetupTest() {
-	app := app.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())

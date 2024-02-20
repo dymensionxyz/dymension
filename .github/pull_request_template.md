@@ -34,7 +34,7 @@ SDK Checklist
 - [ ] No usage of `time.Now()`
 - [ ] Used fixed point arithmetic and not float arithmetic
 - [ ] Avoid panicking in Begin/End block as much as possible
-- [ ] No unexpeted math Overflow
+- [ ] No unexpected math Overflow
 - [ ] Used `sendCoin` and not `SendCoins`
 - [ ] Out-of-block compute is bounded
 - [ ] No serialized ID at the end of store keys
@@ -42,15 +42,13 @@ SDK Checklist
 Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
 
 
----
-
 For Reviewer:
 
 - [ ]  Confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ]  Reviewers assigned
 - [ ]  Confirmed all author checklist items have been addressed
 
----
+---;
 
 After reviewer approval:
 

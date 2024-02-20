@@ -5,7 +5,7 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,7 +15,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 	// Create and set some RollappPackets
 	for i := 1; i < 6; i++ {
-		packet := types.RollappPacket{
+		packet := commontypes.RollappPacket{
 			RollappId: rollappID,
 			Packet: &channeltypes.Packet{
 				SourcePort:         "testSourcePort",
@@ -25,10 +25,11 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 				Data:               []byte("testData"),
 				Sequence:           uint64(i),
 			},
-			Status:      types.RollappPacket_PENDING,
+			Status:      commontypes.Status_PENDING,
 			ProofHeight: uint64(i * 2),
 		}
-		keeper.SetRollappPacket(ctx, packet)
+		err := keeper.SetRollappPacket(ctx, packet)
+		require.NoError(t, err)
 	}
 
 	// Get all rollapp packets
@@ -39,9 +40,10 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 	packets = keeper.ListRollappPendingPackets(ctx, rollappID, 6)
 	require.Equal(t, 3, len(packets))
 
-	// Update the packet status to approve
+	// Update the packet status to finalized
 	for _, packet := range packets {
-		keeper.UpdateRollappPacketStatus(ctx, packet, types.RollappPacket_ACCEPTED)
+		_, err := keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+		require.NoError(t, err)
 	}
 
 	// Get the packets until height 14
@@ -51,7 +53,7 @@ func TestListRollappPacketsForRollappAtHeight(t *testing.T) {
 
 func TestUpdateRollappPacketWithStatus(t *testing.T) {
 	keeper, ctx := keepertest.DelayedackKeeper(t)
-	packet := types.RollappPacket{
+	packet := commontypes.RollappPacket{
 		RollappId: "testRollappID",
 		Packet: &channeltypes.Packet{
 			SourcePort:         "testSourcePort",
@@ -61,17 +63,20 @@ func TestUpdateRollappPacketWithStatus(t *testing.T) {
 			Data:               []byte("testData"),
 			Sequence:           1,
 		},
-		Status:      types.RollappPacket_PENDING,
+		Status:      commontypes.Status_PENDING,
 		ProofHeight: 1,
 	}
-	keeper.SetRollappPacket(ctx, packet)
+	err := keeper.SetRollappPacket(ctx, packet)
+	require.NoError(t, err)
 	// Update the packet status
-	packet = keeper.UpdateRollappPacketStatus(ctx, packet, types.RollappPacket_ACCEPTED)
+	packet, err = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
+	require.NoError(t, err)
 	packets := keeper.GetAllRollappPackets(ctx)
-	require.Equal(t, types.RollappPacket_ACCEPTED, packet.Status)
+	require.Equal(t, commontypes.Status_FINALIZED, packet.Status)
 	require.Equal(t, 1, len(packets))
 	// Set the packet and make sure there is only one packet in the store
-	keeper.SetRollappPacket(ctx, packet)
+	err = keeper.SetRollappPacket(ctx, packet)
+	require.NoError(t, err)
 	packets = keeper.GetAllRollappPackets(ctx)
 	require.Equal(t, 1, len(packets))
 }
