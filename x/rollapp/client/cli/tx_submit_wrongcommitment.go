@@ -17,7 +17,7 @@ func CmdSubmitWrongCommitment() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "submit-wrongcommitment [rollapp-id] [SLIndex] [DA Path] [inclusionproof.json]",
 		Short: "Broadcast message SubmitWrongCommitment",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappID := args[0]
 			slIndex, err := strconv.ParseUint(args[1], 10, 64)

@@ -53,7 +53,7 @@ func (msg *MsgWrongCommitmentBatch) ValidateBasic() error {
 	// Validate the JSON-encoded proof data
 	_, err = msg.DecodeInclusionProof()
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding inclusion proof: %s", err)
 	}
 	return nil
 }

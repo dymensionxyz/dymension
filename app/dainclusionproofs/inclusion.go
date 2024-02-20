@@ -35,12 +35,12 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 		nmtProofs = append(nmtProofs, &unmarshalledProof)
 	}
 
-	b, _, err := ip.blobsAndCommitments(namespace, ip.Blob)
+	var b blob.Blob
+	err := b.UnmarshalJSON(ip.Blob)
 	if err != nil {
 		return err
 	}
-
-	shares, err := blob.SplitBlobs(*b)
+	shares, err := blob.SplitBlobs(b)
 	if err != nil {
 		return err
 	}
@@ -54,14 +54,14 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 			leaf := shares[j].ToBytes()
 			leafs = append(leafs, leaf)
 		}
+
 		if !nmtProof.VerifyInclusion(sha256.New(), namespace, leafs, ip.Nmtroots[i]) {
 			return errors.New("blob not included")
 		}
-
 		index += sharesNum
 	}
 
-	for j, rowProof := range ip.RowProofs {
+	for i, rowProof := range ip.RowProofs {
 
 		var proof cmtcrypto.Proof
 		err := proof.Unmarshal(rowProof)
@@ -72,24 +72,10 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 		if err != nil {
 			return err
 		}
-		err = rProof.Verify(ip.DataRoot, ip.Nmtroots[j])
+		err = rProof.Verify(ip.DataRoot, ip.Nmtroots[i])
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (ip *InclusionProof) blobsAndCommitments(namespace []byte, daBlob []byte) (*blob.Blob, []byte, error) {
-	b, err := blob.NewBlobV0(namespace, daBlob)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	commitment, err := blob.CreateCommitment(b)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return b, commitment, nil
 }

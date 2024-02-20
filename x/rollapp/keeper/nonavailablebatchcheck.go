@@ -22,7 +22,7 @@ func (k *Keeper) VerifyNonAvailableBatch(ctx sdk.Context, msg *types.MsgNonAvail
 		return nil
 	}
 
-	err = nonInclusionProof.VerifyNonInclusion(DaMetaDataSubmitted.GetNameSpace(), DaMetaDataSubmitted.GetIndex(), DAMetaDataSequencer.GetLength(), DAMetaDataSequencer.GetDataRoot())
+	err = nonInclusionProof.VerifyNonInclusion(DaMetaDataSubmitted.GetIndex(), DAMetaDataSequencer.GetLength(), DAMetaDataSequencer.GetDataRoot())
 	//var namespace []byte
 	if err != nil {
 		return err

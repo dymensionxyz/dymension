@@ -73,7 +73,7 @@ message MsgUpdateStateResponse {
 
 message BlobInclusionProof {
   // To proof non-matching span with commitment, it is required to send the blob
-	optional bytes blob = 1;
+	bytes blob = 1;
   // NMT inclusion proofs for non-matching blob
 	repeated bytes nmtproofs = 2;
   // NMT roots
@@ -81,12 +81,14 @@ message BlobInclusionProof {
   // Row proofs for non-matching blobs, or to demonstrate non-inclusion
   repeated bytes rproofs = 4;
   // Data root of the DA headers at the specific height
-  optional bytes dataroot = 5;
+  bytes dataroot = 5;
 }
 
 message NonInclusionProof {
   // Row proofs for non-matching blobs, or to demonstrate non-inclusion
   bytes rproofs = 1;
+  // Data root of the DA headers at the specific height
+  bytes dataroot = 2;
 }
 
 // ===================== MsgWrongCommitmentBatch

@@ -18,14 +18,15 @@ func (k msgServer) SubmitWrongCommitmentBatch(goCtx context.Context, msg *types.
 	}
 
 	// load rollapp object for stateful validations
-	_, isFound := k.GetRollapp(ctx, msg.RollappId)
+	/*_, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
-	}
+	}*/
 	ip, err := msg.DecodeInclusionProof()
 	if err != nil {
 		return nil, err
 	}
+
 	err = k.VerifyWrongCommitmentBatch(ctx, msg, &ip)
 
 	if err == nil {

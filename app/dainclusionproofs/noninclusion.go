@@ -3,6 +3,7 @@ package inclusion
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -10,9 +11,10 @@ import (
 
 type NonInclusionProof struct {
 	RowProof []byte
+	DataRoot []byte
 }
 
-func (nip *NonInclusionProof) VerifyNonInclusion(namespace []byte, span int, length int, dataRoot []byte) error {
+func (nip *NonInclusionProof) VerifyNonInclusion(span int, length int, dataRoot []byte) error {
 
 	var proof cmtcrypto.Proof
 	err := proof.Unmarshal(nip.RowProof)
@@ -30,7 +32,8 @@ func (nip *NonInclusionProof) VerifyNonInclusion(namespace []byte, span int, len
 	if !bytes.Equal(computedHash, dataRoot) {
 		return errors.New("data root not matching")
 	}
-	if span > int(rProof.Total) {
+	fmt.Println("Total", rProof.Total)
+	if span+length > int(rProof.Total/2)*int(rProof.Total/2) {
 		return errors.New("span out of square size")
 	}
 	return nil
