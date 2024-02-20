@@ -19,6 +19,10 @@ func TestInclusionProof(t *testing.T) {
 
 	require := require.New(t)
 
+	commitment := "aa5b76fe9c42a5aff1fcfe1cc5088b3941cb1cc854c22ce6c0c0fb98a5461f8e"
+	commitmentBytes, err := hex.DecodeString(commitment)
+	require.NoError(err)
+
 	nameidstr := "e06c57a64b049d6463ef"
 	namespaceBytes, err := hex.DecodeString(nameidstr)
 	require.NoError(err)
@@ -47,7 +51,7 @@ func TestInclusionProof(t *testing.T) {
 	inclusionProof.Nmtroots = proof.GetNmtroots()
 	inclusionProof.RowProofs = proof.GetRproofs()
 
-	err = inclusionProof.VerifyBlobInclusion(ns.Bytes(), proof.GetDataroot())
+	err = inclusionProof.VerifyBlobInclusion(commitmentBytes, ns.Bytes(), proof.GetDataroot())
 	require.NoError(err)
 
 }

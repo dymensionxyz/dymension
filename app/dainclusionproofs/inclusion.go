@@ -19,7 +19,7 @@ type InclusionProof struct {
 	DataRoot  []byte
 }
 
-func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte) error {
+func (ip *InclusionProof) VerifyBlobInclusion(commitment []byte, namespace []byte, dataRoot []byte) error {
 
 	if !bytes.Equal(ip.DataRoot, dataRoot) {
 		return errors.New("data root not matching")
@@ -40,6 +40,11 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 	if err != nil {
 		return err
 	}
+
+	if !bytes.Equal(b.Commitment, commitment) {
+		return errors.New("commitment not matching")
+	}
+
 	shares, err := blob.SplitBlobs(b)
 	if err != nil {
 		return err

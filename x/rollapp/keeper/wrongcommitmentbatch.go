@@ -22,7 +22,7 @@ func (k *Keeper) VerifyWrongCommitmentBatch(ctx sdk.Context, msg *types.MsgWrong
 		return nil
 	}
 
-	err = inclusionProof.VerifyBlobInclusion(DaMetaDataSubmitted.GetNameSpace(), DAMetaDataSequencer.GetDataRoot())
+	err = inclusionProof.VerifyBlobInclusion(DaMetaDataSubmitted.GetCommitment(), DaMetaDataSubmitted.GetNameSpace(), DAMetaDataSequencer.GetDataRoot())
 	//var namespace []byte
 	if err != nil {
 		return err
