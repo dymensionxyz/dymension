@@ -1,6 +1,7 @@
 package ante
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	"fmt"
 	"runtime/debug"
 
@@ -9,7 +10,6 @@ import (
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	tmlog "github.com/tendermint/tendermint/libs/log"
 
-	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -41,7 +41,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 					// handle as normal Cosmos SDK tx, except signature is checked for EIP712 representation
 					anteHandler = newLegacyCosmosAnteHandlerEip712(options)
 				default:
-					return ctx, errorsmod.Wrapf(
+					return ctx, sdkerrors.Wrapf(
 						errortypes.ErrUnknownExtensionOptions,
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
@@ -56,7 +56,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		case sdk.Tx:
 			anteHandler = newCosmosAnteHandler(options)
 		default:
-			return ctx, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "invalid transaction type: %T", tx)
+			return ctx, sdkerrors.Wrapf(errortypes.ErrUnknownRequest, "invalid transaction type: %T", tx)
 		}
 
 		return anteHandler(ctx, tx, sim)
@@ -65,7 +65,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 func Recover(logger tmlog.Logger, err *error) {
 	if r := recover(); r != nil {
-		*err = errorsmod.Wrapf(errortypes.ErrPanic, "%v", r)
+		*err = sdkerrors.Wrapf(errortypes.ErrPanic, "%v", r)
 
 		if e, ok := r.(error); ok {
 			logger.Error(

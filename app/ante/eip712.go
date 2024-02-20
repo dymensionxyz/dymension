@@ -16,9 +16,9 @@
 package ante
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -82,12 +82,12 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
 	if !ok {
-		return ctx, errorsmod.Wrapf(errortypes.ErrInvalidType, "tx %T doesn't implement authsigning.SigVerifiableTx", tx)
+		return ctx, sdkerrors.Wrapf(errortypes.ErrInvalidType, "tx %T doesn't implement authsigning.SigVerifiableTx", tx)
 	}
 
 	authSignTx, ok := tx.(authsigning.Tx)
 	if !ok {
-		return ctx, errorsmod.Wrapf(errortypes.ErrInvalidType, "tx %T doesn't implement the authsigning.Tx interface", tx)
+		return ctx, sdkerrors.Wrapf(errortypes.ErrInvalidType, "tx %T doesn't implement the authsigning.Tx interface", tx)
 	}
 
 	// stdSigs contains the sequence number, account number, and signatures.
@@ -101,7 +101,7 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 
 	// EIP712 allows just one signature
 	if len(sigs) != 1 {
-		return ctx, errorsmod.Wrapf(
+		return ctx, sdkerrors.Wrapf(
 			errortypes.ErrTooManySignatures,
 			"invalid number of signers (%d);  EIP712 signatures allows just one signature",
 			len(sigs),
@@ -110,7 +110,7 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 
 	// check that signer length and signature length are the same
 	if len(sigs) != len(signerAddrs) {
-		return ctx, errorsmod.Wrapf(errortypes.ErrorInvalidSigner, "invalid number of signers;  expected: %d, got %d", len(signerAddrs), len(sigs))
+		return ctx, sdkerrors.Wrapf(errortypes.ErrorInvalidSigner, "invalid number of signers;  expected: %d, got %d", len(signerAddrs), len(sigs))
 	}
 
 	// EIP712 has just one signature, avoid looping here and only read index 0
@@ -125,12 +125,12 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 	// retrieve pubkey
 	pubKey := acc.GetPubKey()
 	if !simulate && pubKey == nil {
-		return ctx, errorsmod.Wrap(errortypes.ErrInvalidPubKey, "pubkey on account is not set")
+		return ctx, sdkerrors.Wrap(errortypes.ErrInvalidPubKey, "pubkey on account is not set")
 	}
 
 	// Check account sequence number.
 	if sig.Sequence != acc.GetSequence() {
-		return ctx, errorsmod.Wrapf(
+		return ctx, sdkerrors.Wrapf(
 			errortypes.ErrWrongSequence,
 			"account sequence mismatch, expected %d, got %d", acc.GetSequence(), sig.Sequence,
 		)
@@ -157,7 +157,7 @@ func (svd LegacyEip712SigVerificationDecorator) AnteHandle(ctx sdk.Context,
 
 	if err := VerifySignature(pubKey, signerData, sig.Data, svd.signModeHandler, authSignTx); err != nil {
 		errMsg := fmt.Errorf("signature verification failed; please verify account number (%d) and chain-id (%s): %w", accNum, chainID, err)
-		return ctx, errorsmod.Wrap(errortypes.ErrUnauthorized, errMsg.Error())
+		return ctx, sdkerrors.Wrap(errortypes.ErrUnauthorized, errMsg.Error())
 	}
 
 	return next(ctx, tx, simulate)
@@ -175,12 +175,12 @@ func VerifySignature(
 	switch data := sigData.(type) {
 	case *signing.SingleSignatureData:
 		if data.SignMode != signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON {
-			return errorsmod.Wrapf(errortypes.ErrNotSupported, "unexpected SignatureData %T: wrong SignMode", sigData)
+			return sdkerrors.Wrapf(errortypes.ErrNotSupported, "unexpected SignatureData %T: wrong SignMode", sigData)
 		}
 
 		// Note: this prevents the user from sending trash data in the signature field
 		if len(data.Signature) != 0 {
-			return errorsmod.Wrap(errortypes.ErrTooManySignatures, "invalid signature value; EIP712 must have the cosmos transaction signature empty")
+			return sdkerrors.Wrap(errortypes.ErrTooManySignatures, "invalid signature value; EIP712 must have the cosmos transaction signature empty")
 		}
 
 		// @contract: this code is reached only when Msg has Web3Tx extension (so this custom Ante handler flow),
@@ -188,7 +188,7 @@ func VerifySignature(
 
 		msgs := tx.GetMsgs()
 		if len(msgs) == 0 {
-			return errorsmod.Wrap(errortypes.ErrNoSignatures, "tx doesn't contain any msgs to verify signature")
+			return sdkerrors.Wrap(errortypes.ErrNoSignatures, "tx doesn't contain any msgs to verify signature")
 		}
 
 		txBytes := legacytx.StdSignBytes(
@@ -205,33 +205,33 @@ func VerifySignature(
 
 		signerChainID, err := ethermint.ParseChainID(signerData.ChainID)
 		if err != nil {
-			return errorsmod.Wrapf(err, "failed to parse chain-id: %s", signerData.ChainID)
+			return sdkerrors.Wrapf(err, "failed to parse chain-id: %s", signerData.ChainID)
 		}
 
 		txWithExtensions, ok := tx.(authante.HasExtensionOptionsTx)
 		if !ok {
-			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain any extensions")
+			return sdkerrors.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain any extensions")
 		}
 		opts := txWithExtensions.GetExtensionOptions()
 		if len(opts) != 1 {
-			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
+			return sdkerrors.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
 		}
 
 		extOpt, ok := opts[0].GetCachedValue().(*ethermint.ExtensionOptionsWeb3Tx)
 		if !ok {
-			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "unknown extension option")
+			return sdkerrors.Wrap(errortypes.ErrUnknownExtensionOptions, "unknown extension option")
 		}
 
 		if extOpt.TypedDataChainID != signerChainID.Uint64() {
-			return errorsmod.Wrap(errortypes.ErrInvalidChainID, "invalid chain-id")
+			return sdkerrors.Wrap(errortypes.ErrInvalidChainID, "invalid chain-id")
 		}
 
 		if len(extOpt.FeePayer) == 0 {
-			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "no feePayer on ExtensionOptionsWeb3Tx")
+			return sdkerrors.Wrap(errortypes.ErrUnknownExtensionOptions, "no feePayer on ExtensionOptionsWeb3Tx")
 		}
 		feePayer, err := sdk.AccAddressFromBech32(extOpt.FeePayer)
 		if err != nil {
-			return errorsmod.Wrap(err, "failed to parse feePayer from ExtensionOptionsWeb3Tx")
+			return sdkerrors.Wrap(err, "failed to parse feePayer from ExtensionOptionsWeb3Tx")
 		}
 
 		feeDelegation := &eip712.FeeDelegationOptions{
@@ -240,7 +240,7 @@ func VerifySignature(
 
 		typedData, err := eip712.LegacyWrapTxToTypedData(ethermintCodec, extOpt.TypedDataChainID, msgs[0], txBytes, feeDelegation)
 		if err != nil {
-			return errorsmod.Wrap(err, "failed to create EIP-712 typed data from tx")
+			return sdkerrors.Wrap(err, "failed to create EIP-712 typed data from tx")
 		}
 
 		sigHash, _, err := apitypes.TypedDataAndHash(typedData)
@@ -250,7 +250,7 @@ func VerifySignature(
 
 		feePayerSig := extOpt.FeePayerSig
 		if len(feePayerSig) != ethcrypto.SignatureLength {
-			return errorsmod.Wrap(errortypes.ErrorInvalidSigner, "signature length doesn't match typical [R||S||V] signature 65 bytes")
+			return sdkerrors.Wrap(errortypes.ErrorInvalidSigner, "signature length doesn't match typical [R||S||V] signature 65 bytes")
 		}
 
 		// Remove the recovery offset if needed (ie. Metamask eip712 signature)
@@ -260,12 +260,12 @@ func VerifySignature(
 
 		feePayerPubkey, err := secp256k1.RecoverPubkey(sigHash, feePayerSig)
 		if err != nil {
-			return errorsmod.Wrap(err, "failed to recover delegated fee payer from sig")
+			return sdkerrors.Wrap(err, "failed to recover delegated fee payer from sig")
 		}
 
 		ecPubKey, err := ethcrypto.UnmarshalPubkey(feePayerPubkey)
 		if err != nil {
-			return errorsmod.Wrap(err, "failed to unmarshal recovered fee payer pubkey")
+			return sdkerrors.Wrap(err, "failed to unmarshal recovered fee payer pubkey")
 		}
 
 		pk := &ethsecp256k1.PubKey{
@@ -273,23 +273,23 @@ func VerifySignature(
 		}
 
 		if !pubKey.Equals(pk) {
-			return errorsmod.Wrapf(errortypes.ErrInvalidPubKey, "feePayer pubkey %s is different from transaction pubkey %s", pubKey, pk)
+			return sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "feePayer pubkey %s is different from transaction pubkey %s", pubKey, pk)
 		}
 
 		recoveredFeePayerAcc := sdk.AccAddress(pk.Address().Bytes())
 
 		if !recoveredFeePayerAcc.Equals(feePayer) {
-			return errorsmod.Wrapf(errortypes.ErrorInvalidSigner, "failed to verify delegated fee payer %s signature", recoveredFeePayerAcc)
+			return sdkerrors.Wrapf(errortypes.ErrorInvalidSigner, "failed to verify delegated fee payer %s signature", recoveredFeePayerAcc)
 		}
 
 		// VerifySignature of ethsecp256k1 accepts 64 byte signature [R||S]
 		// WARNING! Under NO CIRCUMSTANCES try to use pubKey.VerifySignature there
 		if !secp256k1.VerifySignature(pubKey.Bytes(), sigHash, feePayerSig[:len(feePayerSig)-1]) {
-			return errorsmod.Wrap(errortypes.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
+			return sdkerrors.Wrap(errortypes.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
 		}
 
 		return nil
 	default:
-		return errorsmod.Wrapf(errortypes.ErrTooManySignatures, "unexpected SignatureData %T", sigData)
+		return sdkerrors.Wrapf(errortypes.ErrTooManySignatures, "unexpected SignatureData %T", sigData)
 	}
 }
