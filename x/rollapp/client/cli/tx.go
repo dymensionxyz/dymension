@@ -26,6 +26,8 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateRollapp())
 	cmd.AddCommand(CmdUpdateState())
+	cmd.AddCommand(CmdSubmitNonAvailable())
+	cmd.AddCommand(CmdSubmitWrongCommitment())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

@@ -51,10 +51,10 @@ func (msg *MsgNonAvailableBatch) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	// Validate the JSON-encoded proof data
-	_, err = msg.DecodeNonInclusionProof()
+	/*_, err = msg.DecodeNonInclusionProof()
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
-	}
+	}*/
 	return nil
 }
 
