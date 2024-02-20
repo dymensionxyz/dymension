@@ -12,7 +12,10 @@ permissions:
   packages: write
 
 jobs:
-  test-ibc-transfer:
+  e2e-test:
+    strategy:
+      matrix:
+        tests: [e2e-test-ibc, e2e-test-ibc-timeout]
     runs-on: ubuntu-latest
     steps:
         - name: Check out the repo
@@ -27,8 +30,6 @@ jobs:
 
         - name: Set up Go 1.19
           uses: actions/setup-go@v3
-          with:
-            go-version: 1.19
 
-        - run: make e2e-test-ibc
-        - run: make e2e-test-ibc-timeout
+        - name: E2E Tests
+          run: make ${{ matrix.tests }}
