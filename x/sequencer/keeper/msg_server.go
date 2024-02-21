@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"context"
-
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -17,8 +15,3 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 var _ types.MsgServer = msgServer{}
-
-// Bond defines a method for adding coins to sequencer's bond
-func (k msgServer) Bond(context.Context, *types.MsgBond) (*types.MsgBondResponse, error) {
-	panic("implement me")
-}

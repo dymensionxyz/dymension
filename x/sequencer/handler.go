@@ -20,9 +20,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgCreateSequencer:
 			res, err := msgServer.CreateSequencer(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgBond:
-			res, err := msgServer.Bond(sdk.WrapSDKContext(ctx), msg)
-			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgUnbond:
 			res, err := msgServer.Unbond(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
