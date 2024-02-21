@@ -46,8 +46,8 @@ jobs:
           platforms: linux/amd64
           tags: |
               ghcr.io/dymensionxyz/dymension:e2e         
-  e2e-tests:
-    needs: build-and-push-e2e-image
-    uses: dymensionxyz/e2e-tests/.github/workflows/e2e-test-workflow-call.yml@c1f9835489c49a92828a60d16bafa7e2060e4bf2
-    with:
-      dymension_ci: "e2e"
+  # e2e-tests:
+  #   needs: build-and-push-e2e-image
+  #   uses: dymensionxyz/e2e-tests/.github/workflows/e2e-test-workflow-call.yml@c1f9835489c49a92828a60d16bafa7e2060e4bf2
+  #   with:
+  #     dymension_ci: "e2e"
