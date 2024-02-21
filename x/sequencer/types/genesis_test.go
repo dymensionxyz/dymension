@@ -22,27 +22,16 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis sequencers",
 			genState: &types.GenesisState{
-				Params:                  types.DefaultParams(),
-				SequencerList:           []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "1"}},
-				SequencersByRollappList: []types.SequencersByRollapp{{RollappId: "0"}, {RollappId: "1"}},
+				Params:        types.DefaultParams(),
+				SequencerList: []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "1"}},
 			},
 			valid: true,
 		},
 		{
 			desc: "duplicated sequencer",
 			genState: &types.GenesisState{
-				Params:                  types.DefaultParams(),
-				SequencerList:           []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "0"}},
-				SequencersByRollappList: []types.SequencersByRollapp{},
-			},
-			valid: false,
-		},
-		{
-			desc: "duplicated sequencersByRollapp",
-			genState: &types.GenesisState{
-				Params:                  types.DefaultParams(),
-				SequencerList:           []types.Sequencer{},
-				SequencersByRollappList: []types.SequencersByRollapp{{RollappId: "0"}, {RollappId: "0"}},
+				Params:        types.DefaultParams(),
+				SequencerList: []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "0"}},
 			},
 			valid: false,
 		},

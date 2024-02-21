@@ -31,9 +31,13 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 	for i := 0; i < n; i++ {
 		sequencer := types.Sequencer{
 			SequencerAddress: strconv.Itoa(i),
+			Status:           types.Bonded,
 		}
 		nullify.Fill(&sequencer)
 		sequencer.Tokens = sdk.Coin{"", sdk.ZeroInt()}
+		if i == 0 {
+			sequencer.Status = types.Proposer
+		}
 		state.SequencerList = append(state.SequencerList, sequencer)
 	}
 
@@ -56,17 +60,14 @@ func TestShowSequencer(t *testing.T) {
 
 		args []string
 		err  error
-		obj  types.SequencerInfo
+		obj  types.Sequencer
 	}{
 		{
 			desc:               "found",
 			idSequencerAddress: objs[0].SequencerAddress,
 
 			args: common,
-			obj: types.SequencerInfo{
-				Sequencer: objs[0],
-				Status:    0,
-			},
+			obj:  objs[0],
 		},
 		{
 			desc:               "not found",
@@ -103,12 +104,9 @@ func TestShowSequencer(t *testing.T) {
 func TestListSequencer(t *testing.T) {
 	net, objs := networkWithSequencerObjects(t, 5)
 
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	for _, obj := range objs {
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: obj,
-			Status:    0,
-		})
+		sequencerInfoList = append(sequencerInfoList, obj)
 	}
 
 	ctx := net.Validators[0].ClientCtx

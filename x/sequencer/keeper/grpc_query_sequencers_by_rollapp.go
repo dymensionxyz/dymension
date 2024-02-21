@@ -9,11 +9,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// SequencersByRollappAll
-func (k Keeper) SequencersByRollappAll(context.Context, *types.QueryAllSequencersByRollappRequest) (*types.QueryAllSequencersByRollappResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "TODO")
-}
-
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -28,21 +23,17 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	for _, sequencer := range val {
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: sequencer,
-			Status:    sequencer.Status,
-		})
+		sequencerInfoList = append(sequencerInfoList, sequencer)
 	}
 
 	return &types.QueryGetSequencersByRollappResponse{
-		RollappId:         req.RollappId,
 		SequencerInfoList: sequencerInfoList,
 	}, nil
 }
 
-func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
+func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryGetSequencersByRollappByStatusRequest) (*types.QueryGetSequencersByRollappByStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -51,23 +42,18 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	val := k.GetSequencersByRollappByStatus(
 		ctx,
 		req.RollappId,
-		//FIXME:
-		types.Bonded,
+		req.Status,
 	)
 	if len(val) == 0 {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	for _, sequencer := range val {
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: sequencer,
-			Status:    sequencer.Status,
-		})
+		sequencerInfoList = append(sequencerInfoList, sequencer)
 	}
 
-	return &types.QueryGetSequencersByRollappResponse{
-		RollappId:         req.RollappId,
+	return &types.QueryGetSequencersByRollappByStatusResponse{
 		SequencerInfoList: sequencerInfoList,
 	}, nil
 }

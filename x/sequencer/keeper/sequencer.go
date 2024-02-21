@@ -14,6 +14,8 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 		sequencer.SequencerAddress,
 	), b)
 
+	//FIXME: remove old key !!
+
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
 }
@@ -66,7 +68,8 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappByStatusKey(rollappId, status))
+	storePrefix := types.SequencersByRollappByStatusKey(rollappId, status)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), storePrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck

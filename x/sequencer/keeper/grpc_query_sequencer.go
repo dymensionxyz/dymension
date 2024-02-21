@@ -16,7 +16,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -27,12 +27,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
 			return err
 		}
-
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: sequencer,
-			Status:    sequencer.Status,
-		})
-
+		sequencerInfoList = append(sequencerInfoList, sequencer)
 		return nil
 	})
 
@@ -57,9 +52,6 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	sequencerInfo := types.SequencerInfo{
-		Sequencer: seq,
-		Status:    seq.Status,
-	}
+	sequencerInfo := seq
 	return &types.QueryGetSequencerResponse{SequencerInfo: sequencerInfo}, nil
 }

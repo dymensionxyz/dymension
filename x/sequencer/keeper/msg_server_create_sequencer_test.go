@@ -171,12 +171,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			suite.Require().Nil(err)
 			suite.Require().EqualValues(types.MsgCreateSequencerResponse{}, *createResponse)
 
-			// query the spesific sequencer
+			// query the specific sequencer
 			queryResponse, err := suite.queryClient.Sequencer(goCtx, &types.QueryGetSequencerRequest{
 				SequencerAddress: sequencerMsg.GetCreator(),
 			})
 			suite.Require().Nil(err)
-			equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
+			equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo)
 
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
@@ -201,9 +201,8 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		suite.Require().Nil(err)
 		// verify that all the addresses of the rollapp are found
 		for _, sequencerInfo := range queryAllResponse.SequencerInfoList {
-			sequencerResAddresses := sequencerInfo.Sequencer.SequencerAddress
-			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerResAddresses}],
-				sequencerResAddresses)
+			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerInfo.SequencerAddress}],
+				sequencerInfo.SequencerAddress)
 		}
 		totalFound += len(queryAllResponse.SequencerInfoList)
 	}
@@ -306,7 +305,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		Description:      sequencerMsg.GetDescription(),
 		Tokens:           bond,
 	}
-	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo.Sequencer)
+	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo)
 }
 
 func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
@@ -458,7 +457,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 		}
 
 		for i := 0; i < len(queryAllResponse.SequencerInfoList); i++ {
-			sequencerRes := queryAllResponse.SequencerInfoList[i].Sequencer
+			sequencerRes := queryAllResponse.SequencerInfoList[i]
 			sequencersRes[sequencerRes.GetSequencerAddress()] = &sequencerRes
 		}
 		totalChecked += len(queryAllResponse.SequencerInfoList)

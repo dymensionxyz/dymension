@@ -83,7 +83,7 @@ func SequencersByRollappByStatusKey(
 		panic(fmt.Sprintf("invalid sequencer status: %s", status.String()))
 	}
 
-	return []byte(fmt.Sprintf("%s%s%s%s%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes, KeySeparator, prefix))
+	return []byte(fmt.Sprintf("%s%s%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes, KeySeparator, prefix))
 }
 
 /*

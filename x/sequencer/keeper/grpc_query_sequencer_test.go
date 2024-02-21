@@ -34,10 +34,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 				SequencerAddress: sequencers[0].SequencerAddress,
 			},
 			response: &types.QueryGetSequencerResponse{
-				SequencerInfo: types.SequencerInfo{
-					Sequencer: sequencers[0],
-					Status:    0,
-				},
+				sequencers[0],
 			}},
 		{
 			desc: "Second",
@@ -45,10 +42,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 				SequencerAddress: sequencers[1].SequencerAddress,
 			},
 			response: &types.QueryGetSequencerResponse{
-				SequencerInfo: types.SequencerInfo{
-					Sequencer: sequencers[1],
-					Status:    0,
-				},
+				sequencers[1],
 			},
 		},
 		{
@@ -82,12 +76,9 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	sequencers := createNSequencer(keeper, ctx, 5)
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	for _, sequencer := range sequencers {
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: sequencer,
-			Status:    types.Unspecified,
-		})
+		sequencerInfoList = append(sequencerInfoList, sequencer)
 	}
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllSequencerRequest {
