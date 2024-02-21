@@ -66,6 +66,7 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 }
 
 func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
+	displayDenom := "big" + denom
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
@@ -80,14 +81,14 @@ func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
 						Exponent: 0,
 					},
 					{
-						Denom:    "big" + denom,
+						Denom:    displayDenom,
 						Exponent: 6,
 					},
 				},
 				Description: "stake as rollapp token",
-				Display:     strings.ToUpper(denom),
-				Name:        strings.ToUpper(denom),
-				Symbol:      strings.ToUpper(denom),
+				Display:     displayDenom,
+				Name:        displayDenom,
+				Symbol:      strings.ToUpper(displayDenom),
 			},
 		},
 	)

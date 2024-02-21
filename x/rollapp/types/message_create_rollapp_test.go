@@ -58,6 +58,42 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
+		}, {
+			name: "valid token metadata",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				Metadatas: []TokenMetadata{{
+					Description: "valid",
+					DenomUnits: []*DenomUnit{
+						{Denom: "uvalid", Exponent: 0},
+						{Denom: "valid", Exponent: 18},
+					},
+					Base:    "uvalid",
+					Display: "valid",
+					Name:    "valid",
+					Symbol:  "VALID",
+				}},
+			},
+			err: nil,
+		}, {
+			name: "invalid token metadata", // just trigger one case to see if validation is done or not
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				Metadatas: []TokenMetadata{{
+					Description: "valid",
+					DenomUnits: []*DenomUnit{
+						{Denom: "uvalid", Exponent: 0},
+						{Denom: "valid", Exponent: 18},
+					},
+					Base:    "uvalid",
+					Display: "valid",
+					Name:    "", // empty
+					Symbol:  "VALID",
+				}},
+			},
+			err: ErrInvalidTokenMetadata,
 		},
 	}
 	for _, tt := range tests {
