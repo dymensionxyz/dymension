@@ -28,7 +28,7 @@ func TestSequencersByRollappQuerySingle(t *testing.T) {
 		require.True(t, found)
 		SequencersByRollappResponseList = append(SequencersByRollappResponseList,
 			types.QueryGetSequencersByRollappResponse{
-				SequencerInfoList: []types.Sequencer{sequencer},
+				Sequencers: []types.Sequencer{sequencer},
 			})
 	}
 	for _, tc := range []struct {

@@ -11,12 +11,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequest) (*types.QueryAllSequencerResponse, error) {
+func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest) (*types.QuerySequencersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var sequencerInfoList []types.Sequencer
+	var sequencers []types.Sequencer
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
@@ -27,7 +27,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		if err := k.cdc.Unmarshal(value, &sequencer); err != nil {
 			return err
 		}
-		sequencerInfoList = append(sequencerInfoList, sequencer)
+		sequencers = append(sequencers, sequencer)
 		return nil
 	})
 
@@ -35,7 +35,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllSequencerResponse{SequencerInfoList: sequencerInfoList, Pagination: pageRes}, nil
+	return &types.QuerySequencersResponse{Sequencers: sequencers, Pagination: pageRes}, nil
 }
 
 func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest) (*types.QueryGetSequencerResponse, error) {
@@ -44,14 +44,10 @@ func (k Keeper) Sequencer(c context.Context, req *types.QueryGetSequencerRequest
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq, found := k.GetSequencer(
-		ctx,
-		req.SequencerAddress,
-	)
+	seq, found := k.GetSequencer(ctx, req.SequencerAddress)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	sequencerInfo := seq
-	return &types.QueryGetSequencerResponse{SequencerInfo: sequencerInfo}, nil
+	return &types.QueryGetSequencerResponse{Sequencer: seq}, nil
 }

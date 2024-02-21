@@ -176,7 +176,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				SequencerAddress: sequencerMsg.GetCreator(),
 			})
 			suite.Require().Nil(err)
-			equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo)
+			equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
 
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
@@ -200,11 +200,11 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			&types.QueryGetSequencersByRollappRequest{RollappId: rollappId})
 		suite.Require().Nil(err)
 		// verify that all the addresses of the rollapp are found
-		for _, sequencerInfo := range queryAllResponse.SequencerInfoList {
-			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerInfo.SequencerAddress}],
-				sequencerInfo.SequencerAddress)
+		for _, sequencer := range queryAllResponse.Sequencers {
+			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.SequencerAddress}],
+				sequencer.SequencerAddress)
 		}
-		totalFound += len(queryAllResponse.SequencerInfoList)
+		totalFound += len(queryAllResponse.Sequencers)
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
@@ -305,7 +305,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		Description:      sequencerMsg.GetDescription(),
 		Tokens:           bond,
 	}
-	equalSequencer(suite, &sequencerExpect, &queryResponse.SequencerInfo)
+	equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
 }
 
 func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
@@ -441,8 +441,8 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	nextKey := []byte{}
 	sequencersRes := make(map[string]*types.Sequencer)
 	for {
-		queryAllResponse, err := suite.queryClient.SequencerAll(goCtx,
-			&types.QueryAllSequencerRequest{
+		queryAllResponse, err := suite.queryClient.Sequencers(goCtx,
+			&types.QuerySequencersRequest{
 				Pagination: &query.PageRequest{
 					Key:        nextKey,
 					Offset:     0,
@@ -456,11 +456,11 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 			totalRes = int(queryAllResponse.GetPagination().GetTotal())
 		}
 
-		for i := 0; i < len(queryAllResponse.SequencerInfoList); i++ {
-			sequencerRes := queryAllResponse.SequencerInfoList[i]
+		for i := 0; i < len(queryAllResponse.Sequencers); i++ {
+			sequencerRes := queryAllResponse.Sequencers[i]
 			sequencersRes[sequencerRes.GetSequencerAddress()] = &sequencerRes
 		}
-		totalChecked += len(queryAllResponse.SequencerInfoList)
+		totalChecked += len(queryAllResponse.Sequencers)
 		nextKey = queryAllResponse.GetPagination().GetNextKey()
 
 		if nextKey == nil {
@@ -509,7 +509,7 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 	if s1.UnbondingHeight != s2.UnbondingHeight {
 		return false
 	}
-	if !s1.UnbondingTime.Equal(s2.UnbondingTime) {
+	if !s1.UnbondTime.Equal(s2.UnbondTime) {
 		return false
 	}
 	return true

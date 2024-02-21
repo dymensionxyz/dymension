@@ -23,7 +23,7 @@ service Query {
 	}
 
 	// Queries a list of Sequencer items.
-	rpc SequencerAll(QueryAllSequencerRequest) returns (QueryAllSequencerResponse) {
+	rpc Sequencers(QuerySequencersRequest) returns (QuerySequencersResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencer";
 	}
 
@@ -56,15 +56,15 @@ message QueryGetSequencerRequest {
 }
 
 message QueryGetSequencerResponse {
-	Sequencer sequencerInfo = 1 [(gogoproto.nullable) = false];
+	Sequencer sequencer = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryAllSequencerRequest {
+message QuerySequencersRequest {
 	cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllSequencerResponse {
-	repeated Sequencer sequencerInfoList = 1 [(gogoproto.nullable) = false];
+message QuerySequencersResponse {
+	repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -73,7 +73,7 @@ message QueryGetSequencersByRollappRequest {
 }
 
 message QueryGetSequencersByRollappResponse {
-	repeated Sequencer sequencerInfoList = 1 [(gogoproto.nullable) = false];
+	repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryGetSequencersByRollappByStatusRequest {
@@ -82,7 +82,7 @@ message QueryGetSequencersByRollappByStatusRequest {
 }
 
 message QueryGetSequencersByRollappByStatusResponse {
-  repeated Sequencer sequencerInfoList = 1 [(gogoproto.nullable) = false];
+  repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3

@@ -35,7 +35,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.Status = types.Unbonded
 	seq.Jailed = true
 	seq.UnbondingHeight = ctx.BlockHeight()
-	seq.UnbondingTime = ctx.BlockHeader().Time
+	seq.UnbondTime = ctx.BlockHeader().Time
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
 	return nil

@@ -15,21 +15,13 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val := k.GetSequencersByRollapp(
-		ctx,
-		req.RollappId,
-	)
-	if len(val) == 0 {
+	sequencers := k.GetSequencersByRollapp(ctx, req.RollappId)
+	if len(sequencers) == 0 {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	var sequencerInfoList []types.Sequencer
-	for _, sequencer := range val {
-		sequencerInfoList = append(sequencerInfoList, sequencer)
-	}
-
 	return &types.QueryGetSequencersByRollappResponse{
-		SequencerInfoList: sequencerInfoList,
+		Sequencers: sequencers,
 	}, nil
 }
 
@@ -39,21 +31,16 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val := k.GetSequencersByRollappByStatus(
+	sequencers := k.GetSequencersByRollappByStatus(
 		ctx,
 		req.RollappId,
 		req.Status,
 	)
-	if len(val) == 0 {
+	if len(sequencers) == 0 {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	var sequencerInfoList []types.Sequencer
-	for _, sequencer := range val {
-		sequencerInfoList = append(sequencerInfoList, sequencer)
-	}
-
 	return &types.QueryGetSequencersByRollappByStatusResponse{
-		SequencerInfoList: sequencerInfoList,
+		Sequencers: sequencers,
 	}, nil
 }

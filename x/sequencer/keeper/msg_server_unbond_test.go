@@ -26,7 +26,7 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.Require().True(found)
 	suite.Equal(sequencer.Status, types.Unbonding)
 
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(10*time.Second))
+	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondTime.Add(10*time.Second))
 
 	sequencer, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
 	suite.Require().True(found)
@@ -46,7 +46,7 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.Require().True(found)
 	suite.Equal(sequencer2.Status, types.Unbonding)
 
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer2.UnbondingTime.Add(10*time.Second))
+	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer2.UnbondTime.Add(10*time.Second))
 
 	sequencer2, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
 	suite.Require().True(found)
@@ -67,7 +67,7 @@ func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
 	suite.Require().Error(err)
 
 	sequencer, _ := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondingTime.Add(10*time.Second))
+	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer.UnbondTime.Add(10*time.Second))
 
 	//already unbonded, we expect error
 	_, err = suite.msgServer.Unbond(suite.ctx, &unbondMsg)

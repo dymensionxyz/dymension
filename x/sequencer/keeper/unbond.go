@@ -14,7 +14,7 @@ import (
 func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	sequencers := k.GetUnbondingSequencers(ctx)
 	for _, seq := range sequencers {
-		if seq.UnbondingTime.Before(currTime) {
+		if seq.UnbondTime.Before(currTime) {
 			wrapFn := func(ctx sdk.Context) error {
 				return k.unbondSequencer(ctx, seq.SequencerAddress)
 			}

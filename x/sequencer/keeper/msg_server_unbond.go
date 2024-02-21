@@ -18,21 +18,6 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		return nil, err
 	}
 
-	//TODO: emit events
-	// ctx.EventManager().EmitEvents(sdk.Events{
-	// 	sdk.NewEvent(
-	// 		types.EventTypeUnbond,
-	// 		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress),
-	// 		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
-	// 		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-	// 	),
-	// 	sdk.NewEvent(
-	// 		sdk.EventTypeMessage,
-	// 		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-	// 		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress),
-	// 	),
-	// })
-
 	return &types.MsgUnbondResponse{
 		CompletionTime: completionTime,
 	}, nil
@@ -57,7 +42,7 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	// set the status to unbonding
 	seq.Status = types.Unbonding
 	seq.UnbondingHeight = ctx.BlockHeight()
-	seq.UnbondingTime = completionTime
+	seq.UnbondTime = completionTime
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
 

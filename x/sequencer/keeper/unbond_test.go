@@ -50,7 +50,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 
 	/* -------------------------- check the unbond phase ------------------------- */
 	balanceBefore := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(addr1), denom)
-	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer1.UnbondingTime.Add(1*time.Second))
+	suite.app.SequencerKeeper.UnbondAllMatureSequencers(suite.ctx, sequencer1.UnbondTime.Add(1*time.Second))
 	balanceAfter := suite.app.BankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(addr1), denom)
 
 	//Check stake refunded

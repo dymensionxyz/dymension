@@ -91,10 +91,10 @@ func TestShowSequencer(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencerResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.SequencerInfo)
+				require.NotNil(t, resp.Sequencer)
 				require.Equal(t,
 					&tc.obj,
-					&resp.SequencerInfo,
+					&resp.Sequencer,
 				)
 			}
 		})
@@ -131,12 +131,12 @@ func TestListSequencer(t *testing.T) {
 			args := request(nil, uint64(i), uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllSequencerResponse
+			var resp types.QuerySequencersResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
+			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
 				sequencerInfoList,
-				resp.SequencerInfoList,
+				resp.Sequencers,
 			)
 		}
 	})
@@ -147,12 +147,12 @@ func TestListSequencer(t *testing.T) {
 			args := request(next, 0, uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllSequencerResponse
+			var resp types.QuerySequencersResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
+			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
 				sequencerInfoList,
-				resp.SequencerInfoList,
+				resp.Sequencers,
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -161,13 +161,13 @@ func TestListSequencer(t *testing.T) {
 		args := request(nil, 0, uint64(len(objs)), true)
 		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 		require.NoError(t, err)
-		var resp types.QueryAllSequencerResponse
+		var resp types.QuerySequencersResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			sequencerInfoList,
-			resp.SequencerInfoList,
+			resp.Sequencers,
 		)
 	})
 }

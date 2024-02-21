@@ -47,7 +47,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 			sequencer.Status = types.Proposer
 		}
 		state.SequencerList = append(state.SequencerList, sequencer)
-		allSequencersByRollappResponse.SequencerInfoList = append(allSequencersByRollappResponse.SequencerInfoList, sequencer)
+		allSequencersByRollappResponse.Sequencers = append(allSequencersByRollappResponse.Sequencers, sequencer)
 	}
 
 	buf, err := cfg.Codec.MarshalJSON(&state)
@@ -100,15 +100,15 @@ func TestShowSequencersByRollapp(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencersByRollappResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.SequencerInfoList)
+				require.NotNil(t, resp.Sequencers)
 
-				sortedList := resp.SequencerInfoList
+				sortedList := resp.Sequencers
 				sort.Slice(sortedList, func(i, j int) bool {
 					return sortedList[i].SequencerAddress < sortedList[j].SequencerAddress
 				})
 
 				for i := range sortedList {
-					require.True(t, equalSequencers(&tc.obj.SequencerInfoList[i], &resp.SequencerInfoList[i]))
+					require.True(t, equalSequencers(&tc.obj.Sequencers[i], &resp.Sequencers[i]))
 				}
 			}
 		})
@@ -148,7 +148,7 @@ func equalSequencers(s1 *types.Sequencer, s2 *types.Sequencer) bool {
 	if s1.UnbondingHeight != s2.UnbondingHeight {
 		return false
 	}
-	if !s1.UnbondingTime.Equal(s2.UnbondingTime) {
+	if !s1.UnbondTime.Equal(s2.UnbondTime) {
 		return false
 	}
 	return true
