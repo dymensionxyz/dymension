@@ -19,10 +19,10 @@ type InclusionProof struct {
 	DataRoot  []byte
 }
 
-func (ip *InclusionProof) VerifyBlobInclusion(commitment []byte, namespace []byte, dataRoot []byte) error {
+func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte) ([]byte, int, int, error) {
 
 	if !bytes.Equal(ip.DataRoot, dataRoot) {
-		return errors.New("data root not matching")
+		return nil, 0, 0, errors.New("error")
 	}
 
 	var nmtProofs []*nmt.Proof
@@ -30,7 +30,7 @@ func (ip *InclusionProof) VerifyBlobInclusion(commitment []byte, namespace []byt
 		var unmarshalledProof nmt.Proof
 		err := unmarshalledProof.UnmarshalJSON(codedNMTProof)
 		if err != nil {
-			return err
+			return nil, 0, 0, err
 		}
 		nmtProofs = append(nmtProofs, &unmarshalledProof)
 	}
@@ -38,20 +38,17 @@ func (ip *InclusionProof) VerifyBlobInclusion(commitment []byte, namespace []byt
 	var b blob.Blob
 	err := b.UnmarshalJSON(ip.Blob)
 	if err != nil {
-		return err
-	}
-
-	if !bytes.Equal(b.Commitment, commitment) {
-		return errors.New("commitment not matching")
+		return nil, 0, 0, err
 	}
 
 	shares, err := blob.SplitBlobs(b)
 	if err != nil {
-		return err
+		return nil, 0, 0, err
 	}
 	index := 0
 
 	for i, nmtProof := range nmtProofs {
+
 		sharesNum := nmtProof.End() - nmtProof.Start()
 		var leafs [][]byte
 
@@ -61,26 +58,31 @@ func (ip *InclusionProof) VerifyBlobInclusion(commitment []byte, namespace []byt
 		}
 
 		if !nmtProof.VerifyInclusion(sha256.New(), namespace, leafs, ip.Nmtroots[i]) {
-			return errors.New("blob not included")
+			return nil, 0, 0, errors.New("blob not included")
 		}
 		index += sharesNum
 	}
 
+	var indexProof *merkle.Proof
 	for i, rowProof := range ip.RowProofs {
 
 		var proof cmtcrypto.Proof
 		err := proof.Unmarshal(rowProof)
 		if err != nil {
-			return err
+			return nil, 0, 0, err
 		}
 		rProof, err := merkle.ProofFromProto(&proof)
+		if i == 0 {
+			indexProof = rProof
+		}
 		if err != nil {
-			return err
+			return nil, 0, 0, err
 		}
 		err = rProof.Verify(ip.DataRoot, ip.Nmtroots[i])
 		if err != nil {
-			return err
+			return nil, 0, 0, err
 		}
 	}
-	return nil
+
+	return b.Commitment, nmtProofs[0].Start() + (int(indexProof.Total) / 2 * int(indexProof.Index)), len(shares), nil
 }

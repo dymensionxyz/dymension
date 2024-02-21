@@ -24,16 +24,18 @@ func (k msgServer) SubmitWrongCommitmentBatch(goCtx context.Context, msg *types.
 	}
 	ip, err := msg.DecodeInclusionProof()
 	if err != nil {
+		//TODO (srene): handle deposit burn on wrong proof
+		k.Logger(ctx).Info("unable to verif wrong-commitment proof ", "rollappID", msg.RollappId)
 		return nil, err
 	}
 
 	err = k.VerifyWrongCommitmentBatch(ctx, msg, &ip)
-
-	if err == nil {
+	if err != nil {
 		//TODO (srene): handle deposit burn on wrong proof
 		k.Logger(ctx).Info("unable to verif wrong-commitment proof ", "rollappID", msg.RollappId)
-
+		return nil, err
 	}
+
 	//TODO (srene): handle slashing
 
 	return &types.MsgWrongCommitmentBatchResponse{}, nil

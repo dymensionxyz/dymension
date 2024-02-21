@@ -24,16 +24,15 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 	}
 	nip, err := msg.DecodeNonInclusionProof()
 	if err != nil {
+		//TODO: handle deposit burn on wrong non-inclusion proof
+		k.Logger(ctx).Info("unable to verif non-inclusion proof ", "rollappID", msg.RollappId)
 		return nil, err
 	}
 	err = k.VerifyNonAvailableBatch(ctx, msg, &nip)
 	if err != nil {
+		//TODO: handle deposit burn on wrong non-inclusion proof
+		k.Logger(ctx).Info("unable to verif non-inclusion proof ", "rollappID", msg.RollappId)
 		return nil, err
-	}
-	if err == nil {
-		//FIXME: handle deposit burn on wrong FP
-		k.Logger(ctx).Info("unable to verif non-available proof ", "rollappID", msg.RollappId)
-
 	}
 
 	return &types.MsgNonAvailableBatchResponse{}, nil
