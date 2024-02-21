@@ -39,6 +39,6 @@ jobs:
             go-version: 1.19
 
         - name: E2E
-          uses: dymensionxyz/e2e-tests/.github/e2e-test-workflow-call.yml@c1f9835489c49a92828a60d16bafa7e2060e4bf2
+          uses: dymensionxyz/e2e-tests/.github/workflows/e2e-test-workflow-call.yml@c1f9835489c49a92828a60d16bafa7e2060e4bf2
           with:
             dymension_ci: "e2e"
