@@ -50,6 +50,10 @@ func (msg *MsgNonAvailableBatch) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	_, err = NewDAMetaData(msg.DAPath)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed getting parameters from dapath: %s", err)
+	}
 	// Validate the JSON-encoded proof data
 	_, err = msg.DecodeNonInclusionProof()
 	if err != nil {

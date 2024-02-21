@@ -34,6 +34,6 @@ func TestNonInclusionProof(t *testing.T) {
 	nonInclusionProof.RowProof = proof.GetRproofs()
 
 	err = nonInclusionProof.VerifyNonInclusion(1500, 50, nonInclusionProof.DataRoot)
-	require.EqualError(err, "span out of square size")
+	require.NoError(err)
 
 }

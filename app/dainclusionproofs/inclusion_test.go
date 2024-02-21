@@ -3,7 +3,6 @@ package inclusion_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -40,8 +39,6 @@ func TestInclusionProof(t *testing.T) {
 	proof := rollapptypes.BlobInclusionProof{}
 	err = jsonDecoder.Decode(&proof)
 	require.NoError(err)
-
-	fmt.Println("Namespace", hex.EncodeToString(ns.Bytes()))
 
 	inclusionProof := &inclusion.InclusionProof{}
 

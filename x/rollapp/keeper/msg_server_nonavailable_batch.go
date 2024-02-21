@@ -27,7 +27,9 @@ func (k msgServer) SubmitNonAvailableBatch(goCtx context.Context, msg *types.Msg
 		return nil, err
 	}
 	err = k.VerifyNonAvailableBatch(ctx, msg, &nip)
-
+	if err != nil {
+		return nil, err
+	}
 	if err == nil {
 		//FIXME: handle deposit burn on wrong FP
 		k.Logger(ctx).Info("unable to verif non-available proof ", "rollappID", msg.RollappId)

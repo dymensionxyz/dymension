@@ -3,7 +3,6 @@ package inclusion
 import (
 	"bytes"
 	"errors"
-	"fmt"
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
@@ -30,11 +29,10 @@ func (nip *NonInclusionProof) VerifyNonInclusion(span int, length int, dataRoot 
 		return err
 	}
 	if !bytes.Equal(computedHash, dataRoot) {
-		return errors.New("data root not matching")
+		return errors.New("unable to verify proof")
 	}
-	fmt.Println("Total", rProof.Total)
-	if span+length > int(rProof.Total/2)*int(rProof.Total/2) {
-		return errors.New("span out of square size")
+	if span+length <= int(rProof.Total/2)*int(rProof.Total/2) {
+		return errors.New("span inside square size")
 	}
 	return nil
 }

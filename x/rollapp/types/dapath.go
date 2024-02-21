@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -34,15 +35,13 @@ type DASubmitMetaData struct {
 
 func NewDAMetaData(DAPath string) (*DASubmitMetaData, error) {
 	pathParts := strings.FieldsFunc(DAPath, func(r rune) bool { return r == '.' })
+
+	if len(pathParts) != 7 {
+		return nil, errors.New("unable to decode da path")
+	}
 	height, err := strconv.ParseUint(pathParts[1], 10, 64)
 	if err != nil {
 		return nil, err
-	}
-	if len(pathParts) <= 2 {
-		return &DASubmitMetaData{
-			client: Client(pathParts[0]),
-			height: height,
-		}, nil
 	}
 
 	index, err := strconv.Atoi(pathParts[2])
