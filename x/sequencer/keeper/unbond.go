@@ -6,6 +6,7 @@ import (
 	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
@@ -14,8 +15,10 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	sequencers := k.GetUnbondingSequencers(ctx)
 	for _, seq := range sequencers {
 		if seq.UnbondingTime.Before(currTime) {
-			//FIXME: wrap with applyIf
-			err := k.unbondSequencer(ctx, seq.SequencerAddress)
+			wrapFn := func(ctx sdk.Context) error {
+				return k.unbondSequencer(ctx, seq.SequencerAddress)
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 			if err != nil {
 				k.Logger(ctx).Error("failed to unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
 				continue
