@@ -16,8 +16,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Prevent strconv unused error
@@ -42,7 +40,6 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 			RollappId:        rollappId,
 		}
 		nullify.Fill(&sequencer)
-		sequencer.Tokens = sdk.Coin{"", sdk.ZeroInt()}
 		if i == 0 {
 			sequencer.Status = types.Proposer
 		}
@@ -137,11 +134,7 @@ func equalSequencers(s1 *types.Sequencer, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.Tokens.IsNil() || s2.Tokens.IsNil() {
-		if !s1.Tokens.IsNil() || !s2.Tokens.IsNil() {
-			return false
-		}
-	} else if !s1.Tokens.Equal(s2.Tokens) {
+	if !s1.Tokens.IsEqual(s2.Tokens) {
 		return false
 	}
 

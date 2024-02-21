@@ -20,14 +20,14 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		)
 	}
 
-	if seq.Tokens.IsPositive() {
-		coins := sdk.NewCoins(seq.Tokens)
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
+	if !seq.Tokens.Empty() {
+		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seq.Tokens)
 		if err != nil {
 			return err
 		}
-
-		seq.Tokens = sdk.Coin{}
+		seq.Tokens = sdk.Coins{}
+	} else {
+		k.Logger(ctx).Error("sequencer has no tokens to slash", "sequencer", seq.SequencerAddress)
 	}
 
 	oldStatus := seq.Status

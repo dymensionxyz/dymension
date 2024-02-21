@@ -53,7 +53,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, err
 	}
 
-	bond := sdk.Coin{}
+	bond := sdk.Coins{}
 	minBond := k.GetParams(ctx).MinBond
 	if !minBond.IsNil() && !minBond.IsZero() {
 		if msg.Bond.Denom != minBond.Denom {
@@ -72,7 +72,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		if err != nil {
 			return nil, err
 		}
-		bond = msg.Bond
+		bond = sdk.NewCoins(msg.Bond)
 	}
 
 	sequencer := types.Sequencer{

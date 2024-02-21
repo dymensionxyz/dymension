@@ -7,7 +7,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/codes"
@@ -34,7 +33,6 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 			Status:           types.Bonded,
 		}
 		nullify.Fill(&sequencer)
-		sequencer.Tokens = sdk.Coin{"", sdk.ZeroInt()}
 		if i == 0 {
 			sequencer.Status = types.Proposer
 		}

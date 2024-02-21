@@ -40,22 +40,23 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 		)
 	}
 
-	if seq.Tokens.IsPositive() {
+	if !seq.Tokens.Empty() {
 		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
 		if err != nil {
 			return err
 		}
 
-		coins := sdk.NewCoins(seq.Tokens)
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, coins)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seq.Tokens)
 		if err != nil {
 			return err
 		}
+	} else {
+		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
 	}
 
 	// set the status to unbonded
 	seq.Status = types.Unbonded
-	seq.Tokens = sdk.Coin{}
+	seq.Tokens = sdk.Coins{}
 
 	k.UpdateSequencer(ctx, seq, types.Unbonding)
 	k.removeUnbondingSequencer(ctx, seq)

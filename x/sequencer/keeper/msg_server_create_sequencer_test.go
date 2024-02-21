@@ -104,7 +104,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			if tc.requiredBond.IsNil() {
 				suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
 			} else {
-				suite.Require().Equal(tc.requiredBond, sequencer.Tokens, tc.name)
+				suite.Require().Equal(sdk.NewCoins(tc.requiredBond), sequencer.Tokens, tc.name)
 			}
 		}
 	}
@@ -160,7 +160,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				DymintPubKey:     sequencerMsg.GetDymintPubKey(),
 				Status:           types.Bonded,
 				RollappId:        rollappId,
-				Tokens:           bond,
+				Tokens:           sdk.NewCoins(bond),
 				Description:      sequencerMsg.GetDescription(),
 			}
 			if i == 0 {
@@ -303,7 +303,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		Status:           types.Proposer,
 		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
-		Tokens:           bond,
+		Tokens:           sdk.NewCoins(bond),
 	}
 	equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
 }
@@ -498,11 +498,7 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.Tokens.IsNil() || s2.Tokens.IsNil() {
-		if !s1.Tokens.IsNil() || !s2.Tokens.IsNil() {
-			return false
-		}
-	} else if !s1.Tokens.Equal(s2.Tokens) {
+	if !s1.Tokens.IsEqual(s2.Tokens) {
 		return false
 	}
 
