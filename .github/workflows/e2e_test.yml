@@ -35,7 +35,6 @@ jobs:
           file: Dockerfile
           context: .
           outputs: type=docker,dest=/tmp/e2e.tar
-          push: true
           platforms: linux/amd64
           tags: |
               ghcr.io/dymensionxyz/dymension:e2e
