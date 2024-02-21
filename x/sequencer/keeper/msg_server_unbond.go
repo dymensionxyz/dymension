@@ -45,7 +45,6 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	seq.UnbondTime = completionTime
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
-	k.SetUnbondingSequencerQueue(ctx, seq)
 
 	return completionTime, nil
 }

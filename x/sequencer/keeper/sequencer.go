@@ -18,6 +18,11 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
+
+	//To support InitGenesis scenario
+	if sequencer.Status == types.Unbonding {
+		k.setUnbondingSequencerQueue(ctx, sequencer)
+	}
 }
 
 // Update sequencer status
@@ -31,6 +36,16 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
+
+	//handle unbonding queue changes due to status change
+	if sequencer.Status == oldStatus {
+		return
+	}
+	if sequencer.Status == types.Unbonding {
+		k.setUnbondingSequencerQueue(ctx, sequencer)
+	} else if oldStatus == types.Unbonding {
+		k.removeUnbondingSequencer(ctx, sequencer)
+	}
 }
 
 // GetSequencer returns a sequencer from its index
@@ -114,7 +129,7 @@ func (k Keeper) GetUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list
 	return
 }
 
-func (k Keeper) SetUnbondingSequencerQueue(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) setUnbondingSequencerQueue(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
