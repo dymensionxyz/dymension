@@ -3,7 +3,7 @@ Make sure you have Docker installed. For testing in local machine you need 2 ste
 
 1. Build a debug image with your code change
 ```bash
-make docker-build-debug
+make docker-build-e2e
 ```
 2. Run Test-case you want to test. Example:
 ```bash

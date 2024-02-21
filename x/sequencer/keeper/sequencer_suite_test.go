@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
@@ -37,7 +37,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 }
 
 func (suite *SequencerTestSuite) SetupTest() {
-	app := app.Setup(suite.T(), false)
+	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	suite.sequencerModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()

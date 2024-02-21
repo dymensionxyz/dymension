@@ -8,8 +8,12 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+)
+
+const (
+	eibcMemoObjectName = "eibc"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -145,15 +149,22 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:   chainID,
 		Packet:      &packet,
-		Status:      types.RollappPacket_PENDING,
+		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-		Type:        types.RollappPacket_ON_RECV,
+		Type:        commontypes.RollappPacket_ON_RECV,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+	err = im.handleEIBCPacket(ctx, chainID, rollappPacket, data)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
 
 	return nil
 }
@@ -212,16 +223,19 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:       chainID,
 		Packet:          &packet,
 		Acknowledgement: acknowledgement,
-		Status:          types.RollappPacket_PENDING,
+		Status:          commontypes.Status_PENDING,
 		Relayer:         relayer,
 		ProofHeight:     ibcClientLatestHeight.GetRevisionHeight(),
-		Type:            types.RollappPacket_ON_ACK,
+		Type:            commontypes.RollappPacket_ON_ACK,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -280,15 +294,18 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 	// Save the packet data to the store for later processing
-	rollappPacket := types.RollappPacket{
+	rollappPacket := commontypes.RollappPacket{
 		RollappId:   chainID,
 		Packet:      &packet,
-		Status:      types.RollappPacket_PENDING,
+		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: ibcClientLatestHeight.GetRevisionHeight(),
-		Type:        types.RollappPacket_ON_TIMEOUT,
+		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

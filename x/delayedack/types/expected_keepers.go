@@ -8,6 +8,7 @@ import (
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -31,4 +32,12 @@ type RollappKeeper interface {
 	GetParams(ctx sdk.Context) rollapptypes.Params
 	GetRollapp(ctx sdk.Context, chainID string) (rollapp rollapptypes.Rollapp, found bool)
 	StateInfo(c context.Context, req *types.QueryGetStateInfoRequest) (*types.QueryGetStateInfoResponse, error)
+}
+
+type EIBCKeeper interface {
+	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder) error
+}
+
+type BankKeeper interface {
+	BlockedAddr(addr sdk.AccAddress) bool
 }
