@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -79,8 +81,7 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	storePrefix := types.SequencersByRollappByStatusKey(rollappId, status)
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), storePrefix)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappByStatusKey(rollappId, status))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
@@ -94,15 +95,36 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 	return
 }
 
-// FIXME: get all unbonding sequencers by dedicated store
+/* -------------------------------------------------------------------------- */
+/*                               Unbonding queue                              */
+/* -------------------------------------------------------------------------- */
+
 // GetUnbondingSequencers returns all unbonding sequencers
-func (k Keeper) GetUnbondingSequencers(ctx sdk.Context) []types.Sequencer {
-	var list []types.Sequencer
-	for _, seq := range k.GetAllSequencers(ctx) {
-		if seq.Status == types.Unbonding {
-			list = append(list, seq)
-		}
+func (k Keeper) GetUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := store.Iterator(types.UnbondingQueueKey, sdk.PrefixEndBytes(types.UnbondingQueueByTimeKey(endTime)))
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Sequencer
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
 	}
 
-	return list
+	return
+}
+
+func (k Keeper) SetUnbondingSequencerQueue(ctx sdk.Context, sequencer types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&sequencer)
+
+	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	store.Set(unbondingQueueKey, b)
+}
+
+// remove unbonding sequencer from the queue
+func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	store.Delete(unbondingQueueKey)
 }

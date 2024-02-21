@@ -38,5 +38,6 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.UnbondTime = ctx.BlockHeader().Time
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
+
 	return nil
 }

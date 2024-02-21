@@ -12,17 +12,15 @@ import (
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
 // have finished their unbonding period.
 func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
-	sequencers := k.GetUnbondingSequencers(ctx)
+	sequencers := k.GetUnbondingSequencers(ctx, currTime)
 	for _, seq := range sequencers {
-		if seq.UnbondTime.Before(currTime) {
-			wrapFn := func(ctx sdk.Context) error {
-				return k.unbondSequencer(ctx, seq.SequencerAddress)
-			}
-			err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-			if err != nil {
-				k.Logger(ctx).Error("failed to unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
-				continue
-			}
+		wrapFn := func(ctx sdk.Context) error {
+			return k.unbondSequencer(ctx, seq.SequencerAddress)
+		}
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
+		if err != nil {
+			k.Logger(ctx).Error("failed to unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
+			continue
 		}
 	}
 }
@@ -60,5 +58,7 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	seq.Tokens = sdk.Coin{}
 
 	k.UpdateSequencer(ctx, seq, types.Unbonding)
+	k.removeUnbondingSequencer(ctx, seq)
+
 	return nil
 }

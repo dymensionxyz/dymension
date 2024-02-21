@@ -3,6 +3,9 @@ package types
 import (
 	"encoding/binary"
 	fmt "fmt"
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ binary.ByteOrder
@@ -62,10 +65,7 @@ func SequencersByRollappKey(rollappId string) []byte {
 }
 
 // SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
-func SequencersByRollappByStatusKey(
-	rollappId string,
-	status OperatingStatus,
-) []byte {
+func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []byte {
 	rollappIdBytes := []byte(rollappId)
 
 	// Get the relevant key prefix based on the packet status
@@ -85,46 +85,13 @@ func SequencersByRollappByStatusKey(
 	return []byte(fmt.Sprintf("%s%s%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes, KeySeparator, prefix))
 }
 
-/*
-// GetUBDKey creates the key for an unbonding delegation by delegator and validator addr
-// VALUE: staking/UnbondingDelegation
-func GetUBDKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetUBDsKey(delAddr.Bytes()), address.MustLengthPrefix(valAddr)...)
+func UnbondingQueueByTimeKey(endTime time.Time) []byte {
+	return append(UnbondingQueueKey, sdk.FormatTimeBytes(endTime)...)
 }
 
-// GetUBDByValIndexKey creates the index-key for an unbonding delegation, stored by validator-index
-// VALUE: none (key rearrangement used)
-func GetUBDByValIndexKey(delAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
-	return append(GetUBDsByValIndexKey(valAddr), address.MustLengthPrefix(delAddr)...)
+func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
+	key := append(UnbondingQueueKey, sdk.FormatTimeBytes(endTime)...)
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	return key
 }
-
-// GetUBDKeyFromValIndexKey rearranges the ValIndexKey to get the UBDKey
-func GetUBDKeyFromValIndexKey(indexKey []byte) []byte {
-	kv.AssertKeyAtLeastLength(indexKey, 2)
-	addrs := indexKey[1:] // remove prefix bytes
-
-	valAddrLen := addrs[0]
-	kv.AssertKeyAtLeastLength(addrs, 2+int(valAddrLen))
-	valAddr := addrs[1 : 1+valAddrLen]
-	kv.AssertKeyAtLeastLength(addrs, 3+int(valAddrLen))
-	delAddr := addrs[valAddrLen+2:]
-
-	return GetUBDKey(delAddr, valAddr)
-}
-
-// GetUBDsKey creates the prefix for all unbonding delegations from a delegator
-func GetUBDsKey(delAddr sdk.AccAddress) []byte {
-	return append(UnbondingDelegationKey, address.MustLengthPrefix(delAddr)...)
-}
-
-// GetUBDsByValIndexKey creates the prefix keyspace for the indexes of unbonding delegations for a validator
-func GetUBDsByValIndexKey(valAddr sdk.ValAddress) []byte {
-	return append(UnbondingDelegationByValIndexKey, address.MustLengthPrefix(valAddr)...)
-}
-
-// GetUnbondingDelegationTimeKey creates the prefix for all unbonding delegations from a delegator
-func GetUnbondingDelegationTimeKey(timestamp time.Time) []byte {
-	bz := sdk.FormatTimeBytes(timestamp)
-	return append(UnbondingQueueKey, bz...)
-}
-*/
