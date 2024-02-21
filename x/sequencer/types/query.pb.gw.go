@@ -195,38 +195,84 @@ func local_request_Query_SequencersByRollapp_0(ctx context.Context, marshaler ru
 
 }
 
-var (
-	filter_Query_SequencersByRollappAll_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
-func request_Query_SequencersByRollappAll_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryAllSequencersByRollappRequest
+func request_Query_SequencersByRollappByStatus_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGetSequencersByRollappByStatusRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollappAll_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		e   int32
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["rollappId"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollappId")
 	}
 
-	msg, err := client.SequencersByRollappAll(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	protoReq.RollappId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
+	}
+
+	val, ok = pathParams["status"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
+	}
+
+	e, err = runtime.Enum(val, OperatingStatus_value)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
+	}
+
+	protoReq.Status = OperatingStatus(e)
+
+	msg, err := client.SequencersByRollappByStatus(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_SequencersByRollappAll_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryAllSequencersByRollappRequest
+func local_request_Query_SequencersByRollappByStatus_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGetSequencersByRollappByStatusRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_SequencersByRollappAll_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		e   int32
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["rollappId"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "rollappId")
 	}
 
-	msg, err := server.SequencersByRollappAll(ctx, &protoReq)
+	protoReq.RollappId, err = runtime.String(val)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "rollappId", err)
+	}
+
+	val, ok = pathParams["status"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
+	}
+
+	e, err = runtime.Enum(val, OperatingStatus_value)
+
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
+	}
+
+	protoReq.Status = OperatingStatus(e)
+
+	msg, err := server.SequencersByRollappByStatus(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -329,7 +375,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 
 	})
 
-	mux.Handle("GET", pattern_Query_SequencersByRollappAll_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_SequencersByRollappByStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -340,7 +386,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_SequencersByRollappAll_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_SequencersByRollappByStatus_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -348,7 +394,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_SequencersByRollappAll_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_SequencersByRollappByStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -473,7 +519,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
-	mux.Handle("GET", pattern_Query_SequencersByRollappAll_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_SequencersByRollappByStatus_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -482,14 +528,14 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_SequencersByRollappAll_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_SequencersByRollappByStatus_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_SequencersByRollappAll_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_SequencersByRollappByStatus_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -505,7 +551,7 @@ var (
 
 	pattern_Query_SequencersByRollapp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_SequencersByRollappAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_SequencersByRollappByStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"dymensionxyz", "dymension", "sequencer", "sequencers_by_rollapp", "rollappId", "status"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
@@ -517,5 +563,5 @@ var (
 
 	forward_Query_SequencersByRollapp_0 = runtime.ForwardResponseMessage
 
-	forward_Query_SequencersByRollappAll_0 = runtime.ForwardResponseMessage
+	forward_Query_SequencersByRollappByStatus_0 = runtime.ForwardResponseMessage
 )
