@@ -16,6 +16,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Prevent strconv unused error
@@ -34,6 +36,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 			SequencerAddress: strconv.Itoa(i),
 		}
 		nullify.Fill(&sequencer)
+		sequencer.Tokens = sdk.Coin{"", sdk.ZeroInt()}
 		state.SequencerList = append(state.SequencerList, sequencer)
 
 		sequencersByRollapp := types.SequencersByRollapp{

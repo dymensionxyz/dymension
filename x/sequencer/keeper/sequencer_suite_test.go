@@ -78,7 +78,7 @@ func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollapp
 		DymintPubKey: pkAny1,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Description:  types.Description{},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	suite.Require().Nil(err)
