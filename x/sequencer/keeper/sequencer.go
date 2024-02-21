@@ -14,7 +14,18 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 		sequencer.SequencerAddress,
 	), b)
 
-	//FIXME: remove old key !!
+	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
+	store.Set(seqByrollappKey, b)
+}
+
+// Update sequencer status
+func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldStatus types.OperatingStatus) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshal(&sequencer)
+	store.Set(types.SequencerKey(sequencer.SequencerAddress), b)
+
+	oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus)
+	store.Delete(oldKey)
 
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)

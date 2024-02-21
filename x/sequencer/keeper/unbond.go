@@ -56,6 +56,6 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coin{}
 
-	k.SetSequencer(ctx, seq)
+	k.UpdateSequencer(ctx, seq, types.Unbonding)
 	return nil
 }

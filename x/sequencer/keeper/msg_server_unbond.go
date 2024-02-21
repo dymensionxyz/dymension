@@ -53,13 +53,14 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	}
 
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-
+	oldStatus := seq.Status
 	// set the status to unbonding
 	seq.Status = types.Unbonding
 	seq.UnbondingHeight = ctx.BlockHeight()
 	seq.UnbondingTime = completionTime
 
-	k.SetSequencer(ctx, seq)
+	k.UpdateSequencer(ctx, seq, oldStatus)
+
 	//FIXME: set in unbonding queue
 
 	return completionTime, nil

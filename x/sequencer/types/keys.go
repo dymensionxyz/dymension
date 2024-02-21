@@ -46,7 +46,6 @@ func SequencerKey(sequencerAddress string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))
 }
 
-// TODO: sequencers iterator
 func SequencersKey() []byte {
 	return []byte(SequencersKeyPrefix)
 }
