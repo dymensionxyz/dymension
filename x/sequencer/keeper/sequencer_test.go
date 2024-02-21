@@ -58,6 +58,6 @@ func TestSequencerGetAll(t *testing.T) {
 	items := createNSequencer(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllSequencer(ctx)),
+		nullify.Fill(keeper.GetAllSequencers(ctx)),
 	)
 }

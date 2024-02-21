@@ -28,18 +28,8 @@ func (gs GenesisState) Validate() error {
 		}
 		sequencerIndexMap[index] = struct{}{}
 	}
-	// Check for duplicated index in sequencersByRollapp
-	sequencersByRollappIndexMap := make(map[string]struct{})
 
-	for _, elem := range gs.SequencersByRollappList {
-		index := string(SequencersByRollappKey(elem.RollappId))
-		if _, ok := sequencersByRollappIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for sequencersByRollapp")
-		}
-		sequencersByRollappIndexMap[index] = struct{}{}
-	}
-
-	//FIXME: need to validate the correlation between the two arrays
+	//FIXME: validate single PROPOSER per rollapp
 
 	return gs.Params.Validate()
 }

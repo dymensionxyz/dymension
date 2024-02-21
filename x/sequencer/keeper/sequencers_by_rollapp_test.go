@@ -62,6 +62,6 @@ func TestSequencersByRollappGetAll(t *testing.T) {
 	items := createNSequencersByRollapp(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllSequencersByRollapp(ctx)),
+		nullify.Fill(keeper.GetAllSequencerssByRollapp(ctx)),
 	)
 }

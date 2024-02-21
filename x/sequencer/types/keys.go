@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+	fmt "fmt"
 )
 
 var _ binary.ByteOrder
@@ -23,47 +24,66 @@ const (
 	MemStoreKey = "mem_sequencer"
 )
 
-// TODO: change keys to bytes
 var (
-	// SequencerKeyPrefix is the prefix to retrieve all Sequencer
-	SequencerKeyPrefix = "Sequencer/value/"
-	// SequencersByRollappKeyPrefix is the prefix to retrieve all SequencersByRollapp
-	SequencersByRollappKeyPrefix = "SequencersByRollapp/value/"
+	// KeySeparator defines the separator for keys
+	KeySeparator = "/"
 
-	UnbondingSequencerKey          = []byte{0x32} // key for an unbonding-delegation
-	UnbondingSequencerByRollappKey = []byte{0x33} // prefix for each key for an unbonding-delegation, by validator operator
+	// SequencersKeyPrefix is the prefix to retrieve all Sequencers by their address
+	SequencersKeyPrefix = []byte{0x00} // prefix/seqAddr
+
+	// SequencersByRollappKeyPrefix is the prefix to retrieve all SequencersByRollapp
+	SequencersByRollappKeyPrefix = []byte{0x01} // prefix/rollappId
+	BondedSequencersKeyPrefix    = []byte{0xa1}
+	UnbondedSequencersKeyPrefix  = []byte{0xa2}
+	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
 	UnbondingQueueKey = []byte{0x41} // prefix for the timestamps in unbonding queue
 )
 
-// SequencerKey returns the store key to retrieve a Sequencer from the index fields
-func SequencerKey(
-	sequencerAddress string,
-) []byte {
-	var key []byte
+// SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
+func SequencerKey(sequencerAddress string) []byte {
+	sequencerAddrBytes := []byte(sequencerAddress)
+	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))
+}
 
-	sequencerAddressBytes := []byte(sequencerAddress)
-	key = append(key, sequencerAddressBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
+// TODO: sequencers iterator
+func SequencersKey() []byte {
+	return []byte(SequencersKeyPrefix)
 }
 
 // SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
-func SequencersByRollappKey(
-	rollappId string,
-) []byte {
-	var key []byte
-
-	rollappIdBytes := []byte(rollappId)
-	key = append(key, rollappIdBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
+func SequencerByRollappByStatusKey(rollappId, seqAddr string, status OperatingStatus) []byte {
+	return append(SequencersByRollappByStatusKey(rollappId, status), SequencerKey(seqAddr)...)
 }
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
+// SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
+func SequencersByRollappKey(rollappId string) []byte {
+	rollappIdBytes := []byte(rollappId)
+	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes))
+}
+
+// SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
+func SequencersByRollappByStatusKey(
+	rollappId string,
+	status OperatingStatus,
+) []byte {
+	rollappIdBytes := []byte(rollappId)
+
+	// Get the relevant key prefix based on the packet status
+	var prefix []byte
+	switch status {
+	case Bonded:
+	case Proposer:
+		prefix = BondedSequencersKeyPrefix
+	case Unbonded:
+		prefix = UnbondedSequencersKeyPrefix
+	case Unbonding:
+		prefix = UnbondingSequencersKeyPrefix
+	default:
+		panic(fmt.Sprintf("invalid sequencer status: %s", status.String()))
+	}
+
+	return []byte(fmt.Sprintf("%s%s%s%s%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes, KeySeparator, prefix))
 }
 
 /*

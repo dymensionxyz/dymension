@@ -20,7 +20,7 @@ func (k Keeper) SequencerAll(c context.Context, req *types.QueryAllSequencerRequ
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	sequencerStore := prefix.NewStore(store, types.KeyPrefix(types.SequencerKeyPrefix))
+	sequencerStore := prefix.NewStore(store, types.SequencersKey())
 
 	pageRes, err := query.Paginate(sequencerStore, req.Pagination, func(key []byte, value []byte) error {
 		var sequencer types.Sequencer

@@ -84,23 +84,17 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Tokens:           bond,
 	}
 
-	//FIXME: change to get only bonded sequencers
-	sequencersByRollapp, found := k.GetSequencersByRollapp(ctx, msg.RollappId)
+	sequencersByRollapp := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
 	// check to see if we reached the maximum number of sequeners for this rollapp
-	currentNumOfSequencers := len(sequencersByRollapp.Sequencers.Addresses)
+	currentNumOfSequencers := len(sequencersByRollapp)
 	if currentNumOfSequencers >= int(rollapp.MaxSequencers) {
 		return nil, types.ErrMaxSequencersLimit
 	}
-	if !found {
-		// this is the first sequencer, make it a PROPOSER
-		sequencersByRollapp.RollappId = msg.RollappId
+	// this is the first sequencer, make it a PROPOSER
+	if currentNumOfSequencers == 0 {
 		sequencer.Status = types.Proposer
 	}
-	// update sequencers list
-	sequencersByRollapp.Sequencers.Addresses = append(sequencersByRollapp.Sequencers.Addresses, msg.Creator)
-	k.SetSequencersByRollapp(ctx, sequencersByRollapp)
 
 	k.SetSequencer(ctx, sequencer)
-
 	return &types.MsgCreateSequencerResponse{}, nil
 }
