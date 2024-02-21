@@ -53,7 +53,7 @@ func (msg *MsgNonAvailableBatch) ValidateBasic() error {
 	// Validate the JSON-encoded proof data
 	_, err = msg.DecodeNonInclusionProof()
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding non-inclusion proof: %s", err)
 	}
 	return nil
 }
@@ -69,6 +69,7 @@ func (msg *MsgNonAvailableBatch) DecodeNonInclusionProof() (inclusion.NonInclusi
 	}
 
 	nonInclusionProof.RowProof = nip.GetRproofs()
+	nonInclusionProof.DataRoot = nip.GetDataroot()
 
 	return nonInclusionProof, nil
 
