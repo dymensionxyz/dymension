@@ -13,8 +13,8 @@ const (
 	AttributeKeyPacketSourceChannel      = "source_channel"
 	AttributeKeyPacketDestinationPort    = "destination_port"
 	AttributeKeyPacketDestinationChannel = "destination_channel"
-	AttributeKeyPacketSequence              = "packet_sequence"
-	AttributeKeyPacketError                 = "error"
+	AttributeKeyPacketSequence           = "packet_sequence"
+	AttributeKeyPacketError              = "error"
 )
 
 func (r RollappPacket) GetEvents() []sdk.Attribute {
