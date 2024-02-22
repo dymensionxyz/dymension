@@ -25,11 +25,11 @@ func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud)
 	}
 	//FIXME: validate rollapp type/SW version is verifiable
 
-	fp, err := msg.DecodeFraudProof()
+	fp, ip, err := msg.DecodeFraudProof()
 	if err != nil {
 		return nil, err
 	}
-	err = k.VerifyFraudProof(ctx, msg.RollappID, fp)
+	err = k.VerifyFraudProof(ctx, msg.RollappID, fp, ip)
 	if err != nil {
 		return nil, err
 	}

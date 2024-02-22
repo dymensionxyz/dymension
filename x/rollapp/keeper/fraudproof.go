@@ -5,20 +5,21 @@ import (
 
 	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
+func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp *fraudtypes.FraudProof, ip *inclusion.InclusionProof) error {
 	err := k.ValidateFraudProof(ctx, rollappID, fp)
 	if err != nil {
 		return err
 	}
 
-	err = k.fraudProofVerifier.InitFromFraudProof(&fp)
+	err = k.fraudProofVerifier.InitFromFraudProof(fp)
 	if err != nil {
 		return err
 	}
-	err = k.fraudProofVerifier.VerifyFraudProof(&fp)
+	err = k.fraudProofVerifier.VerifyFraudProof(fp)
 	if err != nil {
 		return err
 	}
@@ -27,7 +28,7 @@ func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtyp
 }
 
 // validate fraud proof preState Hash against the state update posted on the hub
-func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
+func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraudtypes.FraudProof) error {
 	//validate the fp struct and witnesses
 	_, err := fp.ValidateBasic()
 	if err != nil {
