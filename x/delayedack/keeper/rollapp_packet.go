@@ -194,5 +194,12 @@ func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 		return err
 	}
 	store.Delete(rollappPacketKey)
+
+	keeperHooks := k.GetHooks()
+	err = keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
