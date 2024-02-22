@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	abcitypes "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestInclusionProof(t *testing.T) {
@@ -32,7 +32,7 @@ func TestInclusionProof(t *testing.T) {
 
 	// Decode the JSON-encoded data into your struct
 	jsonDecoder := json.NewDecoder(file)
-	proof := rollapptypes.BlobInclusionProof{}
+	proof := abcitypes.BlobInclusionProof{}
 	err = jsonDecoder.Decode(&proof)
 	require.NoError(err)
 
