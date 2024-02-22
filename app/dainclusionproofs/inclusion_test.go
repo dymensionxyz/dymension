@@ -43,8 +43,8 @@ func TestInclusionProof(t *testing.T) {
 	inclusionProof.Nmtproofs = proof.GetNmtproofs()
 	inclusionProof.Nmtroots = proof.GetNmtroots()
 	inclusionProof.RowProofs = proof.GetRproofs()
-
-	_, _, _, err = inclusionProof.VerifyBlobInclusion(ns.Bytes(), proof.GetDataroot())
+	inclusionProof.Namespace = ns.Bytes()
+	_, _, _, err = inclusionProof.VerifyBlobInclusion()
 	require.NoError(err)
 
 }

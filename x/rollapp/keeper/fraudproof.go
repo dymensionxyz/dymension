@@ -7,10 +7,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	inclusion "github.com/dymensionxyz/dymension/v3/app/dainclusionproofs"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	dyminttypes "github.com/dymensionxyz/dymint/types"
+	pb "github.com/dymensionxyz/dymint/types/pb/dymint"
+	"github.com/gogo/protobuf/proto"
+	"github.com/rollkit/celestia-openrpc/types/blob"
 )
 
 func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp *fraudtypes.FraudProof, ip *inclusion.InclusionProof) error {
-	err := k.ValidateFraudProof(ctx, rollappID, fp)
+	err := k.ValidateFraudProof(ctx, rollappID, fp, ip)
 	if err != nil {
 		return err
 	}
@@ -28,7 +32,7 @@ func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp *fraudty
 }
 
 // validate fraud proof preState Hash against the state update posted on the hub
-func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraudtypes.FraudProof) error {
+func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraudtypes.FraudProof, ip *inclusion.InclusionProof) error {
 	//validate the fp struct and witnesses
 	_, err := fp.ValidateBasic()
 	if err != nil {
@@ -68,7 +72,55 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraud
 		return types.ErrInvalidExpectedAppHash
 	}
 
+	//blob inclusion validation
+	_, _, _, err = ip.VerifyBlobInclusion()
+	if err != nil {
+		return err
+	}
+	//TODO(srene): dataroot validation
+
+	found = false
+	blocks, err := getBlobBlocks(ip.Blob)
+	if err != nil {
+		return err
+	}
+
+	//locate tx in blob
+	for _, block := range blocks {
+		if int64(block.Header.Height) == blockHeight {
+			if bytes.Equal(block.Data.Txs[idx-1], fp.FraudulentDeliverTx.Tx) {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
+		return types.ErrBlobInclusionNotValidated
+	}
 	// TODO: Validate the fraudulent state transition is contained in the block header
 
 	return nil
+}
+
+func getBlobBlocks(b []byte) ([]*dyminttypes.Block, error) {
+
+	var decodedBlob blob.Blob
+	err := decodedBlob.UnmarshalJSON(b)
+	if err != nil {
+		return nil, err
+	}
+
+	var batch pb.Batch
+	err = proto.Unmarshal(decodedBlob.Data, &batch)
+	if err != nil {
+		return nil, err
+	}
+	parsedBatch := new(dyminttypes.Batch)
+	err = parsedBatch.FromProto(&batch)
+	if err != nil {
+		return nil, err
+	}
+
+	return parsedBatch.Blocks, nil
+
 }

@@ -1,7 +1,6 @@
 package inclusion
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"errors"
 
@@ -12,6 +11,7 @@ import (
 )
 
 type InclusionProof struct {
+	Namespace []byte
 	Blob      []byte
 	Nmtproofs [][]byte
 	Nmtroots  [][]byte
@@ -19,11 +19,7 @@ type InclusionProof struct {
 	DataRoot  []byte
 }
 
-func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte) ([]byte, int, int, error) {
-
-	if !bytes.Equal(ip.DataRoot, dataRoot) {
-		return nil, 0, 0, errors.New("error")
-	}
+func (ip *InclusionProof) VerifyBlobInclusion() ([]byte, int, int, error) {
 
 	var nmtProofs []*nmt.Proof
 	for _, codedNMTProof := range ip.Nmtproofs {
@@ -57,7 +53,7 @@ func (ip *InclusionProof) VerifyBlobInclusion(namespace []byte, dataRoot []byte)
 			leafs = append(leafs, leaf)
 		}
 
-		if !nmtProof.VerifyInclusion(sha256.New(), namespace, leafs, ip.Nmtroots[i]) {
+		if !nmtProof.VerifyInclusion(sha256.New(), ip.Namespace, leafs, ip.Nmtroots[i]) {
 			return nil, 0, 0, errors.New("blob not included")
 		}
 		index += sharesNum
