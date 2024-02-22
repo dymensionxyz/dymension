@@ -12,7 +12,7 @@ import (
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
 // have finished their unbonding period.
 func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
-	sequencers := k.GetUnbondingSequencers(ctx, currTime)
+	sequencers := k.GetMatureUnbondingSequencers(ctx, currTime)
 	for _, seq := range sequencers {
 		wrapFn := func(ctx sdk.Context) error {
 			return k.unbondSequencer(ctx, seq.SequencerAddress)

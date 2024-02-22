@@ -96,7 +96,11 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersByRollappByStatusKey(rollappId, status))
+	if status == types.Unspecified {
+		return k.GetSequencersByRollapp(ctx, rollappId)
+	}
+	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close() // nolint: errcheck
@@ -114,10 +118,11 @@ func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string
 /*                               Unbonding queue                              */
 /* -------------------------------------------------------------------------- */
 
-// GetUnbondingSequencers returns all unbonding sequencers
-func (k Keeper) GetUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
+// GetMatureUnbondingSequencers returns all unbonding sequencers
+func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := store.Iterator(types.UnbondingQueueKey, sdk.PrefixEndBytes(types.UnbondingQueueByTimeKey(endTime)))
+
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {

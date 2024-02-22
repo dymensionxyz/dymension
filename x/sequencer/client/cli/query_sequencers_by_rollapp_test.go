@@ -9,11 +9,13 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/rand"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -21,16 +23,31 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-const (
-	rollappId = "rollappID"
+var (
+	// rollappId = "rollappID"
+	rollappId = rand.Str(8)
 )
 
 func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, types.QueryGetSequencersByRollappResponse) {
 	t.Helper()
 	cfg := network.DefaultConfig()
+
+	//create rollapp
+	rollappstate := rollapptypes.GenesisState{}
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[rollapptypes.ModuleName], &rollappstate))
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId: rollappId,
+	}
+	nullify.Fill(&rollapp)
+	rollappstate.RollappList = append(rollappstate.RollappList, rollapp)
+	buf, err := cfg.Codec.MarshalJSON(&rollappstate)
+	require.NoError(t, err)
+	cfg.GenesisState[rollapptypes.ModuleName] = buf
+
+	//create sequencers
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
-
 	var allSequencersByRollappResponse types.QueryGetSequencersByRollappResponse
 
 	for i := 0; i < n; i++ {
@@ -47,7 +64,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 		allSequencersByRollappResponse.Sequencers = append(allSequencersByRollappResponse.Sequencers, sequencer)
 	}
 
-	buf, err := cfg.Codec.MarshalJSON(&state)
+	buf, err = cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
 	return network.New(t, cfg), allSequencersByRollappResponse
@@ -71,9 +88,8 @@ func TestShowSequencersByRollapp(t *testing.T) {
 		{
 			desc:        "found",
 			idRollappId: rollappId,
-
-			args: common,
-			obj:  allSequencersByRollappResponse,
+			args:        common,
+			obj:         allSequencersByRollappResponse,
 		},
 		{
 			desc:        "not found",

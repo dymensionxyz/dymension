@@ -58,7 +58,7 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 		RollappId:     rand.Str(8),
 		Creator:       alice,
 		Version:       0,
-		MaxSequencers: 2,
+		MaxSequencers: 5,
 	}
 	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
 	return rollapp.GetRollappId()

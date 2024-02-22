@@ -65,7 +65,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 			request: &types.QueryGetSequencersByRollappRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			err: types.ErrUnknownRollappID,
 		},
 		{
 			desc: "InvalidRequest",
@@ -153,19 +153,19 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			response_addr: []string{addr1_2, addr2_2},
 		},
 		{
-			desc: "Bad Status",
+			desc: "Unspecified Status",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: rollappId2,
 				Status:    types.Unspecified,
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			response_addr: []string{addr1_2, addr2_2},
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			err: types.ErrUnknownRollappID,
 		},
 		{
 			desc: "InvalidRequest",
@@ -178,6 +178,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				require.ErrorIs(t, err, tc.err)
 			} else {
 				require.NoError(t, err)
+				require.Len(t, response.Sequencers, len(tc.response_addr))
 
 				for _, seqAddr := range tc.response_addr {
 					seq, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, seqAddr)

@@ -69,14 +69,10 @@ func TestSequencerQuerySingle(t *testing.T) {
 	}
 }
 
-func TestSequencerQueryPaginated(t *testing.T) {
+func TestSequencersQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	sequencers := createNSequencer(keeper, ctx, 5)
-	var sequencerInfoList []types.Sequencer
-	for _, sequencer := range sequencers {
-		sequencerInfoList = append(sequencerInfoList, sequencer)
-	}
 
 	request := func(next []byte, offset, limit uint64, total bool) *types.QuerySequencersRequest {
 		return &types.QuerySequencersRequest{
