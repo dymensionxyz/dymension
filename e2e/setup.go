@@ -13,9 +13,9 @@ import (
 )
 
 var (
-	DymensionMainRepo = "ghcr.io/decentrio/dymension"
+	DymensionMainRepo = "ghcr.io/dymensionxyz/dymension"
 
-	RollappMainRepo = "ghcr.io/decentrio/rollapp"
+	RollappMainRepo = "ghcr.io/dymensionxyz/rollapp"
 
 	repo, version = GetDockerImageInfo()
 
