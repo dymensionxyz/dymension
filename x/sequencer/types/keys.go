@@ -79,7 +79,6 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 	case Unbonding:
 		prefix = UnbondingSequencersKeyPrefix
 	default:
-		panic(fmt.Sprintf("invalid sequencer status: %s", status.String()))
 	}
 
 	return []byte(fmt.Sprintf("%s%s%s%s%s", SequencersByRollappKeyPrefix, KeySeparator, rollappIdBytes, KeySeparator, prefix))

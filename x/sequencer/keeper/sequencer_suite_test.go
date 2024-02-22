@@ -18,6 +18,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
+	"github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -54,7 +55,7 @@ func (suite *SequencerTestSuite) SetupTest() {
 
 func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 	rollapp := rollapptypes.Rollapp{
-		RollappId:     "rollapp1",
+		RollappId:     rand.Str(8),
 		Creator:       alice,
 		Version:       0,
 		MaxSequencers: 2,

@@ -15,9 +15,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
 func TestSequencerQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
@@ -34,7 +31,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 				SequencerAddress: sequencers[0].SequencerAddress,
 			},
 			response: &types.QueryGetSequencerResponse{
-				sequencers[0],
+				Sequencer: sequencers[0],
 			}},
 		{
 			desc: "Second",
@@ -42,7 +39,7 @@ func TestSequencerQuerySingle(t *testing.T) {
 				SequencerAddress: sequencers[1].SequencerAddress,
 			},
 			response: &types.QueryGetSequencerResponse{
-				sequencers[1],
+				Sequencer: sequencers[1],
 			},
 		},
 		{
@@ -93,12 +90,12 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	}
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
-		for i := 0; i < len(sequencerInfoList); i += step {
+		for i := 0; i < len(sequencers); i += step {
 			resp, err := keeper.Sequencers(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
-				nullify.Fill(sequencerInfoList),
+				nullify.Fill(sequencers),
 				nullify.Fill(resp.Sequencers),
 			)
 		}
@@ -106,12 +103,12 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	t.Run("ByKey", func(t *testing.T) {
 		step := 2
 		var next []byte
-		for i := 0; i < len(sequencerInfoList); i += step {
+		for i := 0; i < len(sequencers); i += step {
 			resp, err := keeper.Sequencers(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
-				nullify.Fill(sequencerInfoList),
+				nullify.Fill(sequencers),
 				nullify.Fill(resp.Sequencers),
 			)
 			next = resp.Pagination.NextKey
@@ -120,9 +117,9 @@ func TestSequencerQueryPaginated(t *testing.T) {
 	t.Run("Total", func(t *testing.T) {
 		resp, err := keeper.Sequencers(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
-		require.Equal(t, len(sequencerInfoList), int(resp.Pagination.Total))
+		require.Equal(t, len(sequencers), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
-			nullify.Fill(sequencerInfoList),
+			nullify.Fill(sequencers),
 			nullify.Fill(resp.Sequencers),
 		)
 	})
