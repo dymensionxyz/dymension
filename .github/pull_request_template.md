@@ -34,7 +34,7 @@ SDK Checklist
 - [ ] No usage of `time.Now()`
 - [ ] Used fixed point arithmetic and not float arithmetic
 - [ ] Avoid panicking in Begin/End block as much as possible
-- [ ] No unexpeted math Overflow
+- [ ] No unexpected math Overflow
 - [ ] Used `sendCoin` and not `SendCoins`
 - [ ] Out-of-block compute is bounded
 - [ ] No serialized ID at the end of store keys

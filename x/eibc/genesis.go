@@ -13,7 +13,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, demandOrder := range genState.DemandOrders {
 		// Create a copy of demandOrder to avoid reusing the same memory address
 		demandOrderCopy := demandOrder
-		k.SetDemandOrder(ctx, &demandOrderCopy)
+		err := k.SetDemandOrder(ctx, &demandOrderCopy)
+		if err != nil {
+			panic(err)
+		}
+
 	}
 }
 

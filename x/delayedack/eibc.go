@@ -34,7 +34,11 @@ func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollap
 		return err
 	}
 	// Save the eibc order in the store
-	im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	if err != nil {
+		err = fmt.Errorf("Failed to save eibc demand order, %s", err)
+		return err
+	}
 	return nil
 }
 

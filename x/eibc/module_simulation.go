@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/dymensionxyz/dymension/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	eibcsimulation "github.com/dymensionxyz/dymension/v3/x/eibc/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )

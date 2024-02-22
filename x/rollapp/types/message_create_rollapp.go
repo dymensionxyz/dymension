@@ -69,5 +69,14 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		}
 	}
 
+	// verifies that token metadata, if any, must be valid
+	if len(msg.GetMetadatas()) > 0 {
+		for _, metadata := range msg.GetMetadatas() {
+			if err := metadata.Validate(); err != nil {
+				return sdkerrors.Wrapf(ErrInvalidTokenMetadata, "%s: %v", metadata.Base, err)
+			}
+		}
+	}
+
 	return nil
 }
