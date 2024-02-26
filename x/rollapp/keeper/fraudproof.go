@@ -14,7 +14,16 @@ func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtyp
 		return err
 	}
 
-	err = k.fraudProofVerifier.InitFromFraudProof(&fp)
+	err = k.RunFraudProof(fp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k *Keeper) RunFraudProof(fp fraudtypes.FraudProof) error {
+	err := k.fraudProofVerifier.InitFromFraudProof(&fp)
 	if err != nil {
 		return err
 	}
@@ -47,23 +56,23 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 		return types.ErrMissingIntermediateStatesRoots
 	}
 
-	found := false
+	foundIdx := -1
 	for idx, isr := range blockDescriptor.IntermediateStatesRoots {
 		//skip the last ISR
 		if idx == len(blockDescriptor.IntermediateStatesRoots)-1 {
 			break
 		}
 		if bytes.Equal(isr, fp.PreStateAppHash) {
-			found = true
+			foundIdx = idx
 			break
 		}
 	}
 
-	if !found {
+	if foundIdx == -1 {
 		return types.ErrInvalidPreStateAppHash
 	}
 
-	if bytes.Equal(blockDescriptor.IntermediateStatesRoots[idx+1], fp.ExpectedValidAppHash) {
+	if bytes.Equal(blockDescriptor.IntermediateStatesRoots[foundIdx+1], fp.ExpectedValidAppHash) {
 		return types.ErrInvalidExpectedAppHash
 	}
 
