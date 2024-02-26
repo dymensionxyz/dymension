@@ -25,7 +25,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   1,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 		}, {
 			name: "valid initial state with 3 blocks",
@@ -34,10 +34,10 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 3, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
-			},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 3, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+				}}},
 		}, {
 			name: "valid state from known state",
 			msg: MsgUpdateState{
@@ -45,7 +45,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 4,
 				NumBlocks:   1,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 		}, {
 			name: "valid state from known state with 3 blocks",
@@ -54,10 +54,10 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 4,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 6, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
-			},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 6, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+				}}},
 		}, {
 			name: "invalid address",
 			msg: MsgUpdateState{
@@ -65,7 +65,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   1,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
@@ -93,8 +93,8 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 4,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidNumBlocks,
 		}, {
@@ -104,8 +104,8 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 0,
 				NumBlocks:   2,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 0, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 0, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrWrongBlockHeight,
 		}, {
@@ -115,8 +115,8 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 2,
 				NumBlocks:   2,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -126,8 +126,8 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   2,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -137,7 +137,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   1,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -147,9 +147,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -159,9 +159,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 4,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 7, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 7, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -171,9 +171,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 4,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 4, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 6, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 5, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 4, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 6, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 5, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidBlockSequence,
 		}, {
@@ -183,9 +183,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, IntermediateStatesRoot: hash32},
-					{Height: 3, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 3, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidStateRoot,
 		}, {
@@ -195,9 +195,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, StateRoot: []byte("1"), IntermediateStatesRoot: hash32},
-					{Height: 3, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, StateRoot: []byte("1"), IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 3, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidStateRoot,
 		}, {
@@ -207,9 +207,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, StateRoot: []byte("112345678901234567890123456789012"), IntermediateStatesRoot: hash32},
-					{Height: 3, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, StateRoot: []byte("112345678901234567890123456789012"), IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 3, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidStateRoot,
 		}, {
@@ -219,9 +219,9 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				StartHeight: 1,
 				NumBlocks:   3,
 				BDs: BlockDescriptors{BD: []BlockDescriptor{
-					{Height: 1, StateRoot: hash32, IntermediateStatesRoot: hash32},
-					{Height: 2, StateRoot: hash32, IntermediateStatesRoot: []byte("112345678901234567890123456789012")},
-					{Height: 3, StateRoot: hash32, IntermediateStatesRoot: hash32}}},
+					{Height: 1, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}},
+					{Height: 2, StateRoot: hash32, IntermediateStatesRoots: [][]byte{[]byte("112345678901234567890123456789012")}},
+					{Height: 3, StateRoot: hash32, IntermediateStatesRoots: [][]byte{hash32}}}},
 			},
 			err: ErrInvalidIntermediateStatesRoot,
 		},

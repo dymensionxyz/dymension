@@ -50,6 +50,11 @@ func (msg *MsgSubmitFraud) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	// Validate the rollapp ID
+	if len(msg.RollappID) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "rollapp ID cannot be empty")
+	}
+
 	// Validate the JSON-encoded fraudproof data
 	_, err = msg.DecodeFraudProof()
 	if err != nil {
