@@ -78,6 +78,6 @@ func (msg *MsgSubmitFraud) DecodeFraudProof() (*fraudtypes.FraudProof, *inclusio
 	ip.Nmtroots = fp.GetInclusionProof().GetNmtroots()
 	ip.RowProofs = fp.GetInclusionProof().GetRproofs()
 	ip.DataRoot = fp.GetInclusionProof().GetDataroot()
-
+	ip.Namespace = fp.GetInclusionProof().GetNamespace()
 	return fraud, ip, nil
 }

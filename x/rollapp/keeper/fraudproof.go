@@ -59,6 +59,7 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraud
 			break
 		}
 		if bytes.Equal(isr, fp.PreStateAppHash) {
+			//fmt.Println("found", idx)
 			found = true
 			break
 		}
@@ -77,7 +78,7 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraud
 	if err != nil {
 		return err
 	}
-	//TODO(srene): dataroot validation
+	//TODO(srene): dataroot and commitment validation against sequencer's data
 
 	found = false
 	blocks, err := getBlobBlocks(ip.Blob)
@@ -86,9 +87,16 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp *fraud
 	}
 
 	//locate tx in blob
+	//isrs are not included in the blob by now, so we locate by isr index (to be checked)
 	for _, block := range blocks {
+		//fmt.Println(len(block.Data.Txs), idx, len(blockDescriptor.IntermediateStatesRoots))
+
 		if int64(block.Header.Height) == blockHeight {
-			if bytes.Equal(block.Data.Txs[idx-1], fp.FraudulentDeliverTx.Tx) {
+			idxCmp := idx - 1
+			if idxCmp < 0 {
+				idxCmp = 0
+			}
+			if bytes.Equal(block.Data.Txs[idxCmp], fp.FraudulentDeliverTx.Tx) {
 				found = true
 				break
 			}
