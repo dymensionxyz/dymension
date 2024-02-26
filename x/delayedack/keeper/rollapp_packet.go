@@ -48,12 +48,12 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 	return &rollappPacket, nil
 }
 
-// UpdateRollappPacketRecipient updates the recipient of the underlying packet.
+// UpdateRollappPacketTransferData updates the recipient of the underlying packet.
 // Only pending packets can be updated.
-func (k Keeper) UpdateRollappPacketRecipient(
+func (k Keeper) UpdateRollappPacketTransferAddress(
 	ctx sdk.Context,
 	rollappPacketKey string,
-	newRecipient string,
+	address string,
 ) error {
 	rollappPacket, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
@@ -66,12 +66,18 @@ func (k Keeper) UpdateRollappPacketRecipient(
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data); err != nil {
 		return err
 	}
-	// Create a copy of the packet with the new recipient
+	// Set the recipient and sender based on the rollapp packet type
+	recipient, sender := data.Receiver, data.Sender
+	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+		recipient = address
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		sender = address
+	}
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
 		data.Denom,
 		data.Amount,
-		data.Sender,
-		newRecipient,
+		sender,
+		recipient,
 		data.Memo,
 	)
 	// Marshall to binary and update the packet with this data

@@ -19,3 +19,8 @@ func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
 	k.paramstore.Get(ctx, types.KeyEpochIdentifier, &res)
 	return
 }
+
+func (k Keeper) TimeoutFee(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyTimeoutFee, &res)
+	return
+}
