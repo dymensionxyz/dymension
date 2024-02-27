@@ -90,3 +90,9 @@ func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
 
 	return
 }
+
+// IsRollappStarted returns true if the rollapp is started
+func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
+	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
+	return found
+}
