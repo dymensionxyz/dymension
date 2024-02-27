@@ -12,6 +12,11 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
+const (
+	eibcMemoObjectName = "eibc"
+	PFMMemoObjectName  = "forward"
+)
+
 func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	// Handle eibc demand order if exists - Start by validating the memo
@@ -20,6 +25,11 @@ func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollap
 	if err != nil || memo[eibcMemoObjectName] == nil {
 		logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
 		return nil
+	}
+	// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
+	if memo[PFMMemoObjectName] != nil {
+		err = fmt.Errorf("EIBC packet with PFM is currently not supported")
+		return err
 	}
 	packetMetaData := &types.PacketMetadata{}
 	err = json.Unmarshal([]byte(data.Memo), packetMetaData)
