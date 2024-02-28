@@ -115,19 +115,27 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	)
 
 	// calculate finalization
-	finalizationHeight := uint64(ctx.BlockHeight()) + k.DisputePeriodInBlocks(ctx)
+	creationHeight := uint64(ctx.BlockHeight())
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
+	k.Logger(ctx).Info("Adding finalization queue at ", creationHeight)
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, finalizationHeight)
+	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 	if found {
 		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}
 
 	// Write new BlockHeightToFinalizationQueue
+
+	globalIndex, isFound := k.GetLatestFinalizedStateGlobalIndex(ctx)
+	if !isFound {
+		globalIndex.Index = uint64(ctx.BlockHeight())
+		k.SetLatestFinalizedGlobalStateIndex(ctx, globalIndex)
+	}
+
 	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
-		FinalizationHeight: finalizationHeight,
-		FinalizationQueue:  newFinalizationQueue,
+		CreationHeight:    creationHeight,
+		FinalizationQueue: newFinalizationQueue,
 	})
 
 	ctx.EventManager().EmitEvent(

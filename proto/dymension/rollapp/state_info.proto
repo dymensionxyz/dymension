@@ -24,6 +24,14 @@ message StateInfoIndex {
     
 }
 
+message StateInfoGlobalIndex {
+
+    // index is a sequential increasing number, updating on each
+    // state update used for indexing to a specific state info, the first index is 1
+    uint64 index = 1; 
+    
+}
+
 // StateInfo defines a rollapps' state.
 message StateInfo {
     // stateInfoIndex defines what rollapp the state belongs to
@@ -62,7 +70,7 @@ message StateInfoSummary {
 // BlockHeightToFinalizationQueue defines a map from block height to list of states to finalized
 message BlockHeightToFinalizationQueue {
     // finalizationHeight is the block height that the state should be finalized
-    uint64 finalizationHeight = 1; 
+    uint64 creationHeight = 1; 
     // finalizationQueue is a list of states that are waiting to be finalized
     // when the block height becomes finalizationHeight
     repeated StateInfoIndex finalizationQueue = 2 [(gogoproto.nullable) = false];

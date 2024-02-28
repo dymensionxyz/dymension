@@ -53,7 +53,7 @@ func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightTo
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	b := k.cdc.MustMarshal(&blockHeightToFinalizationQueue)
 	store.Set(types.BlockHeightToFinalizationQueueKey(
-		blockHeightToFinalizationQueue.FinalizationHeight,
+		blockHeightToFinalizationQueue.CreationHeight,
 	), b)
 }
 
