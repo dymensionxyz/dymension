@@ -48,9 +48,14 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 		rollapps := k.GetAllRollapp(ctx)
 		for _, rollapp := range rollapps {
 			eip155, err := types.ParseChainID(rollapp.RollappId)
-			if err != nil || eip155 == nil {
-				msg += fmt.Sprintf("rollapp (%s) have invalid eip155 key\n", rollapp.RollappId)
+			if err != nil {
+				msg += fmt.Sprintf("rollapp (%s) have invalid rollappId\n", rollapp.RollappId)
 				broken = true
+				continue
+			}
+
+			//not breaking invariant, as eip155 format is not required
+			if eip155 == nil {
 				continue
 			}
 
@@ -80,11 +85,13 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
 				continue
 			}
-			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 			latestStateIdx, _ := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+
+			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
 			//iterate over all the unfinalzied states and make sure they are in the queue
-			for i := latestFinalizedStateIdx.Index; i < latestStateIdx.Index; i++ {
+			for i := firstUnfinalizedStateIdx; i <= latestStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
 				if !found {
 					msg += fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i)
