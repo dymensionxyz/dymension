@@ -12,10 +12,6 @@ import (
 	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 )
 
-const (
-	eibcMemoObjectName = "eibc"
-)
-
 var _ porttypes.Middleware = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks
