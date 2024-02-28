@@ -238,7 +238,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
 				FulfillerAddress: fullfillerAccount.String(),
-				OrderId:           lastDemandOrder.Id,
+				OrderId:          lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)

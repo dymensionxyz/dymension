@@ -4,38 +4,42 @@ import (
 	"strconv"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
+func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
+	suite.SetupTest()
 
-func TestSequencersByRollappQuerySingle(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
-	sequencersByRollappList := createNSequencersByRollapp(keeper, ctx, 2)
-	var SequencersByRollappResponseList []types.QueryGetSequencersByRollappResponse
-	for _, sequencerByRollapp := range sequencersByRollappList {
-		var sequencerInfoList []types.SequencerInfo
-		for _, sequencerAddr := range sequencerByRollapp.Sequencers.Addresses {
-			sequencer, found := keeper.GetSequencer(ctx, sequencerAddr)
-			require.True(t, found)
-			sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-				Sequencer: sequencer,
-				Status:    types.Unspecified,
-			})
-		}
-		SequencersByRollappResponseList = append(SequencersByRollappResponseList,
-			types.QueryGetSequencersByRollappResponse{RollappId: sequencerByRollapp.RollappId, SequencerInfoList: sequencerInfoList})
+	rollappId := suite.CreateDefaultRollapp()
+	rollappId2 := suite.CreateDefaultRollapp()
+
+	// create 2 sequencer
+	addr1_1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	addr2_1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	seq1, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1_1)
+	require.True(suite.T(), found)
+	seq2, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2_1)
+	require.True(suite.T(), found)
+	seq1Response := types.QueryGetSequencersByRollappResponse{
+		Sequencers: []types.Sequencer{seq1, seq2},
 	}
+
+	addr1_2 := suite.CreateDefaultSequencer(suite.ctx, rollappId2)
+	addr2_2 := suite.CreateDefaultSequencer(suite.ctx, rollappId2)
+	seq3, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1_2)
+	require.True(suite.T(), found)
+	seq4, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2_2)
+	require.True(suite.T(), found)
+	seq2Response := types.QueryGetSequencersByRollappResponse{
+		Sequencers: []types.Sequencer{seq3, seq4},
+	}
+
 	for _, tc := range []struct {
 		desc     string
 		request  *types.QueryGetSequencersByRollappRequest
@@ -45,31 +49,31 @@ func TestSequencersByRollappQuerySingle(t *testing.T) {
 		{
 			desc: "First",
 			request: &types.QueryGetSequencersByRollappRequest{
-				RollappId: sequencersByRollappList[0].RollappId,
+				RollappId: rollappId,
 			},
-			response: &SequencersByRollappResponseList[0],
+			response: &seq1Response,
 		},
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencersByRollappRequest{
-				RollappId: sequencersByRollappList[1].RollappId,
+				RollappId: rollappId2,
 			},
-			response: &SequencersByRollappResponseList[1],
+			response: &seq2Response,
 		},
 		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetSequencersByRollappRequest{
 				RollappId: strconv.Itoa(100000),
 			},
-			err: status.Error(codes.NotFound, "not found"),
+			err: types.ErrUnknownRollappID,
 		},
 		{
 			desc: "InvalidRequest",
 			err:  status.Error(codes.InvalidArgument, "invalid request"),
 		},
 	} {
-		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.SequencersByRollapp(wctx, tc.request)
+		suite.T().Run(tc.desc, func(t *testing.T) {
+			response, err := suite.app.SequencerKeeper.SequencersByRollapp(suite.ctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -83,71 +87,105 @@ func TestSequencersByRollappQuerySingle(t *testing.T) {
 	}
 }
 
-func TestSequencersByRollappQueryPaginated(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
-	sequencersByRollappList := createNSequencersByRollapp(keeper, ctx, 5)
-	var SequencersByRollappResponseList []types.QueryGetSequencersByRollappResponse
-	for _, sequencerByRollapp := range sequencersByRollappList {
-		var sequencerInfoList []types.SequencerInfo
-		for _, sequencerAddr := range sequencerByRollapp.Sequencers.Addresses {
-			sequencer, found := keeper.GetSequencer(ctx, sequencerAddr)
-			require.True(t, found)
-			sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-				Sequencer: sequencer,
-				Status:    types.Unspecified,
-			})
-		}
-		SequencersByRollappResponseList = append(SequencersByRollappResponseList,
-			types.QueryGetSequencersByRollappResponse{RollappId: sequencerByRollapp.RollappId, SequencerInfoList: sequencerInfoList})
-	}
-	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllSequencersByRollappRequest {
-		return &types.QueryAllSequencersByRollappRequest{
-			Pagination: &query.PageRequest{
-				Key:        next,
-				Offset:     offset,
-				Limit:      limit,
-				CountTotal: total,
+func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
+	suite.SetupTest()
+
+	msgserver := keeper.NewMsgServerImpl(suite.app.SequencerKeeper)
+
+	rollappId := suite.CreateDefaultRollapp()
+	// create 2 sequencers on rollapp1
+	addr1_1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	addr2_1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	_, err := msgserver.Unbond(suite.ctx, &types.MsgUnbond{
+		Creator: addr2_1,
+	})
+	require.NoError(suite.T(), err)
+
+	// create 2 sequencers on rollapp2
+	rollappId2 := suite.CreateDefaultRollapp()
+	addr1_2 := suite.CreateDefaultSequencer(suite.ctx, rollappId2)
+	addr2_2 := suite.CreateDefaultSequencer(suite.ctx, rollappId2)
+
+	for _, tc := range []struct {
+		desc          string
+		request       *types.QueryGetSequencersByRollappByStatusRequest
+		response_addr []string
+		err           error
+	}{
+		{
+			desc: "First - Bonded",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId,
+				Status:    types.Bonded,
 			},
-		}
+			response_addr: []string{addr1_1},
+		},
+		{
+			desc: "First - Unbonding",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId,
+				Status:    types.Unbonding,
+			},
+			response_addr: []string{addr2_1},
+		},
+		{
+			desc: "First - Unbonded",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId,
+				Status:    types.Unbonded,
+			},
+			response_addr: []string{},
+		},
+		{
+			desc: "Second",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId2,
+				Status:    types.Bonded,
+			},
+			response_addr: []string{addr1_2, addr2_2},
+		},
+		{
+			desc: "Second - prposer and bonded the same",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId2,
+				Status:    types.Proposer,
+			},
+			response_addr: []string{addr1_2, addr2_2},
+		},
+		{
+			desc: "Unspecified Status",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: rollappId2,
+				Status:    types.Unspecified,
+			},
+			response_addr: []string{addr1_2, addr2_2},
+		},
+		{
+			desc: "KeyNotFound",
+			request: &types.QueryGetSequencersByRollappByStatusRequest{
+				RollappId: strconv.Itoa(100000),
+			},
+			err: types.ErrUnknownRollappID,
+		},
+		{
+			desc: "InvalidRequest",
+			err:  status.Error(codes.InvalidArgument, "invalid request"),
+		},
+	} {
+		suite.T().Run(tc.desc, func(t *testing.T) {
+			response, err := suite.app.SequencerKeeper.SequencersByRollappByStatus(suite.ctx, tc.request)
+			if tc.err != nil {
+				require.ErrorIs(t, err, tc.err)
+			} else {
+				require.NoError(t, err)
+				require.Len(t, response.Sequencers, len(tc.response_addr))
+
+				for _, seqAddr := range tc.response_addr {
+					seq, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, seqAddr)
+					require.True(t, found)
+					require.Contains(t, response.Sequencers, seq)
+				}
+			}
+		})
 	}
-	t.Run("ByOffset", func(t *testing.T) {
-		step := 2
-		for i := 0; i < len(sequencersByRollappList); i += step {
-			resp, err := keeper.SequencersByRollappAll(wctx, request(nil, uint64(i), uint64(step), false))
-			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
-			require.Subset(t,
-				nullify.Fill(SequencersByRollappResponseList),
-				nullify.Fill(resp.SequencersByRollapp),
-			)
-		}
-	})
-	t.Run("ByKey", func(t *testing.T) {
-		step := 2
-		var next []byte
-		for i := 0; i < len(sequencersByRollappList); i += step {
-			resp, err := keeper.SequencersByRollappAll(wctx, request(next, 0, uint64(step), false))
-			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
-			require.Subset(t,
-				nullify.Fill(SequencersByRollappResponseList),
-				nullify.Fill(resp.SequencersByRollapp),
-			)
-			next = resp.Pagination.NextKey
-		}
-	})
-	t.Run("Total", func(t *testing.T) {
-		resp, err := keeper.SequencersByRollappAll(wctx, request(nil, 0, 0, true))
-		require.NoError(t, err)
-		require.Equal(t, len(sequencersByRollappList), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			nullify.Fill(SequencersByRollappResponseList),
-			nullify.Fill(resp.SequencersByRollapp),
-		)
-	})
-	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.SequencersByRollappAll(wctx, nil)
-		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
-	})
 }

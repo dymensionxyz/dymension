@@ -6,6 +6,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	require.NoError(t, err)
+
+	bond := sdk.NewCoin("stake", sdk.NewInt(100))
 
 	tests := []struct {
 		name string
@@ -26,6 +29,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      "invalid_address",
 				DymintPubKey: pkAny,
+				Bond:         bond,
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
@@ -33,12 +37,14 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 			},
 		}, {
 			name: "valid description",
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					Moniker:         strings.Repeat("a", MaxMonikerLength),
 					Identity:        strings.Repeat("a", MaxIdentityLength),
@@ -51,6 +57,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					Moniker: strings.Repeat("a", MaxMonikerLength+1)},
 			},
@@ -60,6 +67,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					Identity: strings.Repeat("a", MaxIdentityLength+1)},
 			},
@@ -69,6 +77,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					Website: strings.Repeat("a", MaxWebsiteLength+1)},
 			},
@@ -78,6 +87,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1)},
 			},
@@ -87,10 +97,19 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
 				Description: Description{
 					Details: strings.Repeat("a", MaxDetailsLength+1)},
 			},
 			err: sdkerrors.ErrInvalidRequest,
+		}, {
+			name: "invalid bond",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
+			},
+			err: sdkerrors.ErrInvalidCoins,
 		},
 	}
 	for _, tt := range tests {

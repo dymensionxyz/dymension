@@ -7,10 +7,14 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgCreateSequencer = "create_sequencer"
+const (
+	TypeMsgCreateSequencer = "create_sequencer"
+	TypeMsgUnbond          = "unbond"
+)
 
 var (
 	_ sdk.Msg                            = &MsgCreateSequencer{}
+	_ sdk.Msg                            = &MsgUnbond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
@@ -20,7 +24,8 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
 }
 
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description) (*MsgCreateSequencer, error) {
+/* --------------------------- MsgCreateSequencer --------------------------- */
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -33,6 +38,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 		DymintPubKey: pkAny,
 		RollappId:    rollappId,
 		Description:  *description,
+		Bond:         bond,
 	}, nil
 }
 
@@ -81,5 +87,33 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		return err
 	}
 
+	if !msg.Bond.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid bond amount: %s", msg.Bond.String())
+	}
+
 	return nil
+}
+
+/* -------------------------------- MsgUnbond ------------------------------- */
+func NewMsgUnbond(creator string) *MsgUnbond {
+	return &MsgUnbond{
+		Creator: creator,
+	}
+}
+
+func (msg *MsgUnbond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
 }
