@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -75,4 +76,35 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 
 func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
+}
+
+func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {
+	items := make([]types.Rollapp, n)
+	for i := range items {
+		items[i].RollappId = strconv.Itoa(i)
+		keeper.SetRollapp(ctx, items[i])
+	}
+
+	rollappSummaries := []types.RollappSummary{}
+	for _, item := range items {
+		rollappSummary := types.RollappSummary{
+			RollappId: item.RollappId,
+		}
+		rollappSummaries = append(rollappSummaries, rollappSummary)
+	}
+
+	return items, rollappSummaries
+}
+
+func (suite *RollappTestSuite) CreateDefaultRollapp() types.Rollapp {
+
+	// Create an updated rollapp record
+	rollapp := types.Rollapp{
+		RollappId: rand.Str(10),
+		Creator:   alice,
+	}
+
+	// Write rollapp information to the store
+	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	return rollapp
 }
