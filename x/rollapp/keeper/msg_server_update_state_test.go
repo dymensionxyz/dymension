@@ -103,6 +103,13 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	for i := 0; i < 10; i++ {
 		// bump block height
 
+		if i == 3 {
+			disputePeriodInBlocks += 2
+		}
+
+		if i == 6 {
+			disputePeriodInBlocks -= 3
+		}
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
