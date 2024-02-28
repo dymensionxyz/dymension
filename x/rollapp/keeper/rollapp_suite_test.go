@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -14,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/tendermint/tendermint/libs/rand"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
@@ -47,11 +45,8 @@ var (
 )
 
 type RollappTestSuite struct {
-	suite.Suite
-
-	app         *app.App
+	apptesting.KeeperTestHelper
 	msgServer   types.MsgServer
-	ctx         sdk.Context
 	queryClient types.QueryClient
 }
 
@@ -68,9 +63,9 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	types.RegisterQueryServer(queryHelper, app.RollappKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	suite.app = app
+	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
-	suite.ctx = ctx
+	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }
 
@@ -94,17 +89,4 @@ func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Roll
 	}
 
 	return items, rollappSummaries
-}
-
-func (suite *RollappTestSuite) CreateDefaultRollapp() types.Rollapp {
-
-	// Create an updated rollapp record
-	rollapp := types.Rollapp{
-		RollappId: rand.Str(10),
-		Creator:   alice,
-	}
-
-	// Write rollapp information to the store
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
-	return rollapp
 }

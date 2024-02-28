@@ -11,7 +11,7 @@ import (
 )
 
 func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expectedErr error) types.RollappSummary {
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	// generate sequences address
 	addresses := sample.GenerateAddresses(numOfAddresses)
 	// rollapp is the rollapp to create
@@ -91,7 +91,7 @@ func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
 
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
@@ -133,9 +133,9 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 	suite.SetupTest()
 
 	suite.createRollappAndVerify(1, nil)
-	params := suite.app.RollappKeeper.GetParams(suite.ctx)
+	params := suite.App.RollappKeeper.GetParams(suite.Ctx)
 	params.RollappsEnabled = false
 
-	suite.app.RollappKeeper.SetParams(suite.ctx, params)
+	suite.App.RollappKeeper.SetParams(suite.Ctx, params)
 	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
 }
