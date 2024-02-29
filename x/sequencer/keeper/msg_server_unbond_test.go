@@ -11,11 +11,16 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	rollappId := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr3 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(found)
 	suite.Equal(sequencer.Status, types.Proposer)
+
+	sequencer2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	suite.Require().True(found)
+	suite.Equal(sequencer2.Status, types.Bonded)
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
@@ -32,25 +37,30 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.Require().True(found)
 	suite.Equal(sequencer.Status, types.Unbonded)
 
-	/* ------------------------- unbond bonded sequencer ------------------------ */
-	sequencer2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	// check proposer rotation
+	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Bonded)
+	suite.Equal(sequencer2.Status, types.Proposer)
+
+	/* ------------------------- unbond bonded sequencer ------------------------ */
+	sequencer3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
+	suite.Require().True(found)
+	suite.Equal(sequencer3.Status, types.Bonded)
 
 	unbondMsg = types.MsgUnbond{Creator: addr2}
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
 	// check sequencer operating status
-	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Unbonding)
+	suite.Equal(sequencer3.Status, types.Unbonding)
 
-	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer2.UnbondTime.Add(10*time.Second))
+	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer3.UnbondTime.Add(10*time.Second))
 
-	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Unbonded)
+	suite.Equal(sequencer3.Status, types.Unbonded)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {

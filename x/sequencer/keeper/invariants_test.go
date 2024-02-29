@@ -31,6 +31,7 @@ func (suite *SequencerTestSuite) TestInvariants() {
 			suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{seqAddr[j]})
 		}
 	}
+
 	//unbond some
 	unbondTime := initialTime.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime)
@@ -44,6 +45,8 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	if len(seqBonded) == 0 || len(seqUnbonding) == 0 || len(seqUnbonded) == 0 {
 		suite.T().Fatal("Test setup failed")
 	}
+	//additional rollapp with no sequencers
+	_ = suite.CreateDefaultRollapp()
 
 	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
 	suite.Require().False(bool, msg)

@@ -37,10 +37,22 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
 
-	//handle unbonding queue changes due to status change
 	if sequencer.Status == oldStatus {
 		return
 	}
+
+	//rotate proposer if needed
+	if oldStatus == types.Proposer {
+		seqsByRollapp := k.GetSequencersByRollappByStatus(ctx, sequencer.RollappId, types.Bonded)
+		if len(seqsByRollapp) > 0 {
+			//rotate proposer
+			seq := seqsByRollapp[0]
+			seq.Status = types.Proposer
+			k.UpdateSequencer(ctx, seq, types.Bonded)
+		}
+	}
+
+	//handle unbonding queue changes due to status change
 	if sequencer.Status == types.Unbonding {
 		k.setUnbondingSequencerQueue(ctx, sequencer)
 	} else if oldStatus == types.Unbonding {
