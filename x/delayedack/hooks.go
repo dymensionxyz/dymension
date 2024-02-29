@@ -39,19 +39,22 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			wrappedFunc := func(ctx sdk.Context) error {
 				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+				// If async, return
+				if ack == nil {
+					return nil
+				}
+				// If sync, check if the acknowledgement is successful
 				if !ack.Success() {
 					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
 				}
 				// Write the acknowledgement to the chain only if it is synchronous
-				if ack != nil {
-					_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-					if err != nil {
-						return err
-					}
-					err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-					if err != nil {
-						return err
-					}
+				_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
+				if err != nil {
+					return err
+				}
+				err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+				if err != nil {
+					return err
 				}
 				return nil
 			}
