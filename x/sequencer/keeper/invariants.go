@@ -85,8 +85,6 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			// FIXME: check for active proposer
-
 			proposerFound := false
 			for _, seq := range bonded {
 				if seq.Status == types.Proposer {
