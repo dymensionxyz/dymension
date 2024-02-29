@@ -9,10 +9,8 @@ import (
 
 func (suite *SequencerTestSuite) TestInvariants() {
 	suite.SetupTest()
-	ctx := suite.Ctx
-	initialheight := int64(10)
+	initialheight := uint64(10)
 	initialTime := time.Now()
-	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight).WithBlockTime(initialTime)
 
 	numOfRollapps := 5
 	numOfSequencers := 5
@@ -24,19 +22,28 @@ func (suite *SequencerTestSuite) TestInvariants() {
 		//create sequencers
 		seqAddr := make([]string, numOfSequencers)
 		for j := 0; j < numOfSequencers; j++ {
-			seqAddr[j] = suite.CreateDefaultSequencer(ctx, rollapp)
+			seqAddr[j] = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 		}
+
 		//unbonding some sequencers
-		for j := 0; j < numOfSequencers/2; j++ {
-			suite.msgServer.Unbond(ctx, &types.MsgUnbond{seqAddr[j]})
+		for j := uint64(0); j < uint64(numOfSequencers/2); j++ {
+			suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + j)).WithBlockTime(initialTime.Add(time.Duration(j) * time.Second))
+			suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{seqAddr[j]})
 		}
-
-		//unbond some
-		unbondTime := initialTime.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
-		suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime.Add(1*time.Second))
 	}
+	//unbond some
+	unbondTime := initialTime.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
+	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime)
 
-	//TODO: make sure all status have entries
+	//Test the test: make sure all status have entries
+	rollappid := suite.App.RollappKeeper.GetAllRollapp(suite.Ctx)[0].RollappId
+	seqBonded := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Bonded)
+	seqUnbonding := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Unbonding)
+	seqUnbonded := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Unbonded)
+
+	if len(seqBonded) == 0 || len(seqUnbonding) == 0 || len(seqUnbonded) == 0 {
+		suite.T().Fatal("Test setup failed")
+	}
 
 	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
 	suite.Require().False(bool, msg)
