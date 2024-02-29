@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -23,13 +22,10 @@ import (
 )
 
 type SequencerTestSuite struct {
-	suite.Suite
-
+	apptesting.KeeperTestHelper
 	sequencerModuleAddress string
 
-	app         *app.App
 	msgServer   types.MsgServer
-	ctx         sdk.Context
 	queryClient types.QueryClient
 }
 
@@ -47,9 +43,9 @@ func (suite *SequencerTestSuite) SetupTest() {
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	suite.app = app
+	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(app.SequencerKeeper)
-	suite.ctx = ctx
+	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }
 
@@ -60,7 +56,7 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 		Version:       0,
 		MaxSequencers: 5,
 	}
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 	return rollapp.GetRollappId()
 }
 
@@ -71,7 +67,7 @@ func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollapp
 	suite.Require().Nil(err)
 
 	//fund account
-	err = bankutil.FundAccount(suite.app.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	err = bankutil.FundAccount(suite.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
 	sequencerMsg1 := types.MsgCreateSequencer{

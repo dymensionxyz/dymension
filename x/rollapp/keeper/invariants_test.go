@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
-func (suite *RollappTestSuite) TestInvariants_NoFinalization() {
+func (suite *RollappTestSuite) TestInvariants() {
 	suite.SetupTest()
 	ctx := suite.Ctx
 	initialheight := int64(10)
