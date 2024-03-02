@@ -98,8 +98,9 @@ func (suite *KeeperTestSuite) TestListRollappPacketsForRollappAtHeight() {
 				Data:               []byte("testData"),
 				Sequence:           uint64(i),
 			},
-			Status:      commontypes.Status_PENDING,
-			ProofHeight: uint64(i * 2),
+			Status: commontypes.Status_PENDING,
+			// Intentionally set the proof height in descending order to test sorting
+			ProofHeight: uint64(6 - i),
 		}
 		err := keeper.SetRollappPacket(ctx, packet)
 		suite.Require().NoError(err)
@@ -109,9 +110,9 @@ func (suite *KeeperTestSuite) TestListRollappPacketsForRollappAtHeight() {
 	packets := keeper.GetAllRollappPackets(ctx)
 	suite.Require().Equal(5, len(packets))
 
-	// Get the packets until height 6
-	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 6)
-	suite.Require().Equal(3, len(packets))
+	// Get the packets until height 4
+	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 4)
+	suite.Require().Equal(4, len(packets))
 
 	// Update the packet status to finalized
 	for _, packet := range packets {
@@ -119,11 +120,11 @@ func (suite *KeeperTestSuite) TestListRollappPacketsForRollappAtHeight() {
 		suite.Require().NoError(err)
 	}
 	finalizedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
-	suite.Require().Equal(3, len(finalizedPackets))
+	suite.Require().Equal(4, len(finalizedPackets))
 
-	// Get the packets until height 14
-	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 14)
-	suite.Require().Equal(2, len(packets))
+	// Get the packets until height 5
+	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 5)
+	suite.Require().Equal(1, len(packets))
 }
 
 func (suite *KeeperTestSuite) TestUpdateRollappPacketWithStatus() {

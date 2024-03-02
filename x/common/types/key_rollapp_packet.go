@@ -30,14 +30,14 @@ func GetRollappPacketKey(
 	rollappPacket *RollappPacket,
 ) ([]byte, error) {
 	// Get the relevant key prefix based on the packet status
-	var prefix []byte
+	var statusPrefix []byte
 	switch rollappPacket.Status {
 	case Status_PENDING:
-		prefix = PendingRollappPacketKeyPrefix
+		statusPrefix = PendingRollappPacketKeyPrefix
 	case Status_FINALIZED:
-		prefix = FinalizedRollappPacketKeyPrefix
+		statusPrefix = FinalizedRollappPacketKeyPrefix
 	case Status_REVERTED:
-		prefix = RevertedRollappPacketKeyPrefix
+		statusPrefix = RevertedRollappPacketKeyPrefix
 	default:
 		return nil, fmt.Errorf("invalid packet status: %s", rollappPacket.Status)
 	}
@@ -46,6 +46,7 @@ func GetRollappPacketKey(
 	// This width is chosen to accommodate the range of uint64 which can be up to 20 digits long
 	// The leading zero is not limited to one, it will add as many zeros as needed to reach the width of 20 digits
 	// For example, the number 342234 will be formatted as 00000000000000342234
-	packetUID := rollappPacket.Packet.DestinationChannel + "-" + fmt.Sprintf("%020d", rollappPacket.Packet.Sequence)
-	return []byte(fmt.Sprintf("%s%s%s%s%s", prefix, KeySeparator, rollappPacket.RollappId, KeySeparator, packetUID)), nil
+	packetUID := fmt.Sprintf("%s-%020d", rollappPacket.Packet.DestinationChannel, rollappPacket.Packet.Sequence)
+	return []byte(fmt.Sprintf("%s%s%020d%s%s%s%s", statusPrefix, KeySeparator, rollappPacket.ProofHeight,
+		KeySeparator, rollappPacket.RollappId, KeySeparator, packetUID)), nil
 }

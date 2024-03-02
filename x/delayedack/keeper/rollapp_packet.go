@@ -176,11 +176,7 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
-		err := k.cdc.Unmarshal(iterator.Value(), &val)
-		if err != nil {
-			ctx.Logger().Error("Failed to unmarshal rollapp packet", "error", err)
-			continue
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}
 
