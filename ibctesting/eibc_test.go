@@ -54,6 +54,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 		recipient           string
 		demandOrdersCreated int
 		isAckError          bool
+		extraMemoData       map[string]map[string]string
 	}{
 		{
 			"valid demand order",
@@ -62,6 +63,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.hubChain.SenderAccount.GetAddress().String(),
 			1,
 			false,
+			map[string]map[string]string{},
 		},
 		{
 			"invalid demand order - negative fee",
@@ -70,6 +72,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
+			map[string]map[string]string{},
 		},
 		{
 			"invalid demand order - fee > amount",
@@ -78,6 +81,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
+			map[string]map[string]string{},
 		},
 		{
 			"invalid demand order - fee is 0",
@@ -86,6 +90,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
+			map[string]map[string]string{},
 		},
 		{
 			"invalid demand order - fee > max uint64",
@@ -94,19 +99,37 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
+			map[string]map[string]string{},
+		},
+		{
+			"invalid demand order - PFM and EIBC are not supported together",
+			"1000000000",
+			"150",
+			suite.hubChain.SenderAccount.GetAddress().String(),
+			0,
+			true,
+			map[string]map[string]string{"forward": {
+				"receiver": suite.hubChain.SenderAccount.GetAddress().String(),
+				"port":     "transfer",
+				"channel":  "channel-0",
+			}},
 		},
 	}
 	totalDemandOrdersCreated := 0
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
-
 			// Send the EIBC Packet
-			eibc := map[string]map[string]string{
+			memoObj := map[string]map[string]string{
 				"eibc": {
 					"fee": tc.fee,
 				},
 			}
-			eibcJson, _ := json.Marshal(eibc)
+			if tc.extraMemoData != nil {
+				for key, value := range tc.extraMemoData {
+					memoObj[key] = value
+				}
+			}
+			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)
 			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.isAckError)
 			// Validate demand orders results

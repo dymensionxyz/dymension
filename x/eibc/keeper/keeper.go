@@ -122,7 +122,7 @@ func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfill
 	return nil
 }
 
-// GetDemandOrder returns the demand order with the given id. It only searches for the pending orders.
+// GetDemandOrder returns the demand order with the given id and status.
 func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
 	demandOrderKey, err := types.GetDemandOrderKey(status, id)
