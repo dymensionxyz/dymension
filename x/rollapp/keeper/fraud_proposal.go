@@ -1,19 +1,18 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	tmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-//
-//
-//
-//HandleFraud
-
 // HandleFraud handles the fraud evidence submitted by the user.
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height uint64, seqAddr string) error {
 	// Get the rollapp from the store
 	_, found := k.GetRollapp(ctx, rollappID)
 	if !found {
@@ -35,14 +34,27 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, height uint64, se
 		return err
 	}
 
-	// freeze the ibc channel
+	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
+	if !ok {
+		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
+	}
+
+	// Set the client state to frozen
+	tmClientState, ok := clientState.(*tmtypes.ClientState)
+	if !ok {
+		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
+	}
+
+	//FIXME: extract revision from rollappID
+	tmClientState.FrozenHeight = clienttypes.NewHeight(height, 0)
+	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
 
 	// Emit an event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeFraud,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-			sdk.NewAttribute(types.AttributeKeyFraudHeight, string(height)),
+			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(height)),
 			sdk.NewAttribute(types.AttributeKeyFraudSequencer, seqAddr),
 		),
 	)

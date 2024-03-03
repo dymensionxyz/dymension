@@ -17,8 +17,10 @@ message SubmitFraudProposal {
   
   // The rollapp id
   string rollapp_id = 3;
+  // The ibc client id of the rollapp
+  string ibc_client_id = 4;
   // The height of the fraudelent block
-  uint64 fraudelent_height = 4;
+  uint64 fraudelent_height = 5;
   // The address of the fraudelent sequencer
-  string fraudelent_sequencer_address = 5;
+  string fraudelent_sequencer_address = 6;
 }
