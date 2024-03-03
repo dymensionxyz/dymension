@@ -11,16 +11,14 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 
-	seqAddrs := make([]string, 3)
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs := make([]string, 2)
 	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddrs[2] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-
-	//sort the sequencers by address
+	//sort the  non proposer sequencers by address
 	sort.Strings(seqAddrs)
-	addr1 := seqAddrs[0]
-	addr2 := seqAddrs[1]
-	addr3 := seqAddrs[2]
+	addr2 := seqAddrs[0]
+	addr3 := seqAddrs[1]
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
