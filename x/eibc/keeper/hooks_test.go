@@ -26,7 +26,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	updatedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_FINALIZED, demandOrder.Id)
 	suite.Require().NoError(err)
 	suite.Require().Equal(updatedDemandOrder.TrackingPacketStatus, commontypes.Status_FINALIZED)
-	rollappPacketKey, err := commontypes.GetRollappPacketKey(&updatedRollappPacket)
+	rollappPacketKey, err := commontypes.RollappPacketKey(&updatedRollappPacket)
 	suite.Require().NoError(err)
 	suite.Require().Equal(updatedDemandOrder.TrackingPacketKey, string(rollappPacketKey))
 }

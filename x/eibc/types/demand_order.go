@@ -21,7 +21,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee s
 	if !ok {
 		return nil, ErrInvalidDemandOrderFee
 	}
-	rollappPacketKey, err := commontypes.GetRollappPacketKey(&rollappPacket)
+	rollappPacketKey, err := commontypes.RollappPacketKey(&rollappPacket)
 	if err != nil {
 		return nil, err
 	}
