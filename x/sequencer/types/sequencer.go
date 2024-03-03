@@ -1,10 +1,7 @@
 package types
 
 func (seq Sequencer) IsBonded() bool {
-	if seq.Status != Bonded {
-		return false
-	}
-	return true
+	return seq.Status == Bonded
 }
 
 // is proposer
