@@ -38,6 +38,7 @@ SDK Checklist
 - [ ] Used `sendCoin` and not `SendCoins`
 - [ ] Out-of-block compute is bounded
 - [ ] No serialized ID at the end of store keys
+- [ ] UInt to byte conversion should use BigEndian
 
 Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
 
