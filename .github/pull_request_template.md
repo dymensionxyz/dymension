@@ -43,6 +43,8 @@ SDK Checklist
 Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
 
 
+----;
+
 For Reviewer:
 
 - [ ]  Confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title

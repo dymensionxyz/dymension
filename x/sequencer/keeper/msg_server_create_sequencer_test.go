@@ -76,7 +76,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			MinBond:       tc.requiredBond,
 			UnbondingTime: 100,
 		}
-		suite.app.SequencerKeeper.SetParams(suite.ctx, seqParams)
+		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
 		pubkey1 := secp256k1.GenPrivKey().PubKey()
 		addr1 := sdk.AccAddress(pubkey1.Address())
@@ -84,7 +84,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		suite.Require().Nil(err)
 
 		//fund account
-		err = bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr1, sdk.NewCoins(tc.bond))
+		err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr1, sdk.NewCoins(tc.bond))
 		suite.Require().Nil(err)
 
 		sequencerMsg1 := types.MsgCreateSequencer{
@@ -94,12 +94,12 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			RollappId:    rollappId,
 			Description:  types.Description{},
 		}
-		_, err = suite.msgServer.CreateSequencer(suite.ctx, &sequencerMsg1)
+		_, err = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
 		if tc.expectedError != nil {
 			suite.Require().ErrorAs(err, &tc.expectedError, tc.name)
 		} else {
 			suite.Require().NoError(err)
-			sequencer, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1.String())
+			sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1.String())
 			suite.Require().True(found, tc.name)
 			if tc.requiredBond.IsNil() {
 				suite.Require().True(sequencer.Tokens.IsZero(), tc.name)
@@ -112,7 +112,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 
 func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// max sequencers per rollapp
 	maxSequencers := 10
@@ -135,14 +135,14 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			MaxSequencers:         uint64(maxSequencers),
 			PermissionedAddresses: []string{},
 		}
-		suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 		rollappId := rollapp.GetRollappId()
 
 		for i := 0; i < 10; i++ {
 			pubkey := secp256k1.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
-			bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+			bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
 			suite.Require().Nil(err)
 
@@ -212,13 +212,13 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 // TODO: test with different sequencer status
 func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollappId := suite.CreateDefaultRollapp()
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -238,11 +238,11 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -260,12 +260,12 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	sequencerAddress := addr.String()
-	bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 
 	rollapp := rollapptypes.Rollapp{
 		RollappId:             "rollapp1",
@@ -274,7 +274,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{sequencerAddress},
 	}
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 	rollappId := rollapp.GetRollappId()
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -310,7 +310,7 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 
 func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollapp := rollapptypes.Rollapp{
 		RollappId:             "rollapp1",
@@ -319,14 +319,14 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{sample.AccAddress()},
 	}
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	rollappId := rollapp.GetRollappId()
 
 	//TODO: cahnge with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -344,7 +344,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 
 func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	maxSequencers := 3
 
 	rollapp := rollapptypes.Rollapp{
@@ -354,7 +354,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 		MaxSequencers:         uint64(maxSequencers),
 		PermissionedAddresses: []string{},
 	}
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
 	rollappId := rollapp.GetRollappId()
 
@@ -362,7 +362,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < maxSequencers; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
@@ -382,7 +382,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	for i := 0; i < 2; i++ {
 		pubkey := secp256k1.GenPrivKey().PubKey()
 		addr := sdk.AccAddress(pubkey.Address())
-		err := bankutil.FundAccount(suite.app.BankKeeper, suite.ctx, addr, sdk.NewCoins(bond))
+		err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 		suite.Require().Nil(err)
 		pkAny, err := codectypes.NewAnyWithValue(pubkey)
 		suite.Require().Nil(err)
@@ -404,18 +404,18 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 	rollappId := suite.CreateDefaultRollapp()
 
 	// create first sequencer
-	addr1 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	// create second sequencer
-	addr2 := suite.CreateDefaultSequencer(suite.ctx, rollappId)
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	// check scheduler operating status
-	scheduler, found := suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr1)
+	scheduler, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Proposer)
 
 	// check scheduler operating status
-	scheduler, found = suite.app.SequencerKeeper.GetSequencer(suite.ctx, addr2)
+	scheduler, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Bonded)
 }
@@ -435,7 +435,7 @@ func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, s
 
 // getAll quires for all exsisting sequencers and returns a map of sequencerId->sequencer
 func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
-	goCtx := sdk.WrapSDKContext(suite.ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	totalChecked := 0
 	totalRes := 0
 	nextKey := []byte{}

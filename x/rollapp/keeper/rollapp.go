@@ -76,7 +76,7 @@ func (k Keeper) RemoveRollapp(
 }
 
 // GetAllRollapp returns all rollapp
-func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
+func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -89,4 +89,10 @@ func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
 	}
 
 	return
+}
+
+// IsRollappStarted returns true if the rollapp is started
+func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
+	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
+	return found
 }

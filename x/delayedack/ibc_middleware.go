@@ -113,7 +113,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, data, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -148,7 +148,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	err = im.handleEIBCPacket(ctx, rollappID, rollappPacket, *data)
+	err = im.eIBCDemandOrderHandler(ctx, rollappID, rollappPacket, *transferPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -226,7 +226,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, _, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -266,6 +266,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
+
+	err = im.eIBCDemandOrderHandler(ctx, rollappID, rollappPacket, *transferPacketData)
 	if err != nil {
 		return err
 	}

@@ -82,21 +82,12 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
 
-		// Unnecessary validations if the tx not running in delivery mode
-		if !ctx.IsCheckTx() && !ctx.IsReCheckTx() {
-			// check to see if we have already got an update for current block
-			if stateInfo.CreationHeight == uint64(ctx.BlockHeight()) {
-				// only one update is allowed in a block
-				return nil, types.ErrMultiUpdateStateInBlock
-			}
-
-			// check to see if received height is the one we expected
-			expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
-			if expectedStartHeight != msg.StartHeight {
-				return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
-					"expected height (%d), but received (%d)",
-					expectedStartHeight, msg.StartHeight)
-			}
+		// check to see if received height is the one we expected
+		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
+		if expectedStartHeight != msg.StartHeight {
+			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
+				"expected height (%d), but received (%d)",
+				expectedStartHeight, msg.StartHeight)
 		}
 
 		// bump state index

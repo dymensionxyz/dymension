@@ -176,6 +176,6 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, *am.keeper)
+	am.keeper.FinalizeQueue(ctx)
 	return []abci.ValidatorUpdate{}
 }

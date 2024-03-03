@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -70,19 +69,10 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	}
 	store.Set(demandOrderKey, data)
 
-	// Emit events
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(types.AttributeKeyId, order.Id),
-		sdk.NewAttribute(types.AttributeKeyPrice, order.Price.String()),
-		sdk.NewAttribute(types.AttributeKeyFee, order.Fee.String()),
-		sdk.NewAttribute(types.AttributeKeyIsFullfilled, strconv.FormatBool(order.IsFullfilled)),
-		sdk.NewAttribute(types.AttributeKeyPacketStatus, order.TrackingPacketStatus.String()),
-	}
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeEIBC,
-			eventAttributes...,
+			order.GetEvents()...,
 		),
 	)
 
