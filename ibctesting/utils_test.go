@@ -148,10 +148,14 @@ func (suite *IBCTestUtilSuite) GetRollappToHubIBCDenomFromPacket(packet channelt
 	var data transfertypes.FungibleTokenPacketData
 	err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	suite.Require().NoError(err)
+	return suite.GetIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
+}
+
+func (suite *IBCTestUtilSuite) GetIBCDenomForChannel(channel string, denom string) string {
 	// since SendPacket did not prefix the denomination, we must prefix denomination here
-	sourcePrefix := types.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
+	sourcePrefix := types.GetDenomPrefix("transfer", channel)
 	// NOTE: sourcePrefix contains the trailing "/"
-	prefixedDenom := sourcePrefix + data.Denom
+	prefixedDenom := sourcePrefix + denom
 	// construct the denomination trace from the full raw denomination
 	denomTrace := types.ParseDenomTrace(prefixedDenom)
 	return denomTrace.IBCDenom()

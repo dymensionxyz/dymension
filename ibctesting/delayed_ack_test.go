@@ -171,14 +171,14 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
-
+	// Setup endpoints
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
 	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
-
+	// Create rollapp and update its initial state
 	suite.CreateRollapp()
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
-
+	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
 	amount, ok := sdk.NewIntFromString("1000000000000000000") //1DYM
 	suite.Require().True(ok)
