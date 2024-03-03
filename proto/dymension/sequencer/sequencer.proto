@@ -3,10 +3,15 @@ package dymensionxyz.dymension.sequencer;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 import "dymension/sequencer/description.proto"; 
+import "dymension/sequencer/operating_status.proto"; 
 
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+import "cosmos/msg/v1/msg.proto";
 
 // Sequencer defines a sequencer identified by its' address (sequencerAddress).
 // The sequencer could be attached to only one rollapp (rollappId).
@@ -16,7 +21,23 @@ message Sequencer {
   // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
   google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
   // rollappId defines the rollapp to which the sequencer belongs.
-  repeated string rollappIDs = 3;
+  string rollappId = 3;
   // description defines the descriptive terms for the sequencer.
   Description description = 4 [(gogoproto.nullable) = false];
+
+  // jailed defined whether the sequencer has been jailed from bonded status or not.
+  bool jailed = 5;
+  // status is the sequencer status (bonded/unbonding/unbonded).
+  OperatingStatus status = 6;
+
+  // tokens define the delegated tokens (incl. self-delegation).
+  repeated cosmos.base.v1beta1.Coin tokens = 7 
+  [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+
+    // unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding.
+  int64 unbonding_height = 8;
+  // unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
+  google.protobuf.Timestamp unbond_time = 9 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+
 }
+

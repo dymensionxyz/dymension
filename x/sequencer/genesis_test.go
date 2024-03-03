@@ -17,25 +17,11 @@ func TestGenesis(t *testing.T) {
 		SequencerList: []types.Sequencer{
 			{
 				SequencerAddress: "0",
+				Status:           types.Proposer,
 			},
 			{
 				SequencerAddress: "1",
-			},
-		},
-		SequencersByRollappList: []types.SequencersByRollapp{
-			{
-				RollappId: "0",
-			},
-			{
-				RollappId: "1",
-			},
-		},
-		SchedulerList: []types.Scheduler{
-			{
-				SequencerAddress: "0",
-			},
-			{
-				SequencerAddress: "1",
+				Status:           types.Bonded,
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
@@ -50,7 +36,5 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
-	require.ElementsMatch(t, genesisState.SequencersByRollappList, got.SequencersByRollappList)
-	require.ElementsMatch(t, genesisState.SchedulerList, got.SchedulerList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }

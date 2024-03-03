@@ -12,6 +12,9 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
+//TODO: refactor the tests to use test-cases
+//TODO: wrap the create rollapp and sequencer into a helper function
+
 func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
@@ -28,15 +31,10 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{rollapp.GetRollappId()},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        rollapp.GetRollappId(),
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// check no index exists
 	expectedLatestStateInfoIndex, found := suite.app.RollappKeeper.GetLatestStateInfoIndex(suite.ctx, rollapp.GetRollappId())
@@ -81,15 +79,10 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{rollapp.GetRollappId()},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        rollapp.GetRollappId(),
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// create new update
 	updateState := types.MsgUpdateState{
@@ -209,6 +202,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
+// FIXME: need to add sequncer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
@@ -237,6 +231,7 @@ func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	suite.ErrorIs(err, types.ErrVersionMismatch)
 }
 
+// FIXME: need to add sequncer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
@@ -281,7 +276,8 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp2"},
+		RollappId:        "rollapp2",
+		Status:           sequencertypes.Proposer,
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
@@ -317,7 +313,8 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	// set unpermissioned sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
+		RollappId:        "rollapp1",
+		Status:           sequencertypes.Proposer,
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
@@ -353,15 +350,10 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeightInitial() 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        "rollapp1",
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -395,15 +387,10 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        "rollapp1",
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -437,15 +424,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        "rollapp1",
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// set initial latestStateInfoIndex & StateInfo
 	latestStateInfoIndex := types.StateInfoIndex{
@@ -502,7 +484,8 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
+		RollappId:        "rollapp1",
+		Status:           sequencertypes.Proposer,
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
@@ -545,15 +528,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-	// register sequncer in sequencer as Proposer
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
+		RollappId:        "rollapp1",
 		Status:           sequencertypes.Proposer,
 	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
+	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
 
 	// set initial latestStateInfoIndex & StateInfo
 	latestStateInfoIndex := types.StateInfoIndex{
@@ -591,43 +569,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrMultiUpdateStateInBlock() {
 	suite.ErrorIs(err, types.ErrMultiUpdateStateInBlock)
 }
 
-func (suite *RollappTestSuite) TestUpdateStateErrLogicNotRegisteredInScheduler() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:             "rollapp1",
-		Creator:               alice,
-		Version:               3,
-		MaxSequencers:         1,
-		PermissionedAddresses: []string{},
-	}
-	suite.app.RollappKeeper.SetRollapp(suite.ctx, rollapp)
-	// skip register sequncer in sequencer as Proposer
-
-	// set sequencer
-	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
-	}
-	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-
-	// update state
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		Version:     3,
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
-}
-
+// TODO: should test all status other than Proposer
 func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.ctx)
@@ -645,16 +587,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
 		SequencerAddress: bob,
-		RollappIDs:       []string{"rollapp1"},
+		RollappId:        "rollapp1",
+		Status:           sequencertypes.Bonded,
 	}
 	suite.app.SequencerKeeper.SetSequencer(suite.ctx, sequencer)
-
-	// register sequncer in sequencer as Inactive
-	scheduler := sequencertypes.Scheduler{
-		SequencerAddress: bob,
-		Status:           sequencertypes.Inactive,
-	}
-	suite.app.SequencerKeeper.SetScheduler(suite.ctx, scheduler)
 
 	// update state
 	updateState := types.MsgUpdateState{

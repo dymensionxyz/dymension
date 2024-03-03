@@ -2,18 +2,20 @@ package cli_test
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/rand"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -21,43 +23,48 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, []types.QueryGetSequencersByRollappResponse) {
+var (
+	// rollappId = "rollappID"
+	rollappId = rand.Str(8)
+)
+
+func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, types.QueryGetSequencersByRollappResponse) {
 	t.Helper()
 	cfg := network.DefaultConfig()
+
+	//create rollapp
+	rollappstate := rollapptypes.GenesisState{}
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[rollapptypes.ModuleName], &rollappstate))
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId: rollappId,
+	}
+	nullify.Fill(&rollapp)
+	rollappstate.RollappList = append(rollappstate.RollappList, rollapp)
+	buf, err := cfg.Codec.MarshalJSON(&rollappstate)
+	require.NoError(t, err)
+	cfg.GenesisState[rollapptypes.ModuleName] = buf
+
+	//create sequencers
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
-
-	var allSequencersByRollappResponse []types.QueryGetSequencersByRollappResponse
+	var allSequencersByRollappResponse types.QueryGetSequencersByRollappResponse
 
 	for i := 0; i < n; i++ {
 		sequencer := types.Sequencer{
 			SequencerAddress: strconv.Itoa(i),
+			Status:           types.Bonded,
+			RollappId:        rollappId,
 		}
 		nullify.Fill(&sequencer)
+		if i == 0 {
+			sequencer.Status = types.Proposer
+		}
 		state.SequencerList = append(state.SequencerList, sequencer)
-
-		scheduler := types.Scheduler{
-			SequencerAddress: sequencer.SequencerAddress,
-		}
-		nullify.Fill(&scheduler)
-		state.SchedulerList = append(state.SchedulerList, scheduler)
-
-		sequencersByRollapp := types.SequencersByRollapp{
-			RollappId:  strconv.Itoa(i),
-			Sequencers: types.Sequencers{[]string{sequencer.SequencerAddress}},
-		}
-		state.SequencersByRollappList = append(state.SequencersByRollappList, sequencersByRollapp)
-
-		sequencersByRollappResponse := types.QueryGetSequencersByRollappResponse{
-			RollappId: sequencersByRollapp.RollappId,
-			SequencerInfoList: []types.SequencerInfo{{
-				Sequencer: sequencer,
-				Status:    0,
-			}},
-		}
-		allSequencersByRollappResponse = append(allSequencersByRollappResponse, sequencersByRollappResponse)
+		allSequencersByRollappResponse.Sequencers = append(allSequencersByRollappResponse.Sequencers, sequencer)
 	}
-	buf, err := cfg.Codec.MarshalJSON(&state)
+
+	buf, err = cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
 	return network.New(t, cfg), allSequencersByRollappResponse
@@ -80,10 +87,9 @@ func TestShowSequencersByRollapp(t *testing.T) {
 	}{
 		{
 			desc:        "found",
-			idRollappId: allSequencersByRollappResponse[0].RollappId,
-
-			args: common,
-			obj:  allSequencersByRollappResponse[0],
+			idRollappId: rollappId,
+			args:        common,
+			obj:         allSequencersByRollappResponse,
 		},
 		{
 			desc:        "not found",
@@ -107,77 +113,52 @@ func TestShowSequencersByRollapp(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencersByRollappResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.SequencerInfoList)
-				require.Equal(t,
-					tc.obj,
-					resp,
-				)
+				require.NotNil(t, resp.Sequencers)
+
+				sortedList := resp.Sequencers
+				sort.Slice(sortedList, func(i, j int) bool {
+					return sortedList[i].SequencerAddress < sortedList[j].SequencerAddress
+				})
+
+				for i := range sortedList {
+					require.True(t, equalSequencers(&tc.obj.Sequencers[i], &resp.Sequencers[i]))
+				}
 			}
 		})
 	}
 }
 
-func TestListSequencersByRollapp(t *testing.T) {
-	net, allSequencersByRollappResponse := networkWithSequencersByRollappObjects(t, 5)
-
-	ctx := net.Validators[0].ClientCtx
-	request := func(next []byte, offset, limit uint64, total bool) []string {
-		args := []string{
-			fmt.Sprintf("--%s=json", tmcli.OutputFlag),
-		}
-		if next == nil {
-			args = append(args, fmt.Sprintf("--%s=%d", flags.FlagOffset, offset))
-		} else {
-			args = append(args, fmt.Sprintf("--%s=%s", flags.FlagPageKey, next))
-		}
-		args = append(args, fmt.Sprintf("--%s=%d", flags.FlagLimit, limit))
-		if total {
-			args = append(args, fmt.Sprintf("--%s", flags.FlagCountTotal))
-		}
-		return args
+// equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
+func equalSequencers(s1 *types.Sequencer, s2 *types.Sequencer) bool {
+	if s1.SequencerAddress != s2.SequencerAddress {
+		return false
 	}
-	t.Run("ByOffset", func(t *testing.T) {
-		step := 2
-		for i := 0; i < len(allSequencersByRollappResponse); i += step {
-			args := request(nil, uint64(i), uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
-			require.NoError(t, err)
-			var resp types.QueryAllSequencersByRollappResponse
-			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
-			require.Subset(t,
-				allSequencersByRollappResponse,
-				resp.SequencersByRollapp,
-			)
-		}
-	})
-	t.Run("ByKey", func(t *testing.T) {
-		step := 2
-		var next []byte
-		for i := 0; i < len(allSequencersByRollappResponse); i += step {
-			args := request(next, 0, uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
-			require.NoError(t, err)
-			var resp types.QueryAllSequencersByRollappResponse
-			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencersByRollapp), step)
-			require.Subset(t,
-				allSequencersByRollappResponse,
-				resp.SequencersByRollapp,
-			)
-			next = resp.Pagination.NextKey
-		}
-	})
-	t.Run("Total", func(t *testing.T) {
-		args := request(nil, 0, uint64(len(allSequencersByRollappResponse)), true)
-		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencersByRollapp(), args)
-		require.NoError(t, err)
-		var resp types.QueryAllSequencersByRollappResponse
-		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-		require.Equal(t, len(allSequencersByRollappResponse), int(resp.Pagination.Total))
-		require.ElementsMatch(t,
-			allSequencersByRollappResponse,
-			resp.SequencersByRollapp,
-		)
-	})
+
+	s1Pubkey := s1.DymintPubKey
+	s2Pubkey := s2.DymintPubKey
+	if !s1Pubkey.Equal(s2Pubkey) {
+		return false
+	}
+	if s1.RollappId != s2.RollappId {
+		return false
+	}
+
+	if s1.Jailed != s2.Jailed {
+		return false
+	}
+	if s1.Status != s2.Status {
+		return false
+	}
+
+	if !s1.Tokens.IsEqual(s2.Tokens) {
+		return false
+	}
+
+	if s1.UnbondingHeight != s2.UnbondingHeight {
+		return false
+	}
+	if !s1.UnbondTime.Equal(s2.UnbondTime) {
+		return false
+	}
+	return true
 }

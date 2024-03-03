@@ -18,16 +18,13 @@ var _ = strconv.IntSize
 func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Sequencer {
 	items := make([]types.Sequencer, n)
 	for i := range items {
-		items[i].SequencerAddress = strconv.Itoa(i)
+		seq := types.Sequencer{
+			SequencerAddress: strconv.Itoa(i),
+			Status:           types.Bonded,
+		}
+		items[i] = seq
 
 		keeper.SetSequencer(ctx, items[i])
-
-		scheduler := types.Scheduler{
-			SequencerAddress: items[i].SequencerAddress,
-			Status:           types.Unspecified,
-		}
-
-		keeper.SetScheduler(ctx, scheduler)
 	}
 	return items
 }
@@ -46,33 +43,26 @@ func TestSequencerGet(t *testing.T) {
 		)
 	}
 }
-func TestSequencerRemove(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(keeper, ctx, 10)
-	for _, item := range items {
-		keeper.RemoveSequencer(ctx,
-			item.SequencerAddress,
-		)
-		_, found := keeper.GetSequencer(ctx,
-			item.SequencerAddress,
-		)
-		require.False(t, found)
-
-		keeper.RemoveScheduler(ctx,
-			item.SequencerAddress,
-		)
-		_, found = keeper.GetScheduler(ctx,
-			item.SequencerAddress,
-		)
-		require.False(t, found)
-	}
-}
 
 func TestSequencerGetAll(t *testing.T) {
 	keeper, ctx := keepertest.SequencerKeeper(t)
 	items := createNSequencer(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllSequencer(ctx)),
+		nullify.Fill(keeper.GetAllSequencers(ctx)),
+	)
+}
+
+func TestSequencersByRollappGet(t *testing.T) {
+	keeper, ctx := keepertest.SequencerKeeper(t)
+	items := createNSequencer(keeper, ctx, 10)
+	rst := keeper.GetSequencersByRollapp(ctx,
+		items[0].RollappId,
+	)
+
+	require.Equal(t, len(rst), len(items))
+	require.ElementsMatch(t,
+		nullify.Fill(items),
+		nullify.Fill(rst),
 	)
 }

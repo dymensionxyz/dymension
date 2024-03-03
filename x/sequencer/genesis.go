@@ -13,27 +13,17 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.SequencerList {
 		k.SetSequencer(ctx, elem)
 	}
-	// Set all the sequencersByRollapp
-	for _, elem := range genState.SequencersByRollappList {
-		k.SetSequencersByRollapp(ctx, elem)
-	}
-	// Set all the scheduler
-	for _, elem := range genState.SchedulerList {
-		k.SetScheduler(ctx, elem)
-	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
 
 // ExportGenesis returns the capability module's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	genesis := types.DefaultGenesis()
+	genesis := types.GenesisState{}
 	genesis.Params = k.GetParams(ctx)
 
-	genesis.SequencerList = k.GetAllSequencer(ctx)
-	genesis.SequencersByRollappList = k.GetAllSequencersByRollapp(ctx)
-	genesis.SchedulerList = k.GetAllScheduler(ctx)
+	genesis.SequencerList = k.GetAllSequencers(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
-	return genesis
+	return &genesis
 }

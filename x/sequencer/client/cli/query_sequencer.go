@@ -23,11 +23,11 @@ func CmdListSequencer() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllSequencerRequest{
+			params := &types.QuerySequencersRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.SequencerAll(context.Background(), params)
+			res, err := queryClient.Sequencers(context.Background(), params)
 			if err != nil {
 				return err
 			}
