@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"sort"
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -9,9 +10,17 @@ import (
 func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr3 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	seqAddrs := make([]string, 3)
+	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs[2] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	//sort the sequencers by address
+	sort.Strings(seqAddrs)
+	addr1 := seqAddrs[0]
+	addr2 := seqAddrs[1]
+	addr3 := seqAddrs[2]
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
