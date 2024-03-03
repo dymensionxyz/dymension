@@ -39,7 +39,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 			// if MaxRollapps, it means there is a limit for this creator
 			// count how many rollapps he created
 			rollappsNumOfCreator := uint64(0)
-			for _, r := range k.GetAllRollapp(ctx) {
+			for _, r := range k.GetAllRollapps(ctx) {
 				if r.Creator == msg.Creator {
 					rollappsNumOfCreator += 1
 				}

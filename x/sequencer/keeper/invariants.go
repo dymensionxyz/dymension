@@ -5,13 +5,13 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// RegisterInvariants registers the bank module invariants
+// RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "sequencers-per-rollapp", SequencersPerRollappInvariant(k))
 }
 
-// AllInvariants runs all invariants of the X/bank module.
+// AllInvariants runs all invariants of the x/sequencer module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		res, stop := SequencersCountInvariant(k)(ctx)
@@ -34,7 +34,7 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 		)
 
 		sequencers := k.GetAllSequencers(ctx)
-		rollapps := k.rollappKeeper.GetAllRollapp(ctx)
+		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 
 		totalCount := 0
 		for _, rollapp := range rollapps {
@@ -70,7 +70,7 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		rollapps := k.rollappKeeper.GetAllRollapp(ctx)
+		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
 			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
 			unbonding := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonding)

@@ -36,7 +36,7 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime)
 
 	//Test the test: make sure all status have entries
-	rollappid := suite.App.RollappKeeper.GetAllRollapp(suite.Ctx)[0].RollappId
+	rollappid := suite.App.RollappKeeper.GetAllRollapps(suite.Ctx)[0].RollappId
 	seqBonded := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Bonded)
 	seqUnbonding := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Unbonding)
 	seqUnbonded := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Unbonded)
