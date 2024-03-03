@@ -12,19 +12,62 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-func (im IBCMiddleware) handleEIBCPacket(ctx sdk.Context, chainID string, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
+const (
+	eibcMemoObjectName = "eibc"
+	PFMMemoObjectName  = "forward"
+)
+
+// eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
+// the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
+// If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
+// If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
+func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, chainID string, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	// Handle eibc demand order if exists - Start by validating the memo
-	memo := make(map[string]interface{})
-	err := json.Unmarshal([]byte(data.Memo), &memo)
-	if err != nil || memo[eibcMemoObjectName] == nil {
-		logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
-		return nil
-	}
 	packetMetaData := &types.PacketMetadata{}
-	err = json.Unmarshal([]byte(data.Memo), packetMetaData)
-	if err != nil || packetMetaData.ValidateBasic() != nil {
-		logger.Error("error parsing packet metadata from memo", "error", err)
+	// If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
+	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+		// Handle eibc demand order if exists - Start by validating the memo
+		memo := make(map[string]interface{})
+		err := json.Unmarshal([]byte(data.Memo), &memo)
+		if err != nil || memo[eibcMemoObjectName] == nil {
+			logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
+			return nil
+		}
+
+		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
+		if memo[PFMMemoObjectName] != nil {
+			err = fmt.Errorf("EIBC packet with PFM is currently not supported")
+			return err
+		}
+		// Unmarshal the packet metadata from the memo
+		err = json.Unmarshal([]byte(data.Memo), packetMetaData)
+		if err != nil {
+			logger.Error("error parsing packet metadata from memo", "error", err)
+			return nil
+		}
+		// If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		// Calculate the fee by multiplying the timeout fee by the price
+		amountDec, err := sdk.NewDecFromStr(data.Amount)
+		if err != nil {
+			return err
+		}
+		// Calculate the fee by multiplying the timeout fee by the price
+		timeoutFee := im.keeper.TimeoutFee(ctx)
+		if timeoutFee.IsZero() {
+			logger.Debug("Timeout fee is zero, skipping demand order creation")
+			return nil
+		}
+		fee := amountDec.Mul(timeoutFee).TruncateInt().String()
+		packetMetaData = &types.PacketMetadata{
+			EIBC: &types.EIBCMetadata{
+				Fee: fee,
+			},
+		}
+	}
+	// Validate the packet metadata
+	if err := packetMetaData.ValidateBasic(); err != nil {
+		logger.Error("error validating packet metadata", "error", err)
 		return nil
 	}
 	// Create the eibc demand order
@@ -71,9 +114,20 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, fmt.Errorf("Fee cannot be larger than amount")
 	}
 	demandOrderPrice := amountInt.Sub(feeInt).String()
-	demandOrderDenom := im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
+	// Get the denom for the demand order. If it's a timeout packet
+	// than its simply the denom we tried to send. If it's a receive packet
+	// than it's the IBC denom we've got.
+	var demandOrderDenom string
+	var demandOrderRecipient string
+	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		demandOrderDenom = fungibleTokenPacketData.Denom
+		demandOrderRecipient = fungibleTokenPacketData.Sender
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
+		demandOrderRecipient = fungibleTokenPacketData.Receiver
+	}
 	// Create the demand order and validate it
-	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, fungibleTokenPacketData.Receiver)
+	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create eibc demand order, %s", err)
 	}

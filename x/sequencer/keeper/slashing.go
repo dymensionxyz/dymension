@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// Unbond defines a method for removing coins from sequencer's bond
+// Slashing slashes the sequencer for misbehaviour
 func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -38,9 +38,5 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.UnbondTime = ctx.BlockHeader().Time
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
-	if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, seq)
-	}
-
 	return nil
 }
