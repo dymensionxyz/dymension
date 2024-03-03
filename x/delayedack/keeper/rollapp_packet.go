@@ -48,12 +48,12 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 	return &rollappPacket, nil
 }
 
-// UpdateRollappPacketRecipient updates the recipient of the underlying packet.
+// UpdateRollappPacketTransferData updates the recipient of the underlying packet.
 // Only pending packets can be updated.
-func (k Keeper) UpdateRollappPacketRecipient(
+func (k Keeper) UpdateRollappPacketTransferAddress(
 	ctx sdk.Context,
 	rollappPacketKey string,
-	newRecipient string,
+	address string,
 ) error {
 	rollappPacket, err := k.GetRollappPacket(ctx, rollappPacketKey)
 	if err != nil {
@@ -62,17 +62,23 @@ func (k Keeper) UpdateRollappPacketRecipient(
 	if rollappPacket.Status != commontypes.Status_PENDING {
 		return types.ErrCanOnlyUpdatePendingPacket
 	}
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data); err != nil {
+	transferPacketData, err := rollappPacket.GetTransferPacketData()
+	if err != nil {
 		return err
 	}
-	// Create a copy of the packet with the new recipient
+	// Set the recipient and sender based on the rollapp packet type
+	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
+	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+		recipient = address
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		sender = address
+	}
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
-		data.Denom,
-		data.Amount,
-		data.Sender,
-		newRecipient,
-		data.Memo,
+		transferPacketData.Denom,
+		transferPacketData.Amount,
+		sender,
+		recipient,
+		transferPacketData.Memo,
 	)
 	// Marshall to binary and update the packet with this data
 	packetBytes := newPacketData.GetBytes()
@@ -170,7 +176,11 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		err := k.cdc.Unmarshal(iterator.Value(), &val)
+		if err != nil {
+			ctx.Logger().Error("Failed to unmarshal rollapp packet", "error", err)
+			continue
+		}
 		list = append(list, val)
 	}
 

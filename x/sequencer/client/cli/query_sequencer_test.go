@@ -30,14 +30,13 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 	for i := 0; i < n; i++ {
 		sequencer := types.Sequencer{
 			SequencerAddress: strconv.Itoa(i),
+			Status:           types.Bonded,
 		}
 		nullify.Fill(&sequencer)
-		state.SequencerList = append(state.SequencerList, sequencer)
-		scheduler := types.Scheduler{
-			SequencerAddress: sequencer.SequencerAddress,
+		if i == 0 {
+			sequencer.Status = types.Proposer
 		}
-		nullify.Fill(&scheduler)
-		state.SchedulerList = append(state.SchedulerList, scheduler)
+		state.SequencerList = append(state.SequencerList, sequencer)
 	}
 
 	buf, err := cfg.Codec.MarshalJSON(&state)
@@ -59,17 +58,14 @@ func TestShowSequencer(t *testing.T) {
 
 		args []string
 		err  error
-		obj  types.SequencerInfo
+		obj  types.Sequencer
 	}{
 		{
 			desc:               "found",
 			idSequencerAddress: objs[0].SequencerAddress,
 
 			args: common,
-			obj: types.SequencerInfo{
-				Sequencer: objs[0],
-				Status:    0,
-			},
+			obj:  objs[0],
 		},
 		{
 			desc:               "not found",
@@ -93,10 +89,10 @@ func TestShowSequencer(t *testing.T) {
 				require.NoError(t, err)
 				var resp types.QueryGetSequencerResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.SequencerInfo)
+				require.NotNil(t, resp.Sequencer)
 				require.Equal(t,
 					&tc.obj,
-					&resp.SequencerInfo,
+					&resp.Sequencer,
 				)
 			}
 		})
@@ -106,12 +102,9 @@ func TestShowSequencer(t *testing.T) {
 func TestListSequencer(t *testing.T) {
 	net, objs := networkWithSequencerObjects(t, 5)
 
-	var sequencerInfoList []types.SequencerInfo
+	var sequencerInfoList []types.Sequencer
 	for _, obj := range objs {
-		sequencerInfoList = append(sequencerInfoList, types.SequencerInfo{
-			Sequencer: obj,
-			Status:    0,
-		})
+		sequencerInfoList = append(sequencerInfoList, obj)
 	}
 
 	ctx := net.Validators[0].ClientCtx
@@ -136,12 +129,12 @@ func TestListSequencer(t *testing.T) {
 			args := request(nil, uint64(i), uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllSequencerResponse
+			var resp types.QuerySequencersResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
+			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
 				sequencerInfoList,
-				resp.SequencerInfoList,
+				resp.Sequencers,
 			)
 		}
 	})
@@ -152,12 +145,12 @@ func TestListSequencer(t *testing.T) {
 			args := request(next, 0, uint64(step), false)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllSequencerResponse
+			var resp types.QuerySequencersResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.SequencerInfoList), step)
+			require.LessOrEqual(t, len(resp.Sequencers), step)
 			require.Subset(t,
 				sequencerInfoList,
-				resp.SequencerInfoList,
+				resp.Sequencers,
 			)
 			next = resp.Pagination.NextKey
 		}
@@ -166,13 +159,13 @@ func TestListSequencer(t *testing.T) {
 		args := request(nil, 0, uint64(len(objs)), true)
 		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListSequencer(), args)
 		require.NoError(t, err)
-		var resp types.QueryAllSequencerResponse
+		var resp types.QuerySequencersResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			sequencerInfoList,
-			resp.SequencerInfoList,
+			resp.Sequencers,
 		)
 	})
 }

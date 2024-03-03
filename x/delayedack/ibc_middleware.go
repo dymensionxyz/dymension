@@ -157,7 +157,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	err = im.handleEIBCPacket(ctx, chainID, rollappPacket, data)
+	err = im.eIBCDemandOrderHandler(ctx, chainID, rollappPacket, data)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -299,6 +299,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
+
+	err = im.eIBCDemandOrderHandler(ctx, chainID, rollappPacket, data)
 	if err != nil {
 		return err
 	}
