@@ -10,14 +10,12 @@ var _ rollapptypes.RollappHooks = rollapphook{}
 
 // Hooks wrapper struct for rollapp keeper.
 type rollapphook struct {
-	rollapptypes.BaseRollappHook
 	k Keeper
 }
 
 // Return the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollapphook{
-		rollapptypes.BaseRollappHook{},
 		k,
 	}
 }
@@ -42,5 +40,30 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	if !sequencer.Proposer {
 		return types.ErrNotActiveSequencer
 	}
+	return nil
+}
+
+func (hook rollapphook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+	return nil
+}
+
+// FraudSubmitted implements the RollappHooks interface
+// It slashes the sequencer
+func (hook rollapphook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
+	if !found {
+		return types.ErrUnknownSequencer
+	}
+
+	//skip slashing if the sequencer is already jailed
+	if sequencer.Jailed {
+		return nil
+	}
+
+	err := hook.k.Slashing(ctx, seqAddr)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

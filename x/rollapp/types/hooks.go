@@ -13,6 +13,7 @@ import (
 type RollappHooks interface {
 	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error         // Must be called when a rollapp's state changes
 	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
+	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
 }
 
 var _ RollappHooks = MultiRollappHooks{}
@@ -45,15 +46,12 @@ func (h MultiRollappHooks) AfterStateFinalized(ctx sdk.Context, rollappID string
 	return nil
 }
 
-type BaseRollappHook struct {
-}
-
-var _ RollappHooks = BaseRollappHook{}
-
-func (b BaseRollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error {
-	return nil
-}
-
-func (b BaseRollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (h MultiRollappHooks) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	for i := range h {
+		err := h[i].FraudSubmitted(ctx, rollappID, height, seqAddr)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

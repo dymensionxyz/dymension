@@ -51,5 +51,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		k.RotateProposer(ctx, seq.RollappId)
 	}
 
+	//TODO: emit an event
+
 	return nil
 }

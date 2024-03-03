@@ -10,4 +10,8 @@ const (
 	AttributeKeyNumBlocks      = "num_blocks"
 	AttributeKeyDAPath         = "da_path"
 	AttributeKeyStatus         = "status"
+
+	EventTypeFraud             = "fraud_proposal"
+	AttributeKeyFraudHeight    = "fraud_height"
+	AttributeKeyFraudSequencer = "fraud_sequencer"
 )

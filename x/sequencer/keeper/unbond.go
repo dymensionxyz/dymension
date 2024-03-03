@@ -61,5 +61,7 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	k.UpdateSequencer(ctx, seq, types.Unbonding)
 	k.removeUnbondingSequencer(ctx, seq)
 
+	//TODO: emit an event
+
 	return nil
 }
