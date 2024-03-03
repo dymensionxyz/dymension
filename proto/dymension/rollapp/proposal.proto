@@ -1,0 +1,24 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+
+message SubmitFraudProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  
+  string title = 1;
+  string description = 2;
+  
+  // The rollapp id
+  string rollapp_id = 3;
+  // The height of the fraudelent block
+  uint64 fraudelent_height = 4;
+  // The address of the fraudelent sequencer
+  string fraudelent_sequencer_address = 5;
+}
