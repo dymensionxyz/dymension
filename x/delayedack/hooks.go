@@ -24,7 +24,7 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) error {
-	rollappPendingPackets := im.keeper.ListRollappPendingPackets(ctx, rollappID, stateEndHeight)
+	rollappPendingPackets := im.keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, stateEndHeight)
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
@@ -39,19 +39,22 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 			logger.Debug("Calling OnRecvPacket", "rollappID", rollappID, "sequence", rollappPacket.Packet.GetSequence(), "destination channel", rollappPacket.Packet.GetDestChannel())
 			wrappedFunc := func(ctx sdk.Context) error {
 				ack := im.app.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+				// If async, return
+				if ack == nil {
+					return nil
+				}
+				// If sync, check if the acknowledgement is successful
 				if !ack.Success() {
 					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
 				}
 				// Write the acknowledgement to the chain only if it is synchronous
-				if ack != nil {
-					_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-					if err != nil {
-						return err
-					}
-					err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
-					if err != nil {
-						return err
-					}
+				_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
+				if err != nil {
+					return err
+				}
+				err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
+				if err != nil {
+					return err
 				}
 				return nil
 			}

@@ -45,7 +45,7 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		rollapps := k.GetAllRollapp(ctx)
+		rollapps := k.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
 			eip155, err := types.ParseChainID(rollapp.RollappId)
 			if err != nil {
@@ -81,7 +81,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		for _, rollapp := range k.GetAllRollapp(ctx) {
+		for _, rollapp := range k.GetAllRollapps(ctx) {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
 				continue
 			}
@@ -138,7 +138,7 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		rollapps := k.GetAllRollapp(ctx)
+		rollapps := k.GetAllRollapps(ctx)
 		rollappCount := len(rollapps)
 		rollappCountFromIndex := len(k.GetAllLatestStateInfoIndex(ctx))
 
@@ -151,7 +151,6 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 		for _, rollapp := range rollapps {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
 				noStateRollappCount++
-				continue
 			}
 		}
 
@@ -175,7 +174,7 @@ func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		rollapps := k.GetAllRollapp(ctx)
+		rollapps := k.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
 				continue
