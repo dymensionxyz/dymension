@@ -60,7 +60,7 @@ func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *comm
 	// Get the demand order from the packet key. The initial demand order was built when
 	// the packet was created, hence with PENDING status.
 	rollappPacket.Status = commontypes.Status_PENDING
-	packetKey, err := commontypes.GetRollappPacketKey(rollappPacket)
+	packetKey, err := commontypes.RollappPacketKey(rollappPacket)
 	if err != nil {
 		return err
 	}

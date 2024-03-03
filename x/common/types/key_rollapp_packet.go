@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/binary"
 	fmt "fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ binary.ByteOrder
@@ -25,27 +27,45 @@ var (
 	RevertedRollappPacketKeyPrefix = []byte{0x00, 0x03}
 )
 
-// GetRollappPacketKey constructs a key for a specific RollappPacket
-func GetRollappPacketKey(
+// RollappPacketKey constructs a key for a specific RollappPacket
+func RollappPacketKey(
 	rollappPacket *RollappPacket,
 ) ([]byte, error) {
 	// Get the relevant key prefix based on the packet status
-	var prefix []byte
-	switch rollappPacket.Status {
-	case Status_PENDING:
-		prefix = PendingRollappPacketKeyPrefix
-	case Status_FINALIZED:
-		prefix = FinalizedRollappPacketKeyPrefix
-	case Status_REVERTED:
-		prefix = RevertedRollappPacketKeyPrefix
-	default:
-		return nil, fmt.Errorf("invalid packet status: %s", rollappPacket.Status)
+	statusPrefix, err := GetStatusBytes(rollappPacket.Status)
+	if err != nil {
+		return nil, err
 	}
-	// %020d formats the integer with leading zeros, up to a width of 20 digits.
-	// This is done in order to easily iterate over the keys in order so that e.g 421 won't come after 42 instead of 43.
-	// This width is chosen to accommodate the range of uint64 which can be up to 20 digits long
-	// The leading zero is not limited to one, it will add as many zeros as needed to reach the width of 20 digits
-	// For example, the number 342234 will be formatted as 00000000000000342234
-	packetUID := rollappPacket.Packet.DestinationChannel + "-" + fmt.Sprintf("%020d", rollappPacket.Packet.Sequence)
-	return []byte(fmt.Sprintf("%s%s%s%s%s", prefix, KeySeparator, rollappPacket.RollappId, KeySeparator, packetUID)), nil
+	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
+	keySeparatorBytes := []byte(KeySeparator)
+	rollappIdBytes := []byte(rollappPacket.RollappId)
+	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
+	// Build the packetUID from the destination channel and sequence number.
+	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
+	packetDestinationChannelBytes := []byte(rollappPacket.Packet.DestinationChannel)
+	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
+
+	// Concatenate the byte slices directly.
+	result := append(statusPrefix, keySeparatorBytes...)
+	result = append(result, proofHeightBytes...)
+	result = append(result, keySeparatorBytes...)
+	result = append(result, rollappIdBytes...)
+	result = append(result, keySeparatorBytes...)
+	result = append(result, packetUIDBytes...)
+
+	return result, nil
+}
+
+// GetStatusBytes returns the byte representation of the status
+func GetStatusBytes(status Status) ([]byte, error) {
+	switch status {
+	case Status_PENDING:
+		return PendingRollappPacketKeyPrefix, nil
+	case Status_FINALIZED:
+		return FinalizedRollappPacketKeyPrefix, nil
+	case Status_REVERTED:
+		return RevertedRollappPacketKeyPrefix, nil
+	default:
+		return nil, fmt.Errorf("invalid packet status: %s", status)
+	}
 }
