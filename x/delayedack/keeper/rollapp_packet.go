@@ -62,23 +62,23 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	if rollappPacket.Status != commontypes.Status_PENDING {
 		return types.ErrCanOnlyUpdatePendingPacket
 	}
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data); err != nil {
+	transferPacketData, err := rollappPacket.GetTransferPacketData()
+	if err != nil {
 		return err
 	}
 	// Set the recipient and sender based on the rollapp packet type
-	recipient, sender := data.Receiver, data.Sender
+	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
 	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
 		recipient = address
 	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 		sender = address
 	}
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
-		data.Denom,
-		data.Amount,
+		transferPacketData.Denom,
+		transferPacketData.Amount,
 		sender,
 		recipient,
-		data.Memo,
+		transferPacketData.Memo,
 	)
 	// Marshall to binary and update the packet with this data
 	packetBytes := newPacketData.GetBytes()

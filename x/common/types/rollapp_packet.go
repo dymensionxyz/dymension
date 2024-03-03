@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 )
 
 const (
@@ -29,4 +30,12 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyPacketError, r.Error),
 	}
 	return eventAttributes
+}
+
+func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacketData, error) {
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(r.Packet.GetData(), &data); err != nil {
+		return transfertypes.FungibleTokenPacketData{}, err
+	}
+	return data, nil
 }
