@@ -12,6 +12,11 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
+const (
+	eibcMemoObjectName = "eibc"
+	PFMMemoObjectName  = "forward"
+)
+
 // eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
@@ -28,8 +33,15 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, chainID string, 
 			logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
 			return nil
 		}
+
+		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
+		if memo[PFMMemoObjectName] != nil {
+			err = fmt.Errorf("EIBC packet with PFM is currently not supported")
+			return err
+		}
+		// Unmarshal the packet metadata from the memo
 		err = json.Unmarshal([]byte(data.Memo), packetMetaData)
-		if err != nil || packetMetaData.ValidateBasic() != nil {
+		if err != nil {
 			logger.Error("error parsing packet metadata from memo", "error", err)
 			return nil
 		}
@@ -52,6 +64,11 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, chainID string, 
 				Fee: fee,
 			},
 		}
+	}
+	// Validate the packet metadata
+	if err := packetMetaData.ValidateBasic(); err != nil {
+		logger.Error("error validating packet metadata", "error", err)
+		return nil
 	}
 	// Create the eibc demand order
 	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, *packetMetaData.EIBC)

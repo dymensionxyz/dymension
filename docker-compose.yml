@@ -1,0 +1,8 @@
+---
+version: "3"
+services:
+  node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh ./scripts/start_localnode.sh
