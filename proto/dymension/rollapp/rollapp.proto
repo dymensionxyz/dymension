@@ -10,27 +10,29 @@ import "dymension/rollapp/bank.proto";
 // sequencers can be created and attached. The RollApp is identified by rollappId
 message Rollapp {
   // The unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id.
-  string rollappId = 1;
+  // The rollapp_id follows the same standard as cosmos chain_id.
+  string rollapp_id = 1;
   // creator is the bech32-encoded address of the rollapp creator.
   string creator = 2;
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
   uint64 version = 3;
-// codeStamp is a generated hash for unique identification of the rollapp code.
-  string codeStamp = 4 [deprecated=true]; 
-  // genesisPath is the description of the genesis file location on the DA.
-  string genesisPath = 5 [deprecated=true]; 
-  // maxWithholdingBlocks is the maximum number of blocks for
+// code_stamp is a generated hash for unique identification of the rollapp code.
+  string code_stamp = 4 [deprecated=true]; 
+  // genesis_path is the description of the genesis file location on the DA.
+  string genesis_path = 5 [deprecated=true]; 
+  // max_withholding_blocks is the maximum number of blocks for
   // an active sequencer to send a state update (MsgUpdateState). 
-  uint64 maxWithholdingBlocks = 6 [deprecated=true]; 
-  // maxSequencers is the maximum number of sequencers.
-  uint64 maxSequencers = 7;
-  // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
+  uint64 max_withholding_blocks = 6 [deprecated=true]; 
+  // max_sequencers is the maximum number of sequencers.
+  uint64 max_sequencers = 7;
+  // permissioned_addresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
-  repeated string permissionedAddresses = 8;
-  // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
-  repeated TokenMetadata tokenMetadata = 9;
+  repeated string permissioned_addresses = 8;
+  // token_metadata is a list of TokenMetadata that are registered on this rollapp
+  repeated TokenMetadata token_metadata = 9;
+  // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+  RollappGenesisState genesis_state = 10;
 }
 
 // Rollapp summary is a compact representation of Rollapp
@@ -38,9 +40,24 @@ message RollappSummary {
   // The unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id.
   string rollappId = 1;
-  // Defines the index of the last rollapp UpdateState.
-  StateInfoIndex latestStateIndex = 2;
-  // Defines the index of the last rollapp UpdateState that was finalized.
-  StateInfoIndex latestFinalizedStateIndex = 3;
+  // latest_state_index defines the index of the last rollapp UpdateState.
+  StateInfoIndex latest_state_index = 2;
+  // latest_finalized_state_index defines the index of the last rollapp UpdateState that was finalized.
+  StateInfoIndex latest_finalized_state_index = 3;
 }
 
+// GenesisAccount is a struct for the genesis account for the rollapp
+message GenesisAccount {
+  // amount of coins to be sent to the genesis address
+  uint64 amount = 1;
+  // address is a bech-32 address of the genesis account
+  string address = 2;
+}
+
+// RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+message RollappGenesisState {
+  // genesis_accounts is a list of token allocations
+  repeated GenesisAccount genesis_accounts = 1 [(gogoproto.nullable) = false];
+  // is_genesis_event is a boolean that indicates if the genesis event has occured
+  bool is_genesis_event = 2;
+}
