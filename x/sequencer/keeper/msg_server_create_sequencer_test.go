@@ -164,7 +164,8 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Description:      sequencerMsg.GetDescription(),
 			}
 			if i == 0 {
-				sequencerExpect.Status = types.Proposer
+				sequencerExpect.Status = types.Bonded
+				sequencerExpect.Proposer = true
 			}
 			// create sequencer
 			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -300,7 +301,8 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	sequencerExpect := types.Sequencer{
 		SequencerAddress: sequencerMsg.GetCreator(),
 		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
-		Status:           types.Proposer,
+		Status:           types.Bonded,
+		Proposer:         true,
 		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
 		Tokens:           sdk.NewCoins(bond),
@@ -412,12 +414,14 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 	// check scheduler operating status
 	scheduler, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Proposer)
+	suite.EqualValues(scheduler.Status, types.Bonded)
+	suite.True(scheduler.Proposer)
 
 	// check scheduler operating status
 	scheduler, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
 	suite.EqualValues(scheduler.Status, types.Bonded)
+	suite.False(scheduler.Proposer)
 }
 
 // ---------------------------------------

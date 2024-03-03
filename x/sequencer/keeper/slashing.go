@@ -7,6 +7,7 @@ import (
 )
 
 // Unbond defines a method for removing coins from sequencer's bond
+// Slashing can occur on both Bonded and Unbonding sequencers
 func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -31,15 +32,23 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	}
 
 	oldStatus := seq.Status
+	wasPropser := seq.Proposer
+	//in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
+	if oldStatus == types.Unbonding {
+		k.removeUnbondingSequencer(ctx, seq)
+	}
+
 	// set the status to unbonded
 	seq.Status = types.Unbonded
 	seq.Jailed = true
+	seq.Proposer = false
 	seq.UnbondingHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
-
 	k.UpdateSequencer(ctx, seq, oldStatus)
-	if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, seq)
+
+	// rotate proposer if the slashed sequencer was the proposer
+	if wasPropser {
+		k.RotateProposer(ctx, seq.RollappId)
 	}
 
 	return nil

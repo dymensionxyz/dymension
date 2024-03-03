@@ -16,51 +16,53 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	/* ----------------------------- unbond proposer ---------------------------- */
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Proposer)
+	suite.Equal(types.Bonded, sequencer.Status)
+	suite.True(sequencer.Proposer)
 
 	sequencer2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Bonded)
+	suite.Equal(types.Bonded, sequencer2.Status)
+	suite.False(sequencer2.Proposer)
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
+	// check proposer rotation
+	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	suite.Equal(types.Bonded, sequencer2.Status)
+	suite.True(sequencer2.Proposer)
+
 	// check sequencer operating status
 	sequencer, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Unbonding)
+	suite.Equal(types.Unbonding, sequencer.Status)
+	suite.False(sequencer.Proposer)
 
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
 
 	sequencer, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().True(found)
-	suite.Equal(sequencer.Status, types.Unbonded)
+	suite.Equal(types.Unbonded, sequencer.Status)
 
-	// check proposer rotation
-	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Require().True(found)
-	suite.Equal(sequencer2.Status, types.Proposer)
-
-	/* ------------------------- unbond bonded sequencer ------------------------ */
+	/* ------------------------- unbond non proposer sequencer ------------------------ */
 	sequencer3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
 	suite.Require().True(found)
-	suite.Equal(sequencer3.Status, types.Bonded)
+	suite.Equal(types.Bonded, sequencer3.Status)
+	suite.False(sequencer3.Proposer)
 
-	unbondMsg = types.MsgUnbond{Creator: addr2}
+	unbondMsg = types.MsgUnbond{Creator: addr3}
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
 	// check sequencer operating status
-	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
 	suite.Require().True(found)
-	suite.Equal(sequencer3.Status, types.Unbonding)
+	suite.Equal(types.Unbonding, sequencer3.Status)
 
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer3.UnbondTime.Add(10*time.Second))
 
-	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
 	suite.Require().True(found)
-	suite.Equal(sequencer3.Status, types.Unbonded)
+	suite.Equal(types.Unbonded, sequencer3.Status)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {

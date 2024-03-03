@@ -27,17 +27,21 @@ message Sequencer {
 
   // jailed defined whether the sequencer has been jailed from bonded status or not.
   bool jailed = 5;
+
+// proposer defines whether the sequencer is a proposer or not.
+   bool proposer = 6;
+
   // status is the sequencer status (bonded/unbonding/unbonded).
-  OperatingStatus status = 6;
+  OperatingStatus status = 7;
 
   // tokens define the delegated tokens (incl. self-delegation).
-  repeated cosmos.base.v1beta1.Coin tokens = 7 
+  repeated cosmos.base.v1beta1.Coin tokens = 8 
   [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 
     // unbonding_height defines, if unbonding, the height at which this sequencer has begun unbonding.
-  int64 unbonding_height = 8;
+  int64 unbonding_height = 9;
   // unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
-  google.protobuf.Timestamp unbond_time = 9 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp unbond_time = 10 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 
 }
 

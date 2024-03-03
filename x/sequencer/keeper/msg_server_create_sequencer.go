@@ -81,6 +81,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:        msg.RollappId,
 		Description:      msg.Description,
 		Status:           types.Bonded,
+		Proposer:         false,
 		Tokens:           bond,
 	}
 
@@ -92,7 +93,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 	// this is the first sequencer, make it a PROPOSER
 	if currentNumOfSequencers == 0 {
-		sequencer.Status = types.Proposer
+		sequencer.Proposer = true
 	}
 
 	k.SetSequencer(ctx, sequencer)

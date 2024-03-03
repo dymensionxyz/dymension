@@ -87,7 +87,7 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 
 			proposerFound := false
 			for _, seq := range bonded {
-				if seq.Status == types.Proposer {
+				if seq.Proposer {
 					if proposerFound {
 						broken = true
 						msg += "more than one proposer for rollapp " + rollapp.RollappId + "\n"
