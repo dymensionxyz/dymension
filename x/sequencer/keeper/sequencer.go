@@ -31,21 +31,27 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 	b := k.cdc.MustMarshal(&sequencer)
 	store.Set(types.SequencerKey(sequencer.SequencerAddress), b)
 
-	oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus)
-	store.Delete(oldKey)
-
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
 
-	//handle unbonding queue changes due to status change
-	if sequencer.Status == oldStatus {
+	//status changed, need to remove old status key
+	if sequencer.Status != oldStatus {
+		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus)
+		store.Delete(oldKey)
+	}
+}
+
+// rotate proposer. we set the first bonded sequencer to be the proposer
+func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
+	seqsByRollapp := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
+	if len(seqsByRollapp) == 0 {
+		k.Logger(ctx).Error("no bonded sequencer found for rollapp", "rollappId", rollappId)
 		return
 	}
-	if sequencer.Status == types.Unbonding {
-		k.setUnbondingSequencerQueue(ctx, sequencer)
-	} else if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, sequencer)
-	}
+	//TODO: probably better to store it with some fifo indexing. otherwise it sorted by address
+	seq := seqsByRollapp[0]
+	seq.Proposer = true
+	k.UpdateSequencer(ctx, seq, types.Bonded)
 }
 
 // GetSequencer returns a sequencer from its index
@@ -96,9 +102,6 @@ func (k Keeper) GetSequencersByRollapp(ctx sdk.Context, rollappId string) (list 
 
 // GetSequencersByRollapp returns a sequencersByRollapp from its index
 func (k Keeper) GetSequencersByRollappByStatus(ctx sdk.Context, rollappId string, status types.OperatingStatus) (list []types.Sequencer) {
-	if status == types.Unspecified {
-		return k.GetSequencersByRollapp(ctx, rollappId)
-	}
 	prefixKey := types.SequencersByRollappByStatusKey(rollappId, status)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), prefixKey)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

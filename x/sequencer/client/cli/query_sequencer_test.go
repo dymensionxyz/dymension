@@ -34,7 +34,8 @@ func networkWithSequencerObjects(t *testing.T, n int) (*network.Network, []types
 		}
 		nullify.Fill(&sequencer)
 		if i == 0 {
-			sequencer.Status = types.Proposer
+			sequencer.Status = types.Bonded
+			sequencer.Proposer = true
 		}
 		state.SequencerList = append(state.SequencerList, sequencer)
 	}

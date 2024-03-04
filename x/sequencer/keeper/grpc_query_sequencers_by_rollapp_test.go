@@ -145,22 +145,6 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 			response_addr: []string{addr1_2, addr2_2},
 		},
 		{
-			desc: "Second - prposer and bonded the same",
-			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId2,
-				Status:    types.Proposer,
-			},
-			response_addr: []string{addr1_2, addr2_2},
-		},
-		{
-			desc: "Unspecified Status",
-			request: &types.QueryGetSequencersByRollappByStatusRequest{
-				RollappId: rollappId2,
-				Status:    types.Unspecified,
-			},
-			response_addr: []string{addr1_2, addr2_2},
-		},
-		{
 			desc: "KeyNotFound",
 			request: &types.QueryGetSequencersByRollappByStatusRequest{
 				RollappId: strconv.Itoa(100000),

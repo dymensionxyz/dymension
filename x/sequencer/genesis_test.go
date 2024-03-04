@@ -17,7 +17,8 @@ func TestGenesis(t *testing.T) {
 		SequencerList: []types.Sequencer{
 			{
 				SequencerAddress: "0",
-				Status:           types.Proposer,
+				Status:           types.Bonded,
+				Proposer:         true,
 			},
 			{
 				SequencerAddress: "1",

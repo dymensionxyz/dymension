@@ -70,14 +70,12 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 	// Get the relevant key prefix based on the packet status
 	var prefix []byte
 	switch status {
-	case Bonded, Proposer:
+	case Bonded:
 		prefix = BondedSequencersKeyPrefix
 	case Unbonded:
 		prefix = UnbondedSequencersKeyPrefix
 	case Unbonding:
 		prefix = UnbondingSequencersKeyPrefix
-	default:
-		prefix = []byte("undefined")
 	}
 
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))

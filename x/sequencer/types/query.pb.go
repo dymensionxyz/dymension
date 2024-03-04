@@ -438,7 +438,7 @@ func (m *QueryGetSequencersByRollappByStatusRequest) GetStatus() OperatingStatus
 	if m != nil {
 		return m.Status
 	}
-	return Unspecified
+	return Unbonded
 }
 
 type QueryGetSequencersByRollappByStatusResponse struct {

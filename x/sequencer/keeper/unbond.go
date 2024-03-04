@@ -54,7 +54,7 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
 	}
 
-	// set the status to unbonded
+	// set the status to unbonded and remove from the unbonding queue
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coins{}
 
