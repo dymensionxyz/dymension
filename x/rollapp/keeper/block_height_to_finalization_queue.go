@@ -83,7 +83,7 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	))
 }
 
-// GetPendingFinalizationQueue returns the blockHeightToFinalizationQueue starting from the input height till the last queue with batches not yet finalized
+// GetPendingFinalizationQueue returns the blockHeightToFinalizationQueues starting from the input height (height after the disputeperiod) till the last queue with batches not yet finalized
 func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	heightKey := types.BlockHeightToFinalizationQueueKey(height + 1)
