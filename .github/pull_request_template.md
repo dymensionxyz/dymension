@@ -24,6 +24,7 @@ I have...
 - [ ]  Wrote relevant migration scripts if necessary
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
+- [ ]  Updated the scripts for local run, e.g genesis_config_commands.sh if the PR changes parameters
 
 SDK Checklist
 - [ ] Import/Export Genesis
