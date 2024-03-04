@@ -125,6 +125,8 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
+	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
+	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -238,6 +240,7 @@ var (
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
+		denommetadatamodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
@@ -346,10 +349,11 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper   rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
+	RollappKeeper       rollappmodulekeeper.Keeper
+	SequencerKeeper     sequencermodulekeeper.Keeper
+	StreamerKeeper      streamermodulekeeper.Keeper
+	EIBCKeeper          eibckeeper.Keeper
+	DenomMetadataKeeper denommetadatamodulekeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper delayedackkeeper.Keeper
@@ -660,7 +664,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-
+	denomMetadataModule := denommetadatamodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -672,7 +676,8 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper))
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -767,6 +772,7 @@ func New(
 		rollappModule,
 		sequencerModule,
 		streamerModule,
+		denomMetadataModule,
 		delayedackModule,
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -814,6 +820,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
