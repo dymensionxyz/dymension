@@ -24,14 +24,6 @@ message StateInfoIndex {
     
 }
 
-message StateInfoGlobalIndex {
-
-    // index is a sequential increasing number, updating on each
-    // state update used for indexing to a specific state info, the first index is 1
-    uint64 index = 1; 
-    
-}
-
 // StateInfo defines a rollapps' state.
 message StateInfo {
     // stateInfoIndex defines what rollapp the state belongs to
