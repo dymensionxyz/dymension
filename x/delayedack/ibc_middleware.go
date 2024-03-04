@@ -331,7 +331,7 @@ func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Pa
 // CheckIfFinalized checks if the packet is finalized and if so, updates the packet status
 func (im IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, packet channeltypes.Packet) (bool, uint64, error) {
 	// Get the light client height at this block height as a proxy for the packet proof height
-	clientState, err := im.keeper.GetClientState(ctx, packet)
+	clientState, err := im.keeper.GetClientState(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		return false, 0, err
 	}

@@ -6,8 +6,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// LatestStateInfoIndex defines the rollapps' current (latest) index of the last UpdateState
-
 // SetLatestStateInfoIndex set a specific latestStateInfoIndex in the store from its index
 func (k Keeper) SetLatestStateInfoIndex(ctx sdk.Context, latestStateInfoIndex types.StateInfoIndex) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))

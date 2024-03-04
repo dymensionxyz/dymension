@@ -608,6 +608,7 @@ func New(
 		keys[delayedacktypes.MemStoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
+		app.SequencerKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,

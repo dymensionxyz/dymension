@@ -19,6 +19,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -59,15 +60,11 @@ func (ClientKeeperStub) GetClientState(ctx sdk.Context, clientID string) (export
 	return nil, false
 }
 
-func (ClientKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
-	return connectiontypes.ConnectionEnd{}, false
+func (ClientKeeperStub) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+	return nil, false
 }
 
 type ConnectionKeeperStub struct{}
-
-func (ConnectionKeeperStub) GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool) {
-	return nil, false
-}
 
 func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
 	return connectiontypes.ConnectionEnd{}, false
@@ -85,6 +82,20 @@ func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptyp
 
 func (RollappKeeperStub) StateInfo(c context.Context, req *rollapptypes.QueryGetStateInfoRequest) (*rollapptypes.QueryGetStateInfoResponse, error) {
 	return nil, nil
+}
+
+func (RollappKeeperStub) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
+	return rollapptypes.StateInfo{}, false
+}
+
+func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
+	return rollapptypes.StateInfoIndex{}, false
+}
+
+type SequencerKeeperStub struct{}
+
+func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {
+	return sequencertypes.Sequencer{}, false
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -113,10 +124,11 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		paramsSubspace,
 		RollappKeeperStub{},
+		SequencerKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
-		ClientKeeperStub{},
 		ConnectionKeeperStub{},
+		ClientKeeperStub{},
 		nil,
 		nil,
 	)
