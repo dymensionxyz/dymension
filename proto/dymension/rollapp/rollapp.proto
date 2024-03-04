@@ -17,7 +17,7 @@ message Rollapp {
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
   uint64 version = 3;
-// code_stamp is a generated hash for unique identification of the rollapp code.
+  // code_stamp is a generated hash for unique identification of the rollapp code.
   string code_stamp = 4 [deprecated=true]; 
   // genesis_path is the description of the genesis file location on the DA.
   string genesis_path = 5 [deprecated=true]; 
@@ -33,6 +33,8 @@ message Rollapp {
   repeated TokenMetadata token_metadata = 9;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 10;
+  // ibc_transfer_channel_id will be set to the canonical IBC channel of the rollapp.
+  string ibc_transfer_channel_id = 11;
 }
 
 // Rollapp summary is a compact representation of Rollapp
