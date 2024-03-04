@@ -60,13 +60,13 @@ func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightTo
 // GetBlockHeightToFinalizationQueue returns a blockHeightToFinalizationQueue from its index
 func (k Keeper) GetBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
-	finalizationHeight uint64,
+	creationHeight uint64,
 
 ) (val types.BlockHeightToFinalizationQueue, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 
 	b := store.Get(types.BlockHeightToFinalizationQueueKey(
-		finalizationHeight,
+		creationHeight,
 	))
 	if b == nil {
 		return val, false
@@ -79,12 +79,12 @@ func (k Keeper) GetBlockHeightToFinalizationQueue(
 // RemoveBlockHeightToFinalizationQueue removes a blockHeightToFinalizationQueue from the store
 func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
-	finalizationHeight uint64,
+	creationHeight uint64,
 
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	store.Delete(types.BlockHeightToFinalizationQueueKey(
-		finalizationHeight,
+		creationHeight,
 	))
 }
 
