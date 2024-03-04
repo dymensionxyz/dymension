@@ -31,7 +31,7 @@ func init() {
 //
 //nolint:interfacer
 func NewCreateMetadataProposal(title, description string, coins sdk.Coins, distrToRecords []DistrRecord, startTime time.Time, epochIdentifier string, numEpochsPaidOver uint64) *CreateStreamProposal {
-	return &CreateStreamProposal{
+	return &CreateDenomMetadataProposal{
 		Title:                title,
 		Description:          description,
 		DistributeToRecords:  distrToRecords,

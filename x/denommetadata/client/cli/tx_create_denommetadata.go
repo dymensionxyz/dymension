@@ -29,7 +29,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 			}
 			//do parses and checks
 
-			content := types.NewCreateDenomMetadataProposal(proposal.Title, proposal.Description, coins, records, startTime, epochIdentifier, epochs)
+			content := types.NewCreateDenomMetadataProposal(proposal.Title, proposal.Description, denom, decimals)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
@@ -44,6 +44,5 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd.Flags().String(govcli.FlagDescription, "", "The proposal description")
 	cmd.Flags().String(govcli.FlagDeposit, "", "The proposal deposit")
 
-	cmd.Flags().AddFlagSet(FlagSetCreateStream())
 	return cmd
 }

@@ -14,7 +14,8 @@ message CreateDenomMetadataProposal {
   
   string title = 1;
   string description = 2;
-
+  string denom = 3;
+  uint64 decimals = 4;
   }
 
 message UpdateMetadataProposal {
