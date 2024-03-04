@@ -88,9 +88,9 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	))
 }
 
+// GetPendingFinalizationQueue returns the blockHeightToFinalizationQueue starting from the input height till the last queue with batches not yet finalized
 func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	//iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	heightKey := types.BlockHeightToFinalizationQueueKey(height + 1)
 	iterator := sdk.KVStoreReversePrefixIterator(store, heightKey)
 	defer iterator.Close() // nolint: errcheck
@@ -100,7 +100,10 @@ func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (lis
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		stateInfoIndex := val.FinalizationQueue
 		stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex[0].RollappId, stateInfoIndex[0].Index)
-		if !found || stateInfo.Status == types.STATE_STATUS_FINALIZED {
+		if !found {
+			continue
+		}
+		if stateInfo.Status == types.STATE_STATUS_FINALIZED {
 			break
 		}
 		list = append(list, val)
