@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -100,27 +99,17 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		Index:     newIndex,
 	})
 
+	creationHeight := uint64(ctx.BlockHeight())
+	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, msg.Version, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
-	stateInfoIndex := types.StateInfoIndex{RollappId: msg.RollappId, Index: newIndex}
-	k.SetStateInfo(ctx, types.StateInfo{
-		StateInfoIndex: stateInfoIndex,
-		Sequencer:      msg.Creator,
-		StartHeight:    msg.StartHeight,
-		NumBlocks:      msg.NumBlocks,
-		DAPath:         msg.DAPath,
-		Version:        msg.Version,
-		CreationHeight: uint64(ctx.BlockHeight()),
-		Status:         types.STATE_STATUS_RECEIVED,
-		BDs:            msg.BDs},
-	)
+	k.SetStateInfo(ctx, *stateInfo)
 
+	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
-	// height index used for finalization
-	creationHeight := uint64(ctx.BlockHeight())
-	k.Logger(ctx).Info("Adding state to finalization queue at ", creationHeight)
+	k.Logger(ctx).Info("Adding state to finalization queue at ", uint64(ctx.BlockHeight()))
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
+	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, uint64(ctx.BlockHeight()))
 	if found {
 		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}
@@ -133,11 +122,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
-			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
-			sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
-			sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(msg.StartHeight, 10)),
-			sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(msg.NumBlocks, 10)),
-			sdk.NewAttribute(types.AttributeKeyDAPath, msg.DAPath),
+			stateInfo.GetEvents()...,
 		),
 	)
 

@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -22,7 +20,7 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 				ctx.Logger().Error("Missing stateInfo data when trying to finalize", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
 				continue
 			}
-			stateInfo.Status = types.STATE_STATUS_FINALIZED
+			stateInfo.Finalize()
 			// update the status of the stateInfo
 			k.SetStateInfo(ctx, stateInfo)
 			// uppdate the LatestStateInfoIndex of the rollapp
@@ -36,14 +34,11 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 
 			// emit event
 			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStatusChange,
-					sdk.NewAttribute(types.AttributeKeyRollappId, stateInfoIndex.RollappId),
-					sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
-					sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(stateInfo.StartHeight, 10)),
-					sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(stateInfo.NumBlocks, 10)),
-					sdk.NewAttribute(types.AttributeKeyStatus, stateInfo.Status.String()),
+				sdk.NewEvent(types.EventTypeStateUpdate,
+					stateInfo.GetEvents()...,
 				),
 			)
+
 		}
 	}
 }

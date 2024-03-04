@@ -449,19 +449,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		RollappId: "rollapp1",
 		Index:     1,
 	}
-	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
-		StartHeight:    1,
-		NumBlocks:      3,
-		DAPath:         "",
-		Version:        0,
-		CreationHeight: 0,
-		Status:         types.STATE_STATUS_RECEIVED,
-		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
+	stateInfo := types.NewStateInfo("rollapp1", 1, sequencer.SequencerAddress, 1, 3, "", 0, 0, types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}})
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
-	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, stateInfo)
+	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, *stateInfo)
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
