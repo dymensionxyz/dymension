@@ -8,6 +8,7 @@ import (
 
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+	k.SetParams(ctx, genState.Params)
 	for _, packet := range genState.RollappPackets {
 		err := k.SetRollappPacket(ctx, packet)
 		if err != nil {
