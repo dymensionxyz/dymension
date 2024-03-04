@@ -111,6 +111,7 @@ import (
 	ante "github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
+	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -202,6 +203,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		streamermoduleclient.TerminateStreamHandler,
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
+		rollappmoduleclient.SubmitFraudHandler,
 	)
 
 	return govProposalHandlers
@@ -667,7 +669,8 @@ func New(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.DistrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
-		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper))
+		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(app.RollappKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(

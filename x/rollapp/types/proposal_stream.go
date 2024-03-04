@@ -19,11 +19,12 @@ func init() {
 // NewSubmitFraudProposal creates a new submit fraud proposal.
 //
 //nolint:interfacer
-func NewSubmitFraudProposal(title, description, rollappId string, height uint64, seqaddr string) *SubmitFraudProposal {
+func NewSubmitFraudProposal(title, description, rollappId string, height uint64, seqaddr, clientId string) *SubmitFraudProposal {
 	return &SubmitFraudProposal{
 		Title:                      title,
 		Description:                description,
 		RollappId:                  rollappId,
+		IbcClientId:                clientId,
 		FraudelentHeight:           height,
 		FraudelentSequencerAddress: seqaddr,
 	}
@@ -50,6 +51,10 @@ func (sfp *SubmitFraudProposal) ValidateBasic() error {
 
 	if sfp.RollappId == "" {
 		return ErrInvalidRollappID
+	}
+
+	if sfp.IbcClientId == "" {
+		return ErrInvalidClientState
 	}
 
 	if sfp.FraudelentHeight == 0 {

@@ -18,9 +18,9 @@ import (
 // NewCmdSubmitFraudProposal submits a fraud proposal
 func NewCmdSubmitFraudProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit-fraud-proposal rollappID height propser_addr",
+		Use:   "submit-fraud-proposal <rollappID> <height> <propser_addr> <client_id>",
 		Short: "submit a fraud proposal",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -39,8 +39,9 @@ func NewCmdSubmitFraudProposal() *cobra.Command {
 			}
 
 			proposerAddr := args[2]
+			ibcClientID := args[3]
 
-			content := types.NewSubmitFraudProposal(proposal.Title, proposal.Description, rollappID, height, proposerAddr)
+			content := types.NewSubmitFraudProposal(proposal.Title, proposal.Description, rollappID, height, proposerAddr, ibcClientID)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
