@@ -18,4 +18,6 @@ var (
 	ErrInvalidRecipientAddress       = sdkerrors.Register(ModuleName, 8, "Invalid recipient address")
 	ErrBlockedAddress                = sdkerrors.Register(ModuleName, 9, "Can't purchase demand order for recipient with blocked address")
 	ErrDemandAlreadyFulfilled        = sdkerrors.Register(ModuleName, 10, "Demand order already fulfilled")
+	ErrNegativeTimeoutFee            = sdkerrors.Register(ModuleName, 11, "Timeout fee must be greater than or equal to 0")
+	ErrTooMuchTimeoutFee             = sdkerrors.Register(ModuleName, 12, "Timeout fee must be less than or equal to the total amount")
 )

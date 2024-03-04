@@ -38,7 +38,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.DefaultGenesis()
 	genesis.Params = k.GetParams(ctx)
 
-	genesis.RollappList = k.GetAllRollapp(ctx)
+	genesis.RollappList = k.GetAllRollapps(ctx)
 	genesis.StateInfoList = k.GetAllStateInfo(ctx)
 	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)

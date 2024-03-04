@@ -57,7 +57,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 		if req.Finalized {
 			latestFinalizedStateIndex, found := k.GetLatestFinalizedStateIndex(ctx, req.RollappId)
 			if !found {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return nil, sdkerrors.Wrapf(types.ErrNoFinalizedStateYetForRollapp,
 					"LatestFinalizedStateIndex wasn't found for rollappId=%s", req.RollappId)
 			}
 			req.Index = latestFinalizedStateIndex.Index

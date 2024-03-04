@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  string epoch_identifier = 1
+      [ (gogoproto.moretags) = "yaml:\"epoch_identifier\"" ];
+}

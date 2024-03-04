@@ -609,6 +609,7 @@ func New(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
+		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
@@ -641,6 +642,7 @@ func New(
 			app.IncentivesKeeper.Hooks(),
 			app.StreamerKeeper.Hooks(),
 			app.TxFeesKeeper.Hooks(),
+			app.DelayedAckKeeper.GetEpochHooks(),
 		),
 	)
 
@@ -1121,6 +1123,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 

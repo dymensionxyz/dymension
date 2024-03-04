@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"sort"
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -9,9 +10,15 @@ import (
 func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
+
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr3 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs := make([]string, 2)
+	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	//sort the  non proposer sequencers by address
+	sort.Strings(seqAddrs)
+	addr2 := seqAddrs[0]
+	addr3 := seqAddrs[1]
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
@@ -29,18 +36,18 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.Require().NoError(err)
 
 	// check proposer rotation
-	sequencer2, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
+	sequencer2, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Equal(types.Bonded, sequencer2.Status)
 	suite.True(sequencer2.Proposer)
 
 	// check sequencer operating status
-	sequencer, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Equal(types.Unbonding, sequencer.Status)
 	suite.False(sequencer.Proposer)
 
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
 
-	sequencer, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Equal(types.Unbonded, sequencer.Status)
 
 	/* ------------------------- unbond non proposer sequencer ------------------------ */

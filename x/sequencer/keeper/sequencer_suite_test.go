@@ -23,8 +23,6 @@ import (
 
 type SequencerTestSuite struct {
 	apptesting.KeeperTestHelper
-	sequencerModuleAddress string
-
 	msgServer   types.MsgServer
 	queryClient types.QueryClient
 }
@@ -36,8 +34,6 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 func (suite *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
-
-	suite.sequencerModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)

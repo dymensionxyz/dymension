@@ -86,7 +86,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencersByRollapp := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-	// check to see if we reached the maximum number of sequeners for this rollapp
+	// check to see if we reached the maximum number of sequencers for this rollapp
 	currentNumOfSequencers := len(sequencersByRollapp)
 	if currentNumOfSequencers >= int(rollapp.MaxSequencers) {
 		return nil, types.ErrMaxSequencersLimit

@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -70,19 +69,10 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	}
 	store.Set(demandOrderKey, data)
 
-	// Emit events
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(types.AttributeKeyId, order.Id),
-		sdk.NewAttribute(types.AttributeKeyPrice, order.Price.String()),
-		sdk.NewAttribute(types.AttributeKeyFee, order.Fee.String()),
-		sdk.NewAttribute(types.AttributeKeyIsFullfilled, strconv.FormatBool(order.IsFullfilled)),
-		sdk.NewAttribute(types.AttributeKeyPacketStatus, order.TrackingPacketStatus.String()),
-	}
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeEIBC,
-			eventAttributes...,
+			order.GetEvents()...,
 		),
 	)
 
@@ -132,7 +122,7 @@ func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfill
 	return nil
 }
 
-// GetDemandOrder returns the demand order with the given id. It only searches for the pending orders.
+// GetDemandOrder returns the demand order with the given id and status.
 func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
 	demandOrderKey, err := types.GetDemandOrderKey(status, id)

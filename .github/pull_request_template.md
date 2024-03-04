@@ -24,6 +24,8 @@ I have...
 - [ ]  Wrote relevant migration scripts if necessary
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
+- [ ]  Updated the scripts for local run, e.g genesis_config_commands.sh if the PR changes parameters
+- [ ]  Add an issue in the [e2e-tests repo](https://github.com/dymensionxyz/e2e-tests) if necessary
 
 SDK Checklist
 - [ ] Import/Export Genesis
@@ -38,9 +40,12 @@ SDK Checklist
 - [ ] Used `sendCoin` and not `SendCoins`
 - [ ] Out-of-block compute is bounded
 - [ ] No serialized ID at the end of store keys
+- [ ] UInt to byte conversion should use BigEndian
 
 Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
 
+
+----;
 
 For Reviewer:
 

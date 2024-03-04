@@ -9,7 +9,7 @@ import (
 // RollappKeeper defines the expected rollapp keeper used for retrieve rollapp.
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
-	GetAllRollapp(ctx sdk.Context) (list []rollapptypes.Rollapp)
+	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

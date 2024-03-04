@@ -45,6 +45,6 @@ func TestRollappGetAll(t *testing.T) {
 	items, _ := createNRollapp(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllRollapp(ctx)),
+		nullify.Fill(keeper.GetAllRollapps(ctx)),
 	)
 }
