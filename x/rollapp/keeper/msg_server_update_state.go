@@ -114,11 +114,11 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		BDs:            msg.BDs},
 	)
 
-	// calculate finalization
-	creationHeight := uint64(ctx.BlockHeight())
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
-	k.Logger(ctx).Info("Adding finalization queue at ", creationHeight)
+	// height index used for finalization
+	creationHeight := uint64(ctx.BlockHeight())
+	k.Logger(ctx).Info("Adding state to finalization queue at ", creationHeight)
 	// load FinalizationQueue and update
 	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 	if found {
@@ -126,13 +126,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// Write new BlockHeightToFinalizationQueue
-
-	globalIndex, isFound := k.GetLatestFinalizedStateGlobalIndex(ctx)
-	if !isFound {
-		globalIndex.Index = uint64(ctx.BlockHeight())
-		k.SetLatestFinalizedGlobalStateIndex(ctx, globalIndex)
-	}
-
 	k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
 		CreationHeight:    creationHeight,
 		FinalizationQueue: newFinalizationQueue,
