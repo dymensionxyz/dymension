@@ -24,6 +24,8 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
+	//TODO: mark the rollapp as frozen (if immutable) or mark the fraud height to allow overwriting
+
 	if stateInfo.Sequencer != seqAddr {
 		return sdkerrors.Wrapf(types.ErrInvalidSequencer, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
@@ -47,8 +49,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
 	}
 
-	//FIXME: extract revision from rollappID
-	tmClientState.FrozenHeight = clienttypes.NewHeight(height, 0)
+	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
 	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
 
 	// Emit an event
