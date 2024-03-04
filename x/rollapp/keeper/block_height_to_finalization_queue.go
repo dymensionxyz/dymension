@@ -94,10 +94,7 @@ func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (lis
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		stateInfoIndex := val.FinalizationQueue
-		stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex[0].RollappId, stateInfoIndex[0].Index)
-		if !found {
-			continue
-		}
+		stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex[0].RollappId, stateInfoIndex[0].Index)
 		if stateInfo.Status == types.STATE_STATUS_FINALIZED {
 			break
 		}
