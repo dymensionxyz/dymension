@@ -11,40 +11,40 @@ import (
 // Called every block to finalize states that their dispute period over.
 func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 	// check to see if there are pending  states to be finalized
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, uint64(ctx.BlockHeight()))
-	if !found {
-		return
-	}
+	pendingFinalizationQueue := k.GetPendingFinalizationQueue(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
 
-	// finalize pending states
-	for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
-		stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-		if !found {
-			ctx.Logger().Error("Missing stateInfo data when trying to finalize", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
-			continue
-		}
-		stateInfo.Status = types.STATE_STATUS_FINALIZED
-		// update the status of the stateInfo
-		k.SetStateInfo(ctx, stateInfo)
-		// uppdate the LatestStateInfoIndex of the rollapp
-		k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-		// call the after-update-state hook
-		keeperHooks := k.GetHooks()
-		err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
-		if err != nil {
-			ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
-		}
+	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
-		// emit event
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(types.EventTypeStatusChange,
-				sdk.NewAttribute(types.AttributeKeyRollappId, stateInfoIndex.RollappId),
-				sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
-				sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(stateInfo.StartHeight, 10)),
-				sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(stateInfo.NumBlocks, 10)),
-				sdk.NewAttribute(types.AttributeKeyStatus, stateInfo.Status.String()),
-			),
-		)
+		// finalize pending states
+		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
+			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			if !found {
+				ctx.Logger().Error("Missing stateInfo data when trying to finalize", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
+				continue
+			}
+			stateInfo.Status = types.STATE_STATUS_FINALIZED
+			// update the status of the stateInfo
+			k.SetStateInfo(ctx, stateInfo)
+			// uppdate the LatestStateInfoIndex of the rollapp
+			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+			// call the after-update-state hook
+			keeperHooks := k.GetHooks()
+			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+			if err != nil {
+				ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
+			}
+
+			// emit event
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeStatusChange,
+					sdk.NewAttribute(types.AttributeKeyRollappId, stateInfoIndex.RollappId),
+					sdk.NewAttribute(types.AttributeKeyStateInfoIndex, strconv.FormatUint(stateInfoIndex.Index, 10)),
+					sdk.NewAttribute(types.AttributeKeyStartHeight, strconv.FormatUint(stateInfo.StartHeight, 10)),
+					sdk.NewAttribute(types.AttributeKeyNumBlocks, strconv.FormatUint(stateInfo.NumBlocks, 10)),
+					sdk.NewAttribute(types.AttributeKeyStatus, stateInfo.Status.String()),
+				),
+			)
+		}
 	}
 }
 
@@ -86,6 +86,27 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	store.Delete(types.BlockHeightToFinalizationQueueKey(
 		creationHeight,
 	))
+}
+
+func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+	//iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	heightKey := types.BlockHeightToFinalizationQueueKey(height + 1)
+	iterator := sdk.KVStoreReversePrefixIterator(store, heightKey)
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.BlockHeightToFinalizationQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		stateInfoIndex := val.FinalizationQueue
+		stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex[0].RollappId, stateInfoIndex[0].Index)
+		if !found || stateInfo.Status == types.STATE_STATUS_FINALIZED {
+			break
+		}
+		list = append(list, val)
+	}
+
+	return
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
