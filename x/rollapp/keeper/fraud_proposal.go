@@ -34,6 +34,8 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
+	//FIXME: make sure the clientId corresponds to the rollappID
+
 	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)

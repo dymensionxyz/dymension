@@ -10,7 +10,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-func NewRollappProposalHandler(k keeper.Keeper) govtypes.Handler {
+func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.SubmitFraudProposal:
@@ -21,7 +21,7 @@ func NewRollappProposalHandler(k keeper.Keeper) govtypes.Handler {
 	}
 }
 
-func HandleSubmitFraudProposal(ctx sdk.Context, k keeper.Keeper, p *types.SubmitFraudProposal) error {
+func HandleSubmitFraudProposal(ctx sdk.Context, k *keeper.Keeper, p *types.SubmitFraudProposal) error {
 	err := k.HandleFraud(ctx, p.RollappId, p.IbcClientId, p.FraudelentHeight, p.FraudelentSequencerAddress)
 	if err != nil {
 		return err
