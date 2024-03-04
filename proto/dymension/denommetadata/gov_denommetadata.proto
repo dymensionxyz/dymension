@@ -1,0 +1,29 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+
+message CreateDenomMetadataProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  
+  string title = 1;
+  string description = 2;
+
+  }
+
+message UpdateMetadataProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  
+  string title = 1;
+  string description = 2;
+
+  uint64 metadata_id = 3;
+}
