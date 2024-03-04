@@ -35,7 +35,11 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	}
 
 	// check to see if the sequencer is active and can make the update
-	if sequencer.Status != types.Proposer {
+	if sequencer.Status != types.Bonded {
+		return types.ErrInvalidSequencerStatus
+	}
+
+	if !sequencer.Proposer {
 		return types.ErrNotActiveSequencer
 	}
 	return nil

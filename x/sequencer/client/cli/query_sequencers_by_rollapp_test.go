@@ -58,7 +58,8 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 		}
 		nullify.Fill(&sequencer)
 		if i == 0 {
-			sequencer.Status = types.Proposer
+			sequencer.Status = types.Bonded
+			sequencer.Proposer = true
 		}
 		state.SequencerList = append(state.SequencerList, sequencer)
 		allSequencersByRollappResponse.Sequencers = append(allSequencersByRollappResponse.Sequencers, sequencer)

@@ -36,15 +36,22 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 			seq.Status.String(),
 		)
 	}
-
-	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	oldStatus := seq.Status
+	wasPropser := seq.Proposer
+
 	// set the status to unbonding
+	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	seq.Status = types.Unbonding
+	seq.Proposer = false
 	seq.UnbondingHeight = ctx.BlockHeight()
 	seq.UnbondTime = completionTime
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
+	k.setUnbondingSequencerQueue(ctx, seq)
+
+	if wasPropser {
+		k.RotateProposer(ctx, seq.RollappId)
+	}
 
 	return completionTime, nil
 }

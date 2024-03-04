@@ -85,23 +85,21 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			// FIXME: check for active proposer
-			/*
-				proposerFound := false
-				for _, seq := range bonded {
-					if seq.Status == types.Proposer {
-						if proposerFound {
-							broken = true
-							msg += "more than one proposer for rollapp " + rollapp.RollappId + "\n"
-						}
-						proposerFound = true
+			proposerFound := false
+			for _, seq := range bonded {
+				if seq.Proposer {
+					if proposerFound {
+						broken = true
+						msg += "more than one proposer for rollapp " + rollapp.RollappId + "\n"
 					}
+					proposerFound = true
 				}
-				if !proposerFound {
-					broken = true
-					msg += "no proposer for rollapp " + rollapp.RollappId + "\n"
-				}
-			*/
+			}
+			if !proposerFound {
+				broken = true
+				msg += "no proposer for rollapp " + rollapp.RollappId + "\n"
+			}
+
 		}
 
 		return sdk.FormatInvariant(
