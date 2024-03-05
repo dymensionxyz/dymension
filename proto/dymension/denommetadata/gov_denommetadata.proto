@@ -3,8 +3,7 @@ package dymensionxyz.dymension.denommetadata;
 
 
 import "gogoproto/gogo.proto";
-import "dymension/denommetadata/denommetadata_info.proto";
-
+import "dymension/denommetadata/bank.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
 
 
@@ -15,6 +14,6 @@ message CreateDenomMetadataProposal {
   
   string title = 1;
   string description = 2;
-  DenomMetadataRecord metadata_record = 3 [ (gogoproto.nullable) = false ];
+  TokenMetadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
 
   }

@@ -4,25 +4,33 @@ import (
 	"fmt"
 	"strconv"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/spf13/cobra"
 )
 
-func parseRecords(inputdenom, inputdecimals string) (types.DenomMetadataRecord, error) {
+func parseRecords(inputdenom, inputdecimals string) (banktypes.Metadata, error) {
 
 	if len(inputdenom) < 2 || len(inputdenom) > 10 {
-		return types.DenomMetadataRecord{}, fmt.Errorf("the length of denom is not correct")
+		return banktypes.Metadata{}, fmt.Errorf("the length of denom is not correct")
 	}
 
 	decimals, err := strconv.ParseUint(inputdecimals, 10, 64)
 	if err != nil {
-		return types.DenomMetadataRecord{}, err
+		return banktypes.Metadata{}, err
 	}
-	record := types.DenomMetadataRecord{
-		Denom:    inputdenom,
-		Decimals: decimals,
+	record := banktypes.Metadata{
+		Description: ,
+		DenomUnits:,
+		Base:,
+		Display:,
+		Name:
+		Symbol:
+		Uri:
+		UriHash:
 	}
 	return record, nil
 }
