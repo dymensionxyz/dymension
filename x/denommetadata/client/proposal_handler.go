@@ -7,4 +7,5 @@ import (
 
 var (
 	CreateDenomMetadataHandler = govclient.NewProposalHandler(cli.NewCmdSubmitCreateDenomMetadataProposal)
+	UpdateDenomMetadataHandler = govclient.NewProposalHandler(cli.NewCmdSubmitUpdateDenomMetadataProposal)
 )
