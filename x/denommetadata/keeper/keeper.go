@@ -6,7 +6,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -18,14 +18,10 @@ import (
 type Keeper struct {
 	storeKey   storetypes.StoreKey
 	paramSpace paramtypes.Subspace
-	bk         types.BankKeeper
-	ek         types.EpochKeeper
-	ak         types.AccountKeeper
-	ik         types.IncentivesKeeper
 }
 
 // NewKeeper returns a new instance of the incentive module keeper struct.
-func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk types.BankKeeper, ek types.EpochKeeper, ak types.AccountKeeper, ik types.IncentivesKeeper) *Keeper {
+func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace) *Keeper {
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
@@ -33,10 +29,6 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace, bk 
 	return &Keeper{
 		storeKey:   storeKey,
 		paramSpace: paramSpace,
-		bk:         bk,
-		ek:         ek,
-		ak:         ak,
-		ik:         ik,
 	}
 }
 
@@ -46,7 +38,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateDenomMetadata creates a new denom metadata record.
-func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.DistrRecord) (uint64, error) {
+func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.DenomMetadataRecord) (uint64, error) {
 
 	distrInfo, err := k.NewDistrInfo(ctx, records)
 	if err != nil {

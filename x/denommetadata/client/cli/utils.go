@@ -20,7 +20,10 @@ func parseRecords(inputdenom, inputdecimals string) (types.DenomMetadataRecord, 
 	if err != nil {
 		return types.DenomMetadataRecord{}, err
 	}
-	record := types.NewCreateMetadataProposal(inputdenom, decimals)
+	record := types.DenomMetadataRecord{
+		Denom:    inputdenom,
+		Decimals: decimals,
+	}
 	return record, nil
 }
 func parseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
