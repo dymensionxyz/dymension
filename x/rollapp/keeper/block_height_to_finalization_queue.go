@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // Called every block to finalize states that their dispute period over.
@@ -14,31 +15,44 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
 		// finalize pending states
+		allStatesFinalized := true
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found {
-				ctx.Logger().Error("Missing stateInfo data when trying to finalize", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
+			if !found || stateInfo.Status == types.STATE_STATUS_FINALIZED {
+				ctx.Logger().Error("Missing stateInfo data when trying to finalize or alreay finalized", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
 				continue
 			}
-			stateInfo.Finalize()
-			// update the status of the stateInfo
-			k.SetStateInfo(ctx, stateInfo)
-			// uppdate the LatestStateInfoIndex of the rollapp
-			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-			// call the after-update-state hook
-			keeperHooks := k.GetHooks()
-			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+			wrappedFunc := func(ctx sdk.Context) error {
+
+				stateInfo.Finalize()
+				// update the status of the stateInfo
+				k.SetStateInfo(ctx, stateInfo)
+				// uppdate the LatestStateInfoIndex of the rollapp
+				k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+				// call the after-update-state hook
+				keeperHooks := k.GetHooks()
+				err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+				if err != nil {
+					ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
+					return err
+				}
+				// emit event
+				ctx.EventManager().EmitEvent(
+					sdk.NewEvent(types.EventTypeStateUpdate,
+						stateInfo.GetEvents()...,
+					),
+				)
+				return nil
+			}
+			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
-				ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
+				ctx.Logger().Error("Error finalizing state", "height", blockHeightToFinalizationQueue.CreationHeight, "rollappId", stateInfo.StateInfoIndex.RollappId)
+				allStatesFinalized = false
 			}
 
-			// emit event
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStateUpdate,
-					stateInfo.GetEvents()...,
-				),
-			)
-
+		}
+		if allStatesFinalized {
+			k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
 		}
 	}
 }
@@ -93,11 +107,6 @@ func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (lis
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		stateInfoIndex := val.FinalizationQueue
-		stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex[0].RollappId, stateInfoIndex[0].Index)
-		if stateInfo.Status == types.STATE_STATUS_FINALIZED {
-			break
-		}
 		list = append(list, val)
 	}
 
