@@ -46,12 +46,26 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	seqsByRollapp := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 	if len(seqsByRollapp) == 0 {
 		k.Logger(ctx).Info("no bonded sequencer found for rollapp", "rollappId", rollappId)
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeNoBondedSequencer,
+				sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
+			),
+		)
 		return
 	}
-	//TODO: probably better to store it with some fifo indexing. otherwise it sorted by address
+	//take the next bonded sequencer to be the proposer. sorted by address
 	seq := seqsByRollapp[0]
 	seq.Proposer = true
 	k.UpdateSequencer(ctx, seq, types.Bonded)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeProposerRotated,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+		),
+	)
 }
 
 // GetSequencer returns a sequencer from its index

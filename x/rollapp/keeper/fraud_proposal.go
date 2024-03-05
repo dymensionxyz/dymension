@@ -52,13 +52,13 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
 	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
 
-	// Emit an event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeFraud,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
 			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(height)),
 			sdk.NewAttribute(types.AttributeKeyFraudSequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyClientID, clientId),
 		),
 	)
 

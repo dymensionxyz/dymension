@@ -22,7 +22,7 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 }
 
 func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	// TODO: Implement fraud handling
+	// TODO(#624): Implement fraud handling
 	return nil
 }
 
