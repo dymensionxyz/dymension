@@ -14,7 +14,7 @@ import (
 // NewCreateDenomMetadataCmd broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-denometadata-proposal description  denomunit-denom denomunit-exponent denomunit-alias base display name symbol uri urihash [flags]",
+		Use:   "create-denometadata-proposal description denomunit-denom denomunit-exponent denomunit-alias base display name symbol uri urihash [flags]",
 		Short: "proposal to create new denometa data for a specific token",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {

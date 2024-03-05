@@ -15,4 +15,13 @@ var (
 
 	// MemStoreKey defines the in-memory store key.
 	MemStoreKey = "mem_capability"
+
+	// KeyLastDenomMetadataID defines key for setting last denommetadata ID.
+	KeyLastDenomMetadataID = []byte{0x02}
+
+	// KeyPrefixPeriodDenomMetadata defines prefix key for storing denommetadata.
+	KeyPrefixPeriodDenomMetadata = []byte{0x03}
+
+	// KeyIndexSeparator defines key for merging bytes.
+	KeyIndexSeparator = []byte{0x07}
 )

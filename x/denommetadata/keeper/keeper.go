@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -38,59 +39,27 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // CreateDenomMetadata creates a new denom metadata record.
 func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata) (uint64, error) {
 
-	/*distrInfo, err := k.NewDistrInfo(ctx, records)
+	err := record.Validate()
 	if err != nil {
 		return 0, err
 	}
-
-	//TODO: it's better to check only the denoms of the requested coins. No need to iterate entire balance.
-	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
-	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
-
-	if !coins.IsAllLTE(moduleBalance.Sub(alreadyAllocatedCoins...)) {
-		return 0, fmt.Errorf("insufficient module balance to distribute coins")
+	denomMetadata := types.DenomMetadata{
+		Id:            k.GetLastDenomMetadataID(ctx) + 1,
+		TokenMetadata: record,
 	}
 
-	if (k.ek.GetEpochInfo(ctx, epochIdentifier) == epochstypes.EpochInfo{}) {
-		return 0, fmt.Errorf("epoch identifier does not exist: %s", epochIdentifier)
-	}
-
-	if numEpochsPaidOver <= 0 {
-		return 0, fmt.Errorf("numEpochsPaidOver must be greater than 0")
-	}
-
-	if startTime.Before(ctx.BlockTime()) {
-		ctx.Logger().Info("start time is before current block time, setting start time to current block time")
-		startTime = ctx.BlockTime()
-	}
-
-	stream := types.NewStream(
-		k.GetLastStreamID(ctx)+1,
-		distrInfo,
-		coins.Sort(),
-		startTime,
-		epochIdentifier,
-		numEpochsPaidOver,
-	)
-
-	err = k.setStream(ctx, &stream)
+	err = k.setDenomMetadata(ctx, &denomMetadata)
 	if err != nil {
 		return 0, err
 	}
-	k.SetLastStreamID(ctx, stream.Id)
-
-	combinedKeys := combineKeys(types.KeyPrefixUpcomingStreams, getTimeKey(stream.StartTime))
-	err = k.CreateStreamRefKeys(ctx, &stream, combinedKeys)
-	if err != nil {
-		return 0, err
-	}
+	k.SetLastDenomMetadataID(ctx, denomMetadata.Id)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeEvtCreateStream,
-			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
+			types.TypeEvtCreateDenomMetadata,
+			sdk.NewAttribute(types.AttributeDenomMetadataID, osmoutils.Uint64ToString(denomMetadata.Id)),
 		),
-	})*/
+	})
 
-	return 0, nil
+	return denomMetadata.Id, nil
 }

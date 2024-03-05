@@ -1,0 +1,30 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+import "dymension/denommetadata/denommetadata.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+
+// Query defines the gRPC querier service
+service Query {
+
+  // DenomMetadataByID returns tokenmetadata by their respective ID
+  rpc DenomMetadataByID(DenomMetadataByIDRequest) returns (DenomMetadataByIDResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/denommetadata/denommetadata_by_id/{id}";
+  }
+
+}
+
+message DenomMetadataByIDRequest {
+  // Gague ID being queried
+  uint64 id = 1;
+}
+message DenomMetadataByIDResponse {
+  // Stream that corresponds to provided gague ID
+  DenomMetadata metadata = 1;
+}
