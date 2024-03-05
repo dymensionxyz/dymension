@@ -48,21 +48,20 @@ func (hook rollapphook) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 }
 
 // FraudSubmitted implements the RollappHooks interface
-// It slashes the sequencer
+// It slashes the sequencer and unbonds all other bonded sequencers
 func (hook rollapphook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
-	}
-
-	//skip slashing if the sequencer is already jailed
-	if sequencer.Jailed {
-		return nil
-	}
-
 	err := hook.k.Slashing(ctx, seqAddr)
 	if err != nil {
 		return err
+	}
+
+	//unbond all other bonded sequencers
+	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
+	for _, sequencer := range sequencers {
+		err := hook.k.unbondSequencer(ctx, sequencer.SequencerAddress)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

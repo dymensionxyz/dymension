@@ -13,4 +13,6 @@ enum StateStatus {
   STATE_STATUS_RECEIVED = 1; 
   // STATE_STATUS_FINALIZED defines a rollapp state where the the "Dispute Period" has ended and this state is considered final
   STATE_STATUS_FINALIZED = 2; 
+  // STATE_STATUS_DISPUTED defines a rollapp state where the state update transaction was disputed by a participant
+  STATE_STATUS_DISPUTED = 3;
 }

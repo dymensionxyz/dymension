@@ -14,7 +14,7 @@ import (
 // HandleFraud handles the fraud evidence submitted by the user.
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height uint64, seqAddr string) error {
 	// Get the rollapp from the store
-	_, found := k.GetRollapp(ctx, rollappID)
+	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidRollappID, "rollapp with ID %s not found", rollappID)
 	}
@@ -24,20 +24,27 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
-	//TODO: mark the rollapp as frozen (if immutable) or mark the fraud height to allow overwriting
-
 	if stateInfo.Sequencer != seqAddr {
 		return sdkerrors.Wrapf(types.ErrInvalidSequencer, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
 
-	// slash the sequencer
+	// slash the sequencer, clean delayed packets
 	err = k.hooks.FraudSubmitted(ctx, rollappID, height, seqAddr)
 	if err != nil {
 		return err
 	}
 
-	//FIXME: make sure the clientId corresponds to the rollappID
+	//mark the rollapp as frozen. revert all pending states to finalized
+	rollapp.Jailed = true
+	k.SetRollapp(ctx, rollapp)
 
+	//TODO: go over all pending states, and set as disputed those beloning to the rollapp
+	// {
+	// 	stateInfo.Status = types.STATE_STATUS_DISPUTED
+	// 	k.SetStateInfo(ctx, stateInfo)
+	// }
+
+	//TODO: get the clientId from rollapp object, instead of by proposal
 	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)

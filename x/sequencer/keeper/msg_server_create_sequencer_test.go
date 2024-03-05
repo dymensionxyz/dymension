@@ -344,6 +344,38 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	suite.EqualError(err, types.ErrSequencerNotPermissioned.Error())
 }
 
+func (suite *SequencerTestSuite) TestMaxSequencersZero() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	maxSequencers := 0
+
+	rollapp := rollapptypes.Rollapp{
+		RollappId:             "rollapp1",
+		Creator:               alice,
+		Version:               0,
+		MaxSequencers:         uint64(maxSequencers),
+		PermissionedAddresses: []string{},
+	}
+	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+	rollappId := rollapp.GetRollappId()
+
+	pubkey := secp256k1.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().Nil(err)
+	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	suite.Require().Nil(err)
+	sequencerMsg := types.MsgCreateSequencer{
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
+		Bond:         bond,
+		RollappId:    rollappId,
+		Description:  types.Description{},
+	}
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
+}
+
 func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
