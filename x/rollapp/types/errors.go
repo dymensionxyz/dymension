@@ -32,4 +32,6 @@ var (
 	ErrRollappsDisabled                    = sdkerrors.Register(ModuleName, 1022, "rollapps are disabled")
 	ErrInvalidTokenMetadata                = sdkerrors.Register(ModuleName, 1023, "invalid token metadata")
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
+	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
+	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
 )

@@ -53,5 +53,7 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 		k.RotateProposer(ctx, seq.RollappId)
 	}
 
+	//TODO: emit an event
+
 	return completionTime, nil
 }

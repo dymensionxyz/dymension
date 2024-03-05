@@ -7,26 +7,22 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
-func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
+// NewCmdSubmitFraudProposal submits a fraud proposal
+func NewCmdSubmitFraudProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "terminate-stream-proposal streamID [flags]",
-		Short: "proposal to terminate an exisiting stream",
-		Args:  cobra.ExactArgs(1),
+		Use:   "submit-fraud-proposal <rollappID> <height> <propser_addr> <client_id>",
+		Short: "submit a fraud proposal",
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			streamID, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -36,7 +32,16 @@ func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
 				return err
 			}
 
-			content := types.NewTerminateStreamProposal(proposal.Title, proposal.Description, streamID)
+			rollappID := args[0]
+			height, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
+
+			proposerAddr := args[2]
+			ibcClientID := args[3]
+
+			content := types.NewSubmitFraudProposal(proposal.Title, proposal.Description, rollappID, height, proposerAddr, ibcClientID)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
