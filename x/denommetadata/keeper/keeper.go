@@ -3,14 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -38,9 +36,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // CreateDenomMetadata creates a new denom metadata record.
-func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.DenomMetadataRecord) (uint64, error) {
+func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata) (uint64, error) {
 
-	distrInfo, err := k.NewDistrInfo(ctx, records)
+	/*distrInfo, err := k.NewDistrInfo(ctx, records)
 	if err != nil {
 		return 0, err
 	}
@@ -92,7 +90,7 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.DenomMetadataR
 			types.TypeEvtCreateStream,
 			sdk.NewAttribute(types.AttributeStreamID, osmoutils.Uint64ToString(stream.Id)),
 		),
-	})
+	})*/
 
-	return stream.Id, nil
+	return 0, nil
 }

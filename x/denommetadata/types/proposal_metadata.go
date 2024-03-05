@@ -24,11 +24,11 @@ func init() {
 }
 
 // NewCreateMetadataProposal creates a new create stream proposal.
-func NewCreateMetadataProposal(title, description string, denommetadata DenomMetadataRecord) *CreateDenomMetadataProposal {
+func NewCreateMetadataProposal(title, description string, denommetadata *TokenMetadata) *CreateDenomMetadataProposal {
 	return &CreateDenomMetadataProposal{
-		Title:          title,
-		Description:    description,
-		MetadataRecord: denommetadata,
+		Title:         title,
+		Description:   description,
+		TokenMetadata: *denommetadata,
 	}
 }
 
@@ -60,7 +60,7 @@ func (csp CreateDenomMetadataProposal) String() string {
 	b.WriteString(fmt.Sprintf(`Create stream Proposal:
 	  Title:       %s
 	  Description: %s
-	  DenomMetadataRecord: %s
-`, csp.Title, csp.Description, &csp.MetadataRecord))
+	  TokenMetadata: %s
+`, csp.Title, csp.Description, &csp.TokenMetadata))
 	return b.String()
 }
