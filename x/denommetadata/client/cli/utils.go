@@ -2,42 +2,27 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/spf13/cobra"
 )
 
-// TODO: move to utils/cli package
-/*func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {
-	gaugeIds, err := osmoutils.ParseUint64SliceFromString(gaugesRaw, ",")
+func parseRecords(inputdenom, inputdecimals string) (types.DenomMetadataRecord, error) {
+
+	if len(inputdenom) < 2 || len(inputdenom) > 10 {
+		return types.DenomMetadataRecord{}, fmt.Errorf("the length of denom is not correct")
+	}
+
+	decimals, err := strconv.ParseUint(inputdecimals, 10, 64)
 	if err != nil {
-		return nil, err
+		return types.DenomMetadataRecord{}, err
 	}
-
-	weights, err := osmoutils.ParseSdkIntFromString(weightsRaw, ",")
-	if err != nil {
-		return nil, err
-	}
-
-	if len(gaugeIds) != len(weights) {
-		return nil, fmt.Errorf("the length of gauge ids and weights not matched")
-	}
-
-	if len(gaugeIds) == 0 {
-		return nil, fmt.Errorf("records is empty")
-	}
-
-	var records []types.DistrRecord
-	for i, gaugeId := range gaugeIds {
-		records = append(records, types.DistrRecord{
-			GaugeId: gaugeId,
-			Weight:  weights[i],
-		})
-	}
-	return records, nil
-}*/
-
+	record := types.NewCreateMetadataProposal(inputdenom, decimals)
+	return record, nil
+}
 func parseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
 	proposal, err := osmoutils.ParseProposalFlags(cmd.Flags())
 	if err != nil {

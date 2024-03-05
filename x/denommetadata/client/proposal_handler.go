@@ -6,8 +6,5 @@ import (
 )
 
 var (
-	CreateDenomMetadataHandler    = govclient.NewProposalHandler(cli.NewCmdSubmitCreateDenomMetadataProposal)
-	TerminateDenomMetadataHandler = govclient.NewProposalHandler(cli.NewCmdSubmitTerminateDenomMetadataProposal)
-	ReplaceDenomMetadataHandler   = govclient.NewProposalHandler(cli.NewCmdSubmitReplaceDenomMetadataDistributionProposal)
-	UpdateDenomMetadataHandler    = govclient.NewProposalHandler(cli.NewCmdSubmitUpdateDenomMetadataDistributionProposal)
+	CreateDenomMetadataHandler = govclient.NewProposalHandler(cli.NewCmdSubmitCreateDenomMetadataProposal)
 )

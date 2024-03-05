@@ -11,7 +11,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
+// NewCreateDenomMetadataCmd broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-denometadata-proposal gaugeIds weights reward [flags]",
@@ -27,9 +27,12 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			//do parses and checks
+			record, err := parseRecords(args[0], args[1])
+			if err != nil {
+				return err
+			}
 
-			content := types.NewCreateDenomMetadataProposal(proposal.Title, proposal.Description, denom, decimals)
+			content := types.NewCreateMetadataProposal(proposal.Title, proposal.Description, record)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
