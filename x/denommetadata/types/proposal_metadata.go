@@ -24,11 +24,11 @@ func init() {
 }
 
 // NewCreateMetadataProposal creates a new create stream proposal.
-func NewCreateMetadataProposal(title, description string, denommetadata *TokenMetadata) *CreateDenomMetadataProposal {
+func NewCreateMetadataProposal(title, description string, denommetadata TokenMetadata) *CreateDenomMetadataProposal {
 	return &CreateDenomMetadataProposal{
 		Title:         title,
 		Description:   description,
-		TokenMetadata: *denommetadata,
+		TokenMetadata: denommetadata,
 	}
 }
 

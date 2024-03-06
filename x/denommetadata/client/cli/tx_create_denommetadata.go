@@ -1,6 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
+	"os"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
@@ -14,7 +17,7 @@ import (
 // NewCreateDenomMetadataCmd broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-denometadata-proposal description denomunit-denom denomunit-exponent denomunit-alias base display name symbol uri urihash [flags]",
+		Use:   "create-denometadata-proposal denommetadata.json [flags]",
 		Short: "proposal to create new denom metadata for a specific token",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -27,12 +30,25 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			record, err := parseRecords(args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9])
+
+			path := args[0]
+
+			fileContent, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
 
-			content := types.NewCreateMetadataProposal(proposal.Title, proposal.Description, record)
+			metadata := types.TokenMetadata{}
+			err = json.Unmarshal([]byte(fileContent), &metadata)
+			if err != nil {
+				return err
+			}
+			err = metadata.Validate()
+			if err != nil {
+				return err
+			}
+
+			content := types.NewCreateMetadataProposal(proposal.Title, proposal.Description, metadata)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
