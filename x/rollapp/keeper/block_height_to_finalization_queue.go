@@ -24,18 +24,6 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 				ctx.Logger().Error("Missing stateInfo data when trying to finalize or alreay finalized", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
 				continue
 			}
-			// check if rollapp is jailed
-			// FIXME: the queue should not contain states of jailed rollapps. should be cleaned on the jailing process
-			rollapp, found := k.GetRollapp(ctx, stateInfoIndex.RollappId)
-			if !found {
-				ctx.Logger().Error("Rollapp not found", "rollappID", stateInfoIndex.RollappId)
-				continue
-			}
-			if rollapp.Frozen {
-				stateInfo.Status = common.Status_REVERTED
-				k.SetStateInfo(ctx, stateInfo)
-				continue
-			}
 
 			wrappedFunc := func(ctx sdk.Context) error {
 				stateInfo.Finalize()

@@ -46,11 +46,22 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
-	//TODO: go over all pending states, and set as disputed those beloning to the rollapp
-	// {
-	// 	stateInfo.Status = types.STATE_STATUS_DISPUTED
-	// 	k.SetStateInfo(ctx, stateInfo)
-	// }
+	//iterate over all height from the disputed height to the latest finalized height
+	startHeight := height
+	endHeight := uint64(ctx.BlockHeight())
+	for h := startHeight; h <= endHeight; h++ {
+		queue, _ := k.GetBlockHeightToFinalizationQueue(ctx, height)
+		for _, stateInfoIndex := range queue.FinalizationQueue {
+			if stateInfoIndex.RollappId == rollappID {
+				stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+				if !found {
+					return sdkerrors.Wrapf(types.ErrStateNotExists, "state info with index %d not found", stateInfoIndex.Index)
+				}
+				stateInfo.Status = common.Status_REVERTED
+				k.SetStateInfo(ctx, stateInfo)
+			}
+		}
+	}
 
 	//TODO: get the clientId from rollapp object, instead of by proposal
 	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
