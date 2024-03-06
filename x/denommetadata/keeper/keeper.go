@@ -63,3 +63,25 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 
 	return denomMetadata.Id, nil
 }
+
+// This is checked for no err when a proposal is made, and executed when a proposal passes.
+func (k Keeper) UpdateDenomMetadata(ctx sdk.Context, denomMetadataID uint64, record types.TokenMetadata) error {
+
+	err := record.Validate()
+	if err != nil {
+		return err
+	}
+	denomMetadata, err := k.GetDenomMetadataByID(ctx, denomMetadataID)
+	if err != nil {
+		return err
+	}
+
+	denomMetadata.TokenMetadata = record
+
+	err = k.setDenomMetadata(ctx, denomMetadata)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

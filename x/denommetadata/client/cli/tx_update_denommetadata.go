@@ -17,7 +17,7 @@ import (
 func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-denometadata-proposal denommetadataID description denomunit-denom denomunit-exponent denomunit-alias base display name symbol uri urihash [flags]",
-		Short: "proposal to create new denometa data for a specific token",
+		Short: "proposal to update new denom metadata for a specific token",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
