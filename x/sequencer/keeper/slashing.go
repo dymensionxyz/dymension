@@ -21,15 +21,16 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		)
 	}
 
-	if !seq.Tokens.Empty() {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seq.Tokens)
+	seqTokens := seq.Tokens
+	if !seqTokens.Empty() {
+		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
 		if err != nil {
 			return err
 		}
-		seq.Tokens = sdk.Coins{}
 	} else {
 		k.Logger(ctx).Error("sequencer has no tokens to slash", "sequencer", seq.SequencerAddress)
 	}
+	seq.Tokens = sdk.Coins{}
 
 	oldStatus := seq.Status
 	wasPropser := seq.Proposer
@@ -45,6 +46,15 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.UnbondingHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
 	k.UpdateSequencer(ctx, seq, oldStatus)
+
+	// emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSlashed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
+		),
+	)
 
 	// rotate proposer if the slashed sequencer was the proposer
 	if wasPropser {

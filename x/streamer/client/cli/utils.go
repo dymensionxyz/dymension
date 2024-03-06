@@ -7,7 +7,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// TODO: move to utils/cli package
 func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {
 	gaugeIds, err := osmoutils.ParseUint64SliceFromString(gaugesRaw, ",")
 	if err != nil {

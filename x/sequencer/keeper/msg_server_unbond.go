@@ -49,6 +49,15 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	k.UpdateSequencer(ctx, seq, oldStatus)
 	k.setUnbondingSequencerQueue(ctx, seq)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnbonding,
+			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+		),
+	)
+
 	if wasPropser {
 		k.RotateProposer(ctx, seq.RollappId)
 	}

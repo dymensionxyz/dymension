@@ -39,14 +39,14 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 			seq.Status.String(),
 		)
 	}
-
-	if !seq.Tokens.Empty() {
+	seqTokens := seq.Tokens
+	if !seqTokens.Empty() {
 		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
 		if err != nil {
 			return err
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seq.Tokens)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
 		if err != nil {
 			return err
 		}
@@ -61,7 +61,13 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	k.UpdateSequencer(ctx, seq, types.Unbonding)
 	k.removeUnbondingSequencer(ctx, seq)
 
-	//TODO: emit an event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnbonded,
+			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
+		),
+	)
 
 	return nil
 }

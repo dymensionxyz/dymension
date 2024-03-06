@@ -11,7 +11,9 @@ const (
 	AttributeKeyDAPath         = "da_path"
 	AttributeKeyStatus         = "status"
 
+	// EventTypeFraud is emitted when a fraud evidence is submitted
 	EventTypeFraud             = "fraud_proposal"
 	AttributeKeyFraudHeight    = "fraud_height"
 	AttributeKeyFraudSequencer = "fraud_sequencer"
+	AttributeKeyClientID       = "client_id"
 )
