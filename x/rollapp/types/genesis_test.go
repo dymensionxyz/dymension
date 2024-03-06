@@ -63,10 +63,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 					{
-						FinalizationHeight: 0,
+						CreationHeight: 0,
 					},
 					{
-						FinalizationHeight: 1,
+						CreationHeight: 1,
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -112,10 +112,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 					{
-						FinalizationHeight: 0,
+						CreationHeight: 0,
 					},
 					{
-						FinalizationHeight: 1,
+						CreationHeight: 1,
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -207,7 +207,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{FinalizationHeight: 0}, {FinalizationHeight: 0}},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
 			},
 			valid: false,
 		},

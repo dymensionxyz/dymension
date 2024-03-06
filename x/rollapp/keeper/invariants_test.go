@@ -50,8 +50,8 @@ func (suite *RollappTestSuite) TestInvariants() {
 	}
 
 	//progress finalization queue
-	disputePeriod := int64(suite.App.RollappKeeper.GetParams(ctx).DisputePeriodInBlocks)
-	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight + disputePeriod + 2)
+	//disputePeriod := int64(suite.App.RollappKeeper.GetParams(ctx).DisputePeriodInBlocks)
+	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight + 2)
 	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
 
 	// check invariant

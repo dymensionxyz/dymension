@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -100,5 +101,16 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	k.SetSequencer(ctx, sequencer)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeCreateSequencer,
+			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
+			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
+			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(sequencer.Proposer)),
+		),
+	)
+
 	return &types.MsgCreateSequencerResponse{}, nil
 }

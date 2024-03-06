@@ -273,10 +273,10 @@ func (m *StateInfoSummary) GetCreationHeight() uint64 {
 
 // BlockHeightToFinalizationQueue defines a map from block height to list of states to finalized
 type BlockHeightToFinalizationQueue struct {
-	// finalizationHeight is the block height that the state should be finalized
-	FinalizationHeight uint64 `protobuf:"varint,1,opt,name=finalizationHeight,proto3" json:"finalizationHeight,omitempty"`
+	// creationHeight is the block height that the state should be finalized
+	CreationHeight uint64 `protobuf:"varint,1,opt,name=creationHeight,proto3" json:"creationHeight,omitempty"`
 	// finalizationQueue is a list of states that are waiting to be finalized
-	// when the block height becomes finalizationHeight
+	// when the block height becomes creationHeight
 	FinalizationQueue []StateInfoIndex `protobuf:"bytes,2,rep,name=finalizationQueue,proto3" json:"finalizationQueue"`
 }
 
@@ -313,9 +313,9 @@ func (m *BlockHeightToFinalizationQueue) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BlockHeightToFinalizationQueue proto.InternalMessageInfo
 
-func (m *BlockHeightToFinalizationQueue) GetFinalizationHeight() uint64 {
+func (m *BlockHeightToFinalizationQueue) GetCreationHeight() uint64 {
 	if m != nil {
-		return m.FinalizationHeight
+		return m.CreationHeight
 	}
 	return 0
 }
@@ -567,8 +567,8 @@ func (m *BlockHeightToFinalizationQueue) MarshalToSizedBuffer(dAtA []byte) (int,
 			dAtA[i] = 0x12
 		}
 	}
-	if m.FinalizationHeight != 0 {
-		i = encodeVarintStateInfo(dAtA, i, uint64(m.FinalizationHeight))
+	if m.CreationHeight != 0 {
+		i = encodeVarintStateInfo(dAtA, i, uint64(m.CreationHeight))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -661,8 +661,8 @@ func (m *BlockHeightToFinalizationQueue) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.FinalizationHeight != 0 {
-		n += 1 + sovStateInfo(uint64(m.FinalizationHeight))
+	if m.CreationHeight != 0 {
+		n += 1 + sovStateInfo(uint64(m.CreationHeight))
 	}
 	if len(m.FinalizationQueue) > 0 {
 		for _, e := range m.FinalizationQueue {
@@ -1207,9 +1207,9 @@ func (m *BlockHeightToFinalizationQueue) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FinalizationHeight", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreationHeight", wireType)
 			}
-			m.FinalizationHeight = 0
+			m.CreationHeight = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowStateInfo
@@ -1219,7 +1219,7 @@ func (m *BlockHeightToFinalizationQueue) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.FinalizationHeight |= uint64(b&0x7F) << shift
+				m.CreationHeight |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
