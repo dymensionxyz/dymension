@@ -104,6 +104,14 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	// test 10 update state
 	for i := 0; i < 10; i++ {
 		// bump block height
+
+		if i == 3 {
+			disputePeriodInBlocks += 2
+		}
+
+		if i == 6 {
+			disputePeriodInBlocks -= 3
+		}
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
@@ -117,11 +125,10 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
-		expectedFinalization := expectedStateInfo.CreationHeight + disputePeriodInBlocks
-		expectedFinalizationQueue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedFinalization)
+		expectedFinalizationQueue, _ := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedStateInfo.CreationHeight)
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
-			FinalizationHeight: expectedFinalization,
-			FinalizationQueue:  []types.StateInfoIndex{expectedLatestStateInfoIndex},
+			CreationHeight:    expectedStateInfo.CreationHeight,
+			FinalizationQueue: []types.StateInfoIndex{expectedLatestStateInfoIndex},
 		})
 
 		// create new update
@@ -145,15 +152,23 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		// check finalization status change
 		finalizationQueue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
 		if found {
+
 			//fmt.Printf("finalizationQueue: %s\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
-			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.Ctx.BlockHeader().Height)-disputePeriodInBlocks)
-			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.Ctx.BlockHeader().Height))
+			if stateInfo.CreationHeight+disputePeriodInBlocks >= uint64(suite.Ctx.BlockHeader().Height) {
+				suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_RECEIVED)
+				continue
+			} else {
+				suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+
+			}
 			// use a boolean to ensure the event exists
 			contains := false
 			for _, event := range responseEndBlock.Events {
+
 				if event.Type == types.EventTypeStatusChange {
 					contains = true
 					// there are 5 attributes in the event
@@ -441,19 +456,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		RollappId: "rollapp1",
 		Index:     1,
 	}
-	stateInfo := types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
-		StartHeight:    1,
-		NumBlocks:      3,
-		DAPath:         "",
-		Version:        0,
-		CreationHeight: 0,
-		Status:         types.STATE_STATUS_RECEIVED,
-		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
+	stateInfo := types.NewStateInfo("rollapp1", 1, sequencer.SequencerAddress, 1, 3, "", 0, 0, types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}})
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
-	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, stateInfo)
+	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, *stateInfo)
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)

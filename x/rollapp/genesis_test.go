@@ -46,10 +46,10 @@ func TestGenesis(t *testing.T) {
 		},
 		BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 			{
-				FinalizationHeight: 0,
+				CreationHeight: 0,
 			},
 			{
-				FinalizationHeight: 1,
+				CreationHeight: 1,
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
