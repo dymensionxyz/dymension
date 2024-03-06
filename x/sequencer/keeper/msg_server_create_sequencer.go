@@ -28,7 +28,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
-	if rollapp.Jailed {
+	if rollapp.Frozen {
 		return nil, types.ErrRollappJailed
 	}
 

@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -150,7 +151,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			suite.Require().True(found)
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
 			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.Ctx.BlockHeader().Height)-disputePeriodInBlocks)
-			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
+			suite.Require().EqualValues(stateInfo.Status, common.Status_FINALIZED)
 			// use a boolean to ensure the event exists
 			contains := false
 			for _, event := range responseEndBlock.Events {
@@ -449,7 +450,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		DAPath:         "",
 		Version:        0,
 		CreationHeight: 0,
-		Status:         types.STATE_STATUS_RECEIVED,
+		Status:         common.Status_PENDING,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)

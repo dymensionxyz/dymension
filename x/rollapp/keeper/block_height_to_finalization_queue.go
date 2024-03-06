@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -31,13 +32,13 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 			ctx.Logger().Error("Rollapp not found", "rollappID", stateInfoIndex.RollappId)
 			continue
 		}
-		if rollapp.Jailed {
-			stateInfo.Status = types.STATE_STATUS_DISPUTED
+		if rollapp.Frozen {
+			stateInfo.Status = common.Status_REVERTED
 			k.SetStateInfo(ctx, stateInfo)
 			continue
 		}
 
-		stateInfo.Status = types.STATE_STATUS_FINALIZED
+		stateInfo.Status = common.Status_FINALIZED
 		// update the status of the stateInfo
 		k.SetStateInfo(ctx, stateInfo)
 		// uppdate the LatestStateInfoIndex of the rollapp

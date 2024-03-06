@@ -9,6 +9,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	tmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -26,13 +27,13 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	}
 
 	//check height is not finalized
-	if stateInfo.Status == types.STATE_STATUS_FINALIZED {
+	if stateInfo.Status == common.Status_FINALIZED {
 		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", height)
 	}
 
 	//check the sequencer for this height is the same as the one in the fraud evidence
 	if stateInfo.Sequencer != seqAddr {
-		return sdkerrors.Wrapf(types.ErrInvalidSequencer, "sequencer address %s does not match the one in the state info", seqAddr)
+		return sdkerrors.Wrapf(types.ErrWrongProposerAddr, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
 
 	// slash the sequencer, clean delayed packets
@@ -42,7 +43,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	}
 
 	//mark the rollapp as frozen. revert all pending states to finalized
-	rollapp.Jailed = true
+	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
 	//TODO: go over all pending states, and set as disputed those beloning to the rollapp

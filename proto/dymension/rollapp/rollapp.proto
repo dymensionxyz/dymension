@@ -32,7 +32,7 @@ message Rollapp {
   // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
   repeated TokenMetadata tokenMetadata = 9;
 
-  bool jailed = 10;
+  bool frozen = 10;
 }
 
 // Rollapp summary is a compact representation of Rollapp

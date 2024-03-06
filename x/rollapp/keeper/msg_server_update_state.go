@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -110,7 +111,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		DAPath:         msg.DAPath,
 		Version:        msg.Version,
 		CreationHeight: uint64(ctx.BlockHeight()),
-		Status:         types.STATE_STATUS_RECEIVED,
+		Status:         common.Status_PENDING,
 		BDs:            msg.BDs},
 	)
 
