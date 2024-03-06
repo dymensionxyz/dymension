@@ -23,10 +23,10 @@ var (
 	KeyPrefixIdDenomMetadata = []byte{0x03}
 
 	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
-	KeyPrefixBaseDenomMetadata = []byte{0x04}
+	KeyPrefixDenomMetadata = []byte{0x04}
 
 	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
-	KeyPrefixSymbolDenomMetadata = []byte{0x05}
+	KeyPrefixBaseDenomMetadata = []byte{0x04, 0x00}
 
 	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
 	KeyPrefixDisplayDenomMetadata = []byte{0x06}

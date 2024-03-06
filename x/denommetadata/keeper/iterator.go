@@ -17,7 +17,7 @@ func (k Keeper) iterator(ctx sdk.Context, prefix []byte) sdk.Iterator {
 
 // DenomMetadataIterator returns the iterator for all denom metadata.
 func (k Keeper) DenomMetadataIterator(ctx sdk.Context) sdk.Iterator {
-	return k.iterator(ctx, types.KeyPrefixIdDenomMetadata)
+	return k.iterator(ctx, types.KeyPrefixDenomMetadata)
 }
 
 // getDenomMetadataFromIterator iterates over everything, until it reaches the end. Return all metadata iterated over.
