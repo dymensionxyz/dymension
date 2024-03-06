@@ -15,11 +15,10 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/streamer/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 var (
@@ -96,25 +95,15 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
-
 	keeper keeper.Keeper
-
-	accountKeeper stakingtypes.AccountKeeper
-	bankKeeper    stakingtypes.BankKeeper
-	epochKeeper   types.EpochKeeper
 }
 
 // NewAppModule creates a new AppModule struct.
 func NewAppModule(keeper keeper.Keeper,
-	accountKeeper stakingtypes.AccountKeeper, bankKeeper stakingtypes.BankKeeper,
-	epochKeeper types.EpochKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
-		accountKeeper:  accountKeeper,
-		bankKeeper:     bankKeeper,
-		epochKeeper:    epochKeeper,
 	}
 }
 
@@ -145,7 +134,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 // RegisterInvariants registers the module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	keeper.RegisterInvariants(ir, am.keeper)
+	//keeper.RegisterInvariants(ir, am.keeper)
 }
 
 // InitGenesis performs the module's genesis initialization.

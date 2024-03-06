@@ -47,7 +47,7 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 		TokenMetadata: record,
 	}
 
-	err = k.setDenomMetadata(ctx, &denomMetadata)
+	err = k.SetDenomMetadataWithRefKey(ctx, &denomMetadata)
 	if err != nil {
 		return 0, err
 	}
@@ -81,7 +81,7 @@ func (k Keeper) UpdateDenomMetadata(ctx sdk.Context, denomMetadataID uint64, rec
 
 	denomMetadata.TokenMetadata = record
 
-	err = k.setDenomMetadata(ctx, denomMetadata)
+	err = k.SetDenomMetadataWithRefKey(ctx, denomMetadata)
 	if err != nil {
 		return err
 	}

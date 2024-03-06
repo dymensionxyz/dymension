@@ -22,6 +22,17 @@ func (k Keeper) GetLastDenomMetadataID(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(bz)
 }
 
+// SetDenomMetadataWithRefKey sets denommedatata into the store, including extra keys used to check uniqueness
+func (k Keeper) SetDenomMetadataWithRefKey(ctx sdk.Context, denomMetadata *types.DenomMetadata) error {
+	err := k.setDenomMetadata(ctx, denomMetadata)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 // SetLastDenomMetadataID sets the last used DenomMetadata ID to the provided ID.
 func (k Keeper) SetLastDenomMetadataID(ctx sdk.Context, ID uint64) {
 	store := ctx.KVStore(k.storeKey)

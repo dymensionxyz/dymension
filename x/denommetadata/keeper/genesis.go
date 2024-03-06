@@ -10,9 +10,8 @@ import (
 func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 	k.SetParams(ctx, genState.Params)
-	for _, stream := range genState.Denommetadatas {
-		stream := stream
-		err := k.SetStreamWithRefKey(ctx, &stream)
+	for _, denom := range genState.Denommetadatas {
+		err := k.SetDenomMetadataWithRefKey(ctx, &denom)
 		if err != nil {
 			panic(err)
 		}
@@ -24,7 +23,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 func (k Keeper) ExportGenesis(ctx sdk.Context) *types.GenesisState {
 	return &types.GenesisState{
 		Params:              k.GetParams(ctx),
-		Denommetadatas:      k.GetNotFinishedStreams(ctx),
+		Denommetadatas:      k.GetAllDenomMetadata(ctx),
 		LastDenommetadataId: k.GetLastDenomMetadataID(ctx),
 	}
 }
