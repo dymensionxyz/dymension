@@ -7,6 +7,6 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
 
 
-// Params holds parameters for the streamer module
+// Params holds parameters for the denommetadata module
 message Params {
 }

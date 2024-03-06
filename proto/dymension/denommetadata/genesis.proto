@@ -9,14 +9,14 @@ import "dymension/denommetadata/denommetadata.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
 
 
-// GenesisState defines the streamer module's various parameters when first
+// GenesisState defines the denommetadata module's various parameters when first
 // initialized
 message GenesisState {
   // params are all the parameters of the module
   Params params = 1 [ (gogoproto.nullable) = false ];
-  // streams are all streams that should exist at genesis
+  // denommetadatas are all denommetadata that should exist at genesis
   repeated DenomMetadata denommetadatas = 2 [ (gogoproto.nullable) = false ];
-  // last_stream_id is what the stream number will increment from when creating
-  // the next stream after genesis
+  // last_denommetadata_id is what the denommetadata number will increment from when creating
+  // the next denommetadata after genesis
   uint64 last_denommetadata_id = 3;
 }

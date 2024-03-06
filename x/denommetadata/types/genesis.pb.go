@@ -24,15 +24,15 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// GenesisState defines the streamer module's various parameters when first
+// GenesisState defines the denommetadata module's various parameters when first
 // initialized
 type GenesisState struct {
 	// params are all the parameters of the module
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
-	// streams are all streams that should exist at genesis
+	// denommetadatas are all denommetadata that should exist at genesis
 	Denommetadatas []DenomMetadata `protobuf:"bytes,2,rep,name=denommetadatas,proto3" json:"denommetadatas"`
-	// last_stream_id is what the stream number will increment from when creating
-	// the next stream after genesis
+	// last_denommetadata_id is what the denommetadata number will increment from when creating
+	// the next denommetadata after genesis
 	LastDenommetadataId uint64 `protobuf:"varint,3,opt,name=last_denommetadata_id,json=lastDenommetadataId,proto3" json:"last_denommetadata_id,omitempty"`
 }
 

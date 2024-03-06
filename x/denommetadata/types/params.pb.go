@@ -23,7 +23,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Params holds parameters for the streamer module
+// Params holds parameters for the denommetadata module
 type Params struct {
 }
 

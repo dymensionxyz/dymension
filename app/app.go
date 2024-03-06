@@ -125,6 +125,7 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
 	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
@@ -206,6 +207,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
+		denommetadatamoduleclient.CreateDenomMetadataHandler,
+		denommetadatamoduleclient.UpdateDenomMetadataHandler,
 	)
 
 	return govProposalHandlers
@@ -601,8 +604,8 @@ func New(
 	)
 
 	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
-		keys[streamermoduletypes.StoreKey],
-		app.GetSubspace(streamermoduletypes.ModuleName),
+		keys[denommetadatamoduletypes.StoreKey],
+		app.GetSubspace(denommetadatamoduletypes.ModuleName),
 	)
 
 	app.EIBCKeeper = *eibckeeper.NewKeeper(
