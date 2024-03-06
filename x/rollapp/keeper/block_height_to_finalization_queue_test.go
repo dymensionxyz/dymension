@@ -18,7 +18,7 @@ var _ = strconv.IntSize
 func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BlockHeightToFinalizationQueue {
 	items := make([]types.BlockHeightToFinalizationQueue, n)
 	for i := range items {
-		items[i].FinalizationHeight = uint64(i)
+		items[i].CreationHeight = uint64(i)
 
 		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
 	}
@@ -30,7 +30,7 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
-			item.FinalizationHeight,
+			item.CreationHeight,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -44,10 +44,10 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveBlockHeightToFinalizationQueue(ctx,
-			item.FinalizationHeight,
+			item.CreationHeight,
 		)
 		_, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
-			item.FinalizationHeight,
+			item.CreationHeight,
 		)
 		require.False(t, found)
 	}

@@ -99,11 +99,11 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					continue
 				}
 				creationHeight := stateInfo.CreationHeight
-				finalizationTime := creationHeight + k.DisputePeriodInBlocks(ctx)
+				//finalizationTime := creationHeight + k.DisputePeriodInBlocks(ctx)
 
-				val, found := k.GetBlockHeightToFinalizationQueue(ctx, finalizationTime)
+				val, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 				if !found {
-					msg += fmt.Sprintf("finalizationTime (%d) have no block height\n", finalizationTime)
+					msg += fmt.Sprintf("finalizationQueue (%d) have no block height\n", creationHeight)
 					broken = true
 					continue
 				}
