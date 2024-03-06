@@ -34,4 +34,8 @@ var (
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
 	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
 	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
+
+	/* ------------------------------ fraud related ----------------------------- */
+	ErrDisputeAlreadyFinalized = sdkerrors.Register(ModuleName, 2000, "disputed height already finalized")
+	ErrWrongClientId           = sdkerrors.Register(ModuleName, 2001, "client id does not match the rollapp")
 )

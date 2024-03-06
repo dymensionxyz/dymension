@@ -8,6 +8,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	tmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -24,6 +25,12 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
+	//check height is not finalized
+	if stateInfo.Status == types.STATE_STATUS_FINALIZED {
+		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", height)
+	}
+
+	//check the sequencer for this height is the same as the one in the fraud evidence
 	if stateInfo.Sequencer != seqAddr {
 		return sdkerrors.Wrapf(types.ErrInvalidSequencer, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
@@ -50,10 +57,14 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
 	}
 
-	// Set the client state to frozen
 	tmClientState, ok := clientState.(*tmtypes.ClientState)
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
+	}
+
+	//validate the clientId related to the disputed rollapp
+	if tmClientState.ChainId != rollappID {
+		return sdkerrors.Wrapf(types.ErrWrongClientId, "client state with ID %s is not related to rollapp with ID %s", clientId, rollappID)
 	}
 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
