@@ -1,5 +1,6 @@
 # This workflow pushes new dymension images on every commit to main.
 #
+# ghcr.io/dymensionxyz/dymension:{SHORT_SHA} # is pushed
 # ghcr.io/dymensionxyz/dymension:latest   # is updated 
 
 name: Push docker images on new commit to main branch
