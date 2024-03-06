@@ -15,7 +15,7 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
 		// finalize pending states
-		allStatesFinalized := true
+		var newFinalizationQueue []types.StateInfoIndex
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 			if !found || stateInfo.Status == types.STATE_STATUS_FINALIZED {
@@ -47,12 +47,17 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				ctx.Logger().Error("Error finalizing state", "height", blockHeightToFinalizationQueue.CreationHeight, "rollappId", stateInfo.StateInfoIndex.RollappId)
-				allStatesFinalized = false
+				newFinalizationQueue = append(newFinalizationQueue, stateInfoIndex)
 			}
 
 		}
-		if allStatesFinalized {
-			k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		if len(newFinalizationQueue) > 0 {
+			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
+				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
+				FinalizationQueue: newFinalizationQueue}
+
+			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
 		}
 	}
 }
