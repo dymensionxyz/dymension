@@ -29,6 +29,15 @@ func (k Keeper) SetDenomMetadataWithRefKey(ctx sdk.Context, denomMetadata *types
 		return err
 	}
 
+	if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixBaseDenomMetadata, []byte(denomMetadata.TokenMetadata.Base)), denomMetadata.Id); err != nil {
+		return err
+	}
+	if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixDisplayDenomMetadata, []byte(denomMetadata.TokenMetadata.Display)), denomMetadata.Id); err != nil {
+		return err
+	}
+	if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixSymbolDenomMetadata, []byte(denomMetadata.TokenMetadata.Symbol)), denomMetadata.Id); err != nil {
+		return err
+	}
 	return nil
 
 }
@@ -41,7 +50,7 @@ func (k Keeper) SetLastDenomMetadataID(ctx sdk.Context, ID uint64) {
 
 // denomMetadataStoreKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
 func denomMetadataStoreKey(ID uint64) []byte {
-	return combineKeys(types.KeyPrefixPeriodDenomMetadata, sdk.Uint64ToBigEndian(ID))
+	return combineKeys(types.KeyPrefixIdDenomMetadata, sdk.Uint64ToBigEndian(ID))
 }
 
 // setDenomMetadata set the denommetadata inside store.

@@ -19,11 +19,17 @@ var (
 	// KeyLastDenomMetadataID defines key for setting last denommetadata ID.
 	KeyLastDenomMetadataID = []byte{0x02}
 
-	// KeyPrefixPeriodDenomMetadata defines prefix key for storing denommetadata.
-	KeyPrefixPeriodDenomMetadata = []byte{0x03}
+	// KeyPrefixIdDenomMetadata defines prefix key for storing denommetadata.
+	KeyPrefixIdDenomMetadata = []byte{0x03}
 
-	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for all denometadatas.
-	KeyPrefixDenomMetadatas = []byte{0x04}
+	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
+	KeyPrefixBaseDenomMetadata = []byte{0x04}
+
+	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
+	KeyPrefixSymbolDenomMetadata = []byte{0x05}
+
+	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for base denom.
+	KeyPrefixDisplayDenomMetadata = []byte{0x06}
 
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}

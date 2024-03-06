@@ -402,6 +402,7 @@ func New(
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
 		streamermoduletypes.StoreKey,
+		denommetadatamoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
 		eibcmoduletypes.StoreKey,
@@ -597,6 +598,11 @@ func New(
 		app.EpochsKeeper,
 		app.AccountKeeper,
 		app.IncentivesKeeper,
+	)
+
+	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
+		keys[streamermoduletypes.StoreKey],
+		app.GetSubspace(streamermoduletypes.ModuleName),
 	)
 
 	app.EIBCKeeper = *eibckeeper.NewKeeper(
@@ -856,6 +862,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -897,6 +904,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
@@ -1130,6 +1138,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
