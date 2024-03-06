@@ -1,4 +1,4 @@
-package ante
+package delayedack
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,22 +25,25 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	for _, m := range tx.GetMsgs() {
 		var (
 			height   clienttypes.Height
-			sequence uint64
+			packetId channeltypes.PacketId
 		)
 		switch msg := m.(type) {
 		case *channeltypes.MsgRecvPacket:
 			height = msg.ProofHeight
-			sequence = msg.Packet.Sequence
+			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
+
 		case *channeltypes.MsgAcknowledgement:
 			height = msg.ProofHeight
-			sequence = msg.Packet.Sequence
+			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
+
 		case *channeltypes.MsgTimeout:
 			height = msg.ProofHeight
-			sequence = msg.Packet.Sequence
+			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
 		default:
 			continue
 		}
-		ctx = delayedacktypes.NewIBCProofContext(ctx, sequence, height)
+
+		ctx = delayedacktypes.NewIBCProofContext(ctx, packetId, height)
 	}
 
 	return next(ctx, tx, simulate)

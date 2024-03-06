@@ -9,6 +9,8 @@ import (
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
@@ -95,7 +97,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
-		NewIBCProofHeightDecorator(),
+		delayedack.NewIBCProofHeightDecorator(),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)
 }
