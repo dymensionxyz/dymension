@@ -44,3 +44,4 @@ jobs:
             platforms: linux/amd64
             tags: |
                 ghcr.io/dymensionxyz/dymension:${{ env.DOCKER_IMAGE_TAG }}
+                ghcr.io/dymensionxyz/dymension:latest
