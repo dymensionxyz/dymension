@@ -9,7 +9,7 @@ import (
 
 // GetQueryCmd returns the query commands for this module.
 func GetQueryCmd() *cobra.Command {
-	// group streamer queries under a subcommand
+	// group metadata queries under a subcommand
 	cmd := osmocli.QueryIndexCmd(types.ModuleName)
 	qcGetter := types.NewQueryClient
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdDenomMetadataByID)

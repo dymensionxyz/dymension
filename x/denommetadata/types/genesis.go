@@ -27,13 +27,13 @@ func (gs GenesisState) Validate() error {
 	}
 
 	if len(gs.Denommetadatas) != int(gs.LastDenommetadataId) {
-		return fmt.Errorf("streams length does not match last stream id")
+		return fmt.Errorf("denommetadata length does not match last denommetadata id")
 	}
 
-	//validate the streams are sorted and last stream id is correct
-	for i, stream := range gs.Denommetadatas {
-		if stream.Id != uint64(i+1) {
-			return fmt.Errorf("stream in idx %d have wrong streamID (%d)", i, stream.Id)
+	//validate the denommetadatas are sorted and last denommetadata id is correct
+	for i, denommetadata := range gs.Denommetadatas {
+		if denommetadata.Id != uint64(i+1) {
+			return fmt.Errorf("denommetadata in idx %d have wrong denomID (%d)", i, denommetadata.Id)
 		}
 	}
 

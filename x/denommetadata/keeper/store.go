@@ -58,26 +58,26 @@ func (k Keeper) setDenomMetadata(ctx sdk.Context, denomMetadata *types.DenomMeta
 // getDenomMetadataRefs returns the denommetadata IDs specified by the provided key.
 func (k Keeper) getDenomMetadataRefs(ctx sdk.Context, key []byte) []uint64 {
 	store := ctx.KVStore(k.storeKey)
-	streamIDs := []uint64{}
+	denomIDs := []uint64{}
 	if store.Has(key) {
 		bz := store.Get(key)
-		err := json.Unmarshal(bz, &streamIDs)
+		err := json.Unmarshal(bz, &denomIDs)
 		if err != nil {
 			panic(err)
 		}
 	}
-	return streamIDs
+	return denomIDs
 }
 
-// addDenomMetadataRefByKey appends the denommetadata stream ID into an array associated with the provided key.
-func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, streamID uint64) error {
+// addDenomMetadataRefByKey appends the denommetadata denom ID into an array associated with the provided key.
+func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, denomID uint64) error {
 	store := ctx.KVStore(k.storeKey)
-	streamIDs := k.getDenomMetadataRefs(ctx, key)
-	if findIndex(streamIDs, streamID) > -1 {
-		return fmt.Errorf("stream with same ID exist: %d", streamID)
+	denomIDs := k.getDenomMetadataRefs(ctx, key)
+	if findIndex(denomIDs, denomID) > -1 {
+		return fmt.Errorf("denom metadata with same ID exist: %d", denomID)
 	}
-	streamIDs = append(streamIDs, streamID)
-	bz, err := json.Marshal(streamIDs)
+	denomIDs = append(denomIDs, denomID)
+	bz, err := json.Marshal(denomIDs)
 	if err != nil {
 		return err
 	}

@@ -12,7 +12,7 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-// Keeper provides a way to manage streamer module storage.
+// Keeper provides a way to manage denommetadata module storage.
 type Keeper struct {
 	storeKey   storetypes.StoreKey
 	paramSpace paramtypes.Subspace
@@ -30,7 +30,7 @@ func NewKeeper(storeKey storetypes.StoreKey, paramSpace paramtypes.Subspace) *Ke
 	}
 }
 
-// Logger returns a logger instance for the streamer module.
+// Logger returns a logger instance for the denommetadata module.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }

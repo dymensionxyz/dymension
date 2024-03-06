@@ -30,7 +30,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type DenomMetadataByIDRequest struct {
-	// Gague ID being queried
+	// ID being queried
 	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 }
 
@@ -75,7 +75,7 @@ func (m *DenomMetadataByIDRequest) GetId() uint64 {
 }
 
 type DenomMetadataByIDResponse struct {
-	// Stream that corresponds to provided gague ID
+	// Denometada that corresponds to provided ID
 	Metadata *DenomMetadata `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
 }
 

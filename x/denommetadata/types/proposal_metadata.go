@@ -8,14 +8,14 @@ import (
 )
 
 const (
-	// ProposalTypeCreateStream defines the type for a CreateStreamProposal
+	// ProposalTypeCreateDenomMetadata defines the type for a CreateDenomMetadata
 	ProposalTypeCreateDenomMetadata = "CreateDenomMetadata"
 
-	// ProposalTypeTerminateStream defines the type for a UpdateDenomMetadata
+	// ProposalTypeUpdateDenomMetadata defines the type for a UpdateDenomMetadata
 	ProposalTypeUpdateDenomMetadata = "UpdateDenomMetadata"
 )
 
-// Assert CreateStreamProposal implements govtypes.Content at compile-time
+// Assert CreateDenomMetadataProposal implements govtypes.Content at compile-time
 var _ govtypes.Content = &CreateDenomMetadataProposal{}
 
 func init() {
@@ -23,7 +23,7 @@ func init() {
 
 }
 
-// NewCreateMetadataProposal creates a new create stream proposal.
+// NewCreateMetadataProposal creates a new create denommetadata proposal.
 func NewCreateMetadataProposal(title, description string, denommetadata TokenMetadata) *CreateDenomMetadataProposal {
 	return &CreateDenomMetadataProposal{
 		Title:         title,
@@ -57,7 +57,7 @@ func (csp *CreateDenomMetadataProposal) ValidateBasic() error {
 // String implements the Stringer interface.
 func (csp CreateDenomMetadataProposal) String() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Create stream Proposal:
+	b.WriteString(fmt.Sprintf(`Create denommetadata Proposal:
 	  Title:       %s
 	  Description: %s
 	  TokenMetadata: %s
@@ -65,7 +65,7 @@ func (csp CreateDenomMetadataProposal) String() string {
 	return b.String()
 }
 
-// NewCreateMetadataProposal creates a new create stream proposal.
+// NewCreateMetadataProposal creates a new create denommetadata proposal.
 func NewUpdateDenomMetadataProposal(title, description string, id uint64, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
 		Title:           title,
@@ -100,7 +100,7 @@ func (csp *UpdateDenomMetadataProposal) ValidateBasic() error {
 // String implements the Stringer interface.
 func (csp UpdateDenomMetadataProposal) String() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Update stream Proposal:
+	b.WriteString(fmt.Sprintf(`Update denommetadata Proposal:
 	  Title:       %s
 	  Description: %s
 	  ID: %d

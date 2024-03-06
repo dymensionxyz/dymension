@@ -21,10 +21,10 @@ service Query {
 }
 
 message DenomMetadataByIDRequest {
-  // Gague ID being queried
+  // ID being queried
   uint64 id = 1;
 }
 message DenomMetadataByIDResponse {
-  // Stream that corresponds to provided gague ID
+  // Denometada that corresponds to provided ID
   DenomMetadata metadata = 1;
 }

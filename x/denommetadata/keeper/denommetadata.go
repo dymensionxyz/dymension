@@ -24,10 +24,10 @@ func (k Keeper) GetDenomMetadataByID(ctx sdk.Context, denomMetadataID uint64) (*
 	return &denommetadata, nil
 }
 
-// GetStreams returns upcoming, active, and finished streams.
+// GetAllDenomMetadata returns all register denom metadata.
 func (k Keeper) GetAllDenomMetadata(ctx sdk.Context) []types.DenomMetadata {
-	denommetadatas := k.getStreamsFromIterator(ctx, k.DenomMetadataIterator(ctx))
-	// Assuming streams is your []Stream slice
+	denommetadatas := k.getDenomMetadataFromIterator(ctx, k.DenomMetadataIterator(ctx))
+	// Assuming denommetadata is your []DenomMetadata slice
 	sort.Slice(denommetadatas, func(i, j int) bool {
 		return denommetadatas[i].Id < denommetadatas[j].Id
 	})
