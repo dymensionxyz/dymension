@@ -66,12 +66,12 @@ func (csp CreateDenomMetadataProposal) String() string {
 }
 
 // NewCreateMetadataProposal creates a new create stream proposal.
-func NewUpdateDenomMetadataProposal(title, description string, id uint64, denommetadata *TokenMetadata) *UpdateDenomMetadataProposal {
+func NewUpdateDenomMetadataProposal(title, description string, id uint64, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
 		Title:           title,
 		Description:     description,
 		DenommetadataId: id,
-		TokenMetadata:   *denommetadata,
+		TokenMetadata:   denommetadata,
 	}
 }
 
