@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -330,15 +331,22 @@ func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Pa
 
 // CheckIfFinalized checks if the packet is finalized and if so, updates the packet status
 func (im IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, packet channeltypes.Packet) (bool, uint64, error) {
+	var proofHeight uint64
+
 	// Get the light client height at this block height as a proxy for the packet proof height
 	clientState, err := im.keeper.GetClientState(ctx, packet)
 	if err != nil {
 		return false, 0, err
 	}
-	// TODO(omritoptix): Currently we use this height as the proofHeight as the real proofHeight
-	// from the ibc lower stack is not available: https://github.com/dymensionxyz/dymension/issues/391
-	// using this height is secured but may cause extra delay as at best it will be equal to the proof height (but could be higher).
-	proofHeight := clientState.GetLatestHeight().GetRevisionHeight()
+
+	height, ok := types.FromIBCProofContext(ctx, packet.Sequence)
+	if ok {
+		proofHeight = height.RevisionHeight
+	} else {
+		// If we fail to get the proofHeight from context, we use the latest height of the client state.
+		// using this height is secured but may cause extra delay as at best it will be equal to the proof height (but could be higher).
+		proofHeight = clientState.GetLatestHeight().GetRevisionHeight()
+	}
 	finalizedHeight, err := im.keeper.GetRollappFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		if errors.Is(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
