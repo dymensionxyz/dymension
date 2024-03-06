@@ -3,7 +3,7 @@ package dymensionxyz.dymension.denommetadata;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/denommetadata/denommetadata.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
@@ -17,6 +17,25 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/denommetadata/denommetadata_by_id/{id}";
   }
+  // DenomMetadataByBaseDenom returns tokenmetadata by their respective base denom
+  rpc DenomMetadataByBaseDenom(DenomMetadataByBaseDenomRequest) returns (DenomMetadataByBaseDenomResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/denommetadata/denommetadata_by_base/{base_denom}";
+  }
+  // DenomMetadataByDisplayDenom returns tokenmetadata by their respective display denom
+  rpc DenomMetadataByDisplayDenom(DenomMetadataByDisplayDenomRequest) returns (DenomMetadataByDisplayDenomResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/denommetadata/denommetadata_by_display/{display_denom}";
+  }
+  // DenomMetadataBySymbolDenom returns tokenmetadata by their respective symbol denom
+  rpc DenomMetadataBySymbolDenom(DenomMetadataBySymbolDenomRequest) returns (DenomMetadataBySymbolDenomResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/denommetadata/denommetadata_by_symbol/{symbol_denom}";
+  }
+    // Streams returns both upcoming and active streams
+  rpc AllDenomMetadata(AllDenomMetadataRequest) returns (AllDenomMetadataResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/denommetadata/denommetadata";
+  }
 
 }
 
@@ -27,4 +46,38 @@ message DenomMetadataByIDRequest {
 message DenomMetadataByIDResponse {
   // Denometada that corresponds to provided ID
   DenomMetadata metadata = 1;
+}
+message DenomMetadataByBaseDenomRequest {
+  // ID being queried
+  string base_denom = 1;
+}
+message DenomMetadataByBaseDenomResponse {
+  // Denometada that corresponds to provided ID
+  DenomMetadata metadata = 1;
+}
+message DenomMetadataByDisplayDenomRequest {
+  // ID being queried
+  string display_denom = 1;
+}
+message DenomMetadataByDisplayDenomResponse {
+  // Denometada that corresponds to provided ID
+  DenomMetadata metadata = 1;
+}
+message DenomMetadataBySymbolDenomRequest {
+  // ID being queried
+  string symbol_denom = 1;
+}
+message DenomMetadataBySymbolDenomResponse {
+  // Denometada that corresponds to provided ID
+  DenomMetadata metadata = 1;
+}
+message AllDenomMetadataRequest {
+  // Pagination defines pagination for the request
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+message AllDenomMetadataResponse {
+  // Active gagues only
+  repeated DenomMetadata data = 1 [ (gogoproto.nullable) = false ];
+  // Pagination defines pagination for the response
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

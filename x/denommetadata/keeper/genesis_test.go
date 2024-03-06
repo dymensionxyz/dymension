@@ -21,7 +21,7 @@ func TestDenomMetadataExportGenesis(t *testing.T) {
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
 	require.Len(t, genesis.Denommetadatas, 0)
 
-	/*token := types.TokenMetadata{
+	token := types.TokenMetadata{
 		Name:        "Cosmos Hub Atom",
 		Symbol:      "ATOM",
 		Description: "The native staking token of the Cosmos Hub.",
@@ -45,7 +45,7 @@ func TestDenomMetadataExportGenesis(t *testing.T) {
 	require.Equal(t, genesis.Denommetadatas[0], types.DenomMetadata{
 		Id:            metadataId,
 		TokenMetadata: token,
-	})*/
+	})
 }
 
 // TestDenomMetadataInitGenesis takes a genesis state and tests initializing that genesis for the denommetadata module.

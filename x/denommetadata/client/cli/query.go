@@ -25,3 +25,13 @@ func GetCmdDenomMetadataByID() (*osmocli.QueryDescriptor, *types.DenomMetadataBy
 {{.CommandPrefix}} denonmetadata-by-id 1
 `}, &types.DenomMetadataByIDRequest{}
 }
+
+// GetCmdDenomMetadataByID returns a denonmetadata by ID.
+func GetCmdDenomMetadataByDisplay() (*osmocli.QueryDescriptor, *types.DenomMetadataByIDRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "denonmetadata-by-display [id]",
+		Short: "Query denonmetadata by id.",
+		Long: `{{.Short}}{{.ExampleHeader}}
+{{.CommandPrefix}} denonmetadata-by-id 1
+`}, &types.DenomMetadataByIDRequest{}
+}

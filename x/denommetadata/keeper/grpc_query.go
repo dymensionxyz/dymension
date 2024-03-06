@@ -38,3 +38,21 @@ func (q Querier) DenomMetadataByID(goCtx context.Context, req *types.DenomMetada
 
 	return &types.DenomMetadataByIDResponse{Metadata: denonmetadata}, nil
 }
+
+func (q Querier) DenomMetadataByBaseDenom(goCtx context.Context, req *types.DenomMetadataByBaseDenomRequest) (*types.DenomMetadataByBaseDenomResponse, error) {
+	return &types.DenomMetadataByBaseDenomResponse{}, nil
+}
+
+func (q Querier) DenomMetadataByDisplayDenom(goCtx context.Context, req *types.DenomMetadataByDisplayDenomRequest) (*types.DenomMetadataByDisplayDenomResponse, error) {
+	return &types.DenomMetadataByDisplayDenomResponse{}, nil
+}
+
+func (q Querier) DenomMetadataBySymbolDenom(goCtx context.Context, req *types.DenomMetadataBySymbolDenomRequest) (*types.DenomMetadataBySymbolDenomResponse, error) {
+	return &types.DenomMetadataBySymbolDenomResponse{}, nil
+}
+
+// Streams returns all upcoming and active streams.
+func (q Querier) AllDenomMetadata(goCtx context.Context, req *types.AllDenomMetadataRequest) (*types.AllDenomMetadataResponse, error) {
+
+	return &types.AllDenomMetadataResponse{Data: nil, Pagination: nil}, nil
+}
