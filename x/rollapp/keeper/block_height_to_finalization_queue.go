@@ -16,11 +16,10 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
 		// finalize pending states
-		var newFinalizationQueue []types.StateInfoIndex
+		var failedToFinalizeQueue []types.StateInfoIndex
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
-
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found || stateInfo.Status == common.Status_FINALIZED {
+			if !found || stateInfo.Status != common.Status_PENDING {
 				ctx.Logger().Error("Missing stateInfo data when trying to finalize or alreay finalized", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
 				continue
 			}
@@ -49,15 +48,15 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				ctx.Logger().Error("Error finalizing state", "height", blockHeightToFinalizationQueue.CreationHeight, "rollappId", stateInfo.StateInfoIndex.RollappId)
-				newFinalizationQueue = append(newFinalizationQueue, stateInfoIndex)
+				failedToFinalizeQueue = append(failedToFinalizeQueue, stateInfoIndex)
 			}
 
 		}
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
-		if len(newFinalizationQueue) > 0 {
+		if len(failedToFinalizeQueue) > 0 {
 			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
 				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
-				FinalizationQueue: newFinalizationQueue}
+				FinalizationQueue: failedToFinalizeQueue}
 
 			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
 		}

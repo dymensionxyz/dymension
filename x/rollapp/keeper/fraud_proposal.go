@@ -51,16 +51,25 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	endHeight := uint64(ctx.BlockHeight())
 	for h := startHeight; h <= endHeight; h++ {
 		queue, _ := k.GetBlockHeightToFinalizationQueue(ctx, height)
-		for _, stateInfoIndex := range queue.FinalizationQueue {
-			if stateInfoIndex.RollappId == rollappID {
-				stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-				if !found {
-					return sdkerrors.Wrapf(types.ErrStateNotExists, "state info with index %d not found", stateInfoIndex.Index)
-				}
-				stateInfo.Status = common.Status_REVERTED
-				k.SetStateInfo(ctx, stateInfo)
-			}
+		newQueue := types.BlockHeightToFinalizationQueue{
+			CreationHeight:    height,
+			FinalizationQueue: []types.StateInfoIndex{},
 		}
+		for _, stateInfoIndex := range queue.FinalizationQueue {
+			//keep pending packets not related to this rollapp in the queue
+			if stateInfoIndex.RollappId != rollappID {
+				newQueue.FinalizationQueue = append(newQueue.FinalizationQueue, stateInfoIndex)
+				continue
+			}
+
+			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			if !found {
+				return sdkerrors.Wrapf(types.ErrStateNotExists, "state info with index %d not found", stateInfoIndex.Index)
+			}
+			stateInfo.Status = common.Status_REVERTED
+			k.SetStateInfo(ctx, stateInfo)
+		}
+		k.SetBlockHeightToFinalizationQueue(ctx, newQueue)
 	}
 
 	//TODO: get the clientId from rollapp object, instead of by proposal
