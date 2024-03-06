@@ -56,7 +56,7 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeEvtCreateDenomMetadata,
-			denomMetadata.TokenMetadata.GetEvents()...,
+			denomMetadata.TokenMetadata.GetEvents(denomMetadata.Id)...,
 		),
 	})
 
@@ -87,7 +87,7 @@ func (k Keeper) UpdateDenomMetadata(ctx sdk.Context, denomMetadataID uint64, rec
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.TypeEvtCreateDenomMetadata,
+			types.TypeEvtUpdateDenomMetadata,
 			denomMetadata.TokenMetadata.GetEvents(denomMetadataID)...,
 		),
 	})

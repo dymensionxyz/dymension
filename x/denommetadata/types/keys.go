@@ -22,6 +22,9 @@ var (
 	// KeyPrefixPeriodDenomMetadata defines prefix key for storing denommetadata.
 	KeyPrefixPeriodDenomMetadata = []byte{0x03}
 
+	// KeyPrefixDenomMetadatas defines prefix key for storing reference key for all denometadatas.
+	KeyPrefixDenomMetadatas = []byte{0x04}
+
 	// KeyIndexSeparator defines key for merging bytes.
 	KeyIndexSeparator = []byte{0x07}
 )

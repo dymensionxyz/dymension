@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -21,4 +22,14 @@ func (k Keeper) GetDenomMetadataByID(ctx sdk.Context, denomMetadataID uint64) (*
 		return nil, err
 	}
 	return &denommetadata, nil
+}
+
+// GetStreams returns upcoming, active, and finished streams.
+func (k Keeper) GetAllDenomMetadata(ctx sdk.Context) []types.DenomMetadata {
+	denommetadatas := k.getStreamsFromIterator(ctx, k.DenomMetadataIterator(ctx))
+	// Assuming streams is your []Stream slice
+	sort.Slice(denommetadatas, func(i, j int) bool {
+		return denommetadatas[i].Id < denommetadatas[j].Id
+	})
+	return denommetadatas
 }

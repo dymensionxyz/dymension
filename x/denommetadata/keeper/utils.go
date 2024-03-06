@@ -13,3 +13,13 @@ func combineKeys(keys ...[]byte) []byte {
 	}
 	return combined
 }
+
+// findIndex takes an array of IDs. Then return the index of a specific ID.
+func findIndex(IDs []uint64, ID uint64) int {
+	for index, id := range IDs {
+		if id == ID {
+			return index
+		}
+	}
+	return -1
+}

@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	"github.com/gogo/protobuf/proto"
 
@@ -25,12 +28,12 @@ func (k Keeper) SetLastDenomMetadataID(ctx sdk.Context, ID uint64) {
 	store.Set(types.KeyLastDenomMetadataID, sdk.Uint64ToBigEndian(ID))
 }
 
-// streamStoreKey returns the combined byte array (store key) of the provided stream ID's key prefix and the ID itself.
+// denomMetadataStoreKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
 func denomMetadataStoreKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixPeriodDenomMetadata, sdk.Uint64ToBigEndian(ID))
 }
 
-// setStream set the stream inside store.
+// setDenomMetadata set the denommetadata inside store.
 func (k Keeper) setDenomMetadata(ctx sdk.Context, denomMetadata *types.DenomMetadata) error {
 	store := ctx.KVStore(k.storeKey)
 	bz, err := proto.Marshal(denomMetadata)
@@ -38,5 +41,35 @@ func (k Keeper) setDenomMetadata(ctx sdk.Context, denomMetadata *types.DenomMeta
 		return err
 	}
 	store.Set(denomMetadataStoreKey(denomMetadata.Id), bz)
+	return nil
+}
+
+// getDenomMetadataRefs returns the denommetadata IDs specified by the provided key.
+func (k Keeper) getDenomMetadataRefs(ctx sdk.Context, key []byte) []uint64 {
+	store := ctx.KVStore(k.storeKey)
+	streamIDs := []uint64{}
+	if store.Has(key) {
+		bz := store.Get(key)
+		err := json.Unmarshal(bz, &streamIDs)
+		if err != nil {
+			panic(err)
+		}
+	}
+	return streamIDs
+}
+
+// addDenomMetadataRefByKey appends the denommetadata stream ID into an array associated with the provided key.
+func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, streamID uint64) error {
+	store := ctx.KVStore(k.storeKey)
+	streamIDs := k.getDenomMetadataRefs(ctx, key)
+	if findIndex(streamIDs, streamID) > -1 {
+		return fmt.Errorf("stream with same ID exist: %d", streamID)
+	}
+	streamIDs = append(streamIDs, streamID)
+	bz, err := json.Marshal(streamIDs)
+	if err != nil {
+		return err
+	}
+	store.Set(key, bz)
 	return nil
 }
