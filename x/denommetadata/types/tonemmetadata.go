@@ -2,6 +2,9 @@ package types
 
 import (
 	"fmt"
+	"strconv"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -61,4 +64,15 @@ func (m *TokenMetadata) ConvertToBankMetadata() banktypes.Metadata {
 		URI:         m.URI,
 		URIHash:     m.URIHash,
 	}
+}
+
+func (m *TokenMetadata) GetEvents(id uint64) []sdk.Attribute {
+
+	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(AttributeDenomMetadataID, strconv.FormatUint(id, 10)),
+		sdk.NewAttribute(AttributeBaseDenom, m.Base),
+		sdk.NewAttribute(AttributeDescriptionDenom, m.Description),
+		sdk.NewAttribute(AttributeSymbolDenom, m.Symbol),
+	}
+	return eventAttributes
 }

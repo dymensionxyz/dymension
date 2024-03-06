@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -57,11 +56,15 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.TypeEvtCreateDenomMetadata,
-			sdk.NewAttribute(types.AttributeDenomMetadataID, osmoutils.Uint64ToString(denomMetadata.Id)),
+			denomMetadata.TokenMetadata.GetEvents()...,
 		),
 	})
 
 	return denomMetadata.Id, nil
+}
+func (k Keeper) CheckExistingMetadata(ctx sdk.Context, record types.TokenMetadata) error {
+
+	return nil
 }
 
 // This is checked for no err when a proposal is made, and executed when a proposal passes.
@@ -82,6 +85,11 @@ func (k Keeper) UpdateDenomMetadata(ctx sdk.Context, denomMetadataID uint64, rec
 	if err != nil {
 		return err
 	}
-
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.TypeEvtCreateDenomMetadata,
+			denomMetadata.TokenMetadata.GetEvents(denomMetadataID)...,
+		),
+	})
 	return nil
 }
