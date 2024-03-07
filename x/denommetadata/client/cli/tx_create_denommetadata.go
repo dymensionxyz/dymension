@@ -44,6 +44,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			err = metadata.Validate()
 			if err != nil {
 				return err
