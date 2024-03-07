@@ -63,6 +63,19 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 }
 func (k Keeper) CheckExistingMetadata(ctx sdk.Context, record types.TokenMetadata) error {
 
+	store := ctx.KVStore(k.storeKey)
+	denomMetadataBaseKey := denomMetadataStoreBaseKey(record.Base)
+	if store.Has(denomMetadataBaseKey) {
+		return fmt.Errorf("DenomMetadata with base %s already exists", record.Base)
+	}
+	denomMetadataDisplayKey := denomMetadataStoreDisplayKey(record.Display)
+	if store.Has(denomMetadataDisplayKey) {
+		return fmt.Errorf("DenomMetadata with display %s already exists", record.Display)
+	}
+	denomMetadataSymbolKey := denomMetadataStoreSymbolKey(record.Symbol)
+	if store.Has(denomMetadataSymbolKey) {
+		return fmt.Errorf("DenomMetadata with base %s already exists", record.Symbol)
+	}
 	return nil
 }
 
