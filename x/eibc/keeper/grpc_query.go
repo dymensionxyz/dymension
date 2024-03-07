@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -48,4 +50,36 @@ func (q Querier) DemandOrderById(goCtx context.Context, req *types.QueryGetDeman
 		}
 	}
 	return nil, status.Error(codes.Internal, err.Error())
+}
+
+func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDemandOrdersByStatusRequest) (*types.QueryDemandOrdersByStatusResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if req.Status == "" {
+		return nil, status.Error(codes.InvalidArgument, "status must be provided")
+	}
+
+	// Convert string status to commontypes.Status
+	var statusValue commontypes.Status
+	switch strings.ToUpper(req.Status) {
+	case "PENDING":
+		statusValue = commontypes.Status_PENDING
+	case "FINALIZED":
+		statusValue = commontypes.Status_FINALIZED
+	case "REVERTED":
+		statusValue = commontypes.Status_REVERTED
+	default:
+		return nil, fmt.Errorf("invalid demand order status: %s", req.Status)
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// Get the demand orders by status
+	demandOrders, err := q.ListDemandOrdersByStatus(ctx, statusValue)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	// Construct the response
+	return &types.QueryDemandOrdersByStatusResponse{DemandOrders: demandOrders}, nil
 }
