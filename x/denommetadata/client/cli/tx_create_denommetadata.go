@@ -14,7 +14,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// NewCreateDenomMetadataCmd broadcasts a CreateMetadataProposal message.
+// NewCmdSubmitCreateDenomMetadataProposal broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-denometadata-proposal denommetadata.json [flags]",
