@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
 	"io"
 	"net/http"
 	"os"
@@ -142,6 +143,7 @@ import (
 
 	"github.com/evmos/ethermint/ethereum/eip712"
 
+	extended_evm_keeper "github.com/dymensionxyz/dymension/v3/x/evm/keeper"
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm"
@@ -204,6 +206,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
+		evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 	)
 
 	return govProposalHandlers
@@ -269,11 +272,12 @@ var (
 		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-		txfeestypes.ModuleName:     {authtypes.Burner},
+		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		evmtypes.ModuleVirtualFrontierContractDeployerName: nil, // used for deploying virtual frontier bank contract
+		gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
+		txfeestypes.ModuleName:                             {authtypes.Burner},
 	}
 )
 
@@ -643,6 +647,7 @@ func New(
 			app.StreamerKeeper.Hooks(),
 			app.TxFeesKeeper.Hooks(),
 			app.DelayedAckKeeper.GetEpochHooks(),
+			extended_evm_keeper.NewEvmEpochHooks(*app.EvmKeeper, app.BankKeeper),
 		),
 	)
 
@@ -672,7 +677,8 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper))
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(app.EvmKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -772,7 +778,7 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
-		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
+		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
 		// osmosis modules
