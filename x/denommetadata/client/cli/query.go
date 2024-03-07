@@ -26,7 +26,7 @@ func GetCmdDenomMetadataByID() (*osmocli.QueryDescriptor, *types.DenomMetadataBy
 `}, &types.DenomMetadataByIDRequest{}
 }
 
-// GetCmdDenomMetadataByID returns a denonmetadata by ID.
+// GetCmdAllDenomMetadata returns all denommetadata stored
 func GetCmdAllDenomMetadata() (*osmocli.QueryDescriptor, *types.DenomMetadataByDisplayDenomRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "denonmetadata",
@@ -35,7 +35,7 @@ func GetCmdAllDenomMetadata() (*osmocli.QueryDescriptor, *types.DenomMetadataByD
 `}, &types.DenomMetadataByDisplayDenomRequest{}
 }
 
-// GetCmdDenomMetadataByID returns a denonmetadata by ID.
+// GetCmdDenomMetadataByDisplayDenom returns a denonmetadata by display denom
 func GetCmdDenomMetadataByDisplayDenom() (*osmocli.QueryDescriptor, *types.DenomMetadataByDisplayDenomRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "denonmetadata-by-display [display]",
@@ -45,7 +45,7 @@ func GetCmdDenomMetadataByDisplayDenom() (*osmocli.QueryDescriptor, *types.Denom
 `}, &types.DenomMetadataByDisplayDenomRequest{}
 }
 
-// GetCmdDenomMetadataByID returns a denonmetadata by ID.
+// GetCmdDenomMetadataByBaseDenom returns a denonmetadata by base denom
 func GetCmdDenomMetadataByBaseDenom() (*osmocli.QueryDescriptor, *types.DenomMetadataByBaseDenomRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "denonmetadata-by-base [base]",
@@ -55,7 +55,7 @@ func GetCmdDenomMetadataByBaseDenom() (*osmocli.QueryDescriptor, *types.DenomMet
 `}, &types.DenomMetadataByBaseDenomRequest{}
 }
 
-// GetCmdDenomMetadataByID returns a denonmetadata by ID.
+// GetCmdDenomMetadataBySymbolDenom returns a denonmetadata by symbol denom
 func GetCmdDenomMetadataBySymbolDenom() (*osmocli.QueryDescriptor, *types.DenomMetadataBySymbolDenomRequest) {
 	return &osmocli.QueryDescriptor{
 		Use:   "denonmetadata-by-symbol [symbol]",
