@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 )
@@ -17,5 +18,15 @@ type GenesisState map[string]json.RawMessage
 
 // NewDefaultGenesisState generates the default state for the application.
 func NewDefaultGenesisState(cdc codec.JSONCodec) GenesisState {
-	return ModuleBasics.DefaultGenesis(cdc)
+	defaultGenesisState := ModuleBasics.DefaultGenesis(cdc)
+
+	if evmGenesisStateJson, found := defaultGenesisState[evmtypes.ModuleName]; found {
+		// force disable Enable Create of x/evm
+		var evmGenesisState evmtypes.GenesisState
+		cdc.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+		evmGenesisState.Params.EnableCreate = false
+		defaultGenesisState[evmtypes.ModuleName] = cdc.MustMarshalJSON(&evmGenesisState)
+	}
+
+	return defaultGenesisState
 }
