@@ -90,5 +90,5 @@ func (q Querier) AllDenomMetadata(goCtx context.Context, req *types.AllDenomMeta
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	denommetadatas := q.Keeper.GetAllDenomMetadata(ctx)
 
-	return &types.AllDenomMetadataResponse{Data: denommetadatas, Pagination: nil}, nil
+	return &types.AllDenomMetadataResponse{Data: denommetadatas}, nil
 }

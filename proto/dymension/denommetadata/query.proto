@@ -32,7 +32,7 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/denommetadata/denommetadata_by_symbol/{symbol_denom}";
   }
-    // Streams returns both upcoming and active streams
+    // AllDenomMetadata returns all denommetadata registered
   rpc AllDenomMetadata(AllDenomMetadataRequest) returns (AllDenomMetadataResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/denommetadata/denommetadata";
   }
@@ -72,12 +72,10 @@ message DenomMetadataBySymbolDenomResponse {
   DenomMetadata metadata = 1;
 }
 message AllDenomMetadataRequest {
-  // Pagination defines pagination for the request
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+
 }
 message AllDenomMetadataResponse {
-  // Active gagues only
+  
   repeated DenomMetadata data = 1 [ (gogoproto.nullable) = false ];
-  // Pagination defines pagination for the response
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+
 }
