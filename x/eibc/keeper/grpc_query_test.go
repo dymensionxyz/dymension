@@ -1,9 +1,13 @@
 package keeper_test
 
 import (
+	"fmt"
+	"strconv"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
@@ -39,4 +43,49 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 	suite.Require().NotNil(res.DemandOrder)
 	suite.Require().Equal(demandOrder, res.DemandOrder)
 
+}
+
+func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
+	suite.SetupTest()
+	keeper := suite.App.EIBCKeeper
+
+	// Define the number of demand orders and create addresses
+	demandOrdersNum := 3
+	demandOrderAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, demandOrdersNum, math.NewInt(1000))
+
+	// Define statuses to test
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_REVERTED, commontypes.Status_FINALIZED}
+
+	// Create and set demand orders for each status
+	for i, status := range statuses {
+
+		rollappPacket := &commontypes.RollappPacket{
+			RollappId:   "testRollappId" + strconv.Itoa(i),
+			Status:      status,
+			ProofHeight: 2,
+			Packet:      &packet,
+		}
+
+		// Use a unique address for each demand order
+		recipientAddress := demandOrderAddresses[i].String()
+
+		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", recipientAddress)
+		// Assert needed type of status for packet
+		demandOrder.TrackingPacketStatus = status
+
+		suite.Require().NoError(err)
+		keeper.SetDemandOrder(suite.Ctx, demandOrder)
+
+		// Query demand orders by status
+		res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: status.String()})
+		suite.Require().NoError(err)
+		suite.Require().NotNil(res.DemandOrders)
+		suite.Require().Len(res.DemandOrders, 1, fmt.Sprintf("Expected 1 demand order for status %s, but got %d", status, len(res.DemandOrders)))
+		suite.Require().Equal(demandOrder.Id, res.DemandOrders[0].Id)
+	}
+
+	// Query with invalid status should return an error
+	res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: "INVALID"})
+	suite.Require().Error(err)
+	suite.Require().Nil(res)
 }
