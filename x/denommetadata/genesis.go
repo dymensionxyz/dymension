@@ -55,21 +55,18 @@ func DeployVFBCForNativeCoin(
 	}
 
 	// 0xbd8eff67ca469df5cd89f7a9b2890f043188d695 is the contract address of the first virtual frontier bank contract
-	evmKeeper.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, func(nativeCoinMetadata banktypes.Metadata) bool {
-		return nativeCoinMetadata.Base == base
-	})
+	err := evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, base)
+	if err != nil {
+		panic(err)
+	}
 
 	// the contract for native denom is disabled by default, so we need to enable it
-	vfbcContractAddr, found := evmKeeper.GetVirtualFrontierBankContractAddressByDenom(ctx, base)
-	if found {
-		vfbcContract := evmKeeper.GetVirtualFrontierContract(ctx, vfbcContractAddr)
-		vfbcContract.Active = true
-		err := evmKeeper.SetVirtualFrontierContract(ctx, vfbcContractAddr, vfbcContract)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		panic(fmt.Sprintf("not found virtual frontier bank contract for the expected native coin %s", base))
+	vfbcContractAddr, _ := evmKeeper.GetVirtualFrontierBankContractAddressByDenom(ctx, base)
+	vfbcContract := evmKeeper.GetVirtualFrontierContract(ctx, vfbcContractAddr)
+	vfbcContract.Active = true
+	err = evmKeeper.SetVirtualFrontierContract(ctx, vfbcContractAddr, vfbcContract)
+	if err != nil {
+		panic(err)
 	}
 
 	return

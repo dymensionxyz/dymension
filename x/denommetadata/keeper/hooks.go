@@ -24,10 +24,8 @@ func NewVirtualFrontierBankContractRegistrationHook(evmKeeper evmkeeper.Keeper) 
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(ctx sdk.Context, newDenomMetadata banktypes.Metadata) error {
 	if strings.HasPrefix(newDenomMetadata.Base, "ibc/") { // only deploy for IBC denom.
 		// Deploy the virtual frontier bank contract for the new IBC denom.
-		// Error, if any, no state transition will be made and logged as error.
-		v.evmKeeper.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, func(bankMetadata banktypes.Metadata) bool {
-			return bankMetadata.Base == newDenomMetadata.Base
-		})
+		// Error, if any, no state transition will be made.
+		_ = v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base)
 	}
 
 	return nil
