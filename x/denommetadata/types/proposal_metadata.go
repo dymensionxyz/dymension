@@ -17,9 +17,11 @@ const (
 
 // Assert CreateDenomMetadataProposal implements govtypes.Content at compile-time
 var _ govtypes.Content = &CreateDenomMetadataProposal{}
+var _ govtypes.Content = &UpdateDenomMetadataProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCreateDenomMetadata)
+	govtypes.RegisterProposalType(ProposalTypeUpdateDenomMetadata)
 
 }
 
@@ -65,7 +67,7 @@ func (csp CreateDenomMetadataProposal) String() string {
 	return b.String()
 }
 
-// NewCreateMetadataProposal creates a new create denommetadata proposal.
+// NewUpdateDenomMetadataProposal creates a new proposal for updating existing token metadata.
 func NewUpdateDenomMetadataProposal(title, description string, id uint64, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
 		Title:           title,

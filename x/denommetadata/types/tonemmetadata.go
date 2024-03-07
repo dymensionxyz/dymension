@@ -66,6 +66,7 @@ func (m *TokenMetadata) ConvertToBankMetadata() banktypes.Metadata {
 	}
 }
 
+// GetEvents returns attributes to be emmited
 func (m *TokenMetadata) GetEvents(id uint64) []sdk.Attribute {
 
 	eventAttributes := []sdk.Attribute{
