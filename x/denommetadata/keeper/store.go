@@ -53,7 +53,7 @@ func denomMetadataStoreIdKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixIdDenomMetadata, sdk.Uint64ToBigEndian(ID))
 }
 
-// denomMetadataStoreKey returns the denometadata store key for the specific base value
+// denomMetadataStoreBaseKey returns the denometadata store key for the specific base value
 func denomMetadataStoreBaseKey(base string) []byte {
 	return combineKeys(types.KeyPrefixBaseDenomMetadata, []byte(base))
 }
