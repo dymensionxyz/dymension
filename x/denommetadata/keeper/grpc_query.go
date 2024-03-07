@@ -2,13 +2,11 @@ package keeper
 
 import (
 	"context"
-	"encoding/json"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
@@ -90,51 +88,7 @@ func (q Querier) AllDenomMetadata(goCtx context.Context, req *types.AllDenomMeta
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	pageRes, denommetadatas, err := q.filterByPrefixAndDenom(ctx, req.Pagination)
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
-	}
-	return &types.AllDenomMetadataResponse{Data: denommetadatas, Pagination: pageRes}, nil
-}
+	denommetadatas := q.Keeper.GetAllDenomMetadata(ctx)
 
-// filterByPrefixAndDenom filters streams based on a given key prefix and denom
-func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, pagination *query.PageRequest) (*query.PageResponse, []types.DenomMetadata, error) {
-	denommetadatas := []types.DenomMetadata{}
-	store := ctx.KVStore(q.Keeper.storeKey)
-
-	pageRes, err := query.FilteredPaginate(store, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		// this may return multiple streams at once if two streams start at the same time.
-		// for now this is treated as an edge case that is not of importance
-		newdenoms, err := q.getDenomMetadataFromIDJsonBytes(ctx, value)
-		if err != nil {
-			return false, err
-		}
-		if accumulate {
-			denommetadatas = append(denommetadatas, newdenoms...)
-		}
-		return true, nil
-	})
-	return pageRes, denommetadatas, err
-}
-
-// getStreamFromIDJsonBytes returns streams from the json bytes of streamIDs.
-func (q Querier) getDenomMetadataFromIDJsonBytes(ctx sdk.Context, refValue []byte) ([]types.DenomMetadata, error) {
-	denommetadatas := []types.DenomMetadata{}
-	denommetadataIDs := []uint64{}
-
-	err := json.Unmarshal(refValue, &denommetadataIDs)
-	if err != nil {
-		return denommetadatas, err
-	}
-
-	for _, denomID := range denommetadataIDs {
-		denommetadata, err := q.Keeper.GetDenomMetadataByID(ctx, denomID)
-		if err != nil {
-			return []types.DenomMetadata{}, err
-		}
-
-		denommetadatas = append(denommetadatas, *denommetadata)
-	}
-
-	return denommetadatas, nil
+	return &types.AllDenomMetadataResponse{Data: denommetadatas, Pagination: nil}, nil
 }
