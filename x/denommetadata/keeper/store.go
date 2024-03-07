@@ -1,9 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	"github.com/gogo/protobuf/proto"
 
@@ -28,16 +25,19 @@ func (k Keeper) SetDenomMetadataWithRefKey(ctx sdk.Context, denomMetadata *types
 	if err != nil {
 		return err
 	}
+	err = k.setDenomMetadataExtraKey(ctx, denomMetadataStoreBaseKey(denomMetadata.TokenMetadata.Base), denomMetadataStoreIdKey(denomMetadata.Id))
+	if err != nil {
+		return err
+	}
+	err = k.setDenomMetadataExtraKey(ctx, denomMetadataStoreDisplayKey(denomMetadata.TokenMetadata.Display), denomMetadataStoreIdKey(denomMetadata.Id))
+	if err != nil {
+		return err
+	}
+	err = k.setDenomMetadataExtraKey(ctx, denomMetadataStoreSymbolKey(denomMetadata.TokenMetadata.Symbol), denomMetadataStoreIdKey(denomMetadata.Id))
+	if err != nil {
+		return err
+	}
 
-	if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixBaseDenomMetadata, []byte(denomMetadata.TokenMetadata.Base)), denomMetadata.Id); err != nil {
-		return err
-	}
-	/*if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixDisplayDenomMetadata, []byte(denomMetadata.TokenMetadata.Display)), denomMetadata.Id); err != nil {
-		return err
-	}
-	if err := k.addDenomMetadataRefByKey(ctx, combineKeys(types.KeyPrefixSymbolDenomMetadata, []byte(denomMetadata.TokenMetadata.Symbol)), denomMetadata.Id); err != nil {
-		return err
-	}*/
 	return nil
 
 }
@@ -48,9 +48,24 @@ func (k Keeper) SetLastDenomMetadataID(ctx sdk.Context, ID uint64) {
 	store.Set(types.KeyLastDenomMetadataID, sdk.Uint64ToBigEndian(ID))
 }
 
-// denomMetadataStoreKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
-func denomMetadataStoreKey(ID uint64) []byte {
+// denomMetadataStoreIdKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
+func denomMetadataStoreIdKey(ID uint64) []byte {
 	return combineKeys(types.KeyPrefixIdDenomMetadata, sdk.Uint64ToBigEndian(ID))
+}
+
+// denomMetadataStoreKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
+func denomMetadataStoreBaseKey(base string) []byte {
+	return combineKeys(types.KeyPrefixBaseDenomMetadata, []byte(base))
+}
+
+// denomMetadataStoreSymbolKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
+func denomMetadataStoreSymbolKey(symbol string) []byte {
+	return combineKeys(types.KeyPrefixSymbolDenomMetadata, []byte(symbol))
+}
+
+// denomMetadataStoreDisplayKey returns the combined byte array (store key) of the provided denommetadata ID's key prefix and the ID itself.
+func denomMetadataStoreDisplayKey(display string) []byte {
+	return combineKeys(types.KeyPrefixDisplayDenomMetadata, []byte(display))
 }
 
 // setDenomMetadata set the denommetadata inside store.
@@ -60,12 +75,20 @@ func (k Keeper) setDenomMetadata(ctx sdk.Context, denomMetadata *types.DenomMeta
 	if err != nil {
 		return err
 	}
-	store.Set(denomMetadataStoreKey(denomMetadata.Id), bz)
+	store.Set(denomMetadataStoreIdKey(denomMetadata.Id), bz)
+	return nil
+}
+
+// setDenomMetadata set the denommetadata inside store.
+func (k Keeper) setDenomMetadataExtraKey(ctx sdk.Context, key []byte, id []byte) error {
+	store := ctx.KVStore(k.storeKey)
+
+	store.Set(key, id)
 	return nil
 }
 
 // getDenomMetadataRefs returns the denommetadata IDs specified by the provided key.
-func (k Keeper) getDenomMetadataRefs(ctx sdk.Context, key []byte) []uint64 {
+/*func (k Keeper) getDenomMetadataRefs(ctx sdk.Context, key []byte) []uint64 {
 	store := ctx.KVStore(k.storeKey)
 	denomIDs := []uint64{}
 	if store.Has(key) {
@@ -76,10 +99,10 @@ func (k Keeper) getDenomMetadataRefs(ctx sdk.Context, key []byte) []uint64 {
 		}
 	}
 	return denomIDs
-}
+}*/
 
 // addDenomMetadataRefByKey appends the denommetadata denom ID into an array associated with the provided key.
-func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, denomID uint64) error {
+/*func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, denomID uint64) error {
 	store := ctx.KVStore(k.storeKey)
 	denomIDs := k.getDenomMetadataRefs(ctx, key)
 	if findIndex(denomIDs, denomID) > -1 {
@@ -92,4 +115,4 @@ func (k Keeper) addDenomMetadataRefByKey(ctx sdk.Context, key []byte, denomID ui
 	}
 	store.Set(key, bz)
 	return nil
-}
+}*/

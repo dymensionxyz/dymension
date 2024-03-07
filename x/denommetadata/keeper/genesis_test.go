@@ -36,6 +36,12 @@ func TestDenomMetadataExportGenesis(t *testing.T) {
 	metadataId, err := app.DenomMetadataKeeper.CreateDenomMetadata(ctx, token)
 	require.NoError(t, err)
 
+	/*_, err = app.DenomMetadataKeeper.GetDenomMetadataByID(ctx, metadataId)
+	require.NoError(t, err)
+
+	denom, err := app.DenomMetadataKeeper.GetDenomMetadataByBaseDenom(ctx, token.Base)
+	t.Log(denom)
+	require.Error(t, err)*/
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	genesis = app.DenomMetadataKeeper.ExportGenesis(ctx)

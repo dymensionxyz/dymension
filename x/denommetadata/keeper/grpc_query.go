@@ -39,19 +39,22 @@ func (q Querier) DenomMetadataByID(goCtx context.Context, req *types.DenomMetada
 	return &types.DenomMetadataByIDResponse{Metadata: denonmetadata}, nil
 }
 
+// DenomMetadataByBaseDenom returns denom metadata by base denom.
 func (q Querier) DenomMetadataByBaseDenom(goCtx context.Context, req *types.DenomMetadataByBaseDenomRequest) (*types.DenomMetadataByBaseDenomResponse, error) {
 	return &types.DenomMetadataByBaseDenomResponse{}, nil
 }
 
+// DenomMetadataByDisplayDenom returns denom metadata by display denom.
 func (q Querier) DenomMetadataByDisplayDenom(goCtx context.Context, req *types.DenomMetadataByDisplayDenomRequest) (*types.DenomMetadataByDisplayDenomResponse, error) {
 	return &types.DenomMetadataByDisplayDenomResponse{}, nil
 }
 
+// DenomMetadataBySymbolDenom returns denom metadata by symbol denom.
 func (q Querier) DenomMetadataBySymbolDenom(goCtx context.Context, req *types.DenomMetadataBySymbolDenomRequest) (*types.DenomMetadataBySymbolDenomResponse, error) {
 	return &types.DenomMetadataBySymbolDenomResponse{}, nil
 }
 
-// Streams returns all upcoming and active streams.
+// AllDenomMetadata returns all denom metadata registered.
 func (q Querier) AllDenomMetadata(goCtx context.Context, req *types.AllDenomMetadataRequest) (*types.AllDenomMetadataResponse, error) {
 
 	return &types.AllDenomMetadataResponse{Data: nil, Pagination: nil}, nil
