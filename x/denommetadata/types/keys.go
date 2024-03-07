@@ -13,9 +13,6 @@ var (
 	// QuerierRoute defines the module's query routing key.
 	QuerierRoute = ModuleName
 
-	// MemStoreKey defines the in-memory store key.
-	MemStoreKey = "mem_capability"
-
 	// KeyLastDenomMetadataID defines key for setting last denommetadata ID.
 	KeyLastDenomMetadataID = []byte{0x02}
 
