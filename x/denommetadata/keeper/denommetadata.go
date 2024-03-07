@@ -23,7 +23,7 @@ func (k Keeper) GetDenomMetadataByID(ctx sdk.Context, denomMetadataID uint64) (*
 	return &denommetadata, nil
 }
 
-// setDenomMetadata set the denommetadata inside store.
+// GetDenomMetadataByBaseDenom returns denommetadata from denommetadata base param.
 func (k Keeper) GetDenomMetadataByBaseDenom(ctx sdk.Context, base string) (*types.DenomMetadata, error) {
 	store := ctx.KVStore(k.storeKey)
 	denomMetadataBaseKey := denomMetadataStoreBaseKey(base)
@@ -42,34 +42,47 @@ func (k Keeper) GetDenomMetadataByBaseDenom(ctx sdk.Context, base string) (*type
 	return &denommetadata, nil
 }
 
-// GetDenomMetadataByID returns denommetadata from denommetadata ID.
-/*func (k Keeper) GetDenomMetadataByBaseDenom(ctx sdk.Context, baseDenom string) (*types.DenomMetadata, error) {
+// GetDenomMetadataByBaseDenom returns denommetadata from denommetadata base param.
+func (k Keeper) GetDenomMetadataByDisplayDenom(ctx sdk.Context, display string) (*types.DenomMetadata, error) {
 	store := ctx.KVStore(k.storeKey)
-	denomMetadataKey := combineKeys(types.KeyPrefixBaseDenomMetadata, []byte(baseDenom))
-	if !store.Has(denomMetadataKey) {
-		return nil, fmt.Errorf("DenomMetadata with base %s does not exist", baseDenom)
+	denomMetadataBaseKey := denomMetadataStoreDisplayKey(display)
+	if !store.Has(denomMetadataBaseKey) {
+		return nil, fmt.Errorf("DenomMetadata with base %s does not exist", display)
 	}
-
-	index := store.Get(denomMetadataKey)
-
-	fmt.Println(index)
-	denomMetadataId := binary.BigEndian.Uint64(index)
-
-	fmt.Println(denomMetadataId)
-	denommetadata, err := k.GetDenomMetadataByID(ctx, denomMetadataId)
-	if err != nil {
+	key := store.Get(denomMetadataBaseKey)
+	denommetadata := types.DenomMetadata{}
+	if !store.Has(key) {
+		return nil, fmt.Errorf("DenomMetadata with ID %d does not exist", key)
+	}
+	bz := store.Get(key)
+	if err := proto.Unmarshal(bz, &denommetadata); err != nil {
 		return nil, err
 	}
-	return denommetadata, nil
-}*/
+	return &denommetadata, nil
+}
+
+// GetDenomMetadataByBaseDenom returns denommetadata from denommetadata base param.
+func (k Keeper) GetDenomMetadataBySymbolDenom(ctx sdk.Context, symbol string) (*types.DenomMetadata, error) {
+	store := ctx.KVStore(k.storeKey)
+	denomMetadataBaseKey := denomMetadataStoreSymbolKey(symbol)
+	if !store.Has(denomMetadataBaseKey) {
+		return nil, fmt.Errorf("DenomMetadata with base %s does not exist", symbol)
+	}
+	key := store.Get(denomMetadataBaseKey)
+	denommetadata := types.DenomMetadata{}
+	if !store.Has(key) {
+		return nil, fmt.Errorf("DenomMetadata with ID %d does not exist", key)
+	}
+	bz := store.Get(key)
+	if err := proto.Unmarshal(bz, &denommetadata); err != nil {
+		return nil, err
+	}
+	return &denommetadata, nil
+}
 
 // GetAllDenomMetadata returns all registered denoms.
 func (k Keeper) GetAllDenomMetadata(ctx sdk.Context) []types.DenomMetadata {
-	/*denomMetadata := k.getDenomMetadataFromIterator(ctx)
-	// Assuming denomMetadata is your []DenomMetadata slice
-	sort.Slice(denomMetadata, func(i, j int) bool {
-		return denomMetadata[i].Id < denomMetadata[j].Id
-	})*/
+
 	denomMetadata := []types.DenomMetadata{}
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KeyPrefixIdDenomMetadata)

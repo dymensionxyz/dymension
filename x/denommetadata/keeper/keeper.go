@@ -61,6 +61,8 @@ func (k Keeper) CreateDenomMetadata(ctx sdk.Context, record types.TokenMetadata)
 
 	return denomMetadata.Id, nil
 }
+
+// CheckExistingMetadata checks if there is any param collision with existing metadata recors and returns erros in case it happens
 func (k Keeper) CheckExistingMetadata(ctx sdk.Context, record types.TokenMetadata) error {
 
 	store := ctx.KVStore(k.storeKey)
@@ -79,7 +81,7 @@ func (k Keeper) CheckExistingMetadata(ctx sdk.Context, record types.TokenMetadat
 	return nil
 }
 
-// This is checked for no err when a proposal is made, and executed when a proposal passes.
+// UpdateDenomMetadata modifies an existing denom metadata record.
 func (k Keeper) UpdateDenomMetadata(ctx sdk.Context, denomMetadataID uint64, record types.TokenMetadata) error {
 
 	err := record.Validate()
