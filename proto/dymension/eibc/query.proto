@@ -19,6 +19,10 @@ service Query {
 	rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
 	}
+  // Queries a list of demand orders by status.
+  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_orders/{status}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -36,8 +40,20 @@ message QueryGetDemandOrderRequest {
   string id = 1;
 }
 
+// QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
+message QueryDemandOrdersByStatusRequest {
+  // id of the demand order to get
+  string status = 1;
+}
+
 // QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.
 message QueryGetDemandOrderResponse {
   // demand order with the given id
   DemandOrder demand_order = 1;
+}
+
+// QueryDemandOrdersByStatusResponse is the response type for the Query/GetDemandOrdersByStatus RPC method.
+message QueryDemandOrdersByStatusResponse {
+  // A list of demand orders with the given status
+  repeated DemandOrder demand_orders = 1;
 }
