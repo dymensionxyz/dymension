@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	evmclient "github.com/evmos/ethermint/x/evm/client"
 	"io"
 	"net/http"
 	"os"
@@ -143,10 +142,11 @@ import (
 
 	"github.com/evmos/ethermint/ethereum/eip712"
 
-	extended_evm_keeper "github.com/dymensionxyz/dymension/v3/x/evm/keeper"
+	extendedevmkeeper "github.com/dymensionxyz/dymension/v3/x/evm/keeper"
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
@@ -647,7 +647,7 @@ func New(
 			app.StreamerKeeper.Hooks(),
 			app.TxFeesKeeper.Hooks(),
 			app.DelayedAckKeeper.GetEpochHooks(),
-			extended_evm_keeper.NewEvmEpochHooks(*app.EvmKeeper, app.BankKeeper),
+			extendedevmkeeper.NewEvmEpochHooks(*app.EvmKeeper, app.BankKeeper),
 		),
 	)
 

@@ -2,7 +2,7 @@ package keeper_test
 
 import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	extended_evm_keeper "github.com/dymensionxyz/dymension/v3/x/evm/keeper"
+	extendedevmkeeper "github.com/dymensionxyz/dymension/v3/x/evm/keeper"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 )
@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestHookOperation_BeforeEpochStart() {
 
 	const epochIdentifier = "day"
 
-	hooks := extended_evm_keeper.NewEvmEpochHooks(*suite.App.EvmKeeper, suite.App.BankKeeper)
+	hooks := extendedevmkeeper.NewEvmEpochHooks(*suite.App.EvmKeeper, suite.App.BankKeeper)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(0) // ignore invoking x/evm exec for contract deployment
 
@@ -179,7 +179,7 @@ func (suite *KeeperTestSuite) TestHookOperation_BeforeEpochStart() {
 	if suite.Equal(accountContractIbcAtom.CodeHash, accountContractIbcOsmo.CodeHash) &&
 		suite.Equal(accountContractIbcAtom.CodeHash, accountContractIbcEvmos.CodeHash) {
 		// Currently DYM does not use EthAccount is the default proto account so the following test won't work.
-		// TODO: In the future, if enable contract creation for DYM, need to migrate all the VFBC to use EthAccount and set the corresponding code hash and code.
+		// TODO: In the future, if enable contract creation for DYM, need to migrate all the VFBC to use EthAccount and set the corresponding code hash and code, see https://github.com/VictorTrustyDev/fork-dym-ethermint/blob/0baa0fd7c351cf91356788450acb20e42ebd6366/x/evm/keeper/virtual_frontier_contract.go#L289-L290
 		/*
 			suite.NotEmpty(suite.App.EvmKeeper.GetCode(suite.Ctx, common.BytesToHash(accountContractIbcAtom.CodeHash)))
 			suite.NotEmpty(suite.App.EvmKeeper.GetCode(suite.Ctx, common.BytesToHash(accountContractIbcOsmo.CodeHash)))
