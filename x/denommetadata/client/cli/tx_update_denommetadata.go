@@ -37,6 +37,7 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 			}
 			path := args[0]
 
+			//nolint:gosec
 			fileContent, err := os.ReadFile(path)
 			if err != nil {
 				return err

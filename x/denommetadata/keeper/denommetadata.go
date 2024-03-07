@@ -90,7 +90,9 @@ func (k Keeper) GetAllDenomMetadata(ctx sdk.Context) []types.DenomMetadata {
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.DenomMetadata
-		proto.Unmarshal(iterator.Value(), &val)
+		if err := proto.Unmarshal(iterator.Value(), &val); err != nil {
+			panic(err)
+		}
 		denomMetadata = append(denomMetadata, val)
 	}
 	return denomMetadata

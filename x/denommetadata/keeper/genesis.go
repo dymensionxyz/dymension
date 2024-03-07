@@ -11,6 +11,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 	k.SetParams(ctx, genState.Params)
 	for _, denom := range genState.Denommetadatas {
+		denom := denom
 		err := k.SetDenomMetadataWithRefKey(ctx, &denom)
 		if err != nil {
 			panic(err)
