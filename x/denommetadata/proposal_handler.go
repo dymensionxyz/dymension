@@ -24,12 +24,7 @@ func NewDenomMetadataProposalHandler(k keeper.Keeper) govtypes.Handler {
 // HandleCreateDenomMetadataProposal is a handler for executing a passed denom metadata creation proposal
 func HandleCreateDenomMetadataProposal(ctx sdk.Context, k keeper.Keeper, p *types.CreateDenomMetadataProposal) error {
 
-	err := k.CheckExistingMetadata(ctx, p.TokenMetadata)
-	if err != nil {
-		return err
-	}
-
-	_, err = k.CreateDenomMetadata(ctx, p.TokenMetadata)
+	err := k.CreateDenomMetadata(ctx, p.TokenMetadata)
 	if err != nil {
 		return err
 	}
@@ -38,7 +33,7 @@ func HandleCreateDenomMetadataProposal(ctx sdk.Context, k keeper.Keeper, p *type
 
 // HandleUpdateDenomMetadataProposal is a handler for executing a passed denom metadata update proposal
 func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateDenomMetadataProposal) error {
-	err := k.UpdateDenomMetadata(ctx, p.DenommetadataId, p.TokenMetadata)
+	err := k.UpdateDenomMetadata(ctx, p.TokenMetadata)
 	if err != nil {
 		return err
 	}

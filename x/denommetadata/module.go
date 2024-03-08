@@ -1,7 +1,6 @@
 package denommetadata
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
@@ -55,16 +54,12 @@ func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
 
 // DefaultGenesis returns the module's default genesis state.
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(types.DefaultGenesis())
+	return json.RawMessage{}
 }
 
 // ValidateGenesis performs genesis state validation for the module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
-	var genState types.GenesisState
-	if err := cdc.UnmarshalJSON(bz, &genState); err != nil {
-		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
-	}
-	return genState.Validate()
+	return nil
 }
 
 // RegisterRESTRoutes registers the module's REST service handlers.
@@ -73,9 +68,7 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-		return
-	}
+
 }
 
 // GetTxCmd returns the module's root tx command.
@@ -85,7 +78,7 @@ func (a AppModuleBasic) GetTxCmd() *cobra.Command {
 
 // GetQueryCmd returns the module's root query command.
 func (AppModuleBasic) GetQueryCmd() *cobra.Command {
-	return cli.GetQueryCmd()
+	return nil
 }
 
 // ----------------------------------------------------------------------------
@@ -129,7 +122,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers the module's services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
+	//types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
 }
 
 // RegisterInvariants registers the module's invariants.
@@ -140,18 +133,13 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
-	var genState types.GenesisState
-	// initialize global index to index in genesis state.
-	cdc.MustUnmarshalJSON(gs, &genState)
-
-	am.keeper.InitGenesis(ctx, genState)
 
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return cdc.MustMarshalJSON(am.keeper.ExportGenesis(ctx))
+	return json.RawMessage{}
 }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to the module.

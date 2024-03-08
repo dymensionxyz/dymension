@@ -21,7 +21,6 @@ message UpdateDenomMetadataProposal {
   option (gogoproto.goproto_stringer) = false;
   string title = 1;
   string description = 2;
-  uint64 denommetadata_id = 3;
-  TokenMetadata tokenMetadata = 4[ (gogoproto.nullable) = false ];
+  TokenMetadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
 
   }

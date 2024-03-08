@@ -604,8 +604,7 @@ func New(
 	)
 
 	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
-		keys[denommetadatamoduletypes.StoreKey],
-		app.GetSubspace(denommetadatamoduletypes.ModuleName),
+		app.BankKeeper,
 	)
 
 	app.EIBCKeeper = *eibckeeper.NewKeeper(
