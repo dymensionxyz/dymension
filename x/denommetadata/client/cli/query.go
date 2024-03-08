@@ -13,6 +13,11 @@ func GetQueryCmd() *cobra.Command {
 	cmd := osmocli.QueryIndexCmd(types.ModuleName)
 	qcGetter := types.NewQueryClient
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdDenomMetadataByID)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdAllDenomMetadata)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdDenomMetadataByDisplayDenom)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdDenomMetadataByBaseDenom)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdDenomMetadataBySymbolDenom)
+
 	return cmd
 }
 
@@ -22,17 +27,17 @@ func GetCmdDenomMetadataByID() (*osmocli.QueryDescriptor, *types.DenomMetadataBy
 		Use:   "denonmetadata-by-id [id]",
 		Short: "Query denonmetadata by id.",
 		Long: `{{.Short}}{{.ExampleHeader}}
-{{.CommandPrefix}} denonmetadata-by-id 1
-`}, &types.DenomMetadataByIDRequest{}
+		{{.CommandPrefix}} denonmetadata-by-id 1
+		`}, &types.DenomMetadataByIDRequest{}
 }
 
 // GetCmdAllDenomMetadata returns all denommetadata stored
-func GetCmdAllDenomMetadata() (*osmocli.QueryDescriptor, *types.DenomMetadataByDisplayDenomRequest) {
+func GetCmdAllDenomMetadata() (*osmocli.QueryDescriptor, *types.AllDenomMetadataRequest) {
 	return &osmocli.QueryDescriptor{
-		Use:   "denonmetadata",
+		Use:   "alldenonmetadata",
 		Short: "Query all denonmetadata.",
-		Long: `{{.Short}}{{.ExampleHeader}}
-`}, &types.DenomMetadataByDisplayDenomRequest{}
+		Long:  "{{.Short}}",
+	}, &types.AllDenomMetadataRequest{}
 }
 
 // GetCmdDenomMetadataByDisplayDenom returns a denonmetadata by display denom

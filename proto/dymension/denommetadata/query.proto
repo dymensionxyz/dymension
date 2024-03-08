@@ -34,7 +34,7 @@ service Query {
   }
     // AllDenomMetadata returns all denommetadata registered
   rpc AllDenomMetadata(AllDenomMetadataRequest) returns (AllDenomMetadataResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/denommetadata/denommetadata";
+    option (google.api.http).get = "/dymensionxyz/dymension/denommetadata/alldenommetadata";
   }
 
 }
