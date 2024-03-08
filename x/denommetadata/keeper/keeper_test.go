@@ -7,7 +7,7 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-func (suite *KeeperTestSuite) TestCreateStream() {
+func (suite *KeeperTestSuite) TestCreateMetadata() {
 	tests := []struct {
 		name      string
 		metadata  types.TokenMetadata
@@ -56,4 +56,19 @@ func (suite *KeeperTestSuite) TestCreateStream() {
 			suite.Require().NoError(err, tc.name)
 		}
 	}
+}
+
+func (suite *KeeperTestSuite) TestCreateExistingMetadata() {
+
+	suite.SetupTest()
+
+	// create denoom
+	denomID, _ := suite.CreateDefaultDenomMetadata()
+	expectedStream := suite.ExpectedDefaultDenomMetadata(denomID)
+
+	_, _ = suite.CreateMetadata(expectedStream.TokenMetadata)
+
+	err := suite.App.DenomMetadataKeeper.CheckExistingMetadata(suite.Ctx, expectedStream.TokenMetadata)
+	suite.Require().Error(err)
+
 }
