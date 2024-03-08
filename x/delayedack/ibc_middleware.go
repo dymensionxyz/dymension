@@ -250,12 +250,15 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
+	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
+	}
 	proofHeight, err := im.GetProofHeight(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return err
 	}
-
 	finalized, err := im.CheckIfFinalized(ctx, rollappID, proofHeight)
 	if err != nil {
 		logger.Error("Failed to check if packet is finalized", "err", err)
