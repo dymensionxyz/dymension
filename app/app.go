@@ -405,7 +405,6 @@ func New(
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
 		streamermoduletypes.StoreKey,
-		denommetadatamoduletypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
 		eibcmoduletypes.StoreKey,

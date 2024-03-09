@@ -68,12 +68,11 @@ func (csp CreateDenomMetadataProposal) String() string {
 }
 
 // NewUpdateDenomMetadataProposal creates a new proposal for updating existing token metadata.
-func NewUpdateDenomMetadataProposal(title, description string, id uint64, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
+func NewUpdateDenomMetadataProposal(title, description string, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
-		Title:           title,
-		Description:     description,
-		DenommetadataId: id,
-		TokenMetadata:   denommetadata,
+		Title:         title,
+		Description:   description,
+		TokenMetadata: denommetadata,
 	}
 }
 
@@ -105,8 +104,7 @@ func (csp UpdateDenomMetadataProposal) String() string {
 	b.WriteString(fmt.Sprintf(`Update denommetadata Proposal:
 	  Title:       %s
 	  Description: %s
-	  ID: %d
 	  TokenMetadata: %s
-`, csp.Title, csp.Description, csp.DenommetadataId, &csp.TokenMetadata))
+`, csp.Title, csp.Description, &csp.TokenMetadata))
 	return b.String()
 }

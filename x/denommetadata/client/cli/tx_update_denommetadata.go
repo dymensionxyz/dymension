@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/json"
 	"os"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -18,9 +17,9 @@ import (
 // NewCmdSubmitUpdateDenomMetadataProposal broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-denom-metadata-proposal denommetadataID metadata.json [flags]",
+		Use:   "update-denom-metadata-proposal metadata.json [flags]",
 		Short: "proposal to update new denom metadata for a specific token",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -31,10 +30,7 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			denomMetadataID, err := strconv.ParseUint(args[0], 10, 64)
-			if err != nil {
-				return err
-			}
+
 			path := args[0]
 
 			//nolint:gosec
@@ -48,12 +44,13 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			err = metadata.Validate()
 			if err != nil {
 				return err
 			}
 
-			content := types.NewUpdateDenomMetadataProposal(proposal.Title, proposal.Description, denomMetadataID, metadata)
+			content := types.NewUpdateDenomMetadataProposal(proposal.Title, proposal.Description, metadata)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
