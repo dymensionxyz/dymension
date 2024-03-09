@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ethermintutils "github.com/evmos/ethermint/utils"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	"strings"
@@ -31,12 +30,18 @@ const triggerVirtualFrontierBankContractRegistrationAtEpochIdentifier = "day"
 
 // BeforeEpochStart is the epoch start hook.
 func (h EvmEpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	if err := h.deployAVirtualFrontierBankSmartContractOnLocalNet(ctx); err != nil {
+	var err error
+
+	err = h.deployAVirtualFrontierBankSmartContractForNewNetwork(ctx)
+	if err != nil {
 		return err
 	}
 
 	if epochIdentifier == triggerVirtualFrontierBankContractRegistrationAtEpochIdentifier {
-		return h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, nil)
+		err = h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -44,16 +49,15 @@ func (h EvmEpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string,
 
 // AfterEpochEnd is the epoch end hook.
 func (h EvmEpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
+	// no-op
 	return nil
 }
 
-func (h EvmEpochHooks) deployAVirtualFrontierBankSmartContractOnLocalNet(ctx sdk.Context) error {
-	if ctx.BlockHeight() != 1 {
-		return nil
-	}
+func (h EvmEpochHooks) deployAVirtualFrontierBankSmartContractForNewNetwork(ctx sdk.Context) error {
+	// TODO: consider comment entire this method, as it was added for local-net testing
 
-	isLocalNet := ctx.ChainID() == "dymension_100-1" || !ethermintutils.IsOneOfDymensionChains(ctx)
-	if !isLocalNet {
+	if ctx.BlockHeight() != 1 {
+		// trigger for new network only
 		return nil
 	}
 
