@@ -3,8 +3,8 @@ package dymensionxyz.dymension.denommetadata;
 
 
 import "gogoproto/gogo.proto";
-import "dymension/denommetadata/tokenmetadata.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+import "cosmos/bank/v1beta1/bank.proto";
 
 
 message CreateDenomMetadataProposal {
@@ -12,8 +12,7 @@ message CreateDenomMetadataProposal {
   option (gogoproto.goproto_stringer) = false;
   string title = 1;
   string description = 2;
-  TokenMetadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
-
+  cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
   }
 
 message UpdateDenomMetadataProposal {
@@ -21,6 +20,5 @@ message UpdateDenomMetadataProposal {
   option (gogoproto.goproto_stringer) = false;
   string title = 1;
   string description = 2;
-  TokenMetadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
-
+  cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
   }

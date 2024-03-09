@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -26,7 +27,7 @@ func init() {
 }
 
 // NewCreateMetadataProposal creates a new create denommetadata proposal.
-func NewCreateMetadataProposal(title, description string, denommetadata TokenMetadata) *CreateDenomMetadataProposal {
+func NewCreateMetadataProposal(title, description string, denommetadata types.Metadata) *CreateDenomMetadataProposal {
 	return &CreateDenomMetadataProposal{
 		Title:         title,
 		Description:   description,
@@ -68,7 +69,7 @@ func (csp CreateDenomMetadataProposal) String() string {
 }
 
 // NewUpdateDenomMetadataProposal creates a new proposal for updating existing token metadata.
-func NewUpdateDenomMetadataProposal(title, description string, denommetadata TokenMetadata) *UpdateDenomMetadataProposal {
+func NewUpdateDenomMetadataProposal(title, description string, denommetadata types.Metadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
 		Title:         title,
 		Description:   description,

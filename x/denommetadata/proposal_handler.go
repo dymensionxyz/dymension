@@ -1,14 +1,15 @@
 package denommetadata
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
-func NewDenomMetadataProposalHandler(k keeper.Keeper) govtypes.Handler {
+func NewDenomMetadataProposalHandler(k types.BankKeeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		switch c := content.(type) {
 		case *types.CreateDenomMetadataProposal:
@@ -22,20 +23,22 @@ func NewDenomMetadataProposalHandler(k keeper.Keeper) govtypes.Handler {
 }
 
 // HandleCreateDenomMetadataProposal is a handler for executing a passed denom metadata creation proposal
-func HandleCreateDenomMetadataProposal(ctx sdk.Context, k keeper.Keeper, p *types.CreateDenomMetadataProposal) error {
+func HandleCreateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *types.CreateDenomMetadataProposal) error {
 
-	err := k.CreateDenomMetadata(ctx, p.TokenMetadata)
-	if err != nil {
-		return err
+	found := k.HasDenomMetaData(ctx, p.TokenMetadata.Base)
+	if found {
+		return fmt.Errorf("Existing denom")
 	}
+
+	k.SetDenomMetaData(ctx, p.TokenMetadata)
 	return nil
 }
 
 // HandleUpdateDenomMetadataProposal is a handler for executing a passed denom metadata update proposal
-func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k keeper.Keeper, p *types.UpdateDenomMetadataProposal) error {
-	err := k.UpdateDenomMetadata(ctx, p.TokenMetadata)
+func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *types.UpdateDenomMetadataProposal) error {
+	/*err := k.UpdateDenomMetadata(ctx, p.TokenMetadata)
 	if err != nil {
 		return err
-	}
+	}*/
 	return nil
 }

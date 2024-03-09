@@ -8,6 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
@@ -26,7 +28,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 				return err
 			}
 
-			proposal, deposit, err := parseProposal(cmd)
+			proposal, deposit, err := utils.ParseProposal(cmd)
 			if err != nil {
 				return err
 			}
@@ -39,7 +41,7 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 				return err
 			}
 
-			metadata := types.TokenMetadata{}
+			metadata := banktypes.Metadata{}
 			err = json.Unmarshal([]byte(fileContent), &metadata)
 			if err != nil {
 				return err

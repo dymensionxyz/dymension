@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/client/cli"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -88,11 +87,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
-	keeper keeper.Keeper
+	keeper types.BankKeeper
 }
 
 // NewAppModule creates a new AppModule struct.
-func NewAppModule(keeper keeper.Keeper,
+func NewAppModule(keeper types.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),

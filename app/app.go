@@ -126,7 +126,6 @@ import (
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
-	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -352,11 +351,10 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper       rollappmodulekeeper.Keeper
-	SequencerKeeper     sequencermodulekeeper.Keeper
-	StreamerKeeper      streamermodulekeeper.Keeper
-	EIBCKeeper          eibckeeper.Keeper
-	DenomMetadataKeeper denommetadatamodulekeeper.Keeper
+	RollappKeeper   rollappmodulekeeper.Keeper
+	SequencerKeeper sequencermodulekeeper.Keeper
+	StreamerKeeper  streamermodulekeeper.Keeper
+	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper delayedackkeeper.Keeper
@@ -602,10 +600,6 @@ func New(
 		app.IncentivesKeeper,
 	)
 
-	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
-		app.BankKeeper,
-	)
-
 	app.EIBCKeeper = *eibckeeper.NewKeeper(
 		appCodec,
 		keys[eibcmoduletypes.StoreKey],
@@ -671,7 +665,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-	denomMetadataModule := denommetadatamodule.NewAppModule(app.DenomMetadataKeeper)
+	denomMetadataModule := denommetadatamodule.NewAppModule(app.BankKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -684,7 +678,7 @@ func New(
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
-		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper))
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.BankKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
