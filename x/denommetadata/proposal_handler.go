@@ -1,8 +1,6 @@
 package denommetadata
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -27,7 +25,7 @@ func HandleCreateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *t
 
 	found := k.HasDenomMetaData(ctx, p.TokenMetadata.Base)
 	if found {
-		return fmt.Errorf("Existing denom")
+		return types.ErrDenomAlreadyExists
 	}
 
 	k.SetDenomMetaData(ctx, p.TokenMetadata)
@@ -36,9 +34,12 @@ func HandleCreateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *t
 
 // HandleUpdateDenomMetadataProposal is a handler for executing a passed denom metadata update proposal
 func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *types.UpdateDenomMetadataProposal) error {
-	/*err := k.UpdateDenomMetadata(ctx, p.TokenMetadata)
-	if err != nil {
-		return err
-	}*/
+
+	found := k.HasDenomMetaData(ctx, p.TokenMetadata.Base)
+	if !found {
+		return types.ErrDenomDoesNotExist
+	}
+
+	k.SetDenomMetaData(ctx, p.TokenMetadata)
 	return nil
 }
