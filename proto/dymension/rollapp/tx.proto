@@ -13,9 +13,10 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+  rpc TriggerGenesisEvent(MsgRollappGenesisEvent) returns (MsgRollappGenesisEventResponse);
 }
 
-// ===================== MsgCreateRollapp
+// MsgCreateRollapp creates a new rollapp chain on the hub.
 message MsgCreateRollapp {
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
@@ -43,8 +44,7 @@ message MsgCreateRollappResponse {
 }
 
 
-// ===================== MsgUpdateState
-// Updating a rollapp state with a block batch
+// MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
 message MsgUpdateState {
   // creator is the bech32-encoded address of the sequencer sending the update
@@ -66,4 +66,20 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
+}
+
+
+// MsgRollappGenesisEvent is the message type for triggering the genesis event of the rollapp
+message MsgRollappGenesisEvent {
+  // address is the bech32-encoded address of the sender
+  string address = 1;
+  // channel_id is the rollapp channel id on the hub
+  string channel_id = 2; 
+  // rollapp_id is the rollapp id we want to mint tokens for on the hub.
+  // Used for validation against channel_id to reduce error surface.
+  string rollapp_id = 3;
+}
+
+message MsgRollappGenesisEventResponse {
+  bool success = 1;
 }

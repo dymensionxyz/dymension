@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -15,3 +17,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 var _ types.MsgServer = msgServer{}
+
+func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
+	return &types.MsgRollappGenesisEventResponse{}, nil
+}

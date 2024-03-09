@@ -34,4 +34,5 @@ var (
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
 	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
 	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
+	ErrInvalidGenesisChannelId             = sdkerrors.Register(ModuleName, 1027, "invalid genesis channel id")
 )
