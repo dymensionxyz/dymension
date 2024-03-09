@@ -11,7 +11,6 @@ import (
 )
 
 // NewDemandOrder creates a new demand order.
-// TODO: Change to rollapp packet
 func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee string, denom string, recipient string) (*DemandOrder, error) {
 	priceInt, ok := sdk.NewIntFromString(price)
 	if !ok {
