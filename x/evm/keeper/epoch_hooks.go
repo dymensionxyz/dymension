@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -32,12 +33,13 @@ const triggerVirtualFrontierBankContractRegistrationAtEpochIdentifier = "day"
 func (h EvmEpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	var err error
 
-	err = h.deployAVirtualFrontierBankSmartContractForNewNetwork(ctx)
+	err = h.deployVirtualFrontierBankContractsForNewNetwork(ctx)
 	if err != nil {
 		return err
 	}
 
 	if epochIdentifier == triggerVirtualFrontierBankContractRegistrationAtEpochIdentifier {
+		// deploy virtual frontier bank contracts for all IBC denom (default)
 		err = h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, nil)
 		if err != nil {
 			return err
@@ -53,7 +55,11 @@ func (h EvmEpochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, ep
 	return nil
 }
 
-func (h EvmEpochHooks) deployAVirtualFrontierBankSmartContractForNewNetwork(ctx sdk.Context) error {
+// deployVirtualFrontierBankContractsForNewNetwork attempts to deploy virtual frontier bank contracts
+// for ALL denom metadata added to the bank module at the genesis.
+// If the denom metadata for the native coin is not available, it will be added automatically before deployment.
+// The execution only happens once at the first block of the chain.
+func (h EvmEpochHooks) deployVirtualFrontierBankContractsForNewNetwork(ctx sdk.Context) error {
 	// TODO: consider comment entire this method, as it was added for local-net testing
 
 	if ctx.BlockHeight() != 1 {
@@ -86,11 +92,6 @@ func (h EvmEpochHooks) deployAVirtualFrontierBankSmartContractForNewNetwork(ctx 
 		h.bk.SetDenomMetaData(ctx, metadata)
 	}
 
-	_, foundContract := h.ek.GetVirtualFrontierBankContractAddressByDenom(ctx, base)
-	if foundContract {
-		return nil
-	}
-
 	// 0xbd8eff67ca469df5cd89f7a9b2890f043188d695 is the contract address of the first virtual frontier bank contract
 	err := h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, func(banktypes.Metadata) bool {
 		// deploy all
@@ -100,11 +101,14 @@ func (h EvmEpochHooks) deployAVirtualFrontierBankSmartContractForNewNetwork(ctx 
 		return err
 	}
 
-	// the contract for native denom is disabled by default so we need to enable it
-	contractAddress, _ := h.ek.GetVirtualFrontierBankContractAddressByDenom(ctx, base)
-	vfContract := h.ek.GetVirtualFrontierContract(ctx, contractAddress)
-	vfContract.Active = true
-	err = h.ek.SetVirtualFrontierContract(ctx, contractAddress, vfContract)
+	// the contract for native denom is disabled by default, so we need to enable it
+	vfbcContractAddr, found := h.ek.GetVirtualFrontierBankContractAddressByDenom(ctx, base)
+	if !found {
+		return fmt.Errorf("is the metadata for the native coin added and valid? %s", base)
+	}
+	vfbcContract := h.ek.GetVirtualFrontierContract(ctx, vfbcContractAddr)
+	vfbcContract.Active = true
+	err = h.ek.SetVirtualFrontierContract(ctx, vfbcContractAddr, vfbcContract)
 	if err != nil {
 		return err
 	}
