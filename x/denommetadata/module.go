@@ -122,12 +122,10 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers the module's services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
-	//types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQuerier(am.keeper))
 }
 
 // RegisterInvariants registers the module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
-	//keeper.RegisterInvariants(ir, am.keeper)
 }
 
 // InitGenesis performs the module's genesis initialization.
