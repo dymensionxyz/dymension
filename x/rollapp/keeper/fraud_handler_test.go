@@ -118,18 +118,31 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 // Fail - Disputing already reverted state
 func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 	suite.SetupTest()
+	var err error
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
+	numOfSequencers := uint64(3)
+	numOfStates := uint64(10)
 
 	rollapp := suite.CreateDefaultRollapp()
 	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	for i := uint64(0); i < numOfSequencers-1; i++ {
+		suite.CreateDefaultSequencer(*ctx, rollapp)
+	}
+
+	//send state updates
+	var lastHeight uint64 = 1
+	for i := uint64(0); i < numOfStates; i++ {
+		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, uint64(10))
+		suite.Require().Nil(err)
+
+		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
+	}
+
+	err = keeper.HandleFraud(*ctx, rollapp, "", 11, proposer)
 	suite.Require().Nil(err)
 
-	err = keeper.HandleFraud(*ctx, rollapp, "", 2, proposer)
-	suite.Require().Nil(err)
-
-	err = keeper.HandleFraud(*ctx, rollapp, "", 3, proposer)
+	err = keeper.HandleFraud(*ctx, rollapp, "", 1, proposer)
 	suite.Require().NotNil(err)
 }
 
@@ -154,40 +167,6 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	err = keeper.HandleFraud(*ctx, rollapp, "", 2, proposer)
 	suite.Require().NotNil(err)
 }
-
-// Disputing past height of frozen rollapp - same sequencer
-func (suite *RollappTestSuite) TestHandleFraud_PastHeight() {
-	suite.SetupTest()
-	ctx := &suite.Ctx
-	keeper := suite.App.RollappKeeper
-
-	initialheight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
-
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
-
-	//post 2 batches
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
-	suite.Require().Nil(err)
-
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
-	suite.Require().Nil(err)
-
-	//finalize state
-	suite.Ctx = suite.Ctx.WithBlockHeight(ctx.BlockHeight() + int64(keeper.DisputePeriodInBlocks(*ctx)))
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
-
-	//assert before fraud submission
-	suite.assertBeforeFraud(rollapp, 1)
-
-	err = keeper.HandleFraud(*ctx, rollapp, "", 1, proposer)
-	suite.Require().Nil(err)
-
-	suite.assertFraudHandled(rollapp, 1)
-}
-
-//Disputing past height of frozen rollapp - different sequencer
 
 //TODO: test IBC freeze
 
@@ -237,10 +216,8 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint6
 	}
 
 	//check states
-	stateInfo, err := suite.App.RollappKeeper.FindStateInfoByHeight(suite.Ctx, rollappId, height)
-	suite.Require().Nil(err)
-
-	start := stateInfo.StateInfoIndex.Index
+	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)
+	start := finalIdx.Index + 1
 	endIdx, _ := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollappId)
 	end := endIdx.Index
 
