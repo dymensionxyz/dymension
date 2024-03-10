@@ -39,8 +39,9 @@ func (h EvmEpochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string,
 	}
 
 	if epochIdentifier == triggerVirtualFrontierBankContractRegistrationAtEpochIdentifier {
-		// deploy virtual frontier bank contracts for all IBC denom (default)
-		err = h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, nil)
+		err = h.ek.DeployVirtualFrontierBankContractForAllBankDenomMetadataRecords(ctx, func(metadata banktypes.Metadata) bool {
+			return strings.HasPrefix(metadata.Base, "ibc/") // only deploy for IBC denoms
+		})
 		if err != nil {
 			return err
 		}
