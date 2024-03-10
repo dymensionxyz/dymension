@@ -35,4 +35,6 @@ var (
 	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
 	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
 	ErrInvalidGenesisChannelId             = sdkerrors.Register(ModuleName, 1027, "invalid genesis channel id")
+	ErrGenesisEventNotDefined              = sdkerrors.Register(ModuleName, 1028, "genesis event not defined")
+	ErrGenesisEventAlreadyTriggered        = sdkerrors.Register(ModuleName, 1029, "genesis event already triggered")
 )

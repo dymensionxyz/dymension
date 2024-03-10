@@ -38,7 +38,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 
 	//FIXME: make sure the clientId corresponds to the rollappID
 
-	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
+	clientState, ok := k.ibcclientKeeper.GetClientState(ctx, clientId)
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
 	}
@@ -50,7 +50,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	}
 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
-	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
+	k.ibcclientKeeper.SetClientState(ctx, clientId, tmClientState)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

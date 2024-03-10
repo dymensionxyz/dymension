@@ -573,6 +573,8 @@ func New(
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 		app.IBCKeeper.ClientKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.BankKeeper,
 	)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(

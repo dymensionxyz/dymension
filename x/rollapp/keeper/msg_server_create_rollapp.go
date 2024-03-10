@@ -21,7 +21,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	// check to see if there is an active whitelist
 	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-		if !isCreatorInWhiltlist(whitelist, msg.Creator) {
+		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
 			return nil, types.ErrUnauthorizedRollappCreator
 		}
 	}
@@ -59,13 +59,4 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	k.SetRollapp(ctx, rollapp)
 
 	return &types.MsgCreateRollappResponse{}, nil
-}
-
-func isCreatorInWhiltlist(whitelist []types.DeployerParams, creator string) bool {
-	for _, item := range whitelist {
-		if item.Address == creator {
-			return true
-		}
-	}
-	return false
 }

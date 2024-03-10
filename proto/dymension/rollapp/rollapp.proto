@@ -5,11 +5,12 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 import "gogoproto/gogo.proto";
 import "dymension/rollapp/state_info.proto";
 import "dymension/rollapp/bank.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 // GenesisAccount is a struct for the genesis account for the rollapp
 message GenesisAccount {
   // amount of coins to be sent to the genesis address
-  uint64 amount = 1;
+  cosmos.base.v1beta1.Coin amount = 1;
   // address is a bech-32 address of the genesis account
   string address = 2;
 }

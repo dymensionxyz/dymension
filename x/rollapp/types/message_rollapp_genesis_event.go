@@ -9,6 +9,11 @@ const TypeMsgRollappGenesisEvent = "rollapp_genesis_event"
 
 var _ sdk.Msg = &MsgRollappGenesisEvent{}
 
+const (
+	maxChannelIDLength = 100
+	maxRollappIDLength = 100
+)
+
 func NewMsgRollappGenesisEvent(address string, channel_id string, rollapp_id string) *MsgRollappGenesisEvent {
 	return &MsgRollappGenesisEvent{
 		Address:   address,
@@ -44,10 +49,14 @@ func (msg *MsgRollappGenesisEvent) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
 	}
 	if msg.ChannelId == "" {
-		return sdkerrors.Wrap(ErrInvalidGenesisChannelId, "channel id can not be empty")
+		return sdkerrors.Wrap(ErrInvalidGenesisChannelId, "channel id cannot be empty")
+	} else if len(msg.ChannelId) > maxChannelIDLength {
+		return sdkerrors.Wrapf(ErrInvalidGenesisChannelId, "channel id cannot exceed %d characters", maxChannelIDLength)
 	}
 	if msg.RollappId == "" {
-		return sdkerrors.Wrap(ErrInvalidRollappID, "rollapp id can not be empty")
+		return sdkerrors.Wrap(ErrInvalidRollappID, "rollapp id cannot be empty")
+	} else if len(msg.RollappId) > maxRollappIDLength {
+		return sdkerrors.Wrapf(ErrInvalidRollappID, "rollapp id cannot exceed %d characters", maxRollappIDLength)
 	}
 	return nil
 }

@@ -155,7 +155,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	err = im.eIBCDemandOrderHandler(ctx, rollappID, rollappPacket, *transferPacketData)
+	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -289,7 +289,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	err = im.eIBCDemandOrderHandler(ctx, rollappID, rollappPacket, *transferPacketData)
+	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return err
 	}
