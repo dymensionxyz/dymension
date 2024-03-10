@@ -51,9 +51,14 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
-	//iterate over all height from the disputed height to the latest finalized height
+	lastFinalizedIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollappID)
+	finalizedStateInfo, _ := k.GetStateInfo(ctx, rollappID, lastFinalizedIdx.Index)
+
+	lastFinalizedHeight := finalizedStateInfo.StartHeight + finalizedStateInfo.NumBlocks
+
+	//iterate over all height from the last finalized height to the current height
 	endHeight := uint64(ctx.BlockHeight())
-	for height := fraudHeight; height <= endHeight; height++ {
+	for height := lastFinalizedHeight; height <= endHeight; height++ {
 		queue, _ := k.GetBlockHeightToFinalizationQueue(ctx, height)
 		newQueue := types.BlockHeightToFinalizationQueue{
 			CreationHeight:    height,

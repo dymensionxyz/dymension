@@ -211,7 +211,8 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().Equal(common.Status_PENDING, stateInfo.Status)
 
 	//check queue
-	queue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, height)
+	expectedHeight := stateInfo.CreationHeight + suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)
+	queue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedHeight)
 	suite.Require().True(found)
 
 	found = false
