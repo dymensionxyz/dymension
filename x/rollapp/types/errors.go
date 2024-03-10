@@ -36,6 +36,7 @@ var (
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = sdkerrors.Register(ModuleName, 2000, "disputed height already finalized")
-	ErrWrongClientId           = sdkerrors.Register(ModuleName, 2001, "client id does not match the rollapp")
-	ErrWrongProposerAddr       = sdkerrors.Register(ModuleName, 1026, "wrong proposer address")
+	ErrDisputeAlreadyReverted  = sdkerrors.Register(ModuleName, 2001, "disputed height already reverted")
+	ErrWrongClientId           = sdkerrors.Register(ModuleName, 2002, "client id does not match the rollapp")
+	ErrWrongProposerAddr       = sdkerrors.Register(ModuleName, 2003, "wrong proposer address")
 )

@@ -14,21 +14,26 @@ import (
 )
 
 // HandleFraud handles the fraud evidence submitted by the user.
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height uint64, seqAddr string) error {
+func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHeight uint64, seqAddr string) error {
 	// Get the rollapp from the store
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrInvalidRollappID, "rollapp with ID %s not found", rollappID)
 	}
 
-	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, height)
+	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
 	if err != nil {
 		return err
 	}
 
 	//check height is not finalized
 	if stateInfo.Status == common.Status_FINALIZED {
-		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", height)
+		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
+	}
+
+	//check height is not reverted
+	if stateInfo.Status == common.Status_REVERTED {
+		return sdkerrors.Wrapf(types.ErrDisputeAlreadyReverted, "state info for height %d is already reverted", fraudHeight)
 	}
 
 	//check the sequencer for this height is the same as the one in the fraud evidence
@@ -37,7 +42,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	}
 
 	// slash the sequencer, clean delayed packets
-	err = k.hooks.FraudSubmitted(ctx, rollappID, height, seqAddr)
+	err = k.hooks.FraudSubmitted(ctx, rollappID, fraudHeight, seqAddr)
 	if err != nil {
 		return err
 	}
@@ -47,9 +52,8 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	k.SetRollapp(ctx, rollapp)
 
 	//iterate over all height from the disputed height to the latest finalized height
-	startHeight := height
 	endHeight := uint64(ctx.BlockHeight())
-	for h := startHeight; h <= endHeight; h++ {
+	for height := fraudHeight; height <= endHeight; height++ {
 		queue, _ := k.GetBlockHeightToFinalizationQueue(ctx, height)
 		newQueue := types.BlockHeightToFinalizationQueue{
 			CreationHeight:    height,
@@ -73,6 +77,28 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 	}
 
 	//TODO: get the clientId from rollapp object, instead of by proposal
+	if clientId != "" {
+		err = k.freezeClientState(ctx, clientId)
+		if err != nil {
+			return err
+		}
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeFraud,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
+			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(fraudHeight)),
+			sdk.NewAttribute(types.AttributeKeyFraudSequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyClientID, clientId),
+		),
+	)
+
+	return nil
+}
+
+// freeze IBC client state
+func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
 	if !ok {
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
@@ -83,23 +109,8 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
 	}
 
-	//validate the clientId related to the disputed rollapp
-	if tmClientState.ChainId != rollappID {
-		return sdkerrors.Wrapf(types.ErrWrongClientId, "client state with ID %s is not related to rollapp with ID %s", clientId, rollappID)
-	}
-
 	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())
 	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeFraud,
-			sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
-			sdk.NewAttribute(types.AttributeKeyFraudHeight, fmt.Sprint(height)),
-			sdk.NewAttribute(types.AttributeKeyFraudSequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyClientID, clientId),
-		),
-	)
 
 	return nil
 }
