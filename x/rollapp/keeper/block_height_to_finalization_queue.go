@@ -9,6 +9,10 @@ import (
 
 // Called every block to finalize states that their dispute period over.
 func (k Keeper) FinalizeQueue(ctx sdk.Context) {
+
+	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
+		return
+	}
 	// check to see if there are pending  states to be finalized
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
 
