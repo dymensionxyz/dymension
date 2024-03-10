@@ -350,6 +350,7 @@ func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Pa
 // GetProofHeight returns the proof height of the packet
 func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packet channeltypes.Packet) (uint64, error) {
 	packetId := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	ctx.Logger().Info("GetProofHeight", "packetId", packetId)
 	height, ok := types.FromIBCProofContext(ctx, packetId)
 	if ok {
 		return height.RevisionHeight, nil
