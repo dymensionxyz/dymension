@@ -45,10 +45,10 @@
     },
     {
       "chain_1": {
-        "address": ""
+        "address": "dym1"
       },
       "chain_2": {
-        "address": ""
+        "address": "stride1"
       },
       "memo": "",
       "name": "",
