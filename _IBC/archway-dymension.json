@@ -41,6 +41,20 @@
         "handle": "sw33pronodes",
         "id": "748273679711994028"
       }
+    },
+    {
+      "chain_1": {
+        "address": "archway1"
+      },
+      "chain_2": {
+        "address": "dym1"
+      },
+      "memo": "",
+      "name": "",
+      "discord": {
+        "handle": "",
+        "id": ""
+      }
     }
   ]
 }
