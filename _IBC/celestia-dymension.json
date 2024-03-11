@@ -28,5 +28,35 @@
         "preferred": true
       }
     }
+  ],
+ "operators": [
+    {
+      "chain_1": {
+        "address": "celestia1wvj4kuv4jnwc8v6mc6wsddrp3qvwmylpw72s99"
+      },
+      "chain_2": {
+        "address": "dym1nnxgtp6at89q4675edndcawwp9q7knhafe7xx7"
+      },
+      "memo": "Pro-Nodes75 Relayer",
+      "name": "Pro-Nodes75",
+      "discord": {
+        "handle": "sw33pronodes",
+        "id": "748273679711994028"
+      }
+    },
+    {
+      "chain_1": {
+        "address": "celestia1"
+      },
+      "chain_2": {
+        "address": "dym1"
+      },
+      "memo": "",
+      "name": "",
+      "discord": {
+        "handle": "",
+        "id": ""
+      }
+    }
   ]
 }
