@@ -15,14 +15,35 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BlockHeightToFinalizationQueue {
-	items := make([]types.BlockHeightToFinalizationQueue, n)
-	for i := range items {
-		items[i].CreationHeight = uint64(i)
+// TODO: Test FinalizeQueue function
+// TODO: Test FinalizeQueue function with failed states
 
-		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
-	}
-	return items
+func (suite *RollappTestSuite) TestGetPendingFinalizationQueue() {
+	suite.SetupTest()
+
+	initialheight := uint64(10)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
+	ctx := &suite.Ctx
+
+	keeper := suite.App.RollappKeeper
+
+	// Create a rollapp
+	rollapp := suite.CreateDefaultRollapp()
+
+	// Create a sequencer
+	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+
+	// Create a state update
+	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	suite.Require().Nil(err)
+
+	expectedFinalizedHeight := initialheight + keeper.DisputePeriodInBlocks(*ctx)
+
+	// Get the pending finalization queue
+	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight-1), 0)
+	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight), 1)
+	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight+5), 1)
+
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
@@ -60,4 +81,16 @@ func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllBlockHeightToFinalizationQueue(ctx)),
 	)
+}
+
+/* ---------------------------------- utils --------------------------------- */
+
+func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BlockHeightToFinalizationQueue {
+	items := make([]types.BlockHeightToFinalizationQueue, n)
+	for i := range items {
+		items[i].CreationHeight = uint64(i)
+
+		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
+	}
+	return items
 }
