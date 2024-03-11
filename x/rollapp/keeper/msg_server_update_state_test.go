@@ -114,20 +114,19 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
 		// calc new updateState
-		expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+		latestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 		suite.Require().EqualValues(true, found)
 		// verify index
-		suite.Require().EqualValues(i+1, expectedLatestStateInfoIndex.Index)
+		suite.Require().EqualValues(i+1, latestStateInfoIndex.Index)
 		// load last state info
-
-		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), expectedLatestStateInfoIndex.GetIndex())
+		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), latestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
 		expectedFinalizationQueue, _ := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedStateInfo.CreationHeight)
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
 			CreationHeight:    expectedStateInfo.CreationHeight,
-			FinalizationQueue: []types.StateInfoIndex{expectedLatestStateInfoIndex},
+			FinalizationQueue: []types.StateInfoIndex{latestStateInfoIndex},
 		})
 
 		// create new update
@@ -148,17 +147,15 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		// end block
 		suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 
-		for i := uint64(0); i <= expectedLatestStateInfoIndex.Index; i++ {
-			expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
-			if found {
-				if uint64(suite.Ctx.BlockHeight()) > disputePeriodInBlocks {
-					if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
-						suite.Require().EqualValues(expectedStateInfo.Status, types.STATE_STATUS_FINALIZED)
-
-					}
+		if uint64(suite.Ctx.BlockHeight()) > disputePeriodInBlocks {
+			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {
+				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
+				if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
+					suite.Require().EqualValues(expectedStateInfo.Status, types.STATE_STATUS_FINALIZED)
 				}
 			}
 		}
+
 		// check finalization status change
 		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeight(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
 
