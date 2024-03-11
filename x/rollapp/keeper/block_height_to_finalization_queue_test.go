@@ -10,6 +10,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Prevent strconv unused error
@@ -60,4 +61,48 @@ func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllBlockHeightToFinalizationQueue(ctx)),
 	)
+}
+
+func (suite *RollappTestSuite) TestGetPendingFinalizationQueue() {
+	suite.SetupTest()
+
+	initialheight := uint64(10)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
+	ctx := &suite.Ctx
+
+	keeper := suite.App.RollappKeeper
+
+	// Create a rollapp
+	rollapp := suite.CreateDefaultRollapp()
+
+	// Create a sequencer
+	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+
+	// Create a state update
+	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	suite.Require().Nil(err)
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
+	// Create a state update
+	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	suite.Require().Nil(err)
+
+	//Finalize pending queues and check
+	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
+
+	//Increase height
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
+
+	//Finalize pending queues and check
+	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
+
+	//Increase height
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
+
+	//Finalize pending queues and check
+	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
+
 }

@@ -9,8 +9,12 @@ import (
 
 // Called every block to finalize states that their dispute period over.
 func (k Keeper) FinalizeQueue(ctx sdk.Context) {
+
+	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
+		return
+	}
 	// check to see if there are pending  states to be finalized
-	pendingFinalizationQueue := k.GetPendingFinalizationQueue(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
 
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
@@ -102,17 +106,21 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	))
 }
 
-// GetPendingFinalizationQueue returns the blockHeightToFinalizationQueues starting from the input height (height after the disputeperiod) till the last queue with batches not yet finalized
-func (k Keeper) GetPendingFinalizationQueue(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+// GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
+func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	heightKey := types.BlockHeightToFinalizationQueueKey(height + 1)
-	iterator := sdk.KVStoreReversePrefixIterator(store, heightKey)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		if val.CreationHeight <= height {
+			list = append(list, val)
+		} else {
+			break
+		}
 	}
 
 	return
