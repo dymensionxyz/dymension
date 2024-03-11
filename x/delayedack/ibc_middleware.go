@@ -128,6 +128,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	proofHeight, err := im.GetProofHeight(ctx, packet)
@@ -194,6 +195,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
+		return err
 	}
 
 	proofHeight, err := im.GetProofHeight(ctx, packet)
@@ -263,6 +265,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
+		return err
 	}
 
 	proofHeight, err := im.GetProofHeight(ctx, packet)

@@ -192,29 +192,17 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 	// the client state is updated directly while the rollapp state is updated every batch interval.
 	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollapp)
 	if !found {
-		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollapp: %s", rollapp)
+		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollapp: %s", rollapp)
 	}
 	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp, latestStateIndex.Index)
 	if !found {
 		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollapp: %s with index: %d", rollapp, latestStateIndex.Index)
 	}
-	// Get the tm consensus state for the channel for the rollapp state height
-	tmConsensusState, err := k.getTmConsensusStateForChannelAndHeight(ctx, portID, channelID, stateInfo.StartHeight)
-	if err != nil {
-		return err
-	}
-	// Compare the consensus state to the rollapp state. We assume the first BD is for the start height.
-	rollappStateRoot := stateInfo.BDs.BD[0].StateRoot
-	consensusStateRoot := tmConsensusState.GetRoot().GetHash()
-	if !bytes.Equal(consensusStateRoot, rollappStateRoot) {
-		errMsg := fmt.Sprintf("consensus state does not match the rollapp state at height %d: client root %x, rollapp root %x",
-			stateInfo.StartHeight, consensusStateRoot, rollappStateRoot)
-		return sdkerrors.Wrap(types.ErrMismatchedStateRoots, errMsg)
-	}
+
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// We take the previous height as we compare it against the next validator hash of previous block.
 	previousRollappStateHeight := stateInfo.StartHeight - 1
-	tmConsensusState, err = k.getTmConsensusStateForChannelAndHeight(ctx, portID, channelID, previousRollappStateHeight)
+	tmConsensusState, err := k.getTmConsensusStateForChannelAndHeight(ctx, portID, channelID, previousRollappStateHeight)
 	if err != nil {
 		return err
 	}
