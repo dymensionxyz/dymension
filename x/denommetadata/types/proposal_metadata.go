@@ -54,6 +54,10 @@ func (csp *CreateDenomMetadataProposal) ValidateBasic() error {
 		return err
 	}
 
+	err = csp.TokenMetadata.Validate()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -95,7 +99,10 @@ func (csp *UpdateDenomMetadataProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-
+	err = csp.TokenMetadata.Validate()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
