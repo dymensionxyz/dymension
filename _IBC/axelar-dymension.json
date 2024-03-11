@@ -27,5 +27,21 @@
         "preferred": true
       }
     }
+  ],
+ "operators": [
+    {
+      "chain_1": {
+        "address": "axelar1"
+      },
+      "chain_2": {
+        "address": "dym1"
+      },
+      "memo": "",
+      "name": "",
+      "discord": {
+        "handle": "",
+        "id": ""
+      }
+    }
   ]
 }
