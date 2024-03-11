@@ -10,7 +10,7 @@ import "cosmos/base/v1beta1/coin.proto";
 // GenesisAccount is a struct for the genesis account for the rollapp
 message GenesisAccount {
   // amount of coins to be sent to the genesis address
-  cosmos.base.v1beta1.Coin amount = 1;
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
   // address is a bech-32 address of the genesis account
   string address = 2;
 }
