@@ -43,5 +43,19 @@
         "id": "748273679711994028"
       }
     },
+    {
+      "chain_1": {
+        "address": "dym1"
+      },
+      "chain_2": {
+        "address": "noble1"
+      },
+      "memo": "",
+      "name": "",
+      "discord": {
+        "handle": "",
+        "id": ""
+      }
+    }
   ]
 }
