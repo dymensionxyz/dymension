@@ -15,7 +15,8 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 		return
 	}
 	// check to see if there are pending  states to be finalized
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
+	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
 
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
@@ -109,7 +110,6 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 
 // GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
 func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck

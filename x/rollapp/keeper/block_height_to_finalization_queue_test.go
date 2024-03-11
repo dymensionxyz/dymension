@@ -16,35 +16,27 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-// TODO: Test FinalizeQueue function
-// TODO: Test FinalizeQueue function with failed states
-
-func (suite *RollappTestSuite) TestGetPendingFinalizationQueue() {
+func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	suite.SetupTest()
-
 	initialheight := uint64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
 	ctx := &suite.Ctx
-
 	keeper := suite.App.RollappKeeper
 
-	// Create a rollapp
 	rollapp := suite.CreateDefaultRollapp()
-
-	// Create a sequencer
 	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
-
-	// Create a state update
+	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
-
-	expectedFinalizedHeight := initialheight + keeper.DisputePeriodInBlocks(*ctx)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
+	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	suite.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight-1), 0)
-	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight), 1)
-	suite.Require().Len(keeper.GetPendingFinalizationQueue(*ctx, expectedFinalizedHeight+5), 1)
-
+	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight-1), 0)
+	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight), 1)
+	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+1), 2)
+	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+100), 2)
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
@@ -84,18 +76,7 @@ func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 	)
 }
 
-/* ---------------------------------- utils --------------------------------- */
-
-func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BlockHeightToFinalizationQueue {
-	items := make([]types.BlockHeightToFinalizationQueue, n)
-	for i := range items {
-		items[i].CreationHeight = uint64(i)
-
-		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
-	}
-	return items
-}
-
+// TODO: Test FinalizeQueue function with failed states
 func (suite *RollappTestSuite) TestFinalize() {
 	suite.SetupTest()
 
@@ -107,16 +88,13 @@ func (suite *RollappTestSuite) TestFinalize() {
 
 	// Create a rollapp
 	rollapp := suite.CreateDefaultRollapp()
-
-	// Create a sequencer
 	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
 
-	// Create a state update
+	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
-	// Create a state update
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
@@ -124,18 +102,24 @@ func (suite *RollappTestSuite) TestFinalize() {
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
 
-	//Increase height
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
-
 	//Finalize pending queues and check
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
 
-	//Increase height
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
-
 	//Finalize pending queues and check
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
 
+}
+
+/* ---------------------------------- utils --------------------------------- */
+func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BlockHeightToFinalizationQueue {
+	items := make([]types.BlockHeightToFinalizationQueue, n)
+	for i := range items {
+		items[i].CreationHeight = uint64(i)
+		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
+	}
+	return items
 }
