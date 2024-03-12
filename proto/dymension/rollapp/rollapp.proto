@@ -52,6 +52,8 @@ message Rollapp {
   RollappGenesisState genesis_state = 10;
   // channel_id will be set to the canonical IBC channel of the rollapp.
   string channel_id = 11;
+  // frozen is a boolean that indicates if the rollapp is frozen.
+  bool frozen = 12;
 }
 
 // Rollapp summary is a compact representation of Rollapp

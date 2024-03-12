@@ -125,6 +125,8 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
+	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -204,6 +206,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
+		denommetadatamoduleclient.CreateDenomMetadataHandler,
+		denommetadatamoduleclient.UpdateDenomMetadataHandler,
 	)
 
 	return govProposalHandlers
@@ -238,6 +242,7 @@ var (
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
+		denommetadatamodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
@@ -663,7 +668,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-
+	denomMetadataModule := denommetadatamodule.NewAppModule(app.BankKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -675,7 +680,8 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper))
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.BankKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -770,6 +776,7 @@ func New(
 		rollappModule,
 		sequencerModule,
 		streamerModule,
+		denomMetadataModule,
 		delayedackModule,
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -817,6 +824,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
@@ -852,6 +860,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -893,6 +902,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
@@ -1126,6 +1136,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace

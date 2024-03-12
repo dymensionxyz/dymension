@@ -62,7 +62,7 @@ func (sfp *SubmitFraudProposal) ValidateBasic() error {
 	}
 
 	if sfp.FraudelentSequencerAddress == "" {
-		return ErrInvalidSequencer
+		return ErrWrongProposerAddr
 	}
 
 	return nil

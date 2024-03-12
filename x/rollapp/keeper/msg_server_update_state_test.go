@@ -1,14 +1,13 @@
 package keeper_test
 
 import (
-	"strconv"
-
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -116,19 +115,19 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
 		// calc new updateState
-		expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+		latestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 		suite.Require().EqualValues(true, found)
 		// verify index
-		suite.Require().EqualValues(i+1, expectedLatestStateInfoIndex.Index)
+		suite.Require().EqualValues(i+1, latestStateInfoIndex.Index)
 		// load last state info
-		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), expectedLatestStateInfoIndex.GetIndex())
+		expectedStateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), latestStateInfoIndex.GetIndex())
 		suite.Require().EqualValues(true, found)
 
 		// verify finalization queue
 		expectedFinalizationQueue, _ := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedStateInfo.CreationHeight)
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
 			CreationHeight:    expectedStateInfo.CreationHeight,
-			FinalizationQueue: []types.StateInfoIndex{expectedLatestStateInfoIndex},
+			FinalizationQueue: []types.StateInfoIndex{latestStateInfoIndex},
 		})
 
 		// create new update
@@ -147,55 +146,29 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		suite.Require().Nil(err)
 
 		// end block
-		responseEndBlock := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+		suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+
+		if uint64(suite.Ctx.BlockHeight()) > disputePeriodInBlocks {
+			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {
+				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
+				if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
+					suite.Require().EqualValues(expectedStateInfo.Status, common.Status_FINALIZED)
+				}
+			}
+		}
 
 		// check finalization status change
-		finalizationQueue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
-		if found {
+		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeight(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
 
-			//fmt.Printf("finalizationQueue: %s\n", finalizationQueue.String())
+		for _, finalizationQueue := range pendingQueues {
+
+			//fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
-			suite.Require().EqualValues(stateInfo.CreationHeight, uint64(suite.Ctx.BlockHeader().Height))
-			if stateInfo.CreationHeight+disputePeriodInBlocks >= uint64(suite.Ctx.BlockHeader().Height) {
-				suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_RECEIVED)
-				continue
-			} else {
-				suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_FINALIZED)
 
-			}
-			// use a boolean to ensure the event exists
-			contains := false
-			for _, event := range responseEndBlock.Events {
+			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 
-				if event.Type == types.EventTypeStatusChange {
-					contains = true
-					// there are 5 attributes in the event
-					suite.Require().EqualValues(5, len(event.Attributes))
-					for _, attr := range event.Attributes {
-						switch string(attr.Key) {
-						case types.AttributeKeyRollappId:
-							suite.Require().EqualValues(string(attr.Value), rollapp.RollappId)
-						case types.AttributeKeyStateInfoIndex:
-							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.StateInfoIndex.Index, 10))
-						case types.AttributeKeyStartHeight:
-							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.StartHeight, 10))
-						case types.AttributeKeyNumBlocks:
-							suite.Require().EqualValues(string(attr.Value), strconv.FormatUint(stateInfo.NumBlocks, 10))
-						case types.AttributeKeyStatus:
-							suite.Require().EqualValues(string(attr.Value), stateInfo.Status.String())
-						default:
-							suite.Fail("unexpected attribute in event: %s", event.String())
-						}
-					}
-				}
-
-			}
-			suite.Require().True(contains)
-		} else {
-			suite.Require().LessOrEqualf(uint64(suite.Ctx.BlockHeader().Height), disputePeriodInBlocks,
-				"no finalization for currHeight(%d), disputePeriodInBlocks(%d)", suite.Ctx.BlockHeader().Height, disputePeriodInBlocks)
 		}
 	}
 }
@@ -456,9 +429,19 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		RollappId: "rollapp1",
 		Index:     1,
 	}
-	stateInfo := types.NewStateInfo("rollapp1", 1, sequencer.SequencerAddress, 1, 3, "", 0, 0, types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}})
+	stateInfo := types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
+		Sequencer:      sequencer.SequencerAddress,
+		StartHeight:    1,
+		NumBlocks:      3,
+		DAPath:         "",
+		Version:        0,
+		CreationHeight: 0,
+		Status:         common.Status_PENDING,
+		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
+	}
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
-	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, *stateInfo)
+	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, stateInfo)
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)

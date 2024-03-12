@@ -4,12 +4,12 @@ import (
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight uint64, numBlocks uint64, daPath string, version uint64, height uint64, BDs BlockDescriptors) *StateInfo {
-
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
-	status := STATE_STATUS_RECEIVED
+	status := common.Status_PENDING
 	return &StateInfo{
 		StateInfoIndex: stateInfoIndex,
 		Sequencer:      creator,
@@ -19,12 +19,12 @@ func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight
 		Version:        version,
 		CreationHeight: height,
 		Status:         status,
-		BDs:            BDs}
-
+		BDs:            BDs,
+	}
 }
 
 func (s *StateInfo) Finalize() {
-	s.Status = STATE_STATUS_FINALIZED
+	s.Status = common.Status_FINALIZED
 }
 
 func (s *StateInfo) GetIndex() StateInfoIndex {
