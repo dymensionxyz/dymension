@@ -27,8 +27,6 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	//unrelated rollapp just to validate it's unaffected
 	rollapp_2 := suite.CreateDefaultRollapp()
 	proposer_2 := suite.CreateDefaultSequencer(*ctx, rollapp_2)
-	_, err = suite.PostStateUpdate(*ctx, rollapp_2, proposer_2, 1, numOfBlocks)
-	suite.Require().Nil(err)
 
 	//create rollapp and sequencers before fraud evidence
 	rollapp := suite.CreateDefaultRollapp()
@@ -41,11 +39,17 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	var lastHeight uint64 = 1
 
 	for i := uint64(0); i < numOfStates; i++ {
-		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, numOfBlocks)
+		_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, numOfBlocks)
+		suite.Require().Nil(err)
+
+		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp_2, proposer_2, lastHeight, numOfBlocks)
 		suite.Require().Nil(err)
 
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
+
+	//finalize some of the states
+	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
 
 	//assert before fraud submission
 	suite.assertBeforeFraud(rollapp, fraudHeight)
