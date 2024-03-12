@@ -152,7 +152,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {
 				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
 				if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
-					suite.Require().EqualValues(expectedStateInfo.Status, types.STATE_STATUS_FINALIZED)
+					suite.Require().EqualValues(expectedStateInfo.Status, common.Status_FINALIZED)
 				}
 			}
 		}
