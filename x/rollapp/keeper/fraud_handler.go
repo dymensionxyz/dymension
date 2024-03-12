@@ -51,35 +51,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
-	lastFinalizedIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollappID)
-	finalizedStateInfo, _ := k.GetStateInfo(ctx, rollappID, lastFinalizedIdx.Index)
-
-	lastFinalizedHeight := finalizedStateInfo.StartHeight + finalizedStateInfo.NumBlocks
-
-	//iterate over all height from the last finalized height to the current height
-	endHeight := uint64(ctx.BlockHeight())
-	for height := lastFinalizedHeight; height <= endHeight; height++ {
-		queue, _ := k.GetBlockHeightToFinalizationQueue(ctx, height)
-		newQueue := types.BlockHeightToFinalizationQueue{
-			CreationHeight:    height,
-			FinalizationQueue: []types.StateInfoIndex{},
-		}
-		for _, stateInfoIndex := range queue.FinalizationQueue {
-			//keep pending packets not related to this rollapp in the queue
-			if stateInfoIndex.RollappId != rollappID {
-				newQueue.FinalizationQueue = append(newQueue.FinalizationQueue, stateInfoIndex)
-				continue
-			}
-
-			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found {
-				return sdkerrors.Wrapf(types.ErrStateNotExists, "state info with index %d not found", stateInfoIndex.Index)
-			}
-			stateInfo.Status = common.Status_REVERTED
-			k.SetStateInfo(ctx, stateInfo)
-		}
-		k.SetBlockHeightToFinalizationQueue(ctx, newQueue)
-	}
+	k.RevertPendingStates(ctx, rollappID)
 
 	//TODO: get the clientId from rollapp object, instead of by proposal
 	if clientId != "" {
@@ -118,4 +90,32 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 	k.ibcclientkeeper.SetClientState(ctx, clientId, tmClientState)
 
 	return nil
+}
+
+// revert all pending states of a rollapp
+func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
+	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx)
+	for _, queue := range queuePerHeight {
+		leftPendingStates := []types.StateInfoIndex{}
+		for _, stateInfoIndex := range queue.FinalizationQueue {
+			//keep pending packets not related to this rollapp in the queue
+			if stateInfoIndex.RollappId != rollappID {
+				leftPendingStates = append(leftPendingStates, stateInfoIndex)
+				continue
+			}
+
+			stateInfo, _ := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+			stateInfo.Status = common.Status_REVERTED
+			k.SetStateInfo(ctx, stateInfo)
+		}
+
+		if len(leftPendingStates) == 0 {
+			k.RemoveBlockHeightToFinalizationQueue(ctx, queue.CreationHeight)
+		} else {
+			k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{
+				CreationHeight:    queue.CreationHeight,
+				FinalizationQueue: leftPendingStates,
+			})
+		}
+	}
 }

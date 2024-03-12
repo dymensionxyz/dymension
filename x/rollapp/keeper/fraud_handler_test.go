@@ -20,12 +20,14 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
 
 	numOfSequencers := uint64(3)
-	numOfStates := uint64(10)
+	numOfStates := uint64(100)
+	numOfBlocks := uint64(10)
+	fraudHeight := uint64(300)
 
 	//unrelated rollapp just to validate it's unaffected
 	rollapp_2 := suite.CreateDefaultRollapp()
 	proposer_2 := suite.CreateDefaultSequencer(*ctx, rollapp_2)
-	_, err = suite.PostStateUpdate(*ctx, rollapp_2, proposer_2, 1, uint64(10))
+	_, err = suite.PostStateUpdate(*ctx, rollapp_2, proposer_2, 1, numOfBlocks)
 	suite.Require().Nil(err)
 
 	//create rollapp and sequencers before fraud evidence
@@ -37,10 +39,9 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 
 	//send state updates
 	var lastHeight uint64 = 1
-	fraudHeight := lastHeight + 1
 
 	for i := uint64(0); i < numOfStates; i++ {
-		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, uint64(10))
+		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, numOfBlocks)
 		suite.Require().Nil(err)
 
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
@@ -52,7 +53,7 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	err = keeper.HandleFraud(*ctx, rollapp, "", fraudHeight, proposer)
 	suite.Require().Nil(err)
 
-	suite.assertFraudHandled(rollapp, fraudHeight)
+	suite.assertFraudHandled(rollapp)
 }
 
 // Fail - Invalid rollapp
@@ -197,6 +198,8 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	found = false
 	for _, stateInfoIndex := range queue.FinalizationQueue {
 		if stateInfoIndex.RollappId == rollappId {
+			val, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollappId, stateInfoIndex.Index)
+			suite.Require().Equal(common.Status_PENDING, val.Status)
 			found = true
 			break
 		}
@@ -204,7 +207,7 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().True(found)
 }
 
-func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint64) {
+func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappId)
 	suite.Require().True(found)
 	suite.Require().True(rollapp.Frozen)
@@ -228,11 +231,10 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string, height uint6
 	}
 
 	//check queue
-	for i := height; i <= uint64(suite.Ctx.BlockHeight()); i++ {
-		queue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, i)
-		suite.Require().True(found)
-
-		for _, stateInfoIndex := range queue.FinalizationQueue {
+	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
+	suite.Assert().Greater(len(queue), 0)
+	for _, q := range queue {
+		for _, stateInfoIndex := range q.FinalizationQueue {
 			suite.Require().NotEqual(rollappId, stateInfoIndex.RollappId)
 		}
 	}
