@@ -81,7 +81,7 @@ message MsgRollappGenesisEvent {
   string address = 1;
   // channel_id is the rollapp channel id on the hub
   string channel_id = 2; 
-  // rollapp_id is the rollapp id we want to mint tokens for on the hub.
+  // rollapp_id is the rollapp id we want to mint tokens on the hub.
   // Used for validation against channel_id to reduce error surface.
   string rollapp_id = 3;
 }

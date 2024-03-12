@@ -55,7 +55,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		expErr         error
 	}{
 		{
-			"successfull rollapp genesis event",
+			"successful rollapp genesis event",
 			&types.RollappGenesisState{
 				GenesisAccounts: []types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
