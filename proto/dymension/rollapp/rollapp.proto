@@ -31,6 +31,8 @@ message Rollapp {
   repeated string permissionedAddresses = 8;
   // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
   repeated TokenMetadata tokenMetadata = 9;
+
+  bool frozen = 10;
 }
 
 // Rollapp summary is a compact representation of Rollapp

@@ -173,6 +173,5 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.UnbondAllMatureSequencers(ctx, ctx.BlockHeader().Time)
-
 	return []abci.ValidatorUpdate{}
 }

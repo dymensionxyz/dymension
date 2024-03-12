@@ -10,6 +10,7 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -105,7 +106,7 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(index uint64, startHeight uint
 		StateInfoIndex: stateInfoIdx,
 		StartHeight:    startHeight,
 		NumBlocks:      1,
-		Status:         rollapptypes.STATE_STATUS_RECEIVED,
+		Status:         common.Status_PENDING,
 	}
 
 	// update the status of the stateInfo
@@ -120,7 +121,7 @@ func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, suite.rollappChain.ChainID, stateInfoIdx.Index)
 	suite.Require().True(found)
 	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
-	stateInfo.Status = rollapptypes.STATE_STATUS_FINALIZED
+	stateInfo.Status = common.Status_FINALIZED
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
 	// update the LatestStateInfoIndex of the rollapp

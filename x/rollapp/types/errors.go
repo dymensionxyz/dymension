@@ -33,5 +33,10 @@ var (
 	ErrInvalidTokenMetadata                = sdkerrors.Register(ModuleName, 1023, "invalid token metadata")
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
 	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
-	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
+
+	/* ------------------------------ fraud related ----------------------------- */
+	ErrDisputeAlreadyFinalized = sdkerrors.Register(ModuleName, 2000, "disputed height already finalized")
+	ErrDisputeAlreadyReverted  = sdkerrors.Register(ModuleName, 2001, "disputed height already reverted")
+	ErrWrongClientId           = sdkerrors.Register(ModuleName, 2002, "client id does not match the rollapp")
+	ErrWrongProposerAddr       = sdkerrors.Register(ModuleName, 2003, "wrong proposer address")
 )

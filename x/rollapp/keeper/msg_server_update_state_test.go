@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -151,7 +152,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			for i := uint64(1); i <= latestStateInfoIndex.Index; i++ {
 				expectedStateInfo, _ := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, rollapp.GetRollappId(), i)
 				if expectedStateInfo.CreationHeight < uint64(suite.Ctx.BlockHeight())-disputePeriodInBlocks {
-					suite.Require().EqualValues(expectedStateInfo.Status, types.STATE_STATUS_FINALIZED)
+					suite.Require().EqualValues(expectedStateInfo.Status, common.Status_FINALIZED)
 				}
 			}
 		}
@@ -166,7 +167,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			suite.Require().True(found)
 			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
 
-			suite.Require().EqualValues(stateInfo.Status, types.STATE_STATUS_RECEIVED)
+			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 
 		}
 	}
@@ -428,9 +429,19 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		RollappId: "rollapp1",
 		Index:     1,
 	}
-	stateInfo := types.NewStateInfo("rollapp1", 1, sequencer.SequencerAddress, 1, 3, "", 0, 0, types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}})
+	stateInfo := types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
+		Sequencer:      sequencer.SequencerAddress,
+		StartHeight:    1,
+		NumBlocks:      3,
+		DAPath:         "",
+		Version:        0,
+		CreationHeight: 0,
+		Status:         common.Status_PENDING,
+		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
+	}
 	suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, latestStateInfoIndex)
-	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, *stateInfo)
+	suite.App.RollappKeeper.SetStateInfo(suite.Ctx, stateInfo)
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)

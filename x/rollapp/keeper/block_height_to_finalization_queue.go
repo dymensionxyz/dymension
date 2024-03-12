@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
@@ -14,20 +15,21 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 		return
 	}
 	// check to see if there are pending  states to be finalized
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, uint64(ctx.BlockHeight()-int64(k.DisputePeriodInBlocks(ctx))))
+	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
 
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 
 		// finalize pending states
-		var newFinalizationQueue []types.StateInfoIndex
+		var failedToFinalizeQueue []types.StateInfoIndex
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found || stateInfo.Status == types.STATE_STATUS_FINALIZED {
+			if !found || stateInfo.Status != common.Status_PENDING {
 				ctx.Logger().Error("Missing stateInfo data when trying to finalize or alreay finalized", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
 				continue
 			}
-			wrappedFunc := func(ctx sdk.Context) error {
 
+			wrappedFunc := func(ctx sdk.Context) error {
 				stateInfo.Finalize()
 				// update the status of the stateInfo
 				k.SetStateInfo(ctx, stateInfo)
@@ -51,15 +53,15 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
 			if err != nil {
 				ctx.Logger().Error("Error finalizing state", "height", blockHeightToFinalizationQueue.CreationHeight, "rollappId", stateInfo.StateInfoIndex.RollappId)
-				newFinalizationQueue = append(newFinalizationQueue, stateInfoIndex)
+				failedToFinalizeQueue = append(failedToFinalizeQueue, stateInfoIndex)
 			}
 
 		}
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
-		if len(newFinalizationQueue) > 0 {
+		if len(failedToFinalizeQueue) > 0 {
 			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
 				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
-				FinalizationQueue: newFinalizationQueue}
+				FinalizationQueue: failedToFinalizeQueue}
 
 			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
 		}
@@ -108,7 +110,6 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 
 // GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
 func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
