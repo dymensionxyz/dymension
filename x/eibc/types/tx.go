@@ -4,6 +4,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	// This legth is because we use sha256 to hash the order id
+	maxLengthOfOrderID = 64
+)
+
 const TypeMsgFulfillOrder = "fulfill_order"
 
 var _ = sdk.Msg(&MsgFulfillOrder{})
@@ -37,7 +42,7 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (m *MsgFulfillOrder) ValidateBasic() error {
-	if m.OrderId == "" {
+	if m.OrderId == "" || len(m.OrderId) > maxLengthOfOrderID {
 		return ErrInvalidOrderID
 	}
 	_, err := sdk.AccAddressFromBech32(m.FulfillerAddress)
