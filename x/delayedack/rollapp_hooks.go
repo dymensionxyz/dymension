@@ -1,11 +1,8 @@
 package delayedack
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -25,51 +22,7 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 }
 
 func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	// Get all the pending packets
-	rollappPendingPackets := im.keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)
-	if len(rollappPendingPackets) == 0 {
-		return nil
-	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
-	for _, rollappPacket := range rollappPendingPackets {
-		if rollappPacket.RollappId != rollappID {
-			continue
-		}
-
-		var err = fmt.Errorf("fraudulent packet")
-		packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
-		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)
-
-		if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
-			wrappedFunc := func(ctx sdk.Context) error {
-				failedAck := channeltypes.NewErrorAcknowledgement(err)
-				// Write the acknowledgement to the chain
-				_, chanCap, err := im.keeper.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-				if err != nil {
-					return err
-				}
-				err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, failedAck)
-				if err != nil {
-					return err
-				}
-				return nil
-			}
-			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
-			if err != nil {
-				logger.Error("Error writing acknowledgement", "rollappID", rollappID, "packetId", packetId, "error", err.Error())
-			}
-		}
-
-		// Update status to reverted
-		rollappPacket.Error = err.Error()
-		rollappPacket, err = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
-		if err != nil {
-			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type, "error", err.Error())
-			return err
-		}
-	}
-	return nil
+	return im.keeper.HandleFraud(ctx, rollappID)
 }
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is

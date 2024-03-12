@@ -94,6 +94,7 @@ func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 
 // revert all pending states of a rollapp
 func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
+	// TODO (#631): Prefix store by rollappID for efficient querying
 	queuePerHeight := k.GetAllBlockHeightToFinalizationQueue(ctx)
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
