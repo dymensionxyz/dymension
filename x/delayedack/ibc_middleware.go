@@ -354,7 +354,9 @@ func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packet channeltypes.Pack
 	if ok {
 		return height.RevisionHeight, nil
 	} else {
-		return 0, errors.New("failed to get proof height from context")
+		err := errors.New("failed to get proof height from context")
+		ctx.Logger().Error(err.Error(), "packetId", packetId)
+		return 0, err
 	}
 }
 
