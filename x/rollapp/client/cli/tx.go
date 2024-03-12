@@ -7,6 +7,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -26,7 +28,38 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateRollapp())
 	cmd.AddCommand(CmdUpdateState())
-	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(CmdGenesisEvent())
+
+	return cmd
+}
+
+func CmdGenesisEvent() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "genesis-event [rollapp-id] [channel-id] [flags]",
+		Short:   "Trigger a genesis event from this rollapp and channel",
+		Example: "dymd tx rollapp genesis-event [rollapp-id] [channel-id] ",
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			// Get arguments
+			rollappId := args[0]
+			channelId := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgRollappGenesisEvent(
+				clientCtx.GetFromAddress().String(),
+				channelId,
+				rollappId,
+			)
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
 }

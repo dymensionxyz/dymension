@@ -33,7 +33,10 @@ var (
 	ErrInvalidTokenMetadata                = sdkerrors.Register(ModuleName, 1023, "invalid token metadata")
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
 	ErrInvalidClientState                  = sdkerrors.Register(ModuleName, 1025, "invalid client state")
-
+	ErrInvalidSequencer                    = sdkerrors.Register(ModuleName, 1026, "invalid sequencer")
+	ErrInvalidGenesisChannelId             = sdkerrors.Register(ModuleName, 1027, "invalid genesis channel id")
+	ErrGenesisEventNotDefined              = sdkerrors.Register(ModuleName, 1028, "genesis event not defined")
+	ErrGenesisEventAlreadyTriggered        = sdkerrors.Register(ModuleName, 1029, "genesis event already triggered")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = sdkerrors.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = sdkerrors.Register(ModuleName, 2001, "disputed height already reverted")

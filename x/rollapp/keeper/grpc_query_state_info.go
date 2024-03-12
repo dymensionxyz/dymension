@@ -64,7 +64,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 		} else {
 			latestStateIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
 			if !found {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+				return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 					"LatestStateInfoIndex wasn't found for rollappId=%s", req.RollappId)
 			}
 			req.Index = latestStateIndex.Index
@@ -102,7 +102,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 			"LatestStateInfoIndex wasn't found for rollappId=%s",
 			rollappId)
 	}
@@ -113,7 +113,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 	// get state info
 	LatestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 	if !found {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 			"StateInfo wasn't found for rollappId=%s, index=%d",
 			rollappId, endInfoIndex)
 	}
@@ -146,13 +146,13 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 			// TODO:
 			// if stateInfo is missing it won't be logic error if history deletion be implemented
 			// for that we will have to check the oldest we have
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, startInfoIndex)
 		}
 		endStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 		if !found {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, endInfoIndex)
 		}
@@ -194,7 +194,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		}
 		candidateStateInfo, found := k.GetStateInfo(ctx, rollappId, candidateInfoIndex)
 		if !found {
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 				"StateInfo wasn't found for rollappId=%s, index=%d",
 				rollappId, candidateInfoIndex)
 		}

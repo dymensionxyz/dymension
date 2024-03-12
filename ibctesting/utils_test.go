@@ -60,6 +60,7 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		10,
 		[]string{},
 		nil,
+		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
@@ -92,6 +93,7 @@ func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
 				Symbol:      strings.ToUpper(displayDenom),
 			},
 		},
+		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed

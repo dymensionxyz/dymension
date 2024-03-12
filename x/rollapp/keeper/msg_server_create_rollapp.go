@@ -21,34 +21,17 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	// check to see if there is an active whitelist
 	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-		bInWhitelist := false
-		// check to see if the creator is in whitelist
-		var item types.DeployerParams
-		for _, item = range whitelist {
-			if item.Address == msg.Creator {
-				// Found!
-				bInWhitelist = true
-				break
-			}
-		}
-		if !bInWhitelist {
+		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
 			return nil, types.ErrUnauthorizedRollappCreator
 		}
+	}
 
-		if item.MaxRollapps > 0 {
-			// if MaxRollapps, it means there is a limit for this creator
-			// count how many rollapps he created
-			rollappsNumOfCreator := uint64(0)
-			for _, r := range k.GetAllRollapps(ctx) {
-				if r.Creator == msg.Creator {
-					rollappsNumOfCreator += 1
-				}
-			}
-			// check the creator didn't hit the maximum
-			if rollappsNumOfCreator >= item.MaxRollapps {
-				// check the deployer max rollapps limitation
-				return nil, types.ErrRollappCreatorExceedMaximumRollapps
-			}
+	// Build the genesis state from the genesis accounts
+	var rollappGenesisState *types.RollappGenesisState
+	if len(msg.GenesisAccounts) > 0 {
+		rollappGenesisState = &types.RollappGenesisState{
+			GenesisAccounts: msg.GenesisAccounts,
+			IsGenesisEvent:  false,
 		}
 	}
 
@@ -59,6 +42,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		Version:               0,
 		MaxSequencers:         msg.MaxSequencers,
 		PermissionedAddresses: msg.PermissionedAddresses,
+		GenesisState:          rollappGenesisState,
 	}
 
 	//copy TokenMetadata

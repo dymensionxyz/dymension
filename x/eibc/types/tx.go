@@ -4,7 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgFulfillOrder = "update_state"
+const TypeMsgFulfillOrder = "fulfill_order"
 
 var _ = sdk.Msg(&MsgFulfillOrder{})
 

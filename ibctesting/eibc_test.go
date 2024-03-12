@@ -41,7 +41,7 @@ func (suite *EIBCTestSuite) SetupTest() {
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	// Create rollapp only once
 	suite.CreateRollapp()
-	// Create path so we'll be using the same channel
+	// Create path so we'll be using the same channel for all tests to come
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 	// Setup globals for the test cases

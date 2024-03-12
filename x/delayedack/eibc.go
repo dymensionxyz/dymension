@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/utils"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -21,7 +22,7 @@ const (
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
 // If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
-func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, chainID string, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
+func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	packetMetaData := &types.PacketMetadata{}
 	// If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
@@ -155,14 +156,7 @@ func (im IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungibl
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		// sender chain is the source
-		// since SendPacket did not prefix the denomination, we must prefix denomination here
-		sourcePrefix := transfertypes.GetDenomPrefix(packet.GetDestPort(), packet.GetDestChannel())
-		// NOTE: sourcePrefix contains the trailing "/"
-		prefixedDenom := sourcePrefix + fungibleTokenPacketData.Denom
-		// construct the denomination trace from the full raw denomination
-		denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
-		denom = denomTrace.IBCDenom()
+		denom = utils.GetForeginIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
 	}
 	return denom
 }
