@@ -21,13 +21,17 @@ func (seq Sequencer) IsProposer() bool {
 // as expected to written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	// load the dymint pubkey into a cryptotypes.PubKey
+
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+
 	var pubKey cryptotypes.PubKey
 	err := protoCodec.UnpackAny(seq.DymintPubKey, &pubKey)
 	if err != nil {
 		return nil, err
 	}
+
 	// convert the pubkey to tmPubKey
 	tmPubKey, err := cryptocodec.ToTmPubKeyInterface(pubKey)
 	if err != nil {

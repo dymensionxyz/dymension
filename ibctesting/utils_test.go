@@ -2,8 +2,12 @@ package ibctesting_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/testutil/mock"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -12,6 +16,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -47,10 +54,21 @@ type IBCTestUtilSuite struct {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)               // initializes 3 test chains
-	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))     // convenience and readability
-	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2))  // convenience and readability
-	suite.rollappChain = suite.coordinator.GetChain(ibctesting.GetChainID(3)) // convenience and readability
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)              // initializes 3 test chains
+	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))    // convenience and readability
+	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
+
+	var validators []*tmtypes.Validator
+	var signersByAddress = make(map[string]tmtypes.PrivValidator, 1)
+	privVal := mock.NewPV()
+	pubKey, _ := privVal.GetPubKey()
+	validators = append(validators, tmtypes.NewValidator(pubKey, 1))
+	signersByAddress[pubKey.Address().String()] = privVal
+	valSet := tmtypes.NewValidatorSet(validators)
+
+	suite.rollappChain = ibctesting.NewTestChainWithValSet(suite.T(), suite.coordinator, ChainIDPrefix+"3", valSet, signersByAddress)
+	//suite.rollappChain = NewTestChainWithValSet()
+	fmt.Println(len(suite.rollappChain.Vals.Validators))
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
@@ -65,6 +83,26 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 
+}
+
+func (suite *IBCTestUtilSuite) RegisterSequencer() {
+
+	bond := sequencertypes.DefaultParams().MinBond
+	//fund account
+	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	suite.Require().Nil(err)
+
+	msgCreateSequencer, err := sequencertypes.NewMsgCreateSequencer(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.SenderAccount.GetPubKey(),
+		suite.rollappChain.ChainID,
+		&sequencertypes.Description{},
+		bond,
+	)
+
+	suite.Require().NoError(err) // message committed
+	_, err = suite.hubChain.SendMsgs(msgCreateSequencer)
+	suite.Require().NoError(err) // message committed
 }
 
 func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
@@ -109,10 +147,12 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(index uint64, startHeight uint
 		StartHeight:    startHeight,
 		NumBlocks:      1,
 		Status:         common.Status_PENDING,
+		Sequencer:      suite.hubChain.SenderAccount.GetAddress().String(),
 	}
 
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
+	rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfo.StateInfoIndex)
 }
 
 func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) error {

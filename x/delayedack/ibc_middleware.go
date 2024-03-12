@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	"errors"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -43,6 +44,7 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
+	fmt.Println("Openning channel ", portID, channelID, order)
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
 		chanCap, counterparty, version)
 }
@@ -124,9 +126,12 @@ func (im IBCMiddleware) OnRecvPacket(
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
+	fmt.Println("validation on OnRecvPacket")
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
+	fmt.Println(packet.GetSourcePort(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSourceChannel())
+	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
+		fmt.Println("Failed to validate rollappID ", rollappID)
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -191,6 +196,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
+	fmt.Println("validation on OnAcknowledgementPacket")
 
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
@@ -261,7 +267,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain")
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
-
+	fmt.Println("validation on timeout")
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)

@@ -2,6 +2,7 @@ package ibctesting_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -41,7 +42,11 @@ func (suite *EIBCTestSuite) SetupTest() {
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	// Create rollapp only once
 	suite.CreateRollapp()
-	// Create path so we'll be using the same channel for all tests to come
+	// Register sequencer
+	suite.RegisterSequencer()
+	//adding state for the rollapp
+	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
+	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 	// Setup globals for the test cases
@@ -131,6 +136,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			}
 			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)
+			fmt.Println(tc.name)
 			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.isAckError)
 			// Validate demand orders results
 			eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
@@ -160,6 +166,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
 	suite.CreateRollapp()
 	// Create the path once here so we'll be using the same channel all the time and hence same IBC denom
+	// Register sequencer
+	suite.RegisterSequencer()
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 	// Setup globals for the test
@@ -422,6 +430,8 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 
 	// If ack error that an ack is retuned immediately hence found. The reason we get err in the relay packet is
 	// beacuse no ack can be parsed from events
+	//suite.Require().Error(err)
+	fmt.Println(err, isAckError)
 	if isAckError {
 		suite.Require().NoError(err)
 		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())

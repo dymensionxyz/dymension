@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -48,6 +49,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
+	sequencerKeeper types.SequencerKeeper,
 	ics4Wrapper porttypes.ICS4Wrapper,
 	channelKeeper types.ChannelKeeper,
 	connectionKeeper types.ConnectionKeeper,
@@ -66,6 +68,7 @@ func NewKeeper(
 		memKey:           memKey,
 		paramstore:       ps,
 		rollappKeeper:    rollappKeeper,
+		sequencerKeeper:  sequencerKeeper,
 		ics4Wrapper:      ics4Wrapper,
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
@@ -123,6 +126,7 @@ func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string)
 	if !found {
 		return nil, clienttypes.ErrConsensusStateNotFound
 	}
+
 	return clientState, nil
 }
 
@@ -201,22 +205,32 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// We take the previous height as we compare it against the next validator hash of previous block.
-	previousRollappStateHeight := stateInfo.StartHeight - 1
-	tmConsensusState, err := k.getTmConsensusStateForChannelAndHeight(ctx, portID, channelID, previousRollappStateHeight)
+	//previousRollappStateHeight := stateInfo.StartHeight - 1
+	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
 	if err != nil {
+		fmt.Println("error consensus state", err)
 		return err
 	}
+	fmt.Println("consensus found ", tmConsensusState.NextValidatorsHash)
+
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
 		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollapp %s", stateInfo.Sequencer, rollapp)
 	}
+	fmt.Println("sequencer found ", sequencer.SequencerAddress)
+
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("sequencer pubkeyhash obtained ", hex.EncodeToString(seqPubKeyHash))
+	fmt.Println(tmConsensusState.NextValidatorsHash.String(), hex.EncodeToString(seqPubKeyHash))
+
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
-		errMsg := fmt.Sprintf("consensus state does not match the rollapp state at height %d: consensus state validators %x, rollapp sequencer %x",
-			previousRollappStateHeight, tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
+		fmt.Println("hash not matching")
+		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollapp sequencer %x",
+			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
 		return sdkerrors.Wrap(types.ErrMismatchedSequencer, errMsg)
 	}
 	return nil
@@ -228,6 +242,7 @@ func (k Keeper) GetConnectionEnd(ctx sdk.Context, portID string, channelID strin
 		return connectiontypes.ConnectionEnd{}, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
 	}
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
+
 	if !found {
 		return connectiontypes.ConnectionEnd{}, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
@@ -235,7 +250,7 @@ func (k Keeper) GetConnectionEnd(ctx sdk.Context, portID string, channelID strin
 }
 
 // getTmConsensusStateForChannelAndHeight returns the tendermint consensus state for the channel for specific height
-func (k Keeper) getTmConsensusStateForChannelAndHeight(ctx sdk.Context, portID string, channelID string, height uint64) (*tenderminttypes.ConsensusState, error) {
+func (k Keeper) getTmConsensusState(ctx sdk.Context, portID string, channelID string) (*tenderminttypes.ConsensusState, error) {
 	// Get the client state for the channel for specific height
 	connectionEnd, err := k.GetConnectionEnd(ctx, portID, channelID)
 	if err != nil {
@@ -245,8 +260,7 @@ func (k Keeper) getTmConsensusStateForChannelAndHeight(ctx sdk.Context, portID s
 	if err != nil {
 		return &tenderminttypes.ConsensusState{}, err
 	}
-	revisionHeight := clienttypes.NewHeight(clientState.GetLatestHeight().GetRevisionNumber(), height)
-	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.GetClientID(), revisionHeight)
+	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.GetClientID(), clientState.GetLatestHeight())
 	if !found {
 		return nil, clienttypes.ErrConsensusStateNotFound
 	}

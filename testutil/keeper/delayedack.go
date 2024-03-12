@@ -19,6 +19,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -99,6 +100,13 @@ func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId stri
 	return rollapptypes.StateInfoIndex{}, false
 }
 
+type SequencerKeeperStub struct{}
+
+func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {
+	return sequencertypes.Sequencer{}, false
+
+}
+
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -125,6 +133,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		paramsSubspace,
 		RollappKeeperStub{},
+		SequencerKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
 		ClientKeeperStub{},
