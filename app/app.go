@@ -747,7 +747,7 @@ func New(
 	))
 
 	// register the denommetadata hooks
-	app.DenomMetadataKeeper.SetHooks(denommetadatamoduletypes.NewMultiRollappHooks(app.DenomMetadataKeeper.DenomMetadataHooks()))
+	app.DenomMetadataKeeper.SetHooks(denommetadatamoduletypes.NewMultiRollappHooks())
 
 	/****  Module Options ****/
 
