@@ -22,8 +22,7 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 }
 
 func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	// TODO(#624): Implement fraud handling
-	return nil
+	return im.keeper.HandleFraud(ctx, rollappID)
 }
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
