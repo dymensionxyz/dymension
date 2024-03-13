@@ -249,12 +249,12 @@ func (k Keeper) getTmConsensusState(ctx sdk.Context, portID string, channelID st
 	if err != nil {
 		return &tenderminttypes.ConsensusState{}, err
 	}
-	k.Logger(ctx).Error("connectionEnd", "id", connectionEnd)
 	clientState, err := k.GetClientState(ctx, portID, channelID)
 	if err != nil {
 		return &tenderminttypes.ConsensusState{}, err
 	}
-	k.Logger(ctx).Error("clientState", "id", clientState)
+
+	//TODO(srene) : consensus state is only obtained when getting it for latestheight. this can be an issue when sequencer changes. i have to figure out why is only returned for latest height
 
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.GetClientID(), clientState.GetLatestHeight())
 	if !found {
