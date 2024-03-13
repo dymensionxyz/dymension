@@ -14,8 +14,11 @@ RUN apk add --no-cache curl make git libc-dev bash gcc linux-headers eudev-dev p
 # Install Delve
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
-# Build the application with debug information
-RUN go build -gcflags="all=-N -l" -o /app/main .
+# Build (with out optimize so it doesn't interfere with debugging but currently not working)
+# RUN CGO_ENABLED=0 go build -gcflags="all=-N -l" -o /app/go-debugger .
+
+# Build
+RUN make build
 
 # Use a small base image
 FROM alpine:3.16.1
@@ -24,7 +27,7 @@ FROM alpine:3.16.1
 RUN apk add --no-cache curl jq bash vim
 
 # Copy the compiled binary from the builder
-COPY --from=go-builder /app/main /usr/local/bin/main
+COPY --from=go-builder /app/build/dymd /usr/local/bin/
 
 # Copy Delve from the builder
 COPY --from=go-builder /go/bin/dlv /usr/local/bin/dlv
@@ -32,23 +35,19 @@ COPY --from=go-builder /go/bin/dlv /usr/local/bin/dlv
 # Set working directory
 WORKDIR /app
 
-# Copy scripts if any
+# Copy scripts
 COPY scripts/* ./scripts/
 
 # Make scripts executable
 RUN chmod +x ./scripts/*.sh
 
 # Expose ports (application port, Delve port)
-EXPOSE 26656 26657 1317 9090 40000
-
-RUN CGO_ENABLED=0 go install -ldflags "-s -w -extldflags '-static'" github.com/go-delve/delve/cmd/dlv@latest
-RUN CGO_ENABLED=0 go build -gcflags "all=-N -l" -o go-debugger .
+EXPOSE 26656 26657 1317 9090 4000
 
 # Run the application under Delve debugger
 # The `--continue` flag automatically starts the program
 # The `--accept-multiclient` allows multiple clients to connect to the Delve server (useful for restarting the debugger without stopping the Delve server)
 # The `--api-version=2` specifies the Delve API version to use
 # The `--headless` flag runs Delve in headless mode, enabling it to be used remotely
-# The `--listen=:40000` tells Delve to listen on port 40000 for connections from the debugger client
-# Replace `/usr/local/bin/main` with the actual path to your application binary if necessary
-CMD ["/usr/local/bin/dlv", "--continue", "--accept-multiclient", "--api-version=2", "--headless", "--listen=:40000", "exec", "/usr/local/bin/main"]
+# The `--listen=:4000` tells Delve to listen on port 4000 for connections from the debugger client
+CMD ["/usr/local/bin/dlv", "--continue", "--accept-multiclient", "--api-version=2", "--headless", "--listen=:4000", "exec", "/usr/local/bin/dymd"]
