@@ -27,7 +27,7 @@ func init() {
 }
 
 // NewCreateMetadataProposal creates a new create denommetadata proposal.
-func NewCreateMetadataProposal(title, description string, denommetadata types.Metadata) *CreateDenomMetadataProposal {
+func NewCreateMetadataProposal(title, description string, denommetadata []types.Metadata) *CreateDenomMetadataProposal {
 	return &CreateDenomMetadataProposal{
 		Title:         title,
 		Description:   description,
@@ -54,9 +54,11 @@ func (csp *CreateDenomMetadataProposal) ValidateBasic() error {
 		return err
 	}
 
-	err = csp.TokenMetadata.Validate()
-	if err != nil {
-		return err
+	for _, metadata := range csp.TokenMetadata {
+		err = metadata.Validate()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -73,7 +75,7 @@ func (csp CreateDenomMetadataProposal) String() string {
 }
 
 // NewUpdateDenomMetadataProposal creates a new proposal for updating existing token metadata.
-func NewUpdateDenomMetadataProposal(title, description string, denommetadata types.Metadata) *UpdateDenomMetadataProposal {
+func NewUpdateDenomMetadataProposal(title, description string, denommetadata []types.Metadata) *UpdateDenomMetadataProposal {
 	return &UpdateDenomMetadataProposal{
 		Title:         title,
 		Description:   description,
@@ -99,9 +101,11 @@ func (csp *UpdateDenomMetadataProposal) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-	err = csp.TokenMetadata.Validate()
-	if err != nil {
-		return err
+	for _, metadata := range csp.TokenMetadata {
+		err = metadata.Validate()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

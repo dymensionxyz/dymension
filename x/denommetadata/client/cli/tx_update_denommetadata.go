@@ -1,18 +1,14 @@
 package cli
 
 import (
-	"encoding/json"
-	"os"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
@@ -36,24 +32,20 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 
 			path := args[0]
 
-			//nolint:gosec
-			fileContent, err := os.ReadFile(path)
+			var metadatas []banktypes.Metadata
+			metadatas, err = utils.ParseJsonFromFile[banktypes.Metadata](path)
 			if err != nil {
 				return err
 			}
 
-			metadata := banktypes.Metadata{}
-			err = json.Unmarshal([]byte(fileContent), &metadata)
-			if err != nil {
-				return err
+			for _, metadata := range metadatas {
+				err = metadata.Validate()
+				if err != nil {
+					return err
+				}
 			}
 
-			err = metadata.Validate()
-			if err != nil {
-				return err
-			}
-
-			content := types.NewUpdateDenomMetadataProposal(proposal.Title, proposal.Description, metadata)
+			content := types.NewUpdateDenomMetadataProposal(proposal.Title, proposal.Description, metadatas)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err
