@@ -126,12 +126,8 @@ func (im IBCMiddleware) OnRecvPacket(
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
-	fmt.Println("validation on OnRecvPacket")
-
-	fmt.Println(packet.GetSourcePort(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSourceChannel())
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
-		fmt.Println("Failed to validate rollappID ", rollappID)
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -196,9 +192,8 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
 		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	fmt.Println("validation on OnAcknowledgementPacket")
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
+	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
@@ -262,12 +257,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
 	}
+	logger.Error("validation on OnTimeoutPacket")
 
 	if rollappID == "" {
 		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain")
 		return im.app.OnTimeoutPacket(ctx, packet, relayer)
 	}
-	fmt.Println("validation on timeout")
+
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)

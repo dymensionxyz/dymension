@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -208,27 +207,21 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 	//previousRollappStateHeight := stateInfo.StartHeight - 1
 	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
 	if err != nil {
-		fmt.Println("error consensus state", err)
+		k.Logger(ctx).Error("error consensus state", err)
 		return err
 	}
-	fmt.Println("consensus found ", tmConsensusState.NextValidatorsHash)
 
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
 		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollapp %s", stateInfo.Sequencer, rollapp)
 	}
-	fmt.Println("sequencer found ", sequencer.SequencerAddress)
 
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("sequencer pubkeyhash obtained ", hex.EncodeToString(seqPubKeyHash))
-	fmt.Println(tmConsensusState.NextValidatorsHash.String(), hex.EncodeToString(seqPubKeyHash))
-
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
-		fmt.Println("hash not matching")
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollapp sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
 		return sdkerrors.Wrap(types.ErrMismatchedSequencer, errMsg)
@@ -249,17 +242,20 @@ func (k Keeper) GetConnectionEnd(ctx sdk.Context, portID string, channelID strin
 	return connectionEnd, nil
 }
 
-// getTmConsensusStateForChannelAndHeight returns the tendermint consensus state for the channel for specific height
+// getTmConsensusState returns the tendermint consensus state for the channel for specific height
 func (k Keeper) getTmConsensusState(ctx sdk.Context, portID string, channelID string) (*tenderminttypes.ConsensusState, error) {
 	// Get the client state for the channel for specific height
 	connectionEnd, err := k.GetConnectionEnd(ctx, portID, channelID)
 	if err != nil {
 		return &tenderminttypes.ConsensusState{}, err
 	}
+	k.Logger(ctx).Error("connectionEnd", "id", connectionEnd)
 	clientState, err := k.GetClientState(ctx, portID, channelID)
 	if err != nil {
 		return &tenderminttypes.ConsensusState{}, err
 	}
+	k.Logger(ctx).Error("clientState", "id", clientState)
+
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.GetClientID(), clientState.GetLatestHeight())
 	if !found {
 		return nil, clienttypes.ErrConsensusStateNotFound
