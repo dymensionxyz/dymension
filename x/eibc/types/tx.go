@@ -6,11 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const (
-	// This legth is because we use sha256 to hash the order id
-	maxLengthOfOrderID = 64
-)
-
 const TypeMsgFulfillOrder = "fulfill_order"
 
 var _ = sdk.Msg(&MsgFulfillOrder{})
