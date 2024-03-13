@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -42,7 +44,7 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (m *MsgFulfillOrder) ValidateBasic() error {
-	if m.OrderId == "" || len(m.OrderId) > maxLengthOfOrderID {
+	if !m.isValidOrderId(m.OrderId) {
 		return ErrInvalidOrderID
 	}
 	_, err := sdk.AccAddressFromBech32(m.FulfillerAddress)
@@ -50,6 +52,16 @@ func (m *MsgFulfillOrder) ValidateBasic() error {
 		return err
 	}
 	return nil
+}
+
+func (m *MsgFulfillOrder) isValidOrderId(orderId string) bool {
+	hashBytes, err := hex.DecodeString(orderId)
+	if err != nil {
+		// The string is not a valid hexadecimal string
+		return false
+	}
+	// SHA-256 hashes are 32 bytes long
+	return len(hashBytes) == 32
 }
 
 func (m *MsgFulfillOrder) Validate() error {
