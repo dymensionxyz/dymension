@@ -3,10 +3,12 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 // denommetadata Keeper
@@ -24,8 +26,31 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 	}
 }
 
-func (k *Keeper) GetBankKeeper() types.BankKeeper {
-	return k.bankKeeper
+func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
+	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	if found {
+		return types.ErrDenomAlreadyExists
+	}
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	err := k.hooks.AfterDenomMetadataCreation(ctx, metadata)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
+	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	if !found {
+		return types.ErrDenomDoesNotExist
+	}
+	k.bankKeeper.SetDenomMetaData(ctx, metadata)
+	err := k.hooks.AfterDenomMetadataUpdate(ctx, metadata)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

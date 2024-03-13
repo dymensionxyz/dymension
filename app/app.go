@@ -746,9 +746,6 @@ func New(
 		transferStack.(delayedackmodule.IBCMiddleware),
 	))
 
-	// register the denommetadata hooks
-	app.DenomMetadataKeeper.SetHooks(denommetadatamoduletypes.NewMultiRollappHooks())
-
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment

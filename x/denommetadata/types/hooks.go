@@ -17,7 +17,7 @@ var _ DenomMetadataHooks = MultiDenomMetadataHooks{}
 type MultiDenomMetadataHooks []DenomMetadataHooks
 
 // Creates hooks for the DenomMetadata Module.
-func NewMultiRollappHooks(hooks ...DenomMetadataHooks) MultiDenomMetadataHooks {
+func NewMultiDenomMetadataHooks(hooks ...DenomMetadataHooks) MultiDenomMetadataHooks {
 	return hooks
 }
 

@@ -25,13 +25,7 @@ func NewDenomMetadataProposalHandler(k *keeper.Keeper) govtypes.Handler {
 func HandleCreateDenomMetadataProposal(ctx sdk.Context, k *keeper.Keeper, p *types.CreateDenomMetadataProposal) error {
 
 	for _, metadata := range p.TokenMetadata {
-		found := k.GetBankKeeper().HasDenomMetaData(ctx, metadata.Base)
-		if found {
-			return types.ErrDenomAlreadyExists
-		}
-
-		k.GetBankKeeper().SetDenomMetaData(ctx, metadata)
-		err := k.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
+		err := k.CreateDenomMetadata(ctx, metadata)
 		if err != nil {
 			return err
 		}
@@ -43,13 +37,7 @@ func HandleCreateDenomMetadataProposal(ctx sdk.Context, k *keeper.Keeper, p *typ
 func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k *keeper.Keeper, p *types.UpdateDenomMetadataProposal) error {
 
 	for _, metadata := range p.TokenMetadata {
-		found := k.GetBankKeeper().HasDenomMetaData(ctx, metadata.Base)
-		if !found {
-			return types.ErrDenomDoesNotExist
-		}
-
-		k.GetBankKeeper().SetDenomMetaData(ctx, metadata)
-		err := k.GetHooks().AfterDenomMetadataUpdate(ctx, metadata)
+		err := k.UpdateDenomMetadata(ctx, metadata)
 		if err != nil {
 			return err
 		}
