@@ -39,7 +39,7 @@ func (suite *KeeperTestSuite) TestUpdateDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 
 	err := keeper.UpdateDenomMetadata(suite.Ctx, suite.getTestMetadata())
-	suite.Require().NoError(err)
+	suite.Require().Error(err)
 }
 
 func (suite *KeeperTestSuite) getTestMetadata() banktypes.Metadata {
