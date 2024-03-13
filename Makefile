@@ -86,6 +86,9 @@ install: go.sum
 build: go.sum
 	go build $(BUILD_FLAGS) -o build/dymd ./cmd/dymd
 
+build-debug: go.sum
+	go build $(BUILD_FLAGS) -gcflags="all=-N -l" -o build/dymd ./cmd/dymd
+
 docker-build-e2e:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
 
