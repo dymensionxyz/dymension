@@ -7,21 +7,21 @@ import (
 
 // DenomMetadataHooks event hooks for denom metadata creation/update
 type DenomMetadataHooks interface {
-	AfterDenomMetadataCreation(ctx sdk.Context, metadata *banktypes.Metadata) error
-	AfterDenomMetadataUpdate(ctx sdk.Context, metadata *banktypes.Metadata) error
+	AfterDenomMetadataCreation(ctx sdk.Context, metadata banktypes.Metadata) error
+	AfterDenomMetadataUpdate(ctx sdk.Context, metadata banktypes.Metadata) error
 }
 
 var _ DenomMetadataHooks = MultiDenomMetadataHooks{}
 
-// combine multiple rollapp hooks, all hook functions are run in array sequence
+// combine multiple DenomMetadata hooks, all hook functions are run in array sequence
 type MultiDenomMetadataHooks []DenomMetadataHooks
 
-// Creates hooks for the Rollapp Module.
+// Creates hooks for the DenomMetadata Module.
 func NewMultiRollappHooks(hooks ...DenomMetadataHooks) MultiDenomMetadataHooks {
 	return hooks
 }
 
-func (h MultiDenomMetadataHooks) AfterDenomMetadataCreation(ctx sdk.Context, metadata *banktypes.Metadata) error {
+func (h MultiDenomMetadataHooks) AfterDenomMetadataCreation(ctx sdk.Context, metadata banktypes.Metadata) error {
 	for i := range h {
 		err := h[i].AfterDenomMetadataCreation(ctx, metadata)
 		if err != nil {
@@ -31,7 +31,7 @@ func (h MultiDenomMetadataHooks) AfterDenomMetadataCreation(ctx sdk.Context, met
 	return nil
 }
 
-func (h MultiDenomMetadataHooks) AfterDenomMetadataUpdate(ctx sdk.Context, metadata *banktypes.Metadata) error {
+func (h MultiDenomMetadataHooks) AfterDenomMetadataUpdate(ctx sdk.Context, metadata banktypes.Metadata) error {
 	for i := range h {
 		err := h[i].AfterDenomMetadataUpdate(ctx, metadata)
 		if err != nil {

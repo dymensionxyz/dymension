@@ -31,7 +31,10 @@ func HandleCreateDenomMetadataProposal(ctx sdk.Context, k *keeper.Keeper, p *typ
 		}
 
 		k.GetBankKeeper().SetDenomMetaData(ctx, metadata)
-		k.GetHooks().AfterDenomMetadataCreation(ctx, &metadata)
+		err := k.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
+		if err != nil {
+			k.Logger(ctx).Error("Error with AfterDenomMetadataCreation hook")
+		}
 	}
 	return nil
 }
@@ -46,8 +49,10 @@ func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k *keeper.Keeper, p *typ
 		}
 
 		k.GetBankKeeper().SetDenomMetaData(ctx, metadata)
-		k.GetHooks().AfterDenomMetadataUpdate(ctx, &metadata)
-
+		err := k.GetHooks().AfterDenomMetadataUpdate(ctx, metadata)
+		if err != nil {
+			k.Logger(ctx).Error("Error with AfterDenomMetadataUpdate hook")
+		}
 	}
 	return nil
 }
