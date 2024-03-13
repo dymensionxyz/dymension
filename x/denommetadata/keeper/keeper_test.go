@@ -30,15 +30,16 @@ func (suite *KeeperTestSuite) SetupTest() {
 func (suite *KeeperTestSuite) TestCreateDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 
-	keeper.CreateDenomMetadata(suite.Ctx, suite.getTestMetadata())
+	err := keeper.CreateDenomMetadata(suite.Ctx, suite.getTestMetadata())
+	suite.Require().NoError(err)
 
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 
-	keeper.UpdateDenomMetadata(suite.Ctx, suite.getTestMetadata())
-
+	err := keeper.UpdateDenomMetadata(suite.Ctx, suite.getTestMetadata())
+	suite.Require().NoError(err)
 }
 
 func (suite *KeeperTestSuite) getTestMetadata() banktypes.Metadata {
