@@ -89,6 +89,9 @@ build: go.sum
 docker-build-e2e:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
 
+docker-build-e2e-debug:
+  @DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
+
 ###############################################################################
 ###                                Proto                                    ###
 ###############################################################################
