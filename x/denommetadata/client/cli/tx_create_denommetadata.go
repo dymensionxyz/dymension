@@ -1,9 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
-	"os"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
@@ -35,24 +32,20 @@ func NewCmdSubmitCreateDenomMetadataProposal() *cobra.Command {
 
 			path := args[0]
 
-			//nolint:gosec
-			fileContent, err := os.ReadFile(path)
+			var metadatas []banktypes.Metadata
+			metadatas, err = utils.ParseJsonFromFile[banktypes.Metadata](path)
 			if err != nil {
 				return err
 			}
 
-			metadata := banktypes.Metadata{}
-			err = json.Unmarshal([]byte(fileContent), &metadata)
-			if err != nil {
-				return err
+			for _, metadata := range metadatas {
+				err = metadata.Validate()
+				if err != nil {
+					return err
+				}
 			}
 
-			err = metadata.Validate()
-			if err != nil {
-				return err
-			}
-
-			content := types.NewCreateMetadataProposal(proposal.Title, proposal.Description, metadata)
+			content := types.NewCreateMetadataProposal(proposal.Title, proposal.Description, metadatas)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())
 			if err != nil {
 				return err

@@ -12,7 +12,7 @@ message CreateDenomMetadataProposal {
   option (gogoproto.goproto_stringer) = false;
   string title = 1;
   string description = 2;
-  cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
+  repeated cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
   }
 
 message UpdateDenomMetadataProposal {
@@ -20,5 +20,5 @@ message UpdateDenomMetadataProposal {
   option (gogoproto.goproto_stringer) = false;
   string title = 1;
   string description = 2;
-  cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
+  repeated cosmos.bank.v1beta1.Metadata tokenMetadata = 3[ (gogoproto.nullable) = false ];
   }

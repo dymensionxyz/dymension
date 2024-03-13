@@ -23,23 +23,27 @@ func NewDenomMetadataProposalHandler(k types.BankKeeper) govtypes.Handler {
 // HandleCreateDenomMetadataProposal is a handler for executing a passed denom metadata creation proposal
 func HandleCreateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *types.CreateDenomMetadataProposal) error {
 
-	found := k.HasDenomMetaData(ctx, p.TokenMetadata.Base)
-	if found {
-		return types.ErrDenomAlreadyExists
-	}
+	for _, metadata := range p.TokenMetadata {
+		found := k.HasDenomMetaData(ctx, metadata.Base)
+		if found {
+			return types.ErrDenomAlreadyExists
+		}
 
-	k.SetDenomMetaData(ctx, p.TokenMetadata)
+		k.SetDenomMetaData(ctx, metadata)
+	}
 	return nil
 }
 
 // HandleUpdateDenomMetadataProposal is a handler for executing a passed denom metadata update proposal
 func HandleUpdateDenomMetadataProposal(ctx sdk.Context, k types.BankKeeper, p *types.UpdateDenomMetadataProposal) error {
 
-	found := k.HasDenomMetaData(ctx, p.TokenMetadata.Base)
-	if !found {
-		return types.ErrDenomDoesNotExist
-	}
+	for _, metadata := range p.TokenMetadata {
+		found := k.HasDenomMetaData(ctx, metadata.Base)
+		if !found {
+			return types.ErrDenomDoesNotExist
+		}
 
-	k.SetDenomMetaData(ctx, p.TokenMetadata)
+		k.SetDenomMetaData(ctx, metadata)
+	}
 	return nil
 }

@@ -334,7 +334,7 @@ type MsgRollappGenesisEvent struct {
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
 	// channel_id is the rollapp channel id on the hub
 	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	// rollapp_id is the rollapp id we want to mint tokens for on the hub.
+	// rollapp_id is the rollapp id we want to mint tokens on the hub.
 	// Used for validation against channel_id to reduce error surface.
 	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
 }
