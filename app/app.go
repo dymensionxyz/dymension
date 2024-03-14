@@ -671,7 +671,7 @@ func New(
 
 	app.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-		// insert hooks here
+			denommetadatamodulekeeper.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
 		),
 	)
 
