@@ -147,6 +147,7 @@ import (
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
 	"github.com/evmos/ethermint/x/evm"
+	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
@@ -208,6 +209,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		rollappmoduleclient.SubmitFraudHandler,
 		denommetadatamoduleclient.CreateDenomMetadataHandler,
 		denommetadatamoduleclient.UpdateDenomMetadataHandler,
+		evmclient.UpdateVirtualFrontierBankContractProposalHandler,
 	)
 
 	return govProposalHandlers
@@ -275,11 +277,12 @@ var (
 		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
-		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		gammtypes.ModuleName:       {authtypes.Minter, authtypes.Burner},
-		lockuptypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
-		incentivestypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-		txfeestypes.ModuleName:     {authtypes.Burner},
+		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		evmtypes.ModuleVirtualFrontierContractDeployerName: nil, // used for deploying virtual frontier bank contract
+		gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
+		lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
+		incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
+		txfeestypes.ModuleName:                             {authtypes.Burner},
 	}
 )
 
@@ -692,7 +695,8 @@ func New(
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
-		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper))
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(app.EvmKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
