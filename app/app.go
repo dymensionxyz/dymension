@@ -359,7 +359,7 @@ type App struct {
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper    delayedackkeeper.Keeper
-	DenomMetadataKeeper denommetadatamodulekeeper.Keeper
+	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 	// the module manager
 	mm *module.Manager
 
@@ -627,7 +627,7 @@ func New(
 		app.BankKeeper,
 	)
 
-	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
+	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		app.BankKeeper,
 	)
 
@@ -648,6 +648,7 @@ func New(
 		// insert incentive hooks receivers here
 		),
 	)
+
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
@@ -668,11 +669,17 @@ func New(
 		app.DelayedAckKeeper.GetEIBCHooks(),
 	))
 
+	app.DenomMetadataKeeper.SetHooks(
+		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
+		// insert hooks here
+		),
+	)
+
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-	denomMetadataModule := denommetadatamodule.NewAppModule(&app.DenomMetadataKeeper)
+	denomMetadataModule := denommetadatamodule.NewAppModule(app.DenomMetadataKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -685,7 +692,7 @@ func New(
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
-		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(&app.DenomMetadataKeeper))
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -786,7 +793,7 @@ func New(
 		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
-		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
+		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
 		feemarket.NewAppModule(app.FeeMarketKeeper, app.GetSubspace(feemarkettypes.ModuleName).WithKeyTable(feemarkettypes.ParamKeyTable())),
 
 		// osmosis modules
