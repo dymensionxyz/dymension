@@ -125,6 +125,7 @@ import (
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
+	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -357,8 +358,8 @@ type App struct {
 	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper delayedackkeeper.Keeper
-
+	DelayedAckKeeper    delayedackkeeper.Keeper
+	DenomMetadataKeeper denommetadatamodulekeeper.Keeper
 	// the module manager
 	mm *module.Manager
 
@@ -626,6 +627,10 @@ func New(
 		app.BankKeeper,
 	)
 
+	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
+		app.BankKeeper,
+	)
+
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
 	/* -------------------------------- set hooks ------------------------------- */
@@ -667,7 +672,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-	denomMetadataModule := denommetadatamodule.NewAppModule(app.BankKeeper)
+	denomMetadataModule := denommetadatamodule.NewAppModule(&app.DenomMetadataKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -680,7 +685,7 @@ func New(
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
-		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.BankKeeper))
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(&app.DenomMetadataKeeper))
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
