@@ -3,6 +3,8 @@ package denommetadata
 import (
 	"encoding/json"
 	"fmt"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -88,15 +90,22 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
-	keeper *keeper.Keeper
+	keeper     *keeper.Keeper
+	evmKeeper  evmkeeper.Keeper
+	bankKeeper bankkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule struct.
-func NewAppModule(keeper *keeper.Keeper,
+func NewAppModule(
+	keeper *keeper.Keeper,
+	evmKeeper evmkeeper.Keeper,
+	bankKeeper bankkeeper.Keeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
+		evmKeeper:      evmKeeper,
+		bankKeeper:     bankKeeper,
 	}
 }
 
@@ -131,8 +140,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
-
-	return []abci.ValidatorUpdate{}
+	return DeployVFBCForNativeCoin(ctx, am.evmKeeper, am.bankKeeper)
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.

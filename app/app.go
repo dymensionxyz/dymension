@@ -682,7 +682,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-	denomMetadataModule := denommetadatamodule.NewAppModule(app.DenomMetadataKeeper)
+	denomMetadataModule := denommetadatamodule.NewAppModule(app.DenomMetadataKeeper, *app.EvmKeeper, app.BankKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
