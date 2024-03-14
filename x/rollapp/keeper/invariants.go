@@ -38,6 +38,8 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
+// RollappByEIP155KeyInvariant checks that assuming rollapp id is registered with eip155 chain id
+// then it should be retrievable by eip155 key
 func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
@@ -74,6 +76,7 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
+// BlockHeightToFinalizationQueueInvariant checks that all unfinalized states are in the finalization queue
 func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
@@ -99,8 +102,6 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					continue
 				}
 				creationHeight := stateInfo.CreationHeight
-				//finalizationTime := creationHeight + k.DisputePeriodInBlocks(ctx)
-
 				val, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 				if !found {
 					msg += fmt.Sprintf("finalizationQueue (%d) have no block height\n", creationHeight)

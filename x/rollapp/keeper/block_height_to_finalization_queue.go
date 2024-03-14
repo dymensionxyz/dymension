@@ -1,71 +1,57 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // Called every block to finalize states that their dispute period over.
-func (k Keeper) FinalizeQueue(ctx sdk.Context) {
-
+func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
-		return
+		return nil
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
-
+	// Iterate over all the pending finalization queue
+	var err error
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
-
 		// finalize pending states
-		var failedToFinalizeQueue []types.StateInfoIndex
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 			if !found || stateInfo.Status != common.Status_PENDING {
-				ctx.Logger().Error("Missing stateInfo data when trying to finalize or alreay finalized", "rollappID", stateInfoIndex.RollappId, "height", ctx.BlockHeight(), "index", stateInfoIndex.Index)
-				continue
+				// Invariant breaking
+				return fmt.Errorf("failed to find state for finalization: rollappId %s, index %d, found %t, status %s",
+					stateInfoIndex.RollappId, stateInfoIndex.Index, found, stateInfo.Status)
 			}
-
-			wrappedFunc := func(ctx sdk.Context) error {
-				stateInfo.Finalize()
-				// update the status of the stateInfo
-				k.SetStateInfo(ctx, stateInfo)
-				// uppdate the LatestStateInfoIndex of the rollapp
-				k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-				// call the after-update-state hook
-				keeperHooks := k.GetHooks()
-				err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
-				if err != nil {
-					ctx.Logger().Error("Error after state finalized", "rollappID", stateInfoIndex.RollappId, "error", err.Error())
-					return err
-				}
-				// emit event
-				ctx.EventManager().EmitEvent(
-					sdk.NewEvent(types.EventTypeStateUpdate,
-						stateInfo.GetEvents()...,
-					),
-				)
-				return nil
-			}
-			err := osmoutils.ApplyFuncIfNoError(ctx, wrappedFunc)
+			stateInfo.Finalize()
+			// update the status of the stateInfo
+			k.SetStateInfo(ctx, stateInfo)
+			// uppdate the LatestStateInfoIndex of the rollapp
+			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+			// call the after-update-state hook
+			keeperHooks := k.GetHooks()
+			err = keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 			if err != nil {
-				ctx.Logger().Error("Error finalizing state", "height", blockHeightToFinalizationQueue.CreationHeight, "rollappId", stateInfo.StateInfoIndex.RollappId)
-				failedToFinalizeQueue = append(failedToFinalizeQueue, stateInfoIndex)
+				// Failed to call finalization dependent event like ibc packet finalization, invariant breaking. can't proceed
+				return fmt.Errorf("error calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
+					stateInfoIndex.RollappId, stateInfo, err.Error())
 			}
-
+			// emit event
+			// TODO: Create an update state keeper method and move this to be called from there
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(types.EventTypeStateUpdate,
+					stateInfo.GetEvents()...,
+				),
+			)
 		}
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
-		if len(failedToFinalizeQueue) > 0 {
-			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
-				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
-				FinalizationQueue: failedToFinalizeQueue}
-
-			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
-		}
 	}
+	return nil
 }
 
 // SetBlockHeightToFinalizationQueue set a specific blockHeightToFinalizationQueue in the store from its index
