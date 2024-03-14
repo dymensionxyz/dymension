@@ -2,7 +2,7 @@ version: "3.4"
 
 services:
   dymension:
-    image: dymension
+    image: dymension-debug
     build:
       context: .
       dockerfile: ./Dockerfile.debug
@@ -15,4 +15,4 @@ services:
       - 9545:9545
       - 9546:9546
       - 4000:4000
-    command: sh ./scripts/start_localnode.sh
+    command: sh ./scripts/start_node_debug.sh

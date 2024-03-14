@@ -52,10 +52,3 @@ ENV MONIKER_NAME=local
 # Expose ports (application port, Delve port)
 EXPOSE 36657 36656 8090 8091 1318 9545 9546 4000
 
-# Run the application under Delve debugger
-# The `--continue` flag automatically starts the program
-# The `--accept-multiclient` allows multiple clients to connect to the Delve server (useful for restarting the debugger without stopping the Delve server)
-# The `--api-version=2` specifies the Delve API version to use
-# The `--headless` flag runs Delve in headless mode, enabling it to be used remotely
-# The `--listen=:4000` tells Delve to listen on port 4000 for connections from the debugger client
-CMD ["/usr/local/bin/dlv", "--continue", "--accept-multiclient", "--api-version=2", "--headless", "--listen=:4000", "exec", "/usr/local/bin/dymd"]
