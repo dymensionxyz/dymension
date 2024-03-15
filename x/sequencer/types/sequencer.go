@@ -18,10 +18,9 @@ func (seq Sequencer) IsProposer() bool {
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer
-// as expected to written on the rollapp ibc client headers
+// as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	// load the dymint pubkey into a cryptotypes.PubKey
-
 	interfaceRegistry := cdctypes.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	protoCodec := codec.NewProtoCodec(interfaceRegistry)

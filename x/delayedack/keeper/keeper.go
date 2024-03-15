@@ -186,7 +186,6 @@ func (k *Keeper) GetAppVersion(
 func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
 	return k.channelKeeper.LookupModuleByChannel(ctx, portID, channelID)
 }
-
 func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID string) error {
 
 	// Get the rollapp state latest height and compare it to the client state height.
@@ -203,8 +202,9 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 	}
 
 	// Compare the validators set hash of the consensus state to the sequencer hash.
-	// We take the previous height as we compare it against the next validator hash of previous block.
-	//previousRollappStateHeight := stateInfo.StartHeight - 1
+	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
+	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
+	// If the sequencer is changed, then the validation will faill till the new sequencer sends a new state info update.
 	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
 	if err != nil {
 		k.Logger(ctx).Error("error consensus state", err)
