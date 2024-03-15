@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -13,6 +14,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "rollapp-count", RollappCountInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "block-height-to-finalization-queue", BlockHeightToFinalizationQueueInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-by-eip155-key", RollappByEIP155KeyInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-state", RollappFinalizedStateInvariant(k))
 }
 
 // AllInvariants runs all invariants of the X/bank module.
@@ -31,6 +33,10 @@ func AllInvariants(k Keeper) sdk.Invariant {
 			return res, stop
 		}
 		res, stop = RollappByEIP155KeyInvariant(k)(ctx)
+		if stop {
+			return res, stop
+		}
+		res, stop = RollappFinalizedStateInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -185,6 +191,7 @@ func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
 			if !found {
 				msg += fmt.Sprintf("rollapp (%s) have no latestStateIdx\n", rollapp.RollappId)
 				broken = true
+				break
 			}
 
 			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
@@ -198,6 +205,48 @@ func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-state-index",
+			msg,
+		), broken
+	}
+}
+
+// RollappFinalizedStateInvariant checks that all the states until latest finalized state are finalized
+func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    string
+		)
+
+		rollapps := k.GetAllRollapps(ctx)
+		for _, rollapp := range rollapps {
+			// If the rollapp is not started, we don't need to check
+			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
+				continue
+			}
+
+			// If we didn't finalize any state yet, we don't need to check
+			latestFinalizedStateIdx, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+			if !found {
+				continue
+			}
+
+			for i := uint64(1); i <= latestFinalizedStateIdx.Index; i++ {
+				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
+				if !found {
+					msg += fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i)
+					broken = true
+				}
+
+				if stateInfo.Status != commontypes.Status_FINALIZED {
+					msg += fmt.Sprintf("rollapp (%s) have stateInfo at index %d not finalized\n", rollapp.RollappId, i)
+					broken = true
+				}
+			}
+		}
+
+		return sdk.FormatInvariant(
+			types.ModuleName, "rollapp-finalized-state",
 			msg,
 		), broken
 	}
