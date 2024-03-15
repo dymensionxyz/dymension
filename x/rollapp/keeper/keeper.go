@@ -22,6 +22,7 @@ type (
 		paramstore paramtypes.Subspace
 
 		ibcclientKeeper types.IBCClientKeeper
+		transferKeeper  types.TransferKeeper
 		channelKeeper   types.ChannelKeeper
 		bankKeeper      types.BankKeeper
 	}
@@ -33,6 +34,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	ibcclientKeeper types.IBCClientKeeper,
+	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
 ) *Keeper {
@@ -48,6 +50,7 @@ func NewKeeper(
 		paramstore:      ps,
 		hooks:           nil,
 		ibcclientKeeper: ibcclientKeeper,
+		transferKeeper:  transferKeeper,
 		channelKeeper:   channelKeeper,
 		bankKeeper:      bankKeeper,
 	}
@@ -77,8 +80,16 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 
 func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, accounts []types.GenesisAccount, channelId string) error {
 	for _, acc := range accounts {
-		ibcDenom := utils.GetForeginIBCDenom(channelId, acc.Amount.Denom)
+		denomTrace := utils.GetForeignDenomTrace(channelId, acc.Amount.Denom)
+		traceHash := denomTrace.Hash()
+		// if the denom trace does not exist, add it
+		if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
+			k.transferKeeper.SetDenomTrace(ctx, denomTrace)
+		}
+
+		ibcDenom := denomTrace.IBCDenom()
 		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcDenom, acc.Amount.Amount))
+
 		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
 			return err
 		}

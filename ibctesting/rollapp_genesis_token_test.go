@@ -170,16 +170,14 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 			// Send the genesis event
 			_, err := suite.msgServer.TriggerGenesisEvent(suite.ctx, tc.msg)
 			suite.hubChain.NextBlock()
-			if tc.expErr != nil {
-				suite.Require().ErrorIs(err, tc.expErr)
-			}
+			suite.Require().ErrorIs(err, tc.expErr)
 			// Validate no tokens are in the module account
 			accountKeeper := ConvertToApp(suite.hubChain).AccountKeeper
 			bankKeeper := ConvertToApp(suite.hubChain).BankKeeper
 			moduleAcc := accountKeeper.GetModuleAccount(suite.ctx, types.ModuleName)
 			suite.Require().Equal(sdk.NewCoins(), bankKeeper.GetAllBalances(suite.ctx, moduleAcc.GetAddress()))
 			// Validate the genesis accounts balances
-			rollappIBCDenom := utils.GetForeginIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
+			rollappIBCDenom := utils.GetForeignIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
 			for _, roallppGenesisAccount := range tc.gensisState.GenesisAccounts {
 				balance := bankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(roallppGenesisAccount.Address), rollappIBCDenom)
 				if tc.expErr != nil {

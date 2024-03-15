@@ -8,13 +8,14 @@ const (
 	ibcPort = "transfer"
 )
 
-func GetForeginIBCDenom(channelId string, denom string) string {
+func GetForeignIBCDenom(channelId string, denom string) string {
+	return GetForeignDenomTrace(channelId, denom).IBCDenom()
+}
+
+func GetForeignDenomTrace(channelId string, denom string) transfertypes.DenomTrace {
 	sourcePrefix := transfertypes.GetDenomPrefix(ibcPort, channelId)
 	// NOTE: sourcePrefix contains the trailing "/"
 	prefixedDenom := sourcePrefix + denom
 	// construct the denomination trace from the full raw denomination
-	denomTrace := transfertypes.ParseDenomTrace(prefixedDenom)
-	ibcDenom := denomTrace.IBCDenom()
-
-	return ibcDenom
+	return transfertypes.ParseDenomTrace(prefixedDenom)
 }
