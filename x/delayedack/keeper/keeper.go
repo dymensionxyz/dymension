@@ -186,12 +186,13 @@ func (k *Keeper) GetAppVersion(
 func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {
 	return k.channelKeeper.LookupModuleByChannel(ctx, portID, channelID)
 }
+
+// VallidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
 func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID string) error {
 
-	// Get the rollapp state latest height and compare it to the client state height.
+	// Get the sequencer from the latest state info update and check the validator set hash
+	// from the headers match with the sequencer for the rollapp
 	// As the assumption the sequencer is honest we don't check the packet proof height.
-	// Another assumption here is that the clientstate height >= rollapp state height as
-	// the client state is updated directly while the rollapp state is updated every batch interval.
 	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollapp)
 	if !found {
 		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollapp: %s", rollapp)
@@ -211,16 +212,19 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 		return err
 	}
 
+	//Gets sequencer information from the sequencer address found in the latest state info
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
 		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollapp %s", stateInfo.Sequencer, rollapp)
 	}
 
+	//Gets the validator set hash made out of the pub key for the sequencer
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
 		return err
 	}
 
+	//It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollapp chain
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollapp sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
