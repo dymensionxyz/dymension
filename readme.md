@@ -116,7 +116,50 @@ To bootstrap the `GAMM` module with pools:
 sh scripts/pools/pools_bootstrap.sh
 ```
 
-## Debugging Dymension container with Devel
+## Adding incentives
+
+### Creating incentives streams
+
+After creating the pools above, we create 2 incentive streams through gov:
+
+```sh
+sh scripts/incentives/fund_incentives.sh
+```
+
+Wait for the gov proposal to pass, and validate with:
+
+```sh
+dymd q streamer streams
+```
+
+### Locking tokens
+
+To get incentives, we need to lock the LP tokens:
+
+```sh
+sh scripts/incentives/lockup_bootstrap.sh
+```
+
+validate with:
+
+```sh
+dymd q lockup module-balance
+```
+
+### check rewards
+
+Every minute a share of the rewards will be distributed!
+
+validate with:
+
+```sh
+dymd q incentives active-gauges
+
+# alternatively, watch the outpup - you will see the "amount" change every minute
+#  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
+```
+
+## Debugging Container
 
 Pre-requisite:
  Install [Docker](https://docs.docker.com/get-docker/)
@@ -168,47 +211,6 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 
 Open your browser and go to `http://localhost:1318/dymensionxyz/dymension/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
-## Adding incentives
+---
 
-### Creating incentives streams
-
-After creating the pools above, we create 2 incentive streams through gov:
-
-```sh
-sh scripts/incentives/fund_incentives.sh
-```
-
-Wait for the gov proposal to pass, and validate with:
-
-```sh
-dymd q streamer streams
-```
-
-### Locking tokens
-
-To get incentives, we need to lock the LP tokens:
-
-```sh
-sh scripts/incentives/lockup_bootstrap.sh
-```
-
-validate with:
-
-```sh
-dymd q lockup module-balance
-```
-
-### check rewards
-
-Every minute a share of the rewards will be distributed!
-
-validate with:
-
-```sh
-dymd q incentives active-gauges
-
-# alternatively, watch the outpup - you will see the "amount" change every minute
-#  watch -n1 -d "dymd q incentives active-gauges --output json | jq '.data[] | { "id": .id, "coins": .coins } '"
-```
-
-If you have any issues please contact us on [discord](http://discord.gg/dymension) in the Developer section. We are here for you!
+For support, join our [Discord](http://discord.gg/dymension) community and find us in the Developer section.
