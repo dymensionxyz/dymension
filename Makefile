@@ -82,12 +82,23 @@ all: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/dymd
 
-.PHONY: build
+.PHONY: build build-debug
+
 build: go.sum
-	go build $(BUILD_FLAGS) -o build/dymd ./cmd/dymd
+	go build $(BUILD_FLAGS) -o $(BUILDDIR)/dymd ./cmd/dymd
+
+build-debug: go.sum
+	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
+	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/dymd ./cmd/dymd
 
 docker-build-e2e:
 	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
+
+docker-build-e2e-debug:
+	@DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
+
+docker-run-debug:
+	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
 
 ###############################################################################
 ###                                Proto                                    ###

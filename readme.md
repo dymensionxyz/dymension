@@ -24,6 +24,7 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
   - [Bootstrapping liquidity pools](#bootstrapping-liquidity-pools)
+  - [Debugging Dymension container with Devel](#debugging-dymension-container-with-devel)
   - [Adding incentives](#adding-incentives)
     - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
@@ -114,6 +115,58 @@ To bootstrap the `GAMM` module with pools:
 ```sh
 sh scripts/pools/pools_bootstrap.sh
 ```
+
+## Debugging Dymension container with Devel
+
+Pre-requisite:
+ Install [Docker](https://docs.docker.com/get-docker/)
+ Install [VSCode](https://code.visualstudio.com/)
+ Install [VSCode Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go)
+ Install [Devel](https://github.com/go-delve/delve)
+
+To debug, you can use the the following command to run the debug container:
+
+```sh
+make docker-run-debug
+```
+
+Then you can run the debugger with the following config for `launch.json` in VSCode:
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Dymension Debug Container",
+            "type": "go",
+            "request": "attach",
+            "mode": "remote",
+            "port": 4000,
+            "host": "127.0.0.1",
+            "debugAdapter": "legacy" // To be remove in the future after https://github.com/golang/vscode-go/issues/3096 is fixed
+        }
+    ]
+}
+```
+
+After that, you can run the debugger and set breakpoints in the code.
+
+Example: 
+
+Add breakpoint to `ctx` in `x/eibc/keeper/grpc_query.go` :
+
+```go
+func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	return &types.QueryParamsResponse{Params: q.GetParams(ctx)}, nil
+}
+```
+
+Open your browser and go to `http://localhost:1318/dymensionxyz/dymension/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
 ## Adding incentives
 
