@@ -111,3 +111,6 @@ dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
 
+set_authorised_deployer_account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)"
+
+dymd validate-genesis

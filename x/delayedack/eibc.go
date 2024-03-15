@@ -156,7 +156,7 @@ func (im IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungibl
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		denom = utils.GetForeginIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
+		denom = utils.GetForeignIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
 	}
 	return denom
 }
