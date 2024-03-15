@@ -140,7 +140,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
-	return DeployVFBCForNativeCoin(ctx, am.evmKeeper, am.bankKeeper)
+	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the module's exported genesis state as raw JSON bytes.
