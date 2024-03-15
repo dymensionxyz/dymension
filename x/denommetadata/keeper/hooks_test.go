@@ -13,8 +13,8 @@ func (suite *KeeperTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 	denomAdym := createDenomMetadata("adym", "DYM", 18)
 	suite.Require().Nil(denomAdym.Validate(), "bad setup")
 
-	denomAphoton := createDenomMetadata("aphoton", "PHOTON", 18)
-	suite.Require().Nil(denomAphoton.Validate(), "bad setup")
+	denomWei := createDenomMetadata("wei", "ETH", 18)
+	suite.Require().Nil(denomWei.Validate(), "bad setup")
 
 	denomIbcAtom := createDenomMetadata("ibc/uatom", "ATOM", 6)
 	suite.Require().Nil(denomIbcAtom.Validate(), "bad setup")
@@ -22,7 +22,7 @@ func (suite *KeeperTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 	denomIbcOsmo := createDenomMetadata("ibc/uosmo", "OSMO", 6)
 	suite.Require().Nil(denomIbcOsmo.Validate(), "bad setup")
 	suite.App.BankKeeper.SetDenomMetaData(suite.Ctx, denomAdym)
-	suite.App.BankKeeper.SetDenomMetaData(suite.Ctx, denomAphoton)
+	suite.App.BankKeeper.SetDenomMetaData(suite.Ctx, denomWei)
 	suite.App.BankKeeper.SetDenomMetaData(suite.Ctx, denomIbcAtom)
 	suite.App.BankKeeper.SetDenomMetaData(suite.Ctx, denomIbcOsmo)
 
@@ -41,24 +41,24 @@ func (suite *KeeperTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 		{
 			name:          "Deploy for non-IBC",
 			denomMetadata: denomAdym,
-			wantNotFound:  []string{denomAdym.Base, denomAphoton.Base, denomIbcAtom.Base, denomIbcOsmo.Base},
+			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcAtom.Base, denomIbcOsmo.Base},
 		},
 		{
 			name:          "Only deploy the denom which passed into the hook (case non-IBC)",
-			denomMetadata: denomAphoton,
-			wantNotFound:  []string{denomAdym.Base, denomAphoton.Base, denomIbcAtom.Base, denomIbcOsmo.Base},
+			denomMetadata: denomWei,
+			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcAtom.Base, denomIbcOsmo.Base},
 		},
 		{
 			name:          "Only deploy the denom which passed into the hook (case IBC)",
 			denomMetadata: denomIbcAtom,
 			wantFound:     []string{denomIbcAtom.Base},
-			wantNotFound:  []string{denomAdym.Base, denomAphoton.Base, denomIbcOsmo.Base},
+			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcOsmo.Base},
 		},
 		{
 			name:          "Only deploy the denom which passed into the hook (case IBC)",
 			denomMetadata: denomIbcOsmo,
 			wantFound:     []string{denomIbcOsmo.Base},
-			wantNotFound:  []string{denomAdym.Base, denomAphoton.Base, denomIbcAtom.Base},
+			wantNotFound:  []string{denomAdym.Base, denomWei.Base, denomIbcAtom.Base},
 		},
 		{
 			name:          "Do not deploy the metadata which does not exists in bank",
