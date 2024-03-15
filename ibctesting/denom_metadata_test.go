@@ -36,7 +36,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 
 	//register rollapp with metadata for stake denom
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
-
+	suite.RegisterSequencer()
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(1, currentRollappBlockHeight)

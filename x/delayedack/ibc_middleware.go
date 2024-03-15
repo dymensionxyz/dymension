@@ -2,7 +2,6 @@ package delayedack
 
 import (
 	"errors"
-	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -44,7 +43,6 @@ func (im IBCMiddleware) OnChanOpenInit(
 	counterparty channeltypes.Counterparty,
 	version string,
 ) (string, error) {
-	fmt.Println("Openning channel ", portID, channelID, order)
 	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
 		chanCap, counterparty, version)
 }
