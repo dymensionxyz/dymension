@@ -40,6 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 #### Bug Fixes
 
 - (rollapp) [#471](https://github.com/dymensionxyz/dymension/issues/471) Validate rollapp token metadata
+- (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) apply a pfm patch
+
 ___
 
 All notable changes to this project will be documented in this file.
