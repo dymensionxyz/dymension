@@ -1,10 +1,9 @@
 package cli
 
 import (
+	"encoding/json"
 	"os"
 	"strconv"
-
-	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -83,7 +82,6 @@ func parseTokenMetadata(cdc codec.Codec, path string) ([]types.TokenMetadata, er
 	err = json.Unmarshal(contents, &metadata)
 	if err != nil {
 		return []types.TokenMetadata{}, err
-
 	}
 	return metadata, nil
 }

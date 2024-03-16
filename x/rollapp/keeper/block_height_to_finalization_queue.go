@@ -23,7 +23,6 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 				continue
 			}
 			wrappedFunc := func(ctx sdk.Context) error {
-
 				stateInfo.Finalize()
 				// update the status of the stateInfo
 				k.SetStateInfo(ctx, stateInfo)
@@ -55,7 +54,8 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 		if len(newFinalizationQueue) > 0 {
 			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
 				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
-				FinalizationQueue: newFinalizationQueue}
+				FinalizationQueue: newFinalizationQueue,
+			}
 
 			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
 		}
@@ -75,7 +75,6 @@ func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightTo
 func (k Keeper) GetBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
 	creationHeight uint64,
-
 ) (val types.BlockHeightToFinalizationQueue, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 
@@ -94,7 +93,6 @@ func (k Keeper) GetBlockHeightToFinalizationQueue(
 func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
 	creationHeight uint64,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	store.Delete(types.BlockHeightToFinalizationQueueKey(

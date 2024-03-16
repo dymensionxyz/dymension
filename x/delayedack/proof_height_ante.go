@@ -8,8 +8,7 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-type IBCProofHeightDecorator struct {
-}
+type IBCProofHeightDecorator struct{}
 
 func NewIBCProofHeightDecorator() IBCProofHeightDecorator {
 	return IBCProofHeightDecorator{}

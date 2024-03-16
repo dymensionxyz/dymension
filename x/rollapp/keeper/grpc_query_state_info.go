@@ -38,7 +38,6 @@ func (k Keeper) StateInfoAll(c context.Context, req *types.QueryAllStateInfoRequ
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

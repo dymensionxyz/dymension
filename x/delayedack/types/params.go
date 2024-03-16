@@ -7,10 +7,8 @@ import (
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
-var (
-	// KeyEpochIdentifier is the key for the epoch identifier
-	KeyEpochIdentifier = []byte("EpochIdentifier")
-)
+// KeyEpochIdentifier is the key for the epoch identifier
+var KeyEpochIdentifier = []byte("EpochIdentifier")
 
 const (
 	defaultEpochIdentifier = "hour"

@@ -90,7 +90,8 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, chainID string, 
 // calculates the demand order price, and creates a new demand order.
 // It returns the created demand order or an error if there is any.
 func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
-	rollappPacket *commontypes.RollappPacket, eibcMetaData types.EIBCMetadata) (*eibctypes.DemandOrder, error) {
+	rollappPacket *commontypes.RollappPacket, eibcMetaData types.EIBCMetadata,
+) (*eibctypes.DemandOrder, error) {
 	// Validate the fungible token packet data as we're going to use it to create the demand order
 	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
 		return nil, err

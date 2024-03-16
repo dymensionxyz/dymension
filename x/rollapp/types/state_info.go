@@ -7,7 +7,6 @@ import (
 )
 
 func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight uint64, numBlocks uint64, daPath string, version uint64, height uint64, BDs BlockDescriptors) *StateInfo {
-
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
 	status := STATE_STATUS_RECEIVED
 	return &StateInfo{
@@ -19,8 +18,8 @@ func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight
 		Version:        version,
 		CreationHeight: height,
 		Status:         status,
-		BDs:            BDs}
-
+		BDs:            BDs,
+	}
 }
 
 func (s *StateInfo) Finalize() {
@@ -32,7 +31,6 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 }
 
 func (s *StateInfo) GetEvents() []sdk.Attribute {
-
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),
 		sdk.NewAttribute(AttributeKeyStateInfoIndex, strconv.FormatUint(s.StateInfoIndex.Index, 10)),

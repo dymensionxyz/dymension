@@ -50,7 +50,6 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	eibcKeeper types.EIBCKeeper,
 	bankKeeper types.BankKeeper,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {

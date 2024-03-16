@@ -91,6 +91,5 @@ func SimulateMsgCreateSequencer(
 		}
 
 		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &creatorAccount, bk, ak, nil, bExpectedError)
-
 	}
 }

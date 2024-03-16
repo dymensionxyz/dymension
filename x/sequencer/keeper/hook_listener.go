@@ -55,7 +55,7 @@ func (hook rollapphook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 		return types.ErrUnknownSequencer
 	}
 
-	//skip slashing if the sequencer is already jailed
+	// skip slashing if the sequencer is already jailed
 	if sequencer.Jailed {
 		return nil
 	}

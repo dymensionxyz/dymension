@@ -18,7 +18,6 @@ func SimulateMsgUpdateState(
 ) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-
 		if len(simulation.GlobalSequencerAddressesList) == 0 {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgUpdateState, "No sequencers"), nil, nil
 		}
@@ -100,6 +99,5 @@ func SimulateMsgUpdateState(
 		// }
 
 		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &sequencer.Account, bk, ak, nil, bExpectedError)
-
 	}
 }

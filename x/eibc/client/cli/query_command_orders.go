@@ -23,7 +23,6 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 			res, err := queryClient.DemandOrdersByStatus(context.Background(), &types.QueryDemandOrdersByStatusRequest{
 				Status: status,
 			})
-
 			if err != nil {
 				return err
 			}

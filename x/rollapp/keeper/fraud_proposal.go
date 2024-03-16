@@ -24,7 +24,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
-	//TODO: mark the rollapp as frozen (if immutable) or mark the fraud height to allow overwriting
+	// TODO: mark the rollapp as frozen (if immutable) or mark the fraud height to allow overwriting
 
 	if stateInfo.Sequencer != seqAddr {
 		return sdkerrors.Wrapf(types.ErrInvalidSequencer, "sequencer address %s does not match the one in the state info", seqAddr)
@@ -36,7 +36,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, height 
 		return err
 	}
 
-	//FIXME: make sure the clientId corresponds to the rollappID
+	// FIXME: make sure the clientId corresponds to the rollappID
 
 	clientState, ok := k.ibcclientkeeper.GetClientState(ctx, clientId)
 	if !ok {
