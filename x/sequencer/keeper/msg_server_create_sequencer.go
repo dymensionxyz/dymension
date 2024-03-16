@@ -29,6 +29,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+	if rollapp.Frozen {
+		return nil, types.ErrRollappJailed
+	}
 
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added

@@ -107,9 +107,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	stateInfoIndex := stateInfo.GetIndex()
 	newFinalizationQueue := []types.StateInfoIndex{stateInfoIndex}
 
-	k.Logger(ctx).Debug("Adding state to finalization queue at ", uint64(ctx.BlockHeight()))
+	k.Logger(ctx).Debug("Adding state to finalization queue at ", creationHeight)
 	// load FinalizationQueue and update
-	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, uint64(ctx.BlockHeight()))
+	blockHeightToFinalizationQueue, found := k.GetBlockHeightToFinalizationQueue(ctx, creationHeight)
 	if found {
 		newFinalizationQueue = append(blockHeightToFinalizationQueue.FinalizationQueue, newFinalizationQueue...)
 	}

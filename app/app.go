@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	"github.com/gorilla/mux"
-	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
@@ -90,8 +90,7 @@ import (
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	// unnamed import of statik for swagger UI support
-	_ "github.com/cosmos/cosmos-sdk/client/docs/statik"
+	"github.com/dymensionxyz/dymension/v3/docs"
 
 	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
@@ -125,6 +124,9 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
+	denommetadatamoduleclient "github.com/dymensionxyz/dymension/v3/x/denommetadata/client"
+	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
+	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -204,6 +206,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 		streamermoduleclient.ReplaceStreamHandler,
 		streamermoduleclient.UpdateStreamHandler,
 		rollappmoduleclient.SubmitFraudHandler,
+		denommetadatamoduleclient.CreateDenomMetadataHandler,
+		denommetadatamoduleclient.UpdateDenomMetadataHandler,
 	)
 
 	return govProposalHandlers
@@ -238,6 +242,7 @@ var (
 		rollappmodule.AppModuleBasic{},
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
+		denommetadatamodule.AppModuleBasic{},
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
@@ -266,6 +271,7 @@ var (
 		govtypes.ModuleName:             {authtypes.Burner},
 		ibctransfertypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName: {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		rollappmoduletypes.ModuleName:   {authtypes.Minter},
 		streamermoduletypes.ModuleName:  nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 
@@ -352,8 +358,8 @@ type App struct {
 	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper delayedackkeeper.Keeper
-
+	DelayedAckKeeper    delayedackkeeper.Keeper
+	DenomMetadataKeeper denommetadatamodulekeeper.Keeper
 	// the module manager
 	mm *module.Manager
 
@@ -567,24 +573,6 @@ func New(
 		app.TxFeesKeeper,
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ClientKeeper,
-	)
-
-	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
-		appCodec,
-		keys[sequencermoduletypes.StoreKey],
-		keys[sequencermoduletypes.MemStoreKey],
-		app.GetSubspace(sequencermoduletypes.ModuleName),
-
-		app.BankKeeper,
-		app.RollappKeeper,
-	)
-
 	app.StreamerKeeper = *streamermodulekeeper.NewKeeper(
 		keys[streamermoduletypes.StoreKey],
 		app.GetSubspace(streamermoduletypes.ModuleName),
@@ -605,17 +593,56 @@ func New(
 		nil,
 	)
 
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		keys[rollappmoduletypes.MemStoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+		app.IBCKeeper.ClientKeeper,
+		app.TransferKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.BankKeeper,
+	)
+
+	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		keys[sequencermoduletypes.StoreKey],
+		keys[sequencermoduletypes.MemStoreKey],
+		app.GetSubspace(sequencermoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.RollappKeeper,
+	)
+
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
 		keys[delayedacktypes.MemStoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
+		app.SequencerKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
 		app.EIBCKeeper,
+		app.BankKeeper,
+	)
+
+	app.DenomMetadataKeeper = *denommetadatamodulekeeper.NewKeeper(
 		app.BankKeeper,
 	)
 
@@ -660,7 +687,7 @@ func New(
 	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
-
+	denomMetadataModule := denommetadatamodule.NewAppModule(&app.DenomMetadataKeeper)
 	// Register the proposal types
 	// Deprecated: Avoid adding new handlers, instead use the new proposal flow
 	// by granting the governance module the right to execute the message.
@@ -672,20 +699,8 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper))
-
-	// Create Transfer Keepers
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
+		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(&app.DenomMetadataKeeper))
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	evidenceKeeper := evidencekeeper.NewKeeper(
@@ -767,6 +782,7 @@ func New(
 		rollappModule,
 		sequencerModule,
 		streamerModule,
+		denomMetadataModule,
 		delayedackModule,
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -814,6 +830,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
@@ -849,6 +866,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -890,6 +908,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
@@ -1087,13 +1106,13 @@ func (app *App) RegisterNodeService(clientCtx client.Context) {
 
 // RegisterSwaggerAPI registers swagger route with API Server
 func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
-	statikFS, err := fs.New()
+	staticFS, err := fs.Sub(docs.Docs, "static")
 	if err != nil {
 		panic(err)
 	}
 
-	staticServer := http.FileServer(statikFS)
-	rtr.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", staticServer))
+	staticServer := http.FileServer(http.FS(staticFS))
+	rtr.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticServer))
 }
 
 // GetMaccPerms returns a copy of the module account permissions
@@ -1123,6 +1142,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
 	paramsKeeper.Subspace(sequencermoduletypes.ModuleName)
 	paramsKeeper.Subspace(streamermoduletypes.ModuleName)
+	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace

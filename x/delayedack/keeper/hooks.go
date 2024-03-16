@@ -64,10 +64,12 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	}
 	// Get all rollapp packets with status FINALIZED and delete them
 	finalizedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
-	for _, finalizedPacket := range finalizedRollappPackets {
-		finalizedPacketCopy := finalizedPacket
+	revertedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_REVERTED, 0)
+	toDeletePackats := append(finalizedRollappPackets, revertedRollappPackets...)
+	for _, packet := range toDeletePackats {
+		packetCopy := packet
 		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-			return e.deleteRollappPacket(ctx, &finalizedPacketCopy)
+			return e.deleteRollappPacket(ctx, &packetCopy)
 		})
 	}
 	return nil

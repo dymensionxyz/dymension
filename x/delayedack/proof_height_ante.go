@@ -15,12 +15,6 @@ func NewIBCProofHeightDecorator() IBCProofHeightDecorator {
 }
 
 func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	// do not run check on CheckTx or simulate
-	deliverTx := !(ctx.IsCheckTx() || ctx.IsReCheckTx())
-	if simulate || !deliverTx {
-		return next(ctx, tx, simulate)
-	}
-
 	for _, m := range tx.GetMsgs() {
 		var (
 			height   clienttypes.Height

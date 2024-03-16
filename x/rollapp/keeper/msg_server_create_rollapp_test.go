@@ -82,11 +82,11 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 }
 
 func (suite *RollappTestSuite) TestCreateRollappFromWhitelist() {
-	suite.createRollappFromWhitelist(nil, []types.DeployerParams{{Address: alice, MaxRollapps: 0}})
+	suite.createRollappFromWhitelist(nil, []types.DeployerParams{{Address: alice}})
 }
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
-	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []types.DeployerParams{{Address: bob, MaxRollapps: 0}})
+	suite.createRollappFromWhitelist(types.ErrUnauthorizedRollappCreator, []types.DeployerParams{{Address: bob}})
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
@@ -105,28 +105,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
-}
-
-func (suite *RollappTestSuite) TestCreateRollappExceedMaxRollapps() {
-	deployerWhitelist := []types.DeployerParams{{Address: alice, MaxRollapps: 10}}
-
-	suite.SetupTest(deployerWhitelist...)
-
-	// rollappsExpect is the expected result of query all
-	var rollappsExpect []*types.RollappSummary
-
-	// test 10 rollap creations
-	for i := 0; i < 10; i++ {
-		res := suite.createRollappAndVerify(i, nil)
-		rollappsExpect = append(rollappsExpect, &res)
-	}
-
-	// verify that query all contains all the rollapps that were created
-	rollappsRes, totalRes := getAll(suite)
-	suite.Require().EqualValues(totalRes, 10)
-	verifyAll(suite, rollappsExpect, rollappsRes)
-
-	suite.createRollappAndVerify(1, types.ErrRollappCreatorExceedMaximumRollapps)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {

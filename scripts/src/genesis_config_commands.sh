@@ -100,6 +100,10 @@ set_bank_denom_metadata() {
     ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
+set_authorised_deployer_account() {
+  jq --arg address $1 '.app_state.rollapp.params.deployer_whitelist += [{ "address": $address }]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
 enable_monitoring() {
     sed -i'' -e "/\[telemetry\]/,+8 s/enabled = .*/enabled = true/" "$APP_CONFIG_FILE"
     sed  -i'' -e "s/^prometheus-retention-time =.*/prometheus-retention-time = 31104000/" "$APP_CONFIG_FILE"

@@ -41,6 +41,10 @@ func (suite *EIBCTestSuite) SetupTest() {
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	// Create rollapp only once
 	suite.CreateRollapp()
+	// Register sequencer
+	suite.RegisterSequencer()
+	//adding state for the rollapp
+	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
@@ -160,6 +164,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
 	suite.CreateRollapp()
 	// Create the path once here so we'll be using the same channel all the time and hence same IBC denom
+	// Register sequencer
+	suite.RegisterSequencer()
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 	// Setup globals for the test
@@ -322,6 +328,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
 	// Create rollapp and update its initial state
 	suite.CreateRollapp()
+	suite.RegisterSequencer()
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())

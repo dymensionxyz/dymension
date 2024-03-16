@@ -2,13 +2,12 @@ package cli
 
 import (
 	"encoding/json"
-	"os"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -44,13 +43,19 @@ func CmdCreateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
+			// Parse metadata
 			var metadatas []types.TokenMetadata
 			if len(args) == 4 {
-				metadatas, err = parseTokenMetadata(clientCtx.Codec, args[3])
+				metadatas, err = utils.ParseJsonFromFile[types.TokenMetadata](args[3])
 				if err != nil {
 					return err
 				}
+			}
+			// Parse genesis accounts
+			genesisAccountsPath, _ := cmd.Flags().GetString(FlagGenesisAccountsPath)
+			genesisAccounts, err := utils.ParseJsonFromFile[types.GenesisAccount](genesisAccountsPath)
+			if err != nil && genesisAccountsPath != "" {
+				return err
 			}
 
 			msg := types.NewMsgCreateRollapp(
@@ -59,29 +64,15 @@ func CmdCreateRollapp() *cobra.Command {
 				argMaxSequencers,
 				argPermissionedAddresses.Addresses,
 				metadatas,
+				genesisAccounts,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
+	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
-}
-
-func parseTokenMetadata(cdc codec.Codec, path string) ([]types.TokenMetadata, error) {
-	var metadata []types.TokenMetadata
-
-	// #nosec G304
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		return []types.TokenMetadata{}, err
-	}
-
-	err = json.Unmarshal(contents, &metadata)
-	if err != nil {
-		return []types.TokenMetadata{}, err
-	}
-	return metadata, nil
 }

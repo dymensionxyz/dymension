@@ -20,4 +20,5 @@ var (
 	ErrInvalidSequencerTokens   = sdkerrors.Register(ModuleName, 1009, "invalid sequencer tokens")
 	ErrInvalidCoinDenom         = sdkerrors.Register(ModuleName, 1010, "invalid coin denomination")
 	ErrInsufficientBond         = sdkerrors.Register(ModuleName, 1011, "insufficient bond")
+	ErrRollappJailed            = sdkerrors.Register(ModuleName, 1012, "rollapp is jailed")
 )
