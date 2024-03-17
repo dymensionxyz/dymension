@@ -19,11 +19,8 @@ func GetStoreUpgrades() *storetypes.StoreUpgrades {
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-
 ) upgradetypes.UpgradeHandler {
-
 	return func(ctx sdk.Context, _ upgradetypes.Plan, vm module.VersionMap) (module.VersionMap, error) {
-
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
 		// Start running the module migrations

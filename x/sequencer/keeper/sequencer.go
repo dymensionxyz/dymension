@@ -19,7 +19,7 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
 
-	//To support InitGenesis scenario
+	// To support InitGenesis scenario
 	if sequencer.Status == types.Unbonding {
 		k.setUnbondingSequencerQueue(ctx, sequencer)
 	}
@@ -34,7 +34,7 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
 	store.Set(seqByrollappKey, b)
 
-	//status changed, need to remove old status key
+	// status changed, need to remove old status key
 	if sequencer.Status != oldStatus {
 		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus)
 		store.Delete(oldKey)
@@ -54,7 +54,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		)
 		return
 	}
-	//take the next bonded sequencer to be the proposer. sorted by address
+	// take the next bonded sequencer to be the proposer. sorted by address
 	seq := seqsByRollapp[0]
 	seq.Proposer = true
 	k.UpdateSequencer(ctx, seq, types.Bonded)

@@ -104,7 +104,6 @@ type SequencerKeeperStub struct{}
 
 func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {
 	return sequencertypes.Sequencer{}, false
-
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {

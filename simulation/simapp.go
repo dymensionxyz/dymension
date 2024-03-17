@@ -55,8 +55,8 @@ func GenAndDeliverMsgWithRandFees(
 	bk types.BankKeeper,
 	ak types.AccountKeeper,
 	futureOperation []simtypes.FutureOperation,
-	bExpectedError bool) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
-
+	bExpectedError bool,
+) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 	spendableCoins := bk.SpendableCoins(*ctx, simAccount.Address)
 
 	if spendableCoins.Empty() {
@@ -90,7 +90,6 @@ func GenAndDeliverMsgWithRandFees(
 		if err != nil {
 			panic(err)
 		}
-
 	}
 	return operationMsg, futureOperation, err
 }
@@ -134,7 +133,6 @@ func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins) (simtypes.
 		[]uint64{account.GetSequence()},
 		txCtx.SimAccount.PrivKey,
 	)
-
 	if err != nil {
 		return simtypes.NoOpMsg(txCtx.ModuleName, txCtx.MsgType, "unable to generate mock tx"), nil, err
 	}
@@ -145,5 +143,4 @@ func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins) (simtypes.
 	}
 
 	return simtypes.NewOperationMsg(txCtx.Msg, true, "", txCtx.Cdc), nil, nil
-
 }

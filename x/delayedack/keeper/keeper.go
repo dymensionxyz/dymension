@@ -55,7 +55,6 @@ func NewKeeper(
 	clientKeeper types.ClientKeeper,
 	eibcKeeper types.EIBCKeeper,
 	bankKeeper types.BankKeeper,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -189,7 +188,6 @@ func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string
 
 // VallidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
 func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID string) error {
-
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollapp
 	// As the assumption the sequencer is honest we don't check the packet proof height.
@@ -212,19 +210,19 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 		return err
 	}
 
-	//Gets sequencer information from the sequencer address found in the latest state info
+	// Gets sequencer information from the sequencer address found in the latest state info
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
 		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollapp %s", stateInfo.Sequencer, rollapp)
 	}
 
-	//Gets the validator set hash made out of the pub key for the sequencer
+	// Gets the validator set hash made out of the pub key for the sequencer
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
 		return err
 	}
 
-	//It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollapp chain
+	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollapp chain
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollapp sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
@@ -258,7 +256,7 @@ func (k Keeper) getTmConsensusState(ctx sdk.Context, portID string, channelID st
 		return &tenderminttypes.ConsensusState{}, err
 	}
 
-	//TODO(srene) : consensus state is only obtained when getting it for latestheight. this can be an issue when sequencer changes. i have to figure out why is only returned for latest height
+	// TODO(srene) : consensus state is only obtained when getting it for latestheight. this can be an issue when sequencer changes. i have to figure out why is only returned for latest height
 
 	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, connectionEnd.GetClientID(), clientState.GetLatestHeight())
 	if !found {

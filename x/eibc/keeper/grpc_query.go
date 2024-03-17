@@ -42,7 +42,7 @@ func (q Querier) DemandOrderById(goCtx context.Context, req *types.QueryGetDeman
 	// Get the demand order by its ID and search for it in all statuses
 	var demandOrder *types.DemandOrder
 	var err error
-	var statuses = []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
+	statuses := []commontypes.Status{commontypes.Status_PENDING, commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
 	for _, status := range statuses {
 		demandOrder, err = q.GetDemandOrder(ctx, status, req.Id)
 		if err == nil && demandOrder != nil {
