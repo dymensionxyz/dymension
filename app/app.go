@@ -918,7 +918,7 @@ func New(
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
-		denommetadatamoduletypes.ModuleName,
+		denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
