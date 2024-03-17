@@ -30,7 +30,6 @@ func (k Keeper) Sequencers(c context.Context, req *types.QuerySequencersRequest)
 		sequencers = append(sequencers, sequencer)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

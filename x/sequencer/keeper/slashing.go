@@ -34,7 +34,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 
 	oldStatus := seq.Status
 	wasPropser := seq.Proposer
-	//in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
+	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
 	}

@@ -20,7 +20,6 @@ func (k Keeper) GetStateInfo(
 	ctx sdk.Context,
 	rollappId string,
 	index uint64,
-
 ) (val types.StateInfo, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 
@@ -40,7 +39,6 @@ func (k Keeper) RemoveStateInfo(
 	ctx sdk.Context,
 	rollappId string,
 	index uint64,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	store.Delete(types.StateInfoKey(

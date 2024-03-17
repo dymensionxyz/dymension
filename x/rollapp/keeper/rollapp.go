@@ -67,7 +67,6 @@ func (k Keeper) GetRollapp(
 func (k Keeper) RemoveRollapp(
 	ctx sdk.Context,
 	rollappId string,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	store.Delete(types.RollappKey(

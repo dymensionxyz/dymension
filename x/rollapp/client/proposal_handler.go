@@ -5,6 +5,4 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
 )
 
-var (
-	SubmitFraudHandler = govclient.NewProposalHandler(cli.NewCmdSubmitFraudProposal)
-)
+var SubmitFraudHandler = govclient.NewProposalHandler(cli.NewCmdSubmitFraudProposal)

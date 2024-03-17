@@ -15,6 +15,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -68,7 +72,6 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-
 }
 
 // GetTxCmd returns the module's root tx command.
@@ -88,15 +91,22 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements the AppModule interface for the module.
 type AppModule struct {
 	AppModuleBasic
-	keeper *keeper.Keeper
+	keeper     *keeper.Keeper
+	evmKeeper  evmkeeper.Keeper
+	bankKeeper bankkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule struct.
-func NewAppModule(keeper *keeper.Keeper,
+func NewAppModule(
+	keeper *keeper.Keeper,
+	evmKeeper evmkeeper.Keeper,
+	bankKeeper bankkeeper.Keeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
+		evmKeeper:      evmKeeper,
+		bankKeeper:     bankKeeper,
 	}
 }
 
@@ -131,7 +141,16 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	am.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		// run hooks for each denom metadata, thus `x/denommetadata` genesis init order must be after `x/bank` genesis init
 
+		err := am.keeper.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
+		if err != nil {
+			panic(err) // error at genesis level should be reported by panic
+		}
+
+		return false
+	})
 	return []abci.ValidatorUpdate{}
 }
 

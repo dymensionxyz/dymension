@@ -19,7 +19,6 @@ type Keeper struct {
 
 // NewKeeper returns a new instance of the denommetadata keeper
 func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
-
 	return &Keeper{
 		bankKeeper: bankKeeper,
 		hooks:      nil,
@@ -37,7 +36,6 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 		return err
 	}
 	return nil
-
 }
 
 func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {

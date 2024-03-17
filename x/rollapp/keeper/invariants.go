@@ -62,7 +62,7 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			//not breaking invariant, as eip155 format is not required
+			// not breaking invariant, as eip155 format is not required
 			if eip155 == nil {
 				continue
 			}
@@ -99,7 +99,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 
 			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
-			//iterate over all the unfinalzied states and make sure they are in the queue
+			// iterate over all the unfinalzied states and make sure they are in the queue
 			for i := firstUnfinalizedStateIdx; i <= latestStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
 				if !found {
@@ -115,7 +115,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 					continue
 				}
 
-				//check that our state index is in the queue
+				// check that our state index is in the queue
 				found = false
 				for _, idx := range val.FinalizationQueue {
 					if idx.RollappId == rollapp.RollappId && idx.Index == i {
@@ -153,7 +153,7 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 			return "", false
 		}
 
-		//If the count is not equal, need to check wether it's due to rollapp that didn't publish state yet
+		// If the count is not equal, need to check wether it's due to rollapp that didn't publish state yet
 		var noStateRollappCount int
 		for _, rollapp := range rollapps {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
@@ -195,7 +195,7 @@ func RollappLatestStateIndexInvariant(k Keeper) sdk.Invariant {
 			}
 
 			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-			//not found is ok, it means no finalized state yet
+			// not found is ok, it means no finalized state yet
 
 			if latestStateIdx.Index < latestFinalizedStateIdx.Index {
 				msg += fmt.Sprintf("rollapp (%s) have latestStateIdx < latestFinalizedStateIdx\n", rollapp.RollappId)

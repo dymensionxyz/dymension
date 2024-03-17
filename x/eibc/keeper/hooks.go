@@ -31,7 +31,8 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 // 1. The packet status can change only once hence the oldPacketKey should always represent the order ID as it was created from it.
 // 2. The packet status can only change from PENDING
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket,
-	oldPacketKey string, newPacketKey string) error {
+	oldPacketKey string, newPacketKey string,
+) error {
 	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)

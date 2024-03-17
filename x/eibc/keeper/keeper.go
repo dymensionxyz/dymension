@@ -35,7 +35,6 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -77,7 +76,6 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	)
 
 	return nil
-
 }
 
 func (k Keeper) deleteDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
