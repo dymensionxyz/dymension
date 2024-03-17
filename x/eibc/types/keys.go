@@ -13,7 +13,7 @@ const (
 	// ModuleName defines the module name
 	ModuleName = "eibc"
 
-	//KeySeparator defines the separator for keys
+	// KeySeparator defines the separator for keys
 	KeySeparator = "/"
 
 	// StoreKey defines the primary module store key

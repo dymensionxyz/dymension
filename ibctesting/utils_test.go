@@ -3,15 +3,27 @@ package ibctesting_test
 import (
 	"encoding/json"
 	"strings"
+	"testing"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/testutil/mockpv"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -47,10 +59,11 @@ type IBCTestUtilSuite struct {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)               // initializes 3 test chains
-	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))     // convenience and readability
-	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2))  // convenience and readability
-	suite.rollappChain = suite.coordinator.GetChain(ibctesting.GetChainID(3)) // convenience and readability
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)              // initializes 3 test chains
+	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))    // convenience and readability
+	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
+	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.ChainIDPrefix+"3")
+	suite.coordinator.Chains[suite.rollappChain.ChainID] = suite.rollappChain
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
@@ -65,6 +78,31 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 
+}
+
+func (suite *IBCTestUtilSuite) RegisterSequencer() {
+
+	bond := sequencertypes.DefaultParams().MinBond
+	//fund account
+	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	suite.Require().Nil(err)
+
+	pk, err := cryptocodec.FromTmPubKeyInterface(suite.rollappChain.Vals.Validators[0].PubKey)
+	suite.Require().Nil(err)
+
+	suite.Require().Equal(suite.rollappChain.SenderAccount.GetPubKey(), pk)
+
+	msgCreateSequencer, err := sequencertypes.NewMsgCreateSequencer(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.SenderAccount.GetPubKey(),
+		suite.rollappChain.ChainID,
+		&sequencertypes.Description{},
+		bond,
+	)
+
+	suite.Require().NoError(err) // message committed
+	_, err = suite.hubChain.SendMsgs(msgCreateSequencer)
+	suite.Require().NoError(err) // message committed
 }
 
 func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
@@ -109,10 +147,12 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(index uint64, startHeight uint
 		StartHeight:    startHeight,
 		NumBlocks:      1,
 		Status:         common.Status_PENDING,
+		Sequencer:      suite.hubChain.SenderAccount.GetAddress().String(),
 	}
 
 	// update the status of the stateInfo
 	rollappKeeper.SetStateInfo(ctx, stateInfo)
+	rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfo.StateInfoIndex)
 }
 
 func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) error {
@@ -162,4 +202,80 @@ func (suite *IBCTestUtilSuite) GetIBCDenomForChannel(channel string, denom strin
 	// construct the denomination trace from the full raw denomination
 	denomTrace := types.ParseDenomTrace(prefixedDenom)
 	return denomTrace.IBCDenom()
+}
+
+func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
+
+	genAccs := []authtypes.GenesisAccount{}
+	genBals := []banktypes.Balance{}
+	senderAccs := []ibctesting.SenderAccount{}
+
+	// generate genesis accounts
+
+	senderPrivKey := mockpv.NewPV()
+	senderPubKey, err := senderPrivKey.GetPubKey()
+	suite.Require().NoError(err)
+
+	valPubKey := senderPrivKey.PrivKey.PubKey()
+
+	acc := authtypes.NewBaseAccount(valPubKey.Address().Bytes(), valPubKey, 0, 0)
+	amount, ok := sdk.NewIntFromString("10000000000000000000")
+	suite.Require().True(ok)
+
+	// add sender account
+	balance := banktypes.Balance{
+		Address: acc.GetAddress().String(),
+		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, amount)),
+	}
+
+	genAccs = append(genAccs, acc)
+	genBals = append(genBals, balance)
+
+	senderAcc := ibctesting.SenderAccount{
+		SenderAccount: acc,
+		SenderPrivKey: senderPrivKey.PrivKey,
+	}
+
+	senderAccs = append(senderAccs, senderAcc)
+
+	var validators []*tmtypes.Validator
+	var signersByAddress = make(map[string]tmtypes.PrivValidator, 1)
+
+	validators = append(validators, tmtypes.NewValidator(senderPubKey, 1))
+
+	signersByAddress[senderPubKey.Address().String()] = senderPrivKey
+	valSet := tmtypes.NewValidatorSet(validators)
+
+	app := ibctesting.SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
+
+	// create current header and call begin block
+	header := tmproto.Header{
+		ChainID: chainID,
+		Height:  1,
+		Time:    coord.CurrentTime.UTC(),
+	}
+
+	txConfig := app.GetTxConfig()
+
+	// create an account to send transactions from
+	chain := &ibctesting.TestChain{
+		T:              t,
+		Coordinator:    coord,
+		ChainID:        chainID,
+		App:            app,
+		CurrentHeader:  header,
+		QueryServer:    app.GetIBCKeeper(),
+		TxConfig:       txConfig,
+		Codec:          app.AppCodec(),
+		Vals:           valSet,
+		NextVals:       valSet,
+		Signers:        signersByAddress,
+		SenderPrivKey:  senderAcc.SenderPrivKey,
+		SenderAccount:  senderAcc.SenderAccount,
+		SenderAccounts: senderAccs,
+	}
+
+	coord.CommitBlock(chain)
+
+	return chain
 }

@@ -17,13 +17,14 @@ const (
 )
 
 // Assert CreateDenomMetadataProposal implements govtypes.Content at compile-time
-var _ govtypes.Content = &CreateDenomMetadataProposal{}
-var _ govtypes.Content = &UpdateDenomMetadataProposal{}
+var (
+	_ govtypes.Content = &CreateDenomMetadataProposal{}
+	_ govtypes.Content = &UpdateDenomMetadataProposal{}
+)
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCreateDenomMetadata)
 	govtypes.RegisterProposalType(ProposalTypeUpdateDenomMetadata)
-
 }
 
 // NewCreateMetadataProposal creates a new create denommetadata proposal.

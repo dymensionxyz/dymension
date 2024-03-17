@@ -58,7 +58,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		return 0, err
 	}
 
-	//TODO: it's better to check only the denoms of the requested coins. No need to iterate entire balance.
+	// TODO: it's better to check only the denoms of the requested coins. No need to iterate entire balance.
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
 	alreadyAllocatedCoins := k.GetModuleToDistributeCoins(ctx)
 

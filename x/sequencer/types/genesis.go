@@ -20,7 +20,7 @@ func (gs GenesisState) Validate() error {
 
 	for _, elem := range gs.SequencerList {
 
-		//FIXME: should run validation on the sequencer objects
+		// FIXME: should run validation on the sequencer objects
 
 		index := string(SequencerKey(elem.SequencerAddress))
 		if _, ok := sequencerIndexMap[index]; ok {
@@ -29,7 +29,7 @@ func (gs GenesisState) Validate() error {
 		sequencerIndexMap[index] = struct{}{}
 	}
 
-	//FIXME: validate single PROPOSER per rollapp
+	// FIXME: validate single PROPOSER per rollapp
 
 	return gs.Params.Validate()
 }

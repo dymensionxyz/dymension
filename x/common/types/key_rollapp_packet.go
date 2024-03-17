@@ -10,7 +10,7 @@ import (
 var _ binary.ByteOrder
 
 const (
-	//KeySeparator defines the separator for keys
+	// KeySeparator defines the separator for keys
 	KeySeparator = "/"
 	// // RollappPacketKeyPrefix is the prefix to retrieve all RollappPackets
 	// RollappPacketKeyPrefix = "RollappPacket/value/"

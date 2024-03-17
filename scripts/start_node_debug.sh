@@ -1,14 +1,8 @@
 #!/bin/sh
 
 # Common commands
-genesis_config_cmds="$(dirname "$0")/src/genesis_config_commands.sh"
-
-if [ -f "$genesis_config_cmds" ]; then
-  . "$genesis_config_cmds"
-else
-  echo "Error: header file not found" >&2
-  exit 1
-fi
+genesis_config_cmds="/app/scripts/genesis_config_commands.sh"
+. "$genesis_config_cmds"
 
 # Set parameters
 DATA_DIRECTORY="$HOME/.dymension"
@@ -20,7 +14,6 @@ GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
 KEY_NAME=${KEY_NAME:-"local-user"}
-MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
 
 # Setting non-default ports to avoid port conflicts when running local rollapp
 SETTLEMENT_ADDR=${SETTLEMENT_ADDR:-"0.0.0.0:36657"}
@@ -38,21 +31,8 @@ STAKING_AMOUNT=${STAKING_AMOUNT:-"670000000000000000000000adym"} #67% is staked 
 export PATH=$PATH:$HOME/go/bin
 if ! command -v dymd > /dev/null; then
   make install
-
   if ! command -v dymd; then
     echo "dymension binary not found in $PATH"
-    exit 1
-  fi
-fi
-
-# Verify that a genesis file doesn't exists for the dymension chain
-if [ -f "$GENESIS_FILE" ]; then
-  printf "\n======================================================================================================\n"
-  echo "A genesis file already exists. building the chain will delete all previous chain data. continue? (y/n)"
-  read -r answer
-  if [ "$answer" != "${answer#[Yy]}" ]; then
-    rm -rf "$DATA_DIRECTORY"
-  else
     exit 1
   fi
 fi
@@ -88,30 +68,9 @@ set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
 
-echo "Enable monitoring? (Y/n) "
-read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  enable_monitoring
-fi
-
-echo "Initialize AMM accounts? (Y/n) "
-read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  dymd keys add pools --keyring-backend test
-  dymd keys add user --keyring-backend test
-
-  # Add genesis accounts and provide coins to the accounts
-  dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
-  # Give some uatom to the local-user as well
-  dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
-fi
-
-echo "$MNEMONIC" | dymd keys add "$KEY_NAME" --recover --keyring-backend test
+dymd keys add "$KEY_NAME" --keyring-backend test
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
-
-set_authorised_deployer_account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)"
-
-dymd validate-genesis
+dlv --continue --accept-multiclient --api-version=2 --headless --listen=:4000 exec /usr/local/bin/dymd start

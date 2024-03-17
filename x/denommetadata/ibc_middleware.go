@@ -195,7 +195,7 @@ func (im IBCMiddleware) OnRecvPacket(
 					Denom:    du.Denom,
 					Exponent: du.Exponent,
 				}
-				//base denom_unit should be the same as baseDenom
+				// base denom_unit should be the same as baseDenom
 				if newDu.Exponent == 0 {
 					newDu.Denom = voucherDenom
 					newDu.Aliases = append(newDu.Aliases, du.Denom)

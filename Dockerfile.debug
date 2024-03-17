@@ -1,0 +1,54 @@
+FROM golang:1.19-alpine3.16 as go-builder
+
+ARG LINK_STATICALLY
+
+# Set working directory
+WORKDIR /app
+
+COPY go.mod go.sum* ./
+
+RUN go mod download
+
+COPY . .
+
+# Install system dependencies required for your application and Delve
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
+
+RUN apk add --no-cache $PACKAGES
+
+# Install Delve
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Build (with out optimize so it doesn't interfere with debugging but currently not working)
+# RUN CGO_ENABLED=0 go build -gcflags="all=-N -l" -o /app/go-debugger .
+
+# Build
+RUN make build-debug
+
+# Use a small base image
+FROM alpine:3.16.1
+
+# Install runtime dependencies
+RUN apk add curl jq bash vim
+
+# Copy the compiled binary from the builder
+COPY --from=go-builder /app/build/dymd /usr/local/bin/
+
+# Copy Delve from the builder
+COPY --from=go-builder /go/bin/dlv /usr/local/bin/dlv
+
+# Set working directory
+WORKDIR /app
+
+# Copy scripts
+COPY scripts/* ./scripts/
+
+# Make scripts executable
+RUN chmod +x ./scripts/*.sh
+
+ENV KEY_NAME=local-user
+ENV MONIKER_NAME=local
+
+# Expose ports (application port, Delve port)
+EXPOSE 36657 36656 8090 8091 1318 9545 9546 4000
+

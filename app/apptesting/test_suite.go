@@ -48,7 +48,7 @@ func (suite *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 	suite.Require().Nil(err)
 
-	//fund account
+	// fund account
 	err = bankutil.FundAccount(suite.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 

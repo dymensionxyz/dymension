@@ -46,7 +46,7 @@ func DefaultConfig() network.Config {
 	cfg := network.DefaultConfig()
 	encoding := app.MakeEncodingConfig()
 
-	//FIXME: add rand tmrand.Uint64() to chainID
+	// FIXME: add rand tmrand.Uint64() to chainID
 	cfg.ChainID = "dymension_1000-1"
 	cfg.AppConstructor = func(val network.Validator) servertypes.Application {
 		return app.New(
