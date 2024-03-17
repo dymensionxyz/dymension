@@ -1,13 +1,13 @@
-package keeper_test
+package hooks_test
 
 import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
+	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
-func (suite *KeeperTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
+func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 	suite.SetupTest()
 
 	denomAdym := createDenomMetadata("adym", "DYM", 18)
@@ -33,7 +33,7 @@ func (suite *KeeperTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 
 	denomIbcNotExists := createDenomMetadata("ibc/not_exists", "NE", 9)
 
-	hooks := denommetadatamodulekeeper.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper)
+	hooks := vfchooks.NewVirtualFrontierBankContractRegistrationHook(*suite.App.EvmKeeper)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(0) // ignore invoking x/evm exec for contract deployment
 

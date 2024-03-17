@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 	"io"
 	"io/fs"
 	"net/http"
@@ -674,7 +675,7 @@ func New(
 
 	app.DenomMetadataKeeper.SetHooks(
 		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			denommetadatamodulekeeper.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
 		),
 	)
 
