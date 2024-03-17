@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 
 	"github.com/gorilla/mux"
@@ -140,7 +141,14 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	am.bankKeeper.IterateAllDenomMetaData(ctx, func(metadata banktypes.Metadata) bool {
+		err := am.keeper.GetHooks().AfterDenomMetadataCreation(ctx, metadata)
+		if err != nil {
+			panic(err) // error at genesis level should be reported by panic
+		}
 
+		return false
+	})
 	return []abci.ValidatorUpdate{}
 }
 
