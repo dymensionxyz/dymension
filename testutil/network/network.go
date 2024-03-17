@@ -1,6 +1,7 @@
 package network
 
 import (
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -58,6 +59,14 @@ func DefaultConfig() network.Config {
 	}
 
 	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
+	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
+		// force disable Enable Create of x/evm
+		var evmGenesisState evmtypes.GenesisState
+		encoding.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+		evmGenesisState.Params.EnableCreate = false
+		cfg.GenesisState[evmtypes.ModuleName] = encoding.Codec.MustMarshalJSON(&evmGenesisState)
+	}
+
 	cfg.NumValidators = 1
 
 	return cfg
