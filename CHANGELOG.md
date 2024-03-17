@@ -40,7 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 #### Bug Fixes
 
 - (rollapp) [#471](https://github.com/dymensionxyz/dymension/issues/471) Validate rollapp token metadata
-- (hygene) [#678](https://github.com/dymensionxyz/dymension/pull/676) lint tests
+- (hygene) [#676](https://github.com/dymensionxyz/dymension/pull/676) lint tests
+- (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) apply a pfm patch
 
 ___
 

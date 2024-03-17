@@ -136,9 +136,9 @@ import (
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 
-	packetforwardmiddleware "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
-	packetforwardkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
-	packetforwardtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
+	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
