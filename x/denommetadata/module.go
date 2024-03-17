@@ -140,6 +140,7 @@ func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
 // InitGenesis performs the module's genesis initialization.
 // Returns an empty ValidatorUpdate array.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	_ = am.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, am.evmKeeper.GetParams(ctx).EvmDenom)
 	return []abci.ValidatorUpdate{}
 }
 
