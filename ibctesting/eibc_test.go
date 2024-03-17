@@ -43,7 +43,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	suite.CreateRollapp()
 	// Register sequencer
 	suite.RegisterSequencer()
-	//adding state for the rollapp
+	// adding state for the rollapp
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
@@ -153,7 +153,6 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 				suite.Require().Equal(amountInt.Sub(feeInt), lastDemandOrder.Price[0].Amount)
 				suite.Require().Equal(feeInt, lastDemandOrder.Fee[0].Amount)
 			}
-
 		})
 	}
 }
@@ -309,7 +308,6 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().NotNil(finalizedDemandOrder)
 			suite.Require().True(finalizedDemandOrder.IsFullfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
-
 		})
 	}
 }
@@ -332,7 +330,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
-	amount, ok := sdk.NewIntFromString("1000000000000000000") //1DYM
+	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	// Setup accounts
@@ -439,7 +437,6 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 		suite.Require().False(found)
 	}
 	return packet
-
 }
 
 // Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence

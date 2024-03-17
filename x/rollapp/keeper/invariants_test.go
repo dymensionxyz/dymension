@@ -16,13 +16,13 @@ func (suite *RollappTestSuite) TestInvariants() {
 	numOfRollapps := 10
 	numOfStates := 10
 
-	//create rollapps
+	// create rollapps
 	seqPerRollapp := make(map[string]string)
 	for i := 0; i < numOfRollapps; i++ {
 		rollapp := suite.CreateDefaultRollapp()
 		seqaddr := suite.CreateDefaultSequencer(ctx, rollapp)
 
-		//skip one of the rollapps so it won't have any state updates
+		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
 			continue
 		}
@@ -37,7 +37,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	seqaddr = suite.CreateDefaultSequencer(ctx, rollapp)
 	seqPerRollapp[rollapp] = seqaddr
 
-	//send state updates
+	// send state updates
 	var lastHeight uint64 = 0
 	for j := 0; j < numOfStates; j++ {
 		numOfBlocks := uint64(rand.Intn(10) + 1)
@@ -50,7 +50,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 		lastHeight = lastHeight + numOfBlocks
 	}
 
-	//progress finalization queue
+	// progress finalization queue
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight + 2)
 	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
 
@@ -169,5 +169,4 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}
-
 }

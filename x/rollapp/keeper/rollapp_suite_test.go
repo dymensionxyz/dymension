@@ -40,9 +40,7 @@ const (
 	balTokenCarol                 = 1
 )
 
-var (
-	rollappModuleAddress string
-)
+var rollappModuleAddress string
 
 type RollappTestSuite struct {
 	apptesting.KeeperTestHelper

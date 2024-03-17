@@ -194,7 +194,6 @@ func TestStateInfoByHeightErr(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
@@ -217,7 +216,6 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 			)
 		}
 	}
-
 }
 
 func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
@@ -240,5 +238,4 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 			)
 		}
 	}
-
 }

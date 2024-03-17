@@ -37,7 +37,6 @@ func (suite *KeeperTestSuite) TestCreateDenom() {
 	denom, found := bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymMetadata().Base)
 	suite.Require().EqualValues(found, true)
 	suite.Require().EqualValues(denom.Symbol, suite.getDymMetadata().Symbol)
-
 }
 
 func (suite *KeeperTestSuite) TestUpdateDenom() {
@@ -57,7 +56,6 @@ func (suite *KeeperTestSuite) TestUpdateDenom() {
 	denom, found = bankKeeper.GetDenomMetaData(suite.Ctx, suite.getDymUpdateMetadata().Base)
 	suite.Require().EqualValues(found, true)
 	suite.Require().EqualValues(denom.DenomUnits[1].Exponent, suite.getDymUpdateMetadata().DenomUnits[1].Exponent)
-
 }
 
 func (suite *KeeperTestSuite) TestCreateExistingDenom() {
@@ -67,7 +65,6 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
 	suite.Require().EqualError(err, types.ErrDenomAlreadyExists.Error())
-
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {
@@ -90,6 +87,7 @@ func (suite *KeeperTestSuite) getDymMetadata() banktypes.Metadata {
 		Display: "DYM",
 	}
 }
+
 func (suite *KeeperTestSuite) getDymUpdateMetadata() banktypes.Metadata {
 	return banktypes.Metadata{
 		Name:        "Dymension Hub token",

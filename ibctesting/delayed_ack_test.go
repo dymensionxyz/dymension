@@ -39,7 +39,7 @@ func (suite *DelayedAckTestSuite) TestTransferCosmosToHub() {
 	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -69,7 +69,7 @@ func (suite *DelayedAckTestSuite) TestTransferHubToCosmos() {
 	cosmosIBCKeeper := suite.cosmosChain.App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -102,7 +102,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -115,7 +115,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	//expeting error as no AcknowledgePacket expected
+	// expeting error as no AcknowledgePacket expected
 	suite.Require().Error(err) // relay committed
 	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().False(found)
@@ -139,7 +139,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 	suite.UpdateRollappState(1, currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
@@ -155,7 +155,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	//expecting error as no AcknowledgePacket expected to return
+	// expecting error as no AcknowledgePacket expected to return
 	suite.Require().Error(err) // relay committed
 
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -184,7 +184,7 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
-	amount, ok := sdk.NewIntFromString("1000000000000000000") //1DYM
+	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	// Setup accounts
@@ -218,5 +218,4 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	// Validate funds are returned to the sender
 	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
-
 }

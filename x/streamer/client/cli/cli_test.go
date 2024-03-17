@@ -50,7 +50,8 @@ func TestGetCmdActiveStreams(t *testing.T) {
 			Cmd: "--offset=2",
 			ExpectedQuery: &types.ActiveStreamsRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
@@ -62,7 +63,8 @@ func TestGetCmdUpcomingStreams(t *testing.T) {
 			Cmd: "--offset=2",
 			ExpectedQuery: &types.UpcomingStreamsRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }

@@ -11,9 +11,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-//TODO: refactor the tests to use test-cases
-//TODO: wrap the create rollapp and sequencer into a helper function
-
+// TODO: refactor the tests to use test-cases
+// TODO: wrap the create rollapp and sequencer into a helper function
 func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -162,10 +161,10 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 		for _, finalizationQueue := range pendingQueues {
 
-			//fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
+			// fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
-			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
+			// fmt.Printf("stateInfo: %s\n", stateInfo.String())
 
 			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 
@@ -576,7 +575,8 @@ func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 					Limit:      0,
 					CountTotal: true,
 					Reverse:    false,
-				}})
+				},
+			})
 		suite.Require().Nil(err)
 
 		if totalRes == 0 {

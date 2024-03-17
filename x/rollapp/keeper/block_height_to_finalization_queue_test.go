@@ -53,6 +53,7 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 		)
 	}
 }
+
 func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
@@ -98,20 +99,19 @@ func (suite *RollappTestSuite) TestFinalize() {
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
-	//Finalize pending queues and check
+	// Finalize pending queues and check
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
 
-	//Finalize pending queues and check
+	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
 
-	//Finalize pending queues and check
+	// Finalize pending queues and check
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
 	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
-
 }
 
 /* ---------------------------------- utils --------------------------------- */

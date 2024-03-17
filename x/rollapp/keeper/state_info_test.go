@@ -52,6 +52,7 @@ func TestStateInfoGet(t *testing.T) {
 		)
 	}
 }
+
 func TestStateInfoRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNStateInfo(keeper, ctx, 10)

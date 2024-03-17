@@ -30,9 +30,7 @@ const (
 	balTokenCarol = 1
 )
 
-var (
-	bond = types.DefaultParams().MinBond
-)
+var bond = types.DefaultParams().MinBond
 
 func (suite *SequencerTestSuite) TestMinBond() {
 	suite.SetupTest()
@@ -83,7 +81,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 		suite.Require().Nil(err)
 
-		//fund account
+		// fund account
 		err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr1, sdk.NewCoins(tc.bond))
 		suite.Require().Nil(err)
 
@@ -188,8 +186,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of spesific rollapp
-			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] =
-				sequencerExpect.SequencerAddress
+			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
 		}
 	}
 
@@ -325,7 +322,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 
 	rollappId := rollapp.GetRollappId()
 
-	//TODO: cahnge with common func
+	// TODO: cahnge with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
@@ -485,7 +482,8 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 					Limit:      0,
 					CountTotal: true,
 					Reverse:    false,
-				}})
+				},
+			})
 		suite.Require().Nil(err)
 
 		if totalRes == 0 {

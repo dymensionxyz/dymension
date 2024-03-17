@@ -15,18 +15,16 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var (
-	defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
-		{
-			GaugeId: 1,
-			Weight:  math.NewInt(50),
-		},
-		{
-			GaugeId: 2,
-			Weight:  math.NewInt(50),
-		},
-	}
-)
+var defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
+	{
+		GaugeId: 1,
+		Weight:  math.NewInt(50),
+	},
+	{
+		GaugeId: 2,
+		Weight:  math.NewInt(50),
+	},
+}
 
 type QueryTestSuite struct {
 	apptesting.KeeperTestHelper
