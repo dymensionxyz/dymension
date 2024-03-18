@@ -52,7 +52,8 @@ func (suite *RollappTestSuite) TestInvariants() {
 
 	// progress finalization queue
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight + 2)
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	err := suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	suite.Require().Nil(err)
 
 	// check invariant
 	msg, bool := keeper.AllInvariants(suite.App.RollappKeeper)(suite.Ctx)
