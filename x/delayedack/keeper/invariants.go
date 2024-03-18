@@ -11,7 +11,7 @@ import (
 // RegisterInvariants registers the bank module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", RollappFinalizedPackets(k))
-	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", RollappFinalizedPackets(k))
+	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", RollappRevertedPackets(k))
 }
 
 // AllInvariants runs all invariants of the X/bank module.
@@ -64,6 +64,44 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			broken bool
 			msg    string
 		)
+
+		packets := k.GetAllRollappPackets(ctx)
+
+		for _, packet := range packets {
+
+			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, packet.RollappId)
+			if !found {
+				msg += fmt.Sprintf("unable to find latest finalized state index for rollapp %s\n", packet.RollappId)
+				broken = true
+			}
+			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
+			if !found {
+				msg += fmt.Sprintf("unable to find latest finalized state info for rollapp %s\n", packet.RollappId)
+				broken = true
+			}
+			latestFinalizedHeight := latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
+			if packet.ProofHeight > latestFinalizedHeight {
+				stateInfoIndex := latestFinalizedStateIndex.Index + 1
+				for {
+					stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
+					if found {
+						if stateInfoToCheck.Status == commontypes.Status_REVERTED {
+							if stateInfoToCheck.StartHeight >= packet.ProofHeight && stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks < packet.ProofHeight {
+								if packet.Status != commontypes.Status_REVERTED {
+									msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in finalized status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
+									broken = true
+									break
+								}
+							}
+						}
+					} else {
+						break
+					}
+					stateInfoIndex++
+				}
+
+			}
+		}
 		return msg, broken
 	}
 }
