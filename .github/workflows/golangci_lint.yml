@@ -20,5 +20,5 @@ jobs:
         uses: golangci/golangci-lint-action@v3.7.0
         with:
           config-path: .golangci.yml
-          version: v1.49.0
+          version: v1.56.2
           skip-cache: true
