@@ -49,7 +49,8 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	}
 
 	// finalize some of the states
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
+	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
+	suite.Require().Nil(err)
 
 	// assert before fraud submission
 	suite.assertBeforeFraud(rollapp, fraudHeight)
@@ -164,7 +165,8 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 
 	// finalize state
 	suite.Ctx = suite.Ctx.WithBlockHeight(ctx.BlockHeight() + int64(keeper.DisputePeriodInBlocks(*ctx)))
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	suite.Require().Nil(err)
 	stateInfo, err := suite.App.RollappKeeper.FindStateInfoByHeight(suite.Ctx, rollapp, 1)
 	suite.Require().Nil(err)
 	suite.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
