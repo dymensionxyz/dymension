@@ -1,11 +1,12 @@
 package hooks
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
-	"strings"
 )
 
 var _ denommetadatamoduletypes.DenomMetadataHooks = VirtualFrontierBankContractRegistrationHook{}

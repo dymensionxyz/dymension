@@ -1,8 +1,9 @@
 package network
 
 import (
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"testing"
+
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
