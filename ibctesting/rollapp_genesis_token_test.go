@@ -22,9 +22,8 @@ var (
 type RollappGenesisTokenTestSuite struct {
 	IBCTestUtilSuite
 
-	msgServer   types.MsgServer
-	ctx         sdk.Context
-	queryClient types.QueryClient
+	msgServer types.MsgServer
+	ctx       sdk.Context
 }
 
 func TestRollappGenesisTokenTestSuite(t *testing.T) {

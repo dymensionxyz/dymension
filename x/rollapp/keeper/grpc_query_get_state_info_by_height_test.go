@@ -28,7 +28,7 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 	items := make([]types.StateInfo, n)
 	StartHeight := uint64(1)
 	for i := range items {
-		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1)
+		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1) //nolint:gosec // this is for a test
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: rollappId,

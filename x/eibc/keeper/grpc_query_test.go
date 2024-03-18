@@ -35,7 +35,8 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 	recipientAddress := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0]
 	demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", recipientAddress.String())
 	suite.Require().NoError(err)
-	keeper.SetDemandOrder(suite.Ctx, demandOrder)
+	err = keeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
 
 	// Query the demand order by its ID
 	res, err = suite.queryClient.DemandOrderById(sdk.WrapSDKContext(suite.Ctx), &types.QueryGetDemandOrderRequest{Id: demandOrder.Id})
@@ -69,11 +70,12 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 		recipientAddress := demandOrderAddresses[i].String()
 
 		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", recipientAddress)
+		suite.Require().NoError(err)
 		// Assert needed type of status for packet
 		demandOrder.TrackingPacketStatus = status
 
+		err = keeper.SetDemandOrder(suite.Ctx, demandOrder)
 		suite.Require().NoError(err)
-		keeper.SetDemandOrder(suite.Ctx, demandOrder)
 
 		// Query demand orders by status
 		res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: status.String()})

@@ -56,9 +56,9 @@ func TestSpendable(t *testing.T) {
 		},
 	}
 	for i, tc := range tests {
-		insufficent := !tc.coinsToSpend.IsAllLTE(tc.balance)
-		if insufficent != tc.expectErr {
-			t.Errorf("%d, expected error: %v, got: %v", i, tc.expectErr, insufficent)
+		insufficient := !tc.coinsToSpend.IsAllLTE(tc.balance)
+		if insufficient != tc.expectErr {
+			t.Errorf("%d, expected error: %v, got: %v", i, tc.expectErr, insufficient)
 		}
 	}
 }

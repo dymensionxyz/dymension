@@ -94,6 +94,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		}
 		_, err = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
 		if tc.expectedError != nil {
+			tc := tc
 			suite.Require().ErrorAs(err, &tc.expectedError, tc.name)
 		} else {
 			suite.Require().NoError(err)
@@ -140,7 +141,8 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		for i := 0; i < 10; i++ {
 			pubkey := secp256k1.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
-			bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+			suite.Require().NoError(err)
 			pkAny, err := codectypes.NewAnyWithValue(pubkey)
 			suite.Require().Nil(err)
 
@@ -216,7 +218,8 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -240,7 +243,8 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)
@@ -263,7 +267,8 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	sequencerAddress := addr.String()
-	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
 
 	rollapp := rollapptypes.Rollapp{
 		RollappId:             "rollapp1",
@@ -325,7 +330,8 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 	// TODO: cahnge with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
-	bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
+	suite.Require().NoError(err)
 
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
 	suite.Require().Nil(err)

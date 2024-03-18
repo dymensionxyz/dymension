@@ -17,7 +17,6 @@ const (
 
 type DelayedAckTestSuite struct {
 	IBCTestUtilSuite
-	ctx sdk.Context
 }
 
 func TestDelayedAckTestSuite(t *testing.T) {
@@ -163,7 +162,9 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 
 	// Finalize the rollapp state
 	currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-	suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	suite.Require().NoError(err)
+
 	// Validate ack is found
 	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().True(found)
@@ -205,7 +206,8 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	postSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(preSendBalance.Amount.Sub(coinToSendToB.Amount), postSendBalance.Amount)
 	// Update the client to create timeout
-	hubEndpoint.UpdateClient()
+	err = hubEndpoint.UpdateClient()
+	suite.Require().NoError(err)
 	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
 	err = path.EndpointA.TimeoutPacket(packet)
 	suite.Require().NoError(err)
@@ -214,7 +216,8 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	suite.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
 	// Finalize the rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
-	suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	suite.Require().NoError(err)
 	// Validate funds are returned to the sender
 	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)

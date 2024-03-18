@@ -13,17 +13,20 @@ func (suite *KeeperTestSuite) TestHandleFraud() {
 	pkts2 := generatePackets(rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		keeper.SetRollappPacket(ctx, pkt)
+		err := keeper.SetRollappPacket(ctx, pkt)
+		suite.Require().NoError(err)
 	}
 
 	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
 	suite.Require().Equal(10, len(keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)))
 
 	// finalize some packets
-	keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
-	keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
+	_, err := keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
+	suite.Require().Nil(err)
+	_, err = keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
+	suite.Require().Nil(err)
 
-	err := keeper.HandleFraud(ctx, rollappId)
+	err = keeper.HandleFraud(ctx, rollappId)
 	suite.Require().Nil(err)
 
 	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
