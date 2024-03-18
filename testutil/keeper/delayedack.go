@@ -103,6 +103,7 @@ func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId stri
 func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
 	return rollapptypes.StateInfoIndex{}, false
 }
+
 func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
 	return []rollapptypes.Rollapp{}
 }

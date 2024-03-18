@@ -32,7 +32,6 @@ func AllInvariants(k Keeper) sdk.Invariant {
 // RollappFinalizedPackets checks that all rollapp packets stored for a rollapp finalized height are also finalized
 func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-
 		var msg string
 		packets := k.GetAllRollappPackets(ctx)
 
@@ -69,12 +68,12 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			}
 
 			stateInfoIndex := latestFinalizedStateIndex.Index + 1
-			//Checking that all packets after the latest finalized height, that belong to a reverted state info, are also in reverted state
+			// Checking that all packets after the latest finalized height, that belong to a reverted state info, are also in reverted state
 			for {
 				stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, stateInfoIndex)
 				if found {
 					if stateInfoToCheck.Status == commontypes.Status_REVERTED {
-						//TODO (srene) add GetRollappPacketByRollap to be more efficient
+						// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient
 						for _, packet := range k.GetAllRollappPackets(ctx) {
 							if packet.RollappId == rollapp.RollappId {
 								if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {

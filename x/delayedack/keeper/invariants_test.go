@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"math/rand"
+	"github.com/tendermint/tendermint/libs/rand"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -18,7 +18,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	numOfRollapps := 10
 	numOfStates := 10
-	//create rollapps
+	// create rollapps
 	seqPerRollapp := make(map[string]string)
 	rollappBlocks := make(map[string]int)
 
@@ -26,7 +26,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		rollapp := suite.CreateDefaultRollapp()
 		seqaddr := suite.CreateDefaultSequencer(ctx, rollapp)
 
-		//skip one of the rollapps so it won't have any state updates
+		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
 			continue
 		}
@@ -35,7 +35,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	}
 
-	//send state updates
+	// send state updates
 	var lastHeight uint64 = 0
 
 	sequence := 0
@@ -58,7 +58,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(rollappBlocks[rollapp] + k),
 				}
-				suite.App.DelayedAckKeeper.SetRollappPacket(ctx, *rollappPacket)
+				err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, *rollappPacket)
+				suite.Require().NoError(err)
+
 				sequence++
 			}
 			rollappBlocks[rollapp] = rollappBlocks[rollapp] + int(numOfBlocks)
@@ -69,10 +71,11 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		lastHeight = lastHeight + numOfBlocks
 	}
 
-	//progress finalization queue
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	// progress finalization queue
+	err := suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	suite.Require().NoError(err)
 
-	//test fraud
+	// test fraud
 	for rollapp := range seqPerRollapp {
 		err := suite.App.DelayedAckKeeper.HandleFraud(ctx, rollapp)
 		suite.Require().Nil(err)
@@ -269,8 +272,10 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				Index:     tc.stateInfo2.GetIndex().Index,
 			})
 
-			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
-			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
+			err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
+			suite.Require().NoError(err)
+			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
+			suite.Require().NoError(err)
 
 			// check invariant
 			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
