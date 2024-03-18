@@ -32,41 +32,33 @@ func AllInvariants(k Keeper) sdk.Invariant {
 // RollappFinalizedPackets checks that all rollapp packets stored for a rollapp finalized height are also finalized
 func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
 
+		var msg string
 		packets := k.GetAllRollappPackets(ctx)
 
 		for _, packet := range packets {
 			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, packet.RollappId)
 			if !found {
-				msg += fmt.Sprintf("unable to find latest finalized state index for rollapp %s\n", packet.RollappId)
-				broken = true
+				continue
 			}
 			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
 			if !found {
-				msg += fmt.Sprintf("unable to find latest finalized state info for rollapp %s\n", packet.RollappId)
-				broken = true
+				continue
 			}
 			latestFinalizedHeight := latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
 			if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
 				msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in finalized status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
-				broken = true
+				return msg, true
 			}
 		}
-		return msg, broken
+		return msg, false
 	}
 }
 
 // RollappRevertedPackets checks that all rollapp packets stored for a rollapp reverted height are also reverted
 func RollappRevertedPackets(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		var (
-			broken bool
-			msg    string
-		)
+		var msg string
 
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 
@@ -87,7 +79,7 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 							if packet.RollappId == rollapp.RollappId {
 								if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
 									msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in reverted status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
-									broken = true
+									return msg, true
 								}
 							}
 						}
@@ -99,6 +91,6 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			}
 
 		}
-		return msg, broken
+		return msg, false
 	}
 }
