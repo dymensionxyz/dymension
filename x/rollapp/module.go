@@ -175,6 +175,14 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	am.keeper.FinalizeQueue(ctx)
+	err := am.keeper.FinalizeQueue(ctx)
+	// we failed finalizing the queue for one or more rollapps.
+	// we choose not to panic as it's not invariant breaking and the consequnces are
+	// that soft confirmation will need to be relayed upon until this is resolved.
+	// TODO: Future iteration should finalize per rollapp (i.e not collectively punish)
+	// but for the first few rollapps we can handle this way.
+	if err != nil {
+		ctx.Logger().Error("error finalizing queue", "error", err.Error())
+	}
 	return []abci.ValidatorUpdate{}
 }

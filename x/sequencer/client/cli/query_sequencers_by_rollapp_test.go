@@ -23,16 +23,14 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-var (
-	// rollappId = "rollappID"
-	rollappId = rand.Str(8)
-)
+// rollappId = "rollappID"
+var rollappId = rand.Str(8)
 
 func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Network, types.QueryGetSequencersByRollappResponse) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 
-	//create rollapp
+	// create rollapp
 	rollappstate := rollapptypes.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[rollapptypes.ModuleName], &rollappstate))
 
@@ -45,7 +43,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 	require.NoError(t, err)
 	cfg.GenesisState[rollapptypes.ModuleName] = buf
 
-	//create sequencers
+	// create sequencers
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 	var allSequencersByRollappResponse types.QueryGetSequencersByRollappResponse

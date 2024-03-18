@@ -5,7 +5,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-//Happy Flow
+// Happy Flow
 // - frozen rollapp
 // - slashed sequecner and unbonded all other sequencers
 // - reverted states
@@ -24,18 +24,18 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	numOfBlocks := uint64(10)
 	fraudHeight := uint64(300)
 
-	//unrelated rollapp just to validate it's unaffected
+	// unrelated rollapp just to validate it's unaffected
 	rollapp_2 := suite.CreateDefaultRollapp()
 	proposer_2 := suite.CreateDefaultSequencer(*ctx, rollapp_2)
 
-	//create rollapp and sequencers before fraud evidence
+	// create rollapp and sequencers before fraud evidence
 	rollapp := suite.CreateDefaultRollapp()
 	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
 	for i := uint64(0); i < numOfSequencers-1; i++ {
 		suite.CreateDefaultSequencer(*ctx, rollapp)
 	}
 
-	//send state updates
+	// send state updates
 	var lastHeight uint64 = 1
 
 	for i := uint64(0); i < numOfStates; i++ {
@@ -48,10 +48,11 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
 
-	//finalize some of the states
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
+	// finalize some of the states
+	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
+	suite.Require().Nil(err)
 
-	//assert before fraud submission
+	// assert before fraud submission
 	suite.assertBeforeFraud(rollapp, fraudHeight)
 
 	err = keeper.HandleFraud(*ctx, rollapp, "", fraudHeight, proposer)
@@ -135,7 +136,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 		suite.CreateDefaultSequencer(*ctx, rollapp)
 	}
 
-	//send state updates
+	// send state updates
 	var lastHeight uint64 = 1
 	for i := uint64(0); i < numOfStates; i++ {
 		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, uint64(10))
@@ -162,9 +163,10 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
-	//finalize state
+	// finalize state
 	suite.Ctx = suite.Ctx.WithBlockHeight(ctx.BlockHeight() + int64(keeper.DisputePeriodInBlocks(*ctx)))
-	suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	suite.Require().Nil(err)
 	stateInfo, err := suite.App.RollappKeeper.FindStateInfoByHeight(suite.Ctx, rollapp, 1)
 	suite.Require().Nil(err)
 	suite.Require().Equal(common.Status_FINALIZED, stateInfo.Status)
@@ -173,7 +175,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	suite.Require().NotNil(err)
 }
 
-//TODO: test IBC freeze
+// TODO: test IBC freeze
 
 /* ---------------------------------- utils --------------------------------- */
 
@@ -183,18 +185,18 @@ func (suite *RollappTestSuite) assertBeforeFraud(rollappId string, height uint64
 	suite.Require().True(found)
 	suite.Require().False(rollapp.Frozen)
 
-	//check sequencers
+	// check sequencers
 	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
 	for _, sequencer := range sequencers {
 		suite.Require().Equal(types.Bonded, sequencer.Status)
 	}
 
-	//check states
+	// check states
 	stateInfo, err := suite.App.RollappKeeper.FindStateInfoByHeight(suite.Ctx, rollappId, height)
 	suite.Require().Nil(err)
 	suite.Require().Equal(common.Status_PENDING, stateInfo.Status)
 
-	//check queue
+	// check queue
 	expectedHeight := stateInfo.CreationHeight + suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)
 	queue, found := suite.App.RollappKeeper.GetBlockHeightToFinalizationQueue(suite.Ctx, expectedHeight)
 	suite.Require().True(found)
@@ -216,13 +218,13 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 	suite.Require().True(found)
 	suite.Require().True(rollapp.Frozen)
 
-	//check sequencers
+	// check sequencers
 	sequencers := suite.App.SequencerKeeper.GetSequencersByRollapp(suite.Ctx, rollappId)
 	for _, sequencer := range sequencers {
 		suite.Require().Equal(types.Unbonded, sequencer.Status)
 	}
 
-	//check states
+	// check states
 	finalIdx, _ := suite.App.RollappKeeper.GetLatestFinalizedStateIndex(suite.Ctx, rollappId)
 	start := finalIdx.Index + 1
 	endIdx, _ := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollappId)
@@ -234,7 +236,7 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 		suite.Require().Equal(common.Status_REVERTED, stateInfo.Status, "state info for height %d is not reverted", stateInfo.StartHeight)
 	}
 
-	//check queue
+	// check queue
 	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
 	suite.Assert().Greater(len(queue), 0)
 	for _, q := range queue {

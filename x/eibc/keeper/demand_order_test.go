@@ -24,7 +24,8 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 		}
 		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
 		suite.Require().NoError(err)
-		keeper.SetDemandOrder(ctx, demandOrder)
+		err = keeper.SetDemandOrder(ctx, demandOrder)
+		suite.Require().NoError(err)
 	}
 	// Get the demand orders with status active
 	demandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
@@ -33,7 +34,8 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 
 	// Update 3 of the demand orders to status finalized
 	for _, demandOrder := range demandOrders[:3] {
-		keeper.UpdateDemandOrderWithStatus(ctx, demandOrder, commontypes.Status_FINALIZED)
+		_, err = keeper.UpdateDemandOrderWithStatus(ctx, demandOrder, commontypes.Status_FINALIZED)
+		suite.Require().NoError(err)
 	}
 	// Retrieve the updated demand orders after status change
 	updatedDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)

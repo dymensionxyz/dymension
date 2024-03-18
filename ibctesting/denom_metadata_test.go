@@ -14,7 +14,6 @@ import (
 
 type DenomMetaDataTestSuite struct {
 	IBCTestUtilSuite
-	ctx sdk.Context
 }
 
 func TestDenomMetaDataTestSuite(t *testing.T) {
@@ -34,13 +33,14 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
-	//register rollapp with metadata for stake denom
+	// register rollapp with metadata for stake denom
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
 	suite.RegisterSequencer()
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(1, currentRollappBlockHeight)
-	suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	suite.Require().NoError(err)
 
 	found := ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
 	suite.Require().False(found)
@@ -48,7 +48,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.Require().False(found)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
-	amount, ok := sdk.NewIntFromString("10000000000000000000") //10DYM
+	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
 	suite.Require().True(ok)
 
 	/* ------------------- move non-registered token from rollapp ------------------- */

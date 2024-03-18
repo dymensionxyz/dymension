@@ -50,7 +50,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Identity:        strings.Repeat("a", MaxIdentityLength),
 					Website:         strings.Repeat("a", MaxWebsiteLength),
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxDetailsLength)},
+					Details:         strings.Repeat("a", MaxDetailsLength),
+				},
 			},
 		}, {
 			name: "invalid moniker length",
@@ -59,7 +60,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Description: Description{
-					Moniker: strings.Repeat("a", MaxMonikerLength+1)},
+					Moniker: strings.Repeat("a", MaxMonikerLength+1),
+				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
 		}, {
@@ -69,7 +71,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Description: Description{
-					Identity: strings.Repeat("a", MaxIdentityLength+1)},
+					Identity: strings.Repeat("a", MaxIdentityLength+1),
+				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
 		}, {
@@ -79,7 +82,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Description: Description{
-					Website: strings.Repeat("a", MaxWebsiteLength+1)},
+					Website: strings.Repeat("a", MaxWebsiteLength+1),
+				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
 		}, {
@@ -89,7 +93,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Description: Description{
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1)},
+					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
+				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
 		}, {
@@ -99,7 +104,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Description: Description{
-					Details: strings.Repeat("a", MaxDetailsLength+1)},
+					Details: strings.Repeat("a", MaxDetailsLength+1),
+				},
 			},
 			err: sdkerrors.ErrInvalidRequest,
 		}, {
