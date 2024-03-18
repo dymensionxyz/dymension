@@ -37,7 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
-#### Bug Fixes
+### Bug Fixes
 
 - (rollapp) [#471](https://github.com/dymensionxyz/dymension/issues/471) Validate rollapp token metadata
 - (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
