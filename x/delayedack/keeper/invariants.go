@@ -21,6 +21,10 @@ func AllInvariants(k Keeper) sdk.Invariant {
 		if stop {
 			return res, stop
 		}
+		res, stop = RollappRevertedPackets(k)(ctx)
+		if stop {
+			return res, stop
+		}
 		return "", false
 	}
 }
@@ -83,7 +87,7 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			if packet.ProofHeight > latestFinalizedHeight {
 				stateInfoIndex := latestFinalizedStateIndex.Index + 1
 				for {
-					stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
+					stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, stateInfoIndex)
 					if found {
 						if stateInfoToCheck.Status == commontypes.Status_REVERTED {
 							if stateInfoToCheck.StartHeight >= packet.ProofHeight && stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks < packet.ProofHeight {
