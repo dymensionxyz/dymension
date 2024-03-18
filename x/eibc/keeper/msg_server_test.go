@@ -186,7 +186,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		eibcSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
 		eibcDemandAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcDemandAddr, sdk.DefaultBondDenom)
 		// Set the rollapp packet
-		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+		err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+		suite.Require().NoError(err)
 		// Create new demand order
 		demandOrder, err := types.NewDemandOrder(*rollappPacket, tc.demandOrderPrice, tc.demandOrderFee, tc.demandOrderDenom, eibcSupplyAddr.String())
 		suite.Require().NoError(err)

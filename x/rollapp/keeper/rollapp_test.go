@@ -16,6 +16,7 @@ func TestRollappGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNRollapp(keeper, ctx, 10)
 	for _, item := range items {
+		item := item
 		rst, found := keeper.GetRollapp(ctx,
 			item.RollappId,
 		)

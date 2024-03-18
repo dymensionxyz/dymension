@@ -11,7 +11,8 @@ import (
 
 func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	// Set a rollapp packet
-	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+	err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+	suite.Require().NoError(err)
 	// Create new demand order
 	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
 	demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
@@ -33,7 +34,8 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 
 func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 	// Set a rollapp packet
-	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+	err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+	suite.Require().NoError(err)
 	// Create new demand order
 	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
 	demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
@@ -41,12 +43,14 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 	err = suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 	// Update rollapp packet status to finalized
-	suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, commontypes.Status_FINALIZED)
+	_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, commontypes.Status_FINALIZED)
+	suite.Require().NoError(err)
 	// Trigger the delayed ack hook which should delete the rollapp packet and the demand order
 	epochIdentifier := "minute"
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, delayedacktypes.Params{EpochIdentifier: epochIdentifier})
 	hooks := suite.App.DelayedAckKeeper.GetEpochHooks()
-	hooks.AfterEpochEnd(suite.Ctx, epochIdentifier, 1)
+	err = hooks.AfterEpochEnd(suite.Ctx, epochIdentifier, 1)
+	suite.Require().NoError(err)
 	// Verify that the rollapp packet and demand order are deleted
 	_, err = suite.App.DelayedAckKeeper.GetRollappPacket(suite.Ctx, string(rollappPacketKey))
 	suite.Require().ErrorIs(err, delayedacktypes.ErrRollappPacketDoesNotExist)

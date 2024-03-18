@@ -28,7 +28,8 @@ func (suite *SequencerTestSuite) TestInvariants() {
 		// unbonding some sequencers
 		for j := uint64(0); j < uint64(numOfSequencers/2); j++ {
 			suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + j)).WithBlockTime(initialTime.Add(time.Duration(j) * time.Second))
-			suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{seqAddr[j]})
+			_, err := suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{Creator: seqAddr[j]})
+			suite.Require().NoError(err)
 		}
 	}
 	// unbond some

@@ -15,10 +15,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: 1.19
+          go-version: 1.22
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3.7.0
+        uses: golangci/golangci-lint-action@v4.0.0
         with:
-          config-path: .golangci.yml
-          version: v1.49.0
+          version: v1.56.2
           skip-cache: true
+          args: --out-format colored-line-number

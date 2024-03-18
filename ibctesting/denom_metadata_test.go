@@ -14,7 +14,6 @@ import (
 
 type DenomMetaDataTestSuite struct {
 	IBCTestUtilSuite
-	ctx sdk.Context
 }
 
 func TestDenomMetaDataTestSuite(t *testing.T) {
@@ -40,7 +39,8 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(1, currentRollappBlockHeight)
-	suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	suite.Require().NoError(err)
 
 	found := ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
 	suite.Require().False(found)

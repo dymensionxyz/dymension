@@ -36,7 +36,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
 	// check no index exists
-	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(false, found)
 
 	// update state
@@ -54,7 +54,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.Require().Nil(err)
 
 	// check first index is 1
-	expectedLatestStateInfoIndex, found = suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(true, found)
 	suite.Require().EqualValues(expectedLatestStateInfoIndex.Index, 1)
 }
@@ -402,7 +402,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 
 func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	_ = sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
 	rollapp := types.Rollapp{
@@ -444,7 +444,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
-	goCtx = sdk.WrapSDKContext(suite.Ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// update state
 	updateState := types.MsgUpdateState{

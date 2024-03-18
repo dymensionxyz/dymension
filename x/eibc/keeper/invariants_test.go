@@ -36,7 +36,8 @@ func (suite *KeeperTestSuite) TestInvariants() {
 		suite.Require().NoError(err)
 		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
 		suite.Require().NoError(err)
-		keeper.SetDemandOrder(ctx, demandOrder)
+		err = keeper.SetDemandOrder(ctx, demandOrder)
+		suite.Require().NoError(err)
 	}
 
 	// check invariant
