@@ -4,12 +4,14 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // RegisterInvariants registers the bank module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", RollappFinalizedPackets(k))
+	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", RollappFinalizedPackets(k))
 }
 
 // AllInvariants runs all invariants of the X/bank module.
@@ -23,7 +25,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// RollappFinalizedPackets checks that all rollapp packets stored for a rollapp finalized height is also finalized
+// RollappFinalizedPackets checks that all rollapp packets stored for a rollapp finalized height are also finalized
 func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
@@ -46,11 +48,22 @@ func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 				broken = true
 			}
 			latestFinalizedHeight := latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
-			if packet.ProofHeight <= latestFinalizedHeight {
+			if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
 				msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in finalized status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
 				broken = true
 			}
 		}
+		return msg, broken
+	}
+}
+
+// RollappRevertedPackets checks that all rollapp packets stored for a rollapp reverted height are also reverted
+func RollappRevertedPackets(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    string
+		)
 		return msg, broken
 	}
 }

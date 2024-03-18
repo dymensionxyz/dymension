@@ -8,7 +8,7 @@ import (
 
 // TestAfterEpochEnd tests that the finalized of rollapp packets
 // are deleted given the correct epoch identifier
-func (suite *KeeperTestSuite) TestAfterEpochEnd() {
+func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 	tests := []struct {
 		name                 string
 		pendingPacketsNum    int
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestAfterEpochEnd() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestDeletionOfRevertedPackets() {
+func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 
 	rollappId := "testRollappId"

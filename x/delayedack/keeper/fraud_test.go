@@ -5,7 +5,7 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func (suite *KeeperTestSuite) TestHandleFraud() {
+func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 5)

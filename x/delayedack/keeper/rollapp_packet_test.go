@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-func (suite *KeeperTestSuite) TestRollappPacketEvents() {
+func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	tests := []struct {
 		name                               string
@@ -82,7 +82,7 @@ func (suite *KeeperTestSuite) TestRollappPacketEvents() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestListRollappPacketsForRollappAtHeight() {
+func (suite *DelayedAckTestSuite) TestListRollappPacketsForRollappAtHeight() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappID := "testRollappID"
 
@@ -127,7 +127,7 @@ func (suite *KeeperTestSuite) TestListRollappPacketsForRollappAtHeight() {
 	suite.Require().Equal(1, len(packets))
 }
 
-func (suite *KeeperTestSuite) TestUpdateRollappPacketWithStatus() {
+func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	packet := commontypes.RollappPacket{
 		RollappId: "testRollappID",
