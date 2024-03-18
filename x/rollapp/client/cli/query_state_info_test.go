@@ -34,7 +34,8 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: RollappIds[i%2],
-				Index:     uint64(i)},
+				Index:     uint64(i),
+			},
 		}
 		nullify.Fill(&stateInfo)
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
@@ -120,6 +121,7 @@ func TestShowStateInfo(t *testing.T) {
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
 				tc.idRollappId,

@@ -11,9 +11,8 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-//TODO: refactor the tests to use test-cases
-//TODO: wrap the create rollapp and sequencer into a helper function
-
+// TODO: refactor the tests to use test-cases
+// TODO: wrap the create rollapp and sequencer into a helper function
 func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -37,7 +36,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
 	// check no index exists
-	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(false, found)
 
 	// update state
@@ -55,7 +54,7 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	suite.Require().Nil(err)
 
 	// check first index is 1
-	expectedLatestStateInfoIndex, found = suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
+	expectedLatestStateInfoIndex, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
 	suite.Require().EqualValues(true, found)
 	suite.Require().EqualValues(expectedLatestStateInfoIndex.Index, 1)
 }
@@ -162,10 +161,10 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 		for _, finalizationQueue := range pendingQueues {
 
-			//fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
+			// fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
-			//fmt.Printf("stateInfo: %s\n", stateInfo.String())
+			// fmt.Printf("stateInfo: %s\n", stateInfo.String())
 
 			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 
@@ -403,7 +402,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateErrWrongBlockHeight() {
 
 func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	_ = sdk.WrapSDKContext(suite.Ctx)
 
 	// set rollapp
 	rollapp := types.Rollapp{
@@ -445,7 +444,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// bump block height
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
-	goCtx = sdk.WrapSDKContext(suite.Ctx)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -576,7 +575,8 @@ func getAll(suite *RollappTestSuite) (map[string]*types.RollappSummary, int) {
 					Limit:      0,
 					CountTotal: true,
 					Reverse:    false,
-				}})
+				},
+			})
 		suite.Require().Nil(err)
 
 		if totalRes == 0 {

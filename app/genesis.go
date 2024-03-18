@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"

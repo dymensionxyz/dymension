@@ -36,6 +36,7 @@ func TestLatestFinalizedStateIndexGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNLatestFinalizedStateIndex(keeper, ctx, 10)
 	for _, item := range items {
+		item := item
 		rst, found := keeper.GetLatestFinalizedStateIndex(ctx,
 			item.RollappId,
 		)
@@ -46,6 +47,7 @@ func TestLatestFinalizedStateIndexGet(t *testing.T) {
 		)
 	}
 }
+
 func TestLatestFinalizedStateIndexRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items := createNLatestFinalizedStateIndex(keeper, ctx, 10)

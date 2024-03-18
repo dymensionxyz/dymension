@@ -32,7 +32,8 @@ func TestSequencerQuerySingle(t *testing.T) {
 			},
 			response: &types.QueryGetSequencerResponse{
 				Sequencer: sequencers[0],
-			}},
+			},
+		},
 		{
 			desc: "Second",
 			request: &types.QueryGetSequencerRequest{

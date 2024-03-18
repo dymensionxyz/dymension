@@ -31,10 +31,8 @@ var (
 	eibcSenderAddr   = apptesting.CreateRandomAccounts(1)[0]
 	eibcReceiverAddr = apptesting.CreateRandomAccounts(1)[0]
 	// Rollapp Packet data
-	height             = clienttypes.NewHeight(0, 1)
 	timeoutHeight      = clienttypes.NewHeight(0, 100)
 	timeoutTimestamp   = uint64(100)
-	disabledTimeout    = clienttypes.ZeroHeight()
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
 		sdk.DefaultBondDenom,
 		"100",
