@@ -138,13 +138,13 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 		workingCtx, _ := suite.Ctx.CacheContext() // clone the ctx so no need to reset the ctx after each test case
 
 		for _, metadata := range []banktypes.Metadata{denomIbcAtom, denomIbcOsmo} {
-			contractAddr, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, metadata.Base)
+			_, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, metadata.Base)
 			suite.Require().False(found, "contract must not be exists")
 
 			err := hooks.AfterDenomMetadataCreation(workingCtx, metadata)
 			suite.Require().NoError(err, "should not be error in any case")
 
-			contractAddr, found = suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, metadata.Base)
+			contractAddr, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, metadata.Base)
 			suite.Require().True(found, "contract must be exists")
 
 			accountContract := suite.App.EvmKeeper.GetAccount(workingCtx, contractAddr)

@@ -91,10 +91,11 @@ func TestStreamerInitGenesis(t *testing.T) {
 
 	distr := types.DistrInfo{
 		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{{
-			GaugeId: 1,
-			Weight:  math.NewInt(50),
-		},
+		Records: []types.DistrRecord{
+			{
+				GaugeId: 1,
+				Weight:  math.NewInt(50),
+			},
 			{
 				GaugeId: 2,
 				Weight:  math.NewInt(50),
@@ -141,10 +142,11 @@ func TestStreamerOrder(t *testing.T) {
 
 	distr := types.DistrInfo{
 		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{{
-			GaugeId: 1,
-			Weight:  math.NewInt(50),
-		},
+		Records: []types.DistrRecord{
+			{
+				GaugeId: 1,
+				Weight:  math.NewInt(50),
+			},
 			{
 				GaugeId: 2,
 				Weight:  math.NewInt(50),

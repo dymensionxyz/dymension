@@ -62,7 +62,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	if epochIdentifier != e.GetParams(ctx).EpochIdentifier {
 		return nil
 	}
-	// Get all rollapp packets with status FINALIZED and delete them
+	// Get all rollapp packets with status != PENDING and delete them
 	finalizedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
 	revertedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_REVERTED, 0)
 	toDeletePackats := append(finalizedRollappPackets, revertedRollappPackets...)

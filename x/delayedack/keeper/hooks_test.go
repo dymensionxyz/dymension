@@ -55,21 +55,24 @@ func (suite *KeeperTestSuite) TestAfterEpochEnd() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(i * 2),
 				}
-				keeper.SetRollappPacket(ctx, *rollappPacket)
+				err := keeper.SetRollappPacket(ctx, *rollappPacket)
+				suite.Require().NoError(err)
 			}
 
 			rollappPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)
 			suite.Require().Equal(tc.pendingPacketsNum, len(rollappPackets))
 
 			for _, rollappPacket := range rollappPackets[:tc.finalizePacketsNum] {
-				keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+				_, err := keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+				suite.Require().NoError(err)
 			}
 			finalizedRollappPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
 			suite.Require().Equal(tc.finalizePacketsNum, len(finalizedRollappPackets))
 
 			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam})
 			epochHooks := keeper.GetEpochHooks()
-			epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
+			err := epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
+			suite.Require().NoError(err)
 
 			finalizedRollappPackets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
 			suite.Require().Equal(tc.finalizePacketsNum-tc.expectedDeleted, len(finalizedRollappPackets))
@@ -89,7 +92,8 @@ func (suite *KeeperTestSuite) TestDeletionOfRevertedPackets() {
 	pkts2 := generatePackets(rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		keeper.SetRollappPacket(ctx, pkt)
+		err := keeper.SetRollappPacket(ctx, pkt)
+		suite.Require().NoError(err)
 	}
 
 	err := keeper.HandleFraud(ctx, rollappId)
@@ -99,7 +103,8 @@ func (suite *KeeperTestSuite) TestDeletionOfRevertedPackets() {
 
 	keeper.SetParams(ctx, types.Params{EpochIdentifier: "minute"})
 	epochHooks := keeper.GetEpochHooks()
-	epochHooks.AfterEpochEnd(ctx, "minute", 1)
+	err = epochHooks.AfterEpochEnd(ctx, "minute", 1)
+	suite.Require().NoError(err)
 
 	suite.Require().Equal(5, len(keeper.GetAllRollappPackets(ctx)))
 }

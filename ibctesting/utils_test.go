@@ -77,13 +77,11 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
-
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {
-
 	bond := sequencertypes.DefaultParams().MinBond
-	//fund account
+	// fund account
 	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
@@ -205,7 +203,6 @@ func (suite *IBCTestUtilSuite) GetIBCDenomForChannel(channel string, denom strin
 }
 
 func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
-
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []ibctesting.SenderAccount{}
@@ -239,7 +236,7 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 	senderAccs = append(senderAccs, senderAcc)
 
 	var validators []*tmtypes.Validator
-	var signersByAddress = make(map[string]tmtypes.PrivValidator, 1)
+	signersByAddress := make(map[string]tmtypes.PrivValidator, 1)
 
 	validators = append(validators, tmtypes.NewValidator(senderPubKey, 1))
 
