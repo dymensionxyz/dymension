@@ -20,6 +20,7 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 	// Iterate over all the pending finalization queue
 	var err error
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
+
 		// finalize pending states
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)

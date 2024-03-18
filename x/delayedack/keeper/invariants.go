@@ -40,7 +40,6 @@ func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 		packets := k.GetAllRollappPackets(ctx)
 
 		for _, packet := range packets {
-
 			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, packet.RollappId)
 			if !found {
 				msg += fmt.Sprintf("unable to find latest finalized state index for rollapp %s\n", packet.RollappId)
@@ -69,42 +68,36 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			msg    string
 		)
 
-		packets := k.GetAllRollappPackets(ctx)
+		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 
-		for _, packet := range packets {
+		for _, rollapp := range rollapps {
+			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+			if !found {
+				continue
+			}
 
-			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, packet.RollappId)
-			if !found {
-				msg += fmt.Sprintf("unable to find latest finalized state index for rollapp %s\n", packet.RollappId)
-				broken = true
-			}
-			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
-			if !found {
-				msg += fmt.Sprintf("unable to find latest finalized state info for rollapp %s\n", packet.RollappId)
-				broken = true
-			}
-			latestFinalizedHeight := latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
-			if packet.ProofHeight > latestFinalizedHeight {
-				stateInfoIndex := latestFinalizedStateIndex.Index + 1
-				for {
-					stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, stateInfoIndex)
-					if found {
-						if stateInfoToCheck.Status == commontypes.Status_REVERTED {
-							if stateInfoToCheck.StartHeight >= packet.ProofHeight && stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks < packet.ProofHeight {
-								if packet.Status != commontypes.Status_REVERTED {
-									msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in finalized status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
+			stateInfoIndex := latestFinalizedStateIndex.Index + 1
+			//Checking that all packets after the latest finalized height, that belong to a reverted state info, are also in reverted state
+			for {
+				stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, stateInfoIndex)
+				if found {
+					if stateInfoToCheck.Status == commontypes.Status_REVERTED {
+						//TODO (srene) add GetRollappPacketByRollap to be more efficient
+						for _, packet := range k.GetAllRollappPackets(ctx) {
+							if packet.RollappId == rollapp.RollappId {
+								if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
+									msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in reverted status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
 									broken = true
-									break
 								}
 							}
 						}
-					} else {
-						break
 					}
-					stateInfoIndex++
+				} else {
+					break
 				}
-
+				stateInfoIndex++
 			}
+
 		}
 		return msg, broken
 	}

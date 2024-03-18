@@ -37,6 +37,7 @@ type RollappKeeper interface {
 	StateInfo(ctx context.Context, req *rollapptypes.QueryGetStateInfoRequest) (*rollapptypes.QueryGetStateInfoResponse, error)
 	GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
+	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 }
 
 type SequencerKeeper interface {
