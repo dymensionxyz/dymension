@@ -290,7 +290,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-			suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			err = suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			suite.Require().NoError(err)
 			fullfillerAccountBalanceAfterFinalization = eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
 			suite.Require().True(fullfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
@@ -358,7 +359,8 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.Require().NoError(err)
 	suite.Require().Equal(len(demandOrders), 0)
 	// Update the client to create timeout
-	hubEndpoint.UpdateClient()
+	err = hubEndpoint.UpdateClient()
+	suite.Require().NoError(err)
 	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
 	err = path.EndpointA.TimeoutPacket(packet)
 	suite.Require().NoError(err)
@@ -394,7 +396,8 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.Require().True(recieverAccountBalance.IsEqual(recieverInitialBalance))
 	// Finalize the rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
-	suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	suite.Require().NoError(err)
 	// Validate funds are passed to the fulfiller
 	fullfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(suite.hubChain.GetContext(), fullfillerAccount, sdk.DefaultBondDenom)
 	suite.Require().True(fullfillerAccountBalanceAfterTimeout.IsEqual(fullfillerInitialBalance.Add(lastDemandOrder.Fee[0])))
