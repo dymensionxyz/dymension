@@ -23,9 +23,7 @@ import (
 type EIBCTestSuite struct {
 	IBCTestUtilSuite
 
-	msgServer   eibctypes.MsgServer
-	ctx         sdk.Context
-	queryClient eibctypes.QueryClient
+	msgServer eibctypes.MsgServer
 }
 
 func TestEIBCTestSuite(t *testing.T) {
@@ -43,7 +41,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	suite.CreateRollapp()
 	// Register sequencer
 	suite.RegisterSequencer()
-	//adding state for the rollapp
+	// adding state for the rollapp
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
@@ -153,7 +151,6 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 				suite.Require().Equal(amountInt.Sub(feeInt), lastDemandOrder.Price[0].Amount)
 				suite.Require().Equal(feeInt, lastDemandOrder.Fee[0].Amount)
 			}
-
 		})
 	}
 }
@@ -192,7 +189,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			true,
 		},
 		{
-			"fulfill demand order fail - insufficent balance",
+			"fulfill demand order fail - insufficient balance",
 			"200",
 			"40",
 			"49",
@@ -221,7 +218,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			packet := suite.TransferRollappToHub(path, IBCSenderAccount, fullfillerAccount.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 			// Finalize rollapp state
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-			suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			suite.Require().NoError(err)
 			// Check the fulfiller balance was updated fully with the IBC amount
 			isUpdated := false
 			fullfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
@@ -251,7 +249,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
 			suite.UpdateRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
-			packet = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
+			_ = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
 			// Validate demand order created
 			demandOrders, err = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().NoError(err)
@@ -309,7 +307,6 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().NotNil(finalizedDemandOrder)
 			suite.Require().True(finalizedDemandOrder.IsFullfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
-
 		})
 	}
 }
@@ -332,7 +329,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
-	amount, ok := sdk.NewIntFromString("1000000000000000000") //1DYM
+	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	// Setup accounts
@@ -377,6 +374,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Validate the demand order price and denom
 	timeoutFee := eibcKeeper.GetParams(suite.hubChain.GetContext()).TimeoutFee
 	amountDec, err := sdk.NewDecFromStr(coinToSendToB.Amount.String())
+	suite.Require().NoError(err)
 	expectedPrice := amountDec.Mul(sdk.NewDec(1).Sub(timeoutFee)).TruncateInt()
 	suite.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 	suite.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
@@ -428,7 +426,7 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 	err = path.RelayPacket(packet)
 
 	// If ack error that an ack is retuned immediately hence found. The reason we get err in the relay packet is
-	// beacuse no ack can be parsed from events
+	// because no ack can be parsed from events
 	if isAckError {
 		suite.Require().NoError(err)
 		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
@@ -439,7 +437,6 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 		suite.Require().False(found)
 	}
 	return packet
-
 }
 
 // Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence

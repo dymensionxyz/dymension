@@ -2,8 +2,6 @@ run:
   timeout: 5m
   tests: true
   modules-download-mode: readonly
-  skip-files:
-    - ./*_test.go    
 
 linters:
   disable-all: true
@@ -22,7 +20,7 @@ linters:
 issues:
   exclude-use-default: false
   exclude:
-    - "^.*SA1019.*$"  # Excluding SA1019 errors
+    - "^.*SA1019.*$" # Excluding SA1019 errors
 
 linters-settings:
   revive:
@@ -32,4 +30,3 @@ linters-settings:
         disabled: true
   errcheck:
     check-type-assertions: true
-  

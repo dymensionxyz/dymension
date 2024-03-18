@@ -3,12 +3,13 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 	"io"
 	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cast"

@@ -19,7 +19,7 @@ func (suite *KeeperTestSuite) TestHandleFraud() {
 	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
 	suite.Require().Equal(10, len(keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)))
 
-	//finalize some packets
+	// finalize some packets
 	keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
 	keeper.UpdateRollappPacketWithStatus(ctx, pkts2[0], commontypes.Status_FINALIZED)
 

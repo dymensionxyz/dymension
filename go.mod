@@ -1,6 +1,6 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.19
+go 1.22
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7

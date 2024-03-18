@@ -15,27 +15,28 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	numOfRollapps := 5
 	numOfSequencers := 5
 
-	//create rollapps and sequencers
+	// create rollapps and sequencers
 	for i := 0; i < numOfRollapps; i++ {
 		rollapp := suite.CreateDefaultRollapp()
 
-		//create sequencers
+		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
 		for j := 0; j < numOfSequencers; j++ {
 			seqAddr[j] = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 		}
 
-		//unbonding some sequencers
+		// unbonding some sequencers
 		for j := uint64(0); j < uint64(numOfSequencers/2); j++ {
 			suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + j)).WithBlockTime(initialTime.Add(time.Duration(j) * time.Second))
-			suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{seqAddr[j]})
+			_, err := suite.msgServer.Unbond(suite.Ctx, &types.MsgUnbond{Creator: seqAddr[j]})
+			suite.Require().NoError(err)
 		}
 	}
-	//unbond some
+	// unbond some
 	unbondTime := initialTime.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime)
 
-	//Test the test: make sure all status have entries
+	// Test the test: make sure all status have entries
 	rollappid := suite.App.RollappKeeper.GetAllRollapps(suite.Ctx)[0].RollappId
 	seqBonded := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Bonded)
 	seqUnbonding := suite.App.SequencerKeeper.GetSequencersByRollappByStatus(suite.Ctx, rollappid, types.Unbonding)
@@ -44,7 +45,7 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	if len(seqBonded) == 0 || len(seqUnbonding) == 0 || len(seqUnbonded) == 0 {
 		suite.T().Fatal("Test setup failed")
 	}
-	//additional rollapp with no sequencers
+	// additional rollapp with no sequencers
 	_ = suite.CreateDefaultRollapp()
 
 	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)

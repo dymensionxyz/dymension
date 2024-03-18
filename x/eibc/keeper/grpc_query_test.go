@@ -42,7 +42,6 @@ func (suite *KeeperTestSuite) TestQueryDemandOrderById() {
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrder)
 	suite.Require().Equal(demandOrder, res.DemandOrder)
-
 }
 
 func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {

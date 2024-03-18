@@ -85,7 +85,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(blockheight))
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
-	//start the 1st unbond
+	// start the 1st unbond
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
@@ -94,7 +94,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Require().Equal(sequencer1.UnbondingHeight, int64(blockheight))
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
-	//start the 2nd unbond later
+	// start the 2nd unbond later
 	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1)
 	suite.Ctx = suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(5 * time.Minute))
 	unbondMsg = types.MsgUnbond{Creator: addr2}
@@ -109,13 +109,13 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer1.UnbondTime.Add(1*time.Second))
 	balanceAfter := suite.App.BankKeeper.GetBalance(suite.Ctx, sdk.MustAccAddressFromBech32(addr1), denom)
 
-	//Check stake refunded
+	// Check stake refunded
 	sequencer1, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Equal(types.Unbonded, sequencer1.Status)
 	suite.True(sequencer1.Tokens.IsZero())
 	suite.True(balanceBefore.Add(bond).IsEqual(balanceAfter), "expected %s, got %s", balanceBefore.Add(bond), balanceAfter)
 
-	//check the 2nd unbond still not happened
+	// check the 2nd unbond still not happened
 	sequencer2, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Equal(types.Unbonding, sequencer2.Status)
 	suite.False(sequencer2.Tokens.IsZero())

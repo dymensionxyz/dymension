@@ -15,7 +15,7 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	seqAddrs := make([]string, 2)
 	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	//sort the  non proposer sequencers by address
+	// sort the  non proposer sequencers by address
 	sort.Strings(seqAddrs)
 	addr2 := seqAddrs[0]
 	addr3 := seqAddrs[1]
@@ -81,15 +81,14 @@ func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	//already unbonding, we expect error
+	// already unbonding, we expect error
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().Error(err)
 
 	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
 
-	//already unbonded, we expect error
+	// already unbonded, we expect error
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().Error(err)
-
 }
