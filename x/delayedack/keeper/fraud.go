@@ -30,7 +30,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 			err := k.writeFailedAck(ctx, rollappPacket, errString)
 			if err != nil {
 				logger.Error("failed to write failed ack", "rollappID", rollappID, "packetId", packetId, "error", errString)
-				//don't return here as it's nice to have
+				// don't return here as it's nice to have
 			}
 		}
 

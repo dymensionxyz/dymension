@@ -58,9 +58,7 @@ var DefaultConsensusParams = &abci.ConsensusParams{
 	},
 }
 
-var (
-	TestChainID = "dymension_100-1"
-)
+var TestChainID = "dymension_100-1"
 
 // SetupOptions defines arguments that are passed into `Simapp` constructor.
 type SetupOptions struct {

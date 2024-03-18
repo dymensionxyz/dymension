@@ -8,6 +8,7 @@ require (
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.16
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6 v6.1.2-0.20240228222509-2b38263c41d3
 	github.com/cosmos/ibc-go/v6 v6.2.1
 	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac
 	github.com/ethereum/go-ethereum v1.10.26
@@ -20,7 +21,6 @@ require (
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
-	github.com/strangelove-ventures/packet-forward-middleware/v6 v6.0.3
 	github.com/stretchr/testify v1.8.4
 	github.com/tendermint/tendermint v0.34.29
 	github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b
@@ -223,7 +223,7 @@ require (
 
 replace (
 	// use dymension forks
-	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.3
+	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/osmosis-labs/osmosis/osmomath => github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1
 	github.com/osmosis-labs/osmosis/v15 => github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240310110736-a0811b5943a5

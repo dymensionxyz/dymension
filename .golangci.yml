@@ -1,5 +1,6 @@
 run:
   timeout: 5m
+  tests: true
   modules-download-mode: readonly
   skip-files:
     - ./*_test.go    
@@ -7,22 +8,16 @@ run:
 linters:
   disable-all: true
   enable:
-    - gofmt
-    - goimports
+    - gofumpt
     - misspell
     - revive
-    - deadcode
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - structcheck
     - typecheck
     - unused
-    - varcheck
     - gosec
-    - gocyclo
 
 issues:
   exclude-use-default: false

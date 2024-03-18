@@ -32,7 +32,6 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 }
 
 func (s *StateInfo) GetEvents() []sdk.Attribute {
-
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),
 		sdk.NewAttribute(AttributeKeyStateInfoIndex, strconv.FormatUint(s.StateInfoIndex.Index, 10)),

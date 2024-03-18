@@ -10,7 +10,8 @@ const TypeMsgCreateRollapp = "create_rollapp"
 var _ sdk.Msg = &MsgCreateRollapp{}
 
 func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
-	metadatas []TokenMetadata, genesisAccounts []GenesisAccount) *MsgCreateRollapp {
+	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
+) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,

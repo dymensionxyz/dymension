@@ -26,17 +26,17 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 		return err
 	}
 
-	//check height is not finalized
+	// check height is not finalized
 	if stateInfo.Status == common.Status_FINALIZED {
 		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
 	}
 
-	//check height is not reverted
+	// check height is not reverted
 	if stateInfo.Status == common.Status_REVERTED {
 		return sdkerrors.Wrapf(types.ErrDisputeAlreadyReverted, "state info for height %d is already reverted", fraudHeight)
 	}
 
-	//check the sequencer for this height is the same as the one in the fraud evidence
+	// check the sequencer for this height is the same as the one in the fraud evidence
 	if stateInfo.Sequencer != seqAddr {
 		return sdkerrors.Wrapf(types.ErrWrongProposerAddr, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
@@ -47,13 +47,13 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 		return err
 	}
 
-	//mark the rollapp as frozen. revert all pending states to finalized
+	// mark the rollapp as frozen. revert all pending states to finalized
 	rollapp.Frozen = true
 	k.SetRollapp(ctx, rollapp)
 
 	k.RevertPendingStates(ctx, rollappID)
 
-	//TODO: get the clientId from rollapp object, instead of by proposal
+	// TODO: get the clientId from rollapp object, instead of by proposal
 	if clientId != "" {
 		err = k.freezeClientState(ctx, clientId)
 		if err != nil {
@@ -99,7 +99,7 @@ func (k Keeper) RevertPendingStates(ctx sdk.Context, rollappID string) {
 	for _, queue := range queuePerHeight {
 		leftPendingStates := []types.StateInfoIndex{}
 		for _, stateInfoIndex := range queue.FinalizationQueue {
-			//keep pending packets not related to this rollapp in the queue
+			// keep pending packets not related to this rollapp in the queue
 			if stateInfoIndex.RollappId != rollappID {
 				leftPendingStates = append(leftPendingStates, stateInfoIndex)
 				continue

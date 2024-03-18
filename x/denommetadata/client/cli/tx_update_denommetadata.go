@@ -16,9 +16,10 @@ import (
 // NewCmdSubmitUpdateDenomMetadataProposal broadcasts a CreateMetadataProposal message.
 func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-denom-metadata-proposal metadata.json [flags]",
-		Short: "proposal to update new denom metadata for a specific token",
-		Args:  cobra.ExactArgs(1),
+		Use:     "update-denom-metadata-proposal denom_metadata.json [flags]",
+		Short:   "proposal to update new denom metadata for a specific token",
+		Example: `dymd tx gov submit-legacy-proposal update-denom-metadata-proposal denom_metadata.json`,
+		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

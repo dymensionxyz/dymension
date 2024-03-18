@@ -10,7 +10,6 @@ import (
 
 // Called every block to finalize states that their dispute period over.
 func (k Keeper) FinalizeQueue(ctx sdk.Context) {
-
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
 		return
 	}
@@ -61,7 +60,8 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) {
 		if len(failedToFinalizeQueue) > 0 {
 			newBlockHeightToFinalizationQueue := types.BlockHeightToFinalizationQueue{
 				CreationHeight:    blockHeightToFinalizationQueue.CreationHeight,
-				FinalizationQueue: failedToFinalizeQueue}
+				FinalizationQueue: failedToFinalizeQueue,
+			}
 
 			k.SetBlockHeightToFinalizationQueue(ctx, newBlockHeightToFinalizationQueue)
 		}
@@ -81,7 +81,6 @@ func (k Keeper) SetBlockHeightToFinalizationQueue(ctx sdk.Context, blockHeightTo
 func (k Keeper) GetBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
 	creationHeight uint64,
-
 ) (val types.BlockHeightToFinalizationQueue, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 
@@ -100,7 +99,6 @@ func (k Keeper) GetBlockHeightToFinalizationQueue(
 func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	ctx sdk.Context,
 	creationHeight uint64,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	store.Delete(types.BlockHeightToFinalizationQueueKey(

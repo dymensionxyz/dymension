@@ -45,7 +45,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		GenesisState:          rollappGenesisState,
 	}
 
-	//copy TokenMetadata
+	// copy TokenMetadata
 	rollapp.TokenMetadata = make([]*types.TokenMetadata, len(msg.Metadatas))
 	for i := range msg.Metadatas {
 		rollapp.TokenMetadata[i] = &msg.Metadatas[i]
