@@ -79,7 +79,8 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 					{
 						Denom:    "arax",
 						Exponent: 18,
-					}},
+					},
+				},
 				Base:    "arax",
 				Display: "arax",
 				Name:    "ARAX",
