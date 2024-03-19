@@ -78,7 +78,7 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 				DenomUnits: []*rollapptypes.DenomUnit{
 					{
 						Denom:    "arax",
-						Exponent: 18,
+						Exponent: 0,
 					},
 				},
 				Base:    "arax",
