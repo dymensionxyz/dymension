@@ -10,6 +10,15 @@ import (
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 	seqDupAddr := sample.AccAddress()
+
+	var tooManyAddresses []string
+	for i := 0; i < 200; i++ {
+		tooManyAddresses = append(tooManyAddresses, sample.AccAddress())
+	}
+	var validNumberAddresses []string
+	for i := 0; i < 100; i++ {
+		validNumberAddresses = append(validNumberAddresses, sample.AccAddress())
+	}
 	tests := []struct {
 		name string
 		msg  MsgCreateRollapp
@@ -22,31 +31,31 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				MaxSequencers: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
+		},
+		{
 			name: "valid address",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
 			},
 		}, {
-			name: "invalid max sequencers",
+			name: "no max sequencers set",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 0,
 			},
-			err: ErrInvalidMaxSequencers,
 		}, {
 			name: "valid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
-				MaxSequencers:         1,
+				MaxSequencers:         2,
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		}, {
 			name: "duplicate permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
-				MaxSequencers:         1,
+				MaxSequencers:         2,
 				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
@@ -54,7 +63,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			name: "invalid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
-				MaxSequencers:         1,
+				MaxSequencers:         2,
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
@@ -95,6 +104,30 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidTokenMetadata,
 		},
+		{
+			name: "more addresses than sequencers", // just trigger one case to see if validation is done or not
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         1,
+				PermissionedAddresses: validNumberAddresses,
+			},
+			err: ErrTooManyPermissionedAddresses,
+		},
+		{
+			name: "too many sequencers", // just trigger one case to see if validation is done or not
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         200,
+				PermissionedAddresses: tooManyAddresses,
+			},
+			err: ErrInvalidMaxSequencers,
+		},
+		{
+			name: "max sequencer not set",
+			msg: MsgCreateRollapp{
+				Creator: sample.AccAddress(),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,14 +139,4 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-}
-
-func TestMsgCreateRollappPermissionedAddresses(t *testing.T) {
-
-	msg := &MsgCreateRollapp{
-		Creator:       sample.AccAddress(),
-		MaxSequencers: 1,
-	}
-	err := msg.ValidateBasic()
-	require.NoError(t, err)
 }

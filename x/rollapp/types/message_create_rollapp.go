@@ -9,7 +9,7 @@ const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-const MaxPermissionedAddresses = 100
+const MaxAllowedSequencers = 100
 
 func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
 	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
@@ -50,11 +50,11 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	if msg.GetMaxSequencers() == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
-	}
 
-	if len(msg.PermissionedAddresses) > MaxPermissionedAddresses || len(msg.PermissionedAddresses) > int(msg.GetMaxSequencers()) {
+	if msg.GetMaxSequencers() > MaxAllowedSequencers {
+		return sdkerrors.Wrapf(ErrInvalidMaxSequencers, "is not possible to create rollapps with more than %d sequencers", MaxAllowedSequencers)
+	}
+	if uint64(len(msg.PermissionedAddresses)) > msg.GetMaxSequencers() {
 		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "invalid number of permissioned addresses: %d", len(msg.PermissionedAddresses))
 	}
 	// verifies that there's no duplicate address in PermissionedAddresses
