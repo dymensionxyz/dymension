@@ -55,7 +55,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidMaxSequencers, "is not possible to create rollapps with more than %d sequencers", MaxAllowedSequencers)
 	}
 	if uint64(len(msg.PermissionedAddresses)) > msg.GetMaxSequencers() {
-		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "invalid number of permissioned addresses: %d", len(msg.PermissionedAddresses))
+		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "invalid number of permissioned addresses (%d) for %d max sequencers", len(msg.PermissionedAddresses), msg.GetMaxSequencers())
 	}
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format

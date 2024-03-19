@@ -41,8 +41,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		}, {
 			name: "no max sequencers set",
 			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 0,
+				Creator: sample.AccAddress(),
 			},
 		}, {
 			name: "valid permissioned addresses",
