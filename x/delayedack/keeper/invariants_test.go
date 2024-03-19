@@ -12,7 +12,6 @@ import (
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
-	ctx := suite.Ctx
 	initialheight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight)
 
@@ -24,7 +23,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	for i := 0; i < numOfRollapps; i++ {
 		rollapp := suite.CreateDefaultRollapp()
-		seqaddr := suite.CreateDefaultSequencer(ctx, rollapp)
+		seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 
 		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
@@ -58,7 +57,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(rollappBlocks[rollapp] + k),
 				}
-				err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, *rollappPacket)
+				err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 				suite.Require().NoError(err)
 
 				sequence++
@@ -77,7 +76,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.HandleFraud(ctx, rollapp)
+		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp)
 		suite.Require().Nil(err)
 		break
 	}

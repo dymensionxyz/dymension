@@ -82,22 +82,25 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 			// Checking that all packets after the latest finalized height, that belong to a reverted state info, are also in reverted state
 			for {
 				stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, stateInfoIndex)
+				stateInfoIndex++
 				if found {
-					if stateInfoToCheck.Status == commontypes.Status_REVERTED {
-						// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (#631)
-						for _, packet := range k.GetAllRollappPackets(ctx) {
-							if packet.RollappId == rollapp.RollappId {
-								if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
-									msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in reverted status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
-									return msg, true
-								}
-							}
+					if stateInfoToCheck.Status != commontypes.Status_REVERTED {
+						continue
+					}
+					// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (#631)
+					for _, packet := range k.GetAllRollappPackets(ctx) {
+						if packet.RollappId != rollapp.RollappId {
+							continue
+						}
+						if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
+							msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in reverted status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
+							return msg, true
 						}
 					}
+
 				} else {
 					break
 				}
-				stateInfoIndex++
 			}
 
 		}
