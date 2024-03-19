@@ -9,6 +9,8 @@ const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
+const MaxPermissionedAddresses = 100
+
 func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
 	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
 ) *MsgCreateRollapp {
@@ -52,6 +54,9 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
 	}
 
+	if len(msg.PermissionedAddresses) > MaxPermissionedAddresses || len(msg.PermissionedAddresses) > int(msg.GetMaxSequencers()) {
+		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "invalid number of permissioned addresses: %d", len(msg.PermissionedAddresses))
+	}
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := msg.GetPermissionedAddresses()

@@ -107,3 +107,13 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestMsgCreateRollappPermissionedAddresses(t *testing.T) {
+
+	msg := &MsgCreateRollapp{
+		Creator:       sample.AccAddress(),
+		MaxSequencers: 1,
+	}
+	err := msg.ValidateBasic()
+	require.NoError(t, err)
+}
