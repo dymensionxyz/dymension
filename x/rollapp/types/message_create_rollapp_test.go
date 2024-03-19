@@ -38,19 +38,22 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
 			},
-		}, {
+		},
+		{
 			name: "no max sequencers set",
 			msg: MsgCreateRollapp{
 				Creator: sample.AccAddress(),
 			},
-		}, {
+		},
+		{
 			name: "valid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         2,
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
-		}, {
+		},
+		{
 			name: "duplicate permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
@@ -58,7 +61,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
-		}, {
+		},
+		{
 			name: "invalid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
@@ -66,7 +70,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
-		}, {
+		},
+		{
 			name: "valid token metadata",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
@@ -84,7 +89,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				}},
 			},
 			err: nil,
-		}, {
+		},
+		{
 			name: "invalid token metadata", // just trigger one case to see if validation is done or not
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
