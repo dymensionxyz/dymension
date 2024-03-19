@@ -9,7 +9,6 @@ import (
 
 func (suite *RollappTestSuite) TestInvariants() {
 	suite.SetupTest()
-	ctx := suite.Ctx
 	initialheight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight)
 
@@ -20,7 +19,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	seqPerRollapp := make(map[string]string)
 	for i := 0; i < numOfRollapps; i++ {
 		rollapp := suite.CreateDefaultRollapp()
-		seqaddr := suite.CreateDefaultSequencer(ctx, rollapp)
+		seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 
 		// skip one of the rollapps so it won't have any state updates
 		if i == 0 {
@@ -30,11 +29,11 @@ func (suite *RollappTestSuite) TestInvariants() {
 	}
 
 	rollapp := suite.CreateRollappWithName("dym_1100-1")
-	seqaddr := suite.CreateDefaultSequencer(ctx, rollapp)
+	seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 	seqPerRollapp[rollapp] = seqaddr
 
 	rollapp = suite.CreateRollappWithName("dym_1100")
-	seqaddr = suite.CreateDefaultSequencer(ctx, rollapp)
+	seqaddr = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 	seqPerRollapp[rollapp] = seqaddr
 
 	// send state updates
@@ -42,7 +41,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	for j := 0; j < numOfStates; j++ {
 		numOfBlocks := uint64(rand.Intn(10) + 1)
 		for rollapp := range seqPerRollapp {
-			_, err := suite.PostStateUpdate(ctx, rollapp, seqPerRollapp[rollapp], lastHeight+1, numOfBlocks)
+			_, err := suite.PostStateUpdate(suite.Ctx, rollapp, seqPerRollapp[rollapp], lastHeight+1, numOfBlocks)
 			suite.Require().Nil(err)
 		}
 
