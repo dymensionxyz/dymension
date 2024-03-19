@@ -8,13 +8,13 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// RegisterInvariants registers the bank module invariants
+// RegisterInvariants registers the delayedack module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", RollappFinalizedPackets(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", RollappRevertedPackets(k))
 }
 
-// AllInvariants runs all invariants of the X/bank module.
+// AllInvariants runs all invariants of the x/delayedack module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		res, stop := RollappFinalizedPackets(k)(ctx)
@@ -33,18 +33,29 @@ func AllInvariants(k Keeper) sdk.Invariant {
 func RollappFinalizedPackets(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var msg string
+		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
+
+		rollappsFinalizedHeight := make(map[string]uint64)
+		for _, rollapp := range rollapps {
+			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+			if !found {
+				continue
+			}
+			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
+			if !found {
+				continue
+			}
+			rollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
+
+		}
+
 		packets := k.GetAllRollappPackets(ctx)
 
 		for _, packet := range packets {
-			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, packet.RollappId)
-			if !found {
+			latestFinalizedHeight := rollappsFinalizedHeight[packet.RollappId]
+			if latestFinalizedHeight == 0 {
 				continue
 			}
-			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, packet.RollappId, latestFinalizedStateIndex.Index)
-			if !found {
-				continue
-			}
-			latestFinalizedHeight := latestFinalizedStateInfo.StartHeight + latestFinalizedStateInfo.NumBlocks - 1
 			if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
 				msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in finalized status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
 				return msg, true
@@ -73,7 +84,7 @@ func RollappRevertedPackets(k Keeper) sdk.Invariant {
 				stateInfoToCheck, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, stateInfoIndex)
 				if found {
 					if stateInfoToCheck.Status == commontypes.Status_REVERTED {
-						// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient
+						// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (#631)
 						for _, packet := range k.GetAllRollappPackets(ctx) {
 							if packet.RollappId == rollapp.RollappId {
 								if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
