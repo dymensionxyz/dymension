@@ -124,27 +124,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(1),
-				},
+				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(2),
-				},
+				Packet:      getNewTestPacket(2),
 			},
 			false,
 		},
@@ -173,27 +159,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(1),
-				},
+				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(2),
-				},
+				Packet:      getNewTestPacket(2),
 			},
 			true,
 		},
@@ -222,27 +194,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(1),
-				},
+				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
-				Packet: &channeltypes.Packet{
-					SourcePort:         "testSourcePort",
-					SourceChannel:      "testSourceChannel",
-					DestinationPort:    "testDestinationPort",
-					DestinationChannel: "testDestinationChannel",
-					Data:               []byte("testData"),
-					Sequence:           uint64(2),
-				},
+				Packet:      getNewTestPacket(2),
 			},
 			true,
 		},
@@ -280,5 +238,17 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
+	}
+}
+
+func getNewTestPacket(sequence uint64) *channeltypes.Packet {
+
+	return &channeltypes.Packet{
+		SourcePort:         "testSourcePort",
+		SourceChannel:      "testSourceChannel",
+		DestinationPort:    "testDestinationPort",
+		DestinationChannel: "testDestinationChannel",
+		Data:               []byte("testData"),
+		Sequence:           sequence,
 	}
 }
