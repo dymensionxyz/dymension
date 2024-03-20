@@ -34,6 +34,12 @@ func (suite *EIBCTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 	suite.msgServer = eibckeeper.NewMsgServerImpl(eibcKeeper)
+	// Change the delayedAck epoch to trigger every month to not
+	// delete the rollapp packets and demand orders
+	delayedAckKeeper := ConvertToApp(suite.hubChain).DelayedAckKeeper
+	params := delayedAckKeeper.GetParams(suite.hubChain.GetContext())
+	params.EpochIdentifier = "month"
+	delayedAckKeeper.SetParams(suite.hubChain.GetContext(), params)
 }
 
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
@@ -42,7 +48,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	// Register sequencer
 	suite.RegisterSequencer()
 	// adding state for the rollapp
-	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
+	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
@@ -206,8 +212,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain.NextBlock()
 			currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
-			// Transfer initial IBC funds to fulfiller account
+			suite.UpdateRollappState(uint64(currentRollappBlockHeight))
+			// Transfer initial IBC funds to fulfiller account with ibc memo
 			eibc := map[string]map[string]string{
 				"eibc": {
 					"fee": tc.EIBCTransferFee,
@@ -216,7 +222,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			eibcJson, _ := json.Marshal(eibc)
 			memo := string(eibcJson)
 			packet := suite.TransferRollappToHub(path, IBCSenderAccount, fullfillerAccount.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
-			// Finalize rollapp state
+			// Finalize rollapp state - at this state no demand order was fulfilled
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 			suite.Require().NoError(err)
@@ -248,9 +254,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain.NextBlock()
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			suite.UpdateRollappState(uint64(currentRollappBlockHeight))
 			_ = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
-			// Validate demand order created
+			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
+			// ibc purposes which causes the AfterEpochEnd of the rollapp packet deletion to fire (which also deletes the demand order)
+			// hence we should only expect 1 demand order created
 			demandOrders, err = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().NoError(err)
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
@@ -327,7 +335,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Create rollapp and update its initial state
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
-	suite.UpdateRollappState(1, uint64(suite.rollappChain.GetContext().BlockHeight()))
+	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
 	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
