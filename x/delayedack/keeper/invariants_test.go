@@ -167,7 +167,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	}
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
-
 			// create rollapp
 			suite.CreateRollappWithName(rollapp)
 			proposer := suite.CreateDefaultSequencer(ctx, rollapp)
