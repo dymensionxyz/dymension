@@ -72,7 +72,20 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		suite.rollappChain.ChainID,
 		10,
 		[]string{},
-		nil,
+		[]rollapptypes.TokenMetadata{
+			{
+				Name:        "RollApp RAX",
+				Symbol:      "rax",
+				Description: "The native staking token of RollApp XYZ",
+				DenomUnits: []*rollapptypes.DenomUnit{
+					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
+					{Denom: "mrax", Exponent: uint32(3), Aliases: []string{"millirax"}},
+					{Denom: "urax", Exponent: uint32(6), Aliases: []string{"microrax"}},
+				},
+				Base:    "arax",
+				Display: "arax",
+			},
+		},
 		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)

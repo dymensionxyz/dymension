@@ -27,4 +27,5 @@ type BankKeeper interface {
 type RollappKeeper interface {
 	GetParams(ctx sdk.Context) rollapptypes.Params
 	GetRollapp(ctx sdk.Context, chainID string) (rollapp rollapptypes.Rollapp, found bool)
+	RegisterDenomMetadata(ctx sdk.Context, rollapp rollapptypes.Rollapp, ibcBaseDenom, baseDenom string)
 }

@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -70,7 +71,7 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 		return types.ErrGenesisEventAlreadyTriggered
 	}
 	// Call the mint genesis tokens function
-	if err := k.mintRollappGenesisTokens(ctx, rollapp.GenesisState.GenesisAccounts, rollapp.ChannelId); err != nil {
+	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
 		return err
 	}
 	rollapp.GenesisState.IsGenesisEvent = true
@@ -78,9 +79,9 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 	return nil
 }
 
-func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, accounts []types.GenesisAccount, channelId string) error {
-	for _, acc := range accounts {
-		denomTrace := utils.GetForeignDenomTrace(channelId, acc.Amount.Denom)
+func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp) error {
+	for _, acc := range rollapp.GenesisState.GenesisAccounts {
+		denomTrace := utils.GetForeignDenomTrace(rollapp.ChannelId, acc.Amount.Denom)
 		traceHash := denomTrace.Hash()
 		// if the denom trace does not exist, add it
 		if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
@@ -88,6 +89,9 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, accounts []types.Genes
 		}
 
 		ibcDenom := denomTrace.IBCDenom()
+
+		k.RegisterDenomMetadata(ctx, rollapp, ibcDenom, acc.Amount.Denom)
+
 		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcDenom, acc.Amount.Amount))
 
 		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
@@ -98,10 +102,59 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, accounts []types.Genes
 			return err
 		}
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddress, coinsToMint); err != nil {
-			return err
+			return fmt.Errorf("failed to send coins to account: %w", err)
 		}
 	}
 	return nil
+}
+
+func (k Keeper) RegisterDenomMetadata(ctx sdk.Context, rollapp types.Rollapp, ibcBaseDenom, baseDenom string) {
+	// if the rollapp has no token metadata, return
+	if len(rollapp.TokenMetadata) == 0 {
+		k.Logger(ctx).Info("skipping new IBC token for rollapp with no metadata", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
+		return
+	}
+	// if the denom metadata already exists, return
+	if k.bankKeeper.HasDenomMetaData(ctx, ibcBaseDenom) {
+		k.Logger(ctx).Info("denom metadata already registered", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
+		return
+	}
+	for i := range rollapp.TokenMetadata {
+		// if the rollapp token base doesn't match the base denom, skip it
+		if rollapp.TokenMetadata[i].Base != baseDenom {
+			continue
+		}
+		// create a new token denom metadata where it's base = ibcDenom,
+		// and the rest of the fields are taken from rollapp.metadata
+		metadata := banktypes.Metadata{
+			Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollapp.RollappId,
+			Base:        ibcBaseDenom,
+			DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
+			Display:     rollapp.TokenMetadata[i].Display,
+			Name:        rollapp.TokenMetadata[i].Name,
+			Symbol:      rollapp.TokenMetadata[i].Symbol,
+			URI:         rollapp.TokenMetadata[i].URI,
+			URIHash:     rollapp.TokenMetadata[i].URIHash,
+		}
+		// Copy DenomUnits slice
+		for j, du := range rollapp.TokenMetadata[i].DenomUnits {
+			newDu := banktypes.DenomUnit{
+				Aliases:  du.Aliases,
+				Denom:    du.Denom,
+				Exponent: du.Exponent,
+			}
+			// base denom_unit should be the same as baseDenom
+			if newDu.Exponent == 0 {
+				newDu.Denom = ibcBaseDenom
+				newDu.Aliases = append(newDu.Aliases, du.Denom)
+			}
+			metadata.DenomUnits[j] = &newDu
+		}
+		// save the new token denom metadata
+		k.bankKeeper.SetDenomMetaData(ctx, metadata)
+
+		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
+	}
 }
 
 /* -------------------------------------------------------------------------- */
