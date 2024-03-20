@@ -3,7 +3,6 @@ package types
 import (
 	"testing"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
@@ -30,7 +29,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Creator:       "invalid_address",
 				MaxSequencers: 1,
 			},
-			err: sdkerrors.ErrInvalidAddress,
+			err: ErrInvalidAddress,
 		},
 		{
 			name: "valid address",
