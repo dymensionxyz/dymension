@@ -242,7 +242,6 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 }
 
 func getNewTestPacket(sequence uint64) *channeltypes.Packet {
-
 	return &channeltypes.Packet{
 		SourcePort:         "testSourcePort",
 		SourceChannel:      "testSourceChannel",
