@@ -667,6 +667,11 @@ func New(
 		),
 	)
 
+	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
+		// insert delayedAck hooks receivers here
+		app.EIBCKeeper.GetDelayedAckHooks(),
+	))
+
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
@@ -676,11 +681,6 @@ func New(
 			app.DelayedAckKeeper.GetEpochHooks(),
 		),
 	)
-
-	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
-		// insert delayedAck hooks receivers here
-		app.EIBCKeeper.GetDelayedAckHooks(),
-	))
 
 	app.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
 		// insert eibc hooks receivers here

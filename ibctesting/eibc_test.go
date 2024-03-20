@@ -34,6 +34,12 @@ func (suite *EIBCTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 	suite.msgServer = eibckeeper.NewMsgServerImpl(eibcKeeper)
+	// Change the delayedAck epoch to trigger every month to not
+	// delete the rollapp packets and demand orders
+	delayedAckKeeper := ConvertToApp(suite.hubChain).DelayedAckKeeper
+	params := delayedAckKeeper.GetParams(suite.hubChain.GetContext())
+	params.EpochIdentifier = "month"
+	delayedAckKeeper.SetParams(suite.hubChain.GetContext(), params)
 }
 
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
