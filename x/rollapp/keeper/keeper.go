@@ -90,7 +90,7 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp)
 
 		ibcDenom := denomTrace.IBCDenom()
 
-		k.registerDenomOnBank(ctx, rollapp, ibcDenom, acc.Amount.Denom)
+		k.RegisterDenomMetadata(ctx, rollapp, ibcDenom, acc.Amount.Denom)
 
 		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcDenom, acc.Amount.Amount))
 
@@ -102,51 +102,58 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp)
 			return err
 		}
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddress, coinsToMint); err != nil {
-			return err
+			return fmt.Errorf("failed to send coins to account: %w", err)
 		}
 	}
 	return nil
 }
 
-func (k Keeper) registerDenomOnBank(ctx sdk.Context, rollapp types.Rollapp, ibcDenom, accDenom string) {
+func (k Keeper) RegisterDenomMetadata(ctx sdk.Context, rollapp types.Rollapp, ibcBaseDenom, baseDenom string) {
+	// if the rollapp has no token metadata, return
+	if len(rollapp.TokenMetadata) == 0 {
+		k.Logger(ctx).Info("skipping new IBC token for rollapp with no metadata", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
+		return
+	}
 	// if the denom metadata already exists, return
-	if k.bankKeeper.HasDenomMetaData(ctx, ibcDenom) {
+	if k.bankKeeper.HasDenomMetaData(ctx, ibcBaseDenom) {
+		k.Logger(ctx).Info("denom metadata already registered", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
 		return
 	}
 	for i := range rollapp.TokenMetadata {
-		// if the rollapp token base matches the accDenom, create a new token denom metadata
-		if rollapp.TokenMetadata[i].Base == accDenom {
-			// create a new token denom metadata where it's base = ibcDenom,
-			// and the rest of the fields are taken from rollapp.metadata
-			metadata := banktypes.Metadata{
-				Description: "auto-generated metadata for " + ibcDenom + " from rollapp " + rollapp.RollappId,
-				Base:        ibcDenom,
-				DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
-				Display:     rollapp.TokenMetadata[i].Display,
-				Name:        rollapp.TokenMetadata[i].Name,
-				Symbol:      rollapp.TokenMetadata[i].Symbol,
-				URI:         rollapp.TokenMetadata[i].URI,
-				URIHash:     rollapp.TokenMetadata[i].URIHash,
-			}
-			// Copy DenomUnits slice
-			for j, du := range rollapp.TokenMetadata[i].DenomUnits {
-				newDu := banktypes.DenomUnit{
-					Aliases:  du.Aliases,
-					Denom:    du.Denom,
-					Exponent: du.Exponent,
-				}
-				// base denom_unit should be the same as baseDenom
-				if newDu.Exponent == 0 {
-					newDu.Denom = ibcDenom
-					newDu.Aliases = append(newDu.Aliases, du.Denom)
-				}
-				metadata.DenomUnits[j] = &newDu
-			}
-
-			k.bankKeeper.SetDenomMetaData(ctx, metadata)
-
-			k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcDenom)
+		// if the rollapp token base doesn't match the base denom, skip it
+		if rollapp.TokenMetadata[i].Base != baseDenom {
+			continue
 		}
+		// create a new token denom metadata where it's base = ibcDenom,
+		// and the rest of the fields are taken from rollapp.metadata
+		metadata := banktypes.Metadata{
+			Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollapp.RollappId,
+			Base:        ibcBaseDenom,
+			DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
+			Display:     rollapp.TokenMetadata[i].Display,
+			Name:        rollapp.TokenMetadata[i].Name,
+			Symbol:      rollapp.TokenMetadata[i].Symbol,
+			URI:         rollapp.TokenMetadata[i].URI,
+			URIHash:     rollapp.TokenMetadata[i].URIHash,
+		}
+		// Copy DenomUnits slice
+		for j, du := range rollapp.TokenMetadata[i].DenomUnits {
+			newDu := banktypes.DenomUnit{
+				Aliases:  du.Aliases,
+				Denom:    du.Denom,
+				Exponent: du.Exponent,
+			}
+			// base denom_unit should be the same as baseDenom
+			if newDu.Exponent == 0 {
+				newDu.Denom = ibcBaseDenom
+				newDu.Aliases = append(newDu.Aliases, du.Denom)
+			}
+			metadata.DenomUnits[j] = &newDu
+		}
+		// save the new token denom metadata
+		k.bankKeeper.SetDenomMetaData(ctx, metadata)
+
+		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
 	}
 }
 

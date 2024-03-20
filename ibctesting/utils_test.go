@@ -74,17 +74,16 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		[]string{},
 		[]rollapptypes.TokenMetadata{
 			{
-				Description: "stake as rollapp token",
+				Name:        "RollApp RAX",
+				Symbol:      "rax",
+				Description: "The native staking token of RollApp XYZ",
 				DenomUnits: []*rollapptypes.DenomUnit{
-					{
-						Denom:    "arax",
-						Exponent: 0,
-					},
+					{"urax", uint32(0), []string{"microrax"}},
+					{"mrax", uint32(3), []string{"millirax"}},
+					{"rax", uint32(6), nil},
 				},
-				Base:    "arax",
-				Display: "arax",
-				Name:    "ARAX",
-				Symbol:  "ARAX",
+				Base:    "urax",
+				Display: "rax",
 			},
 		},
 		nil,
