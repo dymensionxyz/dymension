@@ -95,7 +95,8 @@ func PacketsFromRevertedHeightsAreReverted(k Keeper) sdk.Invariant {
 						continue
 					}
 					if packet.ProofHeight >= stateInfoToCheck.StartHeight && packet.ProofHeight < stateInfoToCheck.StartHeight+stateInfoToCheck.NumBlocks && packet.Status != commontypes.Status_REVERTED {
-						msg += fmt.Sprintf("rollapp packet for height %d from rollapp %s should be in reverted status, but is in %s status\n", packet.ProofHeight, packet.RollappId, packet.Status)
+						msg += fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s", packet.RollappId, packet.ProofHeight, packet.Status)
+						
 						return msg, true
 					}
 				}
