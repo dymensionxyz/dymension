@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-
 	"github.com/tendermint/tendermint/libs/rand"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -85,16 +83,11 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	suite.SetupTest()
 	ctx := suite.Ctx
 	rollapp := "rollapp1"
-	// create rollapp
-	suite.CreateRollappWithName(rollapp)
-
-	proposer := suite.CreateDefaultSequencer(ctx, rollapp)
 
 	cases := []struct {
 		name             string
 		frozenRollapp    bool
-		stateInfo        *rollapptypes.StateInfo
-		stateInfo2       *rollapptypes.StateInfo
+		allFinalized     bool
 		packet           commontypes.RollappPacket
 		packet2          commontypes.RollappPacket
 		expectedIsBroken bool
@@ -102,26 +95,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 		{
 			"successful invariant check",
 			false,
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     1,
-				},
-				StartHeight: 1,
-				NumBlocks:   10,
-				Status:      commontypes.Status_FINALIZED,
-				Sequencer:   proposer,
-			},
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     2,
-				},
-				StartHeight: 10,
-				NumBlocks:   10,
-				Status:      commontypes.Status_PENDING,
-				Sequencer:   proposer,
-			},
+			false,
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
@@ -137,28 +111,27 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 		},
 		{
+			"successful revert check",
+			true,
+			false,
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_FINALIZED,
+				ProofHeight: 5,
+				Packet:      getNewTestPacket(1),
+			},
+			commontypes.RollappPacket{
+				RollappId:   rollapp,
+				Status:      commontypes.Status_REVERTED,
+				ProofHeight: 15,
+				Packet:      getNewTestPacket(2),
+			},
+			false,
+		},
+		{
 			"error non-finalized packet",
 			false,
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     1,
-				},
-				StartHeight: 1,
-				NumBlocks:   10,
-				Status:      commontypes.Status_FINALIZED,
-				Sequencer:   proposer,
-			},
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     2,
-				},
-				StartHeight: 10,
-				NumBlocks:   10,
-				Status:      commontypes.Status_FINALIZED,
-				Sequencer:   proposer,
-			},
+			true,
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
@@ -176,26 +149,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 		{
 			"wrong invariant revert check",
 			true,
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     1,
-				},
-				StartHeight: 1,
-				NumBlocks:   10,
-				Status:      commontypes.Status_FINALIZED,
-				Sequencer:   proposer,
-			},
-			&rollapptypes.StateInfo{
-				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     2,
-				},
-				StartHeight: 10,
-				NumBlocks:   10,
-				Status:      commontypes.Status_PENDING,
-				Sequencer:   proposer,
-			},
+			false,
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
 				Status:      commontypes.Status_FINALIZED,
@@ -213,37 +167,64 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	}
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
-			fmt.Println(tc.name)
+
+			// create rollapp
+			suite.CreateRollappWithName(rollapp)
+			proposer := suite.CreateDefaultSequencer(ctx, rollapp)
+
 			// update state infos
-			suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo)
-			if tc.stateInfo.Status == commontypes.Status_FINALIZED {
-				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
+			stateInfo := rollapptypes.StateInfo{
+				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
-					Index:     tc.stateInfo.GetIndex().Index,
-				})
+					Index:     1,
+				},
+				StartHeight: 1,
+				NumBlocks:   10,
+				Status:      commontypes.Status_FINALIZED,
+				Sequencer:   proposer,
 			}
-			suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo2)
-			if tc.stateInfo2.Status == commontypes.Status_FINALIZED {
+			stateInfo2 := rollapptypes.StateInfo{
+				StateInfoIndex: rollapptypes.StateInfoIndex{
+					RollappId: rollapp,
+					Index:     2,
+				},
+				StartHeight: 10,
+				NumBlocks:   10,
+				Status:      commontypes.Status_PENDING,
+				Sequencer:   proposer,
+			}
+
+			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
+			suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
+				RollappId: rollapp,
+				Index:     stateInfo.GetIndex().Index,
+			})
+			if tc.allFinalized {
+				stateInfo2.Status = commontypes.Status_FINALIZED
+			}
+			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo2)
+			if stateInfo2.Status == commontypes.Status_FINALIZED {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
 					RollappId: rollapp,
-					Index:     tc.stateInfo2.GetIndex().Index,
+					Index:     stateInfo2.GetIndex().Index,
 				})
 			}
 			suite.App.RollappKeeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 				RollappId: rollapp,
-				Index:     tc.stateInfo2.GetIndex().Index,
+				Index:     stateInfo2.GetIndex().Index,
 			})
 
 			if tc.frozenRollapp {
 				err := suite.App.RollappKeeper.HandleFraud(ctx, rollapp, "", 11, proposer)
 				suite.Require().NoError(err)
-
 			}
 
+			// add rollapp packets
 			err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
 			suite.Require().NoError(err)
 			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 			suite.Require().NoError(err)
+
 			// check invariant
 			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
