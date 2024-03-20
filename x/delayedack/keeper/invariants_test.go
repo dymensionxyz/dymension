@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"fmt"
+
 	"github.com/tendermint/tendermint/libs/rand"
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -37,7 +39,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	// send state updates
 	var lastHeight uint64 = 0
 
-	sequence := 0
+	sequence := uint64(0)
 	for j := 0; j < numOfStates; j++ {
 		numOfBlocks := uint64(rand.Intn(10) + 1)
 		for rollapp := range seqPerRollapp {
@@ -45,15 +47,8 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 			suite.Require().Nil(err)
 			for k := 1; k <= int(numOfBlocks); k++ {
 				rollappPacket := &commontypes.RollappPacket{
-					RollappId: rollapp,
-					Packet: &channeltypes.Packet{
-						SourcePort:         "testSourcePort",
-						SourceChannel:      "testSourceChannel",
-						DestinationPort:    "testDestinationPort",
-						DestinationChannel: "testDestinationChannel",
-						Data:               []byte("testData"),
-						Sequence:           uint64(sequence),
-					},
+					RollappId:   rollapp,
+					Packet:      getNewTestPacket(sequence),
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(rollappBlocks[rollapp] + k),
 				}
@@ -90,9 +85,14 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	suite.SetupTest()
 	ctx := suite.Ctx
 	rollapp := "rollapp1"
+	// create rollapp
+	suite.CreateRollappWithName(rollapp)
+
+	proposer := suite.CreateDefaultSequencer(ctx, rollapp)
+
 	cases := []struct {
 		name             string
-		rollappId        string
+		frozenRollapp    bool
 		stateInfo        *rollapptypes.StateInfo
 		stateInfo2       *rollapptypes.StateInfo
 		packet           commontypes.RollappPacket
@@ -101,7 +101,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	}{
 		{
 			"successful invariant check",
-			rollapp,
+			false,
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
@@ -110,6 +110,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				StartHeight: 1,
 				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
+				Sequencer:   proposer,
 			},
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
@@ -119,6 +120,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				StartHeight: 10,
 				NumBlocks:   10,
 				Status:      commontypes.Status_PENDING,
+				Sequencer:   proposer,
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
@@ -136,7 +138,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 		},
 		{
 			"error non-finalized packet",
-			rollapp,
+			false,
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
@@ -145,6 +147,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				StartHeight: 1,
 				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
+				Sequencer:   proposer,
 			},
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
@@ -154,6 +157,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				StartHeight: 10,
 				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
+				Sequencer:   proposer,
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
@@ -171,7 +175,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 		},
 		{
 			"wrong invariant revert check",
-			rollapp,
+			true,
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
 					RollappId: rollapp,
@@ -180,6 +184,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				StartHeight: 1,
 				NumBlocks:   10,
 				Status:      commontypes.Status_FINALIZED,
+				Sequencer:   proposer,
 			},
 			&rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
@@ -188,7 +193,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				},
 				StartHeight: 10,
 				NumBlocks:   10,
-				Status:      commontypes.Status_REVERTED,
+				Status:      commontypes.Status_PENDING,
+				Sequencer:   proposer,
 			},
 			commontypes.RollappPacket{
 				RollappId:   rollapp,
@@ -207,33 +213,37 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 	}
 	for _, tc := range cases {
 		suite.Run(tc.name, func() {
-			// create rollapp
-			suite.CreateRollappWithName(tc.rollappId)
+			fmt.Println(tc.name)
 			// update state infos
 			suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo)
 			if tc.stateInfo.Status == commontypes.Status_FINALIZED {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
-					RollappId: tc.rollappId,
+					RollappId: rollapp,
 					Index:     tc.stateInfo.GetIndex().Index,
 				})
 			}
 			suite.App.RollappKeeper.SetStateInfo(ctx, *tc.stateInfo2)
 			if tc.stateInfo2.Status == commontypes.Status_FINALIZED {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
-					RollappId: tc.rollappId,
+					RollappId: rollapp,
 					Index:     tc.stateInfo2.GetIndex().Index,
 				})
 			}
 			suite.App.RollappKeeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
-				RollappId: tc.rollappId,
+				RollappId: rollapp,
 				Index:     tc.stateInfo2.GetIndex().Index,
 			})
+
+			if tc.frozenRollapp {
+				err := suite.App.RollappKeeper.HandleFraud(ctx, rollapp, "", 11, proposer)
+				suite.Require().NoError(err)
+
+			}
 
 			err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
 			suite.Require().NoError(err)
 			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 			suite.Require().NoError(err)
-
 			// check invariant
 			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
