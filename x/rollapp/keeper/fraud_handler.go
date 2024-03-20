@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -53,12 +55,22 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 
 	k.RevertPendingStates(ctx, rollappID)
 
-	// TODO: get the clientId from rollapp object, instead of by proposal
-	if clientId != "" {
+	if rollapp.ChannelId != "" {
+		extractedClientId, _, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", rollapp.ChannelId)
+		if err != nil {
+			return err
+		}
+
+		if extractedClientId != clientId {
+			return errorsmod.Wrapf(types.ErrWrongClientId, "clientID %s does not match the one in the rollapp (%s)", clientId, extractedClientId)
+		}
+
 		err = k.freezeClientState(ctx, clientId)
 		if err != nil {
 			return err
 		}
+	} else if clientId != "" {
+		return sdkerrors.Wrapf(types.ErrWrongClientId, "rollapp with ID %s does not have a channel", rollappID)
 	}
 
 	ctx.EventManager().EmitEvent(

@@ -49,7 +49,7 @@ func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRoll
 			msg.ChannelId, tmClientState.GetChainID(), msg.RollappId)
 	}
 
-	// Update the rollapp with the channle ID and trigger the genesis event
+	// Update the rollapp with the channelID and trigger the genesis event
 	rollapp.ChannelId = msg.ChannelId
 	if err = k.TriggerRollappGenesisEvent(ctx, rollapp); err != nil {
 		return nil, err
