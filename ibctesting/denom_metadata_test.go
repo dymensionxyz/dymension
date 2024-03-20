@@ -38,7 +38,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.RegisterSequencer()
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
-	suite.UpdateRollappState(1, currentRollappBlockHeight)
+	suite.UpdateRollappState(currentRollappBlockHeight)
 	err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
 	suite.Require().NoError(err)
 
