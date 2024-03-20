@@ -188,7 +188,6 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	suite.Require().NoError(err)
 	_, err = suite.rollappMsgServer.UpdateState(suite.hubChain.GetContext(), msgUpdateState)
 	suite.Require().NoError(err)
-
 }
 
 func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) error {
