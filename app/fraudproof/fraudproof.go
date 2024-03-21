@@ -36,7 +36,7 @@ var (
 	ErrInvalidAppHash         = errors.New("invalid app hash")
 )
 
-type FraudProofVerifier interface {
+type Verifier interface {
 	InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error
 	VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
 }
@@ -49,10 +49,10 @@ type RollappFPV struct {
 	runningApp     *baseapp.BaseApp
 }
 
-var _ FraudProofVerifier = (*RollappFPV)(nil)
+var _ Verifier = (*RollappFPV)(nil)
 
-// New creates a new FraudProofVerifier
-func New(appName string) *RollappFPV {
+// NewVerifier creates a new Verifier
+func NewVerifier(appName string) *RollappFPV {
 	cfg := rollappevm.MakeEncodingConfig()
 
 	//TODO: use logger? default home directory?
@@ -76,7 +76,7 @@ func (fpv *RollappFPV) initCleanInstance() {
 	fpv.runningApp = rollapp
 }
 
-// InitFromFraudProof initializes the FraudProofVerifier from a fraud proof
+// InitFromFraudProof initializes the Verifier from a fraud proof
 func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error {
 	// check app is initialized
 	if fpv.rollappBaseApp == nil {

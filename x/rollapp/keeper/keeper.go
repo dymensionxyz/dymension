@@ -19,7 +19,7 @@ type (
 		storeKey storetypes.StoreKey
 		memKey   storetypes.StoreKey
 
-		fraudProofVerifier fraudtypes.FraudProofVerifier
+		fraudProofVerifier fraudtypes.Verifier
 		hooks              types.MultiRollappHooks
 		paramstore         paramtypes.Subspace
 	}
@@ -49,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Set the rollapp hooks
+// SetHooks sets the rollapp hooks
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
@@ -61,7 +61,6 @@ func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
 }
 
-// SetFraudProofVerifier
-func (k *Keeper) SetFraudProofVerifier(fpv fraudtypes.FraudProofVerifier) {
+func (k *Keeper) SetFraudProofVerifier(fpv fraudtypes.Verifier) {
 	k.fraudProofVerifier = fpv
 }
