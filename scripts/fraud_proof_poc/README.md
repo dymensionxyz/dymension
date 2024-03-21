@@ -7,15 +7,19 @@ and proceed with the following steps
 
 ### hub
 
-`podman exec -it fraud_proof_poc-hub-1 /bin/bash`, the following commands are executed inside the hub container
-
-```sh
+```
 # fund the wallets that were generated during rollapp initialization
 # extract the addresses to fund: you can find the generated wallets inside /go/rollapp_init file on the rollapp-evm and rollapp-evm-fullnode containers
 for container in fraud_proof_poc-rollapp-evm-1 fraud_proof_poc-rollapp-evm-fullnode-1; do
   podman exec -it "$container" /bin/bash -c 'grep -Po "(dym[a-zA-Z0-9]+)" /go/rollapp_init' | grep -v 'dymension'
 done
+```
 
+`podman exec -it fraud_proof_poc-hub-1 /bin/bash`
+
+the following commands are executed inside the hub container
+
+```sh
 wallets=("dym1yk67wjkcu80fqegjskks3km9vz5xshknseqk4j" "dym1672tc2t0f7uq8kqlg2h8da6vm7mu5uhy08luu3" "dym1anfjre42pa7mtnqa0vce8cjpxk66d366v3gg7j" "dym137a5e6k5g2x9w5st2k2u9l80p565lx3qwl7uhp")
 
 for wallet in "${wallets[@]}"; do
@@ -27,7 +31,9 @@ done
 
 ### Sequencer
 
-`podman exec -it fraud_proof_poc-rollapp-evm-1 /bin/bash`, the following commands are executed inside the sequencer container
+`podman exec -it fraud_proof_poc-rollapp-evm-1 /bin/bash`
+
+the following commands are executed inside the sequencer container
 
 ```sh
 # after funding the wallets from the hub node
