@@ -49,7 +49,7 @@ func (r Rollapp) ValidateBasic() error {
 		}
 	}
 
-	//genesisAccounts address validation
+	// genesisAccounts address validation
 	if r.GenesisState != nil {
 		for _, acc := range r.GenesisState.GenesisAccounts {
 			_, err := sdk.AccAddressFromBech32(acc.Address)

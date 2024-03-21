@@ -64,7 +64,7 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		}
 	}
 
-	//genesisAccounts address validation
+	// genesisAccounts address validation
 	for _, acc := range msg.GenesisAccounts {
 		_, err := sdk.AccAddressFromBech32(acc.Address)
 		if err != nil {

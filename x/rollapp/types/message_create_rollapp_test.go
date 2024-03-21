@@ -60,14 +60,16 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:     "dym_100-1",
 			},
 			err: ErrInvalidCreatorAddress,
-		}, {
+		},
+		{
 			name: "valid address",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
 				RollappId:     "dym_100-1",
 			},
-		}, {
+		},
+		{
 			name: "invalid max sequencers",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
@@ -75,7 +77,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:     "dym_100-1",
 			},
 			err: ErrInvalidMaxSequencers,
-		}, {
+		},
+		{
 			name: "valid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
@@ -83,7 +86,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
-		}, {
+		},
+		{
 			name: "duplicate permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
@@ -92,7 +96,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
-		}, {
+		},
+		{
 			name: "invalid permissioned addresses",
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
@@ -101,7 +106,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
-		}, {
+		},
+		{
 			name: "valid token metadata",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
@@ -110,7 +116,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Metadatas:     []TokenMetadata{defaultMetadata},
 			},
 			err: nil,
-		}, {
+		},
+		{
 			name: "invalid token metadata", // just trigger one case to see if validation is done or not
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
