@@ -87,7 +87,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 		var err error
 
-		//parse to secp256k1 or edc25519 pubkey and checks validity (the func includes cryptographic validation)
+		// parse to secp256k1 or edc25519 pubkey and checks validity (the func includes cryptographic validation)
 		switch pk.Type() {
 		case "secp256k1":
 			_, err = secp256k1.ParsePubKey(pk.Bytes())
@@ -95,7 +95,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 			_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
 		}
 
-		//err means the pubkey validation failed
+		// err means the pubkey validation failed
 		if err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "pubkey validation failed")
 		}
