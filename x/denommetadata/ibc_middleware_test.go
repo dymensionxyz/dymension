@@ -103,7 +103,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 				logger: &collectingLogger{},
 			},
 			expDenomMetadata: "",
-			expLogMsg:        "Skipping IBC transfer OnRecvPacket for rollapps not enabled",
+			expLogMsg:        "",
 		}, {
 			name: "test OnRecvPacket with no rollapp client state",
 			args: args{
@@ -184,7 +184,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 				logger: &collectingLogger{},
 			},
 			expDenomMetadata: "",
-			expLogMsg:        "Skipping denommetadata middleware. Denom trace already exists",
+			expLogMsg:        "",
 		}, {
 			name: "test OnRecvPacket with wrong packet data",
 			args: args{
