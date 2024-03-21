@@ -467,7 +467,6 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.Require().Nil(err)
 	}
-
 }
 
 func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
