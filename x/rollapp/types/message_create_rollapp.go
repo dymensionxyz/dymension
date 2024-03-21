@@ -52,6 +52,12 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
 	}
 
+	// validate rollappId
+	_, err = ParseChainID(msg.RollappId)
+	if err != nil {
+		return err
+	}
+
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := msg.GetPermissionedAddresses()

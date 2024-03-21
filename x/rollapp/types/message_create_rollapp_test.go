@@ -16,10 +16,20 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "invalid rollappID",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				RollappId:     " ",
+			},
+			err: ErrInvalidRollappID,
+		},
+		{
 			name: "invalid address",
 			msg: MsgCreateRollapp{
 				Creator:       "invalid_address",
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
@@ -27,12 +37,14 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 			},
 		}, {
 			name: "invalid max sequencers",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 0,
+				RollappId:     "dym_100-1",
 			},
 			err: ErrInvalidMaxSequencers,
 		}, {
@@ -40,6 +52,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		}, {
@@ -47,6 +60,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
@@ -55,6 +69,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         1,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
@@ -63,6 +78,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 				Metadatas: []TokenMetadata{{
 					Description: "valid",
 					DenomUnits: []*DenomUnit{
@@ -81,6 +97,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 				Metadatas: []TokenMetadata{{
 					Description: "valid",
 					DenomUnits: []*DenomUnit{
