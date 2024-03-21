@@ -5,7 +5,6 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/decred/dcrd/dcrec/edwards"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
@@ -85,15 +84,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 		}
 
-		var err error
-
-		// parse to secp256k1 or edc25519 pubkey and checks validity (the func includes cryptographic validation)
-		switch pk.Type() {
-		case "secp256k1":
-			_, err = secp256k1.ParsePubKey(pk.Bytes())
-		case "edc25519":
-			_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
-		}
+		_, err = secp256k1.ParsePubKey(pk.Bytes())
 
 		// err means the pubkey validation failed
 		if err != nil {
