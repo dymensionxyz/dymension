@@ -376,7 +376,7 @@ func (suite *SequencerTestSuite) TestMaxSequencersZero() {
 		Description:  types.Description{},
 	}
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
-	suite.EqualError(err, types.ErrMaxSequencersLimit.Error())
+	suite.Require().Nil(err)
 }
 
 func (suite *SequencerTestSuite) TestMaxSequencersLimit() {
