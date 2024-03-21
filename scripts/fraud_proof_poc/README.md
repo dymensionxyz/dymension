@@ -1,4 +1,13 @@
-this example can be executed using `podma` or `docker`
+# Demo
+
+This demo will set up the hub with a DA layer, a light node, and a full node. The nodes use a modified EVM rollapp.
+The full node will misbehave with some probability.
+The light node will check every block for fraud and submit generate a proof if fraud is detected.
+We manually submit any such proof to the hub.
+
+## Steps
+
+this example can be executed using `podman` or `docker`
 
 1. run `podman compose up`, this will spin up all the necessary infrastructure that includes a local hub, mock da layer, sequencer with `fraud proof` feature enabled and a full node
 
@@ -44,8 +53,8 @@ roller tx register
 rollapp-evm dymint show-node-id --home ~/.roller/rollapp
 
 # start the sequencer with fraud_proof enabled
-# '&' starts the rollapp in the background
-rollapp-evm --home ~/.roller/rollapp start --dymint.simulate_fraud --log_level warn &
+# '&' starts the rollapp in the background, remove if you want
+rollapp-evm --home ~/.roller/rollapp start --dymint.simulate_fraud --log_level debug &
 
 # ! start the full node before generating transactions
 # generate transactions to create fraud with 0.5% probability
