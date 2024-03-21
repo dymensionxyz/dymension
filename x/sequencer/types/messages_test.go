@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -128,4 +129,22 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+func TestSequencerKey(t *testing.T) {
+	pubkey := ed25519.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+	bond := sdk.NewCoin("stake", sdk.NewInt(100))
+
+	msgCreateSequencer, err := NewMsgCreateSequencer(
+		addr.String(),
+		pubkey,
+		"rollapptest",
+		&Description{},
+		bond,
+	)
+
+	msgCreateSequencer.ValidateBasic()
+	require.Error(t, err)
+
 }
