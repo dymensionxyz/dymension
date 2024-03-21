@@ -45,7 +45,7 @@ rollapp-evm dymint show-node-id --home ~/.roller/rollapp
 
 # start the sequencer with fraud_proof enabled
 # '&' starts the rollapp in the background
-rollapp-evm --home ~/.roller/rollapp start --dymint.simulate_fraud --low_level warn &
+rollapp-evm --home ~/.roller/rollapp start --dymint.simulate_fraud --log_level warn &
 
 # ! start the full node before generating transactions
 # generate transactions to create fraud with 0.5% probability
