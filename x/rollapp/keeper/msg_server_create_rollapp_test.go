@@ -97,7 +97,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
-		RollappId:             "rollapp1",
+		RollappId:             "rollapp_1234-1",
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{},
 	}
