@@ -37,6 +37,8 @@ var (
 	ErrInvalidGenesisChannelId             = sdkerrors.Register(ModuleName, 1027, "invalid genesis channel id")
 	ErrGenesisEventNotDefined              = sdkerrors.Register(ModuleName, 1028, "genesis event not defined")
 	ErrGenesisEventAlreadyTriggered        = sdkerrors.Register(ModuleName, 1029, "genesis event already triggered")
+	ErrTooManyPermissionedAddresses        = sdkerrors.Register(ModuleName, 1030, "invalid number of permissioned addresses")
+	ErrInvalidAddress                      = sdkerrors.Register(ModuleName, 1031, "invalid address")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = sdkerrors.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = sdkerrors.Register(ModuleName, 2001, "disputed height already reverted")

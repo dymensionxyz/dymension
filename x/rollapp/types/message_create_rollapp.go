@@ -1,13 +1,15 @@
 package types
 
 import (
+	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
+
+const MaxAllowedSequencers = 100
 
 func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
 	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
@@ -46,12 +48,15 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 func (msg *MsgCreateRollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-	if msg.GetMaxSequencers() == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
+		return sdkerrors.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.GetMaxSequencers() > MaxAllowedSequencers {
+		return sdkerrors.Wrapf(ErrInvalidMaxSequencers, "max sequencers: %d, max sequencers allowed: %d", msg.GetMaxSequencers(), MaxAllowedSequencers)
+	}
+	if uint64(len(msg.PermissionedAddresses)) > msg.GetMaxSequencers() {
+		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "permissioned addresses: %d, max sequencers: %d", len(msg.PermissionedAddresses), msg.GetMaxSequencers())
+	}
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := msg.GetPermissionedAddresses()
