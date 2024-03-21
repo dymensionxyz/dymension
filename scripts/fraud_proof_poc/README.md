@@ -20,7 +20,7 @@ done
 the following commands are executed inside the hub container
 
 ```sh
-wallets=("dym1yk67wjkcu80fqegjskks3km9vz5xshknseqk4j" "dym1672tc2t0f7uq8kqlg2h8da6vm7mu5uhy08luu3" "dym1anfjre42pa7mtnqa0vce8cjpxk66d366v3gg7j" "dym137a5e6k5g2x9w5st2k2u9l80p565lx3qwl7uhp")
+wallets=("dym19230y5hrang2qte9cgvvsn0jgtpqwfde9v37tf" "dym1d7fha6gnle77erxkv7z8h3cutfa5gudw928n4d" "dym1trt53uzqyavltgz3msf6xnd5zhgstsgam70232" "dym1v5pme26uk94zkycy3y943djl94s7h0u3drwcys")
 
 for wallet in "${wallets[@]}"; do
   echo "funding ${wallet}"
