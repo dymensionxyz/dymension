@@ -13,31 +13,16 @@ jobs:
       GOPROXY: https://proxy.golang.org
     steps:
       - uses: actions/checkout@v4
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/main
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22"
-<<<<<<< HEAD
-
       - name: Build
         run: go build -v ./...
-
-=======
-      - name: Build
-        run: go build -v ./...
->>>>>>> upstream/main
       - name: Test & Coverage
         run: |
           go install github.com/ory/go-acc@v0.2.6
           go-acc -o coverage.txt ./... -- -v --race
-<<<<<<< HEAD
-
-=======
->>>>>>> upstream/main
       - uses: codecov/codecov-action@v3
         with:
           file: ./coverage.txt
