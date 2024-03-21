@@ -63,7 +63,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	if found {
 		// retrieve last updating index
 		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
-		// Check Error: if latestStateInfoIndex exists, there must me an info for this state
+		// if latestStateInfoIndex exists, there must be an info for this state
 		if !found {
 			// if not, it's a logic error
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
