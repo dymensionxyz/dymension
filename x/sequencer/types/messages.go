@@ -1,8 +1,6 @@
 package types
 
 import (
-	fmt "fmt"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -88,8 +86,8 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		}
 
 		var err error
-		fmt.Println(pk.Type())
 
+		//parse to secp256k1 or edc25519 pubkey and checks validity (the func includes cryptographic validation)
 		switch pk.Type() {
 		case "secp256k1":
 			_, err = secp256k1.ParsePubKey(pk.Bytes())
@@ -97,11 +95,9 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 			_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
 		}
 
-		//parse to secp256k1 pubkey and checks validity (the func includes call to isOnCurve to check cryptographic validity)
+		//err means the pubkey validation failed
 		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unable to parse pubkey")
-		} else {
-			fmt.Println("valid  keys")
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "pubkey validation failed")
 		}
 
 	}

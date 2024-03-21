@@ -4,8 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -16,6 +17,9 @@ import (
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	require.NoError(t, err)
+
+	pkEd25519, err := codectypes.NewAnyWithValue(ed25519.GenPrivKey().PubKey())
 	require.NoError(t, err)
 
 	bond := sdk.NewCoin("stake", sdk.NewInt(100))
@@ -38,6 +42,13 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
+				Bond:         bond,
+			},
+		}, {
+			name: "valid ed25519 pubkey",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkEd25519,
 				Bond:         bond,
 			},
 		}, {
@@ -129,22 +140,4 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-}
-
-func TestSequencerKey(t *testing.T) {
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	bond := sdk.NewCoin("stake", sdk.NewInt(100))
-
-	msgCreateSequencer, err := NewMsgCreateSequencer(
-		addr.String(),
-		pubkey,
-		"rollapptest",
-		&Description{},
-		bond,
-	)
-
-	msgCreateSequencer.ValidateBasic()
-	require.Error(t, err)
-
 }
