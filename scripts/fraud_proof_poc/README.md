@@ -71,7 +71,9 @@ the following commands are executed inside the fullnode container
 export ROLLAPP_CHAIN_ID="dummy_9361346-1"
 # noted in the sequencer steps
 export SEQUENCER_NODE_ID="12D3KooWQrNRe8ejp13aQauGze9UZw1kmgYR73K5iyzsKxVirLjz"
+```
 
+```sh
 sed -i "s/^rollapp_id.*/rollapp_id = \"${ROLLAPP_CHAIN_ID}\"/" ~/.roller/rollapp/config/dymint.toml
 sed -i "s/^seeds =.*/seeds = \"tcp:\/\/${SEQUENCER_NODE_ID}@$(dig +short rollapp-evm):26656\/\"/" ~/.roller/rollapp/config/config.toml
 
@@ -84,8 +86,8 @@ outside the container, run
 
 ```sh
 # copy and submit the fraud proof
-podman cp fraud_proof_poc_rollapp-evm-fullnode_1:/go/fraudProof_rollapp_with_tx.json  \
-  fraud_proof_poc_hub_1:/go/fraudProof_rollapp_with_tx.json 
+podman cp fraud_proof_poc-rollapp-evm-fullnode-1:/go/fraudProof_rollapp_with_tx.json  \
+  fraud_proof_poc-hub-1:/go/fraudProof_rollapp_with_tx.json 
 ```
 
 inside the hub container, run the following command to submit the fraud
