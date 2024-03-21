@@ -667,6 +667,11 @@ func New(
 		),
 	)
 
+	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
+		// insert delayedAck hooks receivers here
+		app.EIBCKeeper.GetDelayedAckHooks(),
+	))
+
 	app.EpochsKeeper.SetHooks(
 		epochstypes.NewMultiEpochHooks(
 			// insert epochs hooks receivers here
@@ -676,11 +681,6 @@ func New(
 			app.DelayedAckKeeper.GetEpochHooks(),
 		),
 	)
-
-	app.DelayedAckKeeper.SetHooks(delayedacktypes.NewMultiDelayedAckHooks(
-		// insert delayedAck hooks receivers here
-		app.EIBCKeeper.GetDelayedAckHooks(),
-	))
 
 	app.EIBCKeeper.SetHooks(eibcmoduletypes.NewMultiEIBCHooks(
 		// insert eibc hooks receivers here
@@ -743,7 +743,7 @@ func New(
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
-	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper, app.BankKeeper)
+	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it

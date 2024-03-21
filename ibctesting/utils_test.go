@@ -1,6 +1,7 @@
 package ibctesting_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -20,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/testutil/mockpv"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -55,6 +57,9 @@ type IBCTestUtilSuite struct {
 	hubChain     *ibctesting.TestChain
 	cosmosChain  *ibctesting.TestChain
 	rollappChain *ibctesting.TestChain
+
+	// msg servers
+	rollappMsgServer rollapptypes.MsgServer
 }
 
 // SetupTest creates a coordinator with 2 test chains.
@@ -64,6 +69,8 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
 	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.ChainIDPrefix+"3")
 	suite.coordinator.Chains[suite.rollappChain.ChainID] = suite.rollappChain
+	// Setup msg server for the rollapp keeper
+	suite.rollappMsgServer = rollappkeeper.NewMsgServerImpl(ConvertToApp(suite.hubChain).RollappKeeper)
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
@@ -72,7 +79,20 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		suite.rollappChain.ChainID,
 		10,
 		[]string{},
-		nil,
+		[]rollapptypes.TokenMetadata{
+			{
+				Name:        "RollApp RAX",
+				Symbol:      "rax",
+				Description: "The native staking token of RollApp XYZ",
+				DenomUnits: []*rollapptypes.DenomUnit{
+					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
+					{Denom: "mrax", Exponent: uint32(3), Aliases: []string{"millirax"}},
+					{Denom: "urax", Exponent: uint32(6), Aliases: []string{"microrax"}},
+				},
+				Base:    "arax",
+				Display: "arax",
+			},
+		},
 		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
@@ -97,7 +117,6 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 		&sequencertypes.Description{},
 		bond,
 	)
-
 	suite.Require().NoError(err) // message committed
 	_, err = suite.hubChain.SendMsgs(msgCreateSequencer)
 	suite.Require().NoError(err) // message committed
@@ -135,22 +154,39 @@ func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
 	suite.Require().NoError(err) // message committed
 }
 
-func (suite *IBCTestUtilSuite) UpdateRollappState(index uint64, startHeight uint64) {
+func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
+	// Get the start index and start height based on the latest state info
 	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
-	ctx := suite.hubChain.GetContext()
-
-	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: suite.rollappChain.ChainID, Index: index}
-	stateInfo := rollapptypes.StateInfo{
-		StateInfoIndex: stateInfoIdx,
-		StartHeight:    startHeight,
-		NumBlocks:      1,
-		Status:         common.Status_PENDING,
-		Sequencer:      suite.hubChain.SenderAccount.GetAddress().String(),
+	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
+	stateInfo, found := rollappKeeper.GetStateInfo(suite.hubChain.GetContext(), suite.rollappChain.ChainID, latestStateInfoIndex.Index)
+	startHeight := uint64(1)
+	if found {
+		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
 	}
-
-	// update the status of the stateInfo
-	rollappKeeper.SetStateInfo(ctx, stateInfo)
-	rollappKeeper.SetLatestStateInfoIndex(ctx, stateInfo.StateInfoIndex)
+	numBlocks := endHeight - startHeight + 1
+	// populate the block descriptors
+	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
+	for i := 0; i < int(numBlocks); i++ {
+		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
+			Height:                 startHeight + uint64(i),
+			StateRoot:              bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+		}
+	}
+	// Update the state
+	msgUpdateState := rollapptypes.NewMsgUpdateState(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.ChainID,
+		startHeight,
+		uint64(endHeight-startHeight+1), // numBlocks
+		"mock-da-path",
+		0,
+		blockDescriptors,
+	)
+	err := msgUpdateState.ValidateBasic()
+	suite.Require().NoError(err)
+	_, err = suite.rollappMsgServer.UpdateState(suite.hubChain.GetContext(), msgUpdateState)
+	suite.Require().NoError(err)
 }
 
 func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) error {

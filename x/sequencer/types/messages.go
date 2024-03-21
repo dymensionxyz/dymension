@@ -33,6 +33,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 			return nil, err
 		}
 	}
+
 	return &MsgCreateSequencer{
 		Creator:      creator,
 		DymintPubKey: pkAny,

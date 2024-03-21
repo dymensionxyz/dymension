@@ -4,18 +4,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-
-	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -27,17 +22,22 @@ type IBCMiddleware struct {
 	ics4Wrapper    porttypes.ICS4Wrapper
 	transferkeeper types.TransferKeeper
 	rollappkeeper  types.RollappKeeper
-	bankkeeper     types.BankKeeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, ck types.ChannelKeeper, tk transferkeeper.Keeper, rk rollappkeeper.Keeper, bk bankkeeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(
+	app porttypes.IBCModule,
+	ck types.ChannelKeeper,
+	iw porttypes.ICS4Wrapper,
+	tk types.TransferKeeper,
+	rk types.RollappKeeper,
+) IBCMiddleware {
 	return IBCMiddleware{
 		app:            app,
 		channelKeeper:  ck,
+		ics4Wrapper:    iw,
 		transferkeeper: tk,
 		rollappkeeper:  rk,
-		bankkeeper:     bk,
 	}
 }
 
@@ -116,14 +116,15 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	logger := ctx.Logger().With("module", "DenomMiddleware")
+
 	if !im.rollappkeeper.GetParams(ctx).RollappsEnabled {
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	logger := ctx.Logger().With("module", "DenomMiddleware")
-
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		logger.Error("failed to unmarshal fungible token packet data", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
@@ -166,48 +167,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	if len(rollapp.TokenMetadata) == 0 {
-		logger.Info("skipping new IBC token for rollapp with no metadata", "rollappID", chainID, "denom", voucherDenom)
-		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	if im.bankkeeper.HasDenomMetaData(ctx, voucherDenom) {
-		logger.Info("denom metadata already registered", "rollappID", chainID, "denom", voucherDenom)
-		return im.app.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	for i := range rollapp.TokenMetadata {
-		if rollapp.TokenMetadata[i].Base == data.Denom {
-			metadata := banktypes.Metadata{
-				Description: "auto-generated metadata for " + voucherDenom + " from rollapp " + chainID,
-				Base:        voucherDenom,
-				DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
-				Display:     rollapp.TokenMetadata[i].Display,
-				Name:        rollapp.TokenMetadata[i].Name,
-				Symbol:      rollapp.TokenMetadata[i].Symbol,
-				URI:         rollapp.TokenMetadata[i].URI,
-				URIHash:     rollapp.TokenMetadata[i].URIHash,
-			}
-			// Copy DenomUnits slice
-			for j, du := range rollapp.TokenMetadata[i].DenomUnits {
-				newDu := banktypes.DenomUnit{
-					Aliases:  du.Aliases,
-					Denom:    du.Denom,
-					Exponent: du.Exponent,
-				}
-				// base denom_unit should be the same as baseDenom
-				if newDu.Exponent == 0 {
-					newDu.Denom = voucherDenom
-					newDu.Aliases = append(newDu.Aliases, du.Denom)
-				}
-				metadata.DenomUnits[j] = &newDu
-			}
-
-			im.bankkeeper.SetDenomMetaData(ctx, metadata)
-
-			logger.Info("registered denom metadata for IBC token", "rollappID", chainID, "denom", voucherDenom)
-		}
-	}
+	im.rollappkeeper.RegisterDenomMetadata(ctx, rollapp, voucherDenom, data.Denom)
 
 	return im.app.OnRecvPacket(ctx, packet, relayer)
 }
