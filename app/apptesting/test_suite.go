@@ -32,14 +32,16 @@ func (suite *KeeperTestHelper) CreateDefaultRollapp() string {
 }
 
 func (suite *KeeperTestHelper) CreateRollappWithName(name string) string {
-	rollapp := rollapptypes.Rollapp{
-		RollappId:     name,
+	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:       alice,
-		Version:       0,
+		RollappId:     name,
 		MaxSequencers: 5,
 	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-	return rollapp.GetRollappId()
+
+	msgServer := rollappkeeper.NewMsgServerImpl(suite.App.RollappKeeper)
+	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
+	suite.Require().Nil(err)
+	return name
 }
 
 func (suite *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {

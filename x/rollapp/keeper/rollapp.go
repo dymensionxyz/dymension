@@ -14,14 +14,13 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.RollappId,
 	), b)
 
-	// check if chain-id is EVM compatible
-	eip155, err := types.ParseChainID(rollapp.RollappId)
-	if err != nil || eip155 == nil {
+	// check if chain-id is EVM compatible. no err check as rollapp is already validated
+	eip155, _ := types.ParseChainID(rollapp.RollappId)
+	if eip155 == nil {
 		return
 	}
 
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
-	b = k.cdc.MustMarshal(&rollapp)
 	store.Set(types.RollappByEIP155Key(
 		eip155.Uint64(),
 	), b)
