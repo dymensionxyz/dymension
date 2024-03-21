@@ -18,8 +18,12 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, err
 	}
 
+	eip155, err := types.ParseChainID(msg.RollappId)
+	if err != nil {
+		return nil, err
+	}
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
+	if _, isFound := k.GetRollappByEIP155(ctx, eip155.Uint64()); isFound {
 		return nil, types.ErrRollappExists
 	}
 
