@@ -96,7 +96,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
-		RollappId:             "rollapp1",
+		RollappId:             "rollapp_1234-1",
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{},
 	}
@@ -121,8 +121,8 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	rollappId := "cosmos_9000-1"     // without whitespace
-	badrollappId := "cosmos_9000-1 " // with whitespace
+	rollappId := "rollapp_1234-1"     // without whitespace
+	badrollappId := "rollapp_1234-1 " // with whitespace
 	// create rollapp with normal ID
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
