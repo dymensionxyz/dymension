@@ -58,11 +58,13 @@ rollapp-evm --home ~/.roller/rollapp/ tx bank send \
 copy the `genesis.json` file from the sequencer to the full node
 
 ```sh
-podman cp fraud_proof_poc_rollapp-evm_1:/root/.roller/rollapp/config/genesis.json \
-    fraud_proof_poc_rollapp-evm-fullnode_1:/root/.roller/rollapp/config/genesis.json 
+podman cp fraud_proof_poc-rollapp-evm-1:/root/.roller/rollapp/config/genesis.json \
+    fraud_proof_poc-rollapp-evm-fullnode-1:/root/.roller/rollapp/config/genesis.json 
 ```
 
-`podman exec -it fraud_proof_poc_rollapp-evm-fullnode_1 /bin/sh`, the following commands are executed inside the fullnode container
+`podman exec -it fraud_proof_poc-rollapp-evm-fullnode-1 /bin/sh`
+
+the following commands are executed inside the fullnode container
 
 ```sh
 # noted in the sequencer steps
