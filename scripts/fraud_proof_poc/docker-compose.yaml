@@ -23,7 +23,7 @@ services:
         CACHEBUST: ${CACHEBUST}
     depends_on:
       - mock-da
-      - dymd
+      - hub
     command: [ "/go/wait-for-hub.sh", "sleep", "infinity" ]
 
   rollapp-evm-fullnode:
@@ -34,5 +34,5 @@ services:
         CACHEBUST: ${CACHEBUST}
     depends_on:
       - mock-da
-      - dymd
+      - hub
     command: [ "/go/wait-for-hub.sh", "sleep", "infinity" ]
