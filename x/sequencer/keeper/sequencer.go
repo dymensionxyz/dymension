@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"sort"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -54,7 +55,11 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		)
 		return
 	}
-	// take the next bonded sequencer to be the proposer. sorted by address
+	// take the next bonded sequencer to be the proposer. sorted by bond
+	sort.Slice(seqsByRollapp, func(i, j int) bool {
+		return seqsByRollapp[i].Tokens.IsAllGTE(seqsByRollapp[j].Tokens)
+	})
+
 	seq := seqsByRollapp[0]
 	seq.Proposer = true
 	k.UpdateSequencer(ctx, seq, types.Bonded)
