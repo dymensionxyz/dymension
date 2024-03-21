@@ -1,10 +1,14 @@
 package types
 
 import (
+	fmt "fmt"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/decred/dcrd/dcrec/edwards"
+	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 )
 
 const (
@@ -33,6 +37,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 			return nil, err
 		}
 	}
+
 	return &MsgCreateSequencer{
 		Creator:      creator,
 		DymintPubKey: pkAny,
@@ -81,6 +86,24 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		if !ok {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
 		}
+
+		var err error
+		fmt.Println(pk.Type())
+
+		switch pk.Type() {
+		case "secp256k1":
+			_, err = secp256k1.ParsePubKey(pk.Bytes())
+		case "edc25519":
+			_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
+		}
+
+		//parse to secp256k1 pubkey and checks validity (the func includes call to isOnCurve to check cryptographic validity)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unable to parse pubkey")
+		} else {
+			fmt.Println("valid  keys")
+		}
+
 	}
 
 	if _, err := msg.Description.EnsureLength(); err != nil {
