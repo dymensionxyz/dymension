@@ -117,3 +117,37 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 	suite.App.RollappKeeper.SetParams(suite.Ctx, params)
 	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
 }
+
+func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	rollappId := "cosmos_9000-1"     // without whitespace
+	badrollappId := "cosmos_9000-1 " // with whitespace
+	// create rollapp with normal ID
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             rollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+	// get eip155 key
+	eip155, err := types.ParseChainID(rollappId)
+	suite.Require().Nil(err)
+	suite.Require().NotNil(eip155)
+	eip155key := eip155.Uint64()
+	// eip155 key registers to correct roll app
+	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+	suite.Require().True(found)
+	suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+	// create bad rollapp
+	badrollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             badrollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+	suite.Require().ErrorIs(err, types.ErrRollappExists)
+}
