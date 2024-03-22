@@ -1,0 +1,11 @@
+name: stale-pr-notification-to-slack
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  stale-pr-notification:
+    if: github.event.label.name == 'Stale'
+    uses: dymensionxyz/common-workflows/.github/workflows/stale-pr-notification.yaml@main
+    secrets:
+      WEBHOOK_URL: ${{ secrets.SLACK_STALE_PR_CHANNEL_WEBHOOK }}
