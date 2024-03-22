@@ -55,7 +55,7 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 
 		rollapps := k.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
-			eip155, err := types.ParseChainID(rollapp.RollappId)
+			_, eip155, err := types.GetValidEIP155ChainId(rollapp.RollappId)
 			if err != nil {
 				msg += fmt.Sprintf("rollapp (%s) have invalid rollappId\n", rollapp.RollappId)
 				broken = true

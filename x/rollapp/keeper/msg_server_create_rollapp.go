@@ -19,7 +19,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	// error already checked in ValidateBasic
-	eip155, _ := types.ParseChainID(msg.RollappId)
+	rollappID, eip155, _ := types.GetValidEIP155ChainId(msg.RollappId)
 
 	if eip155 == nil {
 		return nil, types.ErrInvalidRollappID
@@ -47,7 +47,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	// Create an updated rollapp record
 	rollapp := types.Rollapp{
-		RollappId:             msg.RollappId,
+		RollappId:             rollappID,
 		Creator:               msg.Creator,
 		Version:               0,
 		MaxSequencers:         msg.MaxSequencers,
