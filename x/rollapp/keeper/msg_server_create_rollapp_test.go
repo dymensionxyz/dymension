@@ -149,7 +149,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
 	// get eip155 key
-	eip155, err := types.ParseChainID(rollappId)
+	_, eip155, err := types.GetValidEIP155ChainId(rollappId)
 	suite.Require().Nil(err)
 	suite.Require().NotNil(eip155)
 	eip155key := eip155.Uint64()

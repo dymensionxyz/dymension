@@ -15,7 +15,7 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), b)
 
 	// check if chain-id is EVM compatible. no err check as rollapp is already validated
-	eip155, _ := types.ParseChainID(rollapp.RollappId)
+	_, eip155, _ := types.GetValidEIP155ChainId(rollapp.RollappId)
 	if eip155 == nil {
 		return
 	}

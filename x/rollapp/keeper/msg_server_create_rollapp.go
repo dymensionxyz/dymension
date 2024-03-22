@@ -19,7 +19,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	// error already checked in ValidateBasic
-	eip155, _ := types.ParseChainID(msg.RollappId)
+	rollappID, eip155, _ := types.GetValidEIP155ChainId(msg.RollappId)
 
 	if eip155 == nil {
 		return nil, types.ErrInvalidRollappID
