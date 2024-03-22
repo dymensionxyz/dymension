@@ -19,7 +19,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	numOfStates := 10
 	// create rollapps
 	seqPerRollapp := make(map[string]string)
-	rollappBlocks := make(map[string]int)
+	rollappBlocks := make(map[string]uint64)
 
 	for i := 0; i < numOfRollapps; i++ {
 		rollapp := suite.CreateDefaultRollapp()
@@ -34,33 +34,32 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	}
 
-	// send state updates
-	var lastHeight uint64 = 0
-
 	sequence := uint64(0)
 	for j := 0; j < numOfStates; j++ {
+
 		numOfBlocks := uint64(rand.Intn(10) + 1)
-		for rollapp := range seqPerRollapp {
-			_, err := suite.PostStateUpdate(suite.Ctx, rollapp, seqPerRollapp[rollapp], lastHeight+1, numOfBlocks)
-			suite.Require().Nil(err)
-			for k := 1; k <= int(numOfBlocks); k++ {
+		for rollapp, sequencer := range seqPerRollapp {
+
+			_, err := suite.PostStateUpdate(suite.Ctx, rollapp, sequencer, rollappBlocks[rollapp]+uint64(1), numOfBlocks)
+			suite.Require().NoError(err)
+			for k := uint64(1); k <= numOfBlocks; k++ {
+				// calculating a different proof height incrementing a block height for each new packet
+				proofheight := rollappBlocks[rollapp] + k
 				rollappPacket := &commontypes.RollappPacket{
 					RollappId:   rollapp,
 					Packet:      getNewTestPacket(sequence),
 					Status:      commontypes.Status_PENDING,
-					ProofHeight: uint64(rollappBlocks[rollapp] + k),
+					ProofHeight: proofheight,
 				}
 				err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 				suite.Require().NoError(err)
 
 				sequence++
 			}
-			rollappBlocks[rollapp] = rollappBlocks[rollapp] + int(numOfBlocks)
-
+			rollappBlocks[rollapp] = rollappBlocks[rollapp] + numOfBlocks
 		}
 
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
-		lastHeight = lastHeight + numOfBlocks
 	}
 
 	// progress finalization queue
@@ -80,7 +79,6 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 }
 
 func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
-
 	rollapp := "rollapp_1234-1"
 
 	cases := []struct {
@@ -92,9 +90,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 		packet2          commontypes.RollappPacket
 		expectedIsBroken bool
 	}{
-
 		{
-			"successful invariant check",
+			"successful invariant check - packets are finalized only for finalized heights",
 			false,
 			false,
 			false,
@@ -113,7 +110,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 		},
 		{
-			"successful revert check",
+			"successful revert check - packets are reverted for non-finalized states",
 			true,
 			false,
 			false,
@@ -132,7 +129,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 		},
 		{
-			"successful non-finalized state invariant check",
+			"successful non-finalized state invariant check - packets without finalization state are not finalized",
 			false,
 			false,
 			true,
@@ -151,7 +148,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 		},
 		{
-			"error non-finalized packet",
+			"error non-finalized packet - packets for finalized heights are not finalized",
 			false,
 			true,
 			false,
@@ -170,7 +167,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			true,
 		},
 		{
-			"wrong invariant revert check",
+			"wrong invariant revert check - packets for frozen rollapps in non-finalized heights are not reverted",
 			true,
 			false,
 			false,
@@ -189,7 +186,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			true,
 		},
 		{
-			"wrong finalized packet check - no state",
+			"wrong finalized packet check - packets are finalized in non-finalized heights",
 			false,
 			false,
 			true,
@@ -208,7 +205,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			true,
 		},
 		{
-			"wrong finalized packet check",
+			"wrong finalized packet check - packets for non-finalized heights are finalized",
 			false,
 			false,
 			false,
@@ -251,7 +248,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 					RollappId: rollapp,
 					Index:     2,
 				},
-				StartHeight: 10,
+				StartHeight: 11,
 				NumBlocks:   10,
 				Status:      commontypes.Status_PENDING,
 				Sequencer:   proposer,
