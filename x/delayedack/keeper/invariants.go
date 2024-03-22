@@ -78,31 +78,37 @@ func PacketsFromRevertedHeightsAreReverted(k Keeper) sdk.Invariant {
 
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 
+		frozenRollappsFinalizedHeight := make(map[string]uint64)
+
 		for _, rollapp := range rollapps {
 			if !rollapp.Frozen {
 				continue
 			}
+			frozenRollappsFinalizedHeight[rollapp.RollappId] = 0
+
 			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 			if !found {
 				continue
 			}
-			latestStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
+			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
 			if !found {
 				continue
 			}
-			latestFinalizedHeight := latestStateInfo.GetLatestFinalizedHeight()
+			frozenRollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestFinalizedHeight()
 
-			// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (https://github.com/dymensionxyz/dymension/issues/631)
-			for _, packet := range k.GetAllRollappPackets(ctx) {
-				if packet.RollappId != rollapp.RollappId {
-					continue
-				}
-				if packet.ProofHeight > latestFinalizedHeight && packet.Status != commontypes.Status_REVERTED {
-					msg += fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s", packet.RollappId, packet.ProofHeight, packet.Status)
-					return msg, true
-				}
+		}
+
+		// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (https://github.com/dymensionxyz/dymension/issues/631)
+		for _, packet := range k.GetAllRollappPackets(ctx) {
+			latestFinalizedHeight, found := frozenRollappsFinalizedHeight[packet.RollappId]
+			if !found {
+				continue
 			}
 
+			if packet.ProofHeight > latestFinalizedHeight && packet.Status != commontypes.Status_REVERTED {
+				msg += fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s", packet.RollappId, packet.ProofHeight, packet.Status)
+				return msg, true
+			}
 		}
 		return msg, false
 	}
