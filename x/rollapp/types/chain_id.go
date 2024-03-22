@@ -54,7 +54,7 @@ func createEIP155ChainID(chainID string) (*big.Int, error) {
 
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
-		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "wrong formatted EIP155 Chain ID")
+		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "wrong formatted EVM Chain ID")
 	}
 
 	// verify that the chain-id entered is a base 10 integer
