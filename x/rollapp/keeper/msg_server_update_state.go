@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"context"
+	errorsmod "cosmossdk.io/errors"
+	"slices"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -35,26 +37,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses
-	if len(permissionedAddresses) > 0 {
-		bPermissioned := false
-		// check to see if the sequencer is in the permissioned list
-		for i := range permissionedAddresses {
-			if permissionedAddresses[i] == msg.Creator {
-				// Found!
-				bPermissioned = true
-				break
-			}
-		}
-		// Check Error: only permissioned sequencers allowed to update and this one is not in the list
-		if !bPermissioned {
-			// this is a logic error, as the sequencer modules' BeforeUpdateState hook
-			// should check that the sequencer exists and register for serving this rollapp
-			// so if this check passed, an unpermissioned sequencer is registered
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"unpermissioned sequencer (%s) is registered for rollappId(%s)",
-				msg.Creator, msg.RollappId)
-		}
+	if 0 < len(rollapp.PermissionedAddresses) && !slices.Contains(rollapp.PermissionedAddresses, msg.Creator) {
+		// this is a logic error, as the sequencer modules' BeforeUpdateState hook
+		// should check that the sequencer exists and register for serving this rollapp
+		// so if this check passed, an unpermissioned sequencer is registered
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic,
+			"unpermissioned sequencer (%s) is registered for rollappId(%s)",
+			msg.Creator, msg.RollappId)
 	}
 
 	// retrieve last updating index
