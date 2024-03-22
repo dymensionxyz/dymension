@@ -29,7 +29,7 @@ func networkWithRollappObjects(t *testing.T, n int) (*network.Network, []types.R
 
 	for i := 0; i < n; i++ {
 		rollapp := types.Rollapp{
-			RollappId: strconv.Itoa(i),
+			RollappId: "rollapp_100" + strconv.Itoa(i) + "-1",
 		}
 		nullify.Fill(&rollapp)
 		state.RollappList = append(state.RollappList, rollapp)

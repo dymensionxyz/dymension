@@ -11,37 +11,39 @@ import (
 )
 
 func TestGenesis(t *testing.T) {
+	rollappID1 := "rollapp_100-1"
+	rollappID2 := "rollapp_101-1"
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
 		RollappList: []types.Rollapp{
 			{
-				RollappId: "0",
+				RollappId: rollappID1,
 			},
 			{
-				RollappId: "1",
+				RollappId: rollappID2,
 			},
 		},
 		StateInfoList: []types.StateInfo{
 			{
 				StateInfoIndex: types.StateInfoIndex{
-					RollappId: "0",
+					RollappId: rollappID1,
 					Index:     0,
 				},
 			},
 			{
 				StateInfoIndex: types.StateInfoIndex{
-					RollappId: "1",
+					RollappId: rollappID2,
 					Index:     1,
 				},
 			},
 		},
 		LatestStateInfoIndexList: []types.StateInfoIndex{
 			{
-				RollappId: "0",
+				RollappId: rollappID1,
 			},
 			{
-				RollappId: "1",
+				RollappId: rollappID2,
 			},
 		},
 		BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{

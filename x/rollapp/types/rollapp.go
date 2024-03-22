@@ -15,7 +15,7 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	// validate rollappId
-	_, _, err = GetValidEIP155ChainId(r.RollappId)
+	_, err = NewEIP155ChainID(r.RollappId)
 	if err != nil {
 		return err
 	}

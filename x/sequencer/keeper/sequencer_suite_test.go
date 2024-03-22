@@ -47,7 +47,7 @@ func (suite *SequencerTestSuite) SetupTest() {
 
 func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 	rollapp := rollapptypes.Rollapp{
-		RollappId:     rand.Str(8),
+		RollappId:     "rollapp_" + rand.Str(8) + "-1",
 		Creator:       alice,
 		Version:       0,
 		MaxSequencers: 5,

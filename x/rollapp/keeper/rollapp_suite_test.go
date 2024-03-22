@@ -74,7 +74,7 @@ func TestRollappKeeperTestSuite(t *testing.T) {
 func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {
 	items := make([]types.Rollapp, n)
 	for i := range items {
-		items[i].RollappId = strconv.Itoa(i)
+		items[i].RollappId = "rollapp_100" + strconv.Itoa(i) + "-1"
 		keeper.SetRollapp(ctx, items[i])
 	}
 

@@ -147,12 +147,12 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		PermissionedAddresses: []string{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
+	suite.Require().NoError(err)
 	// get eip155 key
-	_, eip155, err := types.GetValidEIP155ChainId(rollappId)
-	suite.Require().Nil(err)
+	eip155, err := types.NewEIP155ChainID(rollappId)
+	suite.Require().NoError(err)
 	suite.Require().NotNil(eip155)
-	eip155key := eip155.Uint64()
+	eip155key := eip155.ChainID.Uint64()
 	// eip155 key registers to correct roll app
 	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 	suite.Require().True(found)
