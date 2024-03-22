@@ -102,7 +102,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		PermissionedAddresses: []string{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
+	suite.Require().NoError(err)
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
