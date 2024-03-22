@@ -255,7 +255,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			}
 
 			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
-			//if nothingFinalized true, all the state infos submitted should be pending
+			// if nothingFinalized true, all the state infos submitted should be pending
 			if !tc.nothingFinalized {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
 					RollappId: rollapp,
@@ -264,7 +264,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			} else {
 				stateInfo.Status = commontypes.Status_PENDING
 			}
-			//if allFinalized true, all the state infos submitted should be finalized
+			// if allFinalized true, all the state infos submitted should be finalized
 			if tc.allFinalized {
 				stateInfo2.Status = commontypes.Status_FINALIZED
 			}
@@ -281,7 +281,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				Index:     stateInfo2.GetIndex().Index,
 			})
 
-			//if frozenRollapp true, we should freeze the rollapp and revert pending states
+			// if frozenRollapp true, we should freeze the rollapp and revert pending states
 			if tc.frozenRollapp {
 				err := suite.App.RollappKeeper.HandleFraud(ctx, rollapp, "", 11, proposer)
 				suite.Require().NoError(err)
