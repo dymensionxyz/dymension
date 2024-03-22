@@ -44,7 +44,6 @@ func NewEIP155ChainID(chainID string) (EIP155ChainID, error) {
 // GetValidEIP155ChainId parses a string chain identifier's epoch to an Ethereum-compatible
 // chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
 func createEIP155ChainID(chainID string) (*big.Int, error) {
-
 	if chainID == "" {
 		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "chain-id cannot be empty")
 	}
