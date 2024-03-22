@@ -101,7 +101,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		PermissionedAddresses: []string{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
+	suite.Require().NoError(err)
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
@@ -118,6 +118,22 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
 }
 
+func (suite *RollappTestSuite) TestCreateRollappWrongId() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Error(err, types.ErrInvalidRollappID)
+}
+
+// TestOverwriteEIP155Key checks whether is possible to overwrite a RollappEIP155Key with modified chain ids with extra spaces
 func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
