@@ -8,22 +8,24 @@ import (
 
 // SetRollapp set a specific rollapp in the store from its index
 func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	b := k.cdc.MustMarshal(&rollapp)
-	store.Set(types.RollappKey(
-		rollapp.RollappId,
-	), b)
 
 	// check if chain-id is EVM compatible
 	eip155, err := types.NewEIP155ChainID(rollapp.RollappId)
 	if err != nil {
 		return
 	}
+	b := k.cdc.MustMarshal(&rollapp)
 
-	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		eip155.ChainID.Uint64(),
 	), b)
+
+	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	store.Set(types.RollappKey(
+		rollapp.RollappId,
+	), b)
+
 }
 
 // GetRollappByEIP155 returns a rollapp from its index
