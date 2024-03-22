@@ -37,6 +37,8 @@ func PacketsFromFinalizedHeightsAreFinalized(k Keeper) sdk.Invariant {
 
 		rollappsFinalizedHeight := make(map[string]uint64)
 		for _, rollapp := range rollapps {
+			rollappsFinalizedHeight[rollapp.RollappId] = 0
+
 			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 			if !found {
 				continue
@@ -53,8 +55,12 @@ func PacketsFromFinalizedHeightsAreFinalized(k Keeper) sdk.Invariant {
 
 		for _, packet := range packets {
 			latestFinalizedHeight := rollappsFinalizedHeight[packet.RollappId]
-			if latestFinalizedHeight == 0 {
+			if latestFinalizedHeight == 0 && packet.Status != commontypes.Status_FINALIZED {
 				continue
+			}
+			if (latestFinalizedHeight == 0 || packet.ProofHeight > latestFinalizedHeight) && packet.Status == commontypes.Status_FINALIZED {
+				msg += fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n", packet.ProofHeight, packet.RollappId, packet.Status)
+				return msg, true
 			}
 			if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
 				msg += fmt.Sprintf("rollapp packet for the height should be in finalized status. height=%d, rollapp=%s, status=%s\n", packet.ProofHeight, packet.RollappId, packet.Status)
