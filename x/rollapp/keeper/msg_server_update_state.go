@@ -58,23 +58,13 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	}
 
 	// retrieve last updating index
-	latestStateInfoIndex, isFound := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
-	var newIndex uint64
-	if !isFound {
-		// check to see if it's the first update
-		if msg.StartHeight != 1 {
-			// if not, it's an error
-			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
-				"expected height 1, but received (%d)",
-				msg.StartHeight)
-		}
-		// else, it's the first update
-		newIndex = 1
-	} else {
+	var newIndex, lastIndex uint64
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
+	if found {
 		// retrieve last updating index
-		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
-		// Check Error: if latestStateInfoIndex exists, there must me an info for this state
-		if !isFound {
+		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
+		// if latestStateInfoIndex exists, there must be an info for this state
+		if !found {
 			// if not, it's a logic error
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
@@ -90,8 +80,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// bump state index
-		newIndex = latestStateInfoIndex.Index + 1
+		lastIndex = latestStateInfoIndex.Index
 	}
+	newIndex = lastIndex + 1
 
 	// Write new index information to the store
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
