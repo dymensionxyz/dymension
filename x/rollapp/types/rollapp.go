@@ -5,6 +5,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
+	metadatas []*TokenMetadata, genesisAccounts *RollappGenesisState,
+) Rollapp {
+	return Rollapp{
+		RollappId:             rollappId,
+		Creator:               creator,
+		MaxSequencers:         maxSequencers,
+		PermissionedAddresses: permissionedAddresses,
+		GenesisState:          genesisAccounts,
+		TokenMetadata:         metadatas,
+	}
+}
+
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Creator)
 	if err != nil {

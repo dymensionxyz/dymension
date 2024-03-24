@@ -1,7 +1,6 @@
 package types
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -46,32 +45,27 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
+
+	// Build the genesis state from the genesis accounts
+	var rollappGenesisState *RollappGenesisState
+	if len(msg.GenesisAccounts) > 0 {
+		rollappGenesisState = &RollappGenesisState{
+			GenesisAccounts: msg.GenesisAccounts,
+			IsGenesisEvent:  false,
+		}
+	}
+
+	// copy TokenMetadata
+	metadata := make([]*TokenMetadata, len(msg.Metadatas))
+	for i := range msg.Metadatas {
+		metadata[i] = &msg.Metadatas[i]
+	}
+
+	rollapp := NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+
 	// validate the basics fields
-	baseRollapp := Rollapp{
-		Creator:               msg.Creator,
-		RollappId:             msg.RollappId,
-		MaxSequencers:         msg.MaxSequencers,
-		PermissionedAddresses: msg.PermissionedAddresses,
-	}
-	if err := baseRollapp.ValidateBasic(); err != nil {
+	if err := rollapp.ValidateBasic(); err != nil {
 		return err
-	}
-
-	// verifies that token metadata, if any, must be valid
-	if len(msg.GetMetadatas()) > 0 {
-		for _, metadata := range msg.GetMetadatas() {
-			if err := metadata.Validate(); err != nil {
-				return errorsmod.Wrapf(ErrInvalidTokenMetadata, "%s: %v", metadata.Base, err)
-			}
-		}
-	}
-
-	// genesisAccounts address validation
-	for _, acc := range msg.GenesisAccounts {
-		_, err := sdk.AccAddressFromBech32(acc.Address)
-		if err != nil {
-			return errorsmod.Wrap(err, ErrInvalidGenesisAccount.Error())
-		}
 	}
 
 	return nil

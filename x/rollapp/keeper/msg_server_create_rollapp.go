@@ -39,25 +39,14 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
-	// Create an updated rollapp record
-	rollapp := types.Rollapp{
-		RollappId:             msg.RollappId,
-		Creator:               msg.Creator,
-		Version:               0,
-		MaxSequencers:         msg.MaxSequencers,
-		PermissionedAddresses: msg.PermissionedAddresses,
-		GenesisState:          rollappGenesisState,
-	}
-
 	// copy TokenMetadata
-	rollapp.TokenMetadata = make([]*types.TokenMetadata, len(msg.Metadatas))
+	metadata := make([]*types.TokenMetadata, len(msg.Metadatas))
 	for i := range msg.Metadatas {
-		rollapp.TokenMetadata[i] = &msg.Metadatas[i]
+		metadata[i] = &msg.Metadatas[i]
 	}
 
-	if len(msg.Metadatas) == 0 {
-		ctx.Logger().Info("No token metadata provided")
-	}
+	// Create an updated rollapp record
+	rollapp := types.NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
 
 	// Write rollapp information to the store
 	k.SetRollapp(ctx, rollapp)
