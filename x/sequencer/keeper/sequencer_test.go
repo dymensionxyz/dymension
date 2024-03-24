@@ -79,7 +79,7 @@ func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	for j := 0; j < len(seqAddrs)-1; j++ {
 		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	}
-	//last one with high bond is the expected new proposer
+	// last one with high bond is the expected new proposer
 	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)))
 	expecetedProposer := seqAddrs[len(seqAddrs)-1]
 
