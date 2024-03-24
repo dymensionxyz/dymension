@@ -18,14 +18,8 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, err
 	}
 
-	// error already checked in ValidateBasic
-	rollappID, eip155, _ := types.GetValidEIP155ChainId(msg.RollappId)
-
-	if eip155 == nil {
-		return nil, types.ErrInvalidRollappID
-	}
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollappByEIP155(ctx, eip155.Uint64()); isFound {
+	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
 		return nil, types.ErrRollappExists
 	}
 
