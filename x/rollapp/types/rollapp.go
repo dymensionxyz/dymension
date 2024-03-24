@@ -10,9 +10,6 @@ func (r Rollapp) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrap(err, ErrInvalidCreatorAddress.Error())
 	}
-	if r.GetMaxSequencers() == 0 {
-		return ErrInvalidMaxSequencers
-	}
 
 	// validate rollappId
 	_, err = NewEIP155ChainID(r.RollappId)
@@ -23,6 +20,11 @@ func (r Rollapp) ValidateBasic() error {
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := r.GetPermissionedAddresses()
+
+	if uint64(len(permissionedAddresses)) > r.GetMaxSequencers() {
+		return errorsmod.Wrapf(ErrInvalidPermissionedAddress, "invalid number of permissioned addresses: %d: maxsequencers: %d", len(permissionedAddresses), r.GetMaxSequencers())
+	}
+
 	if len(permissionedAddresses) > 0 {
 		duplicateAddresses := make(map[string]bool)
 		for _, item := range permissionedAddresses {
