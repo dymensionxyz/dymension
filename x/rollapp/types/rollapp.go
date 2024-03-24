@@ -10,9 +10,6 @@ func (r Rollapp) ValidateBasic() error {
 	if err != nil {
 		return errorsmod.Wrap(err, ErrInvalidCreatorAddress.Error())
 	}
-	if r.GetMaxSequencers() == 0 {
-		return ErrInvalidMaxSequencers
-	}
 
 	// validate rollappId
 	_, err = ParseChainID(r.RollappId)
