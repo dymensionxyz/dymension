@@ -1,8 +1,6 @@
 package apptesting
 
 import (
-	"fmt"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,7 +28,7 @@ type KeeperTestHelper struct {
 }
 
 func (suite *KeeperTestHelper) CreateDefaultRollapp() string {
-	return suite.CreateRollappWithName(fmt.Sprintf("%s%d%s", "rollapp_", rand.Int63(), "-1"))
+	return suite.CreateRollappWithName(rand.Str(8))
 }
 
 func (suite *KeeperTestHelper) CreateRollappWithName(name string) string {

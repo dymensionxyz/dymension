@@ -54,16 +54,16 @@ func NewChainID(id string) (ChainID, error) {
 func getEIP155ID(chainID string) (*big.Int, error) {
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
-		return chainID, nil, nil
+		return nil, nil
 	}
 
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
-		return chainID, nil, errorsmod.Wrapf(ErrInvalidRollappID, "epoch %s must be base-10 integer format", matches[2])
+		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "epoch %s must be base-10 integer format", matches[2])
 	}
 
-	return chainID, chainIDInt, nil
+	return chainIDInt, nil
 }
 
 func (c *ChainID) IsEIP155() bool {

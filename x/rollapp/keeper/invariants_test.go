@@ -32,7 +32,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	seqaddr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 	seqPerRollapp[rollapp] = seqaddr
 
-	rollapp = suite.CreateRollappWithName("dym_1101-1")
+	rollapp = suite.CreateRollappWithName("dym_1100")
 	seqaddr = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 	seqPerRollapp[rollapp] = seqaddr
 
@@ -62,7 +62,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 	suite.SetupTest()
 	ctx := suite.Ctx
-	rollapp1, rollapp2, rollapp3 := "rollapp_1-1", "rollapp_2-1", "rollapp_3-1"
+	rollapp1, rollapp2, rollapp3 := "rollapp1", "rollapp2", "rollapp3"
 	cases := []struct {
 		name                     string
 		rollappId                string
@@ -73,7 +73,7 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 	}{
 		{
 			"successful invariant check",
-			rollapp1,
+			"rollapp1",
 			&types.StateInfo{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: rollapp1,

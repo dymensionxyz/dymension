@@ -97,12 +97,12 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
-		RollappId:             "rollapp_1234-1",
+		RollappId:             "rollapp1",
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{},
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().NoError(err)
+	suite.Require().Nil(err)
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
