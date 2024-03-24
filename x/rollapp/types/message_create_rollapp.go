@@ -9,6 +9,8 @@ const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
+const MaxAllowedSequencers = 100
+
 func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
 	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
 ) *MsgCreateRollapp {

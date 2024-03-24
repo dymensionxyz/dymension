@@ -117,7 +117,6 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 		&sequencertypes.Description{},
 		bond,
 	)
-
 	suite.Require().NoError(err) // message committed
 	_, err = suite.hubChain.SendMsgs(msgCreateSequencer)
 	suite.Require().NoError(err) // message committed

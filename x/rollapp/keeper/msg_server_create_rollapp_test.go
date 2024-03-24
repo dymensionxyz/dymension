@@ -18,7 +18,7 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
 		RollappId:             fmt.Sprintf("%s%d", "rollapp", rand.Int63()), //nolint:gosec // this is for a test
-		MaxSequencers:         1,
+		MaxSequencers:         uint64(numOfAddresses),
 		PermissionedAddresses: addresses,
 	}
 	// rollappExpect is the expected result of creating rollapp

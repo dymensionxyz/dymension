@@ -38,7 +38,8 @@ var (
 	ErrInvalidGenesisChannelId             = errorsmod.Register(ModuleName, 1027, "invalid genesis channel id")
 	ErrGenesisEventNotDefined              = errorsmod.Register(ModuleName, 1028, "genesis event not defined")
 	ErrGenesisEventAlreadyTriggered        = errorsmod.Register(ModuleName, 1029, "genesis event already triggered")
-	ErrInvalidGenesisAccount               = errorsmod.Register(ModuleName, 1030, "invalid genesis account")
+	ErrTooManyPermissionedAddresses        = errorsmod.Register(ModuleName, 1030, "invalid number of permissioned addresses")
+	ErrInvalidGenesisAccount               = errorsmod.Register(ModuleName, 1031, "invalid genesis account")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")

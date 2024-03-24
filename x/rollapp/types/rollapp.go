@@ -17,6 +17,13 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
+	if r.MaxSequencers > MaxAllowedSequencers {
+		return errorsmod.Wrapf(ErrInvalidMaxSequencers, "max sequencers: %d, max sequencers allowed: %d", r.GetMaxSequencers(), MaxAllowedSequencers)
+	}
+	if uint64(len(r.PermissionedAddresses)) > r.GetMaxSequencers() {
+		return errorsmod.Wrapf(ErrTooManyPermissionedAddresses, "permissioned addresses: %d, max sequencers: %d", len(r.PermissionedAddresses), r.GetMaxSequencers())
+	}
+
 	// verifies that there's no duplicate address in PermissionedAddresses
 	// and addresses are in Bech32 format
 	permissionedAddresses := r.GetPermissionedAddresses()
