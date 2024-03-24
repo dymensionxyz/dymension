@@ -45,7 +45,6 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
-
 	// Build the genesis state from the genesis accounts
 	var rollappGenesisState *RollappGenesisState
 	if len(msg.GenesisAccounts) > 0 {
