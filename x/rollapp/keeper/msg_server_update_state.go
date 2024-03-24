@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"context"
+	"slices"
+
+	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -35,46 +38,23 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	// Logic Error check - must be done after BeforeUpdateStateRecoverable
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only premissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses
-	if len(permissionedAddresses) > 0 {
-		bPermissioned := false
-		// check to see if the sequencer is in the permissioned list
-		for i := range permissionedAddresses {
-			if permissionedAddresses[i] == msg.Creator {
-				// Found!
-				bPermissioned = true
-				break
-			}
-		}
-		// Check Error: only permissioned sequencers allowed to update and this one is not in the list
-		if !bPermissioned {
-			// this is a logic error, as the sequencer modules' BeforeUpdateState hook
-			// should check that the sequencer exists and register for serving this rollapp
-			// so if this check passed, an unpermissioned sequencer is registered
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
-				"unpermissioned sequencer (%s) is registered for rollappId(%s)",
-				msg.Creator, msg.RollappId)
-		}
+	if 0 < len(rollapp.PermissionedAddresses) && !slices.Contains(rollapp.PermissionedAddresses, msg.Creator) {
+		// this is a logic error, as the sequencer modules' BeforeUpdateState hook
+		// should check that the sequencer exists and register for serving this rollapp
+		// so if this check passed, an unpermissioned sequencer is registered
+		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic,
+			"unpermissioned sequencer (%s) is registered for rollappId(%s)",
+			msg.Creator, msg.RollappId)
 	}
 
 	// retrieve last updating index
-	latestStateInfoIndex, isFound := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
-	var newIndex uint64
-	if !isFound {
-		// check to see if it's the first update
-		if msg.StartHeight != 1 {
-			// if not, it's an error
-			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
-				"expected height 1, but received (%d)",
-				msg.StartHeight)
-		}
-		// else, it's the first update
-		newIndex = 1
-	} else {
+	var newIndex, lastIndex uint64
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, msg.RollappId)
+	if found {
 		// retrieve last updating index
-		stateInfo, isFound := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
-		// Check Error: if latestStateInfoIndex exists, there must me an info for this state
-		if !isFound {
+		stateInfo, found := k.GetStateInfo(ctx, msg.RollappId, latestStateInfoIndex.Index)
+		// if latestStateInfoIndex exists, there must be an info for this state
+		if !found {
 			// if not, it's a logic error
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
@@ -90,8 +70,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		}
 
 		// bump state index
-		newIndex = latestStateInfoIndex.Index + 1
+		lastIndex = latestStateInfoIndex.Index
 	}
+	newIndex = lastIndex + 1
 
 	// Write new index information to the store
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{

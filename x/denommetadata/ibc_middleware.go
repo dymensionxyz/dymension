@@ -119,7 +119,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	logger := ctx.Logger().With("module", "DenomMiddleware")
 
 	if !im.rollappkeeper.GetParams(ctx).RollappsEnabled {
-		logger.Debug("Skipping IBC transfer OnRecvPacket for rollapps not enabled")
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -165,7 +164,6 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// no-op if token already exist
 	if im.transferkeeper.HasDenomTrace(ctx, traceHash) {
-		logger.Debug("Skipping denommetadata middleware. Denom trace already exists", "denom", prefixedDenom)
 		return im.app.OnRecvPacket(ctx, packet, relayer)
 	}
 
