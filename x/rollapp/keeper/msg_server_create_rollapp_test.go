@@ -140,8 +140,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	suite.Require().NotNil(id.EIP155ID)
 	eip155key := id.EIP155ID.Uint64()
 	// eip155 key registers to correct roll app
-	rollAppfromEip1155, found :=
-		suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 	suite.Require().True(found)
 	suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
 	// create bad rollapp
@@ -152,7 +151,6 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		PermissionedAddresses: []string{},
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
-	//it should not be possible to register rollapp name with extra space
+	// it should not be possible to register rollapp name with extra space
 	suite.Require().ErrorIs(err, types.ErrRollappExists)
-
 }

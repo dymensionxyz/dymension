@@ -52,7 +52,6 @@ func NewChainID(id string) (ChainID, error) {
 // getEIP155ID parses a string chain identifier's epoch to an Ethereum-compatible
 // chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
 func getEIP155ID(chainID string) (*big.Int, error) {
-
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
 		return nil, nil
