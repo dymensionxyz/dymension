@@ -212,7 +212,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain.NextBlock()
 			currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(uint64(currentRollappBlockHeight))
+			suite.UpdateRollappState(currentRollappBlockHeight)
 			// Transfer initial IBC funds to fulfiller account with ibc memo
 			eibc := map[string]map[string]string{
 				"eibc": {
