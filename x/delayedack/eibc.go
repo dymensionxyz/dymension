@@ -100,26 +100,27 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
 	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
-		return nil, fmt.Errorf("%s is not allowed to receive funds", fungibleTokenPacketData.Receiver)
+		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
 	// Get the fee from the memo
 	fee := eibcMetaData.Fee
 	// Calculate the demand order price and validate it
 	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
 	if !ok || !amountInt.IsPositive() {
-		return nil, fmt.Errorf("Failed to convert amount to positive integer, %s", fungibleTokenPacketData.Amount)
+		return nil, fmt.Errorf("convert amount to positive integer: %s", fungibleTokenPacketData.Amount)
 	}
 	feeInt, ok := sdk.NewIntFromString(fee)
 	if !ok || !feeInt.IsPositive() {
-		return nil, fmt.Errorf("Failed to convert fee to positive integer, %s", fee)
+		return nil, fmt.Errorf("convert fee to positive integer: %s", fee)
 	}
 	if amountInt.LT(feeInt) {
-		return nil, fmt.Errorf("Fee cannot be larger than amount")
+		return nil, fmt.Errorf("fee cannot be larger than amount")
 	}
 	demandOrderPrice := amountInt.Sub(feeInt).String()
+
 	// Get the denom for the demand order. If it's a timeout packet
-	// than its simply the denom we tried to send. If it's a receive packet
-	// than it's the IBC denom we've got.
+	// then it's simply the denom we tried to send. If it's a receive packet
+	// then it's the IBC denom we've got.
 	var demandOrderDenom string
 	var demandOrderRecipient string
 	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
@@ -132,10 +133,10 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	// Create the demand order and validate it
 	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create eibc demand order, %s", err)
+		return nil, fmt.Errorf("create eibc demand order: %s", err)
 	}
 	if err := eibcDemandOrder.Validate(); err != nil {
-		return nil, fmt.Errorf("Failed to validate eibc data, %s", err)
+		return nil, fmt.Errorf("validate eibc data: %s", err)
 	}
 	return eibcDemandOrder, nil
 }
