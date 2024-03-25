@@ -119,6 +119,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		logger.Error("Unmarshal acknowledgement", "err", err)
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
@@ -130,7 +131,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		_ = resp
 	}
 
-	rollappID, _, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -181,6 +182,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Type:            commontypes.RollappPacket_ON_ACK,
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
+	if err != nil {
+		return err
+	}
+
+	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return err
 	}
