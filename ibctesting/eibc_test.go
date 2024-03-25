@@ -61,7 +61,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 		fee                 string
 		recipient           string
 		demandOrdersCreated int
-		isAckError          bool
+		expectAck           bool
 		extraMemoData       map[string]map[string]string
 	}{
 		{
@@ -139,7 +139,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			}
 			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)
-			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.isAckError)
+			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.expectAck)
 			// Validate demand orders results
 			eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 			demandOrders, err := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
