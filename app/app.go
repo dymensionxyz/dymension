@@ -742,7 +742,13 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(
+		transferStack,
+		app.PacketForwardMiddlewareKeeper,
+		0,
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
+	)
 	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.TransferKeeper, app.RollappKeeper)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
