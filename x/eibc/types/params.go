@@ -31,11 +31,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epcohIdentifier string) Params {
+func NewParams(epochIdentifier string) Params {
 	return Params{
-		EpochIdentifier: epcohIdentifier,
+		EpochIdentifier: epochIdentifier,
 		TimeoutFee:      sdk.MustNewDecFromStr(defaultTimeoutFee),
-		:      sdk.MustNewDecFromStr(defaultTimeoutFee),
+		ErrackFee:       sdk.MustNewDecFromStr(defaultErrAckFee),
 	}
 }
 
@@ -49,11 +49,13 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, func(_ interface{}) error { return nil }),
 		paramtypes.NewParamSetPair(KeyTimeoutFee, &p.TimeoutFee, validateTimeoutFee),
+		paramtypes.NewParamSetPair(KeyErrAckFee, &p.ErrackFee, validateErrAckFee),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	// TODO(danwt): need to validate fees again?
 	return nil
 }
 
@@ -77,6 +79,25 @@ func validateTimeoutFee(i interface{}) error {
 
 	if v.GTE(sdk.OneDec()) {
 		return ErrTooMuchTimeoutFee
+	}
+
+	return nil
+}
+
+func validateErrAckFee(i any) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() {
+		return fmt.Errorf("invalid global pool params: %+v", i)
+	}
+	if v.IsNegative() {
+		return ErrNegativeErrAckFee
+	}
+
+	if v.GTE(sdk.OneDec()) {
+		return ErrTooMuchErrAckFee
 	}
 
 	return nil
