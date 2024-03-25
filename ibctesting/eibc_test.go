@@ -2,6 +2,7 @@ package ibctesting_test
 
 import (
 	"encoding/json"
+	"errors"
 	"sort"
 	"strconv"
 	"strings"
@@ -464,9 +465,11 @@ func (suite *EIBCTestSuite) TestAckErrEIBCDemandOrderFulfillment() {
 	err = hubEndpoint.UpdateClient()
 	suite.Require().NoError(err)
 
-	// TODO: change this to a function that simulates an errored ack
-	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
-	err = path.EndpointA.TimeoutPacket(packet)
+	// TODO: is this right?
+	err = path.EndpointA.WriteAcknowledgement(
+		channeltypes.NewErrorAcknowledgement(errors.New("foobar")),
+		packet,
+	)
 	suite.Require().NoError(err)
 
 	// Validate funds are still not returned to the sender
