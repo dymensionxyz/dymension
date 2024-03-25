@@ -16,6 +16,7 @@ import (
 var (
 	genesisAuthorizedAccount = apptesting.CreateRandomAccounts(1)[0]
 	rollappDenom             = "arax"
+	rollappIBCDenom          = "ibc/9A1EACD53A6A197ADC81DF9A49F0C4A26F7FF685ACF415EE726D7D59796E71A7"
 )
 
 type RollappGenesisTokenTestSuite struct {
@@ -46,12 +47,12 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 	suite.coordinator.Setup(hubToCosmosPath)
 
 	cases := []struct {
-		name                     string
-		gensisState              *types.RollappGenesisState
-		msg                      *types.MsgRollappGenesisEvent
-		deployerParams           []types.DeployerParams
-		expectSavedDenomMetaData bool
-		expErr                   string
+		name             string
+		gensisState      *types.RollappGenesisState
+		msg              *types.MsgRollappGenesisEvent
+		deployerParams   []types.DeployerParams
+		expectSavedDenom string
+		expErr           string
 	}{
 		{
 			name: "successful rollapp genesis event",
@@ -67,9 +68,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: true,
-			expErr:                   "",
+			deployerParams:   []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expectSavedDenom: rollappIBCDenom,
 		},
 		{
 			name: "invalid rollapp genesis event - genesis event already triggered",
@@ -85,9 +85,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   types.ErrGenesisEventAlreadyTriggered.Error(),
+			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expErr:         types.ErrGenesisEventAlreadyTriggered.Error(),
 		},
 		{
 			name: "invalid rollapp genesis event - unauthorized address",
@@ -103,9 +102,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   sdkerrors.ErrUnauthorized.Error(),
+			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expErr:         sdkerrors.ErrUnauthorized.Error(),
 		},
 		{
 			name: "invalid rollapp genesis event - rollapp doesn't exist",
@@ -121,9 +119,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: "someRandomChainID",
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   types.ErrUnknownRollappID.Error(),
+			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expErr:         types.ErrUnknownRollappID.Error(),
 		},
 		{
 			name: "invalid rollapp genesis event - channel doesn't exist",
@@ -139,9 +136,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: "SomeRandomChannelID",
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   "port-id: transfer, channel-id: SomeRandomChannelID: channel not found",
+			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expErr:         "port-id: transfer, channel-id: SomeRandomChannelID: channel not found",
 		},
 		{
 			name: "invalid rollapp genesis event - channel id doesn't match chain id",
@@ -157,9 +153,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: hubToCosmosPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   "channel channel-1 is connected to chain ID evmos_9000-2, expected evmos_9000-3: invalid genesis channel id",
+			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expErr:         "channel channel-1 is connected to chain ID evmos_9000-2, expected evmos_9000-3: invalid genesis channel id",
 		},
 		{
 			name: "failed rollapp genesis event - error minting coins",
@@ -174,9 +169,9 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				RollappId: suite.rollappChain.ChainID,
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
-			deployerParams:           []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expectSavedDenomMetaData: false,
-			expErr:                   "empty address string is not allowed",
+			deployerParams:   []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
+			expectSavedDenom: rollappIBCDenom,
+			expErr:           "failed to mint genesis tokens: failed to convert account address: empty address string is not allowed",
 		},
 	}
 	for _, tc := range cases {
@@ -201,10 +196,14 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 			rollapp.GenesisState = tc.gensisState
 			rollappKeeper.SetRollapp(suite.ctx, rollapp)
 			// Send the genesis event
-			_, err := suite.msgServer.TriggerGenesisEvent(suite.ctx, tc.msg)
+
+			ctx := suite.ctx.WithProposer(suite.hubChain.NextVals.Proposer.Address.Bytes())
+			_, err := suite.msgServer.TriggerGenesisEvent(ctx, tc.msg)
 			suite.hubChain.NextBlock()
 			if tc.expErr != "" {
 				suite.Require().EqualError(err, tc.expErr)
+			} else {
+				suite.Require().NoError(err)
 			}
 			// Validate no tokens are in the module account
 			accountKeeper := ConvertToApp(suite.hubChain).AccountKeeper
@@ -224,9 +223,9 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				}
 
 				denomMetaData, found := bankKeeper.GetDenomMetaData(suite.ctx, rollappIBCDenom)
-				suite.Require().Equal(tc.expectSavedDenomMetaData, found)
-				if tc.expectSavedDenomMetaData {
-					suite.Require().Equal(rollappDenom, denomMetaData.Display)
+				suite.Require().Equal(tc.expectSavedDenom != "", found)
+				if tc.expectSavedDenom != "" {
+					suite.Require().Equal(tc.expectSavedDenom, denomMetaData.Display)
 				}
 			}
 		})
