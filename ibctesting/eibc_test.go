@@ -415,7 +415,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 /*                                    Utils                                   */
 /* -------------------------------------------------------------------------- */
 
-func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender string, receiver string, amount string, memo string, isAckError bool) channeltypes.Packet {
+func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender string, receiver string, amount string, memo string, expectAck bool) channeltypes.Packet {
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
 
@@ -438,7 +438,7 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 
 	// If ack error that an ack is returned immediately hence found. The reason we get err in the relay packet is
 	// because no ack can be parsed from events
-	if isAckError {
+	if expectAck {
 		suite.Require().NoError(err)
 		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		suite.Require().True(found)
