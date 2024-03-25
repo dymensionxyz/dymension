@@ -11,10 +11,23 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the rollapp
 	for _, elem := range genState.RollappList {
+		//validate rollapp info
 		err := elem.ValidateBasic()
 		if err != nil {
+			k.Logger(ctx).Error("Error init genesis validating rollapp information: rollapp:%s", elem.RollappId)
 			continue
 		}
+		// check to see if the RollappId has been registered before
+		if _, isFound := k.GetRollapp(ctx, elem.RollappId); isFound {
+			k.Logger(ctx).Error("Error init genesis rollapp already exists: rollapp:%s", elem.RollappId)
+			continue
+		}
+		//verify rollapp id
+		rollappId, err := types.NewChainID(elem.RollappId)
+		if err != nil {
+			k.Logger(ctx).Error("Error parsing Chain Id: rollapp:%s: Error:%s", elem.RollappId, err)
+		}
+		elem.RollappId = rollappId.ChainID
 		k.SetRollapp(ctx, elem)
 	}
 	// Set all the stateInfo
