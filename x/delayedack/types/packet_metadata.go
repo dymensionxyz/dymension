@@ -13,6 +13,9 @@ type EIBCMetadata struct {
 }
 
 func (p PacketMetadata) ValidateBasic() error {
+	if p.EIBC == nil {
+		return ErrMissingEIBCMetadata
+	}
 	return p.EIBC.ValidateBasic()
 }
 
