@@ -23,27 +23,35 @@ var (
 		regexEpoch))
 )
 
-// IsValidChainID returns false if the given chain identifier is incorrectly formatted.
-func IsValidChainID(chainID string) bool {
-	if len(chainID) > 48 {
-		return false
-	}
-
-	return ethermintChainID.MatchString(chainID)
+type ChainID struct {
+	ChainID  string
+	EIP155ID *big.Int
 }
 
-// ParseChainID parses a string chain identifier's epoch to an Ethereum-compatible
-// chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
-func ParseChainID(chainID string) (*big.Int, error) {
-	chainID = strings.TrimSpace(chainID)
+func NewChainID(id string) (ChainID, error) {
+	chainID := strings.TrimSpace(id)
 
 	if chainID == "" {
-		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "chain-id cannot be empty")
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "chain-id cannot be empty")
 	}
 
 	if len(chainID) > 48 {
-		return nil, errorsmod.Wrapf(ErrInvalidRollappID, "rollapp-id '%s' cannot exceed 48 chars", chainID)
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "rollapp-id '%s' cannot exceed 48 chars", chainID)
 	}
+
+	eip155, err := getEIP155ID(chainID)
+	if err != nil {
+		return ChainID{}, err
+	}
+	return ChainID{
+		ChainID:  chainID,
+		EIP155ID: eip155,
+	}, nil
+}
+
+// getEIP155ID parses a string chain identifier's epoch to an Ethereum-compatible
+// chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
+func getEIP155ID(chainID string) (*big.Int, error) {
 
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
@@ -57,4 +65,8 @@ func ParseChainID(chainID string) (*big.Int, error) {
 	}
 
 	return chainIDInt, nil
+}
+
+func (c *ChainID) IsEIP155() bool {
+	return c.EIP155ID != nil
 }

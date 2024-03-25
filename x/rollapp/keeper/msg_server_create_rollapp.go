@@ -18,8 +18,13 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, err
 	}
 
+	rollappId, err := types.NewChainID(msg.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
+	if _, isFound := k.GetRollapp(ctx, rollappId.ChainID); isFound {
 		return nil, types.ErrRollappExists
 	}
 
