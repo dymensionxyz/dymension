@@ -372,6 +372,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
 	err = path.EndpointA.TimeoutPacket(packet)
 	suite.Require().NoError(err)
+
 	// Validate funds are still not returned to the sender
 	postTimeoutBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
