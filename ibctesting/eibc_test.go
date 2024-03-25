@@ -436,7 +436,7 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 
 	err = path.RelayPacket(packet)
 
-	// If ack error that an ack is retuned immediately hence found. The reason we get err in the relay packet is
+	// If ack error that an ack is returned immediately hence found. The reason we get err in the relay packet is
 	// because no ack can be parsed from events
 	if isAckError {
 		suite.Require().NoError(err)
