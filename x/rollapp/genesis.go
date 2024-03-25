@@ -11,6 +11,10 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the rollapp
 	for _, elem := range genState.RollappList {
+		err := elem.ValidateBasic()
+		if err != nil {
+			continue
+		}
 		k.SetRollapp(ctx, elem)
 	}
 	// Set all the stateInfo
