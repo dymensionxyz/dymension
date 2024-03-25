@@ -75,7 +75,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	if finalized {
-		logger.Debug("Skipping IBC transfer OnRecvPacket as the packet proof height is already finalized")
+		logger.Debug("Skipping eIBC transfer OnRecvPacket as the packet proof height is already finalized")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
