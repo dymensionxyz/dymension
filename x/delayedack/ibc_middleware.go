@@ -45,7 +45,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -112,7 +112,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, _, err := im.ExtractRollappID(ctx, packet)
+	rollappID, _, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -181,7 +181,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -274,8 +274,8 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
-// ExtractRollappID extracts the rollapp ID from the packet
-func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Packet) (string, *transfertypes.FungibleTokenPacketData, error) {
+// ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
+func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
