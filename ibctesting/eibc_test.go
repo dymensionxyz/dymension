@@ -415,6 +415,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 /*                                    Utils                                   */
 /* -------------------------------------------------------------------------- */
 
+// TransferRollappToHub sends a transfer packet from rollapp to hub and returns the packet
 func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender string, receiver string, amount string, memo string, expectAck bool) channeltypes.Packet {
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
