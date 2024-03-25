@@ -16,7 +16,7 @@ var (
 	// KeyTimeoutFee is the key for the timeout fee
 	KeyTimeoutFee = []byte("TimeoutFee")
 	// KeyErrAckFee is the key for the error acknowledgement fee
-	KeyErrAckFee = []byte("TimeoutFee")
+	KeyErrAckFee = []byte("ErrAckFee")
 )
 
 const (
