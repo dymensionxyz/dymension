@@ -161,7 +161,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	}
 }
 
-// TestEIBCDemandOrderCreation tests the creation of a demand order and its fullfillment logic.
+// TestEIBCDemandOrderCreation tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
@@ -437,8 +437,8 @@ func (suite *EIBCTestSuite) TransferRollappToHub(path *ibctesting.Path, sender s
 
 	err = path.RelayPacket(packet)
 
-	// If ack error that an ack is returned immediately hence found. The reason we get err in the relay packet is
-	// because no ack can be parsed from events
+	// If there is an error than an ack is returned immediately. Relay will always try to extract an ack, and will
+	// return an error if there isn't one.
 	if expectAck {
 		suite.Require().NoError(err)
 		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
