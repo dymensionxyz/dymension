@@ -409,7 +409,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
-	// Validate funds are passed to the fulfiller
+	// Funds are passed to the fulfiller
 	fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(suite.hubChain.GetContext(), fulfillerAccount, sdk.DefaultBondDenom)
 	suite.Require().True(fulfillerAccountBalanceAfterTimeout.IsEqual(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))
 }
@@ -506,7 +506,7 @@ func (suite *EIBCTestSuite) TestAckErrEIBCDemandOrderFulfillment() {
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
-	// Validate funds are passed to the fulfiller
+	// Funds are passed to the fulfiller
 	fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(suite.hubChain.GetContext(), fulfillerAccount, sdk.DefaultBondDenom)
 	suite.Require().True(fulfillerAccountBalanceAfterTimeout.IsEqual(fulfillerInitialBalance.Add(lastDemandOrder.Fee[0])))
 }

@@ -180,6 +180,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Relayer:         relayer,
 		ProofHeight:     proofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
+		// TODO: do I need to set the error field here?
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {

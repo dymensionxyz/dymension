@@ -48,7 +48,7 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 	return &rollappPacket, nil
 }
 
-// UpdateRollappPacketTransferData updates the recipient of the underlying packet.
+// UpdateRollappPacketTransferAddress updates the recipient of the underlying packet.
 // Only pending packets can be updated.
 func (k Keeper) UpdateRollappPacketTransferAddress(
 	ctx sdk.Context,
@@ -71,6 +71,8 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
 		recipient = address
 	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		sender = address
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
 		sender = address
 	}
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
