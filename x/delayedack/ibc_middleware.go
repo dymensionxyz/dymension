@@ -2,7 +2,6 @@ package delayedack
 
 import (
 	"errors"
-	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -126,8 +125,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	switch resp := ack.Response.(type) {
 	case *channeltypes.Acknowledgement_Error:
 		// TODO(danwt): emit event? see
-
-		fmt.Println("here")
+		// TODO: need to make it only happen in the error case
 		_ = resp
 	}
 

@@ -339,9 +339,11 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 		malleate func(channeltypes.Packet)
 	}
 
+	nOrdersCreated := 0
+
 	for _, tc := range []TC{
 		{
-			name: "",
+			name: "timeout",
 			malleate: func(packet channeltypes.Packet) {
 				// TestTimeoutEIBCDemandOrderFulfillment tests the following:
 				// 1. Send a packet from hub to rollapp and timeout the packet.
@@ -355,8 +357,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			},
 		},
 		{
-			name: "",
-
+			name: "err acknowledgement",
 			malleate: func(packet channeltypes.Packet) {
 				// TestAckErrEIBCDemandOrderFulfillment tests the following:
 				// 1. Send a packet from hub to rollapp and cause an errored ack from the packet.
@@ -403,7 +404,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 			demandOrders, err := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().NoError(err)
-			suite.Require().Equal(len(demandOrders), 0)
+			suite.Require().Equal(nOrdersCreated, len(demandOrders))
 			// Update the client to create timeout
 			err = hubEndpoint.UpdateClient()
 			suite.Require().NoError(err)
@@ -416,7 +417,8 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			// Validate demand order created
 			demandOrders, err = eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().NoError(err)
-			suite.Require().Greater(len(demandOrders), 0)
+			nOrdersCreated++
+			suite.Require().Equal(nOrdersCreated, len(demandOrders))
 			// Get the last demand order created t
 			lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 			// Validate the demand order price and denom
