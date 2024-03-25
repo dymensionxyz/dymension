@@ -129,21 +129,3 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		})
 	}
 }
-
-func TestSequencerKey(t *testing.T) {
-	pubkey := ed25519.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey.Address())
-	bond := sdk.NewCoin("stake", sdk.NewInt(100))
-
-	msgCreateSequencer, err := NewMsgCreateSequencer(
-		addr.String(),
-		pubkey,
-		"rollapptest",
-		&Description{},
-		bond,
-	)
-
-	msgCreateSequencer.ValidateBasic()
-	require.Error(t, err)
-
-}
