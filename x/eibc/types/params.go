@@ -15,11 +15,14 @@ var (
 	KeyEpochIdentifier = []byte("EpochIdentifier")
 	// KeyTimeoutFee is the key for the timeout fee
 	KeyTimeoutFee = []byte("TimeoutFee")
+	// KeyErrAckFee is the key for the error acknowledgement fee
+	KeyErrAckFee = []byte("TimeoutFee")
 )
 
 const (
 	defaultEpochIdentifier = "hour"
 	defaultTimeoutFee      = "0.0015"
+	defaultErrAckFee       = "0.0015" // TODO(danwt): check
 )
 
 // ParamKeyTable the param key table for launch module
@@ -32,6 +35,7 @@ func NewParams(epcohIdentifier string) Params {
 	return Params{
 		EpochIdentifier: epcohIdentifier,
 		TimeoutFee:      sdk.MustNewDecFromStr(defaultTimeoutFee),
+		:      sdk.MustNewDecFromStr(defaultTimeoutFee),
 	}
 }
 
