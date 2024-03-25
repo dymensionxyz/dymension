@@ -105,8 +105,8 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	return demandOrder, nil
 }
 
-// This should be called only once per order.
-func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
+// FulfillOrder should be called only at most once per order.
+func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
 	order.IsFullfilled = true
 	err := k.SetDemandOrder(ctx, order)
 	if err != nil {

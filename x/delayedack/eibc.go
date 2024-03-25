@@ -55,18 +55,39 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 			return err
 		}
 		// Calculate the fee by multiplying the timeout fee by the price
-		timeoutFee := im.keeper.TimeoutFee(ctx)
-		if timeoutFee.IsZero() {
+		feeMultiplier := im.keeper.TimeoutFee(ctx)
+		if feeMultiplier.IsZero() {
 			logger.Debug("Timeout fee is zero, skipping demand order creation")
 			return nil
 		}
-		fee := amountDec.Mul(timeoutFee).TruncateInt().String()
+		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
+		packetMetaData = &types.PacketMetadata{
+			EIBC: &types.EIBCMetadata{
+				Fee: fee,
+			},
+		}
+	} else
+	// ditto per timeout: calculate the fee based on params
+	if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
+		// Calculate the fee by multiplying the timeout fee by the price
+		amountDec, err := sdk.NewDecFromStr(data.Amount)
+		if err != nil {
+			return err
+		}
+		// Calculate the fee by multiplying the timeout fee by the price
+		feeMultiplier := im.keeper.ErrAckFee(ctx)
+		if feeMultiplier.IsZero() {
+			logger.Debug("Timeout fee is zero, skipping demand order creation")
+			return nil
+		}
+		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
 		packetMetaData = &types.PacketMetadata{
 			EIBC: &types.EIBCMetadata{
 				Fee: fee,
 			},
 		}
 	}
+
 	// Validate the packet metadata
 	if err := packetMetaData.ValidateBasic(); err != nil {
 		logger.Error("error validating packet metadata", "error", err)
@@ -120,17 +141,18 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	// TODO(danwt): explain this calculation
 	demandOrderPrice := amountInt.Sub(feeInt).String()
 
-	// Get the denom for the demand order. If it's a timeout packet
-	// then it's simply the denom we tried to send. If it's a receive packet
-	// then it's the IBC denom we've got.
 	var demandOrderDenom string
 	var demandOrderRecipient string
+	// Get the denom for the demand order
 	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-		demandOrderDenom = fungibleTokenPacketData.Denom
-		demandOrderRecipient = fungibleTokenPacketData.Sender
+		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
+		demandOrderRecipient = fungibleTokenPacketData.Sender // and to who we tried to send it to
+	} else if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
+		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
+		demandOrderRecipient = fungibleTokenPacketData.Sender // and to who we tried to send it to
 	} else if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
-		demandOrderRecipient = fungibleTokenPacketData.Receiver
+		demandOrderRecipient = fungibleTokenPacketData.Receiver // we're the one getting it, just faster
 	}
 	// Create the demand order and validate it
 	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
@@ -143,7 +165,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	return eibcDemandOrder, nil
 }
 
-// getEIBCTransferDenom returns the actual denom that will be credited to the eibc fulfillter.
+// getEIBCTransferDenom returns the actual denom that will be credited to the eIBC fulfiller.
 // The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
 // based on the original chain it was sent from.
 func (im IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
