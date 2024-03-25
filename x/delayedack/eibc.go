@@ -43,11 +43,12 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		// Unmarshal the packet metadata from the memo
 		err = json.Unmarshal([]byte(data.Memo), packetMetaData)
 		if err != nil {
-			logger.Error("error parsing packet metadata from memo", "error", err)
+			logger.Error("parsing packet metadata from memo", "error", err)
 			return nil
 		}
-		// If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
-	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+	} else
+	// If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
+	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 		// Calculate the fee by multiplying the timeout fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
 		if err != nil {
@@ -74,13 +75,13 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	// Create the eibc demand order
 	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, *packetMetaData.EIBC)
 	if err != nil {
-		err = fmt.Errorf("Failed to create eibc demand order, %s", err)
+		err = fmt.Errorf("create eibc demand order: %s", err)
 		return err
 	}
 	// Save the eibc order in the store
 	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
-		err = fmt.Errorf("Failed to save eibc demand order, %s", err)
+		err = fmt.Errorf("save eibc demand order: %s", err)
 		return err
 	}
 	return nil
