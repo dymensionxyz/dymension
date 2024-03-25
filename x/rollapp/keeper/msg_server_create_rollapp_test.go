@@ -121,7 +121,7 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	rollappId := "rollapp_1234"       // without whitespace
+	rollappId := "rollapp_1234-1"     // without whitespace
 	badrollappId := "rollapp_1234-1 " // with whitespace
 	// create rollapp with normal ID
 	rollapp := types.MsgCreateRollapp{
