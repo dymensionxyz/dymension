@@ -207,7 +207,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			// Get the initial state of the accounts
 			IBCOriginalRecipient := suite.hubChain.SenderAccounts[IBCrecipientAccountInitialIndex+idx].SenderAccount.GetAddress()
 			initialIBCOriginalRecipientBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), IBCOriginalRecipient)
-			fullfillerAccount := suite.hubChain.SenderAccounts[fulfillerAccountInitialIndex+idx].SenderAccount.GetAddress()
+			fulfiller := suite.hubChain.SenderAccounts[fulfillerAccountInitialIndex+idx].SenderAccount.GetAddress()
 			// Update the rollapp state
 			suite.rollappChain.NextBlock()
 			currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
@@ -221,14 +221,14 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			}
 			eibcJson, _ := json.Marshal(eibc)
 			memo := string(eibcJson)
-			packet := suite.TransferRollappToHub(path, IBCSenderAccount, fullfillerAccount.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
+			packet := suite.TransferRollappToHub(path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 			// Finalize rollapp state - at this state no demand order was fulfilled
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 			suite.Require().NoError(err)
 			// Check the fulfiller balance was updated fully with the IBC amount
 			isUpdated := false
-			fullfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
+			fullfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			IBCDenom := suite.GetRollappToHubIBCDenomFromPacket(packet)
 			requiredFulfillerBalance, ok := sdk.NewIntFromString(tc.fulfillerInitialIBCDenomBalance)
 			suite.Require().True(ok)
@@ -266,9 +266,9 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			// Get the last demand order created
 			lastDemandOrder = getLastDemandOrderByChannelandSequence(demandOrders)
 			// Try and fulfill the demand order
-			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
+			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
-				FulfillerAddress: fullfillerAccount.String(),
+				FulfillerAddress: fulfiller.String(),
 				OrderId:          lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
@@ -288,7 +288,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(msgFulfillDemandOrder.FulfillerAddress, data.Receiver)
 
 			// Validate balances of fullfiller and recipient
-			fullfillerAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
+			fullfillerAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			recipientAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), IBCOriginalRecipient)
 			ibcTransferAmountInt, _ := strconv.ParseInt(tc.IBCTransferAmount, 10, 64)
 			eibcTransferFeeInt, _ := strconv.ParseInt(tc.EIBCTransferFee, 10, 64)
@@ -300,7 +300,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			err = suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 			suite.Require().NoError(err)
-			fullfillerAccountBalanceAfterFinalization = eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fullfillerAccount)
+			fullfillerAccountBalanceAfterFinalization = eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			suite.Require().True(fullfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
 			// Validate demand order fulfilled and packet status updated
