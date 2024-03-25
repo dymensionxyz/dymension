@@ -228,11 +228,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().NoError(err)
 			// Check the fulfiller balance was updated fully with the IBC amount
 			isUpdated := false
-			fullfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
+			fulfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			IBCDenom := suite.GetRollappToHubIBCDenomFromPacket(packet)
 			requiredFulfillerBalance, ok := sdk.NewIntFromString(tc.fulfillerInitialIBCDenomBalance)
 			suite.Require().True(ok)
-			for _, coin := range fullfillerAccountBalanceAfterFinalization {
+			for _, coin := range fulfillerAccountBalanceAfterFinalization {
 				if coin.Denom == IBCDenom && coin.Amount.Equal(requiredFulfillerBalance) {
 					isUpdated = true
 					break
@@ -254,7 +254,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain.NextBlock()
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(uint64(currentRollappBlockHeight))
+			suite.UpdateRollappState(currentRollappBlockHeight)
 			_ = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
 			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
 			// ibc purposes which causes the AfterEpochEnd of the rollapp packet deletion to fire (which also deletes the demand order)
@@ -300,8 +300,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			err = suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 			suite.Require().NoError(err)
-			fullfillerAccountBalanceAfterFinalization = eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
-			suite.Require().True(fullfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
+			fulfillerAccountBalanceAfterFinalization = eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
+			suite.Require().True(fulfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
 			// Validate demand order fulfilled and packet status updated
 			finalizedDemandOrders, err := eibcKeeper.ListDemandOrdersByStatus(suite.hubChain.GetContext(), commontypes.Status_FINALIZED)
