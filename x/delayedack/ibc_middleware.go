@@ -2,6 +2,11 @@ package delayedack
 
 import (
 	"errors"
+	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
@@ -111,6 +116,19 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+
+	var ack channeltypes.Acknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+
+	switch resp := ack.Response.(type) {
+	case *channeltypes.Acknowledgement_Error:
+		// TODO(danwt): emit event? see
+
+		fmt.Println("here")
+		_ = resp
+	}
 
 	rollappID, _, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
