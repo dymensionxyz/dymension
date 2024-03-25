@@ -141,7 +141,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	if finalized {
-		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
+		logger.Debug("Skipping eIBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	// Run the underlying app's OnAcknowledgementPacket callback
