@@ -372,7 +372,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.Require().NoError(err)
 
 	// Timeout the packet. Shouldn't release funds until rollapp height is finalized
-	err = path.EndpointA.TimeoutPacket(packet)
+	err = hubEndpoint.TimeoutPacket(packet)
 	suite.Require().NoError(err)
 
 	// Validate funds are still not returned to the sender
