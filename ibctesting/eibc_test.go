@@ -246,7 +246,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
-			lastDemandOrder := getLastDemandOrderByChannelandSequence(demandOrders)
+			lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 			// Validate demand order wasn't fulfilled but finalized
 			suite.Require().False(lastDemandOrder.IsFullfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, lastDemandOrder.TrackingPacketStatus)
@@ -265,7 +265,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().Greater(len(demandOrders), totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
 			// Get the last demand order created
-			lastDemandOrder = getLastDemandOrderByChannelandSequence(demandOrders)
+			lastDemandOrder = getLastDemandOrderByChannelAndSequence(demandOrders)
 			// Try and fulfill the demand order
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
@@ -383,7 +383,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(demandOrders), 0)
 	// Get the last demand order created t
-	lastDemandOrder := getLastDemandOrderByChannelandSequence(demandOrders)
+	lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 	// Validate the demand order price and denom
 	timeoutFee := eibcKeeper.GetParams(suite.hubChain.GetContext()).TimeoutFee
 	amountDec, err := sdk.NewDecFromStr(coinToSendToB.Amount.String())
@@ -480,7 +480,7 @@ func (suite *EIBCTestSuite) TestAckErrEIBCDemandOrderFulfillment() {
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(demandOrders), 0)
 	// Get the last demand order created t
-	lastDemandOrder := getLastDemandOrderByChannelandSequence(demandOrders)
+	lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 	// Validate the demand order price and denom
 	timeoutFee := eibcKeeper.GetParams(suite.hubChain.GetContext()).TimeoutFee
 	amountDec, err := sdk.NewDecFromStr(coinToSendToB.Amount.String())
@@ -559,7 +559,7 @@ func (suite *EIBCTestSuite) TransferRollappToHub(
 }
 
 // Each demand order tracks the underlying packet key which can than indicate the order by the channel and seuqence
-func getLastDemandOrderByChannelandSequence(demandOrders []*eibctypes.DemandOrder) *eibctypes.DemandOrder {
+func getLastDemandOrderByChannelAndSequence(demandOrders []*eibctypes.DemandOrder) *eibctypes.DemandOrder {
 	sort.Slice(demandOrders, func(i, j int) bool {
 		iKeyParts := strings.Split((demandOrders)[i].TrackingPacketKey, "/")
 		jKeyParts := strings.Split((demandOrders)[j].TrackingPacketKey, "/")
