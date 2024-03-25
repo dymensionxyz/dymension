@@ -466,10 +466,10 @@ func (suite *EIBCTestSuite) TestAckErrEIBCDemandOrderFulfillment() {
 	suite.Require().NoError(err)
 
 	// TODO: is this right?
-	err = path.EndpointA.WriteAcknowledgement(
-		channeltypes.NewErrorAcknowledgement(errors.New("foobar")),
-		packet,
-	)
+	ack := channeltypes.NewErrorAcknowledgement(errors.New("foobar"))
+	err = rollappEndpoint.WriteAcknowledgement(ack, packet)
+	suite.Require().NoError(err)
+	err = hubEndpoint.AcknowledgePacket(packet, ack.Acknowledgement())
 	suite.Require().NoError(err)
 
 	// Validate funds are still not returned to the sender
