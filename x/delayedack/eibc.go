@@ -116,6 +116,8 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	if amountInt.LT(feeInt) {
 		return nil, fmt.Errorf("fee cannot be larger than amount")
 	}
+
+	// TODO(danwt): explain this calculation
 	demandOrderPrice := amountInt.Sub(feeInt).String()
 
 	// Get the denom for the demand order. If it's a timeout packet
