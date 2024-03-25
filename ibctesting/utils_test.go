@@ -106,7 +106,7 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
-	//using validator pubkey as the dymint pubkey
+	// using validator pubkey as the dymint pubkey
 	pk, err := cryptocodec.FromTmPubKeyInterface(suite.rollappChain.Vals.Validators[0].PubKey)
 	suite.Require().Nil(err)
 
@@ -252,7 +252,6 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	//acc := authtypes.NewBaseAccount(valPubKey.Address().Bytes(), valPubKey, 0, 0)
 	amount, ok := sdk.NewIntFromString("10000000000000000000")
 	suite.Require().True(ok)
 

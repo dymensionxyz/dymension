@@ -85,11 +85,10 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 		}
 
 		_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
-
 		// err means the pubkey validation failed
-		/*if err != nil {
+		if err != nil {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "pubkey validation failed")
-		}*/
+		}
 
 	}
 
