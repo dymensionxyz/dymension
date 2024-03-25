@@ -206,7 +206,7 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
-	// If the sequencer is changed, then the validation will faill till the new sequencer sends a new state info update.
+	// If the sequencer is changed, then the validation will fail till the new sequencer sends a new state info update.
 	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
 	if err != nil {
 		k.Logger(ctx).Error("error consensus state", err)
