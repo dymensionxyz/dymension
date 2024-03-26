@@ -79,14 +79,14 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	// Set all the latestFinalizedStateIndex
 	for _, elem := range genState.LatestFinalizedStateIndexList {
 
-		//check the rollapp exists
+		// check the rollapp exists
 		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
 		if !found {
 			k.Logger(ctx).Error("error init genesis state info not found for latest finalized state info index: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
 			continue
 		}
 
-		//check there is a latest state info
+		// check there is a latest state info
 		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, elem.RollappId)
 		if !found {
 			k.Logger(ctx).Error("error init genesis latest state info index not found: rollapp:%s", elem.RollappId)
@@ -98,13 +98,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			continue
 		}
 
-		//check the latest state info is not previous to the latest finalized state info
+		// check the latest state info is not previous to the latest finalized state info
 		if latestStateInfo.StateInfoIndex.Index < elem.Index {
 			k.Logger(ctx).Error("error init genesis latest state info index lower than latest finalized state info: rollapp:%s: latest state info index: %s: latest finalized state info index:%s", elem.RollappId, latestStateInfoIndex.Index, elem.Index)
 			continue
 		}
 
-		//check all previous state infos are finalized
+		// check all previous state infos are finalized
 		prevStatesNonFinalized := false
 		for i := uint64(1); i <= elem.Index; i++ {
 			stateInfo, found := k.GetStateInfo(ctx, elem.RollappId, i)
