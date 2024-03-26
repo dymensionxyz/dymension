@@ -28,6 +28,13 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappExists
 	}
 
+	if rollappId.IsEIP155() {
+		// check to see if the RollappId has been registered before with same key
+		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.EIP155ID.Uint64()); isFound {
+			return nil, types.ErrRollappExists
+		}
+	}
+
 	// check to see if there is an active whitelist
 	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
 		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {

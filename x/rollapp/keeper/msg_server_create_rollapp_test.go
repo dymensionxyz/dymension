@@ -118,11 +118,11 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
 }
 
-func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
+func (suite *RollappTestSuite) TestOverwriteEIP155KeyWithExtraSpace() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	rollappId := "rollapp_1234-1"     // without whitespace
-	badrollappId := "rollapp_1234-1 " // with whitespace
+	rollappId := "rollapp_1234-1"      // without whitespace
+	badrollappId := "rollapp_1234-1  " // with whitespace
 	// create rollapp with normal ID
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
@@ -152,5 +152,42 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
 	// it should not be possible to register rollapp name with extra space
+	suite.Require().ErrorIs(err, types.ErrRollappExists)
+}
+
+func (suite *RollappTestSuite) TestOverwriteEIP155SameKey() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	rollappId := "rollapp_1234-1"  // without whitespace
+	badrollappId := "dummy_1234-1" // with whitespace
+	// create rollapp with normal ID
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             rollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().NoError(err)
+
+	// get eip155 key
+	id, err := types.NewChainID(rollappId)
+
+	suite.Require().NoError(err)
+	suite.Require().NotNil(id.EIP155ID)
+	eip155key := id.EIP155ID.Uint64()
+	// eip155 key registers to correct roll app
+	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+	suite.Require().True(found)
+	suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+	// create bad rollapp
+	badrollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             badrollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+	// it should not be possible to register rollapp name with same EIP155 Key
 	suite.Require().ErrorIs(err, types.ErrRollappExists)
 }
