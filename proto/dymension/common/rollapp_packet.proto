@@ -20,8 +20,6 @@ message RollappPacket {
       ON_TIMEOUT = 2;
     } 
     Type type = 7;
-    // a packet that is, for example, finalized, was no necessarily successful, it
-    // could have timed out or resulted in an error acknowledgement
-    // we record that here
+    // stores the result of onAck, onTimeout or onRecv/writeAck
     string error = 8;
   }
