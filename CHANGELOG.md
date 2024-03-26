@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (evm) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
+- (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) create eibc order on err ack from rollapp
 
 ### Bug Fixes
 
@@ -47,7 +48,6 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (hygene) [#676](https://github.com/dymensionxyz/dymension/pull/676) lint tests
 - (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) apply a pfm patch
 - (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
-- (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) create eibc order on err ack from rollapp
 
 ___
 
