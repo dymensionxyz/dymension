@@ -45,13 +45,11 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 	}
 
 	// validate the fraud proof against the committed state
-	blockHeight := fp.BlockHeight + 1 // TODO(danwt): why +1? ask Michael
-	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(blockHeight))
+	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(fp.GetFraudulentBlockHeight()))
 	if err != nil {
 		return fmt.Errorf("find state info by height: %w", err)
 	}
-	idx := blockHeight - int64(stateInfo.StartHeight)
-	blockDescriptor := stateInfo.BDs.BD[idx]
+	blockDescriptor := stateInfo.BlockDescriptorByHeight(uint64(fp.GetFraudulentBlockHeight()))
 
 	err = validateBlockDescriptor(blockDescriptor, fp.PreStateAppHash, fp.ExpectedValidAppHash)
 	if err != nil {

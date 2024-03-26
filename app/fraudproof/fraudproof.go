@@ -77,8 +77,7 @@ func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 
 	fpv.initCleanInstance()
 
-	// using height+1 as the blockHeight is the last committed block
-	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1)
+	fpv.runningApp.SetInitialHeight(fraudProof.GetFraudulentBlockHeight())
 
 	cms := fpv.runningApp.CommitMultiStore().(*rootmulti.Store)
 	storeKeys := fpv.storeKeys
@@ -110,7 +109,7 @@ func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 	return nil
 }
 
-// VerifyFraudProof checks the validity of a given fraud proof.
+// Verify checks the validity of a given fraud proof.
 //
 // The function takes a FraudProof object as an argument and returns an error if the fraud proof is invalid.
 //
