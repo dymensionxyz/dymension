@@ -5,6 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	sdkfraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,11 +20,16 @@ type (
 		storeKey storetypes.StoreKey
 		memKey   storetypes.StoreKey
 
-		fraudProofVerifier fraudtypes.Verifier
+		fraudProofVerifier FraudProofVerifier
 		hooks              types.MultiRollappHooks
 		paramstore         paramtypes.Subspace
 	}
 )
+
+type FraudProofVerifier interface {
+	Init(*sdkfraudtypes.FraudProof) error
+	Verify(*sdkfraudtypes.FraudProof) error
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,

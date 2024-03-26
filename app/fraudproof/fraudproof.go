@@ -33,13 +33,8 @@ import (
 // TODO: Move to types package
 var (
 	ErrInvalidPreStateAppHash = errors.New("invalid pre state app hash")
-	ErrInvalidAppHash         = errors.New("invalid app hash")
+	ErrInvalidAppHash         = errors.New("invalid app hash") // TODO(danwt): use or delete
 )
-
-type Verifier interface {
-	Init(*fraudtypes.FraudProof) error
-	Verify(*fraudtypes.FraudProof) error
-}
 
 type RollappFPV struct {
 	name           string
@@ -48,8 +43,6 @@ type RollappFPV struct {
 	rollappBaseApp *baseapp.BaseApp
 	runningApp     *baseapp.BaseApp
 }
-
-var _ Verifier = (*RollappFPV)(nil)
 
 // NewVerifier creates a new Verifier
 func NewVerifier(appName string) *RollappFPV {
