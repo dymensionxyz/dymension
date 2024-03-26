@@ -77,7 +77,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		// Calculate the fee by multiplying the timeout fee by the price
 		feeMultiplier := im.keeper.ErrAckFee(ctx)
 		if feeMultiplier.IsZero() {
-			logger.Debug("Timeout fee is zero, skipping demand order creation")
+			logger.Debug("ErrAck fee is zero, skipping demand order creation")
 			return nil
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
