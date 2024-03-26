@@ -628,7 +628,7 @@ func New(
 		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
-		*app.DenomMetadataKeeper,
+		app.DenomMetadataKeeper,
 	)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(

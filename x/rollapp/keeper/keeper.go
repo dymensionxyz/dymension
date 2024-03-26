@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	denommetadatamodulekeeper "github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -27,7 +26,7 @@ type (
 		transferKeeper      types.TransferKeeper
 		channelKeeper       types.ChannelKeeper
 		bankKeeper          types.BankKeeper
-		denommetadataKeeper denommetadatamodulekeeper.Keeper
+		denommetadataKeeper types.DenomMetadataKeeper
 	}
 )
 
@@ -40,7 +39,7 @@ func NewKeeper(
 	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
-	denommetadataKeeper denommetadatamodulekeeper.Keeper,
+	denommetadataKeeper types.DenomMetadataKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
