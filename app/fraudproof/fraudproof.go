@@ -36,7 +36,7 @@ var (
 	ErrInvalidAppHash         = errors.New("invalid app hash") // TODO(danwt): use or delete
 )
 
-type RollappFPV struct {
+type Verifier struct {
 	name           string
 	storeKeys      map[string]storetypes.StoreKey
 	encCfg         rollappevmparams.EncodingConfig
@@ -45,14 +45,14 @@ type RollappFPV struct {
 }
 
 // NewVerifier creates a new Verifier
-func NewVerifier(appName string) *RollappFPV {
+func NewVerifier(appName string) *Verifier {
 	cfg := rollappevm.MakeEncodingConfig()
 
 	// TODO: use logger? default home directory?
 	rollappApp := rollappevm.NewRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
 	storeKeys := rollappApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
 
-	return &RollappFPV{
+	return &Verifier{
 		name:           appName,
 		encCfg:         cfg,
 		storeKeys:      storeKeys,
@@ -60,17 +60,16 @@ func NewVerifier(appName string) *RollappFPV {
 	}
 }
 
-func (fpv *RollappFPV) initCleanInstance() {
+func (fpv *Verifier) initCleanInstance() {
 	rollapp := baseapp.NewBaseApp(fpv.name, log.NewNopLogger(), dbm.NewMemDB(), fpv.encCfg.TxConfig.TxDecoder())
 	rollapp.SetMsgServiceRouter(fpv.rollappBaseApp.MsgServiceRouter())
 	rollapp.SetBeginBlocker(fpv.rollappBaseApp.GetBeginBlocker())
 	rollapp.SetEndBlocker(fpv.rollappBaseApp.GetEndBlocker())
-
 	fpv.runningApp = rollapp
 }
 
-// InitFromFraudProof initializes the Verifier from a fraud proof
-func (fpv *RollappFPV) Init(fraudProof *fraudtypes.FraudProof) error {
+// Init initializes the Verifier from a fraud proof
+func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 	// check app is initialized
 	if fpv.rollappBaseApp == nil {
 		return fmt.Errorf("app not initialized")
@@ -78,7 +77,7 @@ func (fpv *RollappFPV) Init(fraudProof *fraudtypes.FraudProof) error {
 
 	fpv.initCleanInstance()
 
-	// using height+1 as the blockHeight is the last commited block
+	// using height+1 as the blockHeight is the last committed block
 	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1)
 
 	cms := fpv.runningApp.CommitMultiStore().(*rootmulti.Store)
@@ -122,8 +121,8 @@ func (fpv *RollappFPV) Init(fraudProof *fraudtypes.FraudProof) error {
 //
 // If any of these checks fail, the function returns an error. Otherwise, it returns nil.
 //
-// Note: This function modifies the state of the RollappFPV object it's called on.
-func (fpv *RollappFPV) Verify(fraudProof *fraudtypes.FraudProof) error {
+// Note: This function modifies the state of the Verifier object it's called on.
+func (fpv *Verifier) Verify(fraudProof *fraudtypes.FraudProof) error {
 	appHash := fpv.runningApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash))
 
