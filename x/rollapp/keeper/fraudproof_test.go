@@ -9,15 +9,16 @@ import (
 )
 
 //go:embed testdata/fraud_proof_0.json
-var embeddedFp []byte
+var fraudProof0 []byte
 
 func (suite *RollappTestSuite) TestRunFraudProof() {
 	suite.SetupTest()
 
+	// TODO: document where the file came from, how it was generated
 	// TODO: test validation too
 
 	fp := abcitypes.FraudProof{}
-	err := json.Unmarshal(embeddedFp, &fp)
+	err := json.Unmarshal(fraudProof0, &fp)
 	suite.NoError(err)
 
 	fraud := fraudtypes.FraudProof{}
