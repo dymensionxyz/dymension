@@ -36,15 +36,22 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	// register rollapp with metadata for stake denom
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
 	suite.RegisterSequencer()
+
+	// add sender to deployer whitelist
+	app := ConvertToApp(suite.hubChain)
+
+	// invoke genesis event, in order to register denoms
+	suite.GenesisEvent(path.EndpointB.Chain.ChainID, path.EndpointA.ChannelID)
+
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(currentRollappBlockHeight)
 	err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
 	suite.Require().NoError(err)
 
-	found := ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
+	found := app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
 	suite.Require().False(found)
-	found = ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), "udym")
+	found = app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), "udym")
 	suite.Require().False(found)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -68,14 +75,16 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	udymVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), "udym"))
 	stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
 
-	found = ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
+	found = app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
 	suite.Require().False(found)
-	found = ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), "udym")
+	found = app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), "udym")
 	suite.Require().False(found)
-	found = ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), udymVoucherDenom.IBCDenom())
+	found = app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), udymVoucherDenom.IBCDenom())
 	suite.Require().False(found)
-	found = ConvertToApp(suite.hubChain).BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
-	suite.Require().False(found)
+	metadata, found := app.BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
+	suite.Require().True(found)
+	suite.Equal("bigstake", metadata.Display)
+	suite.Equal("BIGSTAKE", metadata.Symbol)
 
 	/* --------------------- move native token from rollapp --------------------- */
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
@@ -90,9 +99,4 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	// relay send
 	err = path.RelayPacket(packet)
 	suite.Require().NoError(err)
-
-	metadata, found := ConvertToApp(suite.hubChain).BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
-	suite.Require().True(found)
-	suite.Equal("bigstake", metadata.Display)
-	suite.Equal("BIGSTAKE", metadata.Symbol)
 }
