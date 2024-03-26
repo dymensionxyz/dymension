@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -27,16 +28,17 @@ func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud)
 	}
 	// FIXME: validate rollapp type/SW version is verifiable
 
-	fp, err := msg.DecodeFraudProof()
+	fp, err := msg.NativeFraudProof()
 	if err != nil {
-		return nil, err
-	}
-	err = k.VerifyFraudProof(ctx, msg.RollappID, fp)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("native fraud proof: %w", err)
 	}
 
-	k.Logger(ctx).Info("fraud proof verified", "rollappID", msg.RollappID)
+	err = k.ValidateAndRunFraudProof(ctx, msg.RollappID, fp)
+	if err != nil {
+		return nil, fmt.Errorf("validate and run fraud proof: %w", err)
+	}
+
+	k.Logger(ctx).Info("validated and ran fraud proof", "rollapp id", msg.RollappID)
 
 	// FIXME: handle slashing
 

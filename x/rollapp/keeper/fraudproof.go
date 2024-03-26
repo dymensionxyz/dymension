@@ -2,13 +2,14 @@ package keeper
 
 import (
 	"bytes"
+	"fmt"
 
 	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k *Keeper) VerifyFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
+func (k *Keeper) ValidateAndRunFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
 	err := k.ValidateFraudProof(ctx, rollappID, fp)
 	if err != nil {
 		return err
@@ -40,14 +41,14 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 	// validate the fp struct and witnesses
 	_, err := fp.ValidateBasic()
 	if err != nil {
-		return err
+		return fmt.Errorf("validate basic: %w", err)
 	}
 
-	// validate the fraudproof against the commited state
-	blockHeight := fp.BlockHeight + 1
+	// validate the fraud proof against the committed state
+	blockHeight := fp.BlockHeight + 1 // TODO(danwt): why +1? ask Michael
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(blockHeight))
 	if err != nil {
-		return err
+		return fmt.Errorf("find state info by height: %w", err)
 	}
 	idx := blockHeight - int64(stateInfo.StartHeight)
 	blockDescriptor := stateInfo.BDs.BD[idx]

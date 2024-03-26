@@ -56,14 +56,14 @@ func (msg *MsgSubmitFraud) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id is empty")
 	}
 
-	_, err = msg.DecodeFraudProof()
+	_, err = msg.NativeFraudProof()
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "decode fraud proof: %v", err)
 	}
 	return nil
 }
 
-func (msg *MsgSubmitFraud) DecodeFraudProof() (fraudtypes.FraudProof, error) {
+func (msg *MsgSubmitFraud) NativeFraudProof() (fraudtypes.FraudProof, error) {
 	fp := abcitypes.FraudProof{}
 	fraud := fraudtypes.FraudProof{}
 
