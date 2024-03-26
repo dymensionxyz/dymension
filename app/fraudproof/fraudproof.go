@@ -37,8 +37,8 @@ var (
 )
 
 type Verifier interface {
-	InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error
-	VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error
+	Init(*fraudtypes.FraudProof) error
+	Verify(*fraudtypes.FraudProof) error
 }
 
 type RollappFPV struct {
@@ -55,7 +55,7 @@ var _ Verifier = (*RollappFPV)(nil)
 func NewVerifier(appName string) *RollappFPV {
 	cfg := rollappevm.MakeEncodingConfig()
 
-	//TODO: use logger? default home directory?
+	// TODO: use logger? default home directory?
 	rollappApp := rollappevm.NewRollapp(log.NewNopLogger(), dbm.NewMemDB(), nil, false, map[int64]bool{}, "/tmp", 0, cfg, simapp.EmptyAppOptions{})
 	storeKeys := rollappApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
 
@@ -77,7 +77,7 @@ func (fpv *RollappFPV) initCleanInstance() {
 }
 
 // InitFromFraudProof initializes the Verifier from a fraud proof
-func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) error {
+func (fpv *RollappFPV) Init(fraudProof *fraudtypes.FraudProof) error {
 	// check app is initialized
 	if fpv.rollappBaseApp == nil {
 		return fmt.Errorf("app not initialized")
@@ -85,7 +85,7 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 
 	fpv.initCleanInstance()
 
-	//using height+1 as the blockHeight is the last commited block
+	// using height+1 as the blockHeight is the last commited block
 	fpv.runningApp.SetInitialHeight(fraudProof.BlockHeight + 1)
 
 	cms := fpv.runningApp.CommitMultiStore().(*rootmulti.Store)
@@ -96,7 +96,7 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 		iavlStoreKeys = append(iavlStoreKeys, storeKeys[module])
 	}
 
-	//FIXME: make sure non is nil
+	// FIXME: make sure non is nil
 
 	fpv.runningApp.MountStores(iavlStoreKeys...)
 
@@ -116,7 +116,6 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 	fpv.runningApp.InitChain(abci.RequestInitChain{})
 
 	return nil
-
 }
 
 // VerifyFraudProof checks the validity of a given fraud proof.
@@ -131,7 +130,7 @@ func (fpv *RollappFPV) InitFromFraudProof(fraudProof *fraudtypes.FraudProof) err
 // If any of these checks fail, the function returns an error. Otherwise, it returns nil.
 //
 // Note: This function modifies the state of the RollappFPV object it's called on.
-func (fpv *RollappFPV) VerifyFraudProof(fraudProof *fraudtypes.FraudProof) error {
+func (fpv *RollappFPV) Verify(fraudProof *fraudtypes.FraudProof) error {
 	appHash := fpv.runningApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash))
 

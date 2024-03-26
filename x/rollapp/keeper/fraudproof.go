@@ -24,11 +24,11 @@ func (k *Keeper) ValidateAndRunFraudProof(ctx sdk.Context, rollappID string, fp 
 }
 
 func (k *Keeper) RunFraudProof(fp fraudtypes.FraudProof) error {
-	err := k.fraudProofVerifier.InitFromFraudProof(&fp)
+	err := k.fraudProofVerifier.Init(&fp)
 	if err != nil {
 		return err
 	}
-	err = k.fraudProofVerifier.VerifyFraudProof(&fp)
+	err = k.fraudProofVerifier.Verify(&fp)
 	if err != nil {
 		return err
 	}
