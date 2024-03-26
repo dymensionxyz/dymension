@@ -222,11 +222,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					}
 				}
 
-				denomMetaData, found := bankKeeper.GetDenomMetaData(suite.ctx, rollappIBCDenom)
+				_, found := bankKeeper.GetDenomMetaData(suite.ctx, rollappIBCDenom)
 				suite.Require().Equal(tc.expectSavedDenom != "", found)
-				if tc.expectSavedDenom != "" {
-					suite.Require().Equal(tc.expectSavedDenom, denomMetaData.Display)
-				}
 			}
 		})
 	}

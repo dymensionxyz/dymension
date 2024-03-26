@@ -86,11 +86,10 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 				Description: "The native staking token of RollApp XYZ",
 				DenomUnits: []*rollapptypes.DenomUnit{
 					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
-					{Denom: "mrax", Exponent: uint32(3), Aliases: []string{"millirax"}},
-					{Denom: "urax", Exponent: uint32(6), Aliases: []string{"microrax"}},
+					{Denom: "rax", Exponent: uint32(10), Aliases: []string{"RAX"}},
 				},
 				Base:    "arax",
-				Display: "arax",
+				Display: "rax",
 			},
 		},
 		nil,
