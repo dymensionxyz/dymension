@@ -35,7 +35,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	// Set all the stateInfo
 	for _, elem := range genState.StateInfoList {
 
-		stateInfo := types.NewMsgUpdateState(elem.Sequencer, elem.StateInfoIndex.RollappId, elem.StartHeight, elem.NumBlocks, elem.DAPath, elem.Version, &elem.BDs)
+		blockDescriptors := &types.BlockDescriptors{BD: elem.BDs.BD}
+
+		stateInfo := types.NewMsgUpdateState(elem.Sequencer, elem.StateInfoIndex.RollappId, elem.StartHeight, elem.NumBlocks, elem.DAPath, elem.Version, blockDescriptors)
 		err := stateInfo.ValidateBasic()
 		if err != nil {
 			k.Logger(ctx).Error("error init genesis validating state info: rollapp:%s: state info index: %d: Error:%s", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err)
