@@ -8,7 +8,7 @@ import (
 
 // x/rollapp module sentinel errors
 var (
-	ErrRollappExists                       = sdkerrors.Register(ModuleName, 1000, "rollapp already exist for this rollapp-id; must use new rollapp-id")
+	ErrRollappExists                       = sdkerrors.Register(ModuleName, 1000, "rollapp already exists for this rollapp-id; must use new rollapp-id")
 	ErrInvalidMaxSequencers                = sdkerrors.Register(ModuleName, 1001, "invalid max sequencers")
 	ErrInvalidPermissionedAddress          = sdkerrors.Register(ModuleName, 1003, "invalid permissioned address")
 	ErrPermissionedAddressesDuplicate      = sdkerrors.Register(ModuleName, 1004, "permissioned-address has duplicates")
@@ -20,15 +20,15 @@ var (
 	ErrMultiUpdateStateInBlock             = sdkerrors.Register(ModuleName, 1010, "only one state update can take place per block")
 	ErrInvalidStateRoot                    = sdkerrors.Register(ModuleName, 1011, "invalid blocks state root")
 	ErrInvalidIntermediateStatesRoot       = sdkerrors.Register(ModuleName, 1012, "invalid blocks intermediate states root")
-	ErrUnauthorizedRollappCreator          = sdkerrors.Register(ModuleName, 1013, "rollapp creator not register in whitelist")
+	ErrUnauthorizedRollappCreator          = sdkerrors.Register(ModuleName, 1013, "rollapp creator not registered in the whitelist")
 	ErrInvalidClientType                   = sdkerrors.Register(ModuleName, 1014, "client type of the rollapp isn't dymint")
 	ErrHeightStateNotFinalized             = sdkerrors.Register(ModuleName, 1015, "rollapp block on this height was not finalized yet")
 	ErrInvalidAppHash                      = sdkerrors.Register(ModuleName, 1016, "the app hash is different from the finalized state root")
 	ErrStateNotExists                      = sdkerrors.Register(ModuleName, 1017, "state of this height doesn't exist")
 	ErrInvalidHeight                       = sdkerrors.Register(ModuleName, 1018, "invalid rollapp height")
-	ErrRollappCreatorExceedMaximumRollapps = sdkerrors.Register(ModuleName, 1019, "rollapp creator exceed maximum allowed rollapps as register in whitelist")
+	ErrRollappCreatorExceedMaximumRollapps = sdkerrors.Register(ModuleName, 1019, "rollapp creator exceeds maximum allowed rollapps as registered in the whitelist")
 	ErrInvalidRollappID                    = sdkerrors.Register(ModuleName, 1020, "invalid rollapp-id")
-	ErrEIP155Exists                        = sdkerrors.Register(ModuleName, 1021, "EIP155 already exist; must use unique EIP155 identifier")
+	ErrEIP155Exists                        = sdkerrors.Register(ModuleName, 1021, "EIP155 already exists; must use unique EIP155 identifier")
 	ErrRollappsDisabled                    = sdkerrors.Register(ModuleName, 1022, "rollapps are disabled")
 	ErrInvalidTokenMetadata                = sdkerrors.Register(ModuleName, 1023, "invalid token metadata")
 	ErrNoFinalizedStateYetForRollapp       = sdkerrors.Register(ModuleName, 1024, "no finalized state yet for rollapp")
