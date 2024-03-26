@@ -3,6 +3,7 @@ package keeper_test
 import (
 	fmt "fmt"
 	"math/rand"
+	"time"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -105,6 +106,30 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.EqualError(err, types.ErrRollappExists.Error())
+}
+
+func (suite *RollappTestSuite) TestCreateRollappTooLongId() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	const charset = "abcdefghijklmnopqrstuvwxyz"
+	name := make([]byte, 50)
+	var seededRand *rand.Rand = rand.New(
+		rand.NewSource(time.Now().UnixNano()))
+	for i := range name {
+		name[i] = charset[seededRand.Intn(len(charset))]
+	}
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             string(name),
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+
 }
 
 func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
