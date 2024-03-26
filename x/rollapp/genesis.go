@@ -67,16 +67,26 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			k.Logger(ctx).Error("error init genesis state info not found for latest state info index: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
 			continue
 		}
+		// check if there are state infos with higher index
+		_, found = k.GetStateInfo(ctx, elem.RollappId, elem.Index+1)
+		if found {
+			k.Logger(ctx).Error("error init genesis state latest state info index is not the latest: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
+			continue
+		}
 		k.SetLatestStateInfoIndex(ctx, elem)
 
 	}
 	// Set all the latestFinalizedStateIndex
 	for _, elem := range genState.LatestFinalizedStateIndexList {
+
+		//check the rollapp exists
 		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
 		if !found {
 			k.Logger(ctx).Error("error init genesis state info not found for latest finalized state info index: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
 			continue
 		}
+
+		//check there is a latest state info
 		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, elem.RollappId)
 		if !found {
 			k.Logger(ctx).Error("error init genesis latest state info index not found: rollapp:%s", elem.RollappId)
@@ -87,8 +97,25 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			k.Logger(ctx).Error("error init genesis latest state info  not found: rollapp:%s: latest state info index: %s:", elem.RollappId, latestStateInfoIndex.Index)
 			continue
 		}
+
+		//check the latest state info is not previous to the latest finalized state info
 		if latestStateInfo.StateInfoIndex.Index < elem.Index {
 			k.Logger(ctx).Error("error init genesis latest state info index lower than latest finalized state info: rollapp:%s: latest state info index: %s: latest finalized state info index:%s", elem.RollappId, latestStateInfoIndex.Index, elem.Index)
+			continue
+		}
+
+		//check all previous state infos are finalized
+		prevStatesNonFinalized := false
+		for i := uint64(1); i <= elem.Index; i++ {
+			stateInfo, found := k.GetStateInfo(ctx, elem.RollappId, i)
+			if !found {
+				continue
+			}
+			if stateInfo.Status != common.Status_FINALIZED {
+				prevStatesNonFinalized = true
+			}
+		}
+		if prevStatesNonFinalized {
 			continue
 		}
 		k.SetLatestFinalizedStateIndex(ctx, elem)
@@ -97,7 +124,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	// Set all the blockHeightToFinalizationQueue
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
 
-		// set empty finalization queue
+		// check all state infos from the queue and all only those that are found and not finalized
 		queue := types.BlockHeightToFinalizationQueue{
 			CreationHeight:    elem.CreationHeight,
 			FinalizationQueue: []types.StateInfoIndex{},
