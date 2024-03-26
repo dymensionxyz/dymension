@@ -7,6 +7,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+// SubmitFraud takes a fraud proof and checks that it is itself valid, then verifies it against the current state of the chain
+// to check if a fraud actually occurred. If so, the fraudulent actor is punished.
 func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud) (*types.MsgSubmitFraudResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -23,7 +25,7 @@ func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
 	}
-	//FIXME: validate rollapp type/SW version is verifiable
+	// FIXME: validate rollapp type/SW version is verifiable
 
 	fp, err := msg.DecodeFraudProof()
 	if err != nil {
@@ -36,9 +38,9 @@ func (k msgServer) SubmitFraud(goCtx context.Context, msg *types.MsgSubmitFraud)
 
 	k.Logger(ctx).Info("fraud proof verified", "rollappID", msg.RollappID)
 
-	//FIXME: handle slashing
+	// FIXME: handle slashing
 
-	//FIXME: handle deposit burn on wrong FP
+	// FIXME: handle deposit burn on wrong FP
 
 	return &types.MsgSubmitFraudResponse{}, nil
 }

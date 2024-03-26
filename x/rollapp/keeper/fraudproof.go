@@ -35,15 +35,15 @@ func (k *Keeper) RunFraudProof(fp fraudtypes.FraudProof) error {
 	return nil
 }
 
-// validate fraud proof preState Hash against the state update posted on the hub
+// ValidateFraudProof validates fraud proof preState Hash against the state update posted on the hub
 func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
-	//validate the fp struct and witnesses
+	// validate the fp struct and witnesses
 	_, err := fp.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	//validate the fraudproof against the commited state
+	// validate the fraudproof against the commited state
 	blockHeight := fp.BlockHeight + 1
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(blockHeight))
 	if err != nil {
@@ -58,7 +58,7 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 
 	foundIdx := -1
 	for idx, isr := range blockDescriptor.IntermediateStatesRoots {
-		//skip the last ISR
+		// skip the last ISR
 		if idx == len(blockDescriptor.IntermediateStatesRoots)-1 {
 			break
 		}

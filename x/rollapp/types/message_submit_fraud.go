@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	fmt "fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	fraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -47,35 +49,32 @@ func (msg *MsgSubmitFraud) GetSignBytes() []byte {
 func (msg *MsgSubmitFraud) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "%s: %v", msg.Creator, err)
 	}
 
-	// Validate the rollapp ID
 	if len(msg.RollappID) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "rollapp ID cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "rollapp id is empty")
 	}
 
-	// Validate the JSON-encoded fraudproof data
 	_, err = msg.DecodeFraudProof()
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "failed decoding fraud proof: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "decode fraud proof: %v", err)
 	}
 	return nil
 }
 
 func (msg *MsgSubmitFraud) DecodeFraudProof() (fraudtypes.FraudProof, error) {
-	// Decode the JSON-encoded data into your struct
 	fp := abcitypes.FraudProof{}
 	fraud := fraudtypes.FraudProof{}
 
 	err := json.Unmarshal([]byte(msg.FraudProof), &fp)
 	if err != nil {
-		return fraud, fmt.Errorf("failed decoding JSON: %s", err)
+		return fraud, fmt.Errorf("unrmashal json: %w", err)
 	}
 
 	err = fraud.FromABCI(fp)
 	if err != nil {
-		return fraud, fmt.Errorf("failed decoding JSON: %s", err)
+		return fraud, fmt.Errorf("from abci: %w", err)
 	}
 
 	return fraud, nil
