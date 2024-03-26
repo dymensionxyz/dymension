@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	fmt "fmt"
-	"time"
 
 	"github.com/tendermint/tendermint/libs/rand"
 
@@ -109,16 +108,30 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.EqualError(err, types.ErrRollappExists.Error())
 }
 
+func (suite *RollappTestSuite) TestCreateRollappWrongEIP() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp_ea2413-1",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+}
+
 func (suite *RollappTestSuite) TestCreateRollappTooLongId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	const charset = "abcdefghijklmnopqrstuvwxyz"
 	name := make([]byte, 50)
-	var seededRand *rand.Rand = rand.New(
-		rand.NewSource(time.Now().UnixNano()))
+
 	for i := range name {
-		name[i] = charset[seededRand.Intn(len(charset))]
+		name[i] = charset[rand.Intn(len(charset))]
 	}
 
 	// rollapp is the rollapp to create
@@ -130,7 +143,6 @@ func (suite *RollappTestSuite) TestCreateRollappTooLongId() {
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
-
 }
 
 func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
