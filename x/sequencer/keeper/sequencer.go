@@ -56,9 +56,10 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		)
 		return
 	}
+
 	// take the next bonded sequencer to be the proposer. sorted by bond
-	sort.Slice(seqs, func(i, j int) bool {
-		return seqs[i].Tokens.IsAllGTE(seqs[j].Tokens)
+	sort.SliceStable(seqs, func(i, j int) bool {
+		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
 	})
 
 	seq := seqs[0]
