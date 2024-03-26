@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,8 +26,9 @@ func NewVirtualFrontierBankContractRegistrationHook(evmKeeper evmkeeper.Keeper) 
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(ctx sdk.Context, newDenomMetadata banktypes.Metadata) error {
 	if strings.HasPrefix(strings.ToLower(newDenomMetadata.Base), "ibc/") { // only deploy for IBC denom.
 		// Deploy the virtual frontier bank contract for the new IBC denom.
-		// Error, if any, no state transition will be made.
-		_ = v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base)
+		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			return v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base)
+		})
 	}
 
 	return nil
