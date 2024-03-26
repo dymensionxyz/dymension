@@ -12,6 +12,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
@@ -29,6 +31,7 @@ func networkWithRollappObjects(t *testing.T, n int) (*network.Network, []types.R
 
 	for i := 0; i < n; i++ {
 		rollapp := types.Rollapp{
+			Creator:   sample.AccAddress(),
 			RollappId: strconv.Itoa(i),
 		}
 		nullify.Fill(&rollapp)

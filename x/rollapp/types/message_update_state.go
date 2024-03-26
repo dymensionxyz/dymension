@@ -48,7 +48,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	// an update cann't be with no BDs
+	// an update can't be with no BDs
 	if msg.NumBlocks == uint64(0) {
 		return sdkerrors.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
 	}

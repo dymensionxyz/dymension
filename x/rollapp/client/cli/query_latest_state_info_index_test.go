@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"testing"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -27,10 +29,39 @@ func networkWithLatestStateIndexObjects(t *testing.T, n int) (*network.Network, 
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
-		latestStateIndex := types.StateInfoIndex{
+		rollapp := types.Rollapp{
+			Creator:   sample.AccAddress(),
 			RollappId: strconv.Itoa(i),
 		}
-		nullify.Fill(&latestStateIndex)
+		state.RollappList = append(state.RollappList, rollapp)
+	}
+
+	blockDescriptors := types.BlockDescriptors{BD: make([]types.BlockDescriptor, 1)}
+	blockDescriptors.BD[0] = types.BlockDescriptor{
+		Height:                 1,
+		StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+		IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+	}
+
+	for i := 0; i < n; i++ {
+		stateInfo := types.StateInfo{
+			StateInfoIndex: types.StateInfoIndex{
+				RollappId: strconv.Itoa(i),
+				Index:     uint64(i + 1),
+			},
+			Sequencer:   sample.AccAddress(),
+			NumBlocks:   1,
+			StartHeight: 1,
+			BDs:         blockDescriptors,
+		}
+		state.StateInfoList = append(state.StateInfoList, stateInfo)
+	}
+
+	for i := 0; i < n; i++ {
+		latestStateIndex := types.StateInfoIndex{
+			RollappId: strconv.Itoa(i),
+			Index:     1,
+		}
 		state.LatestStateInfoIndexList = append(state.LatestStateInfoIndexList, latestStateIndex)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)

@@ -99,7 +99,7 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 
 			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
-			// iterate over all the unfinalzied states and make sure they are in the queue
+			// iterate over all the non-finalized states and make sure they are in the queue
 			for i := firstUnfinalizedStateIdx; i <= latestStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
 				if !found {

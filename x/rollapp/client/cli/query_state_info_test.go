@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"testing"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -30,14 +32,32 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
+	for _, id := range RollappIds {
+		rollapp := types.Rollapp{
+			Creator:   sample.AccAddress(),
+			RollappId: id,
+		}
+		state.RollappList = append(state.RollappList, rollapp)
+	}
+
+	blockDescriptors := types.BlockDescriptors{BD: make([]types.BlockDescriptor, 1)}
+	blockDescriptors.BD[0] = types.BlockDescriptor{
+		Height:                 1,
+		StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+		IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+	}
+
 	for i := 1; i <= n; i++ {
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: RollappIds[i%2],
 				Index:     uint64(i),
 			},
+			Sequencer:   sample.AccAddress(),
+			NumBlocks:   1,
+			StartHeight: 1,
+			BDs:         blockDescriptors,
 		}
-		nullify.Fill(&stateInfo)
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
