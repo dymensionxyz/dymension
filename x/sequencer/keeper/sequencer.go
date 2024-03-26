@@ -42,10 +42,11 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 	}
 }
 
-// rotate proposer. we set the first bonded sequencer to be the proposer
+// RotateProposer sets the proposer for a rollapp to be the proposer with the greatest bond
+// This function will not clear the current proposer (assumes no proposer is set)
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
-	seqsByRollapp := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	if len(seqsByRollapp) == 0 {
+	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
+	if len(seqs) == 0 {
 		k.Logger(ctx).Info("no bonded sequencer found for rollapp", "rollappId", rollappId)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
@@ -56,11 +57,11 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		return
 	}
 	// take the next bonded sequencer to be the proposer. sorted by bond
-	sort.Slice(seqsByRollapp, func(i, j int) bool {
-		return seqsByRollapp[i].Tokens.IsAllGTE(seqsByRollapp[j].Tokens)
+	sort.Slice(seqs, func(i, j int) bool {
+		return seqs[i].Tokens.IsAllGTE(seqs[j].Tokens)
 	})
 
-	seq := seqsByRollapp[0]
+	seq := seqs[0]
 	seq.Proposer = true
 	k.UpdateSequencer(ctx, seq, types.Bonded)
 

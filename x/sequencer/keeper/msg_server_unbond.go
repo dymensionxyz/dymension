@@ -37,7 +37,7 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 		)
 	}
 	oldStatus := seq.Status
-	wasPropser := seq.Proposer
+	wasProposer := seq.Proposer
 
 	// set the status to unbonding
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
@@ -58,7 +58,7 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 		),
 	)
 
-	if wasPropser {
+	if wasProposer {
 		k.RotateProposer(ctx, seq.RollappId)
 	}
 
