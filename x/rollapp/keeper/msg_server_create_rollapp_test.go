@@ -127,17 +127,12 @@ func (suite *RollappTestSuite) TestCreateRollappTooLongId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
-	const charset = "abcdefghijklmnopqrstuvwxyz"
-	name := make([]byte, 50)
-
-	for i := range name {
-		name[i] = charset[rand.Intn(len(charset))]
-	}
+	rollappName := "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
 
 	// rollapp is the rollapp to create
 	rollapp := types.MsgCreateRollapp{
 		Creator:               alice,
-		RollappId:             string(name),
+		RollappId:             rollappName,
 		MaxSequencers:         1,
 		PermissionedAddresses: []string{},
 	}
