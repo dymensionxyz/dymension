@@ -3,6 +3,10 @@ package delayedack
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -11,7 +15,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	keeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -20,85 +24,16 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
-	app    porttypes.IBCModule
+	porttypes.IBCModule
 	keeper keeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		app:    app,
-		keeper: keeper,
+		IBCModule: app,
+		keeper:    keeper,
 	}
-}
-
-// OnChanOpenInit implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenInit(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID string,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	version string,
-) (string, error) {
-	return im.app.OnChanOpenInit(ctx, order, connectionHops, portID, channelID,
-		chanCap, counterparty, version)
-}
-
-// OnChanOpenTry implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenTry(
-	ctx sdk.Context,
-	order channeltypes.Order,
-	connectionHops []string,
-	portID,
-	channelID string,
-	chanCap *capabilitytypes.Capability,
-	counterparty channeltypes.Counterparty,
-	counterpartyVersion string,
-) (string, error) {
-	return im.app.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, chanCap, counterparty, counterpartyVersion)
-}
-
-// OnChanOpenAck implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenAck(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-	counterpartyChannelID string,
-	counterpartyVersion string,
-) error {
-	// call underlying app's OnChanOpenAck callback with the counterparty app version.
-	return im.app.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-}
-
-// OnChanOpenConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanOpenConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	// call underlying app's OnChanOpenConfirm callback.
-	return im.app.OnChanOpenConfirm(ctx, portID, channelID)
-}
-
-// OnChanCloseInit implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanCloseInit(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return im.app.OnChanCloseInit(ctx, portID, channelID)
-}
-
-// OnChanCloseConfirm implements the IBCMiddleware interface
-func (im IBCMiddleware) OnChanCloseConfirm(
-	ctx sdk.Context,
-	portID,
-	channelID string,
-) error {
-	return im.app.OnChanCloseConfirm(ctx, portID, channelID)
 }
 
 // OnRecvPacket handles the receipt of a packet and puts it into a pending queue
@@ -109,12 +44,12 @@ func (im IBCMiddleware) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	if !im.keeper.IsRollappsEnabled(ctx) {
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -122,7 +57,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	if rollappID == "" {
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
@@ -144,8 +79,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	if finalized {
-		logger.Debug("Skipping IBC transfer OnRecvPacket as the packet proof height is already finalized")
-		return im.app.OnRecvPacket(ctx, packet, relayer)
+		logger.Debug("Skipping eIBC transfer OnRecvPacket as the packet proof height is already finalized")
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// Save the packet data to the store for later processing
@@ -177,11 +112,17 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsRollappsEnabled(ctx) {
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, _, err := im.ExtractRollappID(ctx, packet)
+	var ack channeltypes.Acknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		logger.Error("Unmarshal acknowledgement", "err", err)
+		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -189,7 +130,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	if rollappID == "" {
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
@@ -210,14 +151,14 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 
 	if finalized {
-		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
-		return im.app.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+		logger.Debug("Skipping eIBC transfer OnAcknowledgementPacket as the packet proof height is already finalized")
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	// Run the underlying app's OnAcknowledgementPacket callback
 	// with cache context to avoid state changes and report the acknowledgement result.
 	// Only save the packet if the underlying app's callback succeeds.
 	cacheCtx, _ := ctx.CacheContext()
-	err = im.app.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
+	err = im.IBCModule.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
 	if err != nil {
 		return err
 	}
@@ -230,10 +171,20 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Relayer:         relayer,
 		ProofHeight:     proofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
+		// TODO: do I need to set the error field here?
 	}
 	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
 		return err
+	}
+
+	switch ack.Response.(type) {
+	// Only if the acknowledgement is an error, we want to create an order
+	case *channeltypes.Acknowledgement_Error:
+		err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -246,11 +197,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	if !im.keeper.IsRollappsEnabled(ctx) {
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappID(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -258,7 +209,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	if rollappID == "" {
 		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain")
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
 	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
@@ -280,14 +231,14 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	if finalized {
 		logger.Debug("Skipping IBC transfer OnTimeoutPacket as the packet proof height is already finalized")
-		return im.app.OnTimeoutPacket(ctx, packet, relayer)
+		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
 	// Run the underlying app's OnTimeoutPacket callback
 	// with cache context to avoid state changes and report the timeout result.
 	// Only save the packet if the underlying app's callback succeeds.
 	cacheCtx, _ := ctx.CacheContext()
-	err = im.app.OnTimeoutPacket(cacheCtx, packet, relayer)
+	err = im.IBCModule.OnTimeoutPacket(cacheCtx, packet, relayer)
 	if err != nil {
 		return err
 	}
@@ -343,8 +294,8 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 	return im.keeper.GetAppVersion(ctx, portID, channelID)
 }
 
-// ExtractRollappID extracts the rollapp ID from the packet
-func (im IBCMiddleware) ExtractRollappID(ctx sdk.Context, packet channeltypes.Packet) (string, *transfertypes.FungibleTokenPacketData, error) {
+// ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
+func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {

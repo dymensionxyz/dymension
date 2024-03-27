@@ -11,6 +11,8 @@ import (
 )
 
 // NewDemandOrder creates a new demand order.
+// Price is the cost to a market maker to buy the option, (recipient receives straight away).
+// Fee is what the market maker gets in return.
 func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee string, denom string, recipient string) (*DemandOrder, error) {
 	priceInt, ok := sdk.NewIntFromString(price)
 	if !ok {

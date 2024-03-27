@@ -1,6 +1,6 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.22
+go 1.22.0
 
 require (
 	cosmossdk.io/errors v1.0.1
@@ -31,10 +31,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require (
-	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
-	github.com/nxadm/tail v1.4.8 // indirect
-)
+require github.com/nxadm/tail v1.4.8 // indirect
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
@@ -81,7 +78,6 @@ require (
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
-	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.4 // indirect

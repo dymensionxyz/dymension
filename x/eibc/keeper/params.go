@@ -24,3 +24,8 @@ func (k Keeper) TimeoutFee(ctx sdk.Context) (res sdk.Dec) {
 	k.paramstore.Get(ctx, types.KeyTimeoutFee, &res)
 	return
 }
+
+func (k Keeper) ErrAckFee(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyErrAckFee, &res)
+	return
+}

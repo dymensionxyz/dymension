@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -111,7 +113,7 @@ func (k Keeper) GetRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 		return 0, err
 	}
 
-	return (res.StateInfo.StartHeight + res.StateInfo.NumBlocks - 1), nil
+	return res.StateInfo.StartHeight + res.StateInfo.NumBlocks - 1, nil
 }
 
 // GetClientState retrieves the client state for a given packet.
@@ -139,6 +141,7 @@ func (k Keeper) BlockedAddr(addr string) bool {
 /* -------------------------------------------------------------------------- */
 /*                               Hooks handling                               */
 /* -------------------------------------------------------------------------- */
+
 func (k *Keeper) SetHooks(hooks types.MultiDelayedAckHooks) {
 	if k.hooks != nil {
 		panic("DelayedAckHooks already set")
@@ -172,7 +175,7 @@ func (k *Keeper) WriteAcknowledgement(ctx sdk.Context, chanCap *capabilitytypes.
 	return k.ics4Wrapper.WriteAcknowledgement(ctx, chanCap, packet, acknowledgement)
 }
 
-// WriteAcknowledgement wraps IBC ICS4Wrapper GetAppVersion function.
+// GetAppVersion wraps IBC ICS4Wrapper GetAppVersion function.
 func (k *Keeper) GetAppVersion(
 	ctx sdk.Context,
 	portID,
@@ -186,24 +189,24 @@ func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string
 	return k.channelKeeper.LookupModuleByChannel(ctx, portID, channelID)
 }
 
-// VallidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
+// ValidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
 func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID string) error {
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollapp
 	// As the assumption the sequencer is honest we don't check the packet proof height.
 	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollapp)
 	if !found {
-		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollapp: %s", rollapp)
+		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollapp: %s", rollapp)
 	}
 	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp, latestStateIndex.Index)
 	if !found {
-		return sdkerrors.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollapp: %s with index: %d", rollapp, latestStateIndex.Index)
+		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollapp: %s with index: %d", rollapp, latestStateIndex.Index)
 	}
 
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
-	// If the sequencer is changed, then the validation will faill till the new sequencer sends a new state info update.
+	// If the sequencer is changed, then the validation will fail till the new sequencer sends a new state info update.
 	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
 	if err != nil {
 		k.Logger(ctx).Error("error consensus state", err)
