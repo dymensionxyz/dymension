@@ -20,13 +20,14 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		return
 	}
 
+	//In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
 	), b)
 }
 
-// GetRollappByEIP155 returns a rollapp from its index
+// GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
 func (k Keeper) GetRollappByEIP155(
 	ctx sdk.Context,
 	eip155 uint64,
@@ -44,7 +45,7 @@ func (k Keeper) GetRollappByEIP155(
 	return val, true
 }
 
-// GetRollapp returns a rollapp from its index
+// GetRollapp returns a rollapp from its chain name
 func (k Keeper) GetRollapp(
 	ctx sdk.Context,
 	rollappId string,
@@ -62,7 +63,7 @@ func (k Keeper) GetRollapp(
 	return val, true
 }
 
-// RemoveRollapp removes a rollapp from the store
+// RemoveRollapp removes a rollapp from the store using rollapp name
 func (k Keeper) RemoveRollapp(
 	ctx sdk.Context,
 	rollappId string,
