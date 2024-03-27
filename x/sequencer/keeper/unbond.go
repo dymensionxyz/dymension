@@ -19,7 +19,7 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
-			k.Logger(ctx).Error("failed to unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
+			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
 			continue
 		}
 	}
