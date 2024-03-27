@@ -135,7 +135,20 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, fmt.Errorf("fee cannot be larger than amount")
 	}
 
-	// TODO(danwt): explain this calculation
+	/*
+		   In case of timeout/errack:
+		       fee = fee_multiplier*transfer_amount
+		       price = transfer_amount-fee
+		       order is created with (price,fee)
+		       the order creator immediately receives price on fulfillment from fulfiller
+		       when the ack/timeout finalizes, the fulfiller receives the transfer_amount
+
+		       therefore:
+		           fulfiller balance += (transfer_amount - (transfer_amount-fee))
+					   equivalent to += fee_multiplier*transfer_amount
+		           demander balance += (transfer_amount - fee)
+		              equivalent to += (1-fee_multiplier)*transfer_amount
+	*/
 	demandOrderPrice := amountInt.Sub(feeInt).String()
 
 	var demandOrderDenom string

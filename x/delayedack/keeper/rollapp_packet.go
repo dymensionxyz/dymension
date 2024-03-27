@@ -68,11 +68,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	}
 	// Set the recipient and sender based on the rollapp packet type
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
-	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
 		recipient = address
-	} else if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-		sender = address
-	} else if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
+	case commontypes.RollappPacket_ON_TIMEOUT:
+		fallthrough
+	case commontypes.RollappPacket_ON_ACK:
 		sender = address
 	}
 	newPacketData := transfertypes.NewFungibleTokenPacketData(
