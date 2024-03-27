@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // FinalizeQueue is called every end block to finalize states when their dispute period over.
@@ -18,39 +21,50 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
 	// Iterate over all the pending finalization queue
-	var err error
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 		// finalize pending states
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
-			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found || stateInfo.Status != common.Status_PENDING {
-				// Invariant breaking
-				return errorsmod.Wrapf(types.ErrInvariantBroken, "find state for finalization: rollappId %s, index %d, found %t, status %s",
-					stateInfoIndex.RollappId, stateInfoIndex.Index, found, stateInfo.Status)
-			}
-			stateInfo.Finalize()
-			// update the status of the stateInfo
-			k.SetStateInfo(ctx, stateInfo)
-			// uppdate the LatestStateInfoIndex of the rollapp
-			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-			// call the after-update-state hook
-			keeperHooks := k.GetHooks()
-			err = keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
-			if err != nil {
-				// Failed to call finalization dependent event like ibc packet finalization, invariant breaking. can't proceed
-				return errorsmod.Wrapf(types.ErrInvariantBroken, "calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
-					stateInfoIndex.RollappId, stateInfo, err.Error())
-			}
-			// emit event
-			// TODO: Create an update state keeper method and move this to be called from there
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStateUpdate,
-					stateInfo.GetEvents()...,
-				),
-			)
+			err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				err := k.FinalizeStateInfo(ctx, stateInfoIndex)
+				if errors.Is(err, types.ErrInvariantBroken) {
+					// TODO: very bad
+				}
+				return nil // TODO:
+			})
+			_ = err // TODO:
 		}
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
 	}
+	return nil
+}
+
+func (k Keeper) FinalizeStateInfo(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+	if !found || stateInfo.Status != common.Status_PENDING {
+		// logic error (invariant broken)
+		return errorsmod.Wrapf(types.ErrInvariantBroken, "find state for finalization: rollappId %s, index %d, found %t, status %s",
+			stateInfoIndex.RollappId, stateInfoIndex.Index, found, stateInfo.Status)
+	}
+	stateInfo.Finalize()
+	// update the status of the stateInfo
+	k.SetStateInfo(ctx, stateInfo)
+	// uppdate the LatestStateInfoIndex of the rollapp
+	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+	// call the after-update-state hook
+	keeperHooks := k.GetHooks()
+	err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+	if err != nil {
+		// Failed to call finalization dependent event like ibc packet finalization, invariant breaking
+		return errorsmod.Wrapf(types.ErrInvariantBroken, "calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
+			stateInfoIndex.RollappId, stateInfo, err.Error())
+	}
+	// emit event
+	// TODO: Create an update state keeper method and move this to be called from there
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeStateUpdate,
+			stateInfo.GetEvents()...,
+		),
+	)
 	return nil
 }
 
