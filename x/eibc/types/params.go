@@ -22,7 +22,7 @@ var (
 const (
 	defaultEpochIdentifier = "hour"
 	defaultTimeoutFee      = "0.0015"
-	defaultErrAckFee       = "0.0015" // TODO(danwt): check
+	defaultErrAckFee       = "0.0015"
 )
 
 // ParamKeyTable the param key table for launch module

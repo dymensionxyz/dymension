@@ -141,13 +141,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	var demandOrderDenom string
 	var demandOrderRecipient string
 	// Get the denom for the demand order
-	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_TIMEOUT:
+		fallthrough
+	case commontypes.RollappPacket_ON_ACK:
 		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and to who we tried to send it to
-	} else if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
-		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
-		demandOrderRecipient = fungibleTokenPacketData.Sender // and to who we tried to send it to
-	} else if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+	case commontypes.RollappPacket_ON_RECV:
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // we're the one getting it, just faster
 	}
