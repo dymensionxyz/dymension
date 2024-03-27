@@ -532,7 +532,6 @@ func New(
 		appCodec, keys[gammtypes.StoreKey],
 		app.GetSubspace(gammtypes.ModuleName),
 		app.AccountKeeper,
-		// TODO: Add a mintcoins restriction
 		app.BankKeeper, app.DistrKeeper)
 	app.GAMMKeeper = &gammKeeper
 
