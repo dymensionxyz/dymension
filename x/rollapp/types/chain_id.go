@@ -32,7 +32,7 @@ func NewChainID(id string) (ChainID, error) {
 	chainID := strings.TrimSpace(id)
 
 	if chainID == "" {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "chain-id cannot be empty")
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty")
 	}
 
 	if len(chainID) > 48 {
