@@ -11,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// denommetadata Keeper
+// Keeper of the denommetadata store
 type Keeper struct {
 	bankKeeper types.BankKeeper
 	hooks      types.MultiDenomMetadataHooks
@@ -25,6 +25,7 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 	}
 }
 
+// CreateDenomMetadata creates a new denommetadata
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
 	if found {
@@ -38,6 +39,7 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	return nil
 }
 
+// UpdateDenomMetadata returns the denommetadata of the specified denom
 func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
 	if !found {
@@ -59,7 +61,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 /*                                    Hooks                                   */
 /* -------------------------------------------------------------------------- */
 
-// Set the denommetadata hooks
+// SetHooks sets the hooks for the denommetadata keeper
 func (k *Keeper) SetHooks(sh types.MultiDenomMetadataHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
@@ -67,7 +69,7 @@ func (k *Keeper) SetHooks(sh types.MultiDenomMetadataHooks) {
 	k.hooks = sh
 }
 
-// Get the denommetadata hooks
+// GetHooks returns the hooks for the denommetadata keeper
 func (k *Keeper) GetHooks() types.MultiDenomMetadataHooks {
 	return k.hooks
 }

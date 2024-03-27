@@ -86,16 +86,39 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 				Description: "The native staking token of RollApp XYZ",
 				DenomUnits: []*rollapptypes.DenomUnit{
 					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
-					{Denom: "mrax", Exponent: uint32(3), Aliases: []string{"millirax"}},
-					{Denom: "urax", Exponent: uint32(6), Aliases: []string{"microrax"}},
+					{Denom: "rax", Exponent: uint32(10), Aliases: []string{"RAX"}},
 				},
 				Base:    "arax",
-				Display: "arax",
+				Display: "rax",
 			},
 		},
 		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	suite.Require().NoError(err) // message committed
+}
+
+func (suite *IBCTestUtilSuite) GenesisEvent(chainID, channelID string) {
+	// add sender to deployer whitelist
+	app := ConvertToApp(suite.hubChain)
+	params := app.RollappKeeper.GetParams(suite.hubChain.GetContext())
+	params.DeployerWhitelist = []rollapptypes.DeployerParams{{Address: suite.hubChain.SenderAccount.GetAddress().String()}}
+	app.RollappKeeper.SetParams(suite.hubChain.GetContext(), params)
+
+	// add genesis state to rollapp
+	rollapp, found := app.RollappKeeper.GetRollapp(suite.hubChain.GetContext(), chainID)
+	suite.Require().True(found)
+	rollapp.GenesisState = &rollapptypes.RollappGenesisState{}
+	app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), rollapp)
+
+	msgGenesisEvent := rollapptypes.NewMsgRollappGenesisEvent(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		channelID,
+		suite.rollappChain.ChainID,
+	)
+	suite.hubChain.CurrentHeader.ProposerAddress = suite.hubChain.NextVals.Proposer.Address
+
+	_, err := suite.hubChain.SendMsgs(msgGenesisEvent)
 	suite.Require().NoError(err) // message committed
 }
 
