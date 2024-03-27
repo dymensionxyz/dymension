@@ -166,8 +166,8 @@ func (v *Verifier) ExecuteProofOnMutableChain(fp fraudtypes.FraudProof) error {
 
 	// Execute fraudulent state transition
 	if fp.FraudulentBeginBlock != nil {
-		panic("fraudulent begin block not supported")
-		// v.app.BeginBlock(*fp.FraudulentBeginBlock)
+		// panic("fraudulent begin block not supported") TODO: remove
+		v.mutableBaseApp.BeginBlock(*fp.FraudulentBeginBlock)
 		// fmt.Println("appHash - beginblock", hex.EncodeToString(v.app.GetAppHashInternal()))
 	} else {
 		// Need to add some dummy begin block here since it's a new app
@@ -184,17 +184,17 @@ func (v *Verifier) ExecuteProofOnMutableChain(fp fraudtypes.FraudProof) error {
 			if !resp.IsOK() {
 				panic(resp.Log)
 			}
-			fmt.Println("appHash - posttx", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal()))
+			fmt.Println("appHash - posttx", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal())) // TODO: remove
 			setRollappAddressPrefixes("dym")
 		} else {
-			panic("fraudulent end block not supported")
-			// v.app.EndBlock(*fp.FraudulentEndBlock)
-			// fmt.Println("appHash - endblock", hex.EncodeToString(v.app.GetAppHashInternal()))
+			// panic("fraudulent end block not supported") TODO: remove
+			v.mutableBaseApp.EndBlock(*fp.FraudulentEndBlock)
+			// fmt.Println("appHash - endblock", hex.EncodeToString(v.app.GetAppHashInternal())) TODO: remove
 		}
 	}
 
 	appHash = v.mutableBaseApp.GetAppHashInternal()
-	fmt.Println("appHash - final", hex.EncodeToString(appHash))
+	fmt.Println("appHash - final", hex.EncodeToString(appHash)) // TODO: remove
 	if !bytes.Equal(appHash, fp.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash
 	}
