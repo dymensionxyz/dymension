@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"fmt"
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// Called every block to finalize states that their dispute period over.
+// FinalizeQueue is called every end block to finalize states when their dispute period over.
 func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
 		return nil
@@ -25,7 +25,7 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 			if !found || stateInfo.Status != common.Status_PENDING {
 				// Invariant breaking
-				return fmt.Errorf("failed to find state for finalization: rollappId %s, index %d, found %t, status %s",
+				return errorsmod.Wrapf(types.ErrInvariantBroken, "find state for finalization: rollappId %s, index %d, found %t, status %s",
 					stateInfoIndex.RollappId, stateInfoIndex.Index, found, stateInfo.Status)
 			}
 			stateInfo.Finalize()
@@ -38,7 +38,7 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 			err = keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 			if err != nil {
 				// Failed to call finalization dependent event like ibc packet finalization, invariant breaking. can't proceed
-				return fmt.Errorf("error calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
+				return errorsmod.Wrapf(types.ErrInvariantBroken, "calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
 					stateInfoIndex.RollappId, stateInfo, err.Error())
 			}
 			// emit event
@@ -101,11 +101,10 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.CreationHeight <= height {
-			list = append(list, val)
-		} else {
+		if height < val.CreationHeight {
 			break
 		}
+		list = append(list, val)
 	}
 
 	return
