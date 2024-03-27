@@ -20,7 +20,7 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		return
 	}
 
-	//In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
+	// In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),

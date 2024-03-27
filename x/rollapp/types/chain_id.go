@@ -71,7 +71,6 @@ func (c *ChainID) IsEIP155() bool {
 }
 
 func (c *ChainID) GetChainID() string {
-
 	return c.chainID
 }
 
