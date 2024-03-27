@@ -55,20 +55,16 @@ func CmdCreateSequencer() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(1)
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			fmt.Println(2)
 
 			var pk cryptotypes.PubKey
-			fmt.Println(argPubkey)
 
 			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(argPubkey), &pk); err != nil {
 				return err
 			}
-			fmt.Println(pk)
 
 			bondCoin, err := sdk.ParseCoinNormalized(bond)
 			if err != nil {
