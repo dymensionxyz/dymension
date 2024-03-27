@@ -122,14 +122,6 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	isErrAck := false
-
-	switch ack.Response.(type) {
-	case *channeltypes.Acknowledgement_Error:
-		isErrAck = true
-		// TODO(danwt): emit event? that's what the ibc transfer module does
-	}
-
 	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
@@ -186,8 +178,9 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	if isErrAck {
-		// Only if the acknowledgement is an error, we want to create an order
+	switch ack.Response.(type) {
+	// Only if the acknowledgement is an error, we want to create an order
+	case *channeltypes.Acknowledgement_Error:
 		err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 		if err != nil {
 			return err
