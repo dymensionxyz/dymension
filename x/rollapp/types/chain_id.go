@@ -36,7 +36,7 @@ func NewChainID(id string) (ChainID, error) {
 	}
 
 	if len(chainID) > 48 {
-		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "rollapp-id '%s' cannot exceed 48 chars", chainID)
+				return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
 	}
 
 	eip155, err := getEIP155ID(chainID)
