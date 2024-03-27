@@ -154,6 +154,7 @@ func (k Keeper) ListAllDemandOrders(
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
+			// TODO(danwt)
 			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
 			continue
 		}
@@ -188,6 +189,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
+			// TODO(danwt)
 			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
 			continue
 		}
