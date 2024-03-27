@@ -170,8 +170,8 @@ func (suite *RollappTestSuite) TestOverwriteEIP155KeyWithExtraSpace() {
 	id, err := types.NewChainID(rollappId)
 
 	suite.Require().NoError(err)
-	suite.Require().NotNil(id.EIP155ID)
-	eip155key := id.EIP155ID.Uint64()
+	suite.Require().NotEqual(0, id.GetEIP155ID())
+	eip155key := id.GetEIP155ID()
 	// eip155 key registers to correct roll app
 	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 	suite.Require().True(found)
@@ -207,8 +207,8 @@ func (suite *RollappTestSuite) TestOverwriteEIP155SameKey() {
 	id, err := types.NewChainID(rollappId)
 
 	suite.Require().NoError(err)
-	suite.Require().NotNil(id.EIP155ID)
-	eip155key := id.EIP155ID.Uint64()
+	suite.Require().NotEqual(0, id.GetEIP155ID())
+	eip155key := id.GetEIP155ID()
 	// eip155 key registers to correct roll app
 	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 	suite.Require().True(found)

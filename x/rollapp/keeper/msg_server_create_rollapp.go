@@ -24,13 +24,13 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, rollappId.ChainID); isFound {
+	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return nil, types.ErrRollappExists
 	}
 
 	if rollappId.IsEIP155() {
 		// check to see if the RollappId has been registered before with same key
-		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.EIP155ID.Uint64()); isFound {
+		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
 			return nil, types.ErrRollappExists
 		}
 	}

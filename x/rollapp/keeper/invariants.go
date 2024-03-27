@@ -67,7 +67,7 @@ func RollappByEIP155KeyInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 
-			_, found := k.GetRollappByEIP155(ctx, rollappID.EIP155ID.Uint64())
+			_, found := k.GetRollappByEIP155(ctx, rollappID.GetEIP155ID())
 			if !found {
 				msg += fmt.Sprintf("rollapp (%s) have no eip155 key\n", rollapp.RollappId)
 				broken = true

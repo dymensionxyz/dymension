@@ -22,7 +22,7 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
-		rollappID.EIP155ID.Uint64(),
+		rollappID.GetEIP155ID(),
 	), b)
 }
 

@@ -24,8 +24,8 @@ var (
 )
 
 type ChainID struct {
-	ChainID  string
-	EIP155ID *big.Int
+	chainID  string
+	eip155ID *big.Int
 }
 
 func NewChainID(id string) (ChainID, error) {
@@ -36,7 +36,7 @@ func NewChainID(id string) (ChainID, error) {
 	}
 
 	if len(chainID) > 48 {
-				return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
 	}
 
 	eip155, err := getEIP155ID(chainID)
@@ -44,8 +44,8 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, err
 	}
 	return ChainID{
-		ChainID:  chainID,
-		EIP155ID: eip155,
+		chainID:  chainID,
+		eip155ID: eip155,
 	}, nil
 }
 
@@ -67,5 +67,17 @@ func getEIP155ID(chainID string) (*big.Int, error) {
 }
 
 func (c *ChainID) IsEIP155() bool {
-	return c.EIP155ID != nil
+	return c.eip155ID != nil
+}
+
+func (c *ChainID) GetChainID() string {
+
+	return c.chainID
+}
+
+func (c *ChainID) GetEIP155ID() uint64 {
+	if c.eip155ID != nil {
+		return c.eip155ID.Uint64()
+	}
+	return 0
 }
