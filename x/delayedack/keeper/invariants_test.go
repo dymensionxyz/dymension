@@ -12,8 +12,8 @@ import (
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
-	initialheight := int64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight)
+	initialHeight := int64(10)
+	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
 
 	numOfRollapps := 10
 	numOfStates := 10
@@ -44,12 +44,12 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 			suite.Require().NoError(err)
 			for k := uint64(1); k <= numOfBlocks; k++ {
 				// calculating a different proof height incrementing a block height for each new packet
-				proofheight := rollappBlocks[rollapp] + k
+				proofHeight := rollappBlocks[rollapp] + k
 				rollappPacket := &commontypes.RollappPacket{
 					RollappId:   rollapp,
 					Packet:      getNewTestPacket(sequence),
 					Status:      commontypes.Status_PENDING,
-					ProofHeight: proofheight,
+					ProofHeight: proofHeight,
 				}
 				err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 				suite.Require().NoError(err)
@@ -74,8 +74,8 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// check invariant
-	msg, bool := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
-	suite.Require().False(bool, msg)
+	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+	suite.Require().False(fails, msg)
 }
 
 func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
