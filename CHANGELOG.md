@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (evm) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
+- (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) create eibc order on err ack from rollapp
 
 ### Bug Fixes
 

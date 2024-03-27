@@ -16,4 +16,9 @@ message Params {
       (gogoproto.moretags) = "yaml:\"timeout_fee\"",
       (gogoproto.nullable) = false
       ];
+  string errack_fee = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"errack_fee\"",
+    (gogoproto.nullable) = false
+  ];
 }

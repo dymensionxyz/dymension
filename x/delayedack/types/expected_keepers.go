@@ -43,6 +43,7 @@ type SequencerKeeper interface {
 type EIBCKeeper interface {
 	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder) error
 	TimeoutFee(ctx sdk.Context) sdk.Dec
+	ErrAckFee(ctx sdk.Context) sdk.Dec
 }
 
 type BankKeeper interface {
