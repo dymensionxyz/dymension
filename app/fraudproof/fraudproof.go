@@ -82,23 +82,22 @@ func (v *Verifier) initCleanInstance() {
 }
 
 func (v *Verifier) Run(fp fraudtypes.FraudProof) error {
-	err := v.Init(&fp)
+	err := v.InitMutableChain(fp)
 	if err != nil {
 		return err
 	}
-	err = v.Verify(&fp)
+	err = v.ExecuteProofOnMutableChain(fp)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// Init initializes the Verifier from a fraud proof
+// InitMutableChain initializes the Verifier from a fraud proof
 // It creates a new mutable app and inits the chain with all required store data
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L266-L298
-func (v *Verifier) Init(fp *fraudtypes.FraudProof) error {
+func (v *Verifier) InitMutableChain(fp fraudtypes.FraudProof) error {
 	if v.baseApp == nil {
 		return fmt.Errorf("base app nil")
 	}
@@ -141,7 +140,7 @@ func (v *Verifier) Init(fp *fraudtypes.FraudProof) error {
 	return nil
 }
 
-// Verify checks the validity of a given fraud proof.
+// ExecuteProofOnMutableChain checks the validity of a given fraud proof.
 //
 // The function takes a FraudProof object as an argument and returns an error if the fraud proof is invalid.
 //
@@ -155,7 +154,7 @@ func (v *Verifier) Init(fp *fraudtypes.FraudProof) error {
 // Note: This function mutates the Verifier
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L300-L315
-func (v *Verifier) Verify(fraudProof *fraudtypes.FraudProof) error {
+func (v *Verifier) ExecuteProofOnMutableChain(fraudProof fraudtypes.FraudProof) error {
 	appHash := v.mutableBaseApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash)) // TODO: remove
 
