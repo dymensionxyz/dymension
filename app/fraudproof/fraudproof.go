@@ -37,9 +37,9 @@ var (
 )
 
 type Verifier struct {
-	appName   string
-	storeKeys map[string]storetypes.StoreKey
-	encCfg    rollappevmparams.EncodingConfig
+	appName               string
+	moduleNameToStoreKeys map[string]storetypes.StoreKey
+	encCfg                rollappevmparams.EncodingConfig
 	// the base app that is used to initialize the verification process on each verification attempt
 	baseApp *baseapp.BaseApp
 	// the mutable base app that is used to perform the verification process
@@ -64,10 +64,10 @@ func NewVerifier(appName string) *Verifier {
 	storeKeys := rollappApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
 
 	return &Verifier{
-		appName:   appName,
-		encCfg:    cfg,
-		storeKeys: storeKeys,
-		baseApp:   rollappApp.GetBaseApp(),
+		appName:               appName,
+		encCfg:                cfg,
+		moduleNameToStoreKeys: storeKeys,
+		baseApp:               rollappApp.GetBaseApp(),
 	}
 }
 
@@ -92,7 +92,7 @@ func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 	fpv.mutableBaseApp.SetInitialHeight(fraudProof.GetFraudulentBlockHeight())
 
 	cms := fpv.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
-	storeKeys := fpv.storeKeys
+	storeKeys := fpv.moduleNameToStoreKeys
 	modules := fraudProof.GetModules()
 	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
 	for _, module := range modules {
