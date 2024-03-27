@@ -108,7 +108,7 @@ func (suite *IBCTestUtilSuite) GenesisEvent(chainID, channelID string) {
 	// add genesis state to rollapp
 	rollapp, found := app.RollappKeeper.GetRollapp(suite.hubChain.GetContext(), chainID)
 	suite.Require().True(found)
-	rollapp.GenesisState = &rollapptypes.RollappGenesisState{}
+	rollapp.GenesisState = rollapptypes.RollappGenesisState{}
 	app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), rollapp)
 
 	msgGenesisEvent := rollapptypes.NewMsgRollappGenesisEvent(

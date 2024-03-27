@@ -67,11 +67,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // TriggerRollappGenesisEvent triggers the genesis event for the rollapp.
 func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollapp) error {
-	// Validate it hasn't been triggered yet and the gensis event exist
-	switch {
-	case rollapp.GenesisState == nil:
-		return types.ErrGenesisEventNotDefined
-	case rollapp.GenesisState.IsGenesisEvent:
+	// Validate it hasn't been triggered yet
+	if rollapp.GenesisState.IsGenesisEvent {
 		return types.ErrGenesisEventAlreadyTriggered
 	}
 
