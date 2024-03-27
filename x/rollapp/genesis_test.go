@@ -203,6 +203,15 @@ func TestMissingLatestStateInfoInitGenesis(t *testing.T) {
 	require.NotEqual(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
 }
 
+func TestWrongLatestStateInfoInitGenesis(t *testing.T) {
+	genesisState.LatestStateInfoIndexList[0].Index = 1
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(ctx, *k, genesisState)
+	got := rollapp.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.NotEqual(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
+}
+
 func TestMissingFinalizedStateInfoInitGenesis(t *testing.T) {
 	genesisState.StateInfoList[0] = types.StateInfo{}
 	k, ctx := keepertest.RollappKeeper(t)

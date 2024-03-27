@@ -24,11 +24,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			k.Logger(ctx).Error("error init genesis rollapp already exists: rollapp:%s", elem.RollappId)
 			continue
 		}
-		// verify rollapp id
-		rollappId, err := types.NewChainID(elem.RollappId)
-		if err != nil {
-			k.Logger(ctx).Error("error parsing Chain Id: rollapp:%s: Error:%s", elem.RollappId, err)
-		}
+		// verify rollapp id. err already checked in ValidateBasic
+		rollappId, _ := types.NewChainID(elem.RollappId)
+
 		elem.RollappId = rollappId.ChainID
 		k.SetRollapp(ctx, elem)
 	}
@@ -65,12 +63,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
 		if !found {
 			k.Logger(ctx).Error("error init genesis state info not found for latest state info index: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
+			//invariant breaking. removing all state info for the rollapp
+			removeAllStateInfo(ctx, k, elem.RollappId)
 			continue
 		}
 		// check if there are state infos with higher index
 		_, found = k.GetStateInfo(ctx, elem.RollappId, elem.Index+1)
 		if found {
 			k.Logger(ctx).Error("error init genesis state latest state info index is not the latest: rollapp:%s: latest state info index: %s:", elem.RollappId, elem.Index)
+			//invariant breaking. removing all state info for the rollapp
+			removeAllStateInfo(ctx, k, elem.RollappId)
 			continue
 		}
 		k.SetLatestStateInfoIndex(ctx, elem)
@@ -94,30 +96,30 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 		latestStateInfo, found := k.GetStateInfo(ctx, elem.RollappId, latestStateInfoIndex.Index)
 		if !found {
-			k.Logger(ctx).Error("error init genesis latest state info  not found: rollapp:%s: latest state info index: %s:", elem.RollappId, latestStateInfoIndex.Index)
+			k.Logger(ctx).Error("error init genesis latest state info not found: rollapp:%s: latest state info index: %s:", elem.RollappId, latestStateInfoIndex.Index)
 			continue
 		}
 
 		// check the latest state info is not previous to the latest finalized state info
 		if latestStateInfo.StateInfoIndex.Index < elem.Index {
 			k.Logger(ctx).Error("error init genesis latest state info index lower than latest finalized state info: rollapp:%s: latest state info index: %s: latest finalized state info index:%s", elem.RollappId, latestStateInfoIndex.Index, elem.Index)
+			//invariant breaking. removing all state info for the rollapp
+			removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
+			removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
 			continue
 		}
 
 		// check all previous state infos are finalized
-		prevStatesNonFinalized := false
 		for i := uint64(1); i <= elem.Index; i++ {
 			stateInfo, found := k.GetStateInfo(ctx, elem.RollappId, i)
-			if !found {
-				continue
-			}
-			if stateInfo.Status != common.Status_FINALIZED {
-				prevStatesNonFinalized = true
+			if !found || stateInfo.Status != common.Status_FINALIZED {
+				//invariant breaking. removing all state info for the rollapp
+				removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
+				removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
+				break
 			}
 		}
-		if prevStatesNonFinalized {
-			continue
-		}
+
 		k.SetLatestFinalizedStateIndex(ctx, elem)
 
 	}
@@ -160,4 +162,29 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
+}
+
+func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
+
+	index, found := k.GetLatestStateInfoIndex(ctx, rollappId)
+	if found {
+		for i := uint64(1); i <= index.Index; i++ {
+			k.RemoveStateInfo(ctx, rollappId, i)
+		}
+	} else {
+		i := uint64(1)
+		for {
+			_, found := k.GetStateInfo(ctx, rollappId, i)
+			if !found {
+				break
+			}
+			if found {
+				k.RemoveStateInfo(ctx, rollappId, i)
+			}
+			i++
+		}
+	}
+}
+func removeLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
+	k.RemoveLatestStateInfoIndex(ctx, rollappId)
 }
