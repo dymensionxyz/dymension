@@ -138,7 +138,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 			},
 			err: sdkerrors.ErrInvalidPubKey,
-		}}
+		},
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
