@@ -48,7 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (hygene) [#676](https://github.com/dymensionxyz/dymension/pull/676) lint tests
 - (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) apply a pfm patch
 - (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
-- (vfc) [#726](https://github.com/dymensionxyz/dymension/issues/726) Fix VFC hook not triggerred
+- (vfc) [#726](https://github.com/dymensionxyz/dymension/issues/726) Remove denommetadata ibc middleware and register denoms in genesis event
 
 ___
 

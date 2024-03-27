@@ -40,9 +40,8 @@ var (
 	ErrGenesisEventAlreadyTriggered        = errorsmod.Register(ModuleName, 1029, "genesis event already triggered")
 	ErrTooManyPermissionedAddresses        = errorsmod.Register(ModuleName, 1030, "invalid number of permissioned addresses")
 	ErrInvalidGenesisAccount               = errorsmod.Register(ModuleName, 1031, "invalid genesis account")
-	ErrInvalidAddress                      = errorsmod.Register(ModuleName, 1032, "invalid address")
-	ErrMintTokensFailed                    = errorsmod.Register(ModuleName, 1033, "failed to mint tokens")
-	ErrRegisterDenomMetadataFailed         = errorsmod.Register(ModuleName, 1034, "failed to register denom metadata")
+	ErrMintTokensFailed                    = errorsmod.Register(ModuleName, 1032, "failed to mint tokens")
+	ErrRegisterDenomMetadataFailed         = errorsmod.Register(ModuleName, 1033, "failed to register denom metadata")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")
