@@ -24,12 +24,11 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 		// wrapped function (above), and we want the function to be atomic, so
 		// we cannot trap inside finalizePending
 		func(ctx sdk.Context) error {
-			k.finalizePending(ctx, pendingFinalizationQueue)
-			return nil
+			return k.finalizePending(ctx, pendingFinalizationQueue)
 		})
 }
 
-func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
+func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) error {
 	// Iterate over all the pending finalization queue
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 		// finalize pending states
@@ -47,7 +46,7 @@ func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 			keeperHooks := k.GetHooks()
 			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 			if err != nil {
-				panic(fmt.Errorf("invariant broken: after state finalized must succeed: %w", err))
+				return fmt.Errorf("after state finalized: %w", err)
 			}
 
 			// emit event
@@ -59,6 +58,7 @@ func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 		}
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
 	}
+	return nil
 }
 
 // SetBlockHeightToFinalizationQueue set a specific blockHeightToFinalizationQueue in the store from its index
