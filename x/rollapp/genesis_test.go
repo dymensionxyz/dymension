@@ -195,12 +195,15 @@ func TestStateInfoVersionMismatchInitGenesis(t *testing.T) {
 }
 
 func TestMissingLatestStateInfoInitGenesis(t *testing.T) {
-	genesisState.StateInfoList[0] = types.StateInfo{}
+	genesisState.LatestStateInfoIndexList[0].Index = 3
 	k, ctx := keepertest.RollappKeeper(t)
 	rollapp.InitGenesis(ctx, *k, genesisState)
 	got := rollapp.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
+	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
 	require.NotEqual(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
+	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
+	require.NotEqual(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
 }
 
 func TestWrongLatestStateInfoInitGenesis(t *testing.T) {
