@@ -110,11 +110,13 @@ var (
 			{
 				CreationHeight: 1,
 				FinalizationQueue: []types.StateInfoIndex{
-					{RollappId: "0",
-						Index: 2,
+					{
+						RollappId: "0",
+						Index:     2,
 					},
-					{RollappId: "1",
-						Index: 2,
+					{
+						RollappId: "1",
+						Index:     2,
 					},
 				},
 			},

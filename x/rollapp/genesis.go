@@ -63,7 +63,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
 		if !found {
 			k.Logger(ctx).Error("error init genesis state info not found for latest state info index: rollapp:%s: latest state info index: %d:", elem.RollappId, elem.Index)
-			//invariant breaking. removing all state info for the rollapp
+			// invariant breaking. removing all state info for the rollapp
 			removeAllStateInfo(ctx, k, elem.RollappId)
 			continue
 		}
@@ -71,7 +71,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		_, found = k.GetStateInfo(ctx, elem.RollappId, elem.Index+1)
 		if found {
 			k.Logger(ctx).Error("error init genesis state latest state info index is not the latest: rollapp:%s: latest state info index: %d:", elem.RollappId, elem.Index)
-			//invariant breaking. removing all state info for the rollapp
+			// invariant breaking. removing all state info for the rollapp
 			removeAllStateInfo(ctx, k, elem.RollappId)
 			continue
 		}
@@ -103,7 +103,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		// check the latest state info is not previous to the latest finalized state info
 		if latestStateInfo.StateInfoIndex.Index < elem.Index {
 			k.Logger(ctx).Error("error init genesis latest state info index lower than latest finalized state info: rollapp:%s: latest state info index: %d: latest finalized state info index:%d", elem.RollappId, latestStateInfoIndex.Index, elem.Index)
-			//invariant breaking. removing all state info for the rollapp
+			// invariant breaking. removing all state info for the rollapp
 			removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
 			removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
 			continue
@@ -114,7 +114,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			stateInfo, found := k.GetStateInfo(ctx, elem.RollappId, i)
 			if !found || stateInfo.Status != common.Status_FINALIZED {
 				k.Logger(ctx).Error("error init genesis there are non-finalized state infos previous to the finalized state info: rollapp:%s: state info index: %d: latest finalized state info index:%d", elem.RollappId, stateInfo.StateInfoIndex.Index, elem.Index)
-				//invariant breaking. removing all state info for the rollapp
+				// invariant breaking. removing all state info for the rollapp
 				removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
 				removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
 				break
@@ -190,7 +190,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 }
 
 func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
-
 	index, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if found {
 		for i := uint64(1); i <= index.Index; i++ {
@@ -210,6 +209,7 @@ func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
 		}
 	}
 }
+
 func removeLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
 	k.RemoveLatestStateInfoIndex(ctx, rollappId)
 }
