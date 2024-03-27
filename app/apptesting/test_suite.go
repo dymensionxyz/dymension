@@ -40,7 +40,7 @@ func (suite *KeeperTestHelper) CreateRollappWithName(name string) string {
 
 	msgServer := rollappkeeper.NewMsgServerImpl(suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
-	suite.Require().Nil(err)
+	suite.Require().NoError(err)
 	return name
 }
 

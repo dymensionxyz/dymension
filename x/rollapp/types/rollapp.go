@@ -50,7 +50,7 @@ func (r Rollapp) ValidateBasic() error {
 			}
 			// check Bech32 format
 			if _, err := sdk.AccAddressFromBech32(item); err != nil {
-				return errorsmod.Wrapf(ErrInvalidPermissionedAddress, "invalid permissioned address: %s", err)
+				return errorsmod.Wrapf(ErrInvalidPermissionedAddress, "%s", err)
 			}
 			// mark as exist
 			duplicateAddresses[item] = true
