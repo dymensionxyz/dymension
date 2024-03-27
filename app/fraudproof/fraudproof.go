@@ -84,32 +84,36 @@ func (v *Verifier) initCleanInstance() {
 // Init initializes the Verifier from a fraud proof
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L266-L298
-func (v *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
+func (v *Verifier) Init(fp *fraudtypes.FraudProof) error {
 	if v.baseApp == nil {
-		return fmt.Errorf("app not initialized")
+		return fmt.Errorf("base app not initialized")
+	}
+	if v.mutableBaseApp == nil {
+		return fmt.Errorf("mutable base app not initialized")
 	}
 
 	v.initCleanInstance()
 
-	v.mutableBaseApp.SetInitialHeight(fraudProof.GetFraudulentBlockHeight())
+	v.mutableBaseApp.SetInitialHeight(fp.GetFraudulentBlockHeight())
 
 	cms := v.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
-	modules := fraudProof.GetModules()
+	modules := fp.GetModules()
+
+	// ~~~~
+	// TODO(danwt): this bit is a bit weird, can't we just use the keys from the fp?
 	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
 	for _, module := range modules {
 		iavlStoreKeys = append(iavlStoreKeys, v.moduleStoreKey(module))
 	}
-
-	// FIXME: make sure non is nil
-
 	v.mutableBaseApp.MountStores(iavlStoreKeys...)
+	// ~~~~
 
-	storeKeyToIAVLTree, err := fraudProof.GetDeepIAVLTrees()
+	moduleStoreKeyToDeepIAVLTree, err := fp.GetModuleStoreKeysToDeepIAVLTree()
 	if err != nil {
-		return err
+		return fmt.Errorf("get deep iavl trees: %w", err)
 	}
-	for storeKey, iavlTree := range storeKeyToIAVLTree {
-		cms.SetDeepIAVLTree(storeKey, iavlTree)
+	for moduleStoreKey, iavlTree := range moduleStoreKeyToDeepIAVLTree {
+		cms.SetDeepIAVLTree(moduleStoreKey, iavlTree)
 	}
 
 	err = v.mutableBaseApp.LoadLatestVersion()
