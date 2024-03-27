@@ -39,7 +39,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- (evm) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
+- (vfc) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
+- (vfc) [#736](https://github.com/dymensionxyz/dymension/issues/736) Use utility to revert dirty state since VFBC deployment no longer handle dirty state
 
 ### Bug Fixes
 
