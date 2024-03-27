@@ -24,16 +24,7 @@ func (k *Keeper) ValidateAndRunFraudProof(ctx sdk.Context, rollappID string, fp 
 }
 
 func (k *Keeper) RunFraudProof(fp fraudtypes.FraudProof) error {
-	err := k.fraudProofVerifier.Init(&fp)
-	if err != nil {
-		return err
-	}
-	err = k.fraudProofVerifier.Verify(&fp)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return k.fraudProofVerifier(fp)
 }
 
 // ValidateFraudProof validates that the proof itself is well-formed and that it is valid against the current state of the chain

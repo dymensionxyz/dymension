@@ -25,10 +25,7 @@ type (
 	}
 )
 
-type FraudProofVerifier interface {
-	Init(*sdkfraudtypes.FraudProof) error
-	Verify(*sdkfraudtypes.FraudProof) error
-}
+type FraudProofVerifier func(sdkfraudtypes.FraudProof) error
 
 func NewKeeper(
 	cdc codec.BinaryCodec,

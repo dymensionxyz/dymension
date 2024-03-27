@@ -563,7 +563,7 @@ func New(
 	)
 
 	fraudProofVerifier := fraudproof.NewVerifier("dymension_rollapp")
-	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier)
+	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier.Run)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
