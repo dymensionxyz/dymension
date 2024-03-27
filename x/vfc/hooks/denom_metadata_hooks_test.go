@@ -42,6 +42,7 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 		denomMetadata banktypes.Metadata
 		wantFound     []string
 		wantNotFound  []string
+		wantErr       bool
 	}{
 		{
 			name:          "ignored - Deploy for non-IBC",
@@ -75,6 +76,7 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 			name:          "ignored - Do not deploy the metadata which does not exists in bank",
 			denomMetadata: denomIbcNotExists,
 			wantNotFound:  []string{denomIbcNotExists.Base},
+			wantErr:       true,
 		},
 	}
 	for _, tt := range tests {
@@ -82,7 +84,11 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 			workingCtx, _ := suite.Ctx.CacheContext() // clone the ctx so no need to reset the ctx after each test case
 
 			err := hooks.AfterDenomMetadataCreation(workingCtx, tt.denomMetadata)
-			suite.Require().NoError(err, "should not be error in any case")
+			if tt.wantErr {
+				suite.Require().Error(err, "should error")
+			} else {
+				suite.Require().NoError(err, "should not be error in any case")
+			}
 
 			if len(tt.wantFound) > 0 {
 				for _, wantFound := range tt.wantFound {
@@ -100,10 +106,6 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 
 			newContractAddr1, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, tt.denomMetadata.Base)
 			if found {
-				// perform double deployment check
-				err := hooks.AfterDenomMetadataCreation(workingCtx, tt.denomMetadata)
-				suite.Require().NoError(err, "should not be error in any case")
-
 				// ensure the contract address is not changed
 				newContractAddr2, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, tt.denomMetadata.Base)
 				suite.Require().True(found, "contract disappeared?")
@@ -126,7 +128,7 @@ func (suite *HooksTestSuite) TestHookOperation_AfterDenomMetadataCreation() {
 
 		// re-deploy
 		err = hooks.AfterDenomMetadataCreation(workingCtx, denomIbcAtom)
-		suite.Require().NoError(err, "should not be error in any case")
+		suite.Require().Errorf(err, "should error on double deployment call")
 
 		// ensure the contract address is not changed
 		newContractAddr2, found := suite.App.EvmKeeper.GetVirtualFrontierBankContractAddressByDenom(workingCtx, denomIbcAtom.Base)

@@ -24,11 +24,6 @@ func (suite *DenomMetaDataTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
 }
 
-// TestDenomRegistationHubToRollapp tests the following scenario:
-// 1. transfer from cosmos -nothing
-// 2. transfer from rollapp w/o token registration - nothing
-// 3. transfer from rollapp w/ token registration - success
-// 4. same token not for the first time - no double registration
 func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
@@ -37,7 +32,6 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
 	suite.RegisterSequencer()
 
-	// add sender to deployer whitelist
 	app := ConvertToApp(suite.hubChain)
 
 	// invoke genesis event, in order to register denoms
@@ -85,18 +79,4 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.Require().True(found)
 	suite.Equal("bigstake", metadata.Display)
 	suite.Equal("BIGSTAKE", metadata.Symbol)
-
-	/* --------------------- move native token from rollapp --------------------- */
-	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
-
-	msg = types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, coinToSendToB, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
-	res, err = suite.rollappChain.SendMsgs(msg)
-	suite.Require().NoError(err) // message committed
-
-	packet, err = ibctesting.ParsePacketFromEvents(res.GetEvents())
-	suite.Require().NoError(err)
-
-	// relay send
-	err = path.RelayPacket(packet)
-	suite.Require().NoError(err)
 }

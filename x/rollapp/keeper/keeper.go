@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkerrors "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -74,15 +75,14 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 		return types.ErrGenesisEventAlreadyTriggered
 	}
 
-	// Register the denom metadata
 	if err := k.registerDenomMetadata(ctx, rollapp); err != nil {
-		return fmt.Errorf("failed to register denom metadata: %w", err)
+		return sdkerrors.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
 	}
 
-	// Call the mint genesis tokens function
 	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
-		return fmt.Errorf("failed to mint genesis tokens: %w", err)
+		return sdkerrors.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
 	}
+
 	rollapp.GenesisState.IsGenesisEvent = true
 	k.SetRollapp(ctx, rollapp)
 	return nil
@@ -129,7 +129,7 @@ func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) er
 
 		// save the new token denom metadata
 		if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, metadata); err != nil {
-			return fmt.Errorf("failed to create denom metadata: %w", err)
+			return fmt.Errorf("create denom metadata: %w", err)
 		}
 
 		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
@@ -143,16 +143,16 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp)
 		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcBaseDenom, acc.Amount.Amount))
 
 		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
-			return fmt.Errorf("failed to mint coins: %w", err)
+			return fmt.Errorf("mint coins: %w", err)
 		}
 
 		accAddress, err := sdk.AccAddressFromBech32(acc.Address)
 		if err != nil {
-			return fmt.Errorf("failed to convert account address: %w", err)
+			return fmt.Errorf("convert account address: %w", err)
 		}
 
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddress, coinsToMint); err != nil {
-			return fmt.Errorf("failed to send coins to account: %w", err)
+			return fmt.Errorf("send coins to account: %w", err)
 		}
 	}
 	return nil
