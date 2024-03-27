@@ -46,15 +46,13 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 	// Build the genesis state from the genesis accounts
-	var rollappGenesisState *RollappGenesisState
-	if len(msg.GenesisAccounts) > 0 {
-		rollappGenesisState = &RollappGenesisState{
-			GenesisAccounts: msg.GenesisAccounts,
-			IsGenesisEvent:  false,
-		}
+	rollappGenesisState := RollappGenesisState{
+		IsGenesisEvent: false,
 	}
-
-	// copy TokenMetadata
+	rollappGenesisState.GenesisAccounts = make([]*GenesisAccount, len(msg.GenesisAccounts))
+	for i := range msg.GenesisAccounts {
+		rollappGenesisState.GenesisAccounts[i] = &msg.GenesisAccounts[i]
+	}
 	metadata := make([]*TokenMetadata, len(msg.Metadatas))
 	for i := range msg.Metadatas {
 		metadata[i] = &msg.Metadatas[i]
@@ -65,8 +63,6 @@ func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {
 	rollapp := msg.GetRollapp()
-
-	// validate the basics fields
 	if err := rollapp.ValidateBasic(); err != nil {
 		return err
 	}

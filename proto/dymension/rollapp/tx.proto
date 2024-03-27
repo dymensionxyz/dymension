@@ -40,10 +40,7 @@ message MsgCreateRollapp {
   // metadata provides the client information for all the registered tokens.
   repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false];
   // genesis_accounts for the rollapp on the hub
-  repeated GenesisAccount genesis_accounts = 10 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "genesis_accounts"
-    ];
+  repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateRollappResponse {

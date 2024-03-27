@@ -49,8 +49,8 @@ func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 			if err != nil {
 				panic(fmt.Errorf("invariant broken: after state finalized must succeed: %w", err))
 			}
+
 			// emit event
-			// TODO: Create an update state keeper method and move this to be called from there
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeStateUpdate,
 					stateInfo.GetEvents()...,
