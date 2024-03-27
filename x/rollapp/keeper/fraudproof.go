@@ -42,19 +42,18 @@ func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudt
 		return fmt.Errorf("validate basic: %w", err)
 	}
 
-	// validate the fraud proof against the committed state
+	// TODO(danwt): double check everything is done here
+	// TODO(danwt): Validate the fraudulent state transition is contained in the block header ( ask Michael)
+
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, uint64(fp.GetFraudulentBlockHeight()))
 	if err != nil {
 		return fmt.Errorf("find state info by height: %w", err)
 	}
 	blockDescriptor := stateInfo.BlockDescriptorByHeight(uint64(fp.GetFraudulentBlockHeight()))
-
 	err = validateBlockDescriptor(blockDescriptor, fp.PreStateAppHash, fp.ExpectedValidAppHash)
 	if err != nil {
-		return fmt.Errorf("validate block descriptor: %w", err)
+		return fmt.Errorf("validate against block descriptor: %w", err)
 	}
-	// TODO: Validate the fraudulent state transition is contained in the block header (TODO: ask Michael)
-	// TODO: anything else to do?
 	return nil
 }
 
