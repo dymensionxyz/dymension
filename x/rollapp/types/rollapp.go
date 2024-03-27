@@ -6,7 +6,7 @@ import (
 )
 
 func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
-	metadatas []*TokenMetadata, genesisAccounts *RollappGenesisState,
+	metadatas []*TokenMetadata, genesisAccounts RollappGenesisState,
 ) Rollapp {
 	return Rollapp{
 		RollappId:             rollappId,
@@ -67,12 +67,10 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	// genesisAccounts address validation
-	if r.GenesisState != nil {
-		for _, acc := range r.GenesisState.GenesisAccounts {
-			_, err := sdk.AccAddressFromBech32(acc.Address)
-			if err != nil {
-				return errorsmod.Wrapf(err, "invalid genesis account address (%s)", acc.Address)
-			}
+	for _, acc := range r.GenesisState.GenesisAccounts {
+		_, err := sdk.AccAddressFromBech32(acc.Address)
+		if err != nil {
+			return errorsmod.Wrapf(err, "invalid genesis account address (%s)", acc.Address)
 		}
 	}
 

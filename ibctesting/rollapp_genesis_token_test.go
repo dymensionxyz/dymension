@@ -47,7 +47,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 
 	cases := []struct {
 		name                     string
-		gensisState              *types.RollappGenesisState
+		gensisState              types.RollappGenesisState
 		msg                      *types.MsgRollappGenesisEvent
 		deployerParams           []types.DeployerParams
 		expectSavedDenomMetaData bool
@@ -55,8 +55,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 	}{
 		{
 			name: "successful rollapp genesis event",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -73,8 +73,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "invalid rollapp genesis event - genesis event already triggered",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -91,8 +91,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "invalid rollapp genesis event - unauthorized address",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -109,8 +109,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "invalid rollapp genesis event - rollapp doesn't exist",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -127,8 +127,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "invalid rollapp genesis event - channel doesn't exist",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -145,8 +145,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "invalid rollapp genesis event - channel id doesn't match chain id",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
@@ -163,8 +163,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 		},
 		{
 			name: "failed rollapp genesis event - error minting coins",
-			gensisState: &types.RollappGenesisState{
-				GenesisAccounts: []types.GenesisAccount{
+			gensisState: types.RollappGenesisState{
+				GenesisAccounts: []*types.GenesisAccount{
 					{Address: ""},
 				},
 				IsGenesisEvent: false,
