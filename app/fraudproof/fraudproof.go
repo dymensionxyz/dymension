@@ -38,7 +38,7 @@ var (
 
 type Verifier struct {
 	appName string
-	// moduleNameToStoreKeys map[string]storetypes.StoreKey
+	// the encoding config used to initialize the verification process with a fresh app TODO: could just use decoder
 	encCfg rollappevmparams.EncodingConfig
 	// the base app that is used to initialize the verification process on each verification attempt
 	baseApp *baseapp.BaseApp
