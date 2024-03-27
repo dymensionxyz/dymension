@@ -42,7 +42,7 @@ func (csp *CreateDenomMetadataProposal) GetTitle() string { return csp.Title }
 // GetDescription returns the description of a community pool spend proposal.
 func (csp *CreateDenomMetadataProposal) GetDescription() string { return csp.Description }
 
-// GetDescription returns the routing key of a community pool spend proposal.
+// ProposalRoute returns the routing key of a community pool spend proposal.
 func (csp *CreateDenomMetadataProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.
@@ -90,7 +90,7 @@ func (csp *UpdateDenomMetadataProposal) GetTitle() string { return csp.Title }
 // GetDescription returns the description of a community pool spend proposal.
 func (csp *UpdateDenomMetadataProposal) GetDescription() string { return csp.Description }
 
-// GetDescription returns the routing key of a community pool spend proposal.
+// ProposalRoute returns the routing key of a community pool spend proposal.
 func (csp *UpdateDenomMetadataProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool spend proposal.

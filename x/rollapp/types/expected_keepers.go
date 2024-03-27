@@ -20,8 +20,6 @@ type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	HasDenomMetaData(ctx sdk.Context, denom string) bool
-	SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata)
 }
 
 type IBCClientKeeper interface {
@@ -36,4 +34,8 @@ type TransferKeeper interface {
 
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+}
+
+type DenomMetadataKeeper interface {
+	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
 }

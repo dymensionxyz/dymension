@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkerrors "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -22,10 +23,11 @@ type (
 		hooks      types.MultiRollappHooks
 		paramstore paramtypes.Subspace
 
-		ibcclientKeeper types.IBCClientKeeper
-		transferKeeper  types.TransferKeeper
-		channelKeeper   types.ChannelKeeper
-		bankKeeper      types.BankKeeper
+		ibcclientKeeper     types.IBCClientKeeper
+		transferKeeper      types.TransferKeeper
+		channelKeeper       types.ChannelKeeper
+		bankKeeper          types.BankKeeper
+		denommetadataKeeper types.DenomMetadataKeeper
 	}
 )
 
@@ -38,6 +40,7 @@ func NewKeeper(
 	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
+	denommetadataKeeper types.DenomMetadataKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -45,15 +48,16 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:             cdc,
-		storeKey:        storeKey,
-		memKey:          memKey,
-		paramstore:      ps,
-		hooks:           nil,
-		ibcclientKeeper: ibcclientKeeper,
-		transferKeeper:  transferKeeper,
-		channelKeeper:   channelKeeper,
-		bankKeeper:      bankKeeper,
+		cdc:                 cdc,
+		storeKey:            storeKey,
+		memKey:              memKey,
+		paramstore:          ps,
+		hooks:               nil,
+		ibcclientKeeper:     ibcclientKeeper,
+		transferKeeper:      transferKeeper,
+		channelKeeper:       channelKeeper,
+		bankKeeper:          bankKeeper,
+		denommetadataKeeper: denommetadataKeeper,
 	}
 }
 
@@ -61,66 +65,38 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// TriggerGenesisEvent triggers the genesis event for the rollapp.
+// TriggerRollappGenesisEvent triggers the genesis event for the rollapp.
 func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollapp) error {
 	// Validate it hasn't been triggered yet
 	if rollapp.GenesisState.IsGenesisEvent {
 		return types.ErrGenesisEventAlreadyTriggered
 	}
-	// Call the mint genesis tokens function
-	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
-		return err
+
+	if err := k.registerDenomMetadata(ctx, rollapp); err != nil {
+		return sdkerrors.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
 	}
+
+	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
+		return sdkerrors.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
+	}
+
 	rollapp.GenesisState.IsGenesisEvent = true
 	k.SetRollapp(ctx, rollapp)
 	return nil
 }
 
-func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp) error {
-	for _, acc := range rollapp.GenesisState.GenesisAccounts {
-		denomTrace := utils.GetForeignDenomTrace(rollapp.ChannelId, acc.Amount.Denom)
+// registerDenomMetadata registers the denom metadata for the IBC token
+func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) error {
+	for i := range rollapp.TokenMetadata {
+		denomTrace := utils.GetForeignDenomTrace(rollapp.ChannelId, rollapp.TokenMetadata[i].Base)
 		traceHash := denomTrace.Hash()
 		// if the denom trace does not exist, add it
 		if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
 			k.transferKeeper.SetDenomTrace(ctx, denomTrace)
 		}
 
-		ibcDenom := denomTrace.IBCDenom()
+		ibcBaseDenom := denomTrace.IBCDenom()
 
-		k.RegisterDenomMetadata(ctx, rollapp, ibcDenom, acc.Amount.Denom)
-
-		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcDenom, acc.Amount.Amount))
-
-		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
-			return err
-		}
-		accAddress, err := sdk.AccAddressFromBech32(acc.Address)
-		if err != nil {
-			return err
-		}
-		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddress, coinsToMint); err != nil {
-			return fmt.Errorf("failed to send coins to account: %w", err)
-		}
-	}
-	return nil
-}
-
-func (k Keeper) RegisterDenomMetadata(ctx sdk.Context, rollapp types.Rollapp, ibcBaseDenom, baseDenom string) {
-	// if the rollapp has no token metadata, return
-	if len(rollapp.TokenMetadata) == 0 {
-		k.Logger(ctx).Info("skipping new IBC token for rollapp with no metadata", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
-		return
-	}
-	// if the denom metadata already exists, return
-	if k.bankKeeper.HasDenomMetaData(ctx, ibcBaseDenom) {
-		k.Logger(ctx).Info("denom metadata already registered", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
-		return
-	}
-	for i := range rollapp.TokenMetadata {
-		// if the rollapp token base doesn't match the base denom, skip it
-		if rollapp.TokenMetadata[i].Base != baseDenom {
-			continue
-		}
 		// create a new token denom metadata where it's base = ibcDenom,
 		// and the rest of the fields are taken from rollapp.metadata
 		metadata := banktypes.Metadata{
@@ -147,11 +123,36 @@ func (k Keeper) RegisterDenomMetadata(ctx sdk.Context, rollapp types.Rollapp, ib
 			}
 			metadata.DenomUnits[j] = &newDu
 		}
+
 		// save the new token denom metadata
-		k.bankKeeper.SetDenomMetaData(ctx, metadata)
+		if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, metadata); err != nil {
+			return fmt.Errorf("create denom metadata: %w", err)
+		}
 
 		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
 	}
+	return nil
+}
+
+func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp) error {
+	for _, acc := range rollapp.GenesisState.GenesisAccounts {
+		ibcBaseDenom := utils.GetForeignDenomTrace(rollapp.ChannelId, acc.Amount.Denom).IBCDenom()
+		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcBaseDenom, acc.Amount.Amount))
+
+		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
+			return fmt.Errorf("mint coins: %w", err)
+		}
+
+		accAddress, err := sdk.AccAddressFromBech32(acc.Address)
+		if err != nil {
+			return fmt.Errorf("convert account address: %w", err)
+		}
+
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, accAddress, coinsToMint); err != nil {
+			return fmt.Errorf("send coins to account: %w", err)
+		}
+	}
+	return nil
 }
 
 /* -------------------------------------------------------------------------- */
