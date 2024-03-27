@@ -41,8 +41,8 @@ func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
 				return fmt.Errorf("error calling finalized state finalized: rollappID %s, stateInfo: %+v, error %s",
 					stateInfoIndex.RollappId, stateInfo, err.Error())
 			}
+
 			// emit event
-			// TODO: Create an update state keeper method and move this to be called from there
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(types.EventTypeStateUpdate,
 					stateInfo.GetEvents()...,
