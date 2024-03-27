@@ -30,10 +30,7 @@ func RollappPacketKey(
 	rollappPacket *RollappPacket,
 ) ([]byte, error) {
 	// Get the relevant key prefix based on the packet status
-	statusPrefix, err := GetStatusBytes(rollappPacket.Status)
-	if err != nil {
-		return nil, err
-	}
+	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
 	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
 	keySeparatorBytes := []byte(KeySeparator)
 	rollappIdBytes := []byte(rollappPacket.RollappId)
@@ -54,16 +51,16 @@ func RollappPacketKey(
 	return result, nil
 }
 
-// GetStatusBytes returns the byte representation of the status
-func GetStatusBytes(status Status) ([]byte, error) {
+// MustGetStatusBytes returns the byte representation of the status
+func MustGetStatusBytes(status Status) []byte {
 	switch status {
 	case Status_PENDING:
-		return PendingRollappPacketKeyPrefix, nil
+		return PendingRollappPacketKeyPrefix
 	case Status_FINALIZED:
-		return FinalizedRollappPacketKeyPrefix, nil
+		return FinalizedRollappPacketKeyPrefix
 	case Status_REVERTED:
-		return RevertedRollappPacketKeyPrefix, nil
+		return RevertedRollappPacketKeyPrefix
 	default:
-		return nil, fmt.Errorf("invalid packet status: %s", status)
+		panic(fmt.Sprintf("invalid packet status: %s", status))
 	}
 }

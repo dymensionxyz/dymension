@@ -139,14 +139,9 @@ func (k Keeper) ListRollappPacketsByStatus(
 	status commontypes.Status,
 	maxProofHeight uint64,
 ) (list []commontypes.RollappPacket) {
-	logger := ctx.Logger()
 	store := ctx.KVStore(k.storeKey)
 	// switch prefix based on status
-	statusPrefix, err := commontypes.GetStatusBytes(status)
-	if err != nil {
-		logger.Error("Failed to get status bytes", "error", err)
-		return nil
-	}
+	statusPrefix := commontypes.MustGetStatusBytes(status)
 	// Iterate over the range from lastProofHeight to proofHeight.
 	// We are guaranteed order by the proof height so can break early if we
 	// find a packet with a proof height greater than maxProofHeight
