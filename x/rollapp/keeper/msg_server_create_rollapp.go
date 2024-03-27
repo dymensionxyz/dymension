@@ -43,7 +43,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	rollapp := msg.GetRollapp()
-	err := rollapp.ValidateBasic()
+	err = rollapp.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
