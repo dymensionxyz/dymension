@@ -154,55 +154,55 @@ func (v *Verifier) InitMutableChain(fp fraudtypes.FraudProof) error {
 // Note: This function mutates the Verifier
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L300-L315
-func (v *Verifier) ExecuteProofOnMutableChain(fraudProof fraudtypes.FraudProof) error {
+func (v *Verifier) ExecuteProofOnMutableChain(fp fraudtypes.FraudProof) error {
 	appHash := v.mutableBaseApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash)) // TODO: remove
 
-	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
+	if !bytes.Equal(fp.PreStateAppHash, appHash) {
 		return ErrInvalidPreStateAppHash
 	}
 
-	SetRollappAddressPrefixes("ethm")
+	setRollappAddressPrefixes("ethm")
 
 	// Execute fraudulent state transition
-	if fraudProof.FraudulentBeginBlock != nil {
+	if fp.FraudulentBeginBlock != nil {
 		panic("fraudulent begin block not supported")
-		// v.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
+		// v.app.BeginBlock(*fp.FraudulentBeginBlock)
 		// fmt.Println("appHash - beginblock", hex.EncodeToString(v.app.GetAppHashInternal()))
 	} else {
-		// Need to add some dummy begin block here since its a new app
+		// Need to add some dummy begin block here since it's a new app
 		v.mutableBaseApp.ResetDeliverState()
 		v.mutableBaseApp.SetBeginBlocker(nil)
-		v.mutableBaseApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}})
-		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal()))
+		v.mutableBaseApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fp.GetFraudulentBlockHeight()}})
+		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal())) // TODO: remove
 
-		if fraudProof.FraudulentDeliverTx != nil {
+		if fp.FraudulentDeliverTx != nil {
 			// skip IncrementSequenceDecorator check in AnteHandler
 			v.mutableBaseApp.SetAnteHandler(nil)
 
-			resp := v.mutableBaseApp.DeliverTx(*fraudProof.FraudulentDeliverTx)
+			resp := v.mutableBaseApp.DeliverTx(*fp.FraudulentDeliverTx)
 			if !resp.IsOK() {
 				panic(resp.Log)
 			}
 			fmt.Println("appHash - posttx", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal()))
-			SetRollappAddressPrefixes("dym")
+			setRollappAddressPrefixes("dym")
 		} else {
 			panic("fraudulent end block not supported")
-			// v.app.EndBlock(*fraudProof.FraudulentEndBlock)
+			// v.app.EndBlock(*fp.FraudulentEndBlock)
 			// fmt.Println("appHash - endblock", hex.EncodeToString(v.app.GetAppHashInternal()))
 		}
 	}
 
 	appHash = v.mutableBaseApp.GetAppHashInternal()
 	fmt.Println("appHash - final", hex.EncodeToString(appHash))
-	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
+	if !bytes.Equal(appHash, fp.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash
 	}
 	return nil
 }
 
-func SetRollappAddressPrefixes(prefix string) {
-	// Set prefixes
+// setRollappAddressPrefixes sets the address prefixes for the rollapp chain
+func setRollappAddressPrefixes(prefix string) {
 	accountPubKeyPrefix := prefix + "pub"
 	validatorAddressPrefix := prefix + "valoper"
 	validatorPubKeyPrefix := prefix + "valoperpub"
