@@ -14,10 +14,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
-
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
 		return nil, types.ErrRollappExists
@@ -30,23 +26,11 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
-	// Build the genesis state from the genesis accounts
-	var rollappGenesisState *types.RollappGenesisState
-	if len(msg.GenesisAccounts) > 0 {
-		rollappGenesisState = &types.RollappGenesisState{
-			GenesisAccounts: msg.GenesisAccounts,
-			IsGenesisEvent:  false,
-		}
+	rollapp := msg.GetRollapp()
+	err := rollapp.ValidateBasic()
+	if err != nil {
+		return nil, err
 	}
-
-	// copy TokenMetadata
-	metadata := make([]*types.TokenMetadata, len(msg.Metadatas))
-	for i := range msg.Metadatas {
-		metadata[i] = &msg.Metadatas[i]
-	}
-
-	// Create an updated rollapp record
-	rollapp := types.NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
 
 	// Write rollapp information to the store
 	k.SetRollapp(ctx, rollapp)

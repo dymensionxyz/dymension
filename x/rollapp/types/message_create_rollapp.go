@@ -44,7 +44,7 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgCreateRollapp) ValidateBasic() error {
+func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 	// Build the genesis state from the genesis accounts
 	var rollappGenesisState *RollappGenesisState
 	if len(msg.GenesisAccounts) > 0 {
@@ -60,7 +60,11 @@ func (msg *MsgCreateRollapp) ValidateBasic() error {
 		metadata[i] = &msg.Metadatas[i]
 	}
 
-	rollapp := NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+}
+
+func (msg *MsgCreateRollapp) ValidateBasic() error {
+	rollapp := msg.GetRollapp()
 
 	// validate the basics fields
 	if err := rollapp.ValidateBasic(); err != nil {
