@@ -562,7 +562,7 @@ func New(
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 	)
 
-	fraudProofVerifier := fraudproof.NewVerifier("dymension_rollapp")
+	fraudProofVerifier := fraudproof.NewVerifier("dymension_rollapp") // TODO: name?
 	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier.Run)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(

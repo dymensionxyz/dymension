@@ -1,6 +1,8 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.19
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
@@ -218,6 +220,8 @@ replace (
 
 	github.com/cosmos/iavl => github.com/celestiaorg/iavl v0.0.0-20230105192234-715b65a7ecf1
 
+	github.com/dymensionxyz/rollapp-evm => /Users/danwt/Documents/dym/d-rollapp-evm
+
 	// use Evmos geth fork
 	github.com/ethereum/go-ethereum => github.com/evmos/go-ethereum v1.10.26
 
@@ -234,4 +238,5 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// use cometbft
 	github.com/tendermint/tendermint => github.com/dymensionxyz/cometbft v0.34.29-fraudproof-0.0.1
+
 )
