@@ -31,7 +31,7 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 	return s.StateInfoIndex
 }
 
-func (s *StateInfo) GetLatestFinalizedHeight() uint64 {
+func (s *StateInfo) GetLatestHeight() uint64 {
 	return s.StartHeight + s.NumBlocks - 1
 }
 

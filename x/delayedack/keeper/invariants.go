@@ -47,7 +47,7 @@ func PacketsFromFinalizedHeightsAreFinalized(k Keeper) sdk.Invariant {
 			if !found {
 				continue
 			}
-			rollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestFinalizedHeight()
+			rollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestHeight()
 
 		}
 
@@ -94,7 +94,7 @@ func PacketsFromRevertedHeightsAreReverted(k Keeper) sdk.Invariant {
 			if !found {
 				continue
 			}
-			frozenRollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestFinalizedHeight()
+			frozenRollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestHeight()
 
 		}
 
