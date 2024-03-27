@@ -6,6 +6,7 @@ import (
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,13 @@ var (
 	blockDescriptors = types.BlockDescriptors{BD: []types.BlockDescriptor{
 		{
 			Height:                 1,
+			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+		},
+	}}
+	blockDescriptors2 = types.BlockDescriptors{BD: []types.BlockDescriptor{
+		{
+			Height:                 2,
 			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
 			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
 		},
@@ -42,6 +50,7 @@ var (
 				NumBlocks:   1,
 				StartHeight: 1,
 				BDs:         blockDescriptors,
+				Status:      common.Status_FINALIZED,
 			},
 			{
 				StateInfoIndex: types.StateInfoIndex{
@@ -52,16 +61,39 @@ var (
 				NumBlocks:   1,
 				StartHeight: 1,
 				BDs:         blockDescriptors,
+				Status:      common.Status_FINALIZED,
+			},
+			{
+				StateInfoIndex: types.StateInfoIndex{
+					RollappId: "0",
+					Index:     2,
+				},
+				Sequencer:   sample.AccAddress(),
+				NumBlocks:   1,
+				StartHeight: 2,
+				BDs:         blockDescriptors2,
+				Status:      common.Status_PENDING,
+			},
+			{
+				StateInfoIndex: types.StateInfoIndex{
+					RollappId: "1",
+					Index:     2,
+				},
+				Sequencer:   sample.AccAddress(),
+				NumBlocks:   1,
+				StartHeight: 2,
+				BDs:         blockDescriptors2,
+				Status:      common.Status_PENDING,
 			},
 		},
 		LatestStateInfoIndexList: []types.StateInfoIndex{
 			{
 				RollappId: "0",
-				Index:     1,
+				Index:     2,
 			},
 			{
 				RollappId: "1",
-				Index:     1,
+				Index:     2,
 			},
 		},
 		LatestFinalizedStateIndexList: []types.StateInfoIndex{
@@ -76,10 +108,15 @@ var (
 		},
 		BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 			{
-				CreationHeight: 0,
-			},
-			{
 				CreationHeight: 1,
+				FinalizationQueue: []types.StateInfoIndex{
+					{RollappId: "0",
+						Index: 2,
+					},
+					{RollappId: "1",
+						Index: 2,
+					},
+				},
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
