@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -140,12 +138,14 @@ func (k Keeper) ListRollappPacketsByStatus(
 	ctx sdk.Context,
 	status commontypes.Status,
 	maxProofHeight uint64,
-) ([]commontypes.RollappPacket, error) {
+) (list []commontypes.RollappPacket) {
+	logger := ctx.Logger()
 	store := ctx.KVStore(k.storeKey)
 	// switch prefix based on status
 	statusPrefix, err := commontypes.GetStatusBytes(status)
 	if err != nil {
-		return nil, fmt.Errorf("get status bytes: %w", err)
+		logger.Error("Failed to get status bytes", "error", err)
+		return nil
 	}
 	// Iterate over the range from lastProofHeight to proofHeight.
 	// We are guaranteed order by the proof height so can break early if we
@@ -153,39 +153,41 @@ func (k Keeper) ListRollappPacketsByStatus(
 	iterator := sdk.KVStorePrefixIterator(store, statusPrefix)
 	defer iterator.Close() // nolint: errcheck
 
-	ret := make([]commontypes.RollappPacket, 0)
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
 		err := k.cdc.Unmarshal(iterator.Value(), &val)
 		if err != nil {
-			return nil, fmt.Errorf("unmarshal: %w", err)
+			logger.Error("Failed to unmarshal rollapp packet", "error", err)
+			continue
 		}
-		if 0 < maxProofHeight && maxProofHeight < val.ProofHeight {
+		if maxProofHeight == 0 || val.ProofHeight <= maxProofHeight {
+			list = append(list, val)
+		} else {
 			break
 		}
-		ret = append(ret, val)
 	}
-	return ret, nil
+
+	return list
 }
 
-func (k Keeper) GetAllRollappPackets(ctx sdk.Context) ([]commontypes.RollappPacket, error) {
+func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
 
 	// Iterate over the range from lastProofHeight to proofHeight
 	iterator := sdk.KVStorePrefixIterator(store, commontypes.AllRollappPacketKeyPrefix)
 	defer iterator.Close() // nolint: errcheck
 
-	var val commontypes.RollappPacket
-	ret := make([]commontypes.RollappPacket, 0)
 	for ; iterator.Valid(); iterator.Next() {
+		var val commontypes.RollappPacket
 		err := k.cdc.Unmarshal(iterator.Value(), &val)
 		if err != nil {
-			return nil, fmt.Errorf("unmarshal: %w", err)
+			ctx.Logger().Error("Failed to unmarshal rollapp packet", "error", err)
+			continue
 		}
-		ret = append(ret, val)
+		list = append(list, val)
 	}
 
-	return ret, nil
+	return list
 }
 
 func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
