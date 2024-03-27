@@ -47,6 +47,8 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 		IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
 	}
 
+	latestState := make(map[string]uint64)
+
 	for i := 1; i <= n; i++ {
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
@@ -59,6 +61,14 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 			BDs:         blockDescriptors,
 		}
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
+		latestState[RollappIds[i%2]] = uint64(i)
+	}
+	for _, id := range RollappIds {
+		latestStateInfoIndex := types.StateInfoIndex{
+			RollappId: id,
+			Index:     latestState[id],
+		}
+		state.LatestStateInfoIndexList = append(state.LatestStateInfoIndexList, latestStateInfoIndex)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
