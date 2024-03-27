@@ -45,7 +45,7 @@ func (k Keeper) GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*com
 
 	var rollappPacket commontypes.RollappPacket
 	if err := k.cdc.Unmarshal(b, &rollappPacket); err != nil {
-		return nil, fmt.Errorf("unmarshal: %w", err)
+		return nil, err
 	}
 	return &rollappPacket, nil
 }
