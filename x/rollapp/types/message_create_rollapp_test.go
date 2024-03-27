@@ -3,11 +3,24 @@ package types
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
+	defaultMetadata := TokenMetadata{
+		Description: "valid",
+		DenomUnits: []*DenomUnit{
+			{Denom: "uvalid", Exponent: 0},
+			{Denom: "valid", Exponent: 18},
+		},
+		Base:    "uvalid",
+		Display: "valid",
+		Name:    "valid",
+		Symbol:  "VALID",
+	}
+
 	seqDupAddr := sample.AccAddress()
 
 	var tooManyAddresses []string
@@ -24,24 +37,52 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "valid - full features",
+			msg: MsgCreateRollapp{
+				Creator:               sample.AccAddress(),
+				MaxSequencers:         2,
+				RollappId:             "dym_100-1",
+				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
+				Metadatas:             []TokenMetadata{defaultMetadata},
+				GenesisAccounts: []GenesisAccount{
+					{
+						Address: sample.AccAddress(),
+						Amount:  sdk.NewCoin("valid", sdk.NewInt(1000)),
+					},
+				},
+			},
+		},
+		{
+			name: "invalid rollappID",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				RollappId:     " ",
+			},
+			err: ErrInvalidRollappID,
+		},
+		{
 			name: "invalid address",
 			msg: MsgCreateRollapp{
 				Creator:       "invalid_address",
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 			},
-			err: ErrInvalidAddress,
+			err: ErrInvalidCreatorAddress,
 		},
 		{
 			name: "valid address",
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 			},
 		},
 		{
 			name: "no max sequencers set",
 			msg: MsgCreateRollapp{
-				Creator: sample.AccAddress(),
+				Creator:   sample.AccAddress(),
+				RollappId: "dym_100-1",
 			},
 		},
 		{
@@ -49,6 +90,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         2,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		},
@@ -57,6 +99,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         2,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
 			},
 			err: ErrPermissionedAddressesDuplicate,
@@ -66,6 +109,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
 				MaxSequencers:         2,
+				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
 			},
 			err: ErrInvalidPermissionedAddress,
@@ -75,17 +119,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
-				Metadatas: []TokenMetadata{{
-					Description: "valid",
-					DenomUnits: []*DenomUnit{
-						{Denom: "uvalid", Exponent: 0},
-						{Denom: "valid", Exponent: 18},
-					},
-					Base:    "uvalid",
-					Display: "valid",
-					Name:    "valid",
-					Symbol:  "VALID",
-				}},
+				RollappId:     "dym_100-1",
+				Metadatas:     []TokenMetadata{defaultMetadata},
 			},
 			err: nil,
 		},
@@ -94,6 +129,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:       sample.AccAddress(),
 				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
 				Metadatas: []TokenMetadata{{
 					Description: "valid",
 					DenomUnits: []*DenomUnit{
@@ -109,9 +145,25 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidTokenMetadata,
 		},
 		{
+			name: "invalid genesis account address",
+			msg: MsgCreateRollapp{
+				Creator:       sample.AccAddress(),
+				MaxSequencers: 1,
+				RollappId:     "dym_100-1",
+				GenesisAccounts: []GenesisAccount{
+					{
+						Address: "invalid_address",
+						Amount:  sdk.NewCoin("valid", sdk.NewInt(1000)),
+					},
+				},
+			},
+			err: ErrInvalidGenesisAccount,
+		},
+		{
 			name: "more addresses than sequencers", // just trigger one case to see if validation is done or not
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
+				RollappId:             "dym_100-1",
 				MaxSequencers:         1,
 				PermissionedAddresses: validNumberAddresses,
 			},
@@ -121,6 +173,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			name: "too many sequencers", // just trigger one case to see if validation is done or not
 			msg: MsgCreateRollapp{
 				Creator:               sample.AccAddress(),
+				RollappId:             "dym_100-1",
 				MaxSequencers:         200,
 				PermissionedAddresses: tooManyAddresses,
 			},
@@ -129,7 +182,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		{
 			name: "max sequencer not set",
 			msg: MsgCreateRollapp{
-				Creator: sample.AccAddress(),
+				Creator:   sample.AccAddress(),
+				RollappId: "dym_100-1",
 			},
 		},
 	}
@@ -137,7 +191,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err, "test %s failed", tt.name)
+				require.ErrorContains(t, err, tt.err.Error(), "test %s failed", tt.name)
 				return
 			}
 			require.NoError(t, err)

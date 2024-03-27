@@ -1,7 +1,6 @@
 package types
 
 import (
-	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -45,45 +44,31 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
+	// Build the genesis state from the genesis accounts
+	var rollappGenesisState *RollappGenesisState
+	if len(msg.GenesisAccounts) > 0 {
+		rollappGenesisState = &RollappGenesisState{
+			GenesisAccounts: msg.GenesisAccounts,
+			IsGenesisEvent:  false,
+		}
+	}
+
+	// copy TokenMetadata
+	metadata := make([]*TokenMetadata, len(msg.Metadatas))
+	for i := range msg.Metadatas {
+		metadata[i] = &msg.Metadatas[i]
+	}
+
+	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+}
+
 func (msg *MsgCreateRollapp) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
+	rollapp := msg.GetRollapp()
 
-	if msg.GetMaxSequencers() > MaxAllowedSequencers {
-		return sdkerrors.Wrapf(ErrInvalidMaxSequencers, "max sequencers: %d, max sequencers allowed: %d", msg.GetMaxSequencers(), MaxAllowedSequencers)
-	}
-	if uint64(len(msg.PermissionedAddresses)) > msg.GetMaxSequencers() {
-		return sdkerrors.Wrapf(ErrTooManyPermissionedAddresses, "permissioned addresses: %d, max sequencers: %d", len(msg.PermissionedAddresses), msg.GetMaxSequencers())
-	}
-	// verifies that there's no duplicate address in PermissionedAddresses
-	// and addresses are in Bech32 format
-	permissionedAddresses := msg.GetPermissionedAddresses()
-	if len(permissionedAddresses) > 0 {
-		duplicateAddresses := make(map[string]bool)
-		for _, item := range permissionedAddresses {
-			// check if the item/element exist in the duplicateAddresses map
-			_, exist := duplicateAddresses[item]
-			if exist {
-				return sdkerrors.Wrapf(ErrPermissionedAddressesDuplicate, "address: %s", item)
-			}
-			// check Bech32 format
-			if _, err := sdk.AccAddressFromBech32(item); err != nil {
-				return sdkerrors.Wrapf(ErrInvalidPermissionedAddress, "invalid permissioned address: %s", err)
-			}
-			// mark as exist
-			duplicateAddresses[item] = true
-		}
-	}
-
-	// verifies that token metadata, if any, must be valid
-	if len(msg.GetMetadatas()) > 0 {
-		for _, metadata := range msg.GetMetadatas() {
-			if err := metadata.Validate(); err != nil {
-				return sdkerrors.Wrapf(ErrInvalidTokenMetadata, "%s: %v", metadata.Base, err)
-			}
-		}
+	// validate the basics fields
+	if err := rollapp.ValidateBasic(); err != nil {
+		return err
 	}
 
 	return nil
