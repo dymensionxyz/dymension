@@ -30,7 +30,7 @@ func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(
 		// Deploy the virtual frontier bank contract for the new IBC denom.
 		// Error, if any, no state transition will be made.
 		if err := v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base); err != nil {
-			return fmt.Errorf("failed to deploy virtual frontier bank contract for IBC denom %s: %w", newDenomMetadata.Base, err)
+			return fmt.Errorf("deploy virtual frontier bank contract for IBC denom %s: %w", newDenomMetadata.Base, err)
 		}
 	}
 
