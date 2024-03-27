@@ -10,14 +10,14 @@ import (
 
 // RegisterInvariants registers the delayedack module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", PacketsFromFinalizedHeightsAreFinalized(k))
+	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", PacketsFinalizationCorrespondsToFinalizationHeight(k))
 	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", PacketsFromRevertedHeightsAreReverted(k))
 }
 
 // AllInvariants runs all invariants of the x/delayedack module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		res, stop := PacketsFromFinalizedHeightsAreFinalized(k)(ctx)
+		res, stop := PacketsFinalizationCorrespondsToFinalizationHeight(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -29,8 +29,8 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// PacketsFromFinalizedHeightsAreFinalized checks that all rollapp packets stored for a rollapp finalized height are also finalized
-func PacketsFromFinalizedHeightsAreFinalized(k Keeper) sdk.Invariant {
+// PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored f are finalized for all heights up to finalization height, and are non-finalized for posterior heights
+func PacketsFinalizationCorrespondsToFinalizationHeight(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var msg string
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
@@ -55,10 +55,8 @@ func PacketsFromFinalizedHeightsAreFinalized(k Keeper) sdk.Invariant {
 
 		for _, packet := range packets {
 			latestFinalizedHeight := rollappsFinalizedHeight[packet.RollappId]
-			if latestFinalizedHeight == 0 && packet.Status != commontypes.Status_FINALIZED {
-				continue
-			}
-			if (latestFinalizedHeight == 0 || packet.ProofHeight > latestFinalizedHeight) && packet.Status == commontypes.Status_FINALIZED {
+
+			if packet.ProofHeight > latestFinalizedHeight && packet.Status == commontypes.Status_FINALIZED {
 				msg += fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n", packet.ProofHeight, packet.RollappId, packet.Status)
 				return msg, true
 			}
