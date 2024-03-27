@@ -168,7 +168,7 @@ func (v *Verifier) ExecuteProofOnMutableChain(fp fraudtypes.FraudProof) error {
 	if fp.FraudulentBeginBlock != nil {
 		// panic("fraudulent begin block not supported") TODO: remove
 		v.mutableBaseApp.BeginBlock(*fp.FraudulentBeginBlock)
-		// fmt.Println("appHash - beginblock", hex.EncodeToString(v.app.GetAppHashInternal()))
+		// fmt.Println("appHash - beginblock", hex.EncodeToString(v.app.GetAppHashInternal())) // TODO: remove
 	} else {
 		// Need to add some dummy begin block here since it's a new app
 		v.mutableBaseApp.ResetDeliverState()
