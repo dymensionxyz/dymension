@@ -17,7 +17,7 @@ const TypeMsgSubmitFraud = "submit_fraud"
 
 var _ sdk.Msg = &MsgSubmitFraud{}
 
-func NewMsgSubmitFraud(creator string, rollappID string, fraudproof string) *MsgSubmitFraud {
+func NewMsgSubmitFraud(creator string, rollappID string, fraudproof []byte) *MsgSubmitFraud {
 	return &MsgSubmitFraud{
 		Creator:    creator,
 		RollappID:  rollappID,
@@ -67,7 +67,7 @@ func (msg *MsgSubmitFraud) NativeFraudProof() (fraudtypes.FraudProof, error) {
 	fp := abcitypes.FraudProof{}
 	fraud := fraudtypes.FraudProof{}
 
-	err := json.Unmarshal([]byte(msg.FraudProof), &fp)
+	err := json.Unmarshal(msg.FraudProof, &fp)
 	if err != nil {
 		return fraud, fmt.Errorf("unrmashal json: %w", err)
 	}

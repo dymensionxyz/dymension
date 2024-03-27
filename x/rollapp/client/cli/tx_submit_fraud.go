@@ -35,7 +35,7 @@ func CmdSubmitFraud() *cobra.Command {
 			msg := types.NewMsgSubmitFraud(
 				clientCtx.GetFromAddress().String(),
 				argRollappID,
-				string(fileContent),
+				fileContent,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

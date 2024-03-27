@@ -36,11 +36,9 @@ func (k *Keeper) RunFraudProof(fp fraudtypes.FraudProof) error {
 	return nil
 }
 
-// ValidateFraudProof validates fraud proof preState Hash against the state update posted on the hub
+// ValidateFraudProof validates that the proof itself is well-formed and that it is valid against the current state of the chain
 func (k *Keeper) ValidateFraudProof(ctx sdk.Context, rollappID string, fp fraudtypes.FraudProof) error {
-	// validate the fp struct and witnesses
-	_, err := fp.ValidateBasic()
-	if err != nil {
+	if err := fp.ValidateBasic(); err != nil {
 		return fmt.Errorf("validate basic: %w", err)
 	}
 
