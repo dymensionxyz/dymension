@@ -26,7 +26,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	packetMetaData := &types.PacketMetadata{}
 
-	switch rollappPacket.Type {
+	switch t := rollappPacket.Type; t {
 	case commontypes.RollappPacket_ON_RECV:
 		// Handle eibc demand order if exists - Start by validating the memo
 		memo := make(map[string]interface{})
@@ -47,34 +47,22 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 			logger.Error("parsing packet metadata from memo", "error", err)
 			return nil
 		}
-	case commontypes.RollappPacket_ON_TIMEOUT:
-		// Calculate the fee by multiplying the timeout fee by the price
+	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
+		// Calculate the fee by multiplying the fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
 		if err != nil {
 			return err
 		}
-		// Calculate the fee by multiplying the timeout fee by the price
-		feeMultiplier := im.keeper.TimeoutFee(ctx)
+		// Calculate the fee by multiplying the fee by the price
+		var feeMultiplier sdk.Dec
+		if t == commontypes.RollappPacket_ON_TIMEOUT {
+			feeMultiplier = im.keeper.TimeoutFee(ctx)
+		}
+		if t == commontypes.RollappPacket_ON_ACK {
+			feeMultiplier = im.keeper.ErrAckFee(ctx)
+		}
 		if feeMultiplier.IsZero() {
-			logger.Debug("Timeout fee is zero, skipping demand order creation")
-			return nil
-		}
-		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
-		packetMetaData = &types.PacketMetadata{
-			EIBC: &types.EIBCMetadata{
-				Fee: fee,
-			},
-		}
-	case commontypes.RollappPacket_ON_ACK:
-		// Calculate the fee by multiplying the timeout fee by the price
-		amountDec, err := sdk.NewDecFromStr(data.Amount)
-		if err != nil {
-			return err
-		}
-		// Calculate the fee by multiplying the timeout fee by the price
-		feeMultiplier := im.keeper.ErrAckFee(ctx)
-		if feeMultiplier.IsZero() {
-			logger.Debug("ErrAck fee is zero, skipping demand order creation")
+			logger.Debug("fee is zero, skipping demand order creation", "fee type", t)
 			return nil
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
@@ -159,10 +147,10 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		fallthrough
 	case commontypes.RollappPacket_ON_ACK:
 		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
-		demandOrderRecipient = fungibleTokenPacketData.Sender // and to who we tried to send it to
+		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
-		demandOrderRecipient = fungibleTokenPacketData.Receiver // we're the one getting it, just faster
+		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}
 	// Create the demand order and validate it
 	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
