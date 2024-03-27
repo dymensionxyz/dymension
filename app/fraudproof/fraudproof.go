@@ -61,53 +61,48 @@ func NewVerifier(appName string) *Verifier {
 		0,
 		cfg, simapp.EmptyAppOptions{},
 	)
-	storeKeys := rollappApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
-	_ = storeKeys
 
 	return &Verifier{
 		appName: appName,
 		encCfg:  cfg,
-		// moduleNameToStoreKeys: storeKeys,
 		baseApp: rollappApp.GetBaseApp(),
 	}
 }
 
-func (fpv *Verifier) storeKeys() map[string]storetypes.StoreKey {
-	return fpv.baseApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()
+func (v *Verifier) moduleStoreKey(module string) storetypes.StoreKey {
+	return v.baseApp.CommitMultiStore().(*rootmulti.Store).StoreKeysByName()[module]
 }
 
-func (fpv *Verifier) initCleanInstance() {
-	rollapp := baseapp.NewBaseApp(fpv.appName, log.NewNopLogger(), dbm.NewMemDB(), fpv.encCfg.TxConfig.TxDecoder())
-	rollapp.SetMsgServiceRouter(fpv.baseApp.MsgServiceRouter())
-	rollapp.SetBeginBlocker(fpv.baseApp.GetBeginBlocker())
-	rollapp.SetEndBlocker(fpv.baseApp.GetEndBlocker())
-	fpv.mutableBaseApp = rollapp
+func (v *Verifier) initCleanInstance() {
+	rollapp := baseapp.NewBaseApp(v.appName, log.NewNopLogger(), dbm.NewMemDB(), v.encCfg.TxConfig.TxDecoder())
+	rollapp.SetMsgServiceRouter(v.baseApp.MsgServiceRouter())
+	rollapp.SetBeginBlocker(v.baseApp.GetBeginBlocker())
+	rollapp.SetEndBlocker(v.baseApp.GetEndBlocker())
+	v.mutableBaseApp = rollapp
 }
 
 // Init initializes the Verifier from a fraud proof
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L266-L298
-func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
-	if fpv.baseApp == nil {
+func (v *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
+	if v.baseApp == nil {
 		return fmt.Errorf("app not initialized")
 	}
 
-	fpv.initCleanInstance()
+	v.initCleanInstance()
 
-	fpv.mutableBaseApp.SetInitialHeight(fraudProof.GetFraudulentBlockHeight())
+	v.mutableBaseApp.SetInitialHeight(fraudProof.GetFraudulentBlockHeight())
 
-	cms := fpv.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
-	// storeKeys := fpv.moduleNameToStoreKeys
-	storeKeys := fpv.storeKeys()
+	cms := v.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
 	modules := fraudProof.GetModules()
 	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
 	for _, module := range modules {
-		iavlStoreKeys = append(iavlStoreKeys, storeKeys[module])
+		iavlStoreKeys = append(iavlStoreKeys, v.moduleStoreKey(module))
 	}
 
 	// FIXME: make sure non is nil
 
-	fpv.mutableBaseApp.MountStores(iavlStoreKeys...)
+	v.mutableBaseApp.MountStores(iavlStoreKeys...)
 
 	storeKeyToIAVLTree, err := fraudProof.GetDeepIAVLTrees()
 	if err != nil {
@@ -117,12 +112,12 @@ func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 		cms.SetDeepIAVLTree(storeKey, iavlTree)
 	}
 
-	err = fpv.mutableBaseApp.LoadLatestVersion()
+	err = v.mutableBaseApp.LoadLatestVersion()
 	if err != nil {
 		return err
 	}
 
-	fpv.mutableBaseApp.InitChain(abci.RequestInitChain{})
+	v.mutableBaseApp.InitChain(abci.RequestInitChain{})
 
 	return nil
 }
@@ -141,8 +136,8 @@ func (fpv *Verifier) Init(fraudProof *fraudtypes.FraudProof) error {
 // Note: This function mutates the Verifier
 //
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L300-L315
-func (fpv *Verifier) Verify(fraudProof *fraudtypes.FraudProof) error {
-	appHash := fpv.mutableBaseApp.GetAppHashInternal()
+func (v *Verifier) Verify(fraudProof *fraudtypes.FraudProof) error {
+	appHash := v.mutableBaseApp.GetAppHashInternal()
 	fmt.Println("appHash - prestate", hex.EncodeToString(appHash)) // TODO: remove
 
 	if !bytes.Equal(fraudProof.PreStateAppHash, appHash) {
@@ -154,33 +149,33 @@ func (fpv *Verifier) Verify(fraudProof *fraudtypes.FraudProof) error {
 	// Execute fraudulent state transition
 	if fraudProof.FraudulentBeginBlock != nil {
 		panic("fraudulent begin block not supported")
-		// fpv.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
-		// fmt.Println("appHash - beginblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+		// v.app.BeginBlock(*fraudProof.FraudulentBeginBlock)
+		// fmt.Println("appHash - beginblock", hex.EncodeToString(v.app.GetAppHashInternal()))
 	} else {
 		// Need to add some dummy begin block here since its a new app
-		fpv.mutableBaseApp.ResetDeliverState()
-		fpv.mutableBaseApp.SetBeginBlocker(nil)
-		fpv.mutableBaseApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}})
-		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(fpv.mutableBaseApp.GetAppHashInternal()))
+		v.mutableBaseApp.ResetDeliverState()
+		v.mutableBaseApp.SetBeginBlocker(nil)
+		v.mutableBaseApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: fraudProof.BlockHeight + 1}})
+		fmt.Println("appHash - dummy beginblock", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal()))
 
 		if fraudProof.FraudulentDeliverTx != nil {
 			// skip IncrementSequenceDecorator check in AnteHandler
-			fpv.mutableBaseApp.SetAnteHandler(nil)
+			v.mutableBaseApp.SetAnteHandler(nil)
 
-			resp := fpv.mutableBaseApp.DeliverTx(*fraudProof.FraudulentDeliverTx)
+			resp := v.mutableBaseApp.DeliverTx(*fraudProof.FraudulentDeliverTx)
 			if !resp.IsOK() {
 				panic(resp.Log)
 			}
-			fmt.Println("appHash - posttx", hex.EncodeToString(fpv.mutableBaseApp.GetAppHashInternal()))
+			fmt.Println("appHash - posttx", hex.EncodeToString(v.mutableBaseApp.GetAppHashInternal()))
 			SetRollappAddressPrefixes("dym")
 		} else {
 			panic("fraudulent end block not supported")
-			// fpv.app.EndBlock(*fraudProof.FraudulentEndBlock)
-			// fmt.Println("appHash - endblock", hex.EncodeToString(fpv.app.GetAppHashInternal()))
+			// v.app.EndBlock(*fraudProof.FraudulentEndBlock)
+			// fmt.Println("appHash - endblock", hex.EncodeToString(v.app.GetAppHashInternal()))
 		}
 	}
 
-	appHash = fpv.mutableBaseApp.GetAppHashInternal()
+	appHash = v.mutableBaseApp.GetAppHashInternal()
 	fmt.Println("appHash - final", hex.EncodeToString(appHash))
 	if !bytes.Equal(appHash, fraudProof.ExpectedValidAppHash) {
 		return types.ErrInvalidAppHash
