@@ -134,11 +134,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	// Set all the blockHeightToFinalizationQueue
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
 
-		// check all state infos from the queue and all only those that are found and not finalized
 		queue := types.BlockHeightToFinalizationQueue{
 			CreationHeight:    elem.CreationHeight,
 			FinalizationQueue: []types.StateInfoIndex{},
 		}
+
+		// check all state infos from the queue and add all only those that are found, not finalized and should not be finalized
 		for _, stateInfoIndex := range elem.FinalizationQueue {
 			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 			if !found {
