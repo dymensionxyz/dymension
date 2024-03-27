@@ -67,7 +67,7 @@ func validateBlockDescriptor(bd types.BlockDescriptor, preAppStateHash, expected
 		return types.ErrMissingIntermediateStatesRoots
 	}
 
-	for i, isr := range bd.IntermediateStatesRoots[:len(bd.IntermediateStatesRoots)-1] { // go over all but the last
+	for i, isr := range bd.IntermediateStatesRoots[:len(bd.IntermediateStatesRoots)-1] { // the last one has nothing to follow, so can't be a start point
 		if bytes.Equal(isr, preAppStateHash) { // TODO(danwt): what if you have two hashes the same (would require empty block/ no tx?)
 			if bytes.Equal(bd.IntermediateStatesRoots[i+1], expectedValidAppHash) {
 				// in a valid fraud proof, these would be different, but they're not
