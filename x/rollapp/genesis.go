@@ -78,6 +78,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetLatestStateInfoIndex(ctx, elem)
 
 	}
+	// check there are no rollaps without latest state info in case there should be, and remove state info in case of missing latest state info
+	checkAllRollapsHaveLatestStateInfoIndex(ctx, k)
+
 	// Set all the latestFinalizedStateIndex
 	for _, elem := range genState.LatestFinalizedStateIndexList {
 
@@ -124,6 +127,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetLatestFinalizedStateIndex(ctx, elem)
 
 	}
+
+	// check there are no rollaps without latest finalized state info in case there should be, and remove state info if invariant breaking
+	checkAllRollapsHaveLatestFinalizedStateInfoIndex(ctx, k)
+
 	// Set all the blockHeightToFinalizationQueue
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
 
@@ -212,4 +219,43 @@ func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
 
 func removeLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
 	k.RemoveLatestStateInfoIndex(ctx, rollappId)
+}
+
+func checkAllRollapsHaveLatestStateInfoIndex(ctx sdk.Context, k keeper.Keeper) {
+	rollappsList := k.GetAllRollapps(ctx)
+
+	for _, rollapp := range rollappsList {
+		_, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+		if found {
+			continue
+		}
+		// check there is no state info
+		_, found = k.GetStateInfo(ctx, rollapp.RollappId, 1)
+		if found {
+			// invariant breaking
+			k.Logger(ctx).Error("error init genesis missing latest state info for rollapp with existing state info: rollappId %s", rollapp.RollappId)
+			removeAllStateInfo(ctx, k, rollapp.RollappId)
+		}
+	}
+}
+
+func checkAllRollapsHaveLatestFinalizedStateInfoIndex(ctx sdk.Context, k keeper.Keeper) {
+	rollappsList := k.GetAllRollapps(ctx)
+
+	for _, rollapp := range rollappsList {
+		_, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+		if found {
+			continue
+		}
+		// check there is no state info
+		stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, 1)
+		if !found {
+			continue
+		}
+		if stateInfo.Status == common.Status_FINALIZED {
+			// invariant breaking
+			k.Logger(ctx).Error("error init genesis missing latest state info for rollapp with existing finalized state info: rollappId %s", rollapp.RollappId)
+			removeAllStateInfo(ctx, k, rollapp.RollappId)
+		}
+	}
 }
