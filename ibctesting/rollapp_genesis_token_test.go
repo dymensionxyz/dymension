@@ -246,8 +246,8 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 						suite.Require().Equal(roallppGenesisAccount.Amount.Amount, balance.Amount)
 					}
 				}
-
 			}
+
 			_, found = bankKeeper.GetDenomMetaData(suite.ctx, rollappIBCDenom)
 			suite.Require().Equal(tc.expectSavedDenom != "", found)
 		})
