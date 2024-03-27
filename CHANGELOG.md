@@ -49,6 +49,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) apply a pfm patch
 - (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
 - (vfc) [#726](https://github.com/dymensionxyz/dymension/issues/726) Remove denommetadata ibc middleware and register denoms in genesis event
+- (delayedack) [#741](https://github.com/dymensionxyz/dymension/issues/741) Use must unmarshal packet and demand orders
 
 ___
 
