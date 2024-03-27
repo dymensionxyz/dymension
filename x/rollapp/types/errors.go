@@ -8,7 +8,7 @@ import (
 
 // x/rollapp module sentinel errors
 var (
-	ErrRollappExists                       = errorsmod.Register(ModuleName, 1000, "rollapp already exist for this rollapp-id; must use new rollapp-id")
+	ErrRollappExists                       = errorsmod.Register(ModuleName, 1000, "rollapp already exists for this rollapp-id; must use new rollapp-id")
 	ErrInvalidMaxSequencers                = errorsmod.Register(ModuleName, 1001, "invalid max sequencers")
 	ErrInvalidCreatorAddress               = errorsmod.Register(ModuleName, 1002, "invalid creator address")
 	ErrInvalidPermissionedAddress          = errorsmod.Register(ModuleName, 1003, "invalid permissioned address")
@@ -21,15 +21,15 @@ var (
 	ErrMultiUpdateStateInBlock             = errorsmod.Register(ModuleName, 1010, "only one state update can take place per block")
 	ErrInvalidStateRoot                    = errorsmod.Register(ModuleName, 1011, "invalid blocks state root")
 	ErrInvalidIntermediateStatesRoot       = errorsmod.Register(ModuleName, 1012, "invalid blocks intermediate states root")
-	ErrUnauthorizedRollappCreator          = errorsmod.Register(ModuleName, 1013, "rollapp creator not register in whitelist")
+	ErrUnauthorizedRollappCreator          = errorsmod.Register(ModuleName, 1013, "rollapp creator not registered in the whitelist")
 	ErrInvalidClientType                   = errorsmod.Register(ModuleName, 1014, "client type of the rollapp isn't dymint")
 	ErrHeightStateNotFinalized             = errorsmod.Register(ModuleName, 1015, "rollapp block on this height was not finalized yet")
 	ErrInvalidAppHash                      = errorsmod.Register(ModuleName, 1016, "the app hash is different from the finalized state root")
 	ErrStateNotExists                      = errorsmod.Register(ModuleName, 1017, "state of this height doesn't exist")
 	ErrInvalidHeight                       = errorsmod.Register(ModuleName, 1018, "invalid rollapp height")
-	ErrRollappCreatorExceedMaximumRollapps = errorsmod.Register(ModuleName, 1019, "rollapp creator exceed maximum allowed rollapps as register in whitelist")
+	ErrRollappCreatorExceedMaximumRollapps = errorsmod.Register(ModuleName, 1019, "rollapp creator exceeds maximum allowed rollapps as registered in the whitelist")
 	ErrInvalidRollappID                    = errorsmod.Register(ModuleName, 1020, "invalid rollapp-id")
-	ErrEIP155Exists                        = errorsmod.Register(ModuleName, 1021, "EIP155 already exist; must use unique EIP155 identifier")
+	ErrEIP155Exists                        = errorsmod.Register(ModuleName, 1021, "EIP155 already exists; must use unique EIP155 identifier")
 	ErrRollappsDisabled                    = errorsmod.Register(ModuleName, 1022, "rollapps are disabled")
 	ErrInvalidTokenMetadata                = errorsmod.Register(ModuleName, 1023, "invalid token metadata")
 	ErrNoFinalizedStateYetForRollapp       = errorsmod.Register(ModuleName, 1024, "no finalized state yet for rollapp")
