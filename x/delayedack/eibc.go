@@ -25,8 +25,9 @@ const (
 func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	packetMetaData := &types.PacketMetadata{}
-	// If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
-	if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+
+	switch rollappPacket.Type {
+	case commontypes.RollappPacket_ON_RECV:
 		// Handle eibc demand order if exists - Start by validating the memo
 		memo := make(map[string]interface{})
 		err := json.Unmarshal([]byte(data.Memo), &memo)
@@ -46,9 +47,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 			logger.Error("parsing packet metadata from memo", "error", err)
 			return nil
 		}
-	} else
-	// If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
-	if rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+	case commontypes.RollappPacket_ON_TIMEOUT:
 		// Calculate the fee by multiplying the timeout fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
 		if err != nil {
@@ -66,9 +65,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 				Fee: fee,
 			},
 		}
-	} else
-	// ditto per timeout: calculate the fee based on params
-	if rollappPacket.Type == commontypes.RollappPacket_ON_ACK {
+	case commontypes.RollappPacket_ON_ACK:
 		// Calculate the fee by multiplying the timeout fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
 		if err != nil {
