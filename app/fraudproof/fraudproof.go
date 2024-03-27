@@ -86,13 +86,14 @@ func (v *Verifier) initCleanInstance() {
 // This is inspired by https://github.com/rollkit/cosmos-sdk-old/blob/f6c90a66ed7d8006713ce0781ee0c770d5cc9b71/baseapp/abci.go#L266-L298
 func (v *Verifier) Init(fp *fraudtypes.FraudProof) error {
 	if v.baseApp == nil {
-		return fmt.Errorf("base app not initialized")
-	}
-	if v.mutableBaseApp == nil {
-		return fmt.Errorf("mutable base app not initialized")
+		return fmt.Errorf("base app nil")
 	}
 
 	v.initCleanInstance()
+
+	if v.mutableBaseApp == nil { // TODO: can remove? Michael had left a nil check todo
+		return fmt.Errorf("mutable base app nil")
+	}
 
 	v.mutableBaseApp.SetInitialHeight(fp.GetFraudulentBlockHeight())
 
