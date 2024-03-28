@@ -14,7 +14,7 @@ message BlockDescriptor {
   bytes stateRoot = 2; 
   // intermediateStatesRoot is a 32 byte array representing 
   // the root of a Merkle tree built from the ISRs of the block (Intermediate State Roots)
-  bytes intermediateStatesRoot = 3; 
+  repeated bytes intermediateStatesRoots = 3; 
 }
 
 // BlockDescriptors defines list of BlockDescriptor.

@@ -38,7 +38,6 @@ func (k Keeper) StateInfoAll(c context.Context, req *types.QueryAllStateInfoRequ
 		}
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -106,12 +105,13 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 			"LatestStateInfoIndex wasn't found for rollappId=%s",
 			rollappId)
 	}
+
 	// initial interval to search in
-	startInfoIndex := uint64(1) // see TODO bellow
+	startInfoIndex := uint64(1) // see TODO below
 	endInfoIndex := stateInfoIndex.Index
 
 	// get state info
-	LatestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
+	latestStateInfo, found := k.GetStateInfo(ctx, rollappId, endInfoIndex)
 	if !found {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 			"StateInfo wasn't found for rollappId=%s, index=%d",
@@ -119,15 +119,15 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 	}
 
 	// check that height exists
-	if height >= LatestStateInfo.StartHeight+LatestStateInfo.NumBlocks {
+	if height >= latestStateInfo.StartHeight+latestStateInfo.NumBlocks {
 		return nil, sdkerrors.Wrapf(types.ErrStateNotExists,
 			"rollappId=%s, height=%d",
 			rollappId, height)
 	}
 
 	// check if the height belongs to this batch
-	if height >= LatestStateInfo.StartHeight {
-		return &LatestStateInfo, nil
+	if height >= latestStateInfo.StartHeight {
+		return &latestStateInfo, nil
 	}
 
 	maxNumberOfSteps := endInfoIndex - startInfoIndex + 1
@@ -136,6 +136,7 @@ func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height 
 		// we know that endInfoIndex > startInfoIndex
 		// otherwise the height should have been found
 		if endInfoIndex <= startInfoIndex {
+			// TODO: this is very defensive, would be better to panic here?
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
 				"endInfoIndex should be != than startInfoIndex rollappId=%s, startInfoIndex=%d, endInfoIndex=%d",
 				rollappId, startInfoIndex, endInfoIndex)

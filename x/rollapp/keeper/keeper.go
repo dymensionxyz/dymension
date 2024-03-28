@@ -5,6 +5,7 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	sdkfraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,20 +15,23 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		hooks      types.MultiRollappHooks
-		paramstore paramtypes.Subspace
+		cdc      codec.BinaryCodec
+		storeKey storetypes.StoreKey
+		memKey   storetypes.StoreKey
+
+		fraudProofVerifier FraudProofVerifier
+		hooks              types.MultiRollappHooks
+		paramstore         paramtypes.Subspace
 	}
 )
+
+type FraudProofVerifier func(sdkfraudtypes.FraudProof) error
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -35,7 +39,6 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
@@ -48,7 +51,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Set the rollapp hooks
+// SetHooks sets the rollapp hooks
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
@@ -58,4 +61,8 @@ func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 
 func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
+}
+
+func (k *Keeper) SetFraudProofVerifier(fpv FraudProofVerifier) {
+	k.fraudProofVerifier = fpv
 }

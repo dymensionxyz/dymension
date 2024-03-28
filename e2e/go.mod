@@ -1,6 +1,8 @@
 module github.com/dymensionxyz/dymension/e2e
 
-go 1.19
+go 1.21
+
+toolchain go1.22.1
 
 replace (
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
