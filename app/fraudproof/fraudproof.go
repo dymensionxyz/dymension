@@ -124,14 +124,14 @@ func (v *Verifier) InitMutableChain(fp fraudtypes.FraudProof) error {
 
 	//~~~~~~~~~~~~~~
 	// Now we fill the database with all the trees we need, and load it
-	moduleStoreKeyToDeepIAVLTree, err := fp.GetModuleStoreKeysToDeepIAVLTree()
+	moduleNameToTree, err := fp.GetModuleToDeepIAVLTree()
 	if err != nil {
 		return fmt.Errorf("get deep iavl trees: %w", err)
 	}
 
 	cms := v.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
-	for storeKey, iavlTree := range moduleStoreKeyToDeepIAVLTree {
-		cms.SetDeepIAVLTree(storeKey, iavlTree)
+	for module, iavlTree := range moduleNameToTree {
+		cms.SetDeepIAVLTree(module, iavlTree)
 	}
 
 	err = v.mutableBaseApp.LoadLatestVersion()
