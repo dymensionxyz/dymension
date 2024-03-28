@@ -1,0 +1,62 @@
+{
+  "$schema": "../ibc_data.schema.json",
+  "chain_1": {
+    "chain_name": "celestia",
+    "client_id": "07-tendermint-82",
+    "connection_id": "connection-52"
+  },
+  "chain_2": {
+    "chain_name": "dymension",
+    "client_id": "07-tendermint-6",
+    "connection_id": "connection-5"
+    
+  },
+  "channels": [
+    {
+      "chain_1": {
+        "channel_id": "channel-27",
+        "port_id": "transfer"
+      },
+      "chain_2": {
+        "channel_id": "channel-4",
+        "port_id": "transfer"
+      },
+      "ordering": "unordered",
+      "version": "ics20-1",
+      "tags": {
+        "status": "live",
+        "preferred": true
+      }
+    }
+  ],
+ "operators": [
+    {
+      "chain_1": {
+        "address": "celestia1wvj4kuv4jnwc8v6mc6wsddrp3qvwmylpw72s99"
+      },
+      "chain_2": {
+        "address": "dym1nnxgtp6at89q4675edndcawwp9q7knhafe7xx7"
+      },
+      "memo": "Pro-Nodes75 Relayer",
+      "name": "Pro-Nodes75",
+      "discord": {
+        "handle": "sw33pronodes",
+        "id": "748273679711994028"
+      }
+    },
+    {
+      "chain_1": {
+        "address": "celestia1"
+      },
+      "chain_2": {
+        "address": "dym1"
+      },
+      "memo": "",
+      "name": "",
+      "discord": {
+        "handle": "",
+        "id": ""
+      }
+    }
+  ]
+}
