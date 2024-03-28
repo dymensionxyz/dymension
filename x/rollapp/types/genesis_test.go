@@ -53,22 +53,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						},
 					},
 				},
-				LatestStateInfoIndexList: []types.StateInfoIndex{
-					{
-						RollappId: "0",
-					},
-					{
-						RollappId: "1",
-					},
-				},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
-					{
-						CreationHeight: 0,
-					},
-					{
-						CreationHeight: 1,
-					},
-				},
+
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -102,22 +87,6 @@ func TestGenesisState_Validate(t *testing.T) {
 						},
 					},
 				},
-				LatestStateInfoIndexList: []types.StateInfoIndex{
-					{
-						RollappId: "0",
-					},
-					{
-						RollappId: "1",
-					},
-				},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
-					{
-						CreationHeight: 0,
-					},
-					{
-						CreationHeight: 1,
-					},
-				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -129,10 +98,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
 					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr1}},
 				},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				RollappList:   []types.Rollapp{},
+				StateInfoList: []types.StateInfo{},
 			},
 			valid: false,
 		},
@@ -143,10 +110,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
 					DeployerWhitelist:     []types.DeployerParams{},
 				},
-				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				RollappList:   []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
+				StateInfoList: []types.StateInfo{},
 			},
 			valid: false,
 		},
@@ -157,10 +122,8 @@ func TestGenesisState_Validate(t *testing.T) {
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
 					DeployerWhitelist:     []types.DeployerParams{},
 				},
-				RollappList:                        []types.Rollapp{{RollappId: "0"}},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				RollappList:   []types.Rollapp{{RollappId: "0"}},
+				StateInfoList: []types.StateInfo{},
 			},
 			valid: false,
 		},
@@ -171,43 +134,17 @@ func TestGenesisState_Validate(t *testing.T) {
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
 					DeployerWhitelist:     []types.DeployerParams{{"asdad"}},
 				},
-				RollappList:                        []types.Rollapp{{RollappId: "0"}},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
+				RollappList:   []types.Rollapp{{RollappId: "0"}},
+				StateInfoList: []types.StateInfo{},
 			},
 			valid: false,
 		},
 		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}, {StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
-			},
-			valid: false,
-		},
-		{
-			desc: "duplicated latestStateInfoIndex",
-			genState: &types.GenesisState{
-				Params:                             types.Params{},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "0"}},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
-			},
-			valid: false,
-		},
-		{
-			desc: "duplicated blockHeightToFinalizationQueue",
-			genState: &types.GenesisState{
-				Params:                             types.Params{},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
+				Params:        types.Params{},
+				RollappList:   []types.Rollapp{},
+				StateInfoList: []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}, {StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
 			},
 			valid: false,
 		},

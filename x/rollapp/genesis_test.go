@@ -44,81 +44,46 @@ var (
 			{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: "0",
-					Index:     1,
+					Index:     2,
 				},
 				Sequencer:   sample.AccAddress(),
 				NumBlocks:   1,
-				StartHeight: 1,
-				BDs:         blockDescriptors,
-				Status:      common.Status_FINALIZED,
+				StartHeight: 2,
+				BDs:         blockDescriptors2,
+				Status:      common.Status_PENDING,
 			},
 			{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: "1",
-					Index:     1,
+					Index:     2,
 				},
 				Sequencer:   sample.AccAddress(),
 				NumBlocks:   1,
-				StartHeight: 1,
-				BDs:         blockDescriptors,
-				Status:      common.Status_FINALIZED,
+				StartHeight: 2,
+				BDs:         blockDescriptors2,
+				Status:      common.Status_PENDING,
 			},
 			{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: "0",
-					Index:     2,
+					Index:     1,
 				},
 				Sequencer:   sample.AccAddress(),
 				NumBlocks:   1,
-				StartHeight: 2,
-				BDs:         blockDescriptors2,
-				Status:      common.Status_PENDING,
+				StartHeight: 1,
+				BDs:         blockDescriptors,
+				Status:      common.Status_FINALIZED,
 			},
 			{
 				StateInfoIndex: types.StateInfoIndex{
 					RollappId: "1",
-					Index:     2,
+					Index:     1,
 				},
 				Sequencer:   sample.AccAddress(),
 				NumBlocks:   1,
-				StartHeight: 2,
-				BDs:         blockDescriptors2,
-				Status:      common.Status_PENDING,
-			},
-		},
-		LatestStateInfoIndexList: []types.StateInfoIndex{
-			{
-				RollappId: "0",
-				Index:     2,
-			},
-			{
-				RollappId: "1",
-				Index:     2,
-			},
-		},
-		LatestFinalizedStateIndexList: []types.StateInfoIndex{
-			{
-				RollappId: "0",
-				Index:     1,
-			},
-			{
-				RollappId: "1",
-				Index:     1,
-			},
-		},
-		BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
-			{
-				CreationHeight: 1,
-				FinalizationQueue: []types.StateInfoIndex{
-					{
-						RollappId: "0",
-						Index:     2,
-					},
-					{
-						RollappId: "1",
-						Index:     2,
-					},
-				},
+				StartHeight: 1,
+				BDs:         blockDescriptors,
+				Status:      common.Status_FINALIZED,
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
@@ -133,8 +98,6 @@ func TestValidGenesis(t *testing.T) {
 
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
-	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
-	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
 
@@ -196,7 +159,59 @@ func TestStateInfoVersionMismatchInitGenesis(t *testing.T) {
 	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
 }
 
-func TestMissingLatestStateInfoInitGenesis(t *testing.T) {
+func TestMissingStateInfoInitGenesis(t *testing.T) {
+	genesisState.StateInfoList[3] = types.StateInfo{}
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(ctx, *k, genesisState)
+	got := rollapp.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+}
+
+func TestStateInfoWithMissingBlocksInitGenesis(t *testing.T) {
+	bd := types.BlockDescriptors{
+		BD: []types.BlockDescriptor{{
+			Height:                 3,
+			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+		}},
+	}
+	genesisState.StateInfoList[0].StartHeight = 3
+	genesisState.StateInfoList[0].BDs = bd
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(ctx, *k, genesisState)
+	got := rollapp.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+}
+
+func TestStateInfoWithWrongFinalizationInitGenesis(t *testing.T) {
+	bd := types.BlockDescriptors{
+		BD: []types.BlockDescriptor{{
+			Height:                 3,
+			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+		}},
+	}
+	genesisState.StateInfoList = append(genesisState.StateInfoList, types.StateInfo{
+		StateInfoIndex: types.StateInfoIndex{
+			RollappId: "0",
+			Index:     3,
+		},
+		Sequencer:   sample.AccAddress(),
+		NumBlocks:   1,
+		StartHeight: 3,
+		BDs:         bd,
+		Status:      common.Status_FINALIZED,
+	})
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapp.InitGenesis(ctx, *k, genesisState)
+	got := rollapp.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+}
+
+/*func TestMissingLatestStateInfoInitGenesis(t *testing.T) {
 	genesisState.LatestStateInfoIndexList[0].Index = 3
 	k, ctx := keepertest.RollappKeeper(t)
 	rollapp.InitGenesis(ctx, *k, genesisState)
@@ -293,4 +308,4 @@ func TestWrongFinalizationQueueInitGenesis(t *testing.T) {
 	got := rollapp.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 	require.NotEqual(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
-}
+}*/

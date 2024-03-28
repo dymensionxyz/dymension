@@ -10,11 +10,8 @@ const DefaultIndex uint64 = 1
 // DefaultGenesis returns the default Capability genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
-		RollappList:                        []Rollapp{},
-		StateInfoList:                      []StateInfo{},
-		LatestStateInfoIndexList:           []StateInfoIndex{},
-		LatestFinalizedStateIndexList:      []StateInfoIndex{},
-		BlockHeightToFinalizationQueueList: []BlockHeightToFinalizationQueue{},
+		RollappList:   []Rollapp{},
+		StateInfoList: []StateInfo{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -43,36 +40,7 @@ func (gs GenesisState) Validate() error {
 		}
 		stateInfoIndexMap[index] = struct{}{}
 	}
-	// Check for duplicated index in latestStateInfoIndex
-	latestStateInfoIndexIndexMap := make(map[string]struct{})
 
-	for _, elem := range gs.LatestStateInfoIndexList {
-		index := string(LatestStateInfoIndexKey(elem.RollappId))
-		if _, ok := latestStateInfoIndexIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for latestStateInfoIndex")
-		}
-		latestStateInfoIndexIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in latestFinalizedStateIndex
-	latestFinalizedStateIndexIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.LatestFinalizedStateIndexList {
-		index := string(LatestFinalizedStateIndexKey(elem.RollappId))
-		if _, ok := latestFinalizedStateIndexIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for latestFinalizedStateIndex")
-		}
-		latestFinalizedStateIndexIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in blockHeightToFinalizationQueue
-	blockHeightToFinalizationQueueIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.BlockHeightToFinalizationQueueList {
-		index := string(BlockHeightToFinalizationQueueKey(elem.CreationHeight))
-		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for blockHeightToFinalizationQueue")
-		}
-		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
-	}
 	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()

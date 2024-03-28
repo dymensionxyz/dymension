@@ -14,8 +14,8 @@ message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   repeated Rollapp rollappList = 2 [(gogoproto.nullable) = false];
   repeated StateInfo stateInfoList = 3 [(gogoproto.nullable) = false];
-  repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
-  repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
-  repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
+  //repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
+  //repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
+  //repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

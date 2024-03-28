@@ -19,11 +19,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			k.Logger(ctx).Error("error init genesis validating rollapp information: rollapp:%s", elem.RollappId)
 			continue
 		}
-		// check to see if the RollappId has been registered before
-		if _, isFound := k.GetRollapp(ctx, elem.RollappId); isFound {
-			k.Logger(ctx).Error("error init genesis rollapp already exists: rollapp:%s", elem.RollappId)
-			continue
-		}
+
 		// verify rollapp id. err already checked in ValidateBasic
 		rollappId, _ := types.NewChainID(elem.RollappId)
 
@@ -41,143 +37,18 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			k.Logger(ctx).Error("error init genesis validating state info: rollapp:%s: state info index: %d: Error:%s", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err)
 			continue
 		}
-		// load rollapp object for stateful validations
-		rollapp, isFound := k.GetRollapp(ctx, elem.StateInfoIndex.RollappId)
+		// if rollapp is not found, state info is not added
+		_, isFound := k.GetRollapp(ctx, elem.StateInfoIndex.RollappId)
 		if !isFound {
 			k.Logger(ctx).Error("error init genesis rollapp not found for state info: rollapp:%s: state info index: %d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index)
 			continue
 		}
 
-		// check rollapp version
-		if rollapp.Version != elem.Version {
-			k.Logger(ctx).Error("error init genesis state info and rollapp version mismatch: rollapp:%s: state info index: %d: rollapp version:%d: state info version:%d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, rollapp.Version, elem.Version)
-			continue
-		}
-
 		k.SetStateInfo(ctx, elem)
 	}
-	// Set all the latestStateInfoIndex
-	for _, elem := range genState.LatestStateInfoIndexList {
 
-		// check the latest state info is found
-		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
-		if !found {
-			k.Logger(ctx).Error("error init genesis state info not found for latest state info index: rollapp:%s: latest state info index: %d:", elem.RollappId, elem.Index)
-			// invariant breaking. removing all state info for the rollapp
-			removeAllStateInfo(ctx, k, elem.RollappId)
-			continue
-		}
-		// check if there are state infos with higher index
-		_, found = k.GetStateInfo(ctx, elem.RollappId, elem.Index+1)
-		if found {
-			k.Logger(ctx).Error("error init genesis state latest state info index is not the latest: rollapp:%s: latest state info index: %d:", elem.RollappId, elem.Index)
-			// invariant breaking. removing all state info for the rollapp
-			removeAllStateInfo(ctx, k, elem.RollappId)
-			continue
-		}
-		k.SetLatestStateInfoIndex(ctx, elem)
-
-	}
-	// check there are no rollaps without latest state info in case there should be, and remove state info in case of missing latest state info
-	checkAllRollapsHaveLatestStateInfoIndex(ctx, k)
-
-	// Set all the latestFinalizedStateIndex
-	for _, elem := range genState.LatestFinalizedStateIndexList {
-
-		// check the rollapp exists
-		_, found := k.GetStateInfo(ctx, elem.RollappId, elem.Index)
-		if !found {
-			k.Logger(ctx).Error("error init genesis state info not found for latest finalized state info index: rollapp:%s: latest state info index: %d:", elem.RollappId, elem.Index)
-			continue
-		}
-
-		// check there is a latest state info
-		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, elem.RollappId)
-		if !found {
-			k.Logger(ctx).Error("error init genesis latest state info index not found: rollapp:%s", elem.RollappId)
-			continue
-		}
-		latestStateInfo, found := k.GetStateInfo(ctx, elem.RollappId, latestStateInfoIndex.Index)
-		if !found {
-			k.Logger(ctx).Error("error init genesis latest state info not found: rollapp:%s: latest state info index: %d:", elem.RollappId, latestStateInfoIndex.Index)
-			continue
-		}
-
-		// check the latest state info is not previous to the latest finalized state info
-		if latestStateInfo.StateInfoIndex.Index < elem.Index {
-			k.Logger(ctx).Error("error init genesis latest state info index lower than latest finalized state info: rollapp:%s: latest state info index: %d: latest finalized state info index:%d", elem.RollappId, latestStateInfoIndex.Index, elem.Index)
-			// invariant breaking. removing all state info for the rollapp
-			removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
-			removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
-			continue
-		}
-
-		// check all previous state infos are finalized
-		for i := uint64(1); i <= elem.Index; i++ {
-			stateInfo, found := k.GetStateInfo(ctx, elem.RollappId, i)
-			if !found || stateInfo.Status != common.Status_FINALIZED {
-				k.Logger(ctx).Error("error init genesis there are non-finalized state infos previous to the finalized state info: rollapp:%s: state info index: %d: latest finalized state info index:%d", elem.RollappId, stateInfo.StateInfoIndex.Index, elem.Index)
-				// invariant breaking. removing all state info for the rollapp
-				removeAllStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
-				removeLatestStateInfo(ctx, k, latestStateInfo.StateInfoIndex.RollappId)
-				break
-			}
-		}
-
-		k.SetLatestFinalizedStateIndex(ctx, elem)
-
-	}
-
-	// check there are no rollaps without latest finalized state info in case there should be, and remove state info if invariant breaking
-	checkAllRollapsHaveLatestFinalizedStateInfoIndex(ctx, k)
-
-	// Set all the blockHeightToFinalizationQueue
-	for _, elem := range genState.BlockHeightToFinalizationQueueList {
-
-		queue := types.BlockHeightToFinalizationQueue{
-			CreationHeight:    elem.CreationHeight,
-			FinalizationQueue: []types.StateInfoIndex{},
-		}
-
-		// check all state infos from the queue and add all only those that are found, not finalized and should not be finalized
-		for _, stateInfoIndex := range elem.FinalizationQueue {
-			stateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if !found {
-				// Invariant breaking
-				k.Logger(ctx).Error("error init genesis failed to find state in finalization queue: rollappId %s, index %d",
-					stateInfoIndex.RollappId, stateInfoIndex.Index)
-				continue
-			}
-			if stateInfo.Status != common.Status_PENDING {
-				k.Logger(ctx).Error("error init genesis state info in finalization queue is not in pending state: rollappId %s, index %d",
-					stateInfoIndex.RollappId, stateInfoIndex.Index)
-				continue
-			}
-			latestFinalizedIndex, found := k.GetLatestFinalizedStateIndex(ctx, stateInfoIndex.RollappId)
-			if !found {
-				k.Logger(ctx).Error("error init genesis latest finalized index not found: rollappId %s, index %d",
-					stateInfoIndex.RollappId, stateInfoIndex.Index)
-				continue
-			}
-			latestFinalizedStateInfo, found := k.GetStateInfo(ctx, stateInfoIndex.RollappId, latestFinalizedIndex.Index)
-			if !found {
-				k.Logger(ctx).Error("error init genesis latest finalized state info not found: rollappId %s, index %d",
-					stateInfoIndex.RollappId, stateInfoIndex.Index)
-				continue
-			}
-
-			if latestFinalizedStateInfo.StateInfoIndex.Index >= stateInfo.StateInfoIndex.Index {
-				// Invariant breaking
-				k.Logger(ctx).Error("error init genesis state info in finalization queue should be finalized: rollappId %s, index: %d, finalized index:%d",
-					stateInfoIndex.RollappId, stateInfoIndex.Index, latestFinalizedStateInfo.StateInfoIndex.Index)
-			}
-			// adding state info to queue after validating state
-			queue.FinalizationQueue = append(queue.FinalizationQueue, stateInfoIndex)
-
-		}
-		k.SetBlockHeightToFinalizationQueue(ctx, queue)
-
-	}
+	checkAllRollapsStateInfo(ctx, k)
+	buildBlocHeightToFinalizationQueue(ctx, k)
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -189,9 +60,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	genesis.RollappList = k.GetAllRollapps(ctx)
 	genesis.StateInfoList = k.GetAllStateInfo(ctx)
-	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
-	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
-	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
@@ -218,45 +86,74 @@ func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
 	}
 }
 
-func removeLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
-	k.RemoveLatestStateInfoIndex(ctx, rollappId)
-}
-
-func checkAllRollapsHaveLatestStateInfoIndex(ctx sdk.Context, k keeper.Keeper) {
+func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
 	rollappsList := k.GetAllRollapps(ctx)
 
 	for _, rollapp := range rollappsList {
-		_, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-		if found {
+		stateInfoList := k.GetAllRollappStateInfo(ctx, rollapp.RollappId)
+		previousIndex := uint64(0)
+		lastFinalized := uint64(0)
+		prevStateInfoLastBlock := uint64(0)
+		stateInfoIsCorrect := true
+		for _, stateInfo := range stateInfoList {
+			if stateInfo.StateInfoIndex.Index != previousIndex+1 {
+				k.Logger(ctx).Error("error init genesis missing state info: rollapp:%s", rollapp)
+				removeAllStateInfo(ctx, k, rollapp.RollappId)
+				stateInfoIsCorrect = false
+				break
+			}
+			if stateInfo.Status == common.Status_FINALIZED {
+				if lastFinalized != stateInfo.StateInfoIndex.Index-1 {
+					k.Logger(ctx).Error("error init genesis non-continuous finalized state info: rollapp:%s", rollapp)
+					removeAllStateInfo(ctx, k, rollapp.RollappId)
+					stateInfoIsCorrect = false
+					break
+				}
+				lastFinalized = stateInfo.StateInfoIndex.Index
+			}
+
+			if stateInfo.StartHeight-1 != prevStateInfoLastBlock {
+				k.Logger(ctx).Error("error init genesis missing blocks in state info: rollapp:%s", rollapp)
+				removeAllStateInfo(ctx, k, rollapp.RollappId)
+				break
+			}
+			prevStateInfoLastBlock = stateInfo.GetLatestHeight()
+			previousIndex = stateInfo.StateInfoIndex.Index
+		}
+		if !stateInfoIsCorrect {
 			continue
 		}
-		// check there is no state info
-		_, found = k.GetStateInfo(ctx, rollapp.RollappId, 1)
-		if found {
-			// invariant breaking
-			k.Logger(ctx).Error("error init genesis missing latest state info for rollapp with existing state info: rollappId %s", rollapp.RollappId)
-			removeAllStateInfo(ctx, k, rollapp.RollappId)
+		if previousIndex != uint64(0) {
+			k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: previousIndex})
+		}
+		if lastFinalized != uint64(0) {
+			k.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: lastFinalized})
 		}
 	}
 }
 
-func checkAllRollapsHaveLatestFinalizedStateInfoIndex(ctx sdk.Context, k keeper.Keeper) {
+func buildBlocHeightToFinalizationQueue(ctx sdk.Context, k keeper.Keeper) {
+	blockHeightToFinalizationQueue := make(map[uint64][]types.StateInfoIndex)
 	rollappsList := k.GetAllRollapps(ctx)
 
 	for _, rollapp := range rollappsList {
-		_, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-		if found {
-			continue
+		stateInfoList := k.GetAllRollappStateInfo(ctx, rollapp.RollappId)
+
+		for _, stateInfo := range stateInfoList {
+			if stateInfo.Status == common.Status_PENDING {
+				// load FinalizationQueue and update
+				finalizationQueue, found := blockHeightToFinalizationQueue[stateInfo.CreationHeight]
+				newFinalizationQueue := []types.StateInfoIndex{stateInfo.StateInfoIndex}
+				if found {
+					newFinalizationQueue = append(finalizationQueue, newFinalizationQueue...)
+				}
+
+				blockHeightToFinalizationQueue[stateInfo.CreationHeight] = newFinalizationQueue
+			}
 		}
-		// check there is no state info
-		stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, 1)
-		if !found {
-			continue
-		}
-		if stateInfo.Status == common.Status_FINALIZED {
-			// invariant breaking
-			k.Logger(ctx).Error("error init genesis missing latest state info for rollapp with existing finalized state info: rollappId %s", rollapp.RollappId)
-			removeAllStateInfo(ctx, k, rollapp.RollappId)
-		}
+	}
+
+	for height, finalizationQueue := range blockHeightToFinalizationQueue {
+		k.SetBlockHeightToFinalizationQueue(ctx, types.BlockHeightToFinalizationQueue{CreationHeight: height, FinalizationQueue: finalizationQueue})
 	}
 }
