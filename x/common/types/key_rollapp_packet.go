@@ -28,7 +28,7 @@ var (
 // RollappPacketKey constructs a key for a specific RollappPacket
 func RollappPacketKey(
 	rollappPacket *RollappPacket,
-) ([]byte, error) {
+) []byte {
 	// Get the relevant key prefix based on the packet status
 	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
 	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
@@ -48,7 +48,7 @@ func RollappPacketKey(
 	result = append(result, keySeparatorBytes...)
 	result = append(result, packetUIDBytes...)
 
-	return result, nil
+	return result
 }
 
 // MustGetStatusBytes returns the byte representation of the status
