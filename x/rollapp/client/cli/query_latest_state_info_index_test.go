@@ -56,18 +56,18 @@ func networkWithLatestStateIndexObjects(t *testing.T, n int) (*network.Network, 
 		}
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
 	}
-
+	latestStateInfoIndexList := []types.StateInfoIndex{}
 	for i := 0; i < n; i++ {
 		latestStateIndex := types.StateInfoIndex{
 			RollappId: strconv.Itoa(i),
 			Index:     1,
 		}
-		state.LatestStateInfoIndexList = append(state.LatestStateInfoIndexList, latestStateIndex)
+		latestStateInfoIndexList = append(latestStateInfoIndexList, latestStateIndex)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.LatestStateInfoIndexList
+	return network.New(t, cfg), latestStateInfoIndexList
 }
 
 func TestShowLatestStateInfoIndex(t *testing.T) {

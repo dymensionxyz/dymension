@@ -10,6 +10,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/status"
@@ -40,16 +41,19 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 		state.RollappList = append(state.RollappList, rollapp)
 	}
 
-	blockDescriptors := types.BlockDescriptors{BD: make([]types.BlockDescriptor, 1)}
-	blockDescriptors.BD[0] = types.BlockDescriptor{
-		Height:                 1,
-		StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
-		IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
-	}
-
-	latestState := make(map[string]uint64)
+	heights := make(map[string]uint64)
 
 	for i := 1; i <= n; i++ {
+		height, found := heights[RollappIds[i%2]]
+		if !found {
+			height = uint64(1)
+		}
+		blockDescriptors := types.BlockDescriptors{BD: make([]types.BlockDescriptor, 1)}
+		blockDescriptors.BD[0] = types.BlockDescriptor{
+			Height:                 height,
+			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+		}
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: RollappIds[i%2],
@@ -57,19 +61,14 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 			},
 			Sequencer:   sample.AccAddress(),
 			NumBlocks:   1,
-			StartHeight: 1,
+			StartHeight: height,
 			BDs:         blockDescriptors,
+			Status:      commontypes.Status_FINALIZED,
 		}
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
-		latestState[RollappIds[i%2]] = uint64(i)
+		heights[RollappIds[i%2]] = stateInfo.StartHeight + stateInfo.NumBlocks
 	}
-	for _, id := range RollappIds {
-		latestStateInfoIndex := types.StateInfoIndex{
-			RollappId: id,
-			Index:     latestState[id],
-		}
-		state.LatestStateInfoIndexList = append(state.LatestStateInfoIndexList, latestStateInfoIndex)
-	}
+
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
