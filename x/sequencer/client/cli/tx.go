@@ -55,13 +55,13 @@ func CmdCreateSequencer() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
 			var pk cryptotypes.PubKey
+
 			if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(argPubkey), &pk); err != nil {
 				return err
 			}
