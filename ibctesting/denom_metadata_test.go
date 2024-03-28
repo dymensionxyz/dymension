@@ -77,6 +77,6 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.Require().False(found)
 	metadata, found := app.BankKeeper.GetDenomMetaData(suite.hubChain.GetContext(), stakeVoucherDenom.IBCDenom())
 	suite.Require().True(found)
-	suite.Equal("bigstake", metadata.Display)
+	suite.Equal(stakeVoucherDenom.IBCDenom(), metadata.Display)
 	suite.Equal("BIGSTAKE", metadata.Symbol)
 }
