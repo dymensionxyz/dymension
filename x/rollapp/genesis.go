@@ -66,23 +66,16 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 }
 
 func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
-	index, found := k.GetLatestStateInfoIndex(ctx, rollappId)
-	if found {
-		for i := uint64(1); i <= index.Index; i++ {
+	i := uint64(1)
+	for {
+		_, found := k.GetStateInfo(ctx, rollappId, i)
+		if !found {
+			break
+		}
+		if found {
 			k.RemoveStateInfo(ctx, rollappId, i)
 		}
-	} else {
-		i := uint64(1)
-		for {
-			_, found := k.GetStateInfo(ctx, rollappId, i)
-			if !found {
-				break
-			}
-			if found {
-				k.RemoveStateInfo(ctx, rollappId, i)
-			}
-			i++
-		}
+		i++
 	}
 }
 
