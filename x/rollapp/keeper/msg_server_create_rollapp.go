@@ -14,9 +14,21 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
+	rollappId, err := types.NewChainID(msg.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
+	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return nil, types.ErrRollappExists
+	}
+
+	if rollappId.IsEIP155() {
+		// check to see if the RollappId has been registered before with same key
+		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
+			return nil, types.ErrRollappExists
+		}
 	}
 
 	// check to see if there is an active whitelist
@@ -27,7 +39,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	}
 
 	rollapp := msg.GetRollapp()
-	err := rollapp.ValidateBasic()
+	err = rollapp.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}

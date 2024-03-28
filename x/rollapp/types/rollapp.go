@@ -25,7 +25,7 @@ func (r Rollapp) ValidateBasic() error {
 	}
 
 	// validate rollappId
-	_, err = ParseChainID(r.RollappId)
+	_, err = NewChainID(r.RollappId)
 	if err != nil {
 		return err
 	}

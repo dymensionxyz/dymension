@@ -2,7 +2,8 @@ package keeper_test
 
 import (
 	fmt "fmt"
-	"math/rand"
+
+	"github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -116,4 +117,114 @@ func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 
 	suite.App.RollappKeeper.SetParams(suite.Ctx, params)
 	suite.createRollappAndVerify(1, types.ErrRollappsDisabled)
+}
+
+func (suite *RollappTestSuite) TestCreateRollappId() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	tests := []struct {
+		name      string
+		rollappId string
+		eip       bool
+		valid     bool
+	}{
+		{
+			name:      "default is valid",
+			rollappId: "rollapp_1234-1",
+			eip:       true,
+			valid:     true,
+		},
+		{
+			name:      "too long id",
+			rollappId: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+			eip:       false,
+			valid:     false,
+		},
+		{
+			name:      "wrong EIP155",
+			rollappId: "rollapp_ea2413-1",
+			eip:       false,
+			valid:     true,
+		},
+	}
+	for _, test := range tests {
+		suite.Run(test.name, func() {
+			rollapp := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.rollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+
+			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+
+			if test.valid {
+				suite.Require().NoError(err)
+				id, err := types.NewChainID(test.rollappId)
+				suite.Require().NoError(err)
+				if test.eip {
+					suite.Require().True(id.IsEIP155())
+				} else {
+					suite.Require().False(id.IsEIP155())
+				}
+			} else {
+				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+			}
+		})
+	}
+}
+
+func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
+	tests := []struct {
+		name         string
+		rollappId    string
+		badRollappId string
+	}{
+		{
+			name:         "extra whitespace id",
+			rollappId:    "rollapp_1234-1",
+			badRollappId: "rollapp_1234-1  ",
+		},
+		{
+			name:         "same EIP ID",
+			rollappId:    "rollapp_1234-1",
+			badRollappId: "dummy_1234-1",
+		},
+	}
+	for _, test := range tests {
+		suite.Run(test.name, func() {
+			suite.SetupTest()
+			goCtx := sdk.WrapSDKContext(suite.Ctx)
+			rollapp := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.rollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+			suite.Require().NoError(err)
+
+			// get eip155 key
+			id, err := types.NewChainID(test.rollappId)
+
+			suite.Require().NoError(err)
+			suite.Require().NotEqual(0, id.GetEIP155ID())
+			eip155key := id.GetEIP155ID()
+			// eip155 key registers to correct roll app
+			rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+			suite.Require().True(found)
+			suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+			// create bad rollapp
+			badrollapp := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.badRollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+			// it should not be possible to register rollapp name with extra space
+			suite.Require().ErrorIs(err, types.ErrRollappExists)
+		})
+	}
 }
