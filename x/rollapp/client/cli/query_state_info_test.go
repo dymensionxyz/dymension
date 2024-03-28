@@ -42,7 +42,6 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	}
 
 	heights := make(map[string]uint64)
-
 	for i := 1; i <= n; i++ {
 		height, found := heights[RollappIds[i%2]]
 		if !found {
@@ -54,10 +53,11 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
 			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
 		}
+		index := height
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: RollappIds[i%2],
-				Index:     uint64(i),
+				Index:     index,
 			},
 			Sequencer:   sample.AccAddress(),
 			NumBlocks:   1,

@@ -92,7 +92,8 @@ var (
 
 func TestValidGenesis(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.NoError(t, err)
 	got := rollapp.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
@@ -104,10 +105,8 @@ func TestValidGenesis(t *testing.T) {
 func TestMissingRollappInfoGenesis(t *testing.T) {
 	genesisState.RollappList[0].Creator = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.RollappList, got.RollappList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestDuplicatedRollappInitGenesis(t *testing.T) {
@@ -117,55 +116,43 @@ func TestDuplicatedRollappInitGenesis(t *testing.T) {
 	}
 
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.RollappList, got.RollappList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestInvalidRollappIdInitGenesis(t *testing.T) {
 	genesisState.RollappList[0].RollappId = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.RollappList, got.RollappList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestFailedValidationStateInfoInitGenesis(t *testing.T) {
 	genesisState.StateInfoList[0].Sequencer = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestMissingRollappForStateInfoInitGenesis(t *testing.T) {
 	genesisState.RollappList[0] = types.Rollapp{}
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestStateInfoVersionMismatchInitGenesis(t *testing.T) {
 	genesisState.RollappList[0].Version = 1
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestMissingStateInfoInitGenesis(t *testing.T) {
 	genesisState.StateInfoList[3] = types.StateInfo{}
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestStateInfoWithMissingBlocksInitGenesis(t *testing.T) {
@@ -179,10 +166,8 @@ func TestStateInfoWithMissingBlocksInitGenesis(t *testing.T) {
 	genesisState.StateInfoList[0].StartHeight = 3
 	genesisState.StateInfoList[0].BDs = bd
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
 
 func TestStateInfoWithWrongFinalizationInitGenesis(t *testing.T) {
@@ -205,107 +190,6 @@ func TestStateInfoWithWrongFinalizationInitGenesis(t *testing.T) {
 		Status:      common.Status_FINALIZED,
 	})
 	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
+	err := rollapp.InitGenesis(ctx, *k, genesisState)
+	require.Error(t, err)
 }
-
-/*func TestMissingLatestStateInfoInitGenesis(t *testing.T) {
-	genesisState.LatestStateInfoIndexList[0].Index = 3
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.StateInfoList, got.StateInfoList)
-	require.NotEqual(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
-	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
-	require.NotEqual(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
-}
-
-func TestWrongLatestStateInfoInitGenesis(t *testing.T) {
-	genesisState.LatestStateInfoIndexList[0].Index = 1
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
-}
-
-func TestMissingFinalizedStateInfoInitGenesis(t *testing.T) {
-	genesisState.StateInfoList[0] = types.StateInfo{}
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
-}
-
-func TestMissingLatestFinalizedStateInfoInitGenesis(t *testing.T) {
-	genesisState.LatestStateInfoIndexList[0] = types.StateInfoIndex{}
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
-}
-
-func TestWrongFinalizedIndexInitGenesis(t *testing.T) {
-	genesisState.LatestFinalizedStateIndexList[0] = types.StateInfoIndex{
-		RollappId: "0",
-		Index:     3,
-	}
-
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
-}
-
-func TestWrongFinalizedHeightIndexInitGenesis(t *testing.T) {
-	genesisState.LatestFinalizedStateIndexList[0] = types.StateInfoIndex{
-		RollappId: "0",
-		Index:     4,
-	}
-	blockDescriptors3 := types.BlockDescriptors{BD: []types.BlockDescriptor{
-		{
-			Height:                 4,
-			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
-			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
-		},
-	}}
-	genesisState.StateInfoList = append(genesisState.StateInfoList, types.StateInfo{
-		StateInfoIndex: types.StateInfoIndex{
-			RollappId: "0",
-			Index:     4,
-		},
-		Sequencer:   sample.AccAddress(),
-		NumBlocks:   1,
-		StartHeight: 4,
-		BDs:         blockDescriptors3,
-		Status:      common.Status_PENDING,
-	})
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.LatestFinalizedStateIndexList, got.LatestFinalizedStateIndexList)
-}
-
-func TestWrongFinalizationQueueInitGenesis(t *testing.T) {
-	genesisState.BlockHeightToFinalizationQueueList[0] = types.BlockHeightToFinalizationQueue{
-		CreationHeight: 1,
-		FinalizationQueue: []types.StateInfoIndex{
-			{
-				RollappId: "0",
-				Index:     1,
-			},
-		},
-	}
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.NotEqual(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
-}*/

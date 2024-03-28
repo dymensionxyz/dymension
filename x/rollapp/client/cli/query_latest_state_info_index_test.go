@@ -47,7 +47,7 @@ func networkWithLatestStateIndexObjects(t *testing.T, n int) (*network.Network, 
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: strconv.Itoa(i),
-				Index:     uint64(i + 1),
+				Index:     uint64(1),
 			},
 			Sequencer:   sample.AccAddress(),
 			NumBlocks:   1,

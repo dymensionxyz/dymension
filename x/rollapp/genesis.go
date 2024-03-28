@@ -1,7 +1,9 @@
 package rollapp
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -9,15 +11,15 @@ import (
 
 // InitGenesis initializes the capability module's state from a provided genesis
 // state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) error {
 	// Set all the rollapp
 	for _, elem := range genState.RollappList {
 
 		// validate rollapp info
 		err := elem.ValidateBasic()
 		if err != nil {
-			k.Logger(ctx).Error("error init genesis validating rollapp information: rollapp:%s", elem.RollappId)
-			continue
+			removeAllGenesisState(ctx, k)
+			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating rollapp information: rollapp:%s", elem.RollappId)
 		}
 
 		// verify rollapp id. err already checked in ValidateBasic
@@ -34,23 +36,27 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		stateInfo := types.NewMsgUpdateState(elem.Sequencer, elem.StateInfoIndex.RollappId, elem.StartHeight, elem.NumBlocks, elem.DAPath, elem.Version, blockDescriptors)
 		err := stateInfo.ValidateBasic()
 		if err != nil {
-			k.Logger(ctx).Error("error init genesis validating state info: rollapp:%s: state info index: %d: Error:%s", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err)
-			continue
+			removeAllGenesisState(ctx, k)
+			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating state info: rollapp:%s: state info index: %d: Error:%s", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err)
 		}
 		// if rollapp is not found, state info is not added
 		_, isFound := k.GetRollapp(ctx, elem.StateInfoIndex.RollappId)
 		if !isFound {
-			k.Logger(ctx).Error("error init genesis rollapp not found for state info: rollapp:%s: state info index: %d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index)
-			continue
+			removeAllGenesisState(ctx, k)
+			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis rollapp not found for state info: rollapp:%s: state info index: %d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index)
 		}
 
 		k.SetStateInfo(ctx, elem)
 	}
 
-	checkAllRollapsStateInfo(ctx, k)
-	buildBlocHeightToFinalizationQueue(ctx, k)
+	err := checkAllRollapsStateInfo(ctx, k)
+	if err != nil {
+		return err
+	}
+	buildBlockHeightToFinalizationQueue(ctx, k)
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
+	return nil
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -65,21 +71,16 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return genesis
 }
 
-func removeAllStateInfo(ctx sdk.Context, k keeper.Keeper, rollappId string) {
-	i := uint64(1)
-	for {
-		_, found := k.GetStateInfo(ctx, rollappId, i)
-		if !found {
-			break
-		}
-		if found {
-			k.RemoveStateInfo(ctx, rollappId, i)
-		}
-		i++
+func removeAllGenesisState(ctx sdk.Context, k keeper.Keeper) {
+	for _, rollapp := range k.GetAllRollapps(ctx) {
+		k.RemoveRollapp(ctx, rollapp.RollappId)
+	}
+	for _, stateInfo := range k.GetAllStateInfo(ctx) {
+		k.RemoveStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index)
 	}
 }
 
-func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
+func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) error {
 	rollappsList := k.GetAllRollapps(ctx)
 
 	for _, rollapp := range rollappsList {
@@ -88,17 +89,16 @@ func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
 		lastFinalized := uint64(0)
 		prevStateInfoLastBlock := uint64(0)
 		stateInfoIsCorrect := true
+		var errormsg string
 		for _, stateInfo := range stateInfoList {
 			if stateInfo.StateInfoIndex.Index != previousIndex+1 {
-				k.Logger(ctx).Error("error init genesis missing state info: rollapp:%s", rollapp)
-				removeAllStateInfo(ctx, k, rollapp.RollappId)
+				errormsg = "missing state info"
 				stateInfoIsCorrect = false
 				break
 			}
 			if stateInfo.Status == common.Status_FINALIZED {
 				if lastFinalized != stateInfo.StateInfoIndex.Index-1 {
-					k.Logger(ctx).Error("error init genesis non-continuous finalized state info: rollapp:%s", rollapp)
-					removeAllStateInfo(ctx, k, rollapp.RollappId)
+					errormsg = "inconsistent finalized status"
 					stateInfoIsCorrect = false
 					break
 				}
@@ -106,15 +106,16 @@ func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
 			}
 
 			if stateInfo.StartHeight-1 != prevStateInfoLastBlock {
-				k.Logger(ctx).Error("error init genesis missing blocks in state info: rollapp:%s", rollapp)
-				removeAllStateInfo(ctx, k, rollapp.RollappId)
+				errormsg = "missing block in state info"
+				stateInfoIsCorrect = false
 				break
 			}
 			prevStateInfoLastBlock = stateInfo.GetLatestHeight()
 			previousIndex = stateInfo.StateInfoIndex.Index
 		}
 		if !stateInfoIsCorrect {
-			continue
+			removeAllGenesisState(ctx, k)
+			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating state info rollapp:%s: error:%s", rollapp.RollappId, errormsg)
 		}
 		if previousIndex != uint64(0) {
 			k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: previousIndex})
@@ -123,9 +124,10 @@ func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
 			k.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: lastFinalized})
 		}
 	}
+	return nil
 }
 
-func buildBlocHeightToFinalizationQueue(ctx sdk.Context, k keeper.Keeper) {
+func buildBlockHeightToFinalizationQueue(ctx sdk.Context, k keeper.Keeper) {
 	blockHeightToFinalizationQueue := make(map[uint64][]types.StateInfoIndex)
 	rollappsList := k.GetAllRollapps(ctx)
 
