@@ -110,30 +110,35 @@ func (v *Verifier) InitMutableChain(fp fraudtypes.FraudProof) error {
 
 	v.mutableBaseApp.SetInitialHeight(fp.GetFraudulentBlockHeight())
 
-	cms := v.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
+	// ~~~~~~~~~~~~
+	// Convert modules from the proof to local store keys
+	// Tell the store to get ready for each of the module stores that we are going to need
+	// TODO(danwt): this bit is a bit weird, can't we just use the keys from the fp? Give it a shot?
 	modules := fp.GetModules()
-
-	// ~~~~
-	// TODO(danwt): this bit is a bit weird, can't we just use the keys from the fp?
-	iavlStoreKeys := make([]storetypes.StoreKey, 0, len(modules))
+	keys := make([]storetypes.StoreKey, 0, len(modules))
 	for _, module := range modules {
-		iavlStoreKeys = append(iavlStoreKeys, v.moduleStoreKey(module))
+		keys = append(keys, v.moduleStoreKey(module))
 	}
-	v.mutableBaseApp.MountStores(iavlStoreKeys...)
-	// ~~~~
+	v.mutableBaseApp.MountStores(keys...)
+	// ~~~~~~~~~~~~~
 
+	//~~~~~~~~~~~~~~
+	// Now we fill the database with all the trees we need, and load it
 	moduleStoreKeyToDeepIAVLTree, err := fp.GetModuleStoreKeysToDeepIAVLTree()
 	if err != nil {
 		return fmt.Errorf("get deep iavl trees: %w", err)
 	}
-	for moduleStoreKey, iavlTree := range moduleStoreKeyToDeepIAVLTree {
-		cms.SetDeepIAVLTree(moduleStoreKey, iavlTree)
+
+	cms := v.mutableBaseApp.CommitMultiStore().(*rootmulti.Store)
+	for storeKey, iavlTree := range moduleStoreKeyToDeepIAVLTree {
+		cms.SetDeepIAVLTree(storeKey, iavlTree)
 	}
 
 	err = v.mutableBaseApp.LoadLatestVersion()
 	if err != nil {
 		return err
 	}
+	//~~~~~~~~~~~~~~
 
 	v.mutableBaseApp.InitChain(abci.RequestInitChain{})
 
