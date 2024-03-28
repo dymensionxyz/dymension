@@ -100,6 +100,14 @@ func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId stri
 	return rollapptypes.StateInfoIndex{}, false
 }
 
+func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
+	return rollapptypes.StateInfoIndex{}, false
+}
+
+func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
+	return []rollapptypes.Rollapp{}
+}
+
 type SequencerKeeperStub struct{}
 
 func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {
