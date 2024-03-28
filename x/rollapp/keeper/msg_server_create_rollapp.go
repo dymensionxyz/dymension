@@ -14,10 +14,6 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
-	if err := msg.ValidateBasic(); err != nil {
-		return nil, err
-	}
-
 	rollappId, err := types.NewChainID(msg.RollappId)
 	if err != nil {
 		return nil, err
