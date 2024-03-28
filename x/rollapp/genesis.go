@@ -25,7 +25,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		// verify rollapp id. err already checked in ValidateBasic
 		rollappId, _ := types.NewChainID(elem.RollappId)
 
-		elem.RollappId = rollappId.ChainID
+		elem.RollappId = rollappId.GetChainID()
 		k.SetRollapp(ctx, elem)
 	}
 	// Set all the stateInfo
