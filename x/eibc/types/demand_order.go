@@ -22,10 +22,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee s
 	if !ok {
 		return nil, ErrInvalidDemandOrderFee
 	}
-	rollappPacketKey, err := commontypes.RollappPacketKey(&rollappPacket)
-	if err != nil {
-		return nil, err
-	}
+	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
 
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),

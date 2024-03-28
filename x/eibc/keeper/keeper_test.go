@@ -47,7 +47,7 @@ var (
 		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,
 	}
-	rollappPacketKey, _ = commontypes.RollappPacketKey(rollappPacket)
+	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)
 )
 
 type KeeperTestSuite struct {
