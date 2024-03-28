@@ -103,7 +103,7 @@ func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) er
 			Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollapp.RollappId,
 			Base:        ibcBaseDenom,
 			DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
-			Display:     rollapp.TokenMetadata[i].Display,
+			Display:     ibcBaseDenom,
 			Name:        rollapp.TokenMetadata[i].Name,
 			Symbol:      rollapp.TokenMetadata[i].Symbol,
 			URI:         rollapp.TokenMetadata[i].URI,
