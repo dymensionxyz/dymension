@@ -15,6 +15,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -35,6 +36,7 @@ func networkWithSequencersByRollappObjects(t *testing.T, n int) (*network.Networ
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[rollapptypes.ModuleName], &rollappstate))
 
 	rollapp := rollapptypes.Rollapp{
+		Creator:   sample.AccAddress(),
 		RollappId: rollappId,
 	}
 	nullify.Fill(&rollapp)

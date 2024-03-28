@@ -108,6 +108,38 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.EqualError(err, types.ErrRollappExists.Error())
 }
 
+func (suite *RollappTestSuite) TestCreateRollappWrongEIP() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             "rollapp_ea2413-1",
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+}
+
+func (suite *RollappTestSuite) TestCreateRollappTooLongId() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollappName := "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
+
+	// rollapp is the rollapp to create
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             rollappName,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+}
+
 func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
 	suite.SetupTest()
 
@@ -227,4 +259,41 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			suite.Require().ErrorIs(err, types.ErrRollappExists)
 		})
 	}
+}
+
+func (suite *RollappTestSuite) TestOverwriteEIP155SameKey() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+	rollappId := "rollapp_1234-1"  // without whitespace
+	badrollappId := "dummy_1234-1" // with whitespace
+	// create rollapp with normal ID
+	rollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             rollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().NoError(err)
+
+	// get eip155 key
+	id, err := types.NewChainID(rollappId)
+
+	suite.Require().NoError(err)
+	suite.Require().NotNil(id.GetEIP155ID())
+	eip155key := id.GetEIP155ID()
+	// eip155 key registers to correct roll app
+	rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+	suite.Require().True(found)
+	suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+	// create bad rollapp
+	badrollapp := types.MsgCreateRollapp{
+		Creator:               alice,
+		RollappId:             badrollappId,
+		MaxSequencers:         1,
+		PermissionedAddresses: []string{},
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+	// it should not be possible to register rollapp name with same EIP155 Key
+	suite.Require().ErrorIs(err, types.ErrRollappExists)
 }

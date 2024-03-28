@@ -60,6 +60,22 @@ func (k Keeper) RemoveStateInfo(
 }
 
 // GetAllStateInfo returns all stateInfo
+func (k Keeper) GetAllRollappStateInfo(ctx sdk.Context, rollappId string) (list []types.StateInfo) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(rollappId))
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.StateInfo
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
+}
+
+// GetAllStateInfo returns all stateInfo
 func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

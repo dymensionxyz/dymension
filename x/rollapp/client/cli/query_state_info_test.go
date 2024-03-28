@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"testing"
@@ -9,12 +10,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/require"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/network"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -30,16 +33,42 @@ func networkWithStateInfoObjects(t *testing.T, n int) (*network.Network, []types
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
+	for _, id := range RollappIds {
+		rollapp := types.Rollapp{
+			Creator:   sample.AccAddress(),
+			RollappId: id,
+		}
+		state.RollappList = append(state.RollappList, rollapp)
+	}
+
+	heights := make(map[string]uint64)
 	for i := 1; i <= n; i++ {
+		height, found := heights[RollappIds[i%2]]
+		if !found {
+			height = uint64(1)
+		}
+		blockDescriptors := types.BlockDescriptors{BD: make([]types.BlockDescriptor, 1)}
+		blockDescriptors.BD[0] = types.BlockDescriptor{
+			Height:                 height,
+			StateRoot:              bytes.Repeat([]byte{byte(1)}, 32),
+			IntermediateStatesRoot: bytes.Repeat([]byte{byte(1)}, 32),
+		}
+		index := height
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: RollappIds[i%2],
-				Index:     uint64(i),
+				Index:     index,
 			},
+			Sequencer:   sample.AccAddress(),
+			NumBlocks:   1,
+			StartHeight: height,
+			BDs:         blockDescriptors,
+			Status:      commontypes.Status_FINALIZED,
 		}
-		nullify.Fill(&stateInfo)
 		state.StateInfoList = append(state.StateInfoList, stateInfo)
+		heights[RollappIds[i%2]] = stateInfo.StartHeight + stateInfo.NumBlocks
 	}
+
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
