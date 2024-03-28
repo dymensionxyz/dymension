@@ -26,9 +26,7 @@ var (
 )
 
 // RollappPacketKey constructs a key for a specific RollappPacket
-func RollappPacketKey(
-	rollappPacket *RollappPacket,
-) []byte {
+func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	// Get the relevant key prefix based on the packet status
 	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
 	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.

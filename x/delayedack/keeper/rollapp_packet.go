@@ -15,10 +15,7 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.Roll
 	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.DestinationChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 	store := ctx.KVStore(k.storeKey)
-	rollappPacketKey, err := commontypes.RollappPacketKey(&rollappPacket)
-	if err != nil {
-		return err
-	}
+	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
 	b, err := k.cdc.Marshal(&rollappPacket)
 	if err != nil {
 		return err
@@ -103,24 +100,18 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	store := ctx.KVStore(k.storeKey)
 
 	// Delete the old rollapp packet
-	oldKey, err := commontypes.RollappPacketKey(&rollappPacket)
-	if err != nil {
-		return commontypes.RollappPacket{}, err
-	}
+	oldKey := commontypes.RollappPacketKey(&rollappPacket)
 	store.Delete(oldKey)
 	// Update the packet
 	rollappPacket.Status = newStatus
 	// Create a new rollapp packet with the updated status
-	err = k.SetRollappPacket(ctx, rollappPacket)
+	err := k.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
 		return commontypes.RollappPacket{}, err
 	}
 
 	// Call hook subscribers
-	newKey, err := commontypes.RollappPacketKey(&rollappPacket)
-	if err != nil {
-		return commontypes.RollappPacket{}, err
-	}
+	newKey := commontypes.RollappPacketKey(&rollappPacket)
 	keeperHooks := k.GetHooks()
 	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
@@ -179,14 +170,11 @@ func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.Rollap
 
 func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
 	store := ctx.KVStore(k.storeKey)
-	rollappPacketKey, err := commontypes.RollappPacketKey(rollappPacket)
-	if err != nil {
-		return err
-	}
+	rollappPacketKey := commontypes.RollappPacketKey(rollappPacket)
 	store.Delete(rollappPacketKey)
 
 	keeperHooks := k.GetHooks()
-	err = keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
+	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
 	if err != nil {
 		return err
 	}
