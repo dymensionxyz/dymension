@@ -45,7 +45,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetStateInfo(ctx, elem)
 	}
 
-	checkAllRollapsStateInfo(ctx, k)
+	for _, rollapp := range k.GetAllRollapps(ctx) {
+		latestStateInfo, latestFinalizedStateInfo := getLatestStateInfo(ctx, k, rollapp.RollappId)
+		k.SetLatestStateInfoIndex(ctx, latestStateInfo)
+		k.SetLatestFinalizedStateIndex(ctx, latestFinalizedStateInfo)
+	}
 
 	buildBlockHeightToFinalizationQueue(ctx, k)
 	// this line is used by starport scaffolding # genesis/module/init
@@ -64,49 +68,50 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return genesis
 }
 
-func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
-	rollappsList := k.GetAllRollapps(ctx)
+func getLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappID string) (types.StateInfoIndex, types.StateInfoIndex) {
 
-	for _, rollapp := range rollappsList {
-		stateInfoList := k.GetAllRollappStateInfo(ctx, rollapp.RollappId)
-		previousIndex := uint64(0)
-		lastFinalized := uint64(0)
-		prevStateInfoLastBlock := uint64(0)
-		stateInfoIsCorrect := true
-		var errormsg string
-		for _, stateInfo := range stateInfoList {
-			if stateInfo.StateInfoIndex.Index != previousIndex+1 {
-				errormsg = "missing state info"
+	latestStateInfo := types.StateInfoIndex{}
+	latestFinalizedStateInfo := types.StateInfoIndex{}
+	stateInfoList := k.GetAllRollappStateInfo(ctx, rollappID)
+	previousIndex := uint64(0)
+	lastFinalized := uint64(0)
+	prevStateInfoLastBlock := uint64(0)
+	stateInfoIsCorrect := true
+	var errormsg string
+	for _, stateInfo := range stateInfoList {
+		if stateInfo.StateInfoIndex.Index != previousIndex+1 {
+			errormsg = "missing state info"
+			stateInfoIsCorrect = false
+			break
+		}
+		if stateInfo.Status == common.Status_FINALIZED {
+			if lastFinalized != stateInfo.StateInfoIndex.Index-1 {
+				errormsg = "inconsistent finalized status"
 				stateInfoIsCorrect = false
 				break
 			}
-			if stateInfo.Status == common.Status_FINALIZED {
-				if lastFinalized != stateInfo.StateInfoIndex.Index-1 {
-					errormsg = "inconsistent finalized status"
-					stateInfoIsCorrect = false
-					break
-				}
-				lastFinalized = stateInfo.StateInfoIndex.Index
-			}
+			lastFinalized = stateInfo.StateInfoIndex.Index
+		}
 
-			if stateInfo.StartHeight-1 != prevStateInfoLastBlock {
-				errormsg = "missing block in state info"
-				stateInfoIsCorrect = false
-				break
-			}
-			prevStateInfoLastBlock = stateInfo.GetLatestHeight()
-			previousIndex = stateInfo.StateInfoIndex.Index
+		if stateInfo.StartHeight-1 != prevStateInfoLastBlock {
+			errormsg = "missing block in state info"
+			stateInfoIsCorrect = false
+			break
 		}
-		if !stateInfoIsCorrect {
-			panic(fmt.Errorf("error init genesis validating state info rollapp:%s: error:%s", rollapp.RollappId, errormsg))
-		}
-		if previousIndex != uint64(0) {
-			k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: previousIndex})
-		}
-		if lastFinalized != uint64(0) {
-			k.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: lastFinalized})
-		}
+		prevStateInfoLastBlock = stateInfo.GetLatestHeight()
+		previousIndex = stateInfo.StateInfoIndex.Index
 	}
+	if !stateInfoIsCorrect {
+		panic(fmt.Errorf("error init genesis validating state info rollapp:%s: error:%s", rollappID, errormsg))
+	}
+
+	if previousIndex != uint64(0) {
+		latestStateInfo = types.StateInfoIndex{RollappId: rollappID, Index: previousIndex}
+	}
+	if lastFinalized != uint64(0) {
+		latestFinalizedStateInfo = types.StateInfoIndex{RollappId: rollappID, Index: lastFinalized}
+	}
+	return latestStateInfo, latestFinalizedStateInfo
 }
 
 func buildBlockHeightToFinalizationQueue(ctx sdk.Context, k keeper.Keeper) {
