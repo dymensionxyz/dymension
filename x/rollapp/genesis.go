@@ -69,7 +69,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 }
 
 func getLatestStateInfo(ctx sdk.Context, k keeper.Keeper, rollappID string) (types.StateInfoIndex, types.StateInfoIndex) {
-
 	latestStateInfo := types.StateInfoIndex{}
 	latestFinalizedStateInfo := types.StateInfoIndex{}
 	stateInfoList := k.GetAllRollappStateInfo(ctx, rollappID)
