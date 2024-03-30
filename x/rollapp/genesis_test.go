@@ -99,6 +99,41 @@ func TestValidGenesis(t *testing.T) {
 
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
+
+	for _, rollapp := range genesisState.RollappList {
+		expectedLatestStateInfo := types.StateInfoIndex{
+			RollappId: rollapp.RollappId,
+			Index:     2,
+		}
+		latestStateInfo, _ := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+
+		expectedFinalizedStateInfo := types.StateInfoIndex{
+			RollappId: rollapp.RollappId,
+			Index:     1,
+		}
+		latestFinalizedStateInfo, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+
+		expectedFinalizationQueue := []types.BlockHeightToFinalizationQueue{
+			{
+				CreationHeight: 0,
+				FinalizationQueue: []types.StateInfoIndex{
+					{
+						RollappId: "0",
+						Index:     2,
+					},
+					{
+						RollappId: "1",
+						Index:     2,
+					},
+				},
+			},
+		}
+		finalizationQueue := k.GetAllBlockHeightToFinalizationQueue(ctx)
+		require.Equal(t, expectedLatestStateInfo, latestStateInfo)
+		require.Equal(t, expectedFinalizedStateInfo, latestFinalizedStateInfo)
+		require.Equal(t, expectedFinalizationQueue, finalizationQueue)
+	}
+
 	// this line is used by starport scaffolding # genesis/test/assert
 }
 
