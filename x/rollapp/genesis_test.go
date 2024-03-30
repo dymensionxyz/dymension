@@ -92,8 +92,7 @@ var (
 
 func TestValidGenesis(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.NoError(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 	got := rollapp.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
@@ -138,59 +137,99 @@ func TestValidGenesis(t *testing.T) {
 }
 
 func TestMissingRollappInfoGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.RollappList[0].Creator = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestDuplicatedRollappInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.RollappList[1] = types.Rollapp{
 		RollappId: "0",
 		Creator:   sample.AccAddress(),
 	}
-
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestInvalidRollappIdInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.RollappList[0].RollappId = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestFailedValidationStateInfoInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.StateInfoList[0].Sequencer = ""
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestMissingRollappForStateInfoInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.RollappList[0] = types.Rollapp{}
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestStateInfoVersionMismatchInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.RollappList[0].Version = 1
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestMissingStateInfoInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	genesisState.StateInfoList[3] = types.StateInfo{}
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestStateInfoWithMissingBlocksInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	bd := types.BlockDescriptors{
 		BD: []types.BlockDescriptor{{
 			Height:                 3,
@@ -201,11 +240,16 @@ func TestStateInfoWithMissingBlocksInitGenesis(t *testing.T) {
 	genesisState.StateInfoList[0].StartHeight = 3
 	genesisState.StateInfoList[0].BDs = bd
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }
 
 func TestStateInfoWithWrongFinalizationInitGenesis(t *testing.T) {
+	defer func() {
+		err := recover()
+		if err == nil {
+			t.Errorf("did not panic")
+		}
+	}()
 	bd := types.BlockDescriptors{
 		BD: []types.BlockDescriptor{{
 			Height:                 3,
@@ -225,6 +269,5 @@ func TestStateInfoWithWrongFinalizationInitGenesis(t *testing.T) {
 		Status:      common.Status_FINALIZED,
 	})
 	k, ctx := keepertest.RollappKeeper(t)
-	err := rollapp.InitGenesis(ctx, *k, genesisState)
-	require.Error(t, err)
+	rollapp.InitGenesis(ctx, *k, genesisState)
 }

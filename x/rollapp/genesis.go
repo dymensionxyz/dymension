@@ -1,9 +1,9 @@
 package rollapp
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -11,17 +11,15 @@ import (
 
 // InitGenesis initializes the capability module's state from a provided genesis
 // state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) error {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the rollapp
 	for _, elem := range genState.RollappList {
 
 		// validate rollapp info
 		err := elem.ValidateBasic()
 		if err != nil {
-			removeAllGenesisState(ctx, k)
-			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating rollapp information: rollapp:%s", elem.RollappId)
+			panic(fmt.Errorf("error init genesis validating rollapp information: rollapp:%s", elem.RollappId))
 		}
-
 		// verify rollapp id. err already checked in ValidateBasic
 		rollappId, _ := types.NewChainID(elem.RollappId)
 
@@ -36,14 +34,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		stateInfo := types.NewMsgUpdateState(elem.Sequencer, elem.StateInfoIndex.RollappId, elem.StartHeight, elem.NumBlocks, elem.DAPath, elem.Version, blockDescriptors)
 		err := stateInfo.ValidateBasic()
 		if err != nil {
-			removeAllGenesisState(ctx, k)
-			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating state info: rollapp:%s: state info index: %d: Error:%s", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err)
+			panic(fmt.Errorf("error init genesis validating state info: rollapp:%s: state info index: %d: Error:%w", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index, err))
 		}
 		// if rollapp is not found, state info is not added
 		_, isFound := k.GetRollapp(ctx, elem.StateInfoIndex.RollappId)
 		if !isFound {
-			removeAllGenesisState(ctx, k)
-			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis rollapp not found for state info: rollapp:%s: state info index: %d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index)
+			panic(fmt.Errorf("error init genesis rollapp not found for state info: rollapp:%s: state info index: %d", elem.StateInfoIndex.RollappId, elem.StateInfoIndex.Index))
 		}
 
 		k.SetStateInfo(ctx, elem)
@@ -51,12 +47,11 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 
 	err := checkAllRollapsStateInfo(ctx, k)
 	if err != nil {
-		return err
+		panic(fmt.Errorf("error init genesis validating state info: Error:%w", err))
 	}
 	buildBlockHeightToFinalizationQueue(ctx, k)
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
-	return nil
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -69,15 +64,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
-}
-
-func removeAllGenesisState(ctx sdk.Context, k keeper.Keeper) {
-	for _, rollapp := range k.GetAllRollapps(ctx) {
-		k.RemoveRollapp(ctx, rollapp.RollappId)
-	}
-	for _, stateInfo := range k.GetAllStateInfo(ctx) {
-		k.RemoveStateInfo(ctx, stateInfo.StateInfoIndex.RollappId, stateInfo.StateInfoIndex.Index)
-	}
 }
 
 func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) error {
@@ -114,8 +100,7 @@ func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) error {
 			previousIndex = stateInfo.StateInfoIndex.Index
 		}
 		if !stateInfoIsCorrect {
-			removeAllGenesisState(ctx, k)
-			return errorsmod.Wrapf(sdkerrors.ErrLogic, "error init genesis validating state info rollapp:%s: error:%s", rollapp.RollappId, errormsg)
+			panic(fmt.Errorf("error init genesis validating state info rollapp:%s: error:%s", rollapp.RollappId, errormsg))
 		}
 		if previousIndex != uint64(0) {
 			k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: previousIndex})

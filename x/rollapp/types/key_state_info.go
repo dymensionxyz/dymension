@@ -2,7 +2,8 @@ package types
 
 import (
 	"encoding/binary"
-	fmt "fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ binary.ByteOrder
@@ -21,7 +22,7 @@ func StateInfoKey(
 	rollappIdBytes := []byte(stateInfoIndex.RollappId)
 	key = append(key, rollappIdBytes...)
 	key = append(key, []byte("/")...)
-	stateInfoIndexBytes := []byte(fmt.Sprint(stateInfoIndex.Index))
+	stateInfoIndexBytes := sdk.Uint64ToBigEndian(stateInfoIndex.Index)
 	key = append(key, stateInfoIndexBytes...)
 	key = append(key, []byte("/")...)
 
