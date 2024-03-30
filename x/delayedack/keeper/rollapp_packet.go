@@ -96,7 +96,11 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 // UpdateRollappPacketWithStatus deletes the current rollapp packet and creates a new one with and updated status under a new key.
 // Updating the status should be called only with this method as it effects the key of the packet.
 // The assumption is that the passed rollapp packet status field is not updated directly.
-func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket commontypes.RollappPacket, newStatus commontypes.Status) (commontypes.RollappPacket, error) {
+func (k *Keeper) UpdateRollappPacketWithStatus(
+	ctx sdk.Context,
+	rollappPacket commontypes.RollappPacket,
+	newStatus commontypes.Status,
+) (commontypes.RollappPacket, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// Delete the old rollapp packet
@@ -120,31 +124,20 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	return rollappPacket, nil
 }
 
-// ListRollappPacketsByStatus retrieves a list of pending rollapp packets from the KVStore.
-// It builds a prefix using the rollappID and the pending status, and iterates over the range from lastProofHeight to proofHeight.
-// If the packet's proofHeight is less than or equal to the maxProofHeight, it is added to the list.
-// if maxProofHeight is 0, all packets are returned.
-// The function returns the list of pending packets.
-func (k Keeper) ListRollappPacketsByStatus(
-	ctx sdk.Context,
-	status commontypes.Status,
-	maxProofHeight uint64,
-) (list []commontypes.RollappPacket) {
+// ListRollappPackets retrieves a list of rollapp packets from the KVStore by applying the provided filter
+func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter rollappPacketListFilter) (list []commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
-	// switch prefix based on status
-	statusPrefix := commontypes.MustGetStatusBytes(status)
-	// Iterate over the range from lastProofHeight to proofHeight.
-	// We are guaranteed order by the proof height so can break early if we
-	// find a packet with a proof height greater than maxProofHeight
-	iterator := sdk.KVStorePrefixIterator(store, statusPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, listFilter.prefixBytes)
+
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val commontypes.RollappPacket
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if maxProofHeight == 0 || val.ProofHeight <= maxProofHeight {
+
+		if listFilter.filter == nil || listFilter.filter(val) {
 			list = append(list, val)
-		} else {
+		} else if listFilter.stopOnFirstMatch {
 			break
 		}
 	}
@@ -152,29 +145,12 @@ func (k Keeper) ListRollappPacketsByStatus(
 	return list
 }
 
-func (k Keeper) GetAllRollappPackets(ctx sdk.Context) (list []commontypes.RollappPacket) {
-	store := ctx.KVStore(k.storeKey)
-
-	// Iterate over the range from lastProofHeight to proofHeight
-	iterator := sdk.KVStorePrefixIterator(store, commontypes.AllRollappPacketKeyPrefix)
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val commontypes.RollappPacket
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return list
-}
-
 func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
-	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := commontypes.RollappPacketKey(rollappPacket)
-	store.Delete(rollappPacketKey)
 
-	keeperHooks := k.GetHooks()
-	err := keeperHooks.AfterPacketDeleted(ctx, rollappPacket)
+	ctx.KVStore(k.storeKey).Delete(rollappPacketKey)
+
+	err := k.GetHooks().AfterPacketDeleted(ctx, rollappPacket)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	dkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -82,7 +83,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	}
 }
 
-func (suite *DelayedAckTestSuite) TestListRollappPacketsForRollappAtHeight() {
+func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappID := "testRollappID"
 
@@ -106,12 +107,12 @@ func (suite *DelayedAckTestSuite) TestListRollappPacketsForRollappAtHeight() {
 		suite.Require().NoError(err)
 	}
 
-	// Get all rollapp packets
-	packets := keeper.GetAllRollappPackets(ctx)
+	// Get all rollapp packets by rollapp id
+	packets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappID(rollappID))
 	suite.Require().Equal(5, len(packets))
 
 	// Get the packets until height 4
-	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 4)
+	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, commontypes.Status_PENDING, 4, true))
 	suite.Require().Equal(4, len(packets))
 
 	// Update the packet status to finalized
@@ -119,11 +120,12 @@ func (suite *DelayedAckTestSuite) TestListRollappPacketsForRollappAtHeight() {
 		_, err := keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
 		suite.Require().NoError(err)
 	}
-	finalizedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
+
+	finalizedPackets := keeper.ListRollappPackets(ctx, dkeeper.ByStatus(commontypes.Status_FINALIZED))
 	suite.Require().Equal(4, len(finalizedPackets))
 
 	// Get the packets until height 5
-	packets = keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 5)
+	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, commontypes.Status_PENDING, 5, true))
 	suite.Require().Equal(1, len(packets))
 }
 
@@ -148,11 +150,11 @@ func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {
 	packet, err = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
 	suite.Require().NoError(err)
 	suite.Require().Equal(commontypes.Status_FINALIZED, packet.Status)
-	packets := keeper.GetAllRollappPackets(ctx)
+	packets := keeper.ListRollappPackets(ctx, dkeeper.AllRollappPackets())
 	suite.Require().Equal(1, len(packets))
 	// Set the packet and make sure there is only one packet in the store
 	err = keeper.SetRollappPacket(ctx, packet)
 	suite.Require().NoError(err)
-	packets = keeper.GetAllRollappPackets(ctx)
+	packets = keeper.ListRollappPackets(ctx, dkeeper.AllRollappPackets())
 	suite.Require().Equal(1, len(packets))
 }

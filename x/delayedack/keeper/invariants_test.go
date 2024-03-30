@@ -1,13 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/tendermint/tendermint/libs/rand"
-
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/tendermint/tendermint/libs/rand"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
@@ -73,13 +71,15 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 		break
 	}
 
-	// check invariant
-	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+	// check invariants
+	msg, fails := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
+	suite.Require().False(fails, msg)
+	msg, fails = suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
 	suite.Require().False(fails, msg)
 }
 
 func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
-	rollapp := "rollapp_1234-1"
+	const rollappID = "rollapp_1234-1"
 
 	cases := []struct {
 		name             string
@@ -96,13 +96,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			false,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -115,13 +115,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			false,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_REVERTED,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -134,13 +134,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			true,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -153,13 +153,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			true,
 			false,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -172,13 +172,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			false,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -191,13 +191,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			true,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_PENDING,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -210,13 +210,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			false,
 			false,
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 5,
 				Packet:      getNewTestPacket(1),
 			},
 			commontypes.RollappPacket{
-				RollappId:   rollapp,
+				RollappId:   rollappID,
 				Status:      commontypes.Status_FINALIZED,
 				ProofHeight: 15,
 				Packet:      getNewTestPacket(2),
@@ -229,13 +229,13 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			// create rollapp
 			suite.SetupTest()
 			ctx := suite.Ctx
-			suite.CreateRollappWithName(rollapp)
-			proposer := suite.CreateDefaultSequencer(ctx, rollapp)
+			suite.CreateRollappWithName(rollappID)
+			proposer := suite.CreateDefaultSequencer(ctx, rollappID)
 
 			// update state infos
 			stateInfo := rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
+					RollappId: rollappID,
 					Index:     1,
 				},
 				StartHeight: 1,
@@ -245,7 +245,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			}
 			stateInfo2 := rollapptypes.StateInfo{
 				StateInfoIndex: rollapptypes.StateInfoIndex{
-					RollappId: rollapp,
+					RollappId: rollappID,
 					Index:     2,
 				},
 				StartHeight: 11,
@@ -254,36 +254,40 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				Sequencer:   proposer,
 			}
 
-			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
 			// if nothingFinalized true, all the state infos submitted should be pending
-			if !tc.nothingFinalized {
+			if tc.nothingFinalized {
+				stateInfo.Status = commontypes.Status_PENDING
+			} else {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
-					RollappId: rollapp,
+					RollappId: rollappID,
 					Index:     stateInfo.GetIndex().Index,
 				})
-			} else {
-				stateInfo.Status = commontypes.Status_PENDING
 			}
+
+			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
+
 			// if allFinalized true, all the state infos submitted should be finalized
 			if tc.allFinalized {
 				stateInfo2.Status = commontypes.Status_FINALIZED
 			}
 
 			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo2)
+
 			if stateInfo2.Status == commontypes.Status_FINALIZED {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
-					RollappId: rollapp,
+					RollappId: rollappID,
 					Index:     stateInfo2.GetIndex().Index,
 				})
 			}
+
 			suite.App.RollappKeeper.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
-				RollappId: rollapp,
+				RollappId: rollappID,
 				Index:     stateInfo2.GetIndex().Index,
 			})
 
 			// if frozenRollapp true, we should freeze the rollapp and revert pending states
 			if tc.frozenRollapp {
-				err := suite.App.RollappKeeper.HandleFraud(ctx, rollapp, "", 11, proposer)
+				err := suite.App.RollappKeeper.HandleFraud(ctx, rollappID, "", 11, proposer)
 				suite.Require().NoError(err)
 			}
 
@@ -293,8 +297,11 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 			suite.Require().NoError(err)
 
-			// check invariant
-			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+			// check invariants
+			_, failsFinalize := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
+			_, failsRevert := suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
+
+			isBroken := failsFinalize || failsRevert
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}

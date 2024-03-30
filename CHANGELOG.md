@@ -51,6 +51,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rollapp) [#739](https://github.com/dymensionxyz/dymension/issues/739) Use cached context to avoid panic in finalize queue
 - (vfc) [#726](https://github.com/dymensionxyz/dymension/issues/726) Remove denommetadata ibc middleware and register denoms in genesis event
 - (delayedack) [#741](https://github.com/dymensionxyz/dymension/issues/741) Use must unmarshal packet and demand orders
+- (ibc) [#757](https://github.com/dymensionxyz/dymension/issues/757) Fix ibc packet finalization, optimize ibc packet retrieval
 
 ___
 

@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
@@ -32,7 +33,10 @@ func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) error {
-	rollappPendingPackets := im.keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, stateEndHeight)
+	const stopOnFirstMatch = true
+	listFilter := keeper.ByRollappIDAndStatusAndMaxHeight(rollappID, commontypes.Status_PENDING, stateEndHeight, stopOnFirstMatch)
+	rollappPendingPackets := im.keeper.ListRollappPackets(ctx, listFilter)
+
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
@@ -46,10 +50,6 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 		"num packets", len(rollappPendingPackets))
 
 	for _, rollappPacket := range rollappPendingPackets {
-		if rollappPacket.RollappId != rollappID {
-			continue
-		}
-
 		if err := im.finalizeRollappPacket(ctx, rollappID, logger, rollappPacket); err != nil {
 			return fmt.Errorf("finalize rollapp packet: %w", err)
 		}
@@ -59,7 +59,12 @@ func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string
 
 type wrappedFunc func(ctx sdk.Context) error
 
-func (im IBCMiddleware) finalizeRollappPacket(ctx sdk.Context, rollappID string, logger log.Logger, rollappPacket commontypes.RollappPacket) (err error) {
+func (im IBCMiddleware) finalizeRollappPacket(
+	ctx sdk.Context,
+	rollappID string,
+	logger log.Logger,
+	rollappPacket commontypes.RollappPacket,
+) (err error) {
 	logger.Debug("Finalizing IBC rollapp packet",
 		"rollappID", rollappID,
 		"sequence", rollappPacket.Packet.GetSequence(),

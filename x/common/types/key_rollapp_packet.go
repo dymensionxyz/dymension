@@ -15,8 +15,6 @@ const (
 )
 
 var (
-	// AllRollappPacketKeyPrefix is the prefix to retrieve all RollappPackets
-	AllRollappPacketKeyPrefix = []byte{0x00}
 	// PendingRollappPacketKeyPrefix is the prefix for pending rollapp packets
 	PendingRollappPacketKeyPrefix = []byte{0x00, 0x01}
 	// FinalizedRollappPacketKeyPrefix is the prefix for finalized rollapp packets
@@ -27,11 +25,11 @@ var (
 
 // RollappPacketKey constructs a key for a specific RollappPacket
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
+	rollappIdBytes := []byte(rollappPacket.RollappId)
 	// Get the relevant key prefix based on the packet status
-	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
+	statusBytes := mustGetStatusBytes(rollappPacket.Status)
 	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
 	keySeparatorBytes := []byte(KeySeparator)
-	rollappIdBytes := []byte(rollappPacket.RollappId)
 	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
 	// Build the packetUID from the destination channel and sequence number.
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
@@ -39,18 +37,28 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
 
 	// Concatenate the byte slices directly.
-	result := append(statusPrefix, keySeparatorBytes...)
-	result = append(result, proofHeightBytes...)
+	// rollappID/status/proofHeight/packetUID
+	result := append(rollappIdBytes, keySeparatorBytes...)
+	result = append(result, statusBytes...)
 	result = append(result, keySeparatorBytes...)
-	result = append(result, rollappIdBytes...)
+	result = append(result, proofHeightBytes...)
 	result = append(result, keySeparatorBytes...)
 	result = append(result, packetUIDBytes...)
 
 	return result
 }
 
-// MustGetStatusBytes returns the byte representation of the status
-func MustGetStatusBytes(status Status) []byte {
+func RollappIDAndStatusPacketPrefix(rollappID string, status Status) []byte {
+	rollappIdBytes := []byte(rollappID)
+	statusPrefix := mustGetStatusBytes(status)
+	keySeparatorBytes := []byte(KeySeparator)
+	result := append(rollappIdBytes, keySeparatorBytes...)
+	result = append(result, statusPrefix...)
+	return result
+}
+
+// mustGetStatusBytes returns the byte representation of the status
+func mustGetStatusBytes(status Status) []byte {
 	switch status {
 	case Status_PENDING:
 		return PendingRollappPacketKeyPrefix

@@ -10,20 +10,18 @@ import (
 
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 	// Get all the pending packets
-	// TODO (#631): Prefix store by rollappID for efficient querying
-	rollappPendingPackets := k.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)
+	rollappPendingPackets := k.ListRollappPackets(ctx, ByRollappIDAndStatus(rollappID, commontypes.Status_PENDING))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
+
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
-	for _, rollappPacket := range rollappPendingPackets {
-		if rollappPacket.RollappId != rollappID {
-			continue
-		}
 
+	for _, rollappPacket := range rollappPendingPackets {
 		errString := "fraudulent packet"
 		packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
+
 		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
@@ -36,6 +34,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 
 		// Update status to reverted
 		rollappPacket.Error = errString
+
 		rollappPacket, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {
 			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type, "error", err.Error())
@@ -52,6 +51,7 @@ func (k Keeper) writeFailedAck(ctx sdk.Context, rollappPacket commontypes.Rollap
 	if err != nil {
 		return err
 	}
+
 	err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, failedAck)
 	if err != nil {
 		return err
