@@ -21,13 +21,15 @@ func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
 }
 
 // PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored are set to
-// finalized status for all heights up to the latest height
+// finalized status for all heights up to the latest height.
+// Skip the check if the rollapp is frozen
 func (k Keeper) PacketsFinalizationCorrespondsToFinalizationHeight(ctx sdk.Context) (string, bool) {
 	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets, false)(ctx)
 }
 
 // PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored are set to
 // reverted status for all heights up to the latest height
+// Check if the rollapp is frozen
 func (k Keeper) PacketsFromRevertedHeightsAreReverted(ctx sdk.Context) (string, bool) {
 	return k.packetsCorrespondsToStatusHeight(checkRevertedPackets, true)(ctx)
 }
@@ -53,6 +55,8 @@ func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPacke
 		return
 	}
 
+	// will stay 0 if no state is found
+	// but will still check packets
 	var latestFinalizedHeight uint64
 
 	defer func() {
