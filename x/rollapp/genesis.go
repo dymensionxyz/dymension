@@ -45,10 +45,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetStateInfo(ctx, elem)
 	}
 
-	err := checkAllRollapsStateInfo(ctx, k)
-	if err != nil {
-		panic(fmt.Errorf("error init genesis validating state info: Error:%w", err))
-	}
+	checkAllRollapsStateInfo(ctx, k)
+
 	buildBlockHeightToFinalizationQueue(ctx, k)
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
@@ -66,7 +64,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	return genesis
 }
 
-func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) error {
+func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) {
 	rollappsList := k.GetAllRollapps(ctx)
 
 	for _, rollapp := range rollappsList {
@@ -109,7 +107,6 @@ func checkAllRollapsStateInfo(ctx sdk.Context, k keeper.Keeper) error {
 			k.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{RollappId: rollapp.RollappId, Index: lastFinalized})
 		}
 	}
-	return nil
 }
 
 func buildBlockHeightToFinalizationQueue(ctx sdk.Context, k keeper.Keeper) {
