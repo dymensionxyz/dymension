@@ -2,55 +2,57 @@ package keeper
 
 import commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
+type filterFunc func(val commontypes.RollappPacket) bool
+
 type rollappPacketListFilter struct {
-	prefixBytes      []byte
-	filter           func(val commontypes.RollappPacket) bool
-	stopOnFirstMatch bool
+	prefixes        [][]byte
+	filter          filterFunc
+	breakOnMismatch bool
 }
 
 func AllRollappPackets() rollappPacketListFilter {
-	return rollappPacketListFilter{}
+	return rollappPacketListFilter{prefixes: [][]byte{{}}}
 }
 
-func ByRollappIDAndStatus(rollappID string, status commontypes.Status) rollappPacketListFilter {
+func ByRollappIDAndStatus(rollappID string, status ...commontypes.Status) rollappPacketListFilter {
 	return rollappPacketListFilter{
-		prefixBytes: commontypes.RollappIDAndStatusPacketPrefix(rollappID, status),
+		prefixes: buildPrefixes(rollappID, status),
 	}
 }
-
 func ByRollappIDAndStatusAndMaxHeight(
 	rollappID string,
-	status commontypes.Status,
 	maxProofHeight uint64,
-	stopOnFirstMatch bool,
+	breakOnMismatch bool,
+	status ...commontypes.Status,
 ) rollappPacketListFilter {
-	return rollappPacketListFilter{
-		prefixBytes: commontypes.RollappIDAndStatusPacketPrefix(rollappID, status),
-		filter: func(val commontypes.RollappPacket) bool {
-			return val.ProofHeight <= maxProofHeight
-		},
-		stopOnFirstMatch: stopOnFirstMatch,
+	filter := ByRollappIDAndStatus(rollappID, status...)
+	filter.breakOnMismatch = breakOnMismatch
+	filter.filter = func(val commontypes.RollappPacket) bool {
+		return val.ProofHeight <= maxProofHeight // TODO: move into separate modifier
 	}
+	return filter
 }
 
 func ByRollappID(rollappID string) rollappPacketListFilter {
-	return rollappPacketListFilter{
-		prefixBytes: []byte(rollappID),
-	}
+	return ByRollappIDAndStatus(rollappID,
+		commontypes.Status_PENDING,
+		commontypes.Status_FINALIZED,
+		commontypes.Status_REVERTED,
+	)
 }
 
-func ByStatus(status commontypes.Status) rollappPacketListFilter {
-	return rollappPacketListFilter{
-		filter: func(val commontypes.RollappPacket) bool {
-			return val.Status == status
-		},
-	}
+func ByStatus(status ...commontypes.Status) rollappPacketListFilter {
+	return ByRollappIDAndStatus("", status...)
 }
 
-func ByNotStatus(notStatus commontypes.Status) rollappPacketListFilter {
-	return rollappPacketListFilter{
-		filter: func(val commontypes.RollappPacket) bool {
-			return val.Status != notStatus
-		},
+func buildPrefixes(rollappID string, status []commontypes.Status) [][]byte {
+	prefixes := make([][]byte, len(status))
+	for i, s := range status {
+		packet := &commontypes.RollappPacket{
+			RollappId: rollappID,
+			Status:    s,
+		}
+		prefixes[i] = commontypes.RollappPacketStatusAndRollappIDKey(packet)
 	}
+	return prefixes
 }

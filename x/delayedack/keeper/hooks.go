@@ -61,7 +61,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, _ int
 		return nil
 	}
 	// Get all rollapp packets with status != PENDING and delete them
-	toDeletePackets := e.ListRollappPackets(ctx, ByNotStatus(commontypes.Status_PENDING))
+	toDeletePackets := e.ListRollappPackets(ctx, ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED))
 
 	for _, packet := range toDeletePackets {
 		packetCopy := packet

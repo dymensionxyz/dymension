@@ -10,8 +10,8 @@ import (
 var _ binary.ByteOrder
 
 const (
-	// KeySeparator defines the separator for keys
-	KeySeparator = "/"
+	// keySeparator defines the separator for keys
+	keySeparator = "/"
 )
 
 var (
@@ -29,7 +29,7 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	// Get the relevant key prefix based on the packet status
 	statusBytes := mustGetStatusBytes(rollappPacket.Status)
 	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
-	keySeparatorBytes := []byte(KeySeparator)
+	keySeparatorBytes := []byte(keySeparator)
 	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
 	// Build the packetUID from the destination channel and sequence number.
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
@@ -37,9 +37,9 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
 
 	// Concatenate the byte slices directly.
-	// rollappID/status/proofHeight/packetUID
-	result := append(rollappIdBytes, keySeparatorBytes...)
-	result = append(result, statusBytes...)
+	// status/rollappID/proofHeight/packetUID
+	result := append(statusBytes, keySeparatorBytes...)
+	result = append(result, rollappIdBytes...)
 	result = append(result, keySeparatorBytes...)
 	result = append(result, proofHeightBytes...)
 	result = append(result, keySeparatorBytes...)
@@ -48,13 +48,22 @@ func RollappPacketKey(rollappPacket *RollappPacket) []byte {
 	return result
 }
 
-func RollappIDAndStatusPacketPrefix(rollappID string, status Status) []byte {
-	rollappIdBytes := []byte(rollappID)
-	statusPrefix := mustGetStatusBytes(status)
-	keySeparatorBytes := []byte(KeySeparator)
-	result := append(rollappIdBytes, keySeparatorBytes...)
-	result = append(result, statusPrefix...)
-	return result
+// RollappPacketStatusAndRollappIDKey constructs a key prefix for a specific RollappPacket
+// by status and rollappID:
+// "status/rollappID/"
+// by only status:
+// "status/"
+func RollappPacketStatusAndRollappIDKey(rollappPacket *RollappPacket) (result []byte) {
+	rollappIdBytes := []byte(rollappPacket.RollappId)
+	statusPrefix := mustGetStatusBytes(rollappPacket.Status)
+	keySeparatorBytes := []byte(keySeparator)
+	result = append(statusPrefix, keySeparatorBytes...)
+	if rollappPacket.RollappId == "" {
+		return
+	}
+	result = append(result, rollappIdBytes...)
+	result = append(result, keySeparatorBytes...)
+	return
 }
 
 // mustGetStatusBytes returns the byte representation of the status

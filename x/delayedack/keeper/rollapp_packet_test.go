@@ -112,7 +112,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	suite.Require().Equal(5, len(packets))
 
 	// Get the packets until height 4
-	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, commontypes.Status_PENDING, 4, true))
+	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, 4, true, commontypes.Status_PENDING))
 	suite.Require().Equal(4, len(packets))
 
 	// Update the packet status to finalized
@@ -125,7 +125,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	suite.Require().Equal(4, len(finalizedPackets))
 
 	// Get the packets until height 5
-	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, commontypes.Status_PENDING, 5, true))
+	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, 5, true, commontypes.Status_PENDING))
 	suite.Require().Equal(1, len(packets))
 }
 

@@ -60,8 +60,10 @@ func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPacke
 	var latestFinalizedHeight uint64
 
 	defer func() {
-		packets := k.ListRollappPackets(ctx, ByRollappID(rollapp.RollappId))
-		msg = checkPackets(packets, latestFinalizedHeight)
+		if msg == "" {
+			packets := k.ListRollappPackets(ctx, ByRollappID(rollapp.RollappId))
+			msg = checkPackets(packets, latestFinalizedHeight)
+		}
 	}()
 
 	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
@@ -70,9 +72,12 @@ func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPacke
 	}
 
 	latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
-	if found {
-		latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
+	if !found {
+		msg = fmt.Sprintf("latest finalized state info not found for rollapp: %s", rollapp.RollappId)
+		return
 	}
+
+	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
 
 	return
 }
