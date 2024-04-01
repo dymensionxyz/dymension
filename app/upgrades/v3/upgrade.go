@@ -58,7 +58,7 @@ func CreateUpgradeHandler(
 
 		// overwrite params for sequencer module due to proto change
 		seqParams := seqtypes.DefaultParams()
-		seqParams.MinBond = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) //1000DYM
+		seqParams.MinBond = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) // 1000DYM
 		seqkeeper.SetParams(ctx, seqParams)
 
 		return newVM, nil
