@@ -7,7 +7,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -29,7 +28,6 @@ func CreateUpgradeHandler(
 
 		// this will trigger the init Genesis of those modules, as their params struct changed
 		delete(fromVM, delayedacktypes.ModuleName)
-		delete(fromVM, rollapptypes.ModuleName)
 		delete(fromVM, seqtypes.ModuleName)
 
 		// Start running the module migrations
