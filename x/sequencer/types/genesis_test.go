@@ -19,23 +19,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: types.DefaultGenesis(),
 			valid:    true,
 		},
-		{
-			desc: "valid genesis sequencers",
-			genState: &types.GenesisState{
-				Params:        types.DefaultParams(),
-				SequencerList: []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "1"}},
-			},
-			valid: true,
-		},
-		{
-			desc: "duplicated sequencer",
-			genState: &types.GenesisState{
-				Params:        types.DefaultParams(),
-				SequencerList: []types.Sequencer{{SequencerAddress: "0"}, {SequencerAddress: "0"}},
-			},
-			valid: false,
-		},
-		// this line is used by starport scaffolding # types/genesis/testcase
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()

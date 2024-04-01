@@ -7,7 +7,11 @@ import (
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.EpochIdentifier(ctx))
+	return types.NewParams(
+		k.EpochIdentifier(ctx),
+		k.TimeoutFee(ctx),
+		k.ErrAckFee(ctx),
+	)
 }
 
 // SetParams set the params

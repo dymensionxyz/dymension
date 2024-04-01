@@ -31,17 +31,17 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string) Params {
+func NewParams(epochIdentifier string, timeoutFee sdk.Dec, errAckFee sdk.Dec) Params {
 	return Params{
 		EpochIdentifier: epochIdentifier,
-		TimeoutFee:      sdk.MustNewDecFromStr(defaultTimeoutFee),
-		ErrackFee:       sdk.MustNewDecFromStr(defaultErrAckFee),
+		TimeoutFee:      timeoutFee,
+		ErrackFee:       errAckFee,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(defaultEpochIdentifier)
+	return NewParams(defaultEpochIdentifier, sdk.MustNewDecFromStr(defaultTimeoutFee), sdk.MustNewDecFromStr(defaultErrAckFee))
 }
 
 // ParamSetPairs get the params.ParamSet
