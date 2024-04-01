@@ -57,6 +57,7 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 
 	// set the status to unbonded and remove from the unbonding queue if needed
 	seq.Status = types.Unbonded
+	seq.Proposer = false
 	seq.Tokens = sdk.Coins{}
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
