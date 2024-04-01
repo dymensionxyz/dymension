@@ -29,14 +29,10 @@ func CreateUpgradeHandler(
 	configurator module.Configurator,
 	rollappkeeper RollappKeeper,
 	seqkeeper SequencerKeeper,
+	dakeeper DelayedAckKeeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
-
-		// this will trigger the init Genesis of those modules, as their params struct changed
-		delete(fromVM, delayedacktypes.ModuleName)
-		delete(fromVM, rollapptypes.ModuleName)
-		delete(fromVM, seqtypes.ModuleName)
 
 		// reduce the gauge creation fee and remove `add to gauge` fee
 		DYM := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
@@ -49,6 +45,10 @@ func CreateUpgradeHandler(
 		if err != nil {
 			return newVM, err
 		}
+
+		// overwrite params for delayedack module due to proto change
+		daParams := delayedacktypes.DefaultParams()
+		dakeeper.SetParams(ctx, daParams)
 
 		// overwrite params for rollapp module due to proto change
 		rollappParams := rollapptypes.DefaultParams()
