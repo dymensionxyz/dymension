@@ -238,7 +238,7 @@ func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
 					broken = true
 				}
 
-				if stateInfo.Status != commontypes.Status_FINALIZED && stateInfo.Status != commontypes.Status_REVERTED {
+				if stateInfo.Status == commontypes.Status_PENDING {
 					msg += fmt.Sprintf("rollapp (%s) have stateInfo at index %d not finalized or reverted\n", rollapp.RollappId, i)
 					broken = true
 				}
