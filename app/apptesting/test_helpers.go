@@ -81,7 +81,6 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 
 	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
 
-	// FIXME: should be set to correctd default on the ethermint repo
 	// set EnableCreate to false
 	if evmGenesisStateJson, found := defaultGenesisState[evmtypes.ModuleName]; found {
 		// force disable Enable Create of x/evm
