@@ -10,6 +10,15 @@ import (
 // state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
+	// Validate all other genesis fields are empty
+	genesisFields := []int{
+		len(genState.SequencerList),
+	}
+	for _, fieldLength := range genesisFields {
+		if fieldLength != 0 {
+			panic("Only params can be initialized at genesis")
+		}
+	}
 }
 
 // ExportGenesis returns the capability module's exported genesis.

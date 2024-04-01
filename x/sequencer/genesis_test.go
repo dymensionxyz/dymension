@@ -11,10 +11,47 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
-	genesisState := types.GenesisState{Params: types.DefaultParams()}
-	k, ctx := keepertest.SequencerKeeper(t)
-	sequencer.InitGenesis(ctx, *k, genesisState)
-	require.Equal(t, genesisState.Params, k.GetParams(ctx))
+	tests := []struct {
+		name       string
+		params     types.Params
+		sequencers []types.Sequencer
+		expPanic   bool
+	}{
+		{
+			name: "only params - success",
+			params: types.Params{
+				MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
+				UnbondingTime: 100,
+			},
+			sequencers: []types.Sequencer{},
+			expPanic:   false,
+		},
+		{
+			name: "params and demand order - panic",
+			params: types.Params{
+				MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
+				UnbondingTime: 100,
+			},
+			sequencers: []types.Sequencer{{SequencerAddress: "0"}},
+			expPanic:   true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			genesisState := types.GenesisState{Params: tt.params, SequencerList: tt.sequencers}
+			k, ctx := keepertest.SequencerKeeper(t)
+			if tt.expPanic {
+				require.Panics(t, func() {
+					sequencer.InitGenesis(ctx, *k, genesisState)
+				})
+			} else {
+				sequencer.InitGenesis(ctx, *k, genesisState)
+				params := k.GetParams(ctx)
+				require.Equal(t, genesisState.Params, params)
+			}
+		})
+	}
 }
 
 func TestExportGenesis(t *testing.T) {
