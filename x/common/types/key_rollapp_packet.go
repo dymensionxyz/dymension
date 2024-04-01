@@ -25,36 +25,18 @@ var (
 // RollappPacketKey constructs a key for a specific RollappPacket
 // status/rollappID/proofHeight/packetUID
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
-	// Get the relevant key prefix based on the packet status
-	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
-	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
-	rollappIdBytes := []byte(rollappPacket.RollappId)
-	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
-	// Build the packetUID from the destination channel and sequence number.
+	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
 	packetDestinationChannelBytes := []byte(rollappPacket.Packet.DestinationChannel)
 	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
-
-	// Concatenate the byte slices directly.
-	result := append(statusPrefix, keySeparatorBytes...)
-	result = append(result, rollappIdBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, proofHeightBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, packetUIDBytes...)
-
-	return result
+	result := append(srppPrefix, keySeparatorBytes...)
+	return append(result, packetUIDBytes...)
 }
 
-func RollappPacketByStatusByRollappIDMaxProofHeightPrefixes(rollappID string, status Status, proofHeight uint64) ([]byte, []byte) {
-	return RollappPacketByStatusByRollappIDByMaxProofHeightPrefix(rollappID, status, 0),
-		RollappPacketByStatusByRollappIDByMaxProofHeightPrefix(rollappID, status, proofHeight+1) // inclusive end
-}
-
-// RollappPacketByStatusByRollappIDByMaxProofHeightPrefix constructs a key prefix for a specific RollappPacket
+// RollappPacketByStatusByRollappIDByProofHeightPrefix constructs a key prefix for a specific RollappPacket
 // by rollappID, status and proofHeight:
 // "rollappID/status/proofHeight"
-func RollappPacketByStatusByRollappIDByMaxProofHeightPrefix(rollappID string, status Status, proofHeight uint64) []byte {
+func RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID string, status Status, proofHeight uint64) []byte {
 	return append(RollappPacketByStatusByRollappIDPrefix(status, rollappID), sdk.Uint64ToBigEndian(proofHeight)...)
 }
 

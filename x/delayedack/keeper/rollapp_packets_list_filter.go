@@ -15,13 +15,14 @@ func PendingByRollappIDByMaxHeight(
 	rollappID string,
 	maxProofHeight uint64,
 ) rollappPacketListFilter {
-	start, end := commontypes.RollappPacketByStatusByRollappIDMaxProofHeightPrefixes(
-		rollappID,
-		commontypes.Status_PENDING,
-		maxProofHeight,
-	)
+	status := commontypes.Status_PENDING
 	return rollappPacketListFilter{
-		prefixes: []prefix{{start: start, end: end}},
+		prefixes: []prefix{
+			{
+				start: commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, 0),
+				end:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, maxProofHeight+1), // inclusive end
+			},
+		},
 	}
 }
 
