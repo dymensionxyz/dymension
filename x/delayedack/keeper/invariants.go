@@ -6,108 +6,107 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+)
+
+const (
+	routeFinalizedPacket = "rollapp-finalized-packet"
+	routeRevertedPacket  = "rollapp-reverted-packet"
 )
 
 // RegisterInvariants registers the delayedack module invariants
-func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-packet", PacketsFinalizationCorrespondsToFinalizationHeight(k))
-	ir.RegisterRoute(types.ModuleName, "rollapp-reverted-packet", PacketsFromRevertedHeightsAreReverted(k))
+func (k Keeper) RegisterInvariants(ir sdk.InvariantRegistry) {
+	ir.RegisterRoute(types.ModuleName, routeFinalizedPacket, k.PacketsFinalizationCorrespondsToFinalizationHeight)
+	ir.RegisterRoute(types.ModuleName, routeRevertedPacket, k.PacketsFromRevertedHeightsAreReverted)
 }
 
-// AllInvariants runs all invariants of the x/delayedack module.
-func AllInvariants(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		res, stop := PacketsFinalizationCorrespondsToFinalizationHeight(k)(ctx)
-		if stop {
-			return res, stop
+// PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored are set to
+// finalized status for all heights up to the latest height.
+// Skip the check if the rollapp is frozen
+func (k Keeper) PacketsFinalizationCorrespondsToFinalizationHeight(ctx sdk.Context) (string, bool) {
+	return k.packetsCorrespondsToStatusHeight(checkFinalizedPackets, false)(ctx)
+}
+
+// PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored are set to
+// reverted status for all heights up to the latest height
+// Check if the rollapp is frozen
+func (k Keeper) PacketsFromRevertedHeightsAreReverted(ctx sdk.Context) (string, bool) {
+	return k.packetsCorrespondsToStatusHeight(checkRevertedPackets, true)(ctx)
+}
+
+type checkPacketsFn func(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) string
+
+// packetsCorrespondsToStatusHeight checks that all rollapp packets stored are set to adequate status for all heights up to the latest height
+func (k Keeper) packetsCorrespondsToStatusHeight(checkPackets checkPacketsFn, checkRollappFrozen bool) sdk.Invariant {
+	return func(ctx sdk.Context) (msg string, stop bool) {
+		for _, rollapp := range k.rollappKeeper.GetAllRollapps(ctx) {
+			msg = k.checkRollapp(ctx, rollapp, checkPackets, checkRollappFrozen)
+			if stop = msg != ""; stop {
+				break
+			}
 		}
-		res, stop = PacketsFromRevertedHeightsAreReverted(k)(ctx)
-		if stop {
-			return res, stop
-		}
-		return "", false
+
+		return
 	}
 }
 
-// PacketsFinalizationCorrespondsToFinalizationHeight checks that all rollapp packets stored f are finalized for all heights up to finalization height, and are non-finalized for posterior heights
-func PacketsFinalizationCorrespondsToFinalizationHeight(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var msg string
-		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
-
-		rollappsFinalizedHeight := make(map[string]uint64)
-		for _, rollapp := range rollapps {
-			rollappsFinalizedHeight[rollapp.RollappId] = 0
-
-			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-			if !found {
-				continue
-			}
-			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
-			if !found {
-				continue
-			}
-			rollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestHeight()
-
-		}
-
-		packets := k.GetAllRollappPackets(ctx)
-
-		for _, packet := range packets {
-			latestFinalizedHeight := rollappsFinalizedHeight[packet.RollappId]
-
-			if packet.ProofHeight > latestFinalizedHeight && packet.Status == commontypes.Status_FINALIZED {
-				msg += fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n", packet.ProofHeight, packet.RollappId, packet.Status)
-				return msg, true
-			}
-			if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
-				msg += fmt.Sprintf("rollapp packet for the height should be in finalized status. height=%d, rollapp=%s, status=%s\n", packet.ProofHeight, packet.RollappId, packet.Status)
-				return msg, true
-			}
-		}
-		return msg, false
+func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPackets checkPacketsFn, checkFrozen bool) (msg string) {
+	if checkFrozen && !rollapp.Frozen {
+		return
 	}
+
+	// will stay 0 if no state is found
+	// but will still check packets
+	var latestFinalizedHeight uint64
+
+	defer func() {
+		if msg == "" {
+			packets := k.ListRollappPackets(ctx, ByRollappID(rollapp.RollappId))
+			msg = checkPackets(packets, latestFinalizedHeight)
+		}
+	}()
+
+	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+	if !found {
+		return
+	}
+
+	latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
+	if !found {
+		msg = fmt.Sprintf("latest finalized state info not found for rollapp: %s", rollapp.RollappId)
+		return
+	}
+
+	latestFinalizedHeight = latestFinalizedStateInfo.GetLatestHeight()
+
+	return
 }
 
-// PacketsFromRevertedHeightsAreReverted checks that all rollapp packets stored for a rollapp reverted height are also reverted
-func PacketsFromRevertedHeightsAreReverted(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		var msg string
-
-		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
-
-		frozenRollappsFinalizedHeight := make(map[string]uint64)
-
-		for _, rollapp := range rollapps {
-			if !rollapp.Frozen {
-				continue
-			}
-			frozenRollappsFinalizedHeight[rollapp.RollappId] = 0
-
-			latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-			if !found {
-				continue
-			}
-			latestFinalizedStateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp.RollappId, latestFinalizedStateIndex.Index)
-			if !found {
-				continue
-			}
-			frozenRollappsFinalizedHeight[rollapp.RollappId] = latestFinalizedStateInfo.GetLatestHeight()
-
+// checkFinalizedPackets checks that all rollapp packets stored are set to finalized status for all heights up to the latest height
+func checkFinalizedPackets(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) (_ string) {
+	for _, packet := range packets {
+		if packet.ProofHeight > latestFinalizedHeight && packet.Status == commontypes.Status_FINALIZED {
+			return fmt.Sprintf("rollapp packet for the height should not be in finalized status. height=%d, rollapp=%s, status=%s\n",
+				packet.ProofHeight, packet.RollappId, packet.Status)
 		}
 
-		// TODO (srene) explore how to GetRollappPacket by rollapp to be more efficient (https://github.com/dymensionxyz/dymension/issues/631)
-		for _, packet := range k.GetAllRollappPackets(ctx) {
-			latestFinalizedHeight, found := frozenRollappsFinalizedHeight[packet.RollappId]
-			if !found {
-				continue
-			}
-
-			if packet.ProofHeight > latestFinalizedHeight && packet.Status != commontypes.Status_REVERTED {
-				msg += fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s", packet.RollappId, packet.ProofHeight, packet.Status)
-				return msg, true
-			}
+		if packet.ProofHeight <= latestFinalizedHeight && packet.Status != commontypes.Status_FINALIZED {
+			return fmt.Sprintf("rollapp packet for the height should be in finalized status. height=%d, rollapp=%s, status=%s\n",
+				packet.ProofHeight, packet.RollappId, packet.Status)
 		}
-		return msg, false
 	}
+
+	return
+}
+
+// checkRevertedPackets checks that all rollapp packets stored are set to reverted status for all heights up to the latest height
+func checkRevertedPackets(packets []commontypes.RollappPacket, latestFinalizedHeight uint64) (_ string) {
+	for _, packet := range packets {
+		if packet.ProofHeight > latestFinalizedHeight && packet.Status != commontypes.Status_REVERTED {
+			return fmt.Sprintf("packet should be reverted: rollapp: %s: height: %d: status: %s",
+				packet.RollappId, packet.ProofHeight, packet.Status)
+		}
+	}
+
+	return
 }

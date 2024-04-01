@@ -63,10 +63,9 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 		return nil
 	}
 	// Get all rollapp packets with status != PENDING and delete them
-	finalizedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED, 0)
-	revertedRollappPackets := e.ListRollappPacketsByStatus(ctx, commontypes.Status_REVERTED, 0)
-	toDeletePackats := append(finalizedRollappPackets, revertedRollappPackets...)
-	for _, packet := range toDeletePackats {
+	// tech debt: this slice can potentially take up a lot of memory
+	toDeletePackets := e.ListRollappPackets(ctx, ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED))
+	for _, packet := range toDeletePackets {
 		packetCopy := packet
 		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
 			return e.deleteRollappPacket(ctx, &packetCopy)

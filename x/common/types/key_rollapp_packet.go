@@ -9,11 +9,6 @@ import (
 
 var _ binary.ByteOrder
 
-const (
-	// KeySeparator defines the separator for keys
-	KeySeparator = "/"
-)
-
 var (
 	// AllRollappPacketKeyPrefix is the prefix to retrieve all RollappPackets
 	AllRollappPacketKeyPrefix = []byte{0x00}
@@ -23,30 +18,45 @@ var (
 	FinalizedRollappPacketKeyPrefix = []byte{0x00, 0x02}
 	// RevertedRollappPacketKeyPrefix is the prefix for reverted rollapp packets
 	RevertedRollappPacketKeyPrefix = []byte{0x00, 0x03}
+	// keySeparatorBytes is used to separate the rollapp packet key parts
+	keySeparatorBytes = []byte("/")
 )
 
 // RollappPacketKey constructs a key for a specific RollappPacket
+// status/rollappID/proofHeight/packetUID
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
-	// Get the relevant key prefix based on the packet status
-	statusPrefix := MustGetStatusBytes(rollappPacket.Status)
-	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
-	keySeparatorBytes := []byte(KeySeparator)
-	rollappIdBytes := []byte(rollappPacket.RollappId)
-	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
-	// Build the packetUID from the destination channel and sequence number.
+	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
 	packetDestinationChannelBytes := []byte(rollappPacket.Packet.DestinationChannel)
 	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
+	result := append(srppPrefix, keySeparatorBytes...)
+	return append(result, packetUIDBytes...)
+}
 
-	// Concatenate the byte slices directly.
-	result := append(statusPrefix, keySeparatorBytes...)
-	result = append(result, proofHeightBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, rollappIdBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, packetUIDBytes...)
+// RollappPacketByStatusByRollappIDByProofHeightPrefix constructs a key prefix for a specific RollappPacket
+// by rollappID, status and proofHeight:
+// "rollappID/status/proofHeight"
+func RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID string, status Status, proofHeight uint64) []byte {
+	return append(RollappPacketByStatusByRollappIDPrefix(status, rollappID), sdk.Uint64ToBigEndian(proofHeight)...)
+}
 
-	return result
+// RollappPacketByStatusByRollappIDPrefix constructs a key prefix for a specific RollappPacket
+// by status and rollappID:
+// "status/rollappID/"
+func RollappPacketByStatusByRollappIDPrefix(status Status, rollappID string) (result []byte) {
+	return append(RollappPacketByStatusPrefix(status), RollappPacketByRollappIDPrefix(rollappID)...)
+}
+
+// RollappPacketByRollappIDPrefix constructs a key prefix for a specific RollappPacket
+// by rollappID: "rollappID/"
+func RollappPacketByRollappIDPrefix(rollappID string) []byte {
+	return append([]byte(rollappID), keySeparatorBytes...)
+}
+
+// RollappPacketByStatusPrefix constructs a key prefix for a specific RollappPacket
+// by status: "status/"
+func RollappPacketByStatusPrefix(status Status) []byte {
+	return append(MustGetStatusBytes(status), keySeparatorBytes...)
 }
 
 // MustGetStatusBytes returns the byte representation of the status

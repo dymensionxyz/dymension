@@ -29,7 +29,6 @@ type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
 		hooks      types.MultiDelayedAckHooks
 		paramstore paramtypes.Subspace
 
@@ -46,8 +45,7 @@ type (
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	rollappKeeper types.RollappKeeper,
 	sequencerKeeper types.SequencerKeeper,
@@ -65,7 +63,6 @@ func NewKeeper(
 	return &Keeper{
 		cdc:              cdc,
 		storeKey:         storeKey,
-		memKey:           memKey,
 		paramstore:       ps,
 		rollappKeeper:    rollappKeeper,
 		sequencerKeeper:  sequencerKeeper,

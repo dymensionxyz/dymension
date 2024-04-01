@@ -17,7 +17,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
 	demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
 	suite.Require().NoError(err)
-	suite.Require().Equal(demandOrder.TrackingPacketStatus, commontypes.Status_PENDING)
+	suite.Require().Equal(commontypes.Status_PENDING, demandOrder.TrackingPacketStatus)
 	err = suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 	// Update rollapp packet status to finalized
@@ -26,10 +26,10 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	// Veirfy that the demand order is updated
 	updatedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, commontypes.Status_FINALIZED, demandOrder.Id)
 	suite.Require().NoError(err)
-	suite.Require().Equal(updatedDemandOrder.TrackingPacketStatus, commontypes.Status_FINALIZED)
+	suite.Require().Equal(commontypes.Status_FINALIZED, updatedDemandOrder.TrackingPacketStatus)
 	rollappPacketKey := commontypes.RollappPacketKey(&updatedRollappPacket)
 	suite.Require().NoError(err)
-	suite.Require().Equal(updatedDemandOrder.TrackingPacketKey, string(rollappPacketKey))
+	suite.Require().Equal(string(rollappPacketKey), updatedDemandOrder.TrackingPacketKey)
 }
 
 func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {

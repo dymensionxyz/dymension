@@ -10,18 +10,13 @@ import (
 
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 	// Get all the pending packets
-	// TODO (#631): Prefix store by rollappID for efficient querying
-	rollappPendingPackets := k.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING, 0)
+	rollappPendingPackets := k.ListRollappPackets(ctx, ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
 	for _, rollappPacket := range rollappPendingPackets {
-		if rollappPacket.RollappId != rollappID {
-			continue
-		}
-
 		errString := "fraudulent packet"
 		packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
 		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)

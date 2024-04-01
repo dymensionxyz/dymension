@@ -644,7 +644,6 @@ func New(
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,
 		keys[delayedacktypes.StoreKey],
-		keys[delayedacktypes.MemStoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
 		app.SequencerKeeper,

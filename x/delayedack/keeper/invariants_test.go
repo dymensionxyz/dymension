@@ -5,7 +5,6 @@ import (
 
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -74,7 +73,9 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// check invariant
-	msg, fails := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+	msg, fails := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
+	suite.Require().False(fails, msg)
+	msg, fails = suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
 	suite.Require().False(fails, msg)
 }
 
@@ -254,16 +255,18 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 				Sequencer:   proposer,
 			}
 
-			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
 			// if nothingFinalized true, all the state infos submitted should be pending
-			if !tc.nothingFinalized {
+			if tc.nothingFinalized {
+				stateInfo.Status = commontypes.Status_PENDING
+			} else {
 				suite.App.RollappKeeper.SetLatestFinalizedStateIndex(ctx, types.StateInfoIndex{
 					RollappId: rollapp,
 					Index:     stateInfo.GetIndex().Index,
 				})
-			} else {
-				stateInfo.Status = commontypes.Status_PENDING
 			}
+
+			suite.App.RollappKeeper.SetStateInfo(ctx, stateInfo)
+
 			// if allFinalized true, all the state infos submitted should be finalized
 			if tc.allFinalized {
 				stateInfo2.Status = commontypes.Status_FINALIZED
@@ -294,7 +297,10 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			suite.Require().NoError(err)
 
 			// check invariant
-			_, isBroken := keeper.AllInvariants(suite.App.DelayedAckKeeper)(suite.Ctx)
+			_, failsFinalize := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)
+			_, failsRevert := suite.App.DelayedAckKeeper.PacketsFromRevertedHeightsAreReverted(suite.Ctx)
+
+			isBroken := failsFinalize || failsRevert
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}
