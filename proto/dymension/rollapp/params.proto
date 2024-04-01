@@ -9,8 +9,6 @@ message DeployerParams {
   // address is a bech32-encoded address of the 
   // accounts that are allowed to create a rollapp.  
   string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-// max_rollapps is the maximum number of rollapps that address allowed to deploy
-  uint64 max_rollapps =2 [deprecated=true];
 }
 
 // Params defines the parameters for the module.
