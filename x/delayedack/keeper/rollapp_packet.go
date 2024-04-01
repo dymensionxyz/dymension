@@ -107,7 +107,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	// Create a new rollapp packet with the updated status
 	err := k.SetRollappPacket(ctx, rollappPacket)
 	if err != nil {
-		return commontypes.RollappPacket{}, err
+		return rollappPacket, err
 	}
 
 	// Call hook subscribers
@@ -115,7 +115,7 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	keeperHooks := k.GetHooks()
 	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
-		return commontypes.RollappPacket{}, err
+		return rollappPacket, err
 	}
 	return rollappPacket, nil
 }
