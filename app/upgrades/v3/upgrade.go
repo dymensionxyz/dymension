@@ -38,6 +38,18 @@ func CreateUpgradeHandler(
 		delete(fromVM, rollapptypes.ModuleName)
 		delete(fromVM, seqtypes.ModuleName)
 
+		// reduce the gauge creation fee and remove `add to gauge` fee
+		DYM := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+		incentivestypes.CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
+		incentivestypes.AddToGaugeFee = sdk.ZeroInt()
+
+		// Start running the module migrations
+		logger.Debug("running module migrations ...")
+		newVM, err := mm.RunMigrations(ctx, configurator, fromVM)
+		if err != nil {
+			return newVM, err
+		}
+
 		// overwrite params for rollapp module due to proto change
 		rollappParams := rollapptypes.DefaultParams()
 		rollappParams.RollappsEnabled = false
@@ -49,13 +61,6 @@ func CreateUpgradeHandler(
 		seqParams.MinBond = sdk.NewCoin(appparams.DisplayDenom, sdk.NewInt(1000)) //1000DYM
 		seqkeeper.SetParams(ctx, seqParams)
 
-		// reduce the gauge creation fee and remove `add to gauge` fee
-		DYM := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-		incentivestypes.CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-		incentivestypes.AddToGaugeFee = sdk.ZeroInt()
-
-		// Start running the module migrations
-		logger.Debug("running module migrations ...")
-		return mm.RunMigrations(ctx, configurator, fromVM)
+		return newVM, nil
 	}
 }
