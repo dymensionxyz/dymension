@@ -3,7 +3,6 @@ package keeper_test
 import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
@@ -12,19 +11,14 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	pkts := generatePackets(rollappId, 5)
 	rollappId2 := "testRollappId2"
 	pkts2 := generatePackets(rollappId2, 5)
-	prefixPending1 := dkeeper.ByRollappIDAndStatus(rollappId, commontypes.Status_PENDING)
-	prefixPending2 := dkeeper.ByRollappIDAndStatus(rollappId2, commontypes.Status_PENDING)
-	prefixReverted := dkeeper.ByRollappIDAndStatus(rollappId, commontypes.Status_REVERTED)
-	prefixFinalized := dkeeper.ByRollappIDAndStatus(rollappId, commontypes.Status_FINALIZED)
-	prefixFinalized2 := dkeeper.ByRollappIDAndStatus(rollappId, commontypes.Status_FINALIZED)
 
 	for _, pkt := range append(pkts, pkts2...) {
 		err := keeper.SetRollappPacket(ctx, pkt)
 		suite.Require().NoError(err)
 	}
 
-	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending1)))
-	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending2)))
+	suite.Require().Equal(5, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId, commontypes.Status_PENDING)))
+	suite.Require().Equal(5, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId2, commontypes.Status_PENDING)))
 
 	// finalize some packets
 	_, err := keeper.UpdateRollappPacketWithStatus(ctx, pkts[0], commontypes.Status_FINALIZED)
@@ -35,11 +29,11 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	err = keeper.HandleFraud(ctx, rollappId)
 	suite.Require().Nil(err)
 
-	suite.Require().Equal(0, len(keeper.ListRollappPackets(ctx, prefixPending1)))
-	suite.Require().Equal(4, len(keeper.ListRollappPackets(ctx, prefixPending2)))
-	suite.Require().Equal(4, len(keeper.ListRollappPackets(ctx, prefixReverted)))
-	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized)))
-	suite.Require().Equal(1, len(keeper.ListRollappPackets(ctx, prefixFinalized2)))
+	suite.Require().Equal(0, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId, commontypes.Status_PENDING)))
+	suite.Require().Equal(4, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId2, commontypes.Status_PENDING)))
+	suite.Require().Equal(4, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId, commontypes.Status_REVERTED)))
+	suite.Require().Equal(1, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId, commontypes.Status_FINALIZED)))
+	suite.Require().Equal(1, len(keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappId2, commontypes.Status_FINALIZED)))
 }
 
 /* ---------------------------------- utils --------------------------------- */

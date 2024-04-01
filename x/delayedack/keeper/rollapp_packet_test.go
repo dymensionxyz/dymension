@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -83,56 +82,80 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	}
 }
 
-func (suite *DelayedAckTestSuite) TestListRollappPackets() {
+func (suite *DelayedAckTestSuite) TestListRollappPacketsByStatus() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
-	rollappID := "testRollappID"
+	rollappIDs := []string{"testRollappID1", "testRollappID2", "testRollappID3"}
 
+	sm := map[int]commontypes.Status{
+		0: commontypes.Status_PENDING,
+		1: commontypes.Status_FINALIZED,
+		2: commontypes.Status_REVERTED,
+	}
+
+	var packetsToSet []commontypes.RollappPacket
 	// Create and set some RollappPackets
-	for i := 1; i < 6; i++ {
-		packet := commontypes.RollappPacket{
-			RollappId: rollappID,
-			Packet: &channeltypes.Packet{
-				SourcePort:         "testSourcePort",
-				SourceChannel:      "testSourceChannel",
-				DestinationPort:    "testDestinationPort",
-				DestinationChannel: "testDestinationChannel",
-				Data:               []byte("testData"),
-				Sequence:           uint64(i),
-			},
-			Status: commontypes.Status_PENDING,
-			// Intentionally set the proof height in descending order to test sorting
-			ProofHeight: uint64(6 - i),
+	for _, rollappID := range rollappIDs {
+		for i := 1; i < 6; i++ {
+			packet := commontypes.RollappPacket{
+				RollappId: rollappID,
+				Packet: &channeltypes.Packet{
+					SourcePort:         "testSourcePort",
+					SourceChannel:      "testSourceChannel",
+					DestinationPort:    "testDestinationPort",
+					DestinationChannel: "testDestinationChannel",
+					Data:               []byte("testData"),
+					Sequence:           uint64(i),
+				},
+				Status:      sm[i%3],
+				ProofHeight: uint64(6 - i),
+			}
+			packetsToSet = append(packetsToSet, packet)
 		}
+	}
+	totalLength := len(packetsToSet)
+
+	for _, packet := range packetsToSet {
 		err := keeper.SetRollappPacket(ctx, packet)
 		suite.Require().NoError(err)
 	}
 
 	// Get all rollapp packets by rollapp id
-	packets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappID(rollappID))
+	packets := keeper.ListRollappPacketsByRollappID(ctx, rollappIDs[0])
 	suite.Require().Equal(5, len(packets))
 
-	// Get the packets until height 4
-	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, 4, true, commontypes.Status_PENDING))
-	suite.Require().Equal(4, len(packets))
+	expectPendingLength := 3
+	pendingPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_PENDING)
+	suite.Require().Equal(expectPendingLength, len(pendingPackets))
 
-	// Update the packet status to finalized
-	for _, packet := range packets {
-		_, err := keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
-		suite.Require().NoError(err)
-	}
+	expectFinalizedLength := 6
+	finalizedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_FINALIZED)
+	suite.Require().Equal(expectFinalizedLength, len(finalizedPackets))
 
-	finalizedPackets := keeper.ListRollappPackets(ctx, dkeeper.ByStatus(commontypes.Status_FINALIZED))
-	suite.Require().Equal(4, len(finalizedPackets))
+	expectRevertedLength := 6
+	revertedPackets := keeper.ListRollappPacketsByStatus(ctx, commontypes.Status_REVERTED)
+	suite.Require().Equal(expectRevertedLength, len(revertedPackets))
 
-	// Get the packets until height 5
-	packets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDAndStatusAndMaxHeight(rollappID, 5, true, commontypes.Status_PENDING))
-	suite.Require().Equal(1, len(packets))
+	suite.Require().Equal(totalLength, len(pendingPackets)+len(finalizedPackets)+len(revertedPackets))
+
+	rollappPacket1Finalized := keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappIDs[0], commontypes.Status_FINALIZED)
+	rollappPacket2Pending := keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappIDs[1], commontypes.Status_PENDING)
+	rollappPacket3Reverted := keeper.ListRollappPacketsByRollappIDByStatus(ctx, rollappIDs[2], commontypes.Status_REVERTED)
+	suite.Require().Equal(2, len(rollappPacket1Finalized))
+	suite.Require().Equal(1, len(rollappPacket2Pending))
+	suite.Require().Equal(2, len(rollappPacket3Reverted))
+
+	rollappPacket1MaxHeight4 := keeper.ListPendingRollappPacketsByRollappIDByMaxHeight(ctx, rollappIDs[0], 4)
+	suite.Require().Equal(1, len(rollappPacket1MaxHeight4))
+
+	rollappPacket2MaxHeight3 := keeper.ListPendingRollappPacketsByRollappIDByMaxHeight(ctx, rollappIDs[1], 3)
+	suite.Require().Equal(1, len(rollappPacket2MaxHeight3))
 }
 
 func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	rollappId := "testRollappID"
 	packet := commontypes.RollappPacket{
-		RollappId: "testRollappID",
+		RollappId: rollappId,
 		Packet: &channeltypes.Packet{
 			SourcePort:         "testSourcePort",
 			SourceChannel:      "testSourceChannel",
@@ -150,11 +173,11 @@ func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {
 	packet, err = keeper.UpdateRollappPacketWithStatus(ctx, packet, commontypes.Status_FINALIZED)
 	suite.Require().NoError(err)
 	suite.Require().Equal(commontypes.Status_FINALIZED, packet.Status)
-	packets := keeper.ListRollappPackets(ctx, dkeeper.AllRollappPackets())
+	packets := keeper.ListRollappPacketsByRollappID(ctx, rollappId)
 	suite.Require().Equal(1, len(packets))
 	// Set the packet and make sure there is only one packet in the store
 	err = keeper.SetRollappPacket(ctx, packet)
 	suite.Require().NoError(err)
-	packets = keeper.ListRollappPackets(ctx, dkeeper.AllRollappPackets())
+	packets = keeper.ListRollappPacketsByRollappID(ctx, rollappId)
 	suite.Require().Equal(1, len(packets))
 }

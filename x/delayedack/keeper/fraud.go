@@ -10,7 +10,7 @@ import (
 
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 	// Get all the pending packets
-	rollappPendingPackets := k.ListRollappPackets(ctx, ByRollappIDAndStatus(rollappID, commontypes.Status_PENDING))
+	rollappPendingPackets := k.ListRollappPacketsByRollappIDByStatus(ctx, rollappID, commontypes.Status_PENDING)
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}

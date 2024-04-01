@@ -7,7 +7,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
@@ -33,9 +32,7 @@ func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
 // the end height of the latest finalized state
 func (im IBCMiddleware) FinalizeRollappPackets(ctx sdk.Context, rollappID string, stateEndHeight uint64) error {
-	const breakOnMismatch = true
-	listFilter := keeper.ByRollappIDAndStatusAndMaxHeight(rollappID, stateEndHeight, breakOnMismatch, commontypes.Status_PENDING)
-	rollappPendingPackets := im.keeper.ListRollappPackets(ctx, listFilter)
+	rollappPendingPackets := im.keeper.ListPendingRollappPacketsByRollappIDByMaxHeight(ctx, rollappID, stateEndHeight)
 
 	if len(rollappPendingPackets) == 0 {
 		return nil
