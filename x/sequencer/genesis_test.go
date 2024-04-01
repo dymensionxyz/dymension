@@ -27,7 +27,7 @@ func TestInitGenesis(t *testing.T) {
 			expPanic:   false,
 		},
 		{
-			name: "params and demand order - panic",
+			name: "params and sequencer list - panic",
 			params: types.Params{
 				MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
 				UnbondingTime: 100,

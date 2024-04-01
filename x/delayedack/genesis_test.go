@@ -12,13 +12,45 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		Params: types.DefaultParams(),
+	tests := []struct {
+		name           string
+		params         types.Params
+		rollappPackets []commontypes.RollappPacket
+		expPanic       bool
+	}{
+		{
+			name: "only params - success",
+			params: types.Params{
+				EpochIdentifier: "week",
+			},
+			rollappPackets: []commontypes.RollappPacket{},
+			expPanic:       false,
+		},
+		{
+			name: "params and rollapp packets - panic",
+			params: types.Params{
+				EpochIdentifier: "week",
+			},
+			rollappPackets: []commontypes.RollappPacket{{RollappId: "0"}},
+			expPanic:       true,
+		},
 	}
 
-	k, ctx := keepertest.DelayedackKeeper(t)
-	delayedack.InitGenesis(ctx, *k, genesisState)
-	require.Equal(t, genesisState.Params, k.GetParams(ctx))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			genesisState := types.GenesisState{Params: tt.params, RollappPackets: tt.rollappPackets}
+			k, ctx := keepertest.DelayedackKeeper(t)
+			if tt.expPanic {
+				require.Panics(t, func() {
+					delayedack.InitGenesis(ctx, *k, genesisState)
+				})
+			} else {
+				delayedack.InitGenesis(ctx, *k, genesisState)
+				params := k.GetParams(ctx)
+				require.Equal(t, genesisState.Params, params)
+			}
+		})
+	}
 }
 
 func TestExportGenesis(t *testing.T) {
