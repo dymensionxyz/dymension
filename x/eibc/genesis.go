@@ -9,6 +9,15 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
+	// Validate all other genesis fields are empty
+	genesisFields := []int{
+		len(genState.DemandOrders),
+	}
+	for _, fieldLength := range genesisFields {
+		if fieldLength != 0 {
+			panic("Only params can be initialized at genesis")
+		}
+	}
 }
 
 // ExportGenesis returns the module's exported genesis

@@ -23,7 +23,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			panic("Only params can be initialized at genesis")
 		}
 	}
-
 }
 
 // ExportGenesis returns the capability module's exported genesis.

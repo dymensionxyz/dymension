@@ -12,13 +12,49 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		Params: types.DefaultParams(),
+	tests := []struct {
+		name         string
+		params       types.Params
+		demandOrders []types.DemandOrder
+		expPanic     bool
+	}{
+		{
+			name: "only params - success",
+			params: types.Params{
+				EpochIdentifier: "week",
+				TimeoutFee:      sdk.NewDecWithPrec(4, 1),
+				ErrackFee:       sdk.NewDecWithPrec(4, 1),
+			},
+			demandOrders: []types.DemandOrder{},
+			expPanic:     false,
+		},
+		{
+			name: "params and demand order - panic",
+			params: types.Params{
+				EpochIdentifier: "week",
+				TimeoutFee:      sdk.NewDecWithPrec(4, 1),
+				ErrackFee:       sdk.NewDecWithPrec(4, 1),
+			},
+			demandOrders: []types.DemandOrder{{Id: "0"}},
+			expPanic:     true,
+		},
 	}
 
-	k, ctx := keepertest.EibcKeeper(t)
-	eibc.InitGenesis(ctx, *k, genesisState)
-	require.Equal(t, genesisState.Params, k.GetParams(ctx))
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			genesisState := types.GenesisState{Params: tt.params, DemandOrders: tt.demandOrders}
+			k, ctx := keepertest.EibcKeeper(t)
+			if tt.expPanic {
+				require.Panics(t, func() {
+					eibc.InitGenesis(ctx, *k, genesisState)
+				})
+			} else {
+				eibc.InitGenesis(ctx, *k, genesisState)
+				params := k.GetParams(ctx)
+				require.Equal(t, genesisState.Params, params)
+			}
+		})
+	}
 }
 
 func TestExportGenesis(t *testing.T) {
