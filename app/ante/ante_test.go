@@ -77,7 +77,7 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	key, err := privkey.ToECDSA()
 	suite.Require().NoError(err)
 	addr := crypto.PubkeyToAddress(key.PublicKey)
-	
+
 	amt := sdk.NewInt(100)
 	err = testutil.FundAccount(
 		suite.app.BankKeeper,
