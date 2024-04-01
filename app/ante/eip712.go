@@ -40,14 +40,12 @@ import (
 )
 
 var (
-	ethermintCodec codec.ProtoCodecMarshaler
-	registry codectypes.InterfaceRegistry
+	registry       = codectypes.NewInterfaceRegistry()
+	ethermintCodec = codec.NewProtoCodec(registry)
 )
 
 func init() {
-	registry := codectypes.NewInterfaceRegistry()
 	ethermint.RegisterInterfaces(registry)
-	ethermintCodec = codec.NewProtoCodec(registry)
 }
 
 // LegacyEip712SigVerificationDecorator Verify all signatures for a tx and return an error if any are invalid.
@@ -220,7 +218,7 @@ func VerifySignature(
 			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
 		}
 
-		var extOpt ethermint.ExtensionOptionsWeb3Tx
+		var extOpt *ethermint.ExtensionOptionsWeb3Tx
 		err = registry.UnpackAny(opts[0], &extOpt)
 		if err != nil {
 			return errorsmod.Wrap(err, "unable to unpack any type to extension option")

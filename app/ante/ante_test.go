@@ -20,6 +20,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
+	"github.com/evmos/ethermint/testutil"
 	ethermint "github.com/evmos/ethermint/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -76,6 +77,15 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	key, err := privkey.ToECDSA()
 	suite.Require().NoError(err)
 	addr := crypto.PubkeyToAddress(key.PublicKey)
+	
+	amt := sdk.NewInt(100)
+	err = testutil.FundAccount(
+		suite.app.BankKeeper,
+		suite.ctx,
+		privkey.PubKey().Address().Bytes(),
+		sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, amt)),
+	)
+	suite.Require().NoError(err)
 
 	acc := suite.app.AccountKeeper.NewAccountWithAddress(suite.ctx, addr.Bytes())
 	suite.Require().NoError(acc.SetSequence(1))
@@ -86,7 +96,9 @@ func (suite *AnteTestSuite) TestCosmosAnteHandlerEip712() {
 	msgSend := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(params.DisplayDenom, sdk.NewInt(1))))
 
 	txBuilder := suite.CreateTestEIP712CosmosTxBuilder(privkey, []sdk.Msg{msgSend})
-	suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
+	_, err = suite.anteHandler(suite.ctx, txBuilder.GetTx(), false)
+
+	suite.Require().NoError(err)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
