@@ -217,9 +217,10 @@ func VerifySignature(
 			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "tx doesnt contain expected amount of extension options")
 		}
 
-		extOpt, ok := opts[0].GetCachedValue().(*ethermint.ExtensionOptionsWeb3Tx)
-		if !ok {
-			return errorsmod.Wrap(errortypes.ErrUnknownExtensionOptions, "unknown extension option")
+		var extOpt ethermint.ExtensionOptionsWeb3Tx
+		err = Registry.UnpackAny(opts[0], &extOpt)
+		if err != nil {
+			return errorsmod.Wrap(err, "unknown extension option")
 		}
 
 		if extOpt.TypedDataChainID != signerChainID.Uint64() {
