@@ -124,6 +124,11 @@ func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) er
 			metadata.DenomUnits[j] = &newDu
 		}
 
+		// validate metadata
+		if validity := metadata.Validate(); validity != nil {
+			return fmt.Errorf("invalid denom metadata on genesis event: %w", validity)
+		}
+
 		// save the new token denom metadata
 		if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, metadata); err != nil {
 			return fmt.Errorf("create denom metadata: %w", err)

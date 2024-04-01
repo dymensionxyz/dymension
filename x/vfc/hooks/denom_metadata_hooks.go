@@ -39,6 +39,5 @@ func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(
 
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataUpdate(sdk.Context, banktypes.Metadata) error {
 	// do nothing
-
 	return nil
 }
