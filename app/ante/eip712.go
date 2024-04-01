@@ -39,7 +39,10 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
-var ethermintCodec codec.ProtoCodecMarshaler
+var (
+	ethermintCodec codec.ProtoCodecMarshaler
+	registry codectypes.InterfaceRegistry
+)
 
 func init() {
 	registry := codectypes.NewInterfaceRegistry()
@@ -218,9 +221,9 @@ func VerifySignature(
 		}
 
 		var extOpt ethermint.ExtensionOptionsWeb3Tx
-		err = Registry.UnpackAny(opts[0], &extOpt)
+		err = registry.UnpackAny(opts[0], &extOpt)
 		if err != nil {
-			return errorsmod.Wrap(err, "unknown extension option")
+			return errorsmod.Wrap(err, "unable to unpack any type to extension option")
 		}
 
 		if extOpt.TypedDataChainID != signerChainID.Uint64() {
