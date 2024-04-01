@@ -6,9 +6,7 @@ import (
 	ethermint "github.com/evmos/ethermint/types"
 )
 
-var (
-	Registry = codectypes.NewInterfaceRegistry()
-)
+var Registry = codectypes.NewInterfaceRegistry()
 
 func init() {
 	Registry.RegisterImplementations(
