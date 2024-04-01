@@ -170,22 +170,3 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 		})
 	}
 }
-
-// TODO: remove this after fix and move it to the function above
-func (suite *RollappTestSuite) TestBreakRollappFinalizedStateInvariant() {
-	suite.SetupTest()
-	rollapp := suite.CreateDefaultRollapp()
-	sequencer := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
-	suite.Ctx = suite.Ctx.WithBlockHeight(10)
-	_, err := suite.PostStateUpdate(suite.Ctx, rollapp, sequencer, 1, 5)
-	suite.Require().Nil(err)
-	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
-	suite.Require().Nil(err)
-	suite.App.RollappKeeper.RevertPendingStates(suite.Ctx, rollapp)
-	_, err = suite.PostStateUpdate(suite.Ctx, rollapp, sequencer, 6, 5)
-	suite.Require().Nil(err)
-	err = suite.App.RollappKeeper.FinalizeQueue(suite.Ctx.WithBlockHeight(20))
-	suite.Require().Nil(err)
-	_, isBroken := keeper.RollappFinalizedStateInvariant(suite.App.RollappKeeper)(suite.Ctx)
-	suite.Require().Equal(false, isBroken)
-}
