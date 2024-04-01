@@ -10,13 +10,8 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 	// Validate all other genesis fields are empty
-	genesisFields := []int{
-		len(genState.RollappPackets),
-	}
-	for _, fieldLength := range genesisFields {
-		if fieldLength != 0 {
-			panic("Only params can be initialized at genesis")
-		}
+	if len(genState.RollappPackets) != 0 {
+		panic("Only params can be initialized at genesis")
 	}
 }
 
