@@ -10,19 +10,53 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		Params: types.Params{
-			DisputePeriodInBlocks: 11,
-			DeployerWhitelist: []types.DeployerParams{{
-				Address: "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft",
-			}},
-			RollappsEnabled: false,
+	tests := []struct {
+		name     string
+		params   types.Params
+		rollapps []types.Rollapp
+		expPanic bool
+	}{
+		{
+			name: "only params - success",
+			params: types.Params{
+				DisputePeriodInBlocks: 11,
+				DeployerWhitelist: []types.DeployerParams{{
+					Address: "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft",
+				}},
+				RollappsEnabled: false,
+			},
+			rollapps: []types.Rollapp{},
+			expPanic: false,
+		},
+		{
+			name: "params and rollapps - panic",
+			params: types.Params{
+				DisputePeriodInBlocks: 11,
+				DeployerWhitelist: []types.DeployerParams{{
+					Address: "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft",
+				}},
+				RollappsEnabled: false,
+			},
+			rollapps: []types.Rollapp{{RollappId: "0"}},
+			expPanic: true,
 		},
 	}
-	k, ctx := keepertest.RollappKeeper(t)
-	rollapp.InitGenesis(ctx, *k, genesisState)
-	params := k.GetParams(ctx)
-	require.Equal(t, genesisState.Params, params)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			genesisState := types.GenesisState{Params: tt.params, RollappList: tt.rollapps}
+			k, ctx := keepertest.RollappKeeper(t)
+			if tt.expPanic {
+				require.Panics(t, func() {
+					rollapp.InitGenesis(ctx, *k, genesisState)
+				})
+			} else {
+				rollapp.InitGenesis(ctx, *k, genesisState)
+				params := k.GetParams(ctx)
+				require.Equal(t, genesisState.Params, params)
+			}
+		})
+	}
 }
 
 func TestExportGenesis(t *testing.T) {
