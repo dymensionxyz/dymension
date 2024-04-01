@@ -1214,6 +1214,7 @@ func (app *App) setupUpgradeHandlers() {
 		UpgradeName,
 		v3upgrade.CreateUpgradeHandler(
 			app.mm, app.configurator,
+			&app.RollappKeeper, &app.SequencerKeeper,
 		),
 	)
 
