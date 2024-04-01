@@ -29,7 +29,6 @@ type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
 		hooks      types.MultiDelayedAckHooks
 		paramstore paramtypes.Subspace
 

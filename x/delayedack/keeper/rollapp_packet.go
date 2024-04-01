@@ -182,7 +182,7 @@ func (k Keeper) listRollappPacketsByPrefix(
 		suffix = sdk.PrefixEndBytes(prefix)
 	}
 	iterator := store.Iterator(prefix, suffix)
-	defer iterator.Close()
+	defer iterator.Close() //nolint:errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var value []byte
