@@ -37,6 +37,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	app "github.com/dymensionxyz/dymension/v3/app"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
@@ -77,7 +78,19 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	params.SetAddressPrefixes()
 
 	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, EmptyAppOptions{})
-	return newApp, app.NewDefaultGenesisState(encCdc.Codec)
+
+	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
+
+	// set EnableCreate to false
+	if evmGenesisStateJson, found := defaultGenesisState[evmtypes.ModuleName]; found {
+		// force disable Enable Create of x/evm
+		var evmGenesisState evmtypes.GenesisState
+		encCdc.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+		evmGenesisState.Params.EnableCreate = false
+		defaultGenesisState[evmtypes.ModuleName] = encCdc.Codec.MustMarshalJSON(&evmGenesisState)
+	}
+
+	return newApp, defaultGenesisState
 }
 
 // Setup initializes a new SimApp. A Nop logger is set in SimApp.

@@ -4,10 +4,7 @@ var (
 	// ModuleName defines the module name.
 	ModuleName = "denommetadata"
 
-	// StoreKey defines the primary module store key.
-	StoreKey = ModuleName
-
-	// RouterKey is the message route for slashing.
+	// RouterKey is the message route for the denommetadata module
 	RouterKey = ModuleName
 
 	// QuerierRoute defines the module's query routing key.
