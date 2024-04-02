@@ -39,13 +39,6 @@ func CreateUpgradeHandler(
 		incentivestypes.CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
 		incentivestypes.AddToGaugeFee = sdk.ZeroInt()
 
-		// Start running the module migrations
-		logger.Debug("running module migrations ...")
-		newVM, err := mm.RunMigrations(ctx, configurator, fromVM)
-		if err != nil {
-			return newVM, err
-		}
-
 		// overwrite params for delayedack module due to proto change
 		daParams := delayedacktypes.DefaultParams()
 		dakeeper.SetParams(ctx, daParams)
@@ -61,6 +54,8 @@ func CreateUpgradeHandler(
 		seqParams.MinBond = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) // 1000DYM
 		seqkeeper.SetParams(ctx, seqParams)
 
-		return newVM, nil
+		// Start running the module migrations
+		logger.Debug("running module migrations ...")
+		return mm.RunMigrations(ctx, configurator, fromVM)
 	}
 }
