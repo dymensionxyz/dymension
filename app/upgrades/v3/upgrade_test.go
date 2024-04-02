@@ -24,7 +24,7 @@ type UpgradeTestSuite struct {
 // SetupTest initializes the necessary items for each test
 func (s *UpgradeTestSuite) SetupTest(t *testing.T) {
 	s.App = apptesting.Setup(t, false)
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "dymension_110-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 }
 
 // TestUpgradeTestSuite runs the suite of tests for the upgrade handler
@@ -39,16 +39,16 @@ const (
 	expectAddToGaugeFee         = 0
 	expectRollappsEnabled       = false
 	expectDisputePeriodInBlocks = 120960
-	expectMinBond               = 1_000_000_000
+	expectMinBond               = "1000000000000000000000"
 )
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
 func (s *UpgradeTestSuite) TestUpgrade() {
 	testCases := []struct {
-		msg        string
-		update     func()
-		postUpdate func() error
-		expPass    bool
+		msg         string
+		upgrade     func()
+		postUpgrade func() error
+		expPass     bool
 	}{
 		{
 			"Test that upgrade does not panic and sets correct parameters",
@@ -74,17 +74,15 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Rollapp parameters
 				rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)
-				if !rollappParams.RollappsEnabled != expectRollappsEnabled || rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
+				if rollappParams.RollappsEnabled != expectRollappsEnabled || rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
 					return fmt.Errorf("rollapp parameters not set correctly")
 				}
 
 				// Check Sequencer parameters
 				seqParams := s.App.SequencerKeeper.GetParams(s.Ctx)
-				if seqParams.MinBond.Amount.Int64() != expectMinBond {
+				if seqParams.MinBond.Amount.String() != expectMinBond {
 					return fmt.Errorf("sequencer parameters not set correctly")
 				}
-
-				// If you need to check more parameters, add the checks here
 
 				return nil
 			},
@@ -96,8 +94,8 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			s.SetupTest(s.T()) // Reset for each case
 
-			tc.update()
-			err := tc.postUpdate()
+			tc.upgrade()
+			err := tc.postUpgrade()
 			if tc.expPass {
 				s.Require().NoError(err)
 			} else {
