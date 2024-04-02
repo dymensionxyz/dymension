@@ -2,13 +2,15 @@ package v3_test
 
 import (
 	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	app "github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -17,7 +19,7 @@ import (
 // UpgradeTestSuite defines the structure for the upgrade test suite
 type UpgradeTestSuite struct {
 	suite.Suite
-	Ctx types.Context
+	Ctx sdk.Context
 	App *app.App
 }
 
@@ -32,11 +34,18 @@ func TestUpgradeTestSuite(t *testing.T) {
 	suite.Run(t, new(UpgradeTestSuite))
 }
 
+var (
+	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
+
+	// CreateGaugeFee is the fee required to create a new gauge.
+	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
+	// AddToGagugeFee is the fee required to add to gauge.
+	expectAddToGaugeFee = sdk.ZeroInt()
+)
+
 const (
 	dummyUpgradeHeight          = 5
 	dummyEndBlockHeight         = 10
-	expectCreateGaugeFee        = 10_000_000_000_000_000_000
-	expectAddToGaugeFee         = 0
 	expectRollappsEnabled       = false
 	expectDisputePeriodInBlocks = 120960
 	expectMinBond               = "1000000000000000000000"
@@ -82,6 +91,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				seqParams := s.App.SequencerKeeper.GetParams(s.Ctx)
 				if seqParams.MinBond.Amount.String() != expectMinBond {
 					return fmt.Errorf("sequencer parameters not set correctly")
+				}
+
+				// Check Incentives parameters
+				if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
+					return fmt.Errorf("incentives parameters not set correctly")
 				}
 
 				return nil

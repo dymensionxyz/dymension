@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -34,11 +33,6 @@ func CreateUpgradeHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		// reduce the gauge creation fee and remove `add to gauge` fee
-		DYM := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-		incentivestypes.CreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-		incentivestypes.AddToGaugeFee = sdk.ZeroInt()
-
 		// overwrite params for delayedack module due to proto change
 		daParams := delayedacktypes.DefaultParams()
 		dakeeper.SetParams(ctx, daParams)
@@ -51,6 +45,7 @@ func CreateUpgradeHandler(
 
 		// overwrite params for sequencer module due to proto change
 		seqParams := seqtypes.DefaultParams()
+		DYM := sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 		seqParams.MinBond = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) // 1000DYM
 		seqkeeper.SetParams(ctx, seqParams)
 
