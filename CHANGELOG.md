@@ -108,6 +108,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (sequencer) [#625](https://github.com/dymensionxyz/dymension/pull/625) Add events for sequencer module
 - (delayedack) [#620](https://github.com/dymensionxyz/dymension/pull/620) Add missing param initialization for delayedAck
 - (eibc) [#609](https://github.com/dymensionxyz/dymension/pull/609) DelayedAck panic on PFM memo
+- (eibc) [#600](https://github.com/dymensionxyz/dymension/pull/600) Temporarily disable eIBC + PFM for txs initiated on rollapp
 - (ibc) [#569](https://github.com/dymensionxyz/dymension/issues/569) Move e2e tests to dymension
 - (ibc) [#532](https://github.com/dymensionxyz/dymension/issues/532) Delete RollappPackets after finalization/revert #532
 - (rollapp) [#471](https://github.com/dymensionxyz/dymension/issues/471) Validate rollapp token metadata
