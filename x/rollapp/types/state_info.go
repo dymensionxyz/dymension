@@ -31,6 +31,10 @@ func (s *StateInfo) GetIndex() StateInfoIndex {
 	return s.StateInfoIndex
 }
 
+func (s *StateInfo) GetLatestHeight() uint64 {
+	return s.StartHeight + s.NumBlocks - 1
+}
+
 func (s *StateInfo) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),

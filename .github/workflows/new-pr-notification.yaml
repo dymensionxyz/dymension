@@ -1,0 +1,10 @@
+name: new-pr-notification-to-slack
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  new-pr-notification:
+    uses: dymensionxyz/common-workflows/.github/workflows/new-pr-notification.yaml@main
+    secrets:
+      WEBHOOK_URL: ${{ secrets.SLACK_NEW_PR_CHANNEL_WEBHOOK }}

@@ -57,6 +57,10 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() string {
 }
 
 func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
+	return suite.CreateSequencerWithBond(ctx, rollappId, bond)
+}
+
+func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollappId string, bond sdk.Coin) string {
 	pubkey1 := secp256k1.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)

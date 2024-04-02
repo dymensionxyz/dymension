@@ -60,7 +60,8 @@ type RollappPacket struct {
 	ProofHeight     uint64             `protobuf:"varint,5,opt,name=ProofHeight,proto3" json:"ProofHeight,omitempty"`
 	Relayer         []byte             `protobuf:"bytes,6,opt,name=relayer,proto3" json:"relayer,omitempty"`
 	Type            RollappPacket_Type `protobuf:"varint,7,opt,name=type,proto3,enum=dymensionxyz.dymension.common.RollappPacket_Type" json:"type,omitempty"`
-	Error           string             `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
+	// stores the result of onAck, onTimeout or onRecv/writeAck
+	Error string `protobuf:"bytes,8,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (m *RollappPacket) Reset()         { *m = RollappPacket{} }

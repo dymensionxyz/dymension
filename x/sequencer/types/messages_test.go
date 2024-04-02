@@ -4,8 +4,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
@@ -13,8 +17,18 @@ import (
 )
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
-	pubkey := secp256k1.GenPrivKey().PubKey()
+	pubkey := ed25519.GenPrivKey().PubKey()
 	pkAny, err := codectypes.NewAnyWithValue(pubkey)
+	require.NoError(t, err)
+
+	invalidkey := "{\"@type\":\"/cosmos.crypto.ed25519.PubKey\",\"key\":\"OcEwSZhPfddSUr84dkfj6Sfsh6PDSkcBdySUFxPb0Fs=\"}"
+	interfaceRegistry := codectypes.NewInterfaceRegistry()
+	cryptocodec.RegisterInterfaces(interfaceRegistry)
+	codec := codec.NewProtoCodec(interfaceRegistry)
+	var invalidpk cryptotypes.PubKey
+	err = codec.UnmarshalInterfaceJSON([]byte(invalidkey), &invalidpk)
+	require.NoError(t, err)
+	pkInvalid, err := codectypes.NewAnyWithValue(invalidpk)
 	require.NoError(t, err)
 
 	bond := sdk.NewCoin("stake", sdk.NewInt(100))
@@ -116,6 +130,14 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
 			},
 			err: sdkerrors.ErrInvalidCoins,
+		}, {
+			name: "invalid public key",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkInvalid,
+				Bond:         bond,
+			},
+			err: sdkerrors.ErrInvalidPubKey,
 		},
 	}
 	for _, tt := range tests {

@@ -9,13 +9,6 @@ import (
 
 var _ binary.ByteOrder
 
-const (
-	// KeySeparator defines the separator for keys
-	KeySeparator = "/"
-	// // RollappPacketKeyPrefix is the prefix to retrieve all RollappPackets
-	// RollappPacketKeyPrefix = "RollappPacket/value/"
-)
-
 var (
 	// AllRollappPacketKeyPrefix is the prefix to retrieve all RollappPackets
 	AllRollappPacketKeyPrefix = []byte{0x00}
@@ -25,47 +18,57 @@ var (
 	FinalizedRollappPacketKeyPrefix = []byte{0x00, 0x02}
 	// RevertedRollappPacketKeyPrefix is the prefix for reverted rollapp packets
 	RevertedRollappPacketKeyPrefix = []byte{0x00, 0x03}
+	// keySeparatorBytes is used to separate the rollapp packet key parts
+	keySeparatorBytes = []byte("/")
 )
 
 // RollappPacketKey constructs a key for a specific RollappPacket
-func RollappPacketKey(
-	rollappPacket *RollappPacket,
-) ([]byte, error) {
-	// Get the relevant key prefix based on the packet status
-	statusPrefix, err := GetStatusBytes(rollappPacket.Status)
-	if err != nil {
-		return nil, err
-	}
-	// Build the key bytes repr. Convert each uint64 to big endian bytes to ensure lexicographic ordering.
-	keySeparatorBytes := []byte(KeySeparator)
-	rollappIdBytes := []byte(rollappPacket.RollappId)
-	proofHeightBytes := sdk.Uint64ToBigEndian(rollappPacket.ProofHeight)
-	// Build the packetUID from the destination channel and sequence number.
+// status/rollappID/proofHeight/packetUID
+func RollappPacketKey(rollappPacket *RollappPacket) []byte {
+	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
 	packetDestinationChannelBytes := []byte(rollappPacket.Packet.DestinationChannel)
 	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
-
-	// Concatenate the byte slices directly.
-	result := append(statusPrefix, keySeparatorBytes...)
-	result = append(result, proofHeightBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, rollappIdBytes...)
-	result = append(result, keySeparatorBytes...)
-	result = append(result, packetUIDBytes...)
-
-	return result, nil
+	result := append(srppPrefix, keySeparatorBytes...)
+	return append(result, packetUIDBytes...)
 }
 
-// GetStatusBytes returns the byte representation of the status
-func GetStatusBytes(status Status) ([]byte, error) {
+// RollappPacketByStatusByRollappIDByProofHeightPrefix constructs a key prefix for a specific RollappPacket
+// by rollappID, status and proofHeight:
+// "rollappID/status/proofHeight"
+func RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID string, status Status, proofHeight uint64) []byte {
+	return append(RollappPacketByStatusByRollappIDPrefix(status, rollappID), sdk.Uint64ToBigEndian(proofHeight)...)
+}
+
+// RollappPacketByStatusByRollappIDPrefix constructs a key prefix for a specific RollappPacket
+// by status and rollappID:
+// "status/rollappID/"
+func RollappPacketByStatusByRollappIDPrefix(status Status, rollappID string) (result []byte) {
+	return append(RollappPacketByStatusPrefix(status), RollappPacketByRollappIDPrefix(rollappID)...)
+}
+
+// RollappPacketByRollappIDPrefix constructs a key prefix for a specific RollappPacket
+// by rollappID: "rollappID/"
+func RollappPacketByRollappIDPrefix(rollappID string) []byte {
+	return append([]byte(rollappID), keySeparatorBytes...)
+}
+
+// RollappPacketByStatusPrefix constructs a key prefix for a specific RollappPacket
+// by status: "status/"
+func RollappPacketByStatusPrefix(status Status) []byte {
+	return append(MustGetStatusBytes(status), keySeparatorBytes...)
+}
+
+// MustGetStatusBytes returns the byte representation of the status
+func MustGetStatusBytes(status Status) []byte {
 	switch status {
 	case Status_PENDING:
-		return PendingRollappPacketKeyPrefix, nil
+		return PendingRollappPacketKeyPrefix
 	case Status_FINALIZED:
-		return FinalizedRollappPacketKeyPrefix, nil
+		return FinalizedRollappPacketKeyPrefix
 	case Status_REVERTED:
-		return RevertedRollappPacketKeyPrefix, nil
+		return RevertedRollappPacketKeyPrefix
 	default:
-		return nil, fmt.Errorf("invalid packet status: %s", status)
+		panic(fmt.Sprintf("invalid packet status: %s", status))
 	}
 }

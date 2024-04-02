@@ -14,9 +14,21 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
+	rollappId, err := types.NewChainID(msg.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
 	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, msg.RollappId); isFound {
+	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return nil, types.ErrRollappExists
+	}
+
+	if rollappId.IsEIP155() {
+		// check to see if the RollappId has been registered before with same key
+		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
+			return nil, types.ErrRollappExists
+		}
 	}
 
 	// check to see if there is an active whitelist
@@ -26,33 +38,10 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		}
 	}
 
-	// Build the genesis state from the genesis accounts
-	var rollappGenesisState *types.RollappGenesisState
-	if len(msg.GenesisAccounts) > 0 {
-		rollappGenesisState = &types.RollappGenesisState{
-			GenesisAccounts: msg.GenesisAccounts,
-			IsGenesisEvent:  false,
-		}
-	}
-
-	// Create an updated rollapp record
-	rollapp := types.Rollapp{
-		RollappId:             msg.RollappId,
-		Creator:               msg.Creator,
-		Version:               0,
-		MaxSequencers:         msg.MaxSequencers,
-		PermissionedAddresses: msg.PermissionedAddresses,
-		GenesisState:          rollappGenesisState,
-	}
-
-	// copy TokenMetadata
-	rollapp.TokenMetadata = make([]*types.TokenMetadata, len(msg.Metadatas))
-	for i := range msg.Metadatas {
-		rollapp.TokenMetadata[i] = &msg.Metadatas[i]
-	}
-
-	if len(msg.Metadatas) == 0 {
-		ctx.Logger().Info("No token metadata provided")
+	rollapp := msg.GetRollapp()
+	err = rollapp.ValidateBasic()
+	if err != nil {
+		return nil, err
 	}
 
 	// Write rollapp information to the store

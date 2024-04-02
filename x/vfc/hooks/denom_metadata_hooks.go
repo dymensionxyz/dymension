@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"fmt"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,6 +11,8 @@ import (
 )
 
 var _ denommetadatamoduletypes.DenomMetadataHooks = VirtualFrontierBankContractRegistrationHook{}
+
+const ibcDenomPrefix = "ibc/"
 
 type VirtualFrontierBankContractRegistrationHook struct {
 	evmKeeper evmkeeper.Keeper
@@ -23,10 +26,12 @@ func NewVirtualFrontierBankContractRegistrationHook(evmKeeper evmkeeper.Keeper) 
 }
 
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(ctx sdk.Context, newDenomMetadata banktypes.Metadata) error {
-	if strings.HasPrefix(strings.ToLower(newDenomMetadata.Base), "ibc/") { // only deploy for IBC denom.
+	if strings.HasPrefix(strings.ToLower(newDenomMetadata.Base), ibcDenomPrefix) { // only deploy for IBC denom.
 		// Deploy the virtual frontier bank contract for the new IBC denom.
 		// Error, if any, no state transition will be made.
-		_ = v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base)
+		if err := v.evmKeeper.DeployVirtualFrontierBankContractForBankDenomMetadataRecord(ctx, newDenomMetadata.Base); err != nil {
+			return fmt.Errorf("deploy virtual frontier bank contract for IBC denom %s: %w", newDenomMetadata.Base, err)
+		}
 	}
 
 	return nil
@@ -34,6 +39,5 @@ func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataCreation(
 
 func (v VirtualFrontierBankContractRegistrationHook) AfterDenomMetadataUpdate(sdk.Context, banktypes.Metadata) error {
 	// do nothing
-
 	return nil
 }

@@ -13,15 +13,15 @@ const (
 	delayedAckEventType = "delayedack"
 )
 
-type KeeperTestSuite struct {
+type DelayedAckTestSuite struct {
 	apptesting.KeeperTestHelper
 }
 
 func TestKeeperTestSuite(t *testing.T) {
-	suite.Run(t, new(KeeperTestSuite))
+	suite.Run(t, new(DelayedAckTestSuite))
 }
 
-func (suite *KeeperTestSuite) SetupTest() {
+func (suite *DelayedAckTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 

@@ -75,8 +75,7 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
 			unbonding := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonding)
 
-			// rollapp.MaxSequencers
-			if len(bonded)+len(unbonding) > int(rollapp.MaxSequencers) {
+			if rollapp.MaxSequencers > 0 && len(bonded)+len(unbonding) > int(rollapp.MaxSequencers) {
 				broken = true
 				msg += "too many sequencers for rollapp " + rollapp.RollappId + "\n"
 			}

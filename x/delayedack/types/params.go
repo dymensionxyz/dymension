@@ -20,9 +20,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epcohIdentifier string) Params {
+func NewParams(epochIdentifier string) Params {
 	return Params{
-		EpochIdentifier: epcohIdentifier,
+		EpochIdentifier: epochIdentifier,
 	}
 }
 

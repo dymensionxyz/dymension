@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -105,8 +104,8 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	return demandOrder, nil
 }
 
-// This should be called only once per order.
-func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
+// FulfillOrder should be called only at most once per order.
+func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
 	order.IsFullfilled = true
 	err := k.SetDemandOrder(ctx, order)
 	if err != nil {
@@ -149,14 +148,7 @@ func (k Keeper) ListAllDemandOrders(
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.DemandOrder
-		wrapFn := func(ctx sdk.Context) error {
-			return k.cdc.Unmarshal(iterator.Value(), &val)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-		if err != nil {
-			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
-			continue
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, &val)
 	}
 
@@ -183,14 +175,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.DemandOrder
-		wrapFn := func(ctx sdk.Context) error {
-			return k.cdc.Unmarshal(iterator.Value(), &val)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-		if err != nil {
-			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
-			continue
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, &val)
 	}
 

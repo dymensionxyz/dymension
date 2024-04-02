@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -17,9 +18,9 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/mock"
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/testutil/mockpv"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -86,16 +87,39 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 				Description: "The native staking token of RollApp XYZ",
 				DenomUnits: []*rollapptypes.DenomUnit{
 					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
-					{Denom: "mrax", Exponent: uint32(3), Aliases: []string{"millirax"}},
-					{Denom: "urax", Exponent: uint32(6), Aliases: []string{"microrax"}},
+					{Denom: "rax", Exponent: uint32(10), Aliases: []string{"RAX"}},
 				},
 				Base:    "arax",
-				Display: "arax",
+				Display: "rax",
 			},
 		},
 		nil,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	suite.Require().NoError(err) // message committed
+}
+
+func (suite *IBCTestUtilSuite) GenesisEvent(chainID, channelID string) {
+	// add sender to deployer whitelist
+	app := ConvertToApp(suite.hubChain)
+	params := app.RollappKeeper.GetParams(suite.hubChain.GetContext())
+	params.DeployerWhitelist = []rollapptypes.DeployerParams{{Address: suite.hubChain.SenderAccount.GetAddress().String()}}
+	app.RollappKeeper.SetParams(suite.hubChain.GetContext(), params)
+
+	// add genesis state to rollapp
+	rollapp, found := app.RollappKeeper.GetRollapp(suite.hubChain.GetContext(), chainID)
+	suite.Require().True(found)
+	rollapp.GenesisState = rollapptypes.RollappGenesisState{}
+	app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), rollapp)
+
+	msgGenesisEvent := rollapptypes.NewMsgRollappGenesisEvent(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		channelID,
+		suite.rollappChain.ChainID,
+	)
+	suite.hubChain.CurrentHeader.ProposerAddress = suite.hubChain.NextVals.Proposer.Address
+
+	_, err := suite.hubChain.SendMsgs(msgGenesisEvent)
 	suite.Require().NoError(err) // message committed
 }
 
@@ -105,14 +129,13 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
+	// using validator pubkey as the dymint pubkey
 	pk, err := cryptocodec.FromTmPubKeyInterface(suite.rollappChain.Vals.Validators[0].PubKey)
 	suite.Require().Nil(err)
 
-	suite.Require().Equal(suite.rollappChain.SenderAccount.GetPubKey(), pk)
-
 	msgCreateSequencer, err := sequencertypes.NewMsgCreateSequencer(
 		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.SenderAccount.GetPubKey(),
+		pk,
 		suite.rollappChain.ChainID,
 		&sequencertypes.Description{},
 		bond,
@@ -245,13 +268,13 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 
 	// generate genesis accounts
 
-	senderPrivKey := mockpv.NewPV()
-	senderPubKey, err := senderPrivKey.GetPubKey()
+	valPrivKey := mock.NewPV()
+	valPubKey, err := valPrivKey.GetPubKey()
 	suite.Require().NoError(err)
 
-	valPubKey := senderPrivKey.PrivKey.PubKey()
+	senderPrivKey := secp256k1.GenPrivKey()
+	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
 
-	acc := authtypes.NewBaseAccount(valPubKey.Address().Bytes(), valPubKey, 0, 0)
 	amount, ok := sdk.NewIntFromString("10000000000000000000")
 	suite.Require().True(ok)
 
@@ -266,7 +289,7 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 
 	senderAcc := ibctesting.SenderAccount{
 		SenderAccount: acc,
-		SenderPrivKey: senderPrivKey.PrivKey,
+		SenderPrivKey: senderPrivKey,
 	}
 
 	senderAccs = append(senderAccs, senderAcc)
@@ -274,9 +297,9 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 	var validators []*tmtypes.Validator
 	signersByAddress := make(map[string]tmtypes.PrivValidator, 1)
 
-	validators = append(validators, tmtypes.NewValidator(senderPubKey, 1))
+	validators = append(validators, tmtypes.NewValidator(valPubKey, 1))
 
-	signersByAddress[senderPubKey.Address().String()] = senderPrivKey
+	signersByAddress[valPubKey.Address().String()] = valPrivKey
 	valSet := tmtypes.NewValidatorSet(validators)
 
 	app := ibctesting.SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
