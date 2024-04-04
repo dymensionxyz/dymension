@@ -64,7 +64,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
 		if !fee.IsPositive() {
-			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String())
+			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String(), "multiplier", feeMultiplier.String())
 			return nil
 		}
 		packetMetaData = &types.PacketMetadata{
