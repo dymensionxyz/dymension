@@ -61,14 +61,15 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		if t == commontypes.RollappPacket_ON_ACK {
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
-		if feeMultiplier.IsZero() {
-			logger.Debug("fee is zero, skipping demand order creation", "fee type", t)
+
+		fee := amountDec.Mul(feeMultiplier).TruncateInt()
+		if !fee.IsPositive() {
+			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String(), "multiplier", feeMultiplier.String())
 			return nil
 		}
-		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
 		packetMetaData = &types.PacketMetadata{
 			EIBC: &types.EIBCMetadata{
-				Fee: fee,
+				Fee: fee.String(),
 			},
 		}
 	}
@@ -108,13 +109,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
-	// Get the fee from the memo
-	fee := eibcMetaData.Fee
 	// Calculate the demand order price and validate it
 	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
 	if !ok || !amountInt.IsPositive() {
 		return nil, fmt.Errorf("convert amount to positive integer: %s", fungibleTokenPacketData.Amount)
 	}
+	// Get the fee from the memo
+	fee := eibcMetaData.Fee
 	feeInt, ok := sdk.NewIntFromString(fee)
 	if !ok || !feeInt.IsPositive() {
 		return nil, fmt.Errorf("convert fee to positive integer: %s", fee)
