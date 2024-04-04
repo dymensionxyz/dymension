@@ -36,7 +36,7 @@ var (
 	ErrInvalidClientState                  = errorsmod.Register(ModuleName, 1025, "invalid client state")
 	ErrInvalidSequencer                    = errorsmod.Register(ModuleName, 1026, "invalid sequencer")
 	ErrInvalidGenesisChannelId             = errorsmod.Register(ModuleName, 1027, "invalid genesis channel id")
-	ErrGenesisEventNotDefined              = errorsmod.Register(ModuleName, 1028, "genesis event not defined")
+	ErrGenesisEventNotTriggered            = errorsmod.Register(ModuleName, 1028, "genesis event not triggered yet")
 	ErrGenesisEventAlreadyTriggered        = errorsmod.Register(ModuleName, 1029, "genesis event already triggered")
 	ErrTooManyPermissionedAddresses        = errorsmod.Register(ModuleName, 1030, "invalid number of permissioned addresses")
 	ErrInvalidGenesisAccount               = errorsmod.Register(ModuleName, 1031, "invalid genesis account")

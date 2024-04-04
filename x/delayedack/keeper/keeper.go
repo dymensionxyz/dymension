@@ -203,6 +203,9 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID
 	if !found {
 		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "rollappID not found for the rollappID: %s", rollappID)
 	}
+	if rollapp.ChannelId == "" {
+		return errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id : %s", rollappID)
+	}
 	// check if the channelID matches the rollappID's channelID
 	if rollapp.ChannelId != channelID {
 		return errorsmod.Wrapf(rollapptypes.ErrMismatchedChannelID, "channel id mismatch: %s, expected: %s", channelID, rollapp.ChannelId)

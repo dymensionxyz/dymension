@@ -230,6 +230,12 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 			_, err := suite.msgServer.TriggerGenesisEvent(ctx, tc.msg)
 			suite.hubChain.NextBlock()
 			suite.Require().ErrorIs(err, tc.expErr)
+
+			if tc.expErr == nil {
+				rollapp, _ = rollappKeeper.GetRollapp(suite.ctx, suite.rollappChain.ChainID)
+				suite.Require().NotEmpty(rollapp.ChannelId)
+			}
+
 			// Validate no tokens are in the module account
 			accountKeeper := ConvertToApp(suite.hubChain).AccountKeeper
 			bankKeeper := ConvertToApp(suite.hubChain).BankKeeper
