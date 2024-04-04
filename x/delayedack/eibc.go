@@ -61,14 +61,15 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		if t == commontypes.RollappPacket_ON_ACK {
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
-		if feeMultiplier.IsZero() {
-			logger.Debug("fee is zero, skipping demand order creation", "fee type", t)
+
+		fee := amountDec.Mul(feeMultiplier).TruncateInt()
+		if !fee.IsPositive() {
+			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String())
 			return nil
 		}
-		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
 		packetMetaData = &types.PacketMetadata{
 			EIBC: &types.EIBCMetadata{
-				Fee: fee,
+				Fee: fee.String(),
 			},
 		}
 	}
