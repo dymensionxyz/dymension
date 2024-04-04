@@ -98,6 +98,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
+	suite.GenesisEvent(path.EndpointA.ChannelID)
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -132,6 +133,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
+	suite.GenesisEvent(path.EndpointA.ChannelID)
 
 	// Upate rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
@@ -182,6 +184,7 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	// Create rollapp and update its initial state
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
+	suite.GenesisEvent(path.EndpointA.ChannelID)
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Set the timeout height
 	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
