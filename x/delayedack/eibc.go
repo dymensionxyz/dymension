@@ -2,6 +2,7 @@ package delayedack
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,6 +18,20 @@ const (
 	eibcMemoObjectName = "eibc"
 	PFMMemoObjectName  = "forward"
 )
+
+var ErrFeeIsNotPositive = fmt.Errorf("fee is not positive")
+
+func calculateTimeoutAndAckFee(multiplier sdk.Dec, amount string) (string, error) {
+	amountDec, err := sdk.NewDecFromStr(amount)
+	if err != nil {
+		return "", err
+	}
+	fee := amountDec.Mul(multiplier).TruncateInt()
+	if !fee.IsPositive() {
+		return "", ErrFeeIsNotPositive
+	}
+	return fee.String(), nil
+}
 
 // eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
@@ -49,11 +64,6 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		}
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
 		// Calculate the fee by multiplying the fee by the price
-		amountDec, err := sdk.NewDecFromStr(data.Amount)
-		if err != nil {
-			return err
-		}
-		// Calculate the fee by multiplying the fee by the price
 		var feeMultiplier sdk.Dec
 		if t == commontypes.RollappPacket_ON_TIMEOUT {
 			feeMultiplier = im.keeper.TimeoutFee(ctx)
@@ -61,11 +71,11 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		if t == commontypes.RollappPacket_ON_ACK {
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
-		if feeMultiplier.IsZero() {
+		fee, err := calculateTimeoutAndAckFee(feeMultiplier, data.Amount)
+		if errors.Is(err, ErrFeeIsNotPositive) {
 			logger.Debug("fee is zero, skipping demand order creation", "fee type", t)
 			return nil
 		}
-		fee := amountDec.Mul(feeMultiplier).TruncateInt().String()
 		packetMetaData = &types.PacketMetadata{
 			EIBC: &types.EIBCMetadata{
 				Fee: fee,
