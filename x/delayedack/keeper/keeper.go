@@ -186,20 +186,19 @@ func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string
 	return k.channelKeeper.LookupModuleByChannel(ctx, portID, channelID)
 }
 
-// ValidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
-func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID string) error {
+// ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
+func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID string) error {
 	// Get the sequencer from the latest state info update and check the validator set hash
-	// from the headers match with the sequencer for the rollapp
+	// from the headers match with the sequencer for the rollappID
 	// As the assumption the sequencer is honest we don't check the packet proof height.
-	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollapp)
+	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappID)
 	if !found {
-		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollapp: %s", rollapp)
+		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollappID: %s", rollappID)
 	}
-	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollapp, latestStateIndex.Index)
+	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestStateIndex.Index)
 	if !found {
-		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollapp: %s with index: %d", rollapp, latestStateIndex.Index)
+		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollappID: %s with index: %d", rollappID, latestStateIndex.Index)
 	}
-
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
@@ -213,7 +212,7 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 	// Gets sequencer information from the sequencer address found in the latest state info
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
-		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollapp %s", stateInfo.Sequencer, rollapp)
+		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollappID %s", stateInfo.Sequencer, rollappID)
 	}
 
 	// Gets the validator set hash made out of the pub key for the sequencer
@@ -222,9 +221,9 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollapp, portID, channelID s
 		return err
 	}
 
-	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollapp chain
+	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollappID chain
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
-		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollapp sequencer %x",
+		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollappID sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
 		return sdkerrors.Wrap(types.ErrMismatchedSequencer, errMsg)
 	}

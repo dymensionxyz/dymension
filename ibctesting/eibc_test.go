@@ -48,11 +48,13 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	suite.CreateRollapp()
 	// Register sequencer
 	suite.RegisterSequencer()
-	// adding state for the rollapp
-	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
+	// Trigger the genesis event to register the denoms
+	suite.GenesisEvent(path.EndpointA.ChannelID)
+	// adding state for the rollapp
+	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Setup globals for the test cases
 	IBCSenderAccount := suite.rollappChain.SenderAccount.GetAddress().String()
 	// Create cases
@@ -172,6 +174,8 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	suite.RegisterSequencer()
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
+	// Trigger the genesis event to register the denoms
+	suite.GenesisEvent(path.EndpointA.ChannelID)
 	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
@@ -332,6 +336,8 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Create rollapp and update its initial state
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
+	// Trigger the genesis event to register the denoms
+	suite.GenesisEvent(path.EndpointA.ChannelID)
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 
 	type TC struct {
