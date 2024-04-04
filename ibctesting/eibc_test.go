@@ -48,13 +48,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	suite.CreateRollapp()
 	// Register sequencer
 	suite.RegisterSequencer()
+	// adding state for the rollapp
+	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
-	// Trigger the genesis event to register the denoms
-	suite.GenesisEvent(path.EndpointA.ChannelID)
-	// adding state for the rollapp
-	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Setup globals for the test cases
 	IBCSenderAccount := suite.rollappChain.SenderAccount.GetAddress().String()
 	// Create cases
@@ -174,8 +172,6 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	suite.RegisterSequencer()
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
-	// Trigger the genesis event to register the denoms
-	suite.GenesisEvent(path.EndpointA.ChannelID)
 	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
@@ -336,13 +332,12 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Create rollapp and update its initial state
 	suite.CreateRollapp()
 	suite.RegisterSequencer()
-	// Trigger the genesis event to register the denoms
-	suite.GenesisEvent(path.EndpointA.ChannelID)
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 
 	type TC struct {
 		name     string
 		malleate func(channeltypes.Packet)
+		fee      func(params eibctypes.Params) sdk.Dec
 	}
 
 	nOrdersCreated := 0
@@ -361,6 +356,9 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 				err := hubEndpoint.TimeoutPacket(packet)
 				suite.Require().NoError(err)
 			},
+			fee: func(params eibctypes.Params) sdk.Dec {
+				return params.TimeoutFee
+			},
 		},
 		{
 			name: "err acknowledgement",
@@ -377,6 +375,9 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 				suite.Require().NoError(err)
 				err = hubEndpoint.AcknowledgePacket(packet, ack.Acknowledgement())
 				suite.Require().NoError(err)
+			},
+			fee: func(params eibctypes.Params) sdk.Dec {
+				return params.ErrackFee
 			},
 		},
 	} {
@@ -428,10 +429,10 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			// Get the last demand order created t
 			lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 			// Validate the demand order price and denom
-			timeoutFee := eibcKeeper.GetParams(suite.hubChain.GetContext()).TimeoutFee
+			fee := tc.fee(eibcKeeper.GetParams(suite.hubChain.GetContext()))
 			amountDec, err := sdk.NewDecFromStr(coinToSendToB.Amount.String())
 			suite.Require().NoError(err)
-			expectedPrice := amountDec.Mul(sdk.NewDec(1).Sub(timeoutFee)).TruncateInt()
+			expectedPrice := amountDec.Mul(sdk.NewDec(1).Sub(fee)).TruncateInt()
 			suite.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 			suite.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order
