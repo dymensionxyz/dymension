@@ -306,9 +306,19 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 	if err != nil {
 		return "", &data, err
 	}
-	_, found := im.keeper.GetRollapp(ctx, chainID)
+	rollapp, found := im.keeper.GetRollapp(ctx, chainID)
 	if !found {
 		return "", &data, nil
+	}
+	if rollapp.ChannelId == "" {
+		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+	}
+	// check if the channelID matches the rollappID's channelID
+	if rollapp.ChannelId != packet.GetDestChannel() {
+		return "", &data, errorsmod.Wrapf(
+			rollapptypes.ErrMismatchedChannelID,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.GetDestChannel(),
+		)
 	}
 
 	return chainID, &data, nil

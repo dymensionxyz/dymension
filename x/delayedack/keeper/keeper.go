@@ -186,7 +186,7 @@ func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string
 	return k.channelKeeper.LookupModuleByChannel(ctx, portID, channelID)
 }
 
-// ValidateRollappId checks that the rollappid from the ibc connection matches the rollapp checking the sequencer registered with the consensus state validator set
+// ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
 func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID string) error {
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollappID
@@ -198,17 +198,6 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID
 	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestStateIndex.Index)
 	if !found {
 		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollappID: %s with index: %d", rollappID, latestStateIndex.Index)
-	}
-	rollapp, found := k.rollappKeeper.GetRollapp(ctx, rollappID)
-	if !found {
-		return errorsmod.Wrapf(rollapptypes.ErrUnknownRollappID, "rollappID not found for the rollappID: %s", rollappID)
-	}
-	if rollapp.ChannelId == "" {
-		return errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id : %s", rollappID)
-	}
-	// check if the channelID matches the rollappID's channelID
-	if rollapp.ChannelId != channelID {
-		return errorsmod.Wrapf(rollapptypes.ErrMismatchedChannelID, "channel id mismatch: %s, expected: %s", channelID, rollapp.ChannelId)
 	}
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
