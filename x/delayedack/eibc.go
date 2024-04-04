@@ -108,13 +108,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
-	// Get the fee from the memo
-	fee := eibcMetaData.Fee
 	// Calculate the demand order price and validate it
 	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
 	if !ok || !amountInt.IsPositive() {
 		return nil, fmt.Errorf("convert amount to positive integer: %s", fungibleTokenPacketData.Amount)
 	}
+	// Get the fee from the memo
+	fee := eibcMetaData.Fee
 	feeInt, ok := sdk.NewIntFromString(fee)
 	if !ok || !feeInt.IsPositive() {
 		return nil, fmt.Errorf("convert fee to positive integer: %s", fee)
