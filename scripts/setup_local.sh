@@ -88,31 +88,19 @@ set_bank_denom_metadata
 set_epochs_params
 set_incentives_params
 
-echo "Enable monitoring? (Y/n) "
-read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  enable_monitoring
-fi
+dymd keys add pools --keyring-backend test
+dymd keys add user --keyring-backend test
 
-echo "Initialize AMM accounts? (Y/n) "
-read -r answer
-if [ ! "$answer" != "${answer#[Nn]}" ] ;then
-  dymd keys add pools --keyring-backend test
-  dymd keys add user --keyring-backend test
-
-  # Add genesis accounts and provide coins to the accounts
-  dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
-  # Give some uatom to the local-user as well
-  dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
-fi
+# Add genesis accounts and provide coins to the accounts
+dymd add-genesis-account $(dymd keys show pools --keyring-backend test -a) 1000000000000000000000000adym,10000000000uatom,500000000000uusd
+# Give some uatom to the local-user as well
+dymd add-genesis-account $(dymd keys show user --keyring-backend test -a) 1000000000000000000000adym,10000000000uatom
 
 echo "$MNEMONIC" | dymd keys add "$KEY_NAME" --recover --keyring-backend test
 dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
 dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
 dymd collect-gentxs
-
-dymd tx bank send user --keyring-backend test "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT" -b block
 
 set_authorised_deployer_account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)"
 
