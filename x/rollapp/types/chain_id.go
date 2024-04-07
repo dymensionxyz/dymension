@@ -104,6 +104,7 @@ func (c *ChainID) GetChainID() string {
 func (c *ChainID) GetName() string {
 	return c.name
 }
+
 func (c *ChainID) GetEIP155ID() uint64 {
 	if c.eip155ID != nil {
 		return c.eip155ID.Uint64()

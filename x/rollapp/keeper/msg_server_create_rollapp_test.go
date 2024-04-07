@@ -304,7 +304,6 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			} else {
 				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
 			}
-
 		})
 	}
 }
