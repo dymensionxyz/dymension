@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -30,6 +31,10 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		// allow replacing EIP155 only when forking (previous rollapp is frozen)
 		if isFound && !rollapp.Frozen {
 			return nil, types.ErrRollappExists
+		}
+		previousRollappChainId, _ := types.NewChainID(rollapp.RollappId)
+		if rollappId.GetRevisionNumber() != previousRollappChainId.GetRevisionNumber()+1 {
+			return nil, errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", previousRollappChainId.GetRevisionNumber()+1)
 		}
 	}
 

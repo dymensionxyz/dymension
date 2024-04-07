@@ -26,6 +26,7 @@ var (
 
 type ChainID struct {
 	chainID  string
+	name     string
 	eip155ID *big.Int
 	revision uint64
 }
@@ -49,10 +50,13 @@ func NewChainID(id string) (ChainID, error) {
 	if err != nil {
 		return ChainID{}, err
 	}
+	matches := strings.Split(chainID, "-")
+
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: eip155,
 		revision: revision,
+		name:     matches[0],
 	}, nil
 }
 
@@ -60,7 +64,6 @@ func NewChainID(id string) (ChainID, error) {
 // chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
 func getEIP155ID(chainID string) (*big.Int, error) {
 	matches := ethermintChainID.FindStringSubmatch(chainID)
-	fmt.Println(matches)
 
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
 		return nil, nil
@@ -98,6 +101,9 @@ func (c *ChainID) GetChainID() string {
 	return c.chainID
 }
 
+func (c *ChainID) GetName() string {
+	return c.name
+}
 func (c *ChainID) GetEIP155ID() uint64 {
 	if c.eip155ID != nil {
 		return c.eip155ID.Uint64()
