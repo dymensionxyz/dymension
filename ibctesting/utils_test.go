@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -75,6 +76,7 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
+	fmt.Println(suite.rollappChain.ChainID)
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,

@@ -136,6 +136,12 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			valid:     true,
 		},
 		{
+			name:      "valid non-eip155",
+			rollappId: "testChain3",
+			eip:       false,
+			valid:     true,
+		},
+		{
 			name:      "too long id",
 			rollappId: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
 			eip:       false,

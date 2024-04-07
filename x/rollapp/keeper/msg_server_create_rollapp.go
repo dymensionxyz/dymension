@@ -33,7 +33,7 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 			return nil, types.ErrRollappExists
 		}
 		previousRollappChainId, _ := types.NewChainID(rollapp.RollappId)
-		if rollappId.GetRevisionNumber() != previousRollappChainId.GetRevisionNumber()+1 {
+		if isFound && rollappId.GetRevisionNumber() != previousRollappChainId.GetRevisionNumber()+1 {
 			return nil, errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", previousRollappChainId.GetRevisionNumber()+1)
 		}
 	}
