@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 	"regexp"
+	"strconv"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -26,6 +27,7 @@ var (
 type ChainID struct {
 	chainID  string
 	eip155ID *big.Int
+	revision uint64
 }
 
 func NewChainID(id string) (ChainID, error) {
@@ -43,9 +45,14 @@ func NewChainID(id string) (ChainID, error) {
 	if err != nil {
 		return ChainID{}, err
 	}
+	revision, err := getRevisionNumber(chainID)
+	if err != nil {
+		return ChainID{}, err
+	}
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: eip155,
+		revision: revision,
 	}, nil
 }
 
@@ -53,10 +60,11 @@ func NewChainID(id string) (ChainID, error) {
 // chain-id in *big.Int format. The function returns an error if the chain-id has an invalid format
 func getEIP155ID(chainID string) (*big.Int, error) {
 	matches := ethermintChainID.FindStringSubmatch(chainID)
+	fmt.Println(matches)
+
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
 		return nil, nil
 	}
-
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)
 	if !ok {
@@ -64,6 +72,22 @@ func getEIP155ID(chainID string) (*big.Int, error) {
 	}
 
 	return chainIDInt, nil
+}
+
+// getEIP155ID parses a string chain identifier and returns the revision number
+func getRevisionNumber(chainID string) (uint64, error) {
+	matches := strings.Split(chainID, "-")
+	if len(matches) == 1 {
+		return 0, nil
+	}
+	if len(matches) != 2 {
+		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number")
+	}
+	revision, err := strconv.ParseUint(matches[1], 0, 64)
+	if err != nil {
+		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number: error: %e", err)
+	}
+	return revision, nil
 }
 
 func (c *ChainID) IsEIP155() bool {
@@ -79,4 +103,8 @@ func (c *ChainID) GetEIP155ID() uint64 {
 		return c.eip155ID.Uint64()
 	}
 	return 0
+}
+
+func (c *ChainID) GetRevisionNumber() uint64 {
+	return c.revision
 }
