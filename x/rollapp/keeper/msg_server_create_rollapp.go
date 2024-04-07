@@ -26,7 +26,9 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	if rollappId.IsEIP155() {
 		// check to see if the RollappId has been registered before with same key
-		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
+		rollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
+		// allow replacing EIP155 only when forking (previous rollapp is frozen)
+		if isFound && !rollapp.Frozen {
 			return nil, types.ErrRollappExists
 		}
 	}
