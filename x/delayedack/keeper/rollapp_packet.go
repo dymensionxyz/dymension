@@ -12,7 +12,7 @@ import (
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
 func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.RollappPacket) error {
 	logger := ctx.Logger()
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "channel", rollappPacket.Packet.SourceChannel,
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
 		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
