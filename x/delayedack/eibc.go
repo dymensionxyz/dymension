@@ -55,10 +55,10 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		}
 		// Calculate the fee by multiplying the fee by the price
 		var feeMultiplier sdk.Dec
-		if t == commontypes.RollappPacket_ON_TIMEOUT {
+		switch t {
+		case commontypes.RollappPacket_ON_TIMEOUT:
 			feeMultiplier = im.keeper.TimeoutFee(ctx)
-		}
-		if t == commontypes.RollappPacket_ON_ACK {
+		case commontypes.RollappPacket_ON_ACK:
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
 
@@ -147,7 +147,8 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
 	case commontypes.RollappPacket_ON_ACK:
-		demandOrderDenom = fungibleTokenPacketData.Denom      // It's what we tried to send
+		trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
+		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
