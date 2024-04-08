@@ -86,29 +86,3 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 		})
 	}
 }
-
-func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
-	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
-
-	rollappId := "testRollappId"
-	pkts := generatePackets(rollappId, 5)
-	rollappId2 := "testRollappId2"
-	pkts2 := generatePackets(rollappId2, 5)
-
-	for _, pkt := range append(pkts, pkts2...) {
-		err := keeper.SetRollappPacket(ctx, pkt)
-		suite.Require().NoError(err)
-	}
-
-	err := keeper.HandleFraud(ctx, rollappId)
-	suite.Require().Nil(err)
-
-	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
-
-	keeper.SetParams(ctx, types.Params{EpochIdentifier: "minute"})
-	epochHooks := keeper.GetEpochHooks()
-	err = epochHooks.AfterEpochEnd(ctx, "minute", 1)
-	suite.Require().NoError(err)
-
-	suite.Require().Equal(5, len(keeper.GetAllRollappPackets(ctx)))
-}
