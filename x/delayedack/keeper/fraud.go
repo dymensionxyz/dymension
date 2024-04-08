@@ -18,10 +18,14 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
 	for _, rollappPacket := range rollappPendingPackets {
 		errString := "fraudulent packet"
-		packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
-		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)
+		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID,
+			"type", rollappPacket.Type,
+			"source channel", rollappPacket.Packet.SourceChannel,
+			"sequence", rollappPacket.Packet.Sequence)
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
+			// PacketID is only guaranteed to be unique in case the packet is of type OnRecvPacket
+			packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
 			err := k.writeFailedAck(ctx, rollappPacket, errString)
 			if err != nil {
 				logger.Error("failed to write failed ack", "rollappID", rollappID, "packetId", packetId, "error", errString)
@@ -33,7 +37,11 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 		rollappPacket.Error = errString
 		rollappPacket, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {
-			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type, "error", err.Error())
+			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID,
+				"type", rollappPacket.Type,
+				"source channel", rollappPacket.Packet.SourceChannel,
+				"sequence", rollappPacket.Packet.Sequence,
+				"error", err.Error())
 			return err
 		}
 	}
