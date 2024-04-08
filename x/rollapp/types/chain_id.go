@@ -88,7 +88,7 @@ func getRevisionNumber(chainID string) (uint64, error) {
 	}
 	revision, err := strconv.ParseUint(matches[1], 0, 64)
 	if err != nil {
-		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number: error: %w", err)
+		return 0, errorsmod.Wrapf(ErrInvalidRollappID, "unable to parse revision number: error: %v", err)
 	}
 	return revision, nil
 }
