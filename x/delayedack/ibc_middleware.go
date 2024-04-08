@@ -331,7 +331,8 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 
 // GetProofHeight returns the proof height of the packet
 func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.RollappPacket_Type,
-	rollappPortOnHub string, rollappChannelOnHub string, sequence uint64) (uint64, error) {
+	rollappPortOnHub string, rollappChannelOnHub string, sequence uint64,
+) (uint64, error) {
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
 	height, ok := types.FromIBCProofContext(ctx, packetId)
 	if ok {
