@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
@@ -23,7 +21,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
-			//refund all pending outgoing packets
+			// refund all pending outgoing packets
 			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
 			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			if err != nil {
@@ -39,20 +37,5 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 			return err
 		}
 	}
-	return nil
-}
-
-func (k Keeper) writeFailedAck(ctx sdk.Context, rollappPacket commontypes.RollappPacket, msg string) error {
-	failedAck := channeltypes.NewErrorAcknowledgement(fmt.Errorf(msg))
-	// Write the acknowledgement to the chain
-	_, chanCap, err := k.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-	if err != nil {
-		return err
-	}
-	err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, failedAck)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
