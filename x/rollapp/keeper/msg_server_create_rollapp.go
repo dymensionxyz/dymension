@@ -52,16 +52,21 @@ func (k msgServer) checkIfRollappExists(ctx sdk.Context, msg *types.MsgCreateRol
 		return nil
 	}
 	// check to see if the RollappId has been registered before with same key
-	rollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
+	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
 	// allow replacing EIP155 only when forking (previous rollapp is frozen)
 	if !isFound {
 		return nil
 	}
-	if !rollapp.Frozen {
+	if !existingRollapp.Frozen {
 		return types.ErrRollappExists
 	}
-	previousRollappChainId, _ := types.NewChainID(rollapp.RollappId)
-	nextRevisionNumber := previousRollappChainId.GetRevisionNumber() + 1
+	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
+
+	if rollappId.GetName() != existingRollappChainId.GetName() {
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
+	}
+
+	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
 	if rollappId.GetRevisionNumber() != nextRevisionNumber {
 		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
 	}

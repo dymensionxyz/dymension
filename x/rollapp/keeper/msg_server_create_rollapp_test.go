@@ -276,6 +276,12 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			newRollappId: "rollapp_1234-5",
 			valid:        false,
 		},
+		{
+			name:         "same eip155 but different name",
+			rollappId:    "rollapp_1234-1",
+			newRollappId: "rollapy_1234-2",
+			valid:        false,
+		},
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
