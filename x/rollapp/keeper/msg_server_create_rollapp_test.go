@@ -159,6 +159,12 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			eip:       false,
 			valid:     true,
 		},
+		{
+			name:      "starts with dash",
+			rollappId: "-1234",
+			eip:       false,
+			valid:     false,
+		},
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
@@ -170,7 +176,6 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-
 			if test.valid {
 				suite.Require().NoError(err)
 				id, err := types.NewChainID(test.rollappId)
@@ -205,8 +210,8 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 		},
 		{
 			name:      "revision set without eip155",
-			rollappId: "rollapp-1",
-			revision:  1,
+			rollappId: "rollapp-3",
+			revision:  3,
 			valid:     true,
 		},
 		{
@@ -299,8 +304,8 @@ func (suite *RollappTestSuite) TestForkChainId() {
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
 				suite.Require().NoError(err)
-				_, found2 := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
-				suite.Require().True(found2)
+				_, found = suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
+				suite.Require().True(found)
 			} else {
 				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
 			}

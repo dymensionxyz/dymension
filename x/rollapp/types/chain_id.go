@@ -52,6 +52,10 @@ func NewChainID(id string) (ChainID, error) {
 	}
 	matches := strings.Split(chainID, "-")
 
+	if matches[0] == "" {
+		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty chain id before '-'")
+	}
+
 	return ChainID{
 		chainID:  chainID,
 		eip155ID: eip155,
