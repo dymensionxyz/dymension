@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -14,21 +15,9 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 		return nil, types.ErrRollappsDisabled
 	}
 
-	rollappId, err := types.NewChainID(msg.RollappId)
+	err := k.checkIfRollappExists(ctx, msg)
 	if err != nil {
 		return nil, err
-	}
-
-	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
-		return nil, types.ErrRollappExists
-	}
-
-	if rollappId.IsEIP155() {
-		// check to see if the RollappId has been registered before with same key
-		if _, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID()); isFound {
-			return nil, types.ErrRollappExists
-		}
 	}
 
 	// check to see if there is an active whitelist
@@ -48,4 +37,38 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	k.SetRollapp(ctx, rollapp)
 
 	return &types.MsgCreateRollappResponse{}, nil
+}
+
+func (k msgServer) checkIfRollappExists(ctx sdk.Context, msg *types.MsgCreateRollapp) error {
+	rollappId, err := types.NewChainID(msg.RollappId)
+	if err != nil {
+		return err
+	}
+	// check to see if the RollappId has been registered before
+	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
+		return types.ErrRollappExists
+	}
+	if !rollappId.IsEIP155() {
+		return nil
+	}
+	// check to see if the RollappId has been registered before with same key
+	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
+	// allow replacing EIP155 only when forking (previous rollapp is frozen)
+	if !isFound {
+		return nil
+	}
+	if !existingRollapp.Frozen {
+		return types.ErrRollappExists
+	}
+	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
+
+	if rollappId.GetName() != existingRollappChainId.GetName() {
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
+	}
+
+	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
+	if rollappId.GetRevisionNumber() != nextRevisionNumber {
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
+	}
+	return nil
 }
