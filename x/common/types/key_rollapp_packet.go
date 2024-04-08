@@ -22,15 +22,30 @@ var (
 	keySeparatorBytes = []byte("/")
 )
 
-// RollappPacketKey constructs a key for a specific RollappPacket
-// status/rollappID/proofHeight/packetUID
+// RollappPacketKey constructs a key for a specific RollappPacket of the form:
+// status/rollappID/proofHeight/packetType/packetSourceChannel/packetSequence.
+//
+// In order to build a packet UID We need to take the source channel + packet + packet type as the packet UID
+// otherwise we're not guaranteed with uniqueness as we could have:
+// Same rollapp id, same status, same proof height same sequence (as it refers to the source chain) and same channel.
+// Example would be, both rollapp and hub have channel-0 and we have at the same proof height of the rollapp
+// AckPacket with sequence 1 (originanted on the hub) and OnRecvPacket with sequence 1 (originated on the rollapp).
+// Adding the packet type guarantees uniqueness as the type differentiate the source.
 func RollappPacketKey(rollappPacket *RollappPacket) []byte {
+	// Get the bytes rep
 	srppPrefix := RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight)
+	packetTypeBytes := []byte(rollappPacket.Type.String())
 	packetSequenceBytes := sdk.Uint64ToBigEndian(rollappPacket.Packet.Sequence)
-	packetDestinationChannelBytes := []byte(rollappPacket.Packet.DestinationChannel)
-	packetUIDBytes := append(packetDestinationChannelBytes, packetSequenceBytes...)
+	packetSourceChannelBytes := []byte(rollappPacket.Packet.SourceChannel)
+	// Construct the key
 	result := append(srppPrefix, keySeparatorBytes...)
-	return append(result, packetUIDBytes...)
+	result = append(result, packetTypeBytes...)
+	result = append(result, keySeparatorBytes...)
+	result = append(result, packetSourceChannelBytes...)
+	result = append(result, keySeparatorBytes...)
+	result = append(result, packetSequenceBytes...)
+
+	return result
 }
 
 // RollappPacketByStatusByRollappIDByProofHeightPrefix constructs a key prefix for a specific RollappPacket
