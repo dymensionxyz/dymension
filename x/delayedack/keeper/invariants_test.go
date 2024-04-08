@@ -3,14 +3,20 @@ package keeper_test
 import (
 	"github.com/tendermint/tendermint/libs/rand"
 
+	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
+
+	keeper := suite.App.DelayedAckKeeper
+	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper)
+
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
 
@@ -67,7 +73,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp)
+		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp, transferStack)
 		suite.Require().NoError(err)
 		break
 	}
