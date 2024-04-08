@@ -10,10 +10,6 @@ type PacketUID struct {
 	Sequence          uint64
 }
 
-func (p PacketUID) String() string {
-	return fmt.Sprintf("%s-%s-%s-%d", p.Type, p.RollappHubChannel, p.RollappHubPort, p.Sequence)
-}
-
 // NewPacketUID creates a new PacketUID with the provided details.
 func NewPacketUID(packetType RollappPacket_Type, hubPort string, hubChannel string, sequence uint64) PacketUID {
 	return PacketUID{
@@ -22,4 +18,9 @@ func NewPacketUID(packetType RollappPacket_Type, hubPort string, hubChannel stri
 		RollappHubChannel: hubChannel,
 		Sequence:          sequence,
 	}
+}
+
+// String returns a string representation of the PacketUID
+func (p PacketUID) String() string {
+	return fmt.Sprintf("%s-%s-%s-%d", p.Type, p.RollappHubChannel, p.RollappHubPort, p.Sequence)
 }

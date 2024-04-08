@@ -17,31 +17,28 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
 	for _, rollappPacket := range rollappPendingPackets {
-		errString := "fraudulent packet"
-		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID,
+
+		// setup log context
+		logContext := []interface{}{
+			"rollappID", rollappID,
 			"type", rollappPacket.Type,
 			"source channel", rollappPacket.Packet.SourceChannel,
-			"sequence", rollappPacket.Packet.Sequence)
+			"sequence", rollappPacket.Packet.Sequence,
+		}
+
+		logger.Debug("Reverting IBC rollapp packet", logContext...)
 
 		if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
-			// PacketID is only guaranteed to be unique in case the packet is of type OnRecvPacket
-			packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
-			err := k.writeFailedAck(ctx, rollappPacket, errString)
+			err := k.writeFailedAck(ctx, rollappPacket, commontypes.Status_REVERTED.String())
 			if err != nil {
-				logger.Error("failed to write failed ack", "rollappID", rollappID, "packetId", packetId, "error", errString)
+				logger.Error("failed to write failed ack", append(logContext, "error", err.Error())...)
 				// don't return here as it's nice to have
 			}
 		}
-
 		// Update status to reverted
-		rollappPacket.Error = errString
-		rollappPacket, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
+		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {
-			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID,
-				"type", rollappPacket.Type,
-				"source channel", rollappPacket.Packet.SourceChannel,
-				"sequence", rollappPacket.Packet.Sequence,
-				"error", err.Error())
+			logger.Error("Error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
 			return err
 		}
 	}
