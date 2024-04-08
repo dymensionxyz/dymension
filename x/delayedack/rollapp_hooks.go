@@ -61,8 +61,8 @@ func (im IBCMiddleware) finalizeRollappPacket(
 ) (err error) {
 	logger.Debug("Finalizing IBC rollapp packet",
 		"rollappID", rollappID,
-		"sequence", rollappPacket.Packet.GetSequence(),
-		"destination channel", rollappPacket.Packet.GetDestChannel(),
+		"sequence", rollappPacket.Packet.Sequence,
+		"source channel", rollappPacket.Packet.SourceChannel,
 		"type", rollappPacket.Type)
 
 	switch rollappPacket.Type {
@@ -75,8 +75,8 @@ func (im IBCMiddleware) finalizeRollappPacket(
 	default:
 		logger.Error("Unknown rollapp packet type",
 			"rollappID", rollappID,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel(),
+			"sequence", rollappPacket.Packet.Sequence,
+			"source channel", rollappPacket.Packet.SourceChannel,
 			"type", rollappPacket.Type)
 	}
 	// Update the packet with the error
@@ -88,8 +88,8 @@ func (im IBCMiddleware) finalizeRollappPacket(
 	if err != nil {
 		logger.Error("Error finalizing IBC rollapp packet",
 			"rollappID", rollappID,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel(),
+			"sequence", rollappPacket.Packet.Sequence,
+			"source channel", rollappPacket.Packet.SourceChannel,
 			"type", rollappPacket.Type,
 			"error", err.Error())
 	}
@@ -102,15 +102,18 @@ func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, lo
 			if err != nil {
 				logger.Error("writing acknowledgement",
 					"rollappID", rollappPacket.RollappId,
-					"sequence", rollappPacket.Packet.GetSequence(),
-					"destination channel", rollappPacket.Packet.GetDestChannel(),
+					"sequence", rollappPacket.Packet.Sequence,
+					"source channel", rollappPacket.Packet.SourceChannel,
+					"type", rollappPacket.Type,
 					"error", err.Error())
 			}
 		}()
 		logger.Debug("Calling OnRecvPacket",
 			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+			"sequence", rollappPacket.Packet.Sequence,
+			"source channel", rollappPacket.Packet.SourceChannel,
+			"type", rollappPacket.Type,
+		)
 
 		ack := im.IBCModule.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		// If async, return
@@ -141,8 +144,9 @@ func (im IBCMiddleware) onAckPacket(rollappPacket commontypes.RollappPacket, log
 	return func(ctx sdk.Context) (err error) {
 		logger.Debug("Calling OnAcknowledgementPacket",
 			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+			"sequence", rollappPacket.Packet.Sequence,
+			"source channel", rollappPacket.Packet.SourceChannel,
+			"type", rollappPacket.Type)
 
 		err = im.IBCModule.OnAcknowledgementPacket(
 			ctx,
@@ -153,8 +157,9 @@ func (im IBCMiddleware) onAckPacket(rollappPacket commontypes.RollappPacket, log
 		if err != nil {
 			logger.Error("calling OnAcknowledgementPacket",
 				"rollappID", rollappPacket.RollappId,
-				"sequence", rollappPacket.Packet.GetSequence(),
-				"destination channel", rollappPacket.Packet.GetDestChannel(),
+				"sequence", rollappPacket.Packet.Sequence,
+				"source channel", rollappPacket.Packet.SourceChannel,
+				"type", rollappPacket.Type,
 				"error", err.Error())
 		}
 		return
@@ -165,15 +170,17 @@ func (im IBCMiddleware) onTimeoutPacket(rollappPacket commontypes.RollappPacket,
 	return func(ctx sdk.Context) (err error) {
 		logger.Debug("Calling OnTimeoutPacket",
 			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+			"sequence", rollappPacket.Packet.Sequence,
+			"source channel", rollappPacket.Packet.SourceChannel,
+			"type", rollappPacket.Type)
 
 		err = im.IBCModule.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		if err != nil {
 			logger.Error("calling OnTimeoutPacket",
 				"rollappID", rollappPacket.RollappId,
-				"sequence", rollappPacket.Packet.GetSequence(),
-				"destination channel", rollappPacket.Packet.GetDestChannel(),
+				"sequence", rollappPacket.Packet.Sequence,
+				"source channel", rollappPacket.Packet.SourceChannel,
+				"type", rollappPacket.Type,
 				"error", err.Error())
 		}
 		return

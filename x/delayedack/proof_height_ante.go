@@ -5,6 +5,7 @@ import (
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -18,26 +19,40 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	for _, m := range tx.GetMsgs() {
 		var (
 			height   clienttypes.Height
-			packetId channeltypes.PacketId
+			packetId commontypes.PacketUID
 		)
 		switch msg := m.(type) {
 		case *channeltypes.MsgRecvPacket:
 			height = msg.ProofHeight
-			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
+			packetId = commontypes.NewPacketUID(
+				commontypes.RollappPacket_ON_RECV,
+				msg.Packet.DestinationPort,
+				msg.Packet.DestinationChannel,
+				msg.Packet.Sequence,
+			)
 
 		case *channeltypes.MsgAcknowledgement:
 			height = msg.ProofHeight
-			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
+			packetId = commontypes.NewPacketUID(
+				commontypes.RollappPacket_ON_ACK,
+				msg.Packet.SourcePort,
+				msg.Packet.SourceChannel,
+				msg.Packet.Sequence,
+			)
 
 		case *channeltypes.MsgTimeout:
 			height = msg.ProofHeight
-			packetId = channeltypes.NewPacketID(msg.Packet.GetDestPort(), msg.Packet.GetDestChannel(), msg.Packet.GetSequence())
+			packetId = commontypes.NewPacketUID(
+				commontypes.RollappPacket_ON_TIMEOUT,
+				msg.Packet.SourcePort,
+				msg.Packet.SourceChannel,
+				msg.Packet.Sequence,
+			)
 		default:
 			continue
 		}
 
 		ctx = delayedacktypes.NewIBCProofContext(ctx, packetId, height)
 	}
-
 	return next(ctx, tx, simulate)
 }
