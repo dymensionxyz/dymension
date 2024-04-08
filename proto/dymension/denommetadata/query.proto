@@ -1,0 +1,27 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Queries an IBC denom base on denom trace
+	rpc IBCDenomByDenomTrace(QueryGetIBCDenomByDenomTraceRequest) returns (QueryIBCDenomByDenomTraceResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/denommetadata/ibc_denom/{denom_trace}";
+	}
+}
+
+// QueryGetIBCDenomByDenomTraceRequest is the request type for the Query/IBCDenomByDenomTrace RPC method.
+message QueryGetIBCDenomByDenomTraceRequest {
+  // denom trace of a denom
+  string denom_trace = 1;
+}
+
+// QueryIBCDenomByDenomTraceResponse is the response type for the Query/IBCDenomByDenomTrace RPC method.
+message QueryIBCDenomByDenomTraceResponse {
+  // ibc denom base on denom trace
+  string ibc_denom = 1;
+}
