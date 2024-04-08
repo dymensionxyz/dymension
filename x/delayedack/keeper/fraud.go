@@ -35,7 +35,6 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
 			}
 		}
-
 		// Update status to reverted
 		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {

@@ -59,25 +59,23 @@ func (im IBCMiddleware) finalizeRollappPacket(
 	logger log.Logger,
 	rollappPacket commontypes.RollappPacket,
 ) (err error) {
-	logger.Debug("Finalizing IBC rollapp packet",
+	logContext := []interface{}{
 		"rollappID", rollappID,
-		"sequence", rollappPacket.Packet.GetSequence(),
-		"destination channel", rollappPacket.Packet.GetDestChannel(),
-		"type", rollappPacket.Type)
+		"sequence", rollappPacket.Packet.Sequence,
+		"source channel", rollappPacket.Packet.SourceChannel,
+		"destination channel", rollappPacket.Packet.DestinationChannel,
+		"type", rollappPacket.Type,
+	}
 
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		err = osmoutils.ApplyFuncIfNoError(ctx, im.onRecvPacket(rollappPacket, logger))
+		err = osmoutils.ApplyFuncIfNoError(ctx, im.onRecvPacket(rollappPacket, logger, logContext))
 	case commontypes.RollappPacket_ON_ACK:
-		err = osmoutils.ApplyFuncIfNoError(ctx, im.onAckPacket(rollappPacket, logger))
+		err = osmoutils.ApplyFuncIfNoError(ctx, im.onAckPacket(rollappPacket, logger, logContext))
 	case commontypes.RollappPacket_ON_TIMEOUT:
-		err = osmoutils.ApplyFuncIfNoError(ctx, im.onTimeoutPacket(rollappPacket, logger))
+		err = osmoutils.ApplyFuncIfNoError(ctx, im.onTimeoutPacket(rollappPacket, logger, logContext))
 	default:
-		logger.Error("Unknown rollapp packet type",
-			"rollappID", rollappID,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel(),
-			"type", rollappPacket.Type)
+		logger.Error("Unknown rollapp packet type", logContext...)
 	}
 	// Update the packet with the error
 	if err != nil {
@@ -86,31 +84,21 @@ func (im IBCMiddleware) finalizeRollappPacket(
 	// Update status to finalized
 	rollappPacket, err = im.keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 	if err != nil {
-		logger.Error("Error finalizing IBC rollapp packet",
-			"rollappID", rollappID,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel(),
-			"type", rollappPacket.Type,
-			"error", err.Error())
+		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
+		// invariant breaking
+		return fmt.Errorf("Error finalizing IBC rollapp packet: %w", err)
 	}
 	return
 }
 
-func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, logger log.Logger) wrappedFunc {
+func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, logger log.Logger, logContext []interface{}) wrappedFunc {
 	return func(ctx sdk.Context) (err error) {
 		defer func() {
 			if err != nil {
-				logger.Error("writing acknowledgement",
-					"rollappID", rollappPacket.RollappId,
-					"sequence", rollappPacket.Packet.GetSequence(),
-					"destination channel", rollappPacket.Packet.GetDestChannel(),
-					"error", err.Error())
+				logger.Error("writing acknowledgement", append(logContext, "error", err.Error())...)
 			}
 		}()
-		logger.Debug("Calling OnRecvPacket",
-			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+		logger.Debug("Calling OnRecvPacket", logContext...)
 
 		ack := im.IBCModule.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		// If async, return
@@ -137,12 +125,9 @@ func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, lo
 	}
 }
 
-func (im IBCMiddleware) onAckPacket(rollappPacket commontypes.RollappPacket, logger log.Logger) wrappedFunc {
+func (im IBCMiddleware) onAckPacket(rollappPacket commontypes.RollappPacket, logger log.Logger, logContext []interface{}) wrappedFunc {
 	return func(ctx sdk.Context) (err error) {
-		logger.Debug("Calling OnAcknowledgementPacket",
-			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+		logger.Debug("Calling OnAcknowledgementPacket", logContext...)
 
 		err = im.IBCModule.OnAcknowledgementPacket(
 			ctx,
@@ -151,30 +136,19 @@ func (im IBCMiddleware) onAckPacket(rollappPacket commontypes.RollappPacket, log
 			rollappPacket.Relayer,
 		)
 		if err != nil {
-			logger.Error("calling OnAcknowledgementPacket",
-				"rollappID", rollappPacket.RollappId,
-				"sequence", rollappPacket.Packet.GetSequence(),
-				"destination channel", rollappPacket.Packet.GetDestChannel(),
-				"error", err.Error())
+			logger.Error("calling OnAcknowledgementPacket", append(logContext, "error", err.Error())...)
 		}
 		return
 	}
 }
 
-func (im IBCMiddleware) onTimeoutPacket(rollappPacket commontypes.RollappPacket, logger log.Logger) wrappedFunc {
+func (im IBCMiddleware) onTimeoutPacket(rollappPacket commontypes.RollappPacket, logger log.Logger, logContext []interface{}) wrappedFunc {
 	return func(ctx sdk.Context) (err error) {
-		logger.Debug("Calling OnTimeoutPacket",
-			"rollappID", rollappPacket.RollappId,
-			"sequence", rollappPacket.Packet.GetSequence(),
-			"destination channel", rollappPacket.Packet.GetDestChannel())
+		logger.Debug("Calling OnTimeoutPacket", logContext...)
 
 		err = im.IBCModule.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		if err != nil {
-			logger.Error("calling OnTimeoutPacket",
-				"rollappID", rollappPacket.RollappId,
-				"sequence", rollappPacket.Packet.GetSequence(),
-				"destination channel", rollappPacket.Packet.GetDestChannel(),
-				"error", err.Error())
+			logger.Error("calling OnTimeoutPacket", append(logContext, "error", err.Error())...)
 		}
 		return
 	}
