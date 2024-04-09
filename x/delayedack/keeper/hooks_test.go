@@ -58,8 +58,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(i * 2),
 				}
-				err := keeper.SetRollappPacket(ctx, *rollappPacket)
-				suite.Require().NoError(err)
+				keeper.SetRollappPacket(ctx, *rollappPacket)
 			}
 
 			rollappPackets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))

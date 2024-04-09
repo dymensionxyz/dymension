@@ -56,8 +56,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: proofHeight,
 				}
-				err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-				suite.Require().NoError(err)
+				suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 
 				sequence++
 			}
@@ -297,10 +296,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			}
 
 			// add rollapp packets
-			err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
-			suite.Require().NoError(err)
-			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
-			suite.Require().NoError(err)
+			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
+			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 
 			// check invariant
 			_, failsFinalize := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)

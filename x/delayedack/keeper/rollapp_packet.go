@@ -10,24 +10,11 @@ import (
 // SetRollappPacket stores a rollapp packet in the KVStore.
 // It logs the saving of the packet and marshals the packet into bytes before storing.
 // The key for the packet is generated using the rollappID, proofHeight and the packet itself.
-func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.RollappPacket) error {
-	logger := ctx.Logger()
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
 	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
-	b, err := k.cdc.Marshal(&rollappPacket)
-	if err != nil {
-		return err
-	}
+	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(rollappPacketKey, b)
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeDelayedAck,
-			rollappPacket.GetEvents()...,
-		),
-	)
-	return nil
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.
@@ -87,10 +74,7 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	packet.Data = packetBytes
 	// Update rollapp packet with the new updated packet and save in the store
 	rollappPacket.Packet = packet
-	err = k.SetRollappPacket(ctx, *rollappPacket)
-	if err != nil {
-		return err
-	}
+	k.SetRollappPacket(ctx, *rollappPacket)
 	return nil
 }
 
@@ -106,15 +90,12 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 	// Update the packet
 	rollappPacket.Status = newStatus
 	// Create a new rollapp packet with the updated status
-	err := k.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return rollappPacket, err
-	}
+	k.SetRollappPacket(ctx, rollappPacket)
 
 	// Call hook subscribers
 	newKey := commontypes.RollappPacketKey(&rollappPacket)
 	keeperHooks := k.GetHooks()
-	err = keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
+	err := keeperHooks.AfterPacketStatusUpdated(ctx, &rollappPacket, string(oldKey), string(newKey))
 	if err != nil {
 		return rollappPacket, err
 	}

@@ -24,8 +24,7 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	prefixFinalized2 := dkeeper.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		err := keeper.SetRollappPacket(ctx, pkt)
-		suite.Require().NoError(err)
+		keeper.SetRollappPacket(ctx, pkt)
 	}
 
 	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending1)))
@@ -57,8 +56,7 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 	pkts2 := generatePackets(rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		err := keeper.SetRollappPacket(ctx, pkt)
-		suite.Require().NoError(err)
+		keeper.SetRollappPacket(ctx, pkt)
 	}
 
 	err := keeper.HandleFraud(ctx, rollappId, transferStack)
