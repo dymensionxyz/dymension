@@ -94,14 +94,19 @@ func BlockHeightToFinalizationQueueInvariant(k Keeper) sdk.Invariant {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {
 				continue
 			}
+
+			if rollapp.GetFrozen() {
+				continue
+			}
 			latestStateIdx, _ := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
 			latestFinalizedStateIdx, _ := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
 
 			firstUnfinalizedStateIdx := latestFinalizedStateIdx.Index + 1
 
-			// iterate over all the unfinalzied states and make sure they are in the queue
+			// iterate over all the unfinalized states and make sure they are in the queue
 			for i := firstUnfinalizedStateIdx; i <= latestStateIdx.Index; i++ {
 				stateInfo, found := k.GetStateInfo(ctx, rollapp.RollappId, i)
+
 				if !found {
 					msg += fmt.Sprintf("rollapp (%s) have no stateInfo at index %d\n", rollapp.RollappId, i)
 					broken = true
