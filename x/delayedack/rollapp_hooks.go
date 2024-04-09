@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -105,11 +104,7 @@ func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, lo
 		if ack == nil {
 			return
 		}
-		// If sync, check if the acknowledgement is successful
-		if !ack.Success() {
-			err = sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, string(ack.Acknowledgement()))
-			return
-		}
+
 		// Write the acknowledgement to the chain only if it is synchronous
 		var chanCap *capabilitytypes.Capability
 		_, chanCap, err = im.keeper.LookupModuleByChannel(
