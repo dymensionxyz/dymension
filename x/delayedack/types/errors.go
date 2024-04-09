@@ -12,4 +12,5 @@ var (
 	ErrMismatchedStateRoots       = errorsmod.Register(ModuleName, 5, "mismatched state roots")
 	ErrMismatchedSequencer        = errorsmod.Register(ModuleName, 6, "mismatched sequencer")
 	ErrMissingEIBCMetadata        = errorsmod.Register(ModuleName, 7, "missing eibc metadata")
+	ErrDelayedAcknowledgement     = errorsmod.Register(ModuleName, 8, "delayed acknowledgement not supported")
 )

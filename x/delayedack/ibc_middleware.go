@@ -84,6 +84,18 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	// Run the underlying app's OnRecvPacket callback
+	// with cache context to avoid state changes and report the result.
+	// Only save the packet if the underlying app's callback succeeds.
+	cacheCtx, _ := ctx.CacheContext()
+	ack := im.IBCModule.OnRecvPacket(cacheCtx, packet, relayer)
+	if ack == nil {
+		return channeltypes.NewErrorAcknowledgement(types.ErrDelayedAcknowledgement)
+	}
+	if !ack.Success() {
+		return ack
+	}
+	// the ack test succeeded, so we delay the execution of the underlying app's OnRecvPacket callback
 	// Save the packet data to the store for later processing
 	rollappPacket := commontypes.RollappPacket{
 		RollappId:   rollappID,
@@ -101,8 +113,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-
-	return nil
+	return ack
 }
 
 // OnAcknowledgementPacket implements the IBCMiddleware interface
