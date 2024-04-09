@@ -65,7 +65,7 @@ func (k Keeper) finalizeRollappPacket(
 		rollappPacket.Error = err.Error()
 	}
 	// Update status to finalized
-	rollappPacket, err = k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+	_, err = k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 	if err != nil {
 		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
 		// invariant breaking
