@@ -8,7 +8,6 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
-	suite.T().Skip("missing events")
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	tests := []struct {
 		name                               string

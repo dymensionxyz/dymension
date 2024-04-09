@@ -15,6 +15,13 @@ func (k Keeper) SetRollappPacket(ctx sdk.Context, rollappPacket commontypes.Roll
 	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
 	b := k.cdc.MustMarshal(&rollappPacket)
 	store.Set(rollappPacketKey, b)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeDelayedAck,
+			rollappPacket.GetEvents()...,
+		),
+	)
 }
 
 // GetRollappPacket retrieves a rollapp packet from the KVStore.
