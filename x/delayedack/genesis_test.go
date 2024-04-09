@@ -90,8 +90,7 @@ func TestExportGenesis(t *testing.T) {
 		},
 	}
 	for _, rollappPacket := range rollappPackets {
-		err := k.SetRollappPacket(ctx, rollappPacket)
-		require.NoError(t, err)
+		k.SetRollappPacket(ctx, rollappPacket)
 	}
 	got := delayedack.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)

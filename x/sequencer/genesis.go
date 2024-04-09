@@ -6,8 +6,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-// InitGenesis initializes the capability module's state from a provided genesis
-// state.
+// InitGenesis initializes the sequencer module's state from a provided genesis
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
 	// Validate all other genesis fields are empty
@@ -16,7 +15,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	}
 }
 
-// ExportGenesis returns the capability module's exported genesis.
+// ExportGenesis returns the sequencer module's exported genesis.
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis := types.GenesisState{}
 	genesis.Params = k.GetParams(ctx)
