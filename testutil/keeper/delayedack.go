@@ -80,6 +80,11 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 
 type RollappKeeperStub struct{}
 
+// MustGetStateInfo implements types.RollappKeeper.
+func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
+	return rollapptypes.StateInfo{}
+}
+
 func (RollappKeeperStub) GetParams(ctx sdk.Context) rollapptypes.Params {
 	return rollapptypes.Params{}
 }
