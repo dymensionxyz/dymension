@@ -139,6 +139,10 @@ import (
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 
+	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
+
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -180,6 +184,12 @@ import (
 	/* ---------------------------- upgrade handlers ---------------------------- */
 
 	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
+)
+
+var (
+	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
+	_ = packetforwardmiddleware.AppModule{}
+	_ = packetforwardtypes.ErrIntOverflowGenesis
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -238,7 +248,7 @@ var (
 		sequencermodule.AppModuleBasic{},
 		streamermodule.AppModuleBasic{},
 		denommetadatamodule.AppModuleBasic{},
-
+		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
@@ -312,22 +322,23 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper    authkeeper.AccountKeeper
-	AuthzKeeper      authzkeeper.Keeper
-	BankKeeper       bankkeeper.Keeper
-	CapabilityKeeper *capabilitykeeper.Keeper
-	StakingKeeper    stakingkeeper.Keeper
-	SlashingKeeper   slashingkeeper.Keeper
-	MintKeeper       mintkeeper.Keeper
-	DistrKeeper      distrkeeper.Keeper
-	GovKeeper        govkeeper.Keeper
-	CrisisKeeper     crisiskeeper.Keeper
-	UpgradeKeeper    upgradekeeper.Keeper
-	ParamsKeeper     paramskeeper.Keeper
-	IBCKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper   evidencekeeper.Keeper
-	TransferKeeper   ibctransferkeeper.Keeper
-	FeeGrantKeeper   feegrantkeeper.Keeper
+	AccountKeeper                 authkeeper.AccountKeeper
+	AuthzKeeper                   authzkeeper.Keeper
+	BankKeeper                    bankkeeper.Keeper
+	CapabilityKeeper              *capabilitykeeper.Keeper
+	StakingKeeper                 stakingkeeper.Keeper
+	SlashingKeeper                slashingkeeper.Keeper
+	MintKeeper                    mintkeeper.Keeper
+	DistrKeeper                   distrkeeper.Keeper
+	GovKeeper                     govkeeper.Keeper
+	CrisisKeeper                  crisiskeeper.Keeper
+	UpgradeKeeper                 upgradekeeper.Keeper
+	ParamsKeeper                  paramskeeper.Keeper
+	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	EvidenceKeeper                evidencekeeper.Keeper
+	TransferKeeper                ibctransferkeeper.Keeper
+	FeeGrantKeeper                feegrantkeeper.Keeper
+	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
 
 	// Ethermint keepers
 	EvmKeeper       *evmkeeper.Keeper
@@ -397,6 +408,7 @@ func New(
 		rollappmoduletypes.StoreKey,
 		sequencermoduletypes.StoreKey,
 		streamermoduletypes.StoreKey,
+		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
 		eibcmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
@@ -714,8 +726,29 @@ func New(
 		&stakingKeeper, govRouter, app.MsgServiceRouter(), govConfig,
 	)
 
+	// this line is used by starport scaffolding # stargate/app/keeperDefinition
+
+	app.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
+		appCodec, keys[packetforwardtypes.StoreKey],
+		app.GetSubspace(packetforwardtypes.ModuleName),
+		app.TransferKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.DistrKeeper,
+		app.BankKeeper,
+		app.IBCKeeper.ChannelKeeper,
+	)
+
+	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
+
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(
+		transferStack,
+		app.PacketForwardMiddlewareKeeper,
+		0,
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
+	)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
@@ -760,7 +793,8 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		ibctransfer.NewAppModule(app.TransferKeeper),
+		packetforwardmiddleware.NewAppModule(app.PacketForwardMiddlewareKeeper),
+		transferModule,
 		rollappModule,
 		sequencerModule,
 		streamerModule,
@@ -800,6 +834,7 @@ func New(
 		evmtypes.ModuleName,
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		authtypes.ModuleName,
 		authz.ModuleName,
 		banktypes.ModuleName,
@@ -843,6 +878,7 @@ func New(
 		upgradetypes.ModuleName,
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
 		streamermoduletypes.ModuleName,
@@ -883,6 +919,7 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		ibctransfertypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		feegrant.ModuleName,
 		rollappmoduletypes.ModuleName,
 		sequencermoduletypes.ModuleName,
@@ -1115,6 +1152,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(crisistypes.ModuleName)
+	paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(rollappmoduletypes.ModuleName)
