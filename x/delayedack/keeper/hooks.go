@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -64,7 +66,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	}
 	// Get all rollapp packets with status != PENDING and delete them
 	// tech debt: this slice can potentially take up a lot of memory
-	toDeletePackets := e.ListRollappPackets(ctx, ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED))
+	toDeletePackets := e.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED))
 	for _, packet := range toDeletePackets {
 		packetCopy := packet
 		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {

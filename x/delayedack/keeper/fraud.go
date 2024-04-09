@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -8,7 +10,7 @@ import (
 
 func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBCModule) error {
 	// Get all the pending packets
-	rollappPendingPackets := k.ListRollappPackets(ctx, ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}

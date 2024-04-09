@@ -103,15 +103,15 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 }
 
 // ListRollappPackets retrieves a list rollapp packets from the KVStore by applying the given filter
-func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter rollappPacketListFilter) (list []commontypes.RollappPacket) {
+func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPacketListFilter) (list []commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
 	// Iterate over the range of filters and get all the rollapp packets
 	// that meet the filter criteria
-	for _, pref := range listFilter.prefixes {
-		if len(pref.end) == 0 {
-			pref.end = sdk.PrefixEndBytes(pref.start)
+	for _, pref := range listFilter.Prefixes {
+		if len(pref.End) == 0 {
+			pref.End = sdk.PrefixEndBytes(pref.Start)
 		}
-		iterator := store.Iterator(pref.start, pref.end)
+		iterator := store.Iterator(pref.Start, pref.End)
 		for ; iterator.Valid(); iterator.Next() {
 			var val commontypes.RollappPacket
 			k.cdc.MustUnmarshal(iterator.Value(), &val)
