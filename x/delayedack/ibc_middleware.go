@@ -46,7 +46,12 @@ func (im IBCMiddleware) OnRecvPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", "DelayedAckMiddleware",
+		"packet_source", packet.SourcePort,
+		"packet_destination",
+		packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
@@ -116,7 +121,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", "DelayedAckMiddleware",
+		"packet_source", packet.SourcePort,
+		"packet_destination", packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
@@ -202,7 +211,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", "DelayedAckMiddleware",
+		"packet_source", packet.SourcePort,
+		"packet_destination", packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
