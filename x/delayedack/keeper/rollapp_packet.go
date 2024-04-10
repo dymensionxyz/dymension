@@ -65,15 +65,15 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	}
 	// Set the recipient and sender based on the rollapp packet type
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
-	var originalRecipient string
+	var originalTransferTarget string
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		originalRecipient = recipient
+		originalTransferTarget = recipient
 		recipient = address
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
 	case commontypes.RollappPacket_ON_ACK:
-		// TODO: currently we only save the original recipient for RECV, but we could also do it for TIMEOUT and ACK for symmetry if needed
+		originalTransferTarget = sender
 		sender = address
 	}
 	// Create a new packet data with the updated recipient and sender
@@ -90,7 +90,7 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	packet.Data = packetBytes
 	// Update rollapp packet with the new updated packet and save in the store
 	rollappPacket.Packet = packet
-	rollappPacket.OriginalRecvReceiver = originalRecipient
+	rollappPacket.OriginalTransferTarget = originalTransferTarget
 	err = k.SetRollappPacket(ctx, *rollappPacket)
 	if err != nil {
 		return err

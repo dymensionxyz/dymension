@@ -102,8 +102,8 @@ func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc portty
 		if err != nil {
 			return fmt.Errorf("get transfer packet data: %w", err)
 		}
-		if rollappPacket.OriginalRecvReceiver != "" { // It can be empty if the eibc order was never fulfilled
-			transferPacketData.Receiver = rollappPacket.OriginalRecvReceiver
+		if rollappPacket.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
+			transferPacketData.Receiver = rollappPacket.OriginalTransferTarget
 		}
 		rollappPacket.Packet.Data = transferPacketData.GetBytes()
 		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
