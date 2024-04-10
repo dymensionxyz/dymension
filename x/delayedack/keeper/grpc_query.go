@@ -30,36 +30,24 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 	return &types.QueryParamsResponse{Params: q.GetParams(ctx)}, nil
 }
 
-// ByRollappID implements types.QueryServer.
-func (q Querier) ByRollappID(goCtx context.Context, req *types.QueryByRollappIDRequest) (*types.QueryRollappPacketListResponse, error) {
+// GetPackets implements types.QueryServer.
+func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacketsRequest) (*types.QueryRollappPacketListResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	res := &types.QueryRollappPacketListResponse{}
 
 	if req.RollappId == "" {
-		return nil, status.Error(codes.InvalidArgument, "rollapp id must be provided")
+		// query by status
+		res.RollappPackets = q.ListRollappPackets(ctx, types.ByStatus(req.Status))
+	} else {
+		//query by rollapp id
+		res.RollappPackets = q.ListRollappPackets(ctx, types.ByRollappIDByStatus(req.RollappId, req.Status))
 	}
-
-	res := &types.QueryRollappPacketListResponse{}
-	res.RollappPacket = q.ListRollappPackets(ctx, types.ByRollappID(req.RollappId))
 
 	// TODO: handle pagination
-
-	return res, nil
-}
-
-// ByStatus implements types.QueryServer.
-func (q Querier) ByStatus(goCtx context.Context, req *types.QueryByStatusRequest) (*types.QueryRollappPacketListResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	res := &types.QueryRollappPacketListResponse{}
-	res.RollappPacket = q.ListRollappPackets(ctx, types.ByStatus(req.Status))
-
-	//TODO: handle pagination
 
 	return res, nil
 }

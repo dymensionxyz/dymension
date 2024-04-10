@@ -18,14 +18,11 @@ service Query {
 	}
 
 	// Queries a list of RollappPacket items by rollappID.
-	rpc ByRollappID(QueryByRollappIDRequest) returns (QueryRollappPacketListResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/rollapp/{rollappId}";
+	rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
 	}
 
-	// Queries a list of RollappPacket items by status.
-	rpc ByStatus(QueryByStatusRequest) returns (QueryRollappPacketListResponse) {
-		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/status/{status}";
-	}
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -38,17 +35,13 @@ message QueryParamsResponse {
 }
 
 
-message QueryByRollappIDRequest {
+message QueryRollappPacketsRequest {
 	string rollappId = 1;
-	cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-
-message QueryByStatusRequest {
-	common.Status status = 1;
-	cosmos.base.query.v1beta1.PageRequest pagination = 2;
+	common.Status status = 2;
+	cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 message QueryRollappPacketListResponse {
-	repeated common.RollappPacket rollappPacket = 1 [(gogoproto.nullable) = false];
+	repeated common.RollappPacket rollappPackets = 1 [(gogoproto.nullable) = false];
 	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

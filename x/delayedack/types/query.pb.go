@@ -114,23 +114,24 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-type QueryByRollappIDRequest struct {
+type QueryRollappPacketsRequest struct {
 	RollappId  string             `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
-	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Status     types.Status       `protobuf:"varint,2,opt,name=status,proto3,enum=dymensionxyz.dymension.common.Status" json:"status,omitempty"`
+	Pagination *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryByRollappIDRequest) Reset()         { *m = QueryByRollappIDRequest{} }
-func (m *QueryByRollappIDRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryByRollappIDRequest) ProtoMessage()    {}
-func (*QueryByRollappIDRequest) Descriptor() ([]byte, []int) {
+func (m *QueryRollappPacketsRequest) Reset()         { *m = QueryRollappPacketsRequest{} }
+func (m *QueryRollappPacketsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryRollappPacketsRequest) ProtoMessage()    {}
+func (*QueryRollappPacketsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_455c3259533734e9, []int{2}
 }
-func (m *QueryByRollappIDRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryRollappPacketsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryByRollappIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRollappPacketsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryByRollappIDRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRollappPacketsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -140,78 +141,33 @@ func (m *QueryByRollappIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *QueryByRollappIDRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryByRollappIDRequest.Merge(m, src)
+func (m *QueryRollappPacketsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRollappPacketsRequest.Merge(m, src)
 }
-func (m *QueryByRollappIDRequest) XXX_Size() int {
+func (m *QueryRollappPacketsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryByRollappIDRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryByRollappIDRequest.DiscardUnknown(m)
+func (m *QueryRollappPacketsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRollappPacketsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryByRollappIDRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryRollappPacketsRequest proto.InternalMessageInfo
 
-func (m *QueryByRollappIDRequest) GetRollappId() string {
+func (m *QueryRollappPacketsRequest) GetRollappId() string {
 	if m != nil {
 		return m.RollappId
 	}
 	return ""
 }
 
-func (m *QueryByRollappIDRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryByStatusRequest struct {
-	Status     types.Status       `protobuf:"varint,1,opt,name=status,proto3,enum=dymensionxyz.dymension.common.Status" json:"status,omitempty"`
-	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryByStatusRequest) Reset()         { *m = QueryByStatusRequest{} }
-func (m *QueryByStatusRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryByStatusRequest) ProtoMessage()    {}
-func (*QueryByStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_455c3259533734e9, []int{3}
-}
-func (m *QueryByStatusRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryByStatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryByStatusRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryByStatusRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryByStatusRequest.Merge(m, src)
-}
-func (m *QueryByStatusRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryByStatusRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryByStatusRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryByStatusRequest proto.InternalMessageInfo
-
-func (m *QueryByStatusRequest) GetStatus() types.Status {
+func (m *QueryRollappPacketsRequest) GetStatus() types.Status {
 	if m != nil {
 		return m.Status
 	}
 	return types.Status_PENDING
 }
 
-func (m *QueryByStatusRequest) GetPagination() *query.PageRequest {
+func (m *QueryRollappPacketsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
@@ -219,15 +175,15 @@ func (m *QueryByStatusRequest) GetPagination() *query.PageRequest {
 }
 
 type QueryRollappPacketListResponse struct {
-	RollappPacket []types.RollappPacket `protobuf:"bytes,1,rep,name=rollappPacket,proto3" json:"rollappPacket"`
-	Pagination    *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	RollappPackets []types.RollappPacket `protobuf:"bytes,1,rep,name=rollappPackets,proto3" json:"rollappPackets"`
+	Pagination     *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryRollappPacketListResponse) Reset()         { *m = QueryRollappPacketListResponse{} }
 func (m *QueryRollappPacketListResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryRollappPacketListResponse) ProtoMessage()    {}
 func (*QueryRollappPacketListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_455c3259533734e9, []int{4}
+	return fileDescriptor_455c3259533734e9, []int{3}
 }
 func (m *QueryRollappPacketListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -256,9 +212,9 @@ func (m *QueryRollappPacketListResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryRollappPacketListResponse proto.InternalMessageInfo
 
-func (m *QueryRollappPacketListResponse) GetRollappPacket() []types.RollappPacket {
+func (m *QueryRollappPacketListResponse) GetRollappPackets() []types.RollappPacket {
 	if m != nil {
-		return m.RollappPacket
+		return m.RollappPackets
 	}
 	return nil
 }
@@ -273,51 +229,48 @@ func (m *QueryRollappPacketListResponse) GetPagination() *query.PageResponse {
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.delayedack.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.delayedack.QueryParamsResponse")
-	proto.RegisterType((*QueryByRollappIDRequest)(nil), "dymensionxyz.dymension.delayedack.QueryByRollappIDRequest")
-	proto.RegisterType((*QueryByStatusRequest)(nil), "dymensionxyz.dymension.delayedack.QueryByStatusRequest")
+	proto.RegisterType((*QueryRollappPacketsRequest)(nil), "dymensionxyz.dymension.delayedack.QueryRollappPacketsRequest")
 	proto.RegisterType((*QueryRollappPacketListResponse)(nil), "dymensionxyz.dymension.delayedack.QueryRollappPacketListResponse")
 }
 
 func init() { proto.RegisterFile("dymension/delayedack/query.proto", fileDescriptor_455c3259533734e9) }
 
 var fileDescriptor_455c3259533734e9 = []byte{
-	// 568 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x41, 0x6b, 0x13, 0x41,
-	0x18, 0xcd, 0xd4, 0x1a, 0xec, 0x04, 0x3d, 0x8c, 0x01, 0x43, 0xa8, 0x6b, 0xba, 0x50, 0x6d, 0x55,
-	0x66, 0xc8, 0x56, 0x5b, 0x29, 0x28, 0x18, 0xc4, 0x52, 0xf0, 0x90, 0xae, 0x17, 0xf1, 0xa0, 0x4c,
-	0x92, 0x61, 0x5d, 0x9a, 0xdd, 0xd9, 0xee, 0x4c, 0x4a, 0xd7, 0x52, 0x04, 0x7f, 0x81, 0xe0, 0xd9,
-	0x3f, 0xe0, 0xcf, 0xd0, 0x4b, 0x0e, 0x1e, 0x0a, 0x5e, 0x3c, 0x89, 0x24, 0xfe, 0x10, 0xc9, 0xcc,
-	0x24, 0xd9, 0x90, 0xc6, 0x6c, 0xa1, 0xa7, 0x24, 0x33, 0xdf, 0x7b, 0xdf, 0x7b, 0xef, 0xfb, 0x26,
-	0xb0, 0xd2, 0x4a, 0x02, 0x16, 0x0a, 0x9f, 0x87, 0xa4, 0xc5, 0xda, 0x34, 0x61, 0x2d, 0xda, 0xdc,
-	0x27, 0x07, 0x1d, 0x16, 0x27, 0x38, 0x8a, 0xb9, 0xe4, 0x68, 0x65, 0x54, 0x71, 0x94, 0xbc, 0xc7,
-	0xa3, 0x1f, 0x78, 0x5c, 0x5e, 0x2e, 0x7a, 0xdc, 0xe3, 0xaa, 0x9a, 0x0c, 0xbe, 0x69, 0x60, 0x79,
-	0xd9, 0xe3, 0xdc, 0x6b, 0x33, 0x42, 0x23, 0x9f, 0xd0, 0x30, 0xe4, 0x92, 0x4a, 0x9f, 0x87, 0xc2,
-	0xdc, 0xde, 0x6d, 0x72, 0x11, 0x70, 0x41, 0x1a, 0x54, 0x30, 0xdd, 0x8f, 0x1c, 0x56, 0x1b, 0x4c,
-	0xd2, 0x2a, 0x89, 0xa8, 0xe7, 0x87, 0xaa, 0xd8, 0xd4, 0xae, 0x9c, 0x29, 0x32, 0xa2, 0x31, 0x0d,
-	0x86, 0x74, 0x37, 0xc7, 0x25, 0x4d, 0x1e, 0x04, 0x3c, 0x24, 0x42, 0x52, 0xd9, 0x19, 0x5e, 0xaf,
-	0x4e, 0x5d, 0xc7, 0xbc, 0xdd, 0xa6, 0x51, 0xf4, 0x36, 0xa2, 0xcd, 0x7d, 0x26, 0x75, 0x99, 0x5d,
-	0x84, 0x68, 0x6f, 0x20, 0xa5, 0xae, 0xa8, 0x5d, 0x76, 0xd0, 0x61, 0x42, 0xda, 0x6f, 0xe0, 0xf5,
-	0x89, 0x53, 0x11, 0xf1, 0x50, 0x30, 0xb4, 0x03, 0xf3, 0x5a, 0x42, 0x09, 0x54, 0xc0, 0x5a, 0xc1,
-	0x59, 0xc7, 0x73, 0x93, 0xc2, 0x9a, 0xa2, 0xb6, 0xd8, 0xfd, 0x7d, 0x2b, 0xe7, 0x1a, 0xb8, 0xfd,
-	0x01, 0xde, 0x50, 0xfc, 0xb5, 0xc4, 0xd5, 0xa2, 0x76, 0x9f, 0x99, 0xd6, 0x68, 0x19, 0x2e, 0x19,
-	0xa1, 0xbb, 0x2d, 0xd5, 0x66, 0xc9, 0x1d, 0x1f, 0xa0, 0xe7, 0x10, 0x8e, 0xb3, 0x2a, 0x2d, 0x28,
-	0x15, 0xb7, 0xb1, 0x0e, 0x16, 0x0f, 0x82, 0xc5, 0x7a, 0x90, 0x26, 0x58, 0x5c, 0xa7, 0x1e, 0x33,
-	0xcc, 0x6e, 0x0a, 0x69, 0x7f, 0x01, 0xb0, 0x68, 0x14, 0xbc, 0x54, 0xa9, 0x0d, 0xdb, 0x3f, 0x86,
-	0x79, 0x1d, 0xa3, 0xea, 0x7d, 0xcd, 0x59, 0x9d, 0x65, 0x51, 0x87, 0x8a, 0x0d, 0xda, 0x80, 0x2e,
-	0x4c, 0xdf, 0x77, 0x00, 0x2d, 0xa5, 0xcf, 0xe4, 0x53, 0x57, 0x33, 0x7b, 0xe1, 0x0b, 0x39, 0x1a,
-	0xc6, 0x2b, 0x78, 0x35, 0x4e, 0x5f, 0x96, 0x40, 0xe5, 0xd2, 0x5a, 0xc1, 0xb9, 0x3f, 0x47, 0xf0,
-	0x04, 0xa1, 0x19, 0xcb, 0x24, 0x11, 0xda, 0x39, 0xc3, 0xc4, 0x9d, 0xb9, 0x26, 0xb4, 0xac, 0xb4,
-	0x0b, 0xa7, 0xbb, 0x08, 0x2f, 0x2b, 0x17, 0xe8, 0x2b, 0x80, 0x79, 0xbd, 0x09, 0xe8, 0x61, 0x86,
-	0xa5, 0x99, 0x5e, 0xc9, 0xf2, 0xe6, 0x79, 0x61, 0x5a, 0x8f, 0x5d, 0xfd, 0xf8, 0xf3, 0xef, 0xe7,
-	0x85, 0x7b, 0x68, 0x9d, 0xa4, 0xf1, 0xe4, 0x3f, 0xef, 0x0b, 0xfd, 0x00, 0xb0, 0x90, 0xda, 0x4c,
-	0xb4, 0x9d, 0xb5, 0xf5, 0xf4, 0x3a, 0x97, 0x9f, 0x66, 0xc5, 0xce, 0x1c, 0xb4, 0xfd, 0x44, 0x39,
-	0x78, 0x84, 0x36, 0x33, 0x38, 0x30, 0x83, 0x24, 0xc7, 0xa3, 0x27, 0x73, 0x82, 0xbe, 0x01, 0x78,
-	0x65, 0xb8, 0xe6, 0x68, 0x2b, 0xbb, 0x97, 0x89, 0x87, 0x71, 0x11, 0x46, 0xb6, 0x95, 0x91, 0x07,
-	0xc8, 0xc9, 0x60, 0x44, 0xbf, 0x27, 0x72, 0xac, 0x3f, 0x4f, 0x6a, 0x7b, 0xdd, 0x9e, 0x05, 0x4e,
-	0x7b, 0x16, 0xf8, 0xd3, 0xb3, 0xc0, 0xa7, 0xbe, 0x95, 0x3b, 0xed, 0x5b, 0xb9, 0x5f, 0x7d, 0x2b,
-	0xf7, 0x7a, 0xcb, 0xf3, 0xe5, 0xbb, 0x4e, 0x63, 0xb0, 0xdf, 0xb3, 0x78, 0x0f, 0x37, 0xc8, 0x51,
-	0x9a, 0x5c, 0x26, 0x11, 0x13, 0x8d, 0xbc, 0xfa, 0x07, 0xdc, 0xf8, 0x17, 0x00, 0x00, 0xff, 0xff,
-	0xfc, 0x60, 0x70, 0x43, 0x11, 0x06, 0x00, 0x00,
+	// 529 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0x41, 0x6b, 0x13, 0x41,
+	0x18, 0xcd, 0x24, 0x1a, 0xe8, 0x14, 0x7a, 0x18, 0x7b, 0x08, 0x4b, 0x5d, 0xd3, 0x85, 0x6a, 0xaa,
+	0x32, 0x43, 0x52, 0xd4, 0x53, 0x91, 0xf6, 0x60, 0x10, 0x3c, 0xa4, 0xeb, 0xad, 0x07, 0x65, 0x92,
+	0x0c, 0xeb, 0xd2, 0xec, 0xcc, 0x74, 0x67, 0x52, 0xba, 0x96, 0x5e, 0xfc, 0x01, 0x22, 0xf8, 0x2f,
+	0xfc, 0x17, 0x1e, 0x84, 0x1e, 0x0b, 0x1e, 0xf4, 0x24, 0x92, 0xf8, 0x43, 0x24, 0x33, 0x93, 0x64,
+	0x63, 0x5a, 0x13, 0xbd, 0xed, 0xce, 0xbc, 0xf7, 0xbd, 0xf7, 0xbe, 0xef, 0x1b, 0x58, 0xed, 0x66,
+	0x09, 0xe3, 0x2a, 0x16, 0x9c, 0x74, 0x59, 0x8f, 0x66, 0xac, 0x4b, 0x3b, 0x47, 0xe4, 0xb8, 0xcf,
+	0xd2, 0x0c, 0xcb, 0x54, 0x68, 0x81, 0x36, 0x27, 0x88, 0xd3, 0xec, 0x2d, 0x9e, 0xfc, 0xe0, 0x29,
+	0xdc, 0x5b, 0x8f, 0x44, 0x24, 0x0c, 0x9a, 0x8c, 0xbe, 0x2c, 0xd1, 0xdb, 0x88, 0x84, 0x88, 0x7a,
+	0x8c, 0x50, 0x19, 0x13, 0xca, 0xb9, 0xd0, 0x54, 0xc7, 0x82, 0x2b, 0x77, 0x7b, 0xbf, 0x23, 0x54,
+	0x22, 0x14, 0x69, 0x53, 0xc5, 0xac, 0x1e, 0x39, 0xa9, 0xb7, 0x99, 0xa6, 0x75, 0x22, 0x69, 0x14,
+	0x73, 0x03, 0x76, 0xd8, 0xcd, 0x2b, 0x4d, 0x4a, 0x9a, 0xd2, 0x64, 0x5c, 0xee, 0xf6, 0x14, 0xd2,
+	0x11, 0x49, 0x22, 0x38, 0x51, 0x9a, 0xea, 0xfe, 0xf8, 0x7a, 0x6b, 0xee, 0x3a, 0x15, 0xbd, 0x1e,
+	0x95, 0xf2, 0xb5, 0xa4, 0x9d, 0x23, 0xa6, 0x2d, 0x2c, 0x58, 0x87, 0xe8, 0x60, 0x64, 0xa5, 0x65,
+	0x4a, 0x87, 0xec, 0xb8, 0xcf, 0x94, 0x0e, 0x5e, 0xc1, 0x5b, 0x33, 0xa7, 0x4a, 0x0a, 0xae, 0x18,
+	0x6a, 0xc2, 0xb2, 0xb5, 0x50, 0x01, 0x55, 0x50, 0x5b, 0x6d, 0x6c, 0xe3, 0x85, 0x9d, 0xc2, 0xb6,
+	0xc4, 0xfe, 0x8d, 0x8b, 0x1f, 0x77, 0x0a, 0xa1, 0xa3, 0x07, 0x9f, 0x01, 0xf4, 0x8c, 0x40, 0x68,
+	0x3d, 0xb5, 0x8c, 0xa5, 0xb1, 0x3c, 0xda, 0x80, 0x2b, 0xce, 0xec, 0xf3, 0xae, 0x91, 0x5a, 0x09,
+	0xa7, 0x07, 0x68, 0x17, 0x96, 0x6d, 0xd2, 0x4a, 0xb1, 0x0a, 0x6a, 0x6b, 0x8d, 0xad, 0xeb, 0x5c,
+	0xd8, 0xdc, 0xf8, 0xa5, 0x01, 0x87, 0x8e, 0x84, 0x9e, 0x41, 0x38, 0x6d, 0x77, 0xa5, 0x64, 0x82,
+	0xdc, 0xc5, 0x76, 0x36, 0x78, 0x34, 0x1b, 0x6c, 0x77, 0xc1, 0xcd, 0x06, 0xb7, 0x68, 0xc4, 0x9c,
+	0xb1, 0x30, 0xc7, 0x0c, 0xbe, 0x00, 0xe8, 0xcf, 0x67, 0x78, 0x11, 0x2b, 0x3d, 0xe9, 0xd7, 0x21,
+	0x5c, 0x4b, 0x67, 0x02, 0x56, 0x40, 0xb5, 0x54, 0x5b, 0x6d, 0x3c, 0x5c, 0xe0, 0x78, 0xa6, 0xa2,
+	0x6b, 0xdd, 0x1f, 0x95, 0x50, 0x73, 0x26, 0x46, 0xd1, 0xc4, 0xb8, 0xb7, 0x30, 0x86, 0x35, 0x96,
+	0xcf, 0xd1, 0x78, 0x5f, 0x82, 0x37, 0x4d, 0x0e, 0xf4, 0x09, 0xc0, 0xb2, 0x1d, 0x17, 0x7a, 0xb4,
+	0xc4, 0x64, 0xe7, 0xf7, 0xc6, 0x7b, 0xfc, 0xaf, 0x34, 0xeb, 0x27, 0xa8, 0xbf, 0xfb, 0xfa, 0xeb,
+	0x63, 0xf1, 0x01, 0xda, 0x26, 0x79, 0x3e, 0xf9, 0xcb, 0x23, 0x40, 0xdf, 0x00, 0x84, 0x4d, 0xa6,
+	0xc7, 0xed, 0xd8, 0x5d, 0x56, 0xf9, 0xca, 0x8d, 0xf3, 0xf6, 0xfe, 0x8b, 0x9e, 0x1f, 0x76, 0xd0,
+	0x34, 0x19, 0xf6, 0xd0, 0xd3, 0xa5, 0x32, 0x18, 0x75, 0x72, 0x36, 0xd9, 0xea, 0x73, 0x72, 0x66,
+	0xf7, 0xf3, 0x7c, 0xff, 0xe0, 0x62, 0xe0, 0x83, 0xcb, 0x81, 0x0f, 0x7e, 0x0e, 0x7c, 0xf0, 0x61,
+	0xe8, 0x17, 0x2e, 0x87, 0x7e, 0xe1, 0xfb, 0xd0, 0x2f, 0x1c, 0x3e, 0x89, 0x62, 0xfd, 0xa6, 0xdf,
+	0x1e, 0xad, 0xc9, 0x75, 0x22, 0x27, 0x3b, 0xe4, 0x34, 0xaf, 0xa4, 0x33, 0xc9, 0x54, 0xbb, 0x6c,
+	0x1e, 0xfb, 0xce, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc3, 0xb0, 0x97, 0x2f, 0xfc, 0x04, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -335,9 +288,7 @@ type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Queries a list of RollappPacket items by rollappID.
-	ByRollappID(ctx context.Context, in *QueryByRollappIDRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error)
-	// Queries a list of RollappPacket items by status.
-	ByStatus(ctx context.Context, in *QueryByStatusRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error)
+	GetPackets(ctx context.Context, in *QueryRollappPacketsRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error)
 }
 
 type queryClient struct {
@@ -357,18 +308,9 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) ByRollappID(ctx context.Context, in *QueryByRollappIDRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error) {
+func (c *queryClient) GetPackets(ctx context.Context, in *QueryRollappPacketsRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error) {
 	out := new(QueryRollappPacketListResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Query/ByRollappID", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) ByStatus(ctx context.Context, in *QueryByStatusRequest, opts ...grpc.CallOption) (*QueryRollappPacketListResponse, error) {
-	out := new(QueryRollappPacketListResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Query/ByStatus", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.delayedack.Query/GetPackets", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -380,9 +322,7 @@ type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// Queries a list of RollappPacket items by rollappID.
-	ByRollappID(context.Context, *QueryByRollappIDRequest) (*QueryRollappPacketListResponse, error)
-	// Queries a list of RollappPacket items by status.
-	ByStatus(context.Context, *QueryByStatusRequest) (*QueryRollappPacketListResponse, error)
+	GetPackets(context.Context, *QueryRollappPacketsRequest) (*QueryRollappPacketListResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -392,11 +332,8 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) ByRollappID(ctx context.Context, req *QueryByRollappIDRequest) (*QueryRollappPacketListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ByRollappID not implemented")
-}
-func (*UnimplementedQueryServer) ByStatus(ctx context.Context, req *QueryByStatusRequest) (*QueryRollappPacketListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ByStatus not implemented")
+func (*UnimplementedQueryServer) GetPackets(ctx context.Context, req *QueryRollappPacketsRequest) (*QueryRollappPacketListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPackets not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -421,38 +358,20 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_ByRollappID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryByRollappIDRequest)
+func _Query_GetPackets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRollappPacketsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).ByRollappID(ctx, in)
+		return srv.(QueryServer).GetPackets(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.delayedack.Query/ByRollappID",
+		FullMethod: "/dymensionxyz.dymension.delayedack.Query/GetPackets",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ByRollappID(ctx, req.(*QueryByRollappIDRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_ByStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryByStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).ByStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.delayedack.Query/ByStatus",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ByStatus(ctx, req.(*QueryByStatusRequest))
+		return srv.(QueryServer).GetPackets(ctx, req.(*QueryRollappPacketsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -466,12 +385,8 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "ByRollappID",
-			Handler:    _Query_ByRollappID_Handler,
-		},
-		{
-			MethodName: "ByStatus",
-			Handler:    _Query_ByStatus_Handler,
+			MethodName: "GetPackets",
+			Handler:    _Query_GetPackets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -534,7 +449,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryByRollappIDRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryRollappPacketsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -544,12 +459,12 @@ func (m *QueryByRollappIDRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryByRollappIDRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRollappPacketsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryByRollappIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRollappPacketsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -564,7 +479,12 @@ func (m *QueryByRollappIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
+	}
+	if m.Status != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x10
 	}
 	if len(m.RollappId) > 0 {
 		i -= len(m.RollappId)
@@ -572,46 +492,6 @@ func (m *QueryByRollappIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
 		i--
 		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryByStatusRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryByStatusRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryByStatusRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Pagination != nil {
-		{
-			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.Status != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
-		i--
-		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -648,10 +528,10 @@ func (m *QueryRollappPacketListResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.RollappPacket) > 0 {
-		for iNdEx := len(m.RollappPacket) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.RollappPackets) > 0 {
+		for iNdEx := len(m.RollappPackets) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.RollappPacket[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.RollappPackets[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -696,7 +576,7 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryByRollappIDRequest) Size() (n int) {
+func (m *QueryRollappPacketsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -706,19 +586,6 @@ func (m *QueryByRollappIDRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryByStatusRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.Status != 0 {
 		n += 1 + sovQuery(uint64(m.Status))
 	}
@@ -735,8 +602,8 @@ func (m *QueryRollappPacketListResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.RollappPacket) > 0 {
-		for _, e := range m.RollappPacket {
+	if len(m.RollappPackets) > 0 {
+		for _, e := range m.RollappPackets {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -887,7 +754,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryByRollappIDRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryRollappPacketsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -910,10 +777,10 @@ func (m *QueryByRollappIDRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryByRollappIDRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRollappPacketsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryByRollappIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRollappPacketsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -949,92 +816,6 @@ func (m *QueryByRollappIDRequest) Unmarshal(dAtA []byte) error {
 			m.RollappId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryByStatusRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryByStatusRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryByStatusRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -1053,7 +834,7 @@ func (m *QueryByStatusRequest) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
 			}
@@ -1141,7 +922,7 @@ func (m *QueryRollappPacketListResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappPacket", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappPackets", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1168,8 +949,8 @@ func (m *QueryRollappPacketListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RollappPacket = append(m.RollappPacket, types.RollappPacket{})
-			if err := m.RollappPacket[len(m.RollappPacket)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.RollappPackets = append(m.RollappPackets, types.RollappPacket{})
+			if err := m.RollappPackets[len(m.RollappPackets)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
