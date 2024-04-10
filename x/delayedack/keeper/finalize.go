@@ -56,10 +56,6 @@ func (k Keeper) finalizeRollappPacket(
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		if ack == nil {
-			// async
-			return
-		}
 		/*
 				We only write the ack if writing it succeeds:
 				If writing it fails and the transfer failed, we will never write the errack
@@ -75,7 +71,9 @@ func (k Keeper) finalizeRollappPacket(
 			            non-eibc: sender will get the funds back
 			            eibc: effective transfer from fulfiller to original target
 		*/
-		err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
+		if ack != nil {
+			err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
+		}
 	case commontypes.RollappPacket_ON_ACK:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
