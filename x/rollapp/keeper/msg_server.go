@@ -25,8 +25,10 @@ func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRoll
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// Get the sender and validate they are in the whitelist
-	if !k.IsAddressInDeployerWhiteList(ctx, msg.Address) {
-		return nil, sdkerrors.ErrUnauthorized
+	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
+		if !k.IsAddressInDeployerWhiteList(ctx, msg.Address) {
+			return nil, sdkerrors.ErrUnauthorized
+		}
 	}
 
 	// Get the rollapp
