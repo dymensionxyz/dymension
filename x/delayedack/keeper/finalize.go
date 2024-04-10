@@ -85,7 +85,7 @@ func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc portty
 				Original transfer success && modified transfer success
 					Everything is fine, commit the ack of the original
 				Original transfer success && modified transfer fail
-					We write a failure back, the fulfiller will lose their cash, and the rollapp will refund
+					We write a failure back to the rollapp, the fulfiller and hub user will lose the cash, and the rollapp will refund
 					TODO: can this case actually be implemented?
 				Original transfer fail && modified transfer success
 					This leads to a double spend because the rollapp will refund the user, but the eibc order will still be fulfilled
