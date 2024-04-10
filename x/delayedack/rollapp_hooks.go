@@ -120,6 +120,18 @@ func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, lo
 		if err != nil {
 			return
 		}
+		/*
+			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
+			to ensure the ack matches what the rollapp expects.
+		*/
+		transferPacketData, err := rollappPacket.GetTransferPacketData()
+		if err != nil {
+			return fmt.Errorf("get transfer packet data: %w", err)
+		}
+		if rollappPacket.OriginalRecvReceiver != "" {
+			transferPacketData.Receiver = rollappPacket.OriginalRecvReceiver
+		}
+		rollappPacket.Packet.Data = transferPacketData.GetBytes()
 		err = im.keeper.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 		return
 	}
