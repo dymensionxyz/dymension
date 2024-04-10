@@ -102,15 +102,14 @@ func (k Keeper) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollap
 }
 
 func (k Keeper) GetRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	res, err := k.rollappKeeper.StateInfo(ctx, &rollapptypes.QueryGetStateInfoRequest{
-		RollappId: chainID,
-		Finalized: true,
-	})
-	if err != nil {
-		return 0, err
+	// GetLatestFinalizedStateIndex
+	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
+	if !found {
+		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
 	}
 
-	return res.StateInfo.StartHeight + res.StateInfo.NumBlocks - 1, nil
+	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
+	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 // GetClientState retrieves the client state for a given packet.

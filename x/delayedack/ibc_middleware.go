@@ -93,10 +93,11 @@ func (im IBCMiddleware) OnRecvPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -175,10 +176,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		ProofHeight:     proofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return err
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -255,10 +256,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return err
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
