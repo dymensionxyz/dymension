@@ -3,6 +3,7 @@ package ibctesting_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -220,10 +221,14 @@ func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint
 	// update the LatestStateInfoIndex of the rollapp
 	rollappKeeper.SetLatestFinalizedStateIndex(ctx, stateInfoIdx)
 	err := rollappKeeper.GetHooks().AfterStateFinalized(
-		suite.hubChain.GetContext(),
+		ctx,
 		suite.rollappChain.ChainID,
 		&stateInfo,
 	)
+
+	ack, err := ibctesting.ParseAckFromEvents(ctx.EventManager().ABCIEvents()
+	x := ctx.EventManager().ABCIEvents()
+	fmt.Println("x", x)
 	return err
 }
 

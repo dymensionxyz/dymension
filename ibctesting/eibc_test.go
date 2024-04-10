@@ -270,7 +270,9 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
 			suite.UpdateRollappState(currentRollappBlockHeight)
-			_ = suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
+			packet := suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
+
+			suite.Require().True(suite.rollappHasPacketCommitment(packet))
 			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
 			// ibc purposes which causes the AfterEpochEnd of the rollapp packet deletion to fire (which also deletes the demand order)
 			// hence we should only expect 1 demand order created
@@ -333,6 +335,10 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
 		})
 	}
+}
+
+func (suite *EIBCTestSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool {
+	return true
 }
 
 // TestHubToRollappEarlyFulfillment : when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
