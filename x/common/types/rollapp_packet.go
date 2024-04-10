@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,4 +31,21 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 		return transfertypes.FungibleTokenPacketData{}, err
 	}
 	return data, nil
+}
+
+func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
+	transferPacketData, err := r.GetTransferPacketData()
+	if err != nil {
+		return r, fmt.Errorf("get transfer packet data: %w", err)
+	}
+	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
+		switch r.Type {
+		case RollappPacket_ON_RECV:
+			transferPacketData.Receiver = r.OriginalTransferTarget
+		case RollappPacket_ON_ACK, RollappPacket_ON_TIMEOUT:
+			transferPacketData.Sender = r.OriginalTransferTarget
+		}
+		r.Packet.Data = transferPacketData.GetBytes()
+	}
+	return r, nil
 }
