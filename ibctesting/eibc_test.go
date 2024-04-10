@@ -316,10 +316,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
 			evts, err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			suite.Require().NoError(err)
 
 			ack, err := ibctesting.ParseAckFromEvents(evts)
-
 			suite.Require().NoError(err)
+
 			fulfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			suite.Require().True(fulfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
