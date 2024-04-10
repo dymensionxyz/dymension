@@ -3,7 +3,6 @@ package ibctesting_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
 
@@ -207,7 +206,7 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	suite.Require().NoError(err)
 }
 
-func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) error {
+func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
 	ctx := suite.hubChain.GetContext()
 
@@ -226,10 +225,7 @@ func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint
 		&stateInfo,
 	)
 
-	ack, err := ibctesting.ParseAckFromEvents(ctx.EventManager().ABCIEvents()
-	x := ctx.EventManager().ABCIEvents()
-	fmt.Println("x", x)
-	return err
+	return ctx.EventManager().Events(), err
 }
 
 func (suite *IBCTestUtilSuite) NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {

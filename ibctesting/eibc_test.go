@@ -236,7 +236,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				packet := suite.TransferRollappToHub(path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 				// Finalize rollapp state - at this state no demand order was fulfilled
 				currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-				err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+				_, err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
 				suite.Require().NoError(err)
 				// Check the fulfiller balance was updated fully with the IBC amount
 				isUpdated := false
@@ -315,7 +315,10 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-			err = suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			evts, err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+
+			ack, err := ibctesting.ParseAckFromEvents(evts)
+
 			suite.Require().NoError(err)
 			fulfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
 			suite.Require().True(fulfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
@@ -333,6 +336,11 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().NotNil(finalizedDemandOrder)
 			suite.Require().True(finalizedDemandOrder.IsFullfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
+
+			path.EndpointA.Chain.NextBlock()
+			path.EndpointB.UpdateClient()
+			err = path.EndpointB.AcknowledgePacket(packet, ack)
+			suite.Require().NoError(err)
 		})
 	}
 }
@@ -473,7 +481,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			suite.Require().True(receiverAccountBalance.IsEqual(receiverInitialBalance))
 			// Finalize the rollapp state
 			currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
-			err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+			_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 			suite.Require().NoError(err)
 			// Funds are passed to the fulfiller
 			fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(suite.hubChain.GetContext(), fulfillerAccount, sdk.DefaultBondDenom)
