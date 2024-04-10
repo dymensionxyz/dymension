@@ -98,14 +98,10 @@ func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc portty
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
-		transferPacketData, err := rollappPacket.GetTransferPacketData()
+		rollappPacket, err := rollappPacket.RestoreOriginalTransferTarget()
 		if err != nil {
-			return fmt.Errorf("get transfer packet data: %w", err)
+			return fmt.Errorf("restore original transfer target: %w", err)
 		}
-		if rollappPacket.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
-			transferPacketData.Receiver = rollappPacket.OriginalTransferTarget
-		}
-		rollappPacket.Packet.Data = transferPacketData.GetBytes()
 		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 		return
 	}
