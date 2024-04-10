@@ -128,7 +128,7 @@ func (im IBCMiddleware) onRecvPacket(rollappPacket commontypes.RollappPacket, lo
 		if err != nil {
 			return fmt.Errorf("get transfer packet data: %w", err)
 		}
-		if rollappPacket.OriginalRecvReceiver != "" {
+		if rollappPacket.OriginalRecvReceiver != "" { // It can be empty if the eibc order was never fulfilled
 			transferPacketData.Receiver = rollappPacket.OriginalRecvReceiver
 		}
 		rollappPacket.Packet.Data = transferPacketData.GetBytes()

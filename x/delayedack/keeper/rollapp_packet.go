@@ -65,7 +65,7 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	}
 	// Set the recipient and sender based on the rollapp packet type
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
-	originalRecipient := rollappPacket.OriginalRecvReceiver // can be empty
+	var originalRecipient string
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
 		originalRecipient = recipient
