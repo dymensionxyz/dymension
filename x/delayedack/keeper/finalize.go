@@ -77,6 +77,23 @@ func (k Keeper) finalizeRollappPacket(
 }
 
 func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc porttypes.IBCModule) wrappedFunc {
+	/*
+		We must be careful here:
+			 We must ensure that the ack is the same as what the rollapp expects.
+			 That means we run the original packet through a cached-ctx IBC module to get the ack, and that is what we ought to return.
+			 Thus there are 2x2=4 combinations:
+				Original transfer success && modified transfer success
+					Everything is fine, commit the ack of the original
+				Original transfer success && modified transfer fail
+					We write a failure back, the fulfiller will lose their cash, and the rollapp will refund
+					TODO: can this case actually be implemented?
+				Original transfer fail && modified transfer success
+					This leads to a double spend because the rollapp will refund the user, but the eibc order will still be fulfilled
+					Therefore we must NOT allow the order to fulfill if the original transfer would have failed
+				Original transfer fail && modified transfer fail
+					This is fine, the rollapp will refund the user, and the eibc order will not be fulfilled
+					We use the original ack
+	*/
 	return func(ctx sdk.Context) (err error) {
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		// If async, return
