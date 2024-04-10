@@ -99,7 +99,7 @@ func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc portty
 			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
 			to ensure the ack matches what the rollapp expects.
 		*/
-		rollappPacket, err := rollappPacket.RestoreOriginalTransferTarget()
+		rollappPacket, err = rollappPacket.RestoreOriginalTransferTarget()
 		if err != nil {
 			return fmt.Errorf("restore original transfer target: %w", err)
 		}

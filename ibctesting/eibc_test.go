@@ -338,7 +338,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
 
 			path.EndpointA.Chain.NextBlock()
-			path.EndpointB.UpdateClient()
+			_ = path.EndpointB.UpdateClient()
 			err = path.EndpointB.AcknowledgePacket(packet, ack)
 			suite.Require().NoError(err)
 		})
