@@ -3,7 +3,6 @@ package keeper_test
 import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	dkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -58,18 +57,17 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: uint64(i * 2),
 				}
-				err := keeper.SetRollappPacket(ctx, *rollappPacket)
-				suite.Require().NoError(err)
+				keeper.SetRollappPacket(ctx, *rollappPacket)
 			}
 
-			rollappPackets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
+			rollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 			suite.Require().Equal(tc.pendingPacketsNum, len(rollappPackets))
 
 			for _, rollappPacket := range rollappPackets[:tc.finalizePacketsNum] {
 				_, err := keeper.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 				suite.Require().NoError(err)
 			}
-			finalizedRollappPackets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
+			finalizedRollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
 			suite.Require().Equal(tc.finalizePacketsNum, len(finalizedRollappPackets))
 
 			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam})
@@ -77,10 +75,10 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 			err := epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
 			suite.Require().NoError(err)
 
-			finalizedRollappPackets = keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
+			finalizedRollappPackets = keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
 			suite.Require().Equal(tc.finalizePacketsNum-tc.expectedDeleted, len(finalizedRollappPackets))
 
-			pendingPackets := keeper.ListRollappPackets(ctx, dkeeper.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
+			pendingPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 			totalRollappPackets := len(finalizedRollappPackets) + len(pendingPackets)
 			suite.Require().Equal(tc.expectedTotal, totalRollappPackets)
 		})

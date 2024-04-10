@@ -5,7 +5,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
-	dkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -17,15 +16,14 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 	pkts := generatePackets(rollappId, 5)
 	rollappId2 := "testRollappId2"
 	pkts2 := generatePackets(rollappId2, 5)
-	prefixPending1 := dkeeper.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
-	prefixPending2 := dkeeper.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
-	prefixReverted := dkeeper.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
-	prefixFinalized := dkeeper.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
-	prefixFinalized2 := dkeeper.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
+	prefixPending1 := types.ByRollappIDByStatus(rollappId, commontypes.Status_PENDING)
+	prefixPending2 := types.ByRollappIDByStatus(rollappId2, commontypes.Status_PENDING)
+	prefixReverted := types.ByRollappIDByStatus(rollappId, commontypes.Status_REVERTED)
+	prefixFinalized := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
+	prefixFinalized2 := types.ByRollappIDByStatus(rollappId, commontypes.Status_FINALIZED)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		err := keeper.SetRollappPacket(ctx, pkt)
-		suite.Require().NoError(err)
+		keeper.SetRollappPacket(ctx, pkt)
 	}
 
 	suite.Require().Equal(5, len(keeper.ListRollappPackets(ctx, prefixPending1)))
@@ -57,8 +55,7 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 	pkts2 := generatePackets(rollappId2, 5)
 
 	for _, pkt := range append(pkts, pkts2...) {
-		err := keeper.SetRollappPacket(ctx, pkt)
-		suite.Require().NoError(err)
+		keeper.SetRollappPacket(ctx, pkt)
 	}
 
 	err := keeper.HandleFraud(ctx, rollappId, transferStack)
