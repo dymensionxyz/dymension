@@ -43,7 +43,7 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 		// query by status
 		res.RollappPackets = q.ListRollappPackets(ctx, types.ByStatus(req.Status))
 	} else {
-		//query by rollapp id
+		// query by rollapp id
 		res.RollappPackets = q.ListRollappPackets(ctx, types.ByRollappIDByStatus(req.RollappId, req.Status))
 	}
 
