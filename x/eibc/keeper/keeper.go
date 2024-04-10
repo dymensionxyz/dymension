@@ -116,6 +116,7 @@ func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfille
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
