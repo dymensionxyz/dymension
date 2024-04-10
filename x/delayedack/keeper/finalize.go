@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
@@ -53,7 +55,21 @@ func (k Keeper) finalizeRollappPacket(
 
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
-		err = osmoutils.ApplyFuncIfNoError(ctx, k.onRecvPacket(rollappPacket, ibc))
+		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
+		/*
+				We only write the ack if writing it succeeds:
+				1. Transfer fails and writing ack fails - In this case, the funds will never be refunded on the RA.
+						non-eibc: sender will never get the funds back
+						eibc: the fulfiller will never get the funds back, the original target has already been paid
+				2. Transfer succeeds and writing ack fails - In this case, the packet is never cleared on the RA.
+				3. Transfer succeeds and writing succeeds - happy path
+				4. Transfer fails and ack succeeds - we write the err ack and the funds will be refunded on the RA
+					 non-eibc: sender will get the funds back
+			            eibc: effective transfer from fulfiller to original target
+		*/
+		if ack != nil {
+			err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
+		}
 	case commontypes.RollappPacket_ON_ACK:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
@@ -77,15 +93,8 @@ func (k Keeper) finalizeRollappPacket(
 	return
 }
 
-func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc porttypes.IBCModule) wrappedFunc {
+func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack exported.Acknowledgement) wrappedFunc {
 	return func(ctx sdk.Context) (err error) {
-		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
-		// If async, return
-		if ack == nil {
-			return
-		}
-
-		// Write the acknowledgement to the chain only if it is synchronous
 		var chanCap *capabilitytypes.Capability
 		_, chanCap, err = k.LookupModuleByChannel(
 			ctx,
@@ -94,6 +103,14 @@ func (k Keeper) onRecvPacket(rollappPacket commontypes.RollappPacket, ibc portty
 		)
 		if err != nil {
 			return
+		}
+		/*
+			Here, we do the inverse of what we did when we updated the packet transfer address, when we fulfilled the order
+			to ensure the ack matches what the rollapp expects.
+		*/
+		rollappPacket, err = rollappPacket.RestoreOriginalTransferTarget()
+		if err != nil {
+			return fmt.Errorf("restore original transfer target: %w", err)
 		}
 		err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, ack)
 		return

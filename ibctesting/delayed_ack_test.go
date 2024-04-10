@@ -164,7 +164,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 
 	// Finalize the rollapp state
 	currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 
 	// Validate ack is found
@@ -219,7 +219,7 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	suite.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
 	// Finalize the rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
-	err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 	// Validate funds are returned to the sender
 	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)

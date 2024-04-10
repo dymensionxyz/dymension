@@ -22,4 +22,6 @@ message RollappPacket {
     Type type = 7;
     // stores the result of onAck, onTimeout or onRecv/writeAck
     string error = 8;
+    // who was the original person who gets the money (recipient of ics20 transfer) of the packet?
+    string original_transfer_target = 9;
   }
