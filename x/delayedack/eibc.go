@@ -18,6 +18,34 @@ const (
 	PFMMemoObjectName  = "forward"
 )
 
+var (
+	ErrMemoUnmarshal = fmt.Errorf("unmarshal memo")
+	ErrMemoIsPFM     = fmt.Errorf("EIBC packet with PFM is currently not supported")
+	ErrMemoEibcEmpty = fmt.Errorf("memo IBC field is missing")
+)
+
+func parsePacketMetadata(input string) (*types.PacketMetadata, error) {
+	memo := make(map[string]any)
+	bz := []byte(input)
+	err := json.Unmarshal(bz, &memo)
+	if err != nil {
+		return nil, ErrMemoUnmarshal
+	}
+	if memo[eibcMemoObjectName] == nil {
+		return nil, ErrMemoEibcEmpty
+	}
+	if memo[PFMMemoObjectName] != nil {
+		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
+		return nil, ErrMemoIsPFM
+	}
+	var metadata types.PacketMetadata
+	err = json.Unmarshal(bz, &metadata)
+	if err != nil {
+		return nil, ErrMemoUnmarshal
+	}
+	return &metadata, nil
+}
+
 // eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
@@ -28,25 +56,8 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 
 	switch t := rollappPacket.Type; t {
 	case commontypes.RollappPacket_ON_RECV:
-		// Handle eibc demand order if exists - Start by validating the memo
-		memo := make(map[string]interface{})
-		err := json.Unmarshal([]byte(data.Memo), &memo)
-		if err != nil || memo[eibcMemoObjectName] == nil {
-			logger.Debug("Memo is empty or failed to unmarshal", "memo", data.Memo)
-			return nil
-		}
-
-		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
-		if memo[PFMMemoObjectName] != nil {
-			err = fmt.Errorf("EIBC packet with PFM is currently not supported")
-			return err
-		}
-		// Unmarshal the packet metadata from the memo
-		err = json.Unmarshal([]byte(data.Memo), packetMetaData)
-		if err != nil {
-			logger.Error("parsing packet metadata from memo", "error", err)
-			return nil
-		}
+		var err error
+		packetMetaData, err = parsePacketMetadata(data.Memo)
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
 		// Calculate the fee by multiplying the fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
