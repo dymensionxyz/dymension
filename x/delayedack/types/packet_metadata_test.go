@@ -44,7 +44,7 @@ func Test_parsePacketMetadata(t *testing.T) {
 			true,
 		},
 		{
-			"invalid - emtpy",
+			"invalid - empty",
 			args{
 				``,
 			},
