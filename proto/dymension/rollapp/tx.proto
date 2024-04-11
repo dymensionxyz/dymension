@@ -24,13 +24,6 @@ message MsgCreateRollapp {
   // rollappId is the unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
-  // codeStamp is the description of the genesis file location on the DA
-  string codeStamp = 3 [deprecated=true];
-  // genesisPath is the description of the genesis file location on the DA
-  string genesisPath = 4 [deprecated=true];
-  // maxWithholdingBlocks is the maximum number of blocks for
-  // an active sequencer to send a state update (MsgUpdateState)
-  uint64 maxWithholdingBlocks = 5 [deprecated=true];   
   // maxSequencers is the maximum number of sequencers
   uint64 maxSequencers = 6;
   // permissionedAddresses is a bech32-encoded address list of the 

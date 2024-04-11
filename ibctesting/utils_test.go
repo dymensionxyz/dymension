@@ -185,9 +185,8 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	blockDescriptors := &rollapptypes.BlockDescriptors{BD: make([]rollapptypes.BlockDescriptor, numBlocks)}
 	for i := 0; i < int(numBlocks); i++ {
 		blockDescriptors.BD[i] = rollapptypes.BlockDescriptor{
-			Height:                 startHeight + uint64(i),
-			StateRoot:              bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
-			IntermediateStatesRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
+			Height:    startHeight + uint64(i),
+			StateRoot: bytes.Repeat([]byte{byte(startHeight) + byte(i)}, 32),
 		}
 	}
 	// Update the state
