@@ -99,7 +99,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet",
+	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
