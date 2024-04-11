@@ -236,7 +236,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				packet := suite.TransferRollappToHub(path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 				// Finalize rollapp state - at this state no demand order was fulfilled
 				currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-				_, err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+				_, err := suite.FinalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 				suite.Require().NoError(err)
 				// Check the fulfiller balance was updated fully with the IBC amount
 				isUpdated := false
@@ -315,7 +315,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
-			evts, err := suite.FinalizeRollappState(rollappStateIndex, uint64(currentRollappBlockHeight))
+			evts, err := suite.FinalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 			suite.Require().NoError(err)
 
 			ack, err := ibctesting.ParseAckFromEvents(evts)
