@@ -14,10 +14,9 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Create new demand order
 	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
-	demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
-	suite.Require().NoError(err)
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(100), math.NewIntFromUint64(50), sdk.DefaultBondDenom, demandOrderFulfillerAddr)
 	suite.Require().Equal(commontypes.Status_PENDING, demandOrder.TrackingPacketStatus)
-	err = suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 	suite.Require().NoError(err)
 	// Update rollapp packet status to finalized
 	updatedRollappPacket, err := suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, commontypes.Status_FINALIZED)
@@ -56,9 +55,8 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 
 			// Create new demand order
 			demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
-			demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
-			suite.Require().NoError(err)
-			err = suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+			demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(100), math.NewIntFromUint64(50), sdk.DefaultBondDenom, demandOrderFulfillerAddr)
+			err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 			suite.Require().NoError(err)
 
 			// Update rollapp packet status
