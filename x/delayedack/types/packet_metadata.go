@@ -33,10 +33,7 @@ var ErrEIBCFeeNotPositiveInt = fmt.Errorf("eibc fee is not a positive integer")
 
 func (e EIBCMetadata) FeeInt() (math.Int, error) {
 	i, ok := sdk.NewIntFromString(e.Fee)
-	if !ok {
-		return math.Int{}, ErrEIBCFeeNotPositiveInt
-	}
-	if !i.IsPositive() {
+	if !ok || !i.IsPositive() {
 		return math.Int{}, ErrEIBCFeeNotPositiveInt
 	}
 	return i, nil
