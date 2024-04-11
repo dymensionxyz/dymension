@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"strconv"
 
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -13,26 +15,17 @@ import (
 // NewDemandOrder creates a new demand order.
 // Price is the cost to a market maker to buy the option, (recipient receives straight away).
 // Fee is what the market maker gets in return.
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee string, denom string, recipient string) (*DemandOrder, error) {
-	priceInt, ok := sdk.NewIntFromString(price)
-	if !ok {
-		return nil, ErrInvalidDemandOrderPrice
-	}
-	feeInt, ok := sdk.NewIntFromString(fee)
-	if !ok {
-		return nil, ErrInvalidDemandOrderFee
-	}
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string) *DemandOrder {
 	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
-
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
 		TrackingPacketKey:    string(rollappPacketKey),
-		Price:                sdk.NewCoins(sdk.NewCoin(denom, priceInt)),
-		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, feeInt)),
+		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
+		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
 		IsFullfilled:         false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
-	}, nil
+	}
 }
 
 func (m *DemandOrder) ValidateBasic() error {

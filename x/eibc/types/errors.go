@@ -8,6 +8,7 @@ import (
 
 // x/eibc module sentinel errors
 var (
+	// TODO: check if used
 	ErrInvalidDemandOrderPrice       = errorsmod.Register(ModuleName, 1, "Price must be greater than 0")
 	ErrInvalidDemandOrderFee         = errorsmod.Register(ModuleName, 2, "Fee must be greater than 0 and less than or equal to the total amount")
 	ErrInvalidOrderID                = errorsmod.Register(ModuleName, 3, "Invalid order ID")

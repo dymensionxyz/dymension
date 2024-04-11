@@ -25,12 +25,12 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	case commontypes.RollappPacket_ON_RECV:
 		var err error
 		packetMetaData, err = types.ParsePacketMetadata(data.Memo)
-		if errors.Is(err, types.ErrMemoIsPFM) {
+		if errors.Is(err, types.ErrMemoIsPFM) || errors.Is(err, types.ErrMemoUnmarshal) {
 			return err
 		}
-		if errors.Is(err, types.ErrMemoEibcEmpty) || errors.Is(err, types.ErrMemoUnmarshal) {
-			logger.Debug("skipping demand order creation", "error", err)
-			return nil
+		if errors.Is(err, types.ErrMemoEibcEmpty) {
+			logger.Debug("skipping demand order creation - no eibc memo provided")
+			err = nil
 		}
 		if err != nil {
 			return err
@@ -49,7 +49,6 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		case commontypes.RollappPacket_ON_ACK:
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
-
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
 		if !fee.IsPositive() {
 			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String(), "multiplier", feeMultiplier.String())
@@ -62,22 +61,14 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		}
 	}
 
-	// Validate the packet metadata
-	if err := packetMetaData.ValidateBasic(); err != nil {
-		logger.Error("error validating packet metadata", "error", err)
-		return nil
-	}
-	// Create the eibc demand order
 	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, *packetMetaData.EIBC)
 	if err != nil {
-		err = fmt.Errorf("create eibc demand order: %s", err)
-		return err
+		return fmt.Errorf("create eibc demand order: %s", err)
 	}
-	// Save the eibc order in the store
+
 	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
-		err = fmt.Errorf("save eibc demand order: %s", err)
-		return err
+		return fmt.Errorf("set eibc demand order: %s", err)
 	}
 	return nil
 }
@@ -93,25 +84,24 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
 		return nil, err
 	}
+	if err := eibcMetaData.ValidateBasic(); err != nil {
+		return nil, fmt.Errorf("validate eibc metadata: %s", err)
+	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
 	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
-	// Calculate the demand order price and validate it
-	amountInt, ok := sdk.NewIntFromString(fungibleTokenPacketData.Amount)
-	if !ok || !amountInt.IsPositive() {
+	// Calculate the demand order price and validate it,
+	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok by above validation
+	if !amt.IsPositive() {
 		return nil, fmt.Errorf("convert amount to positive integer: %s", fungibleTokenPacketData.Amount)
 	}
 	// Get the fee from the memo
-	fee := eibcMetaData.Fee
-	feeInt, ok := sdk.NewIntFromString(fee)
-	if !ok || !feeInt.IsPositive() {
-		return nil, fmt.Errorf("convert fee to positive integer: %s", fee)
-	}
-	if amountInt.LT(feeInt) {
-		return nil, fmt.Errorf("fee cannot be larger than amount")
-	}
+	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
 
+	if amt.LT(fee) {
+		return nil, fmt.Errorf("fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
+	}
 	/*
 		   In case of timeout/errack:
 		       fee = fee_multiplier*transfer_amount
@@ -126,11 +116,11 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		           demander balance += (transfer_amount - fee)
 		              equivalent to += (1-fee_multiplier)*transfer_amount
 	*/
-	demandOrderPrice := amountInt.Sub(feeInt).String()
+	demandOrderPrice := amt.Sub(fee)
 
+	// Get the denom for the demand order
 	var demandOrderDenom string
 	var demandOrderRecipient string
-	// Get the denom for the demand order
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
@@ -142,15 +132,12 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}
-	// Create the demand order and validate it
-	eibcDemandOrder, err := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
-	if err != nil {
-		return nil, fmt.Errorf("create eibc demand order: %s", err)
-	}
-	if err := eibcDemandOrder.Validate(); err != nil {
+
+	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	if err := order.Validate(); err != nil {
 		return nil, fmt.Errorf("validate eibc data: %s", err)
 	}
-	return eibcDemandOrder, nil
+	return order, nil
 }
 
 // getEIBCTransferDenom returns the actual denom that will be credited to the eIBC fulfiller.

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -20,11 +22,24 @@ func (p PacketMetadata) ValidateBasic() error {
 }
 
 func (e EIBCMetadata) ValidateBasic() error {
-	_, ok := sdk.NewIntFromString(e.Fee)
-	if !ok {
-		return ErrInvalidEIBCFee
+	_, err := e.FeeInt()
+	if err != nil {
+		return fmt.Errorf("fee: %w", err)
 	}
 	return nil
+}
+
+var ErrEIBCFeeNotPositiveInt = fmt.Errorf("eibc fee is not a positive integer")
+
+func (e EIBCMetadata) FeeInt() (math.Int, error) {
+	i, ok := sdk.NewIntFromString(e.Fee)
+	if !ok {
+		return math.Int{}, ErrEIBCFeeNotPositiveInt
+	}
+	if !i.IsPositive() {
+		return math.Int{}, ErrEIBCFeeNotPositiveInt
+	}
+	return i, nil
 }
 
 const (
