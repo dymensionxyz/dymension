@@ -9,6 +9,12 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
+func mustDemandOrderFromInts(rollappPacket commontypes.RollappPacket, price, fee uint64, denom, recipient string) *types.DemandOrder {
+	return types.NewDemandOrder(rollappPacket, math.NewIntFromUint64(price), , denom, recipient)
+	return types.NewDemandOrder(rollappPacket, price, fee, denom, recipient)
+}
+
+
 func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 	keeper := suite.App.EIBCKeeper
 	ctx := suite.Ctx
@@ -22,9 +28,8 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
-		suite.Require().NoError(err)
-		err = keeper.SetDemandOrder(ctx, demandOrder)
+		demandOrder := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
+		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}
 	// Get the demand orders with status active
