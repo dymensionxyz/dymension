@@ -49,8 +49,8 @@ const (
 
 var (
 	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
-	ErrEibcMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
-	ErrMemoIsPFM             = fmt.Errorf("EIBC packet with PFM is currently not supported")
+	ErrEIBCMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
+	ErrMemoHashPFMandEIBC    = fmt.Errorf("EIBC packet with PFM is currently not supported")
 	ErrMemoEibcEmpty         = fmt.Errorf("memo IBC field is missing")
 )
 
@@ -62,17 +62,17 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	if err != nil {
 		return nil, ErrMemoUnmarshal
 	}
-	if memo[memoObjectKeyPFM] != nil {
-		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
-		return nil, ErrMemoIsPFM
-	}
 	if memo[memoObjectKeyEIBC] == nil {
 		return nil, ErrMemoEibcEmpty
+	}
+	if memo[memoObjectKeyPFM] != nil {
+		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
+		return nil, ErrMemoHashPFMandEIBC
 	}
 	var metadata PacketMetadata
 	err = json.Unmarshal(bz, &metadata)
 	if err != nil {
-		return nil, ErrEibcMetadataUnmarshal
+		return nil, ErrEIBCMetadataUnmarshal
 	}
 	return &metadata, nil
 }
