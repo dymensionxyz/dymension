@@ -46,7 +46,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", types.ModuleName,
+		"packet_source", packet.SourcePort,
+		"packet_destination", packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
@@ -95,8 +99,10 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Set rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
@@ -116,7 +122,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", types.ModuleName,
+		"packet_source", packet.SourcePort,
+		"packet_destination", packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
@@ -178,8 +188,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Set rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -202,7 +214,11 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
+	logger := ctx.Logger().With(
+		"module", types.ModuleName,
+		"packet_source", packet.SourcePort,
+		"packet_destination", packet.DestinationPort,
+		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
@@ -258,8 +274,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Set rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
