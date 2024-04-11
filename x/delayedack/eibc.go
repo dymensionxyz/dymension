@@ -89,10 +89,8 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
 	// Calculate the demand order price and validate it,
-	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok by above validation
-	if !amt.IsPositive() {
-		return nil, fmt.Errorf("convert amount to positive integer: %s", fungibleTokenPacketData.Amount)
-	}
+	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
+
 	// Get the fee from the memo
 	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
 
