@@ -51,7 +51,7 @@ var (
 	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
 	ErrEIBCMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
 	ErrMemoHashPFMandEIBC    = fmt.Errorf("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty         = fmt.Errorf("memo IBC field is missing")
+	ErrMemoEibcEmpty         = fmt.Errorf("memo eIBC field is missing")
 )
 
 func ParsePacketMetadata(input string) (*PacketMetadata, error) {
