@@ -47,7 +47,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	logger := ctx.Logger().With(
-		"module", "DelayedAckMiddleware",
+		"module", types.ModuleName,
 		"packet_source", packet.SourcePort,
 		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
@@ -123,7 +123,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	logger := ctx.Logger().With(
-		"module", "DelayedAckMiddleware",
+		"module", types.ModuleName,
 		"packet_source", packet.SourcePort,
 		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
@@ -188,7 +188,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet",
+	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
@@ -215,7 +215,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 	logger := ctx.Logger().With(
-		"module", "DelayedAckMiddleware",
+		"module", types.ModuleName,
 		"packet_source", packet.SourcePort,
 		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
@@ -274,7 +274,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet",
+	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
