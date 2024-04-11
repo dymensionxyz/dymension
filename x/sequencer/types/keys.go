@@ -56,7 +56,7 @@ func SequencerByRollappByStatusKey(rollappId, seqAddr string, status OperatingSt
 
 /* ------------------------- multiple sequencers keys ------------------------ */
 func SequencersKey() []byte {
-	return []byte(SequencersKeyPrefix)
+	return SequencersKeyPrefix
 }
 
 // SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
