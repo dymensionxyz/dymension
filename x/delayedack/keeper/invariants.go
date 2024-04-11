@@ -61,7 +61,7 @@ func (k Keeper) checkRollapp(ctx sdk.Context, rollapp rtypes.Rollapp, checkPacke
 
 	defer func() {
 		if msg == "" {
-			packets := k.ListRollappPackets(ctx, ByRollappID(rollapp.RollappId))
+			packets := k.ListRollappPackets(ctx, types.ByRollappID(rollapp.RollappId))
 			msg = checkPackets(packets, latestFinalizedHeight)
 		}
 	}()

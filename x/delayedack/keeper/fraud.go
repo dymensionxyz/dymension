@@ -1,56 +1,48 @@
 package keeper
 
 import (
-	"fmt"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
-func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string) error {
+func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBCModule) error {
 	// Get all the pending packets
-	rollappPendingPackets := k.ListRollappPackets(ctx, ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
+	rollappPendingPackets := k.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_PENDING))
 	if len(rollappPendingPackets) == 0 {
 		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Debug("Reverting IBC rollapp packets", "rollappID", rollappID)
-	for _, rollappPacket := range rollappPendingPackets {
-		errString := "fraudulent packet"
-		packetId := channeltypes.NewPacketID(rollappPacket.Packet.GetDestPort(), rollappPacket.Packet.GetDestChannel(), rollappPacket.Packet.GetSequence())
-		logger.Debug("Reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type)
+	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID)
 
-		if rollappPacket.Type == commontypes.RollappPacket_ON_RECV {
-			err := k.writeFailedAck(ctx, rollappPacket, errString)
+	// Iterate over all the pending packets and revert them
+	for _, rollappPacket := range rollappPendingPackets {
+		logContext := []interface{}{
+			"rollappID", rollappID,
+			"sourceChannel", rollappPacket.Packet.SourceChannel,
+			"destChannel", rollappPacket.Packet.DestinationChannel,
+			"type", rollappPacket.Type,
+			"sequence", rollappPacket.Packet.Sequence,
+		}
+
+		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+			// refund all pending outgoing packets
+			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
+			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			if err != nil {
-				logger.Error("failed to write failed ack", "rollappID", rollappID, "packetId", packetId, "error", errString)
-				// don't return here as it's nice to have
+				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
 			}
 		}
-
 		// Update status to reverted
-		rollappPacket.Error = errString
-		rollappPacket, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
+		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {
-			logger.Error("Error reverting IBC rollapp packet", "rollappID", rollappID, "packetId", packetId, "type", rollappPacket.Type, "error", err.Error())
+			logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
 			return err
 		}
-	}
-	return nil
-}
 
-func (k Keeper) writeFailedAck(ctx sdk.Context, rollappPacket commontypes.RollappPacket, msg string) error {
-	failedAck := channeltypes.NewErrorAcknowledgement(fmt.Errorf(msg))
-	// Write the acknowledgement to the chain
-	_, chanCap, err := k.LookupModuleByChannel(ctx, rollappPacket.Packet.DestinationPort, rollappPacket.Packet.DestinationChannel)
-	if err != nil {
-		return err
+		logger.Debug("reverted IBC rollapp packet", logContext...)
 	}
-	err = k.WriteAcknowledgement(ctx, chanCap, rollappPacket.Packet, failedAck)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -3,14 +3,20 @@ package keeper_test
 import (
 	"github.com/tendermint/tendermint/libs/rand"
 
+	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
+
+	keeper := suite.App.DelayedAckKeeper
+	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper)
+
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
 
@@ -50,8 +56,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 					Status:      commontypes.Status_PENDING,
 					ProofHeight: proofHeight,
 				}
-				err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-				suite.Require().NoError(err)
+				suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 
 				sequence++
 			}
@@ -67,7 +72,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
-		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp)
+		err := suite.App.DelayedAckKeeper.HandleFraud(suite.Ctx, rollapp, transferStack)
 		suite.Require().NoError(err)
 		break
 	}
@@ -291,10 +296,8 @@ func (suite *DelayedAckTestSuite) TestRollappPacketsCasesInvariant() {
 			}
 
 			// add rollapp packets
-			err := suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
-			suite.Require().NoError(err)
-			err = suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
-			suite.Require().NoError(err)
+			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet)
+			suite.App.DelayedAckKeeper.SetRollappPacket(ctx, tc.packet2)
 
 			// check invariant
 			_, failsFinalize := suite.App.DelayedAckKeeper.PacketsFinalizationCorrespondsToFinalizationHeight(suite.Ctx)

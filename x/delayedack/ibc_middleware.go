@@ -46,10 +46,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
+	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
+
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -60,13 +61,13 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
+	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, packet)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -92,10 +93,11 @@ func (im IBCMiddleware) OnRecvPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -116,13 +118,15 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
+	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
+
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
 		logger.Error("Unmarshal acknowledgement", "err", err)
 		return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -132,13 +136,13 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.GetDestPort(), packet.GetDestChannel())
+	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, packet)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_ACK, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return err
@@ -171,12 +175,11 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Relayer:         relayer,
 		ProofHeight:     proofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
-		// TODO: do I need to set the error field here?
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return err
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -201,7 +204,9 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 
-	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet)
+	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
+
+	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -212,13 +217,13 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, packet.DestinationPort, packet.DestinationChannel)
+	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, packet)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return err
@@ -251,10 +256,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
-	err = im.keeper.SetRollappPacket(ctx, rollappPacket)
-	if err != nil {
-		return err
-	}
+	im.keeper.SetRollappPacket(ctx, rollappPacket)
+
+	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
+		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
@@ -295,14 +300,14 @@ func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string)
 }
 
 // ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
-func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet) (string, *transfertypes.FungibleTokenPacketData, error) {
+func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return "", nil, err
 	}
 	// Check if the packet is destined for a rollapp
-	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		return "", &data, err
 	}
@@ -314,10 +319,10 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
 	}
 	// check if the channelID matches the rollappID's channelID
-	if rollapp.ChannelId != packet.GetDestChannel() {
+	if rollapp.ChannelId != rollappChannelOnHub {
 		return "", &data, errorsmod.Wrapf(
 			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.GetDestChannel(),
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
 		)
 	}
 
@@ -325,8 +330,10 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 }
 
 // GetProofHeight returns the proof height of the packet
-func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packet channeltypes.Packet) (uint64, error) {
-	packetId := channeltypes.NewPacketID(packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.RollappPacket_Type,
+	rollappPortOnHub string, rollappChannelOnHub string, sequence uint64,
+) (uint64, error) {
+	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
 	height, ok := types.FromIBCProofContext(ctx, packetId)
 	if ok {
 		return height.RevisionHeight, nil

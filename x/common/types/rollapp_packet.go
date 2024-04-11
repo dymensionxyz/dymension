@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +17,11 @@ func (r RollappPacket) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyPacketDestinationPort, r.Packet.DestinationPort),
 		sdk.NewAttribute(AttributeKeyPacketDestinationChannel, r.Packet.DestinationChannel),
 		sdk.NewAttribute(AttributeKeyPacketSequence, strconv.FormatUint(r.Packet.Sequence, 10)),
-		sdk.NewAttribute(AttributeKeyPacketError, r.Error),
 	}
+	if r.Error != "" {
+		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyPacketError, r.Error))
+	}
+
 	return eventAttributes
 }
 
@@ -27,4 +31,21 @@ func (r RollappPacket) GetTransferPacketData() (transfertypes.FungibleTokenPacke
 		return transfertypes.FungibleTokenPacketData{}, err
 	}
 	return data, nil
+}
+
+func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
+	transferPacketData, err := r.GetTransferPacketData()
+	if err != nil {
+		return r, fmt.Errorf("get transfer packet data: %w", err)
+	}
+	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
+		switch r.Type {
+		case RollappPacket_ON_RECV:
+			transferPacketData.Receiver = r.OriginalTransferTarget
+		case RollappPacket_ON_ACK, RollappPacket_ON_TIMEOUT:
+			transferPacketData.Sender = r.OriginalTransferTarget
+		}
+		r.Packet.Data = transferPacketData.GetBytes()
+	}
+	return r, nil
 }

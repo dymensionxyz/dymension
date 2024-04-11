@@ -11,8 +11,7 @@ import (
 
 func (suite *KeeperTestSuite) TestAfterRollappPacketUpdated() {
 	// Set a rollapp packet
-	err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-	suite.Require().NoError(err)
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 	// Create new demand order
 	demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()
 	demandOrder, err := types.NewDemandOrder(*rollappPacket, "100", "50", sdk.DefaultBondDenom, demandOrderFulfillerAddr)
@@ -53,8 +52,7 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			// Set a rollapp packet
-			err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-			suite.Require().NoError(err)
+			suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 
 			// Create new demand order
 			demandOrderFulfillerAddr := apptesting.AddTestAddrs(suite.App, suite.Ctx, 1, math.NewInt(1000))[0].String()

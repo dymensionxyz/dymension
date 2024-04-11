@@ -102,15 +102,14 @@ func (k Keeper) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollap
 }
 
 func (k Keeper) GetRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
-	res, err := k.rollappKeeper.StateInfo(ctx, &rollapptypes.QueryGetStateInfoRequest{
-		RollappId: chainID,
-		Finalized: true,
-	})
-	if err != nil {
-		return 0, err
+	// GetLatestFinalizedStateIndex
+	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)
+	if !found {
+		return 0, rollapptypes.ErrNoFinalizedStateYetForRollapp
 	}
 
-	return res.StateInfo.StartHeight + res.StateInfo.NumBlocks - 1, nil
+	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
+	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
 // GetClientState retrieves the client state for a given packet.
@@ -187,7 +186,7 @@ func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string
 }
 
 // ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
-func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID string) error {
+func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollappID
 	// As the assumption the sequencer is honest we don't check the packet proof height.
@@ -203,7 +202,7 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, portID, channelID
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
 	// If the sequencer is changed, then the validation will fail till the new sequencer sends a new state info update.
-	tmConsensusState, err := k.getTmConsensusState(ctx, portID, channelID)
+	tmConsensusState, err := k.getTmConsensusState(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		k.Logger(ctx).Error("error consensus state", err)
 		return err

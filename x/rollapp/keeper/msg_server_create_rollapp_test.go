@@ -136,6 +136,12 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			valid:     true,
 		},
 		{
+			name:      "valid non-eip155",
+			rollappId: "testChain3",
+			eip:       false,
+			valid:     true,
+		},
+		{
 			name:      "too long id",
 			rollappId: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
 			eip:       false,
@@ -146,6 +152,79 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			rollappId: "rollapp_ea2413-1",
 			eip:       false,
 			valid:     true,
+		},
+		{
+			name:      "no EIP155 with revision",
+			rollappId: "rollapp-1",
+			eip:       false,
+			valid:     true,
+		},
+		{
+			name:      "starts with dash",
+			rollappId: "-1234",
+			eip:       false,
+			valid:     false,
+		},
+	}
+	for _, test := range tests {
+		suite.Run(test.name, func() {
+			rollapp := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.rollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+
+			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+			if test.valid {
+				suite.Require().NoError(err)
+				id, err := types.NewChainID(test.rollappId)
+				suite.Require().NoError(err)
+				if test.eip {
+					suite.Require().True(id.IsEIP155())
+				} else {
+					suite.Require().False(id.IsEIP155())
+				}
+			} else {
+				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+			}
+		})
+	}
+}
+
+func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
+	suite.SetupTest()
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	tests := []struct {
+		name      string
+		rollappId string
+		revision  uint64
+		valid     bool
+	}{
+		{
+			name:      "revision set with eip155",
+			rollappId: "rollapp_1234-1",
+			revision:  1,
+			valid:     true,
+		},
+		{
+			name:      "revision set without eip155",
+			rollappId: "rollapp-3",
+			revision:  3,
+			valid:     true,
+		},
+		{
+			name:      "revision not set",
+			rollappId: "rollapp",
+			revision:  0,
+			valid:     true,
+		},
+		{
+			name:      "invalid revision",
+			rollappId: "rollapp-1-1",
+			revision:  0,
+			valid:     false,
 		},
 	}
 	for _, test := range tests {
@@ -163,11 +242,76 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				suite.Require().NoError(err)
 				id, err := types.NewChainID(test.rollappId)
 				suite.Require().NoError(err)
-				if test.eip {
-					suite.Require().True(id.IsEIP155())
-				} else {
-					suite.Require().False(id.IsEIP155())
-				}
+				suite.Require().Equal(test.revision, id.GetRevisionNumber())
+
+			} else {
+				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
+			}
+		})
+	}
+}
+
+func (suite *RollappTestSuite) TestForkChainId() {
+	tests := []struct {
+		name         string
+		rollappId    string
+		newRollappId string
+		valid        bool
+	}{
+		{
+			name:         "valid eip155 id",
+			rollappId:    "rollapp_1234-1",
+			newRollappId: "rollapp_1234-2",
+			valid:        true,
+		},
+		{
+			name:         "valid non-eip155 id",
+			rollappId:    "rollapp",
+			newRollappId: "rollapp-2",
+			valid:        true,
+		},
+		{
+			name:         "non-valid eip155 id",
+			rollappId:    "rollapp_1234-1",
+			newRollappId: "rollapp_1234-5",
+			valid:        false,
+		},
+		{
+			name:         "same eip155 but different name",
+			rollappId:    "rollapp_1234-1",
+			newRollappId: "rollapy_1234-2",
+			valid:        false,
+		},
+	}
+	for _, test := range tests {
+		suite.Run(test.name, func() {
+			suite.SetupTest()
+			goCtx := sdk.WrapSDKContext(suite.Ctx)
+			rollappMsg := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.rollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+
+			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
+			suite.Require().NoError(err)
+			rollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg.RollappId)
+			suite.Require().True(found)
+			rollapp.Frozen = true
+			suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
+
+			rollappMsg2 := types.MsgCreateRollapp{
+				Creator:               alice,
+				RollappId:             test.newRollappId,
+				MaxSequencers:         1,
+				PermissionedAddresses: []string{},
+			}
+			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
+			if test.valid {
+				suite.Require().NoError(err)
+				_, found = suite.App.RollappKeeper.GetRollapp(suite.Ctx, rollappMsg2.RollappId)
+				suite.Require().True(found)
 			} else {
 				suite.Require().ErrorIs(err, types.ErrInvalidRollappID)
 			}

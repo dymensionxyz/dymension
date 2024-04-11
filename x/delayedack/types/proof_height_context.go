@@ -6,7 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 const (
@@ -14,12 +14,12 @@ const (
 	proofHeightCtxKey = "ibc_proof_height"
 )
 
-func NewIBCProofContext(ctx sdk.Context, packetId channeltypes.PacketId, height clienttypes.Height) sdk.Context {
+func NewIBCProofContext(ctx sdk.Context, packetId commontypes.PacketUID, height clienttypes.Height) sdk.Context {
 	key := fmt.Sprintf("%s_%s", proofHeightCtxKey, packetId.String())
 	return ctx.WithValue(key, height)
 }
 
-func FromIBCProofContext(ctx sdk.Context, packetId channeltypes.PacketId) (clienttypes.Height, bool) {
+func FromIBCProofContext(ctx sdk.Context, packetId commontypes.PacketUID) (clienttypes.Height, bool) {
 	key := fmt.Sprintf("%s_%s", proofHeightCtxKey, packetId.String())
 	u, ok := ctx.Value(key).(clienttypes.Height)
 	return u, ok
