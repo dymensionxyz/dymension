@@ -49,8 +49,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	logger := ctx.Logger().With(
 		"module", "DelayedAckMiddleware",
 		"packet_source", packet.SourcePort,
-		"packet_destination",
-		packet.DestinationPort,
+		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
@@ -100,8 +99,10 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Saving rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
@@ -187,8 +188,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Saving rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -271,8 +274,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Saving rollapp packet", "rollappID", rollappPacket.RollappId, "src channel", rollappPacket.Packet.SourceChannel,
-		"sequence", rollappPacket.Packet.Sequence, "proofHeight", rollappPacket.ProofHeight, "type", rollappPacket.Type)
+	logger.Debug("Saving rollapp packet",
+		"rollappID", rollappPacket.RollappId,
+		"proofHeight", rollappPacket.ProofHeight,
+		"type", rollappPacket.Type)
 
 	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
