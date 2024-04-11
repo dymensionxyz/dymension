@@ -195,7 +195,7 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
 		startHeight,
-		uint64(endHeight-startHeight+1), // numBlocks
+		endHeight-startHeight+1, // numBlocks
 		"mock-da-path",
 		0,
 		blockDescriptors,

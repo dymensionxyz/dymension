@@ -40,6 +40,7 @@ linters:
     - ineffassign
     - staticcheck
     - typecheck
+    - unconvert
     - unused
     - gosec
 
