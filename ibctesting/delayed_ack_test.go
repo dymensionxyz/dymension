@@ -106,7 +106,16 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
-	msg := types.NewMsgTransfer(rollappEndpoint.ChannelConfig.PortID, rollappEndpoint.ChannelID, coinToSendToB, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	msg := types.NewMsgTransfer(
+		rollappEndpoint.ChannelConfig.PortID,
+		rollappEndpoint.ChannelID,
+		coinToSendToB,
+		suite.rollappChain.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		"",
+	)
 	res, err := suite.rollappChain.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
@@ -115,7 +124,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 
 	// relay send
 	err = path.RelayPacket(packet)
-	// expeting error as no AcknowledgePacket expected
+	// expecting error as no AcknowledgePacket expected
 	suite.Require().Error(err) // relay committed
 	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	suite.Require().False(found)

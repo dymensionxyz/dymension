@@ -22,9 +22,8 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
-		suite.Require().NoError(err)
-		err = keeper.SetDemandOrder(ctx, demandOrder)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
 	}
 	// Get the demand orders with status active
