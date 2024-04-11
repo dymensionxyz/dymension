@@ -34,26 +34,19 @@ message Rollapp {
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
   uint64 version = 3;
-// codeStamp is a generated hash for unique identification of the rollapp code.
-  string codeStamp = 4 [deprecated=true]; 
-  // genesisPath is the description of the genesis file location on the DA.
-  string genesisPath = 5 [deprecated=true]; 
-  // maxWithholdingBlocks is the maximum number of blocks for
-  // an active sequencer to send a state update (MsgUpdateState). 
-  uint64 maxWithholdingBlocks = 6 [deprecated=true]; 
   // maxSequencers is the maximum number of sequencers.
-  uint64 maxSequencers = 7;
+  uint64 maxSequencers = 4;
   // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
-  repeated string permissionedAddresses = 8;
+  repeated string permissionedAddresses = 5;
   // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
-  repeated TokenMetadata tokenMetadata = 9;
+  repeated TokenMetadata tokenMetadata = 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
-  RollappGenesisState genesis_state = 10 [(gogoproto.nullable) = false];
+  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
-  string channel_id = 11;
+  string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
-  bool frozen = 12;
+  bool frozen = 9;
 }
 
 // Rollapp summary is a compact representation of Rollapp
