@@ -1,10 +1,8 @@
-package delayedack
+package types
 
 import (
 	"reflect"
 	"testing"
-
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 func Test_parsePacketMetadata(t *testing.T) {
@@ -14,7 +12,7 @@ func Test_parsePacketMetadata(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *types.PacketMetadata
+		want    *PacketMetadata
 		wantErr bool
 	}{
 		{
@@ -22,8 +20,8 @@ func Test_parsePacketMetadata(t *testing.T) {
 			args{
 				`{"eibc":{"fee":"100"}}`,
 			},
-			&types.PacketMetadata{
-				EIBC: &types.EIBCMetadata{
+			&PacketMetadata{
+				EIBC: &EIBCMetadata{
 					Fee: "100",
 				},
 			},
@@ -37,10 +35,18 @@ func Test_parsePacketMetadata(t *testing.T) {
 			nil,
 			true,
 		},
+		{
+			"invalid - pfm",
+			args{
+				`{"forward":{}}`,
+			},
+			nil,
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := parsePacketMetadata(tt.args.input)
+			got, err := ParsePacketMetadata(tt.args.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("parsePacketMetadata() error = %v, wantErr %v", err, tt.wantErr)
 				return

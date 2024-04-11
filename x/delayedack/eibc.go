@@ -1,7 +1,6 @@
 package delayedack
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -14,39 +13,6 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-const (
-	eibcMemoObjectName = "eibc"
-	PFMMemoObjectName  = "forward"
-)
-
-var (
-	ErrMemoUnmarshal = fmt.Errorf("unmarshal memo")
-	ErrMemoIsPFM     = fmt.Errorf("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty = fmt.Errorf("memo IBC field is missing")
-)
-
-func parsePacketMetadata(input string) (*types.PacketMetadata, error) {
-	memo := make(map[string]any)
-	bz := []byte(input)
-	err := json.Unmarshal(bz, &memo)
-	if err != nil {
-		return nil, ErrMemoUnmarshal
-	}
-	if memo[eibcMemoObjectName] == nil {
-		return nil, ErrMemoEibcEmpty
-	}
-	if memo[PFMMemoObjectName] != nil {
-		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
-		return nil, ErrMemoIsPFM
-	}
-	var metadata types.PacketMetadata
-	err = json.Unmarshal(bz, &metadata)
-	if err != nil {
-		return nil, ErrMemoUnmarshal
-	}
-	return &metadata, nil
-}
-
 // eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
@@ -58,11 +24,11 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	switch t := rollappPacket.Type; t {
 	case commontypes.RollappPacket_ON_RECV:
 		var err error
-		packetMetaData, err = parsePacketMetadata(data.Memo)
-		if errors.Is(err, ErrMemoIsPFM) {
+		packetMetaData, err = types.ParsePacketMetadata(data.Memo)
+		if errors.Is(err, types.ErrMemoIsPFM) {
 			return err
 		}
-		if errors.Is(err, ErrMemoEibcEmpty) || errors.Is(err, ErrMemoUnmarshal) {
+		if errors.Is(err, types.ErrMemoEibcEmpty) || errors.Is(err, types.ErrMemoUnmarshal) {
 			logger.Debug("skipping demand order creation", "error", err)
 			return nil
 		}
