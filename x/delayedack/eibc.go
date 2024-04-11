@@ -69,7 +69,6 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		if err != nil {
 			return err
 		}
-		return err
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
 		// Calculate the fee by multiplying the fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
