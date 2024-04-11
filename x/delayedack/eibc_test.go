@@ -17,7 +17,6 @@ func Test_parsePacketMetadata(t *testing.T) {
 		want    *types.PacketMetadata
 		wantErr bool
 	}{
-		// TODO: Add test cases.
 		{
 			"valid",
 			args{
