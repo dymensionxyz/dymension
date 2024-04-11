@@ -30,7 +30,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		}
 		if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoEibcEmpty) {
 			logger.Debug("skipping demand order creation - no eibc memo provided")
-			err = nil
+			return nil
 		}
 		if err != nil {
 			return err
