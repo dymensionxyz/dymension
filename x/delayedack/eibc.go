@@ -82,7 +82,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, err
 	}
 	if err := eibcMetaData.ValidateBasic(); err != nil {
-		return nil, fmt.Errorf("validate eibc metadata: %s", err)
+		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
 	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
