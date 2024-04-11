@@ -25,10 +25,10 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	case commontypes.RollappPacket_ON_RECV:
 		var err error
 		packetMetaData, err = types.ParsePacketMetadata(data.Memo)
-		if errors.Is(err, types.ErrMemoIsPFM) || errors.Is(err, types.ErrMemoUnmarshal) {
+		if errors.Is(err, types.ErrMemoIsPFM) || errors.Is(err, types.ErrEibcMetadataUnmarshal) {
 			return err
 		}
-		if errors.Is(err, types.ErrMemoEibcEmpty) {
+		if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoEibcEmpty) {
 			logger.Debug("skipping demand order creation - no eibc memo provided")
 			err = nil
 		}

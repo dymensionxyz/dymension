@@ -48,9 +48,10 @@ const (
 )
 
 var (
-	ErrMemoUnmarshal = fmt.Errorf("unmarshal memo")
-	ErrMemoIsPFM     = fmt.Errorf("EIBC packet with PFM is currently not supported")
-	ErrMemoEibcEmpty = fmt.Errorf("memo IBC field is missing")
+	ErrMemoUnmarshal         = fmt.Errorf("unmarshal memo")
+	ErrEibcMetadataUnmarshal = fmt.Errorf("unmarshal eibc metadata")
+	ErrMemoIsPFM             = fmt.Errorf("EIBC packet with PFM is currently not supported")
+	ErrMemoEibcEmpty         = fmt.Errorf("memo IBC field is missing")
 )
 
 func ParsePacketMetadata(input string) (*PacketMetadata, error) {
@@ -71,7 +72,7 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	var metadata PacketMetadata
 	err = json.Unmarshal(bz, &metadata)
 	if err != nil {
-		return nil, ErrMemoUnmarshal
+		return nil, ErrEibcMetadataUnmarshal
 	}
 	return &metadata, nil
 }
