@@ -40,7 +40,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
 	suite.UpdateRollappState(currentRollappBlockHeight)
-	err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	_, err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
 	suite.Require().NoError(err)
 
 	found := app.BankKeeper.HasDenomMetaData(suite.hubChain.GetContext(), sdk.DefaultBondDenom)
