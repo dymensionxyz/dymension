@@ -31,10 +31,8 @@ var (
 	eibcSenderAddr   = apptesting.CreateRandomAccounts(1)[0]
 	eibcReceiverAddr = apptesting.CreateRandomAccounts(1)[0]
 	// Rollapp Packet data
-	height             = clienttypes.NewHeight(0, 1)
 	timeoutHeight      = clienttypes.NewHeight(0, 100)
 	timeoutTimestamp   = uint64(100)
-	disabledTimeout    = clienttypes.ZeroHeight()
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
 		sdk.DefaultBondDenom,
 		"100",
@@ -49,12 +47,7 @@ var (
 		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,
 	}
-	rollappPacketKey = commontypes.GetRollappPacketKey(
-		rollappPacket.RollappId,
-		rollappPacket.Status,
-		rollappPacket.ProofHeight,
-		*rollappPacket.Packet,
-	)
+	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)
 )
 
 type KeeperTestSuite struct {
@@ -72,7 +65,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, app.EIBCKeeper)
+	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EIBCKeeper))
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app

@@ -8,6 +8,17 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  string epoch_identifier = 1
-      [ (gogoproto.moretags) = "yaml:\"epoch_identifier\"" ];
+  string epoch_identifier = 1 [
+       (gogoproto.moretags) = "yaml:\"epoch_identifier\"" 
+       ];
+  string timeout_fee = 2 [
+      (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+      (gogoproto.moretags) = "yaml:\"timeout_fee\"",
+      (gogoproto.nullable) = false
+      ];
+  string errack_fee = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"errack_fee\"",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -7,8 +7,6 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayeacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +31,8 @@ func (k Keeper) GetDelayedAckHooks() delayeacktypes.DelayedAckHooks {
 // 1. The packet status can change only once hence the oldPacketKey should always represent the order ID as it was created from it.
 // 2. The packet status can only change from PENDING
 func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commontypes.RollappPacket,
-	oldPacketKey string, newPacketKey string) error {
+	oldPacketKey string, newPacketKey string,
+) error {
 	// Get the demand order from the old packet key
 	demandOrderID := types.BuildDemandIDFromPacketKey(oldPacketKey)
 	demandOrder, err := d.GetDemandOrder(ctx, commontypes.Status_PENDING, demandOrderID)
@@ -55,46 +54,33 @@ func (d delayedAckHooks) AfterPacketStatusUpdated(ctx sdk.Context, packet *commo
 	return nil
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                 epoch hooks                                */
-/* -------------------------------------------------------------------------- */
-var _ epochstypes.EpochHooks = epochHooks{}
+// AfterPacketDeleted is called every time the underlying IBC packet is deleted.
+// We only want to delete the demand order when the underlying packet is deleted to not
+// break the invariant that the demand order is always in sync with the underlying packet.
+func (d delayedAckHooks) AfterPacketDeleted(ctx sdk.Context, rollappPacket *commontypes.RollappPacket) error {
+	// Get the demand order from the packet key. The initial demand order was built when
+	// the packet was created, hence with PENDING status.
+	rollappPacket.Status = commontypes.Status_PENDING
+	packetKey := commontypes.RollappPacketKey(rollappPacket)
+	demandOrderID := types.BuildDemandIDFromPacketKey(string(packetKey))
 
-type epochHooks struct {
-	Keeper
-}
-
-func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
-	return epochHooks{
-		Keeper: k,
-	}
-}
-
-// BeforeEpochStart is the epoch start hook.
-func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	return nil
-}
-
-// AfterEpochEnd is the epoch end hook.
-// We want to clean up the demand orders that are with underlying packet status which are finalized.
-func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	if epochIdentifier != e.GetParams(ctx).EpochIdentifier {
-		return nil
-	}
-	// Get all demand orders with status FINALIZED
-	demandOrders, err := e.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
-	if err != nil {
-		return err
-	}
-	// Iterate over all demand orders
-	for _, demandOrder := range demandOrders {
-		wrapFunc := func(ctx sdk.Context) error {
-			return e.deleteDemandOrder(ctx, demandOrder)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFunc)
+	// Check for demand order in both FINALIZED and REVERTED statuses
+	statuses := []commontypes.Status{commontypes.Status_FINALIZED, commontypes.Status_REVERTED}
+	for _, status := range statuses {
+		demandOrder, err := d.GetDemandOrder(ctx, status, demandOrderID)
 		if err != nil {
-			e.Keeper.Logger(ctx).Error("Error deleting demand order", "orderID", demandOrder.Id, "error", err.Error())
+			if errors.Is(err, types.ErrDemandOrderDoesNotExist) {
+				continue
+			}
+			return err
 		}
+
+		// Delete the demand order if found
+		if err := d.deleteDemandOrder(ctx, demandOrder); err != nil {
+			return err
+		}
+		break // Exit the loop if the demand order is successfully handled
 	}
+
 	return nil
 }

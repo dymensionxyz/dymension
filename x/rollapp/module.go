@@ -124,9 +124,7 @@ func (am AppModule) Name() string {
 }
 
 // Route returns the capability module's message routing key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(*am.keeper))
-}
+func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute returns the capability module's query routing key.
 func (AppModule) QuerierRoute() string { return types.QuerierRoute }
@@ -139,11 +137,14 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
 }
 
-// RegisterInvariants registers the capability module's invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// RegisterInvariants registers the module's invariants.
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, *am.keeper)
+}
 
 // InitGenesis performs the capability module's genesis initialization It returns
 // no validator updates.
@@ -176,6 +177,14 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	EndBlocker(ctx, *am.keeper)
+	err := am.keeper.FinalizeQueue(ctx)
+	if err != nil {
+		// we failed finalizing the queue for one or more rollapps.
+		// we choose not to panic as it's not invariant breaking and the consequences are
+		// that soft confirmation will need to be relayed upon until this is resolved.
+		// TODO: Future iteration should finalize per rollapp (i.e not collectively punish)
+		// but for the first few rollapps we can handle this way.
+		ctx.Logger().Error("finalize queue", "error", err.Error())
+	}
 	return []abci.ValidatorUpdate{}
 }

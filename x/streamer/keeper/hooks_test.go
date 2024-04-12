@@ -13,14 +13,12 @@ import (
 
 var _ = suite.TestingSuite(nil)
 
-var (
-	singleDistrInfo []types.DistrRecord = []types.DistrRecord{
-		{
-			GaugeId: 1,
-			Weight:  math.NewInt(100),
-		},
-	}
-)
+var singleDistrInfo []types.DistrRecord = []types.DistrRecord{
+	{
+		GaugeId: 1,
+		Weight:  math.NewInt(100),
+	},
+}
 
 func (suite *KeeperTestSuite) TestHookOperation() {
 	suite.SetupTest()
@@ -34,19 +32,19 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 
 	// setup streams
 
-	//daily stream, 30 epochs
+	// daily stream, 30 epochs
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 30000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins, time.Now(), "day", 30)
 
-	//daily stream, 2 epochs
+	// daily stream, 2 epochs
 	coins2 := sdk.Coins{sdk.NewInt64Coin("stake", 2000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins2, time.Now(), "day", 2)
 
-	//weekly stream
+	// weekly stream
 	coins3 := sdk.Coins{sdk.NewInt64Coin("stake", 5000)}
 	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now(), "week", 5)
 
-	//future stream - non-active
+	// future stream - non-active
 	_, _ = suite.CreateStream(singleDistrInfo, coins3, time.Now().Add(10*time.Minute), "day", 5)
 
 	// check streams
@@ -117,7 +115,7 @@ func (suite *KeeperTestSuite) TestHookOperation() {
 	err = suite.App.StreamerKeeper.Hooks().AfterEpochEnd(ctx, "day", 0)
 	suite.Require().NoError(err)
 
-	//check finisihed stream
+	// check finisihed stream
 	streams = suite.App.StreamerKeeper.GetFinishedStreams(suite.Ctx)
 	suite.Require().Len(streams, 1)
 

@@ -9,13 +9,15 @@ import (
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
 )
 
 func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		ethante.NewEthSetUpContextDecorator(options.EvmKeeper),
 
-		//FIXME: need to allow universal fees for Eth as well
+		// TODO: need to allow universal fees for Eth as well
 		ethante.NewEthMempoolFeeDecorator(options.EvmKeeper),                           // Check eth effective gas price against minimal-gas-prices
 		ethante.NewEthMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper), // Check eth effective gas price against the global MinGasPrice
 
@@ -37,7 +39,11 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting messages
+		/*
+			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
+			for an explanation of these message blocking decorators
+		*/
+		NewRejectMessagesDecorator(), // reject MsgEthereumTxs
 		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
@@ -45,6 +51,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePermanentLockedAccount{}),
 		},
 		),
+
 		ante.NewSetUpContextDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
@@ -62,6 +69,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		// Note: signature verification uses EIP instead of the cosmos signature validator
 		NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)
@@ -94,6 +102,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, ethante.DefaultSigVerificationGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)

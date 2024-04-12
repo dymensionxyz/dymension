@@ -32,11 +32,10 @@ func (suite *KeeperTestSuite) TestInvariants() {
 			ProofHeight: 2,
 			Packet:      &packet,
 		}
-		err := suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", demandOrderAddresses[i].String())
+		err := keeper.SetDemandOrder(ctx, demandOrder)
 		suite.Require().NoError(err)
-		demandOrder, err := types.NewDemandOrder(*rollappPacket, "150", "50", "stake", demandOrderAddresses[i].String())
-		suite.Require().NoError(err)
-		keeper.SetDemandOrder(ctx, demandOrder)
 	}
 
 	// check invariant

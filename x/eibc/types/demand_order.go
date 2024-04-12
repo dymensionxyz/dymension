@@ -3,6 +3,9 @@ package types
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"strconv"
+
+	"cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -10,27 +13,19 @@ import (
 )
 
 // NewDemandOrder creates a new demand order.
-// TODO: Change to rollapp packet
-func NewDemandOrder(rollappPacket commontypes.RollappPacket, price string, fee string, denom string, recipient string) (*DemandOrder, error) {
-	priceInt, ok := sdk.NewIntFromString(price)
-	if !ok {
-		return nil, ErrInvalidDemandOrderPrice
-	}
-	feeInt, ok := sdk.NewIntFromString(fee)
-	if !ok {
-		return nil, ErrInvalidDemandOrderFee
-	}
-	rollappPacketKey := commontypes.GetRollappPacketKey(rollappPacket.RollappId, rollappPacket.Status, rollappPacket.ProofHeight, *rollappPacket.Packet)
-
+// Price is the cost to a market maker to buy the option, (recipient receives straight away).
+// Fee is what the market maker gets in return.
+func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int, denom, recipient string) *DemandOrder {
+	rollappPacketKey := commontypes.RollappPacketKey(&rollappPacket)
 	return &DemandOrder{
 		Id:                   BuildDemandIDFromPacketKey(string(rollappPacketKey)),
 		TrackingPacketKey:    string(rollappPacketKey),
-		Price:                sdk.NewCoins(sdk.NewCoin(denom, priceInt)),
-		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, feeInt)),
+		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
+		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
 		IsFullfilled:         false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
-	}, nil
+	}
 }
 
 func (m *DemandOrder) ValidateBasic() error {
@@ -65,6 +60,17 @@ func (m *DemandOrder) Validate() error {
 		return err
 	}
 	return nil
+}
+
+func (m *DemandOrder) GetEvents() []sdk.Attribute {
+	eventAttributes := []sdk.Attribute{
+		sdk.NewAttribute(AttributeKeyId, m.Id),
+		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
+		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
+		sdk.NewAttribute(AttributeKeyIsFullfilled, strconv.FormatBool(m.IsFullfilled)),
+		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
+	}
+	return eventAttributes
 }
 
 // GetRecipientBech32Address returns the recipient address as a string.

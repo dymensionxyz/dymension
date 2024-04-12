@@ -10,6 +10,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -18,6 +19,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -68,11 +70,20 @@ func (ConnectionKeeperStub) GetClientState(ctx sdk.Context, clientID string) (ex
 	return nil, false
 }
 
+func (ConnectionKeeperStub) GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool) {
+	return nil, false
+}
+
 func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool) {
 	return connectiontypes.ConnectionEnd{}, false
 }
 
 type RollappKeeperStub struct{}
+
+// MustGetStateInfo implements types.RollappKeeper.
+func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
+	return rollapptypes.StateInfo{}
+}
 
 func (RollappKeeperStub) GetParams(ctx sdk.Context) rollapptypes.Params {
 	return rollapptypes.Params{}
@@ -84,6 +95,28 @@ func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptyp
 
 func (RollappKeeperStub) StateInfo(c context.Context, req *rollapptypes.QueryGetStateInfoRequest) (*rollapptypes.QueryGetStateInfoResponse, error) {
 	return nil, nil
+}
+
+func (RollappKeeperStub) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
+	return rollapptypes.StateInfo{}, false
+}
+
+func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
+	return rollapptypes.StateInfoIndex{}, false
+}
+
+func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
+	return rollapptypes.StateInfoIndex{}, false
+}
+
+func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
+	return []rollapptypes.Rollapp{}
+}
+
+type SequencerKeeperStub struct{}
+
+func (SequencerKeeperStub) GetSequencer(ctx sdk.Context, sequencerAddress string) (val sequencertypes.Sequencer, found bool) {
+	return sequencertypes.Sequencer{}, false
 }
 
 func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -99,12 +132,19 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
 
+	paramsSubspace := typesparams.NewSubspace(cdc,
+		types.Amino,
+		storeKey,
+		memStoreKey,
+		"DelayedackParams",
+	)
+
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
-
+		paramsSubspace,
 		RollappKeeperStub{},
+		SequencerKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
 		ClientKeeperStub{},
@@ -114,6 +154,9 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+
+	// Initialize params
+	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
 }

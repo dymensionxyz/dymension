@@ -2,14 +2,12 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -36,7 +34,6 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	delayedAckKeeper types.DelayedAckKeeper,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -70,24 +67,14 @@ func (k Keeper) SetDemandOrder(ctx sdk.Context, order *types.DemandOrder) error 
 	}
 	store.Set(demandOrderKey, data)
 
-	// Emit events
-	eventAttributes := []sdk.Attribute{
-		sdk.NewAttribute(types.AttributeKeyId, order.Id),
-		sdk.NewAttribute(types.AttributeKeyPrice, order.Price.String()),
-		sdk.NewAttribute(types.AttributeKeyFee, order.Fee.String()),
-		sdk.NewAttribute(types.AttributeKeyIsFullfilled, strconv.FormatBool(order.IsFullfilled)),
-		sdk.NewAttribute(types.AttributeKeyPacketStatus, order.TrackingPacketStatus.String()),
-	}
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeEIBC,
-			eventAttributes...,
+			order.GetEvents()...,
 		),
 	)
 
 	return nil
-
 }
 
 func (k Keeper) deleteDemandOrder(ctx sdk.Context, order *types.DemandOrder) error {
@@ -117,8 +104,8 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 	return demandOrder, nil
 }
 
-// This should be called only once per order.
-func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
+// FulfillOrder should be called only at most once per order.
+func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
 	order.IsFullfilled = true
 	err := k.SetDemandOrder(ctx, order)
 	if err != nil {
@@ -129,10 +116,11 @@ func (k Keeper) FullfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfill
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
-// GetDemandOrder returns the demand order with the given id. It only searches for the pending orders.
+// GetDemandOrder returns the demand order with the given id and status.
 func (k Keeper) GetDemandOrder(ctx sdk.Context, status commontypes.Status, id string) (*types.DemandOrder, error) {
 	store := ctx.KVStore(k.storeKey)
 	demandOrderKey, err := types.GetDemandOrderKey(status, id)
@@ -161,14 +149,7 @@ func (k Keeper) ListAllDemandOrders(
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.DemandOrder
-		wrapFn := func(ctx sdk.Context) error {
-			return k.cdc.Unmarshal(iterator.Value(), &val)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-		if err != nil {
-			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
-			continue
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, &val)
 	}
 
@@ -195,14 +176,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.DemandOrder
-		wrapFn := func(ctx sdk.Context) error {
-			return k.cdc.Unmarshal(iterator.Value(), &val)
-		}
-		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
-		if err != nil {
-			k.Logger(ctx).Error("error unmarshalling demand order", "error", err.Error())
-			continue
-		}
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, &val)
 	}
 

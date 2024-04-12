@@ -28,7 +28,7 @@ func createNStateInfoAndIndex(keeper *keeper.Keeper, ctx sdk.Context, n int, rol
 	items := make([]types.StateInfo, n)
 	StartHeight := uint64(1)
 	for i := range items {
-		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1)
+		numBlocks := uint64(rand.Intn(maxNumOfBlocks) + 1) //nolint:gosec // this is for a test
 		stateInfo := types.StateInfo{
 			StateInfoIndex: types.StateInfoIndex{
 				RollappId: rollappId,
@@ -66,7 +66,7 @@ func TestStateInfoByHeightLatestStateInfoIndex(t *testing.T) {
 		Height:    100,
 	}
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
+	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrNotFound, "LatestStateInfoIndex wasn't found for rollappId=%s", rollappId).Error())
 }
 
 func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
@@ -86,7 +86,7 @@ func TestStateInfoByHeightMissingStateInfo(t *testing.T) {
 		Height:    100,
 	}
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 85).Error())
 }
@@ -113,7 +113,7 @@ func TestStateInfoByHeightMissingStateInfo1(t *testing.T) {
 		NumBlocks:      1,
 	})
 	_, err := keeper.StateInfo(wctx, request)
-	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+	require.EqualError(t, err, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
 		"StateInfo wasn't found for rollappId=%s, index=%d",
 		rollappId, 1).Error())
 }
@@ -194,7 +194,6 @@ func TestStateInfoByHeightErr(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
@@ -217,7 +216,6 @@ func TestStateInfoByHeightValidIncreasingBlockBatches(t *testing.T) {
 			)
 		}
 	}
-
 }
 
 func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
@@ -240,5 +238,4 @@ func TestStateInfoByHeightValidDecreasingBlockBatches(t *testing.T) {
 			)
 		}
 	}
-
 }

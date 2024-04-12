@@ -13,8 +13,10 @@ type Hooks struct {
 	k Keeper
 }
 
-var _ epochstypes.EpochHooks = Hooks{}
-var _ gammtypes.GammHooks = Hooks{}
+var (
+	_ epochstypes.EpochHooks = Hooks{}
+	_ gammtypes.GammHooks    = Hooks{}
+)
 
 // Hooks returns the hook wrapper struct.
 func (k Keeper) Hooks() Hooks {

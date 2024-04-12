@@ -56,9 +56,9 @@ func TestSpendable(t *testing.T) {
 		},
 	}
 	for i, tc := range tests {
-		insufficent := !tc.coinsToSpend.IsAllLTE(tc.balance)
-		if insufficent != tc.expectErr {
-			t.Errorf("%d, expected error: %v, got: %v", i, tc.expectErr, insufficent)
+		insufficient := !tc.coinsToSpend.IsAllLTE(tc.balance)
+		if insufficient != tc.expectErr {
+			t.Errorf("%d, expected error: %v, got: %v", i, tc.expectErr, insufficient)
 		}
 	}
 }
@@ -77,14 +77,14 @@ func (suite *KeeperTestSuite) TestCreateStream_CoinsSpendable() {
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, coins2, defaultDistrInfo, time.Now().Add(10*time.Minute), "day", 30)
 	suite.Require().NoError(err)
 
-	//Check that all tokens are alloceted for distribution
+	// Check that all tokens are alloceted for distribution
 	toDistribute := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
 	suite.Require().Equal(currModuleBalance, toDistribute)
 
 	_, err = suite.App.StreamerKeeper.CreateStream(suite.Ctx, sdk.Coins{sdk.NewInt64Coin("udym", 100)}, defaultDistrInfo, time.Time{}, "day", 30)
 	suite.Require().Error(err)
 
-	//mint more tokens to the streamer account
+	// mint more tokens to the streamer account
 	mintCoins := sdk.NewCoins(sdk.NewInt64Coin("udym", 1000000))
 	suite.FundModuleAcc(types.ModuleName, mintCoins)
 
