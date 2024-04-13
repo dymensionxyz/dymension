@@ -18,42 +18,6 @@ const (
 	FlagFinalized     = "finalized"
 )
 
-func CmdListStateInfo() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "states [rollapp-id]",
-		Short: "Query all states associated with the specified rollapp-id",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx := client.GetClientContextFromCmd(cmd)
-
-			argRollappId := args[0]
-			pageReq, err := client.ReadPageRequest(cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			params := &types.QueryAllStateInfoRequest{
-				RollappId:  argRollappId,
-				Pagination: pageReq,
-			}
-
-			res, err := queryClient.StateInfoAll(context.Background(), params)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
 func CmdShowStateInfo() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "state [rollapp-id]",

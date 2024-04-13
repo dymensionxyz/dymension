@@ -9,10 +9,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdShowLatestStateIndex() *cobra.Command {
+func CmdShowLatestHeight() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "latest-state-index [rollapp-id]",
-		Short: "Query the index of the last UpdateState associated with the specified rollapp-id.",
+		Use:   "latest-height [rollapp-id]",
+		Short: "Query the last height of the last UpdateState associated with the specified rollapp-id.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -26,12 +26,12 @@ func CmdShowLatestStateIndex() *cobra.Command {
 				return err
 			}
 
-			params := &types.QueryGetLatestStateIndexRequest{
+			req := &types.QueryGetLatestHeightRequest{
 				RollappId: argRollappId,
 				Finalized: argFinalized,
 			}
 
-			res, err := queryClient.LatestStateIndex(context.Background(), params)
+			res, err := queryClient.LatestHeight(context.Background(), req)
 			if err != nil {
 				return err
 			}

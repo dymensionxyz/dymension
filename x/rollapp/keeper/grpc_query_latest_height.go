@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) LatestStateIndex(c context.Context, req *types.QueryGetLatestStateIndexRequest) (*types.QueryGetLatestStateIndexResponse, error) {
+func (k Keeper) LatestHeight(c context.Context, req *types.QueryGetLatestHeightRequest) (*types.QueryGetLatestHeightResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -28,10 +28,13 @@ func (k Keeper) LatestStateIndex(c context.Context, req *types.QueryGetLatestSta
 			req.RollappId,
 		)
 	}
-
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetLatestStateIndexResponse{StateIndex: val}, nil
+	state := k.MustGetStateInfo(ctx, req.RollappId, val.Index)
+
+	return &types.QueryGetLatestHeightResponse{
+		Height: state.GetLatestHeight(),
+	}, nil
 }
