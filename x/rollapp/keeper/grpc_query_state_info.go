@@ -28,8 +28,10 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 		} else {
 			latestStateIndex, found := k.GetLatestStateInfoIndex(ctx, req.RollappId)
 			if !found {
-				return nil, sdkerrors.Wrapf(sdkerrors.ErrNotFound,
-					"LatestStateInfoIndex wasn't found for rollappId=%s", req.RollappId)
+				if _, exists := k.GetRollapp(ctx, req.RollappId); !exists {
+					return nil, types.ErrRollappNotRegistered
+				}
+				return nil, status.Error(codes.NotFound, "not found")
 			}
 			req.Index = latestStateIndex.Index
 		}
