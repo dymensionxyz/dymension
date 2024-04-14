@@ -14,7 +14,7 @@ set_hub_params() {
     sed -i'' -e 's/bond_denom": ".*"/bond_denom": "adym"/' "$GENESIS_FILE"
     sed -i'' -e 's/mint_denom": ".*"/mint_denom": "adym"/' "$GENESIS_FILE"
 
-    jq '.app_state.rollapp.params.dispute_period_in_blocks = "2"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.app_state.rollapp.params.dispute_period_in_blocks = "50"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 
     #increase the tx size cost per byte from 10 to 100
     jq '.app_state.auth.params.tx_size_cost_per_byte = "100"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
