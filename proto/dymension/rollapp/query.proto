@@ -6,7 +6,6 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/rollapp/params.proto";
 import "dymension/rollapp/rollapp.proto";
-// this line is used by starport scaffolding # 1
 import "dymension/rollapp/state_info.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
@@ -42,6 +41,13 @@ service Query {
         "/dymensionxyz/dymension/rollapp/latest_height/{rollappId}";
   }
 
+  // Queries a LatestStateIndex by rollapp-id.
+  rpc LatestStateIndex(QueryGetLatestStateIndexRequest)
+      returns (QueryGetLatestStateIndexResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}";
+  }
+
   // Queries a StateInfo by index.
   rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
     option (google.api.http).get =
@@ -68,6 +74,15 @@ message QueryGetLatestHeightRequest {
 }
 
 message QueryGetLatestHeightResponse { uint64 height = 1; }
+
+message QueryGetLatestStateIndexRequest {
+  string rollappId = 1;
+  bool finalized = 2;
+}
+
+message QueryGetLatestStateIndexResponse {
+  StateInfoIndex stateIndex = 1 [ (gogoproto.nullable) = false ];
+}
 
 message QueryGetRollappResponse {
   Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
