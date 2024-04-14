@@ -73,7 +73,7 @@ export PATH=$PATH:$(go env GOPATH)/bin
 
   ```sh
   export CHAIN_ID="dymension_100-1"
-  export KEY_NAME="local-user"
+  export KEY_NAME="hub-user"
   export MONIKER_NAME="local"
   ```
 

@@ -19,7 +19,7 @@ APP_CONFIG_FILE="$CONFIG_DIRECTORY/app.toml"
 GENESIS_FILE="$CONFIG_DIRECTORY/genesis.json"
 CHAIN_ID=${CHAIN_ID:-"dymension_100-1"}
 MONIKER_NAME=${MONIKER_NAME:-"local"}
-KEY_NAME=${KEY_NAME:-"local-user"}
+KEY_NAME=${KEY_NAME:-"hub-user"}
 MNEMONIC="curtain hat remain song receive tower stereo hope frog cheap brown plate raccoon post reflect wool sail salmon game salon group glimpse adult shift"
 
 # Setting non-default ports to avoid port conflicts when running local rollapp
