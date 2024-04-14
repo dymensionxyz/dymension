@@ -42,6 +42,7 @@ var (
 	ErrMintTokensFailed                    = errorsmod.Register(ModuleName, 1032, "failed to mint tokens")
 	ErrRegisterDenomMetadataFailed         = errorsmod.Register(ModuleName, 1033, "failed to register denom metadata")
 	ErrMismatchedChannelID                 = errorsmod.Register(ModuleName, 1034, "mismatched channel id")
+	ErrRollappNotRegistered                = errorsmod.Register(ModuleName, 1035, "rollapp not registered")
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")
