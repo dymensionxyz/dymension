@@ -1,45 +1,38 @@
 ---
-    name: Release Binary
+name: Release Binary
     
-    on:
-      release:
-        types: [created]
+on:
+  release:
+    types: [created]
     
-    permissions:
-      contents: read
-      packages: write
+permissions:
+  contents: read
+  packages: write
       
-    jobs:
-      release:
-        permissions: write-all
-        runs-on: ubuntu-latest
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v3
-          - 
-            name: Set up QEMU
-            uses: docker/setup-qemu-action@v2
-          - 
-            name: Set up Docker Buildx
-            uses: docker/setup-buildx-action@v2
-            
-          - name: Docker compose
-            run: docker-compose up -d
-    
-          - name: Copy binary
-            run: docker cp dymension_node_1:/usr/local/bin/dymd ./dymd
-    
-          - name: Save sha256 sum
-            run: sha256sum ./dymd > ./dymd_sha256.txt
-    
-          - name: Release
-            uses: softprops/action-gh-release@v1        
-            with:
-              token: ${{ github.token }}
-              files: |
-                dymd
-                dymd_sha256.txt
-    
-          - name: Dump docker logs on failure
-            if: failure()
-            uses: jwalton/gh-docker-logs@v2
+# This workflow creates a release using goreleaser
+# via the 'make release' command.
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git fetch --force --tags
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Set Env
+        run: echo "TM_VERSION=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')" >> $GITHUB_ENV
+
+      - name: Release
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

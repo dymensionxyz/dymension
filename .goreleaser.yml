@@ -1,0 +1,53 @@
+
+---
+project_name: dymension
+
+env:
+  - GO111MODULE=on
+
+builds:
+  - main: ./cmd/gaiad
+    id: "gaiad"
+    binary: gaiad
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    flags:
+      - -tags=netgo ledger
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version=v{{ .Version }} -X github.com/cosmos/cosmos-sdk/version.Commit={{ .Commit }} -X github.com/cosmos/cosmos-sdk/version.BuildTags=netgo,ledger -X github.com/tendermint/tendermint/version.TMCoreSemVer={{ .Env.TM_VERSION }}
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  # disables archiving; to enable use commented lines below
+  - format: binary
+    name_template: "{{ .Binary }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+
+release:
+  prerelease: true
+  name_template: "v{{.Version}}"
+
+checksum:
+  name_template: SHA256SUMS-v{{.Version}}.txt
+  algorithm: sha256
+
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+
+changelog:
+  skip: false
+
+git:
+  # What should be used to sort tags when gathering the current and previous
+  # tags if there are more than one tag in the same commit.
+  #
+  # source: https://goreleaser.com/customization/git/
+  tag_sort: -version:refname
+  prerelease_suffix: "-rc"
