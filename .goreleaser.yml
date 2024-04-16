@@ -6,9 +6,9 @@ env:
   - GO111MODULE=on
 
 builds:
-  - main: ./cmd/gaiad
-    id: "gaiad"
-    binary: gaiad
+  - main: ./cmd/dymd
+    id: "dymd"
+    binary: dymd
     mod_timestamp: "{{ .CommitTimestamp }}"
     flags:
       - -tags=netgo ledger

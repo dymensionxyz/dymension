@@ -1,38 +1,38 @@
 ---
-name: Release Binary
-    
-on:
-  release:
-    types: [created]
-    
-permissions:
-  contents: read
-  packages: write
+  name: Release Binary
       
-# This workflow creates a release using goreleaser
-# via the 'make release' command.
-
-jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - run: git fetch --force --tags
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.21"
-
-      - name: Set Env
-        run: echo "TM_VERSION=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')" >> $GITHUB_ENV
-
-      - name: Release
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          version: latest
-          args: release --clean
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  on:
+    release:
+      types: [created]
+      
+  permissions:
+    contents: read
+    packages: write
+        
+  # This workflow creates a release using goreleaser
+  # via the 'make release' command.
+  
+  jobs:
+    release:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - run: git fetch --force --tags
+  
+        - uses: actions/setup-go@v5
+          with:
+            go-version: "1.21"
+  
+        - name: Set Env
+          run: echo "TM_VERSION=$(go list -m github.com/tendermint/tendermint | sed 's:.* ::')" >> $GITHUB_ENV
+  
+        - name: Release
+          uses: goreleaser/goreleaser-action@v5
+          with:
+            version: latest
+            args: release --clean
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
