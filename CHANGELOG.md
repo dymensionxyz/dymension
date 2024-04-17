@@ -37,6 +37,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+## [v3.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.1.0)
+
 ### Features
 
 - (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) Create eibc order on err ack from rollapp
