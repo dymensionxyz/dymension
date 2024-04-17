@@ -1,36 +1,35 @@
 ---
-  name: Release Binary
+name: Release Binary
       
-  on:
-    release:
-      types: [created]
+on:
+  release:
+    types: [created]
       
-  permissions:
-    contents: read
-    packages: write
+permissions: write-all
         
-  # This workflow creates a release using goreleaser
-  # via the 'make release' command.
+# This workflow creates a release using goreleaser
+# via the 'make release' command.
   
-  jobs:
-    release:
-      runs-on: ubuntu-latest
-      environment: release
-      steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.22'
-          check-latest: true
-      - name: Release dry run
-        run: make release-dry-run
-      - name: Setup release environment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |-
-          echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
-      - name: Release publish
-        run: make release
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+        check-latest: true
+
+    - name: Setup release environment
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |-
+        echo 'GITHUB_TOKEN=${{secrets.GITHUB_TOKEN}}' > .release-env
+
+    - name: Release publish
+      run: make release

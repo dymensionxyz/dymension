@@ -5,7 +5,7 @@ before:
 builds:
   - id: "dymd-darwin"
     main: ./cmd/dymd
-    binary: bin/dymd
+    binary: dymd
     env:
       - CGO_ENABLED=1
       - CC=o64-clang
@@ -20,7 +20,7 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "dymd-darwin-arm64"
     main: ./cmd/dymd
-    binary: bin/dymd
+    binary: dymd
     env:
       - CGO_ENABLED=1
       - CC=oa64-clang
@@ -35,7 +35,7 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "dymd-linux"
     main: ./cmd/dymd
-    binary: bin/dymd
+    binary: dymd
     env:
       - CGO_ENABLED=1
       - CC=gcc
@@ -50,7 +50,7 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "dymd-linux-arm64"
     main: ./cmd/dymd
-    binary: bin/dymd
+    binary: dymd
     env:
       - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
@@ -65,7 +65,7 @@ builds:
       - -s -w -X github.com/cosmos/cosmos-sdk/version.Name=dymension -X github.com/cosmos/cosmos-sdk/version.AppName=dymd -X github.com/cosmos/cosmos-sdk/version.Version={{.Version}} -X github.com/cosmos/cosmos-sdk/version.Commit={{.Commit}}
   - id: "dymd-windows"
     main: ./cmd/dymd
-    binary: bin/dymd
+    binary: dymd
     env:
       - CGO_ENABLED=1
       - CC=x86_64-w64-mingw32-gcc
