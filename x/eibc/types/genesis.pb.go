@@ -4,6 +4,7 @@
 package types
 
 import (
+	errors "errors"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
@@ -206,7 +207,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GenesisState: wiretype end group for non-group")
+			return errors.New("proto: GenesisState: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: GenesisState: illegal tag %d (wire type %d)", fieldNum, wire)
@@ -380,7 +381,7 @@ func skipGenesis(dAtA []byte) (n int, err error) {
 }
 
 var (
-	ErrInvalidLengthGenesis        = fmt.Errorf("proto: negative length found during unmarshaling")
-	ErrIntOverflowGenesis          = fmt.Errorf("proto: integer overflow")
-	ErrUnexpectedEndOfGroupGenesis = fmt.Errorf("proto: unexpected end of group")
+	ErrInvalidLengthGenesis        = errors.New("proto: negative length found during unmarshaling")
+	ErrIntOverflowGenesis          = errors.New("proto: integer overflow")
+	ErrUnexpectedEndOfGroupGenesis = errors.New("proto: unexpected end of group")
 )

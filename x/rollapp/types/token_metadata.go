@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
@@ -10,7 +10,7 @@ import (
 // Inherits from x/bank metadata and following same spec of x/bank/types/metadata.go
 func (m *TokenMetadata) Validate() error {
 	if m == nil {
-		return fmt.Errorf("token metadata cannot be nil")
+		return errors.New("token metadata cannot be nil")
 	}
 
 	bankMetadata := m.ConvertToBankMetadata()

@@ -4,6 +4,7 @@
 package types
 
 import (
+	errors "errors"
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -746,7 +747,7 @@ func (m *GenesisAccount) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GenesisAccount: wiretype end group for non-group")
+			return errors.New("proto: GenesisAccount: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: GenesisAccount: illegal tag %d (wire type %d)", fieldNum, wire)
