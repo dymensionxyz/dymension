@@ -506,7 +506,7 @@ func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, s
 	}
 }
 
-// getAll quires for all exsisting sequencers and returns a map of sequencerId->sequencer
+// getAll quires for all existing sequencers and returns a map of sequencerId->sequencer
 func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	totalChecked := 0
