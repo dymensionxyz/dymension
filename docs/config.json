@@ -42,7 +42,8 @@
       "url": "./tmp-swagger-gen/dymension/streamer/query.swagger.json",
       "operationIds": {
         "rename": {
-          "Params": "StreamerParams"
+          "Params": "StreamerParams",
+          "ModuleToDistributeCoins": "StreamerModuleToDistributeCoins"
         }
       }
     },
@@ -60,6 +61,52 @@
         "rename": {
           "Params": "FeeMarketParams",
           "BaseFee": "FeeMarketBaseFee"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/gamm/v2/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "SpotPrice": "SpotPriceV2"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/gamm/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "GammParams",
+          "SpotPrice": "SpotPriceV1beta1",
+          "Pool": "GammPool"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/epochs/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/incentives/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "IncentivesParams",
+          "ModuleToDistributeCoins": "IncentivesModuleToDistributeCoins"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/lockup/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "LockupParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/txfees/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "TxFeesParams"
         }
       }
     },
