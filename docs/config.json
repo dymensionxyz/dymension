@@ -7,6 +7,46 @@
   },
   "apis": [
     {
+      "url": "./tmp-swagger-gen/dymension/delayedack/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DelayedAckParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/eibc/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "EIbcParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/rollapp/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "RollAppParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/sequencer/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "SequencerParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/streamer/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "StreamerParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/ethermint/evm/v1/query.swagger.json",
       "operationIds": {
         "rename": {
