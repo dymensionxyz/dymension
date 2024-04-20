@@ -5,7 +5,6 @@ package types
 
 import (
 	context "context"
-	errors "errors"
 	fmt "fmt"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -351,7 +350,7 @@ func (m *MsgFulfillOrder) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: MsgFulfillOrder: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgFulfillOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgFulfillOrder: illegal tag %d (wire type %d)", fieldNum, wire)
@@ -465,7 +464,7 @@ func (m *MsgFulfillOrderResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: MsgFulfillOrderResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgFulfillOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgFulfillOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
@@ -572,7 +571,7 @@ func skipTx(dAtA []byte) (n int, err error) {
 }
 
 var (
-	ErrInvalidLengthTx        = errors.New("proto: negative length found during unmarshaling")
-	ErrIntOverflowTx          = errors.New("proto: integer overflow")
-	ErrUnexpectedEndOfGroupTx = errors.New("proto: unexpected end of group")
+	ErrInvalidLengthTx        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowTx          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupTx = fmt.Errorf("proto: unexpected end of group")
 )

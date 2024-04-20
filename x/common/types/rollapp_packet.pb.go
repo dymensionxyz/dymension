@@ -4,7 +4,6 @@
 package types
 
 import (
-	errors "errors"
 	fmt "fmt"
 	types "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -371,7 +370,7 @@ func (m *RollappPacket) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: RollappPacket: wiretype end group for non-group")
+			return fmt.Errorf("proto: RollappPacket: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: RollappPacket: illegal tag %d (wire type %d)", fieldNum, wire)

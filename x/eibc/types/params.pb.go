@@ -4,7 +4,6 @@
 package types
 
 import (
-	errors "errors"
 	fmt "fmt"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -207,7 +206,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: Params: wiretype end group for non-group")
+			return fmt.Errorf("proto: Params: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
@@ -414,7 +413,7 @@ func skipParams(dAtA []byte) (n int, err error) {
 }
 
 var (
-	ErrInvalidLengthParams        = errors.New("proto: negative length found during unmarshaling")
-	ErrIntOverflowParams          = errors.New("proto: integer overflow")
-	ErrUnexpectedEndOfGroupParams = errors.New("proto: unexpected end of group")
+	ErrInvalidLengthParams        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowParams          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupParams = fmt.Errorf("proto: unexpected end of group")
 )
