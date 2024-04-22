@@ -3,8 +3,8 @@ package keeper
 import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 func (k Keeper) NewDistrInfo(ctx sdk.Context, records []types.DistrRecord) (*types.DistrInfo, error) {
@@ -31,7 +31,7 @@ func (k Keeper) validateGauges(ctx sdk.Context, records []types.DistrRecord) err
 
 	for _, record := range records {
 		if gaugeIdFlags[record.GaugeId] {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrDistrRecordRegisteredGauge,
 				"Gauge ID #%d has duplications.",
 				record.GaugeId,
@@ -40,7 +40,7 @@ func (k Keeper) validateGauges(ctx sdk.Context, records []types.DistrRecord) err
 
 		// Ensure records are sorted because ~AESTHETIC~
 		if record.GaugeId < lastGaugeID {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrDistrRecordNotSorted,
 				"Gauge ID #%d came after Gauge ID #%d.",
 				record.GaugeId, lastGaugeID,
@@ -54,7 +54,7 @@ func (k Keeper) validateGauges(ctx sdk.Context, records []types.DistrRecord) err
 			return err
 		}
 		if !gauge.IsPerpetual {
-			return sdkerrors.Wrapf(types.ErrDistrRecordRegisteredGauge,
+			return errorsmod.Wrapf(types.ErrDistrRecordRegisteredGauge,
 				"Gauge ID #%d is not perpetual.",
 				record.GaugeId)
 		}
