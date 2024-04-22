@@ -3,8 +3,8 @@ package sequencer
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -25,7 +25,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
+			return nil, errorsmod.Wrap(types.ErrUnknownRequest, errMsg)
 		}
 	}
 }

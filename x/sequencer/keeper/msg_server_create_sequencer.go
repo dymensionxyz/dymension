@@ -8,7 +8,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sdkerrors "cosmossdk.io/errors"
-	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -16,7 +15,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.DymintPubKey == nil {
-		return nil, sdkerrors.Wrapf(errortypes.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+		return nil, sdkerrors.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
 
 	// check to see if the sequencer has been registered before
