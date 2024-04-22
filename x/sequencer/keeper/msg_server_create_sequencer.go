@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -15,7 +15,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if msg.DymintPubKey == nil {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+		return nil, errorsmod.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
 	}
 
 	// check to see if the sequencer has been registered before
@@ -60,13 +60,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	minBond := k.GetParams(ctx).MinBond
 	if !minBond.IsNil() && !minBond.IsZero() {
 		if msg.Bond.Denom != minBond.Denom {
-			return nil, sdkerrors.Wrapf(
+			return nil, errorsmod.Wrapf(
 				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
 			)
 		}
 
 		if msg.Bond.Amount.LT(minBond.Amount) {
-			return nil, sdkerrors.Wrapf(
+			return nil, errorsmod.Wrapf(
 				types.ErrInsufficientBond, "got %s, expected %s", msg.Bond.Amount, minBond,
 			)
 		}
