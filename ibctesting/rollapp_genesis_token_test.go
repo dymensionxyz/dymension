@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/utils"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -106,7 +106,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				ChannelId: hubToRollappPath.EndpointA.ChannelID,
 			},
 			deployerParams: []types.DeployerParams{{Address: genesisAuthorizedAccount.String()}},
-			expErr:         sdkerrors.ErrUnauthorized,
+			expErr:         rollapptypes.ErrUnauthorized,
 		},
 		{
 			name: "invalid rollapp genesis event - rollapp doesn't exist",
