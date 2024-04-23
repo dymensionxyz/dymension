@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -25,6 +26,8 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Recipient:            recipient,
 		IsFullfilled:         false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
+		RollappId:            rollappPacket.RollappId,
+		Type:                 rollappPacket.Type,
 	}
 }
 
@@ -69,6 +72,9 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
 		sdk.NewAttribute(AttributeKeyIsFullfilled, strconv.FormatBool(m.IsFullfilled)),
 		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
+		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
+		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
+		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
 	}
 	return eventAttributes
 }

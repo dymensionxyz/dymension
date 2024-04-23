@@ -2,10 +2,9 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 
@@ -56,30 +55,52 @@ func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDem
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if req.Status == "" {
-		return nil, status.Error(codes.InvalidArgument, "status must be provided")
-	}
-
-	// Convert string status to commontypes.Status
-	var statusValue commontypes.Status
-	switch strings.ToUpper(req.Status) {
-	case "PENDING":
-		statusValue = commontypes.Status_PENDING
-	case "FINALIZED":
-		statusValue = commontypes.Status_FINALIZED
-	case "REVERTED":
-		statusValue = commontypes.Status_REVERTED
-	default:
-		return nil, fmt.Errorf("invalid demand order status: %s", req.Status)
-	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	// Get the demand orders by status
-	demandOrders, err := q.ListDemandOrdersByStatus(ctx, statusValue)
+	// Get the demand orders by status, with optional filters
+	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, filterOpts(req)...)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	// Construct the response
 	return &types.QueryDemandOrdersByStatusResponse{DemandOrders: demandOrders}, nil
+}
+
+func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
+	var opts []filterOption
+	if req.RollappId != "" {
+		opts = append(opts, isRollappId(req.RollappId))
+	}
+	if req.Type != commontypes.Type_UNDEFINED {
+		opts = append(opts, isOrderType(req.Type))
+	}
+	if req.Limit > 0 {
+		opts = append(opts, limit(int(req.Limit)))
+	}
+	return opts
+}
+
+type filterOption func(order types.DemandOrder) bool
+
+func isRollappId(rollappId string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.RollappId == rollappId
+	}
+}
+
+func isOrderType(orderType ...commontypes.Type) filterOption {
+	return func(order types.DemandOrder) bool {
+		for _, ot := range orderType {
+			if order.Type == ot {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func limit(limit int) filterOption {
+	var count int
+	return func(order types.DemandOrder) bool {
+		count++
+		return count <= limit
+	}
 }

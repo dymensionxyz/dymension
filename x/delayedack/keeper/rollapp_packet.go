@@ -130,20 +130,13 @@ func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPack
 		for ; iterator.Valid(); iterator.Next() {
 			var val commontypes.RollappPacket
 			k.cdc.MustUnmarshal(iterator.Value(), &val)
+			// Apply the filter function
+			if !listFilter.FilterFunc(val) {
+				continue
+			}
 			list = append(list, val)
 		}
 		_ = iterator.Close()
-	}
-
-	if listFilter.FilterFunc != nil {
-		// If a filter function is provided, apply the filter to the list
-		filtered := list[:0]
-		for _, packet := range list {
-			if listFilter.FilterFunc(packet) {
-				filtered = append(filtered, packet)
-			}
-		}
-		list = filtered
 	}
 
 	return list

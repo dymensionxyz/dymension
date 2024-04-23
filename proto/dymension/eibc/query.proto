@@ -6,6 +6,8 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/eibc/params.proto";
 import "dymension/eibc/demand_order.proto";
+import "dymension/common/status.proto";
+import "dymension/common/type.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
@@ -43,7 +45,13 @@ message QueryGetDemandOrderRequest {
 // QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
 message QueryDemandOrdersByStatusRequest {
   // id of the demand order to get
-  string status = 1;
+  common.Status status = 1;
+  // optional type
+  common.Type type = 2;
+  // optional rollapp_id
+  string rollapp_id = 3;
+  // optional limit
+  int32 limit = 4;
 }
 
 // QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.

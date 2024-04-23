@@ -26,6 +26,7 @@ func PendingByRollappIDByMaxHeight(
 				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, maxProofHeight+1), // inclusive end
 			},
 		},
+		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
 	}
 }
 
@@ -35,7 +36,8 @@ func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) Rollapp
 		prefixes[i] = Prefix{Start: commontypes.RollappPacketByStatusByRollappIDPrefix(s, rollappID)}
 	}
 	return RollappPacketListFilter{
-		Prefixes: prefixes,
+		Prefixes:   prefixes,
+		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
 	}
 }
 
@@ -63,7 +65,8 @@ func ByStatus(status ...commontypes.Status) RollappPacketListFilter {
 		prefixes[i] = Prefix{Start: commontypes.RollappPacketByStatusPrefix(s)}
 	}
 	return RollappPacketListFilter{
-		Prefixes: prefixes,
+		Prefixes:   prefixes,
+		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
 	}
 }
 
