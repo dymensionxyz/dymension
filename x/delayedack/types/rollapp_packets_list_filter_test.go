@@ -3,9 +3,11 @@ package types_test
 import (
 	"testing"
 
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/stretchr/testify/require"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestByRollappID(t *testing.T) {
@@ -261,4 +263,73 @@ func TestPendingByRollappIDByMaxHeight(t *testing.T) {
 			require.Equal(t, tt.want, filter)
 		})
 	}
+}
+
+func TestByType(t *testing.T) {
+	type args struct {
+		packetType commontypes.Type
+	}
+	tests := []struct {
+		name string
+		args args
+		want []commontypes.RollappPacket
+	}{
+		{
+			name: "Test with Type UNDEFINED",
+			args: args{
+				packetType: commontypes.Type_UNDEFINED,
+			},
+			want: testRollappPackets[:1],
+		}, {
+			name: "Test with Type ON_RECV",
+			args: args{
+				packetType: commontypes.Type_ON_RECV,
+			},
+			want: testRollappPackets[1:2],
+		}, {
+			name: "Test with Type ON_ACK",
+			args: args{
+				packetType: commontypes.Type_ON_ACK,
+			},
+			want: testRollappPackets[2:3],
+		}, {
+			name: "Test with Type ON_TIMEOUT",
+			args: args{
+				packetType: commontypes.Type_ON_TIMEOUT,
+			},
+			want: testRollappPackets[3:4],
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filter := types.ByType(tt.args.packetType)
+			var filtered []commontypes.RollappPacket
+			for _, packet := range testRollappPackets {
+				if filter.FilterFunc(packet) {
+					filtered = append(filtered, packet)
+				}
+			}
+			require.Equal(t, tt.want, filtered)
+		})
+	}
+}
+
+var testRollappPackets = []commontypes.RollappPacket{
+	{
+		RollappId: "rollapp-id-1",
+		Packet:    &channeltypes.Packet{},
+		Type:      commontypes.Type_UNDEFINED,
+	}, {
+		RollappId: "rollapp-id-2",
+		Packet:    &channeltypes.Packet{},
+		Type:      commontypes.Type_ON_RECV,
+	}, {
+		RollappId: "rollapp-id-3",
+		Packet:    &channeltypes.Packet{},
+		Type:      commontypes.Type_ON_ACK,
+	}, {
+		RollappId: "rollapp-id-4",
+		Packet:    &channeltypes.Packet{},
+		Type:      commontypes.Type_ON_TIMEOUT,
+	},
 }

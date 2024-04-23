@@ -12,9 +12,10 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
 const (
@@ -44,7 +45,7 @@ var (
 	rollappPacket = &commontypes.RollappPacket{
 		RollappId: "testRollappId",
 		Status:    commontypes.Status_PENDING,
-		Type:      commontypes.RollappPacket_ON_RECV,
+		Type:      commontypes.Type_ON_RECV,
 		Packet:    &packet,
 	}
 	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)

@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -27,7 +28,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
-		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
+		if rollappPacket.Type == commontypes.Type_ON_ACK || rollappPacket.Type == commontypes.Type_ON_TIMEOUT {
 			// refund all pending outgoing packets
 			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
 			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)

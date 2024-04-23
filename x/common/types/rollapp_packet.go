@@ -40,9 +40,9 @@ func (r RollappPacket) RestoreOriginalTransferTarget() (RollappPacket, error) {
 	}
 	if r.OriginalTransferTarget != "" { // It can be empty if the eibc order was never fulfilled
 		switch r.Type {
-		case RollappPacket_ON_RECV:
+		case Type_ON_RECV:
 			transferPacketData.Receiver = r.OriginalTransferTarget
-		case RollappPacket_ON_ACK, RollappPacket_ON_TIMEOUT:
+		case Type_ON_ACK, Type_ON_TIMEOUT:
 			transferPacketData.Sender = r.OriginalTransferTarget
 		}
 		r.Packet.Data = transferPacketData.GetBytes()

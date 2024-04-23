@@ -8,10 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
-	osmoutils "github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -54,7 +55,7 @@ func (k Keeper) finalizeRollappPacket(
 	}
 
 	switch rollappPacket.Type {
-	case commontypes.RollappPacket_ON_RECV:
+	case commontypes.Type_ON_RECV:
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		/*
 				We only write the ack if writing it succeeds:
@@ -70,9 +71,9 @@ func (k Keeper) finalizeRollappPacket(
 		if ack != nil {
 			err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
-	case commontypes.RollappPacket_ON_ACK:
+	case commontypes.Type_ON_ACK:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
-	case commontypes.RollappPacket_ON_TIMEOUT:
+	case commontypes.Type_ON_TIMEOUT:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onTimeoutPacket(rollappPacket, ibc))
 	default:
 		logger.Error("Unknown rollapp packet type", logContext...)

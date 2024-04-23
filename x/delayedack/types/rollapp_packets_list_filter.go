@@ -1,9 +1,12 @@
 package types
 
-import commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+import (
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+)
 
 type RollappPacketListFilter struct {
-	Prefixes []Prefix
+	Prefixes   []Prefix
+	FilterFunc func(packet commontypes.RollappPacket) bool
 }
 
 type Prefix struct {
@@ -51,5 +54,14 @@ func ByStatus(status ...commontypes.Status) RollappPacketListFilter {
 	}
 	return RollappPacketListFilter{
 		Prefixes: prefixes,
+	}
+}
+
+func ByType(packetType commontypes.Type) RollappPacketListFilter {
+	return RollappPacketListFilter{
+		Prefixes: []Prefix{{}},
+		FilterFunc: func(packet commontypes.RollappPacket) bool {
+			return packet.Type == packetType
+		},
 	}
 }

@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/delayedack/params.proto";
 import "dymension/common/status.proto";
+import "dymension/common/type.proto";
 import "dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
@@ -21,8 +22,6 @@ service Query {
 	rpc GetPackets(QueryRollappPacketsRequest) returns (QueryRollappPacketListResponse) {
 		option (google.api.http).get = "/dymensionxyz/dymension/delayedack/packets/{rollappId}/{status}";
 	}
-
-
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -34,11 +33,11 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-
 message QueryRollappPacketsRequest {
 	string rollappId = 1;
 	common.Status status = 2;
-	cosmos.base.query.v1beta1.PageRequest pagination = 3;
+	common.Type type = 3;
+	cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 message QueryRollappPacketListResponse {

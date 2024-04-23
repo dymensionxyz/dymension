@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -61,12 +62,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
 	var originalTransferTarget string
 	switch rollappPacket.Type {
-	case commontypes.RollappPacket_ON_RECV:
+	case commontypes.Type_ON_RECV:
 		originalTransferTarget = recipient
 		recipient = address
-	case commontypes.RollappPacket_ON_TIMEOUT:
+	case commontypes.Type_ON_TIMEOUT:
 		fallthrough
-	case commontypes.RollappPacket_ON_ACK:
+	case commontypes.Type_ON_ACK:
 		originalTransferTarget = sender
 		sender = address
 	}
@@ -119,6 +120,9 @@ func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPack
 	// Iterate over the range of filters and get all the rollapp packets
 	// that meet the filter criteria
 	for _, pref := range listFilter.Prefixes {
+		if len(pref.Start) == 0 {
+			pref.Start = commontypes.AllRollappPacketKeyPrefix
+		}
 		if len(pref.End) == 0 {
 			pref.End = sdk.PrefixEndBytes(pref.Start)
 		}
@@ -129,6 +133,17 @@ func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPack
 			list = append(list, val)
 		}
 		_ = iterator.Close()
+	}
+
+	if listFilter.FilterFunc != nil {
+		// If a filter function is provided, apply the filter to the list
+		filtered := list[:0]
+		for _, packet := range list {
+			if listFilter.FilterFunc(packet) {
+				filtered = append(filtered, packet)
+			}
+		}
+		list = filtered
 	}
 
 	return list

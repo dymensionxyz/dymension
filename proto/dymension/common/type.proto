@@ -5,8 +5,9 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 
-enum Status {
-    PENDING = 0;
-    FINALIZED = 1;
-    REVERTED = 3;
+enum Type {
+  ON_RECV = 0;
+  ON_ACK = 1;
+  ON_TIMEOUT = 2;
+  UNDEFINED = -1;
 }

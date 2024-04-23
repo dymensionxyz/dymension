@@ -14,6 +14,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -71,7 +72,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.Type_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -95,7 +96,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: proofHeight,
-		Type:        commontypes.RollappPacket_ON_RECV,
+		Type:        commontypes.Type_ON_RECV,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
@@ -152,7 +153,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_ACK, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.Type_ON_ACK, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return err
@@ -184,7 +185,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		Status:          commontypes.Status_PENDING,
 		Relayer:         relayer,
 		ProofHeight:     proofHeight,
-		Type:            commontypes.RollappPacket_ON_ACK,
+		Type:            commontypes.Type_ON_ACK,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
@@ -239,7 +240,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := im.GetProofHeight(ctx, commontypes.Type_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		logger.Error("Failed to get proof height from packet", "err", err)
 		return err
@@ -270,7 +271,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: proofHeight,
-		Type:        commontypes.RollappPacket_ON_TIMEOUT,
+		Type:        commontypes.Type_ON_TIMEOUT,
 	}
 	im.keeper.SetRollappPacket(ctx, rollappPacket)
 
@@ -348,7 +349,7 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 }
 
 // GetProofHeight returns the proof height of the packet
-func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.RollappPacket_Type,
+func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.Type,
 	rollappPortOnHub string, rollappChannelOnHub string, sequence uint64,
 ) (uint64, error) {
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
