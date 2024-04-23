@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	"google.golang.org/grpc/codes"
@@ -37,20 +36,16 @@ func (q Querier) GetPackets(goCtx context.Context, req *types.QueryRollappPacket
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
-	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	res := &types.QueryRollappPacketListResponse{}
 
 	if req.RollappId == "" {
-		// query by status (PENDING by default)
-		if req.Type != commontypes.Type_UNDEFINED {
-			res.RollappPackets = q.ListRollappPackets(ctx, types.ByType(req.Type))
-		} else {
-			res.RollappPackets = q.ListRollappPackets(ctx, types.ByStatus(req.Status))
-		}
+		// query by status (PENDING by default) and type (if not UNDEFINED)
+		res.RollappPackets = q.ListRollappPackets(ctx, types.ByTypeByStatus(req.Type, req.Status))
 	} else {
-		// query by rollapp id and status (PENDING by default)
-		res.RollappPackets = q.ListRollappPackets(ctx, types.ByRollappIDByStatus(req.RollappId, req.Status))
+		// query by rollapp id and status (PENDING by default) and type (if not UNDEFINED)
+		res.RollappPackets = q.ListRollappPackets(ctx, types.ByRollappIDByTypeByStatus(req.RollappId, req.Type, req.Status))
 	}
 
 	// TODO: handle pagination

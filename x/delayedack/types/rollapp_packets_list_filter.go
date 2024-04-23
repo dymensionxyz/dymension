@@ -39,6 +39,16 @@ func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) Rollapp
 	}
 }
 
+func ByRollappIDByTypeByStatus(rollappID string, packetType commontypes.Type, status ...commontypes.Status) RollappPacketListFilter {
+	filter := ByRollappIDByStatus(rollappID, status...)
+	if packetType != commontypes.Type_UNDEFINED {
+		filter.FilterFunc = func(packet commontypes.RollappPacket) bool {
+			return packet.Type == packetType
+		}
+	}
+	return filter
+}
+
 func ByRollappID(rollappID string) RollappPacketListFilter {
 	return ByRollappIDByStatus(rollappID,
 		commontypes.Status_PENDING,
@@ -57,11 +67,12 @@ func ByStatus(status ...commontypes.Status) RollappPacketListFilter {
 	}
 }
 
-func ByType(packetType commontypes.Type) RollappPacketListFilter {
-	return RollappPacketListFilter{
-		Prefixes: []Prefix{{}},
-		FilterFunc: func(packet commontypes.RollappPacket) bool {
+func ByTypeByStatus(packetType commontypes.Type, status ...commontypes.Status) RollappPacketListFilter {
+	filter := ByStatus(status...)
+	if packetType != commontypes.Type_UNDEFINED {
+		filter.FilterFunc = func(packet commontypes.RollappPacket) bool {
 			return packet.Type == packetType
-		},
+		}
 	}
+	return filter
 }
