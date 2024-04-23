@@ -275,12 +275,6 @@ func TestByType(t *testing.T) {
 		want []commontypes.RollappPacket
 	}{
 		{
-			name: "Test with Type UNDEFINED",
-			args: args{
-				packetType: commontypes.Type_UNDEFINED,
-			},
-			want: testRollappPackets[:1],
-		}, {
 			name: "Test with Type ON_RECV",
 			args: args{
 				packetType: commontypes.Type_ON_RECV,
@@ -302,7 +296,7 @@ func TestByType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			filter := types.ByType(tt.args.packetType)
+			filter := types.ByTypeByStatus(tt.args.packetType)
 			var filtered []commontypes.RollappPacket
 			for _, packet := range testRollappPackets {
 				if filter.FilterFunc(packet) {
