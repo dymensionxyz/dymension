@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### Features
+
+- (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
+
 ## [v3.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.1.0)
 
 ### Features
