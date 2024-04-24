@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,7 +81,7 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	}
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
-		return fmt.Errorf("dispute period cannot be lower than 1 block")
+		return errors.New("dispute period cannot be lower than 1 block")
 	}
 
 	return nil
@@ -104,7 +105,7 @@ func validateDeployerWhitelist(v interface{}) error {
 
 		// check duplicate
 		if _, ok := rollappDeployerIndexMap[item.Address]; ok {
-			return fmt.Errorf("duplicated deployer address in deployerWhitelist")
+			return errors.New("duplicated deployer address in deployerWhitelist")
 		}
 		rollappDeployerIndexMap[item.Address] = struct{}{}
 	}

@@ -4,6 +4,7 @@
 package types
 
 import (
+	errors "errors"
 	fmt "fmt"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
@@ -324,7 +325,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DemandOrder: wiretype end group for non-group")
+			return errors.New("proto: DemandOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: DemandOrder: illegal tag %d (wire type %d)", fieldNum, wire)
