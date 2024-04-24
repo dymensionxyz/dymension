@@ -11,7 +11,6 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +44,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 			},
-			err: sdkerrors.ErrInvalidAddress,
+			err: ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCreateSequencer{
@@ -77,7 +76,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Moniker: strings.Repeat("a", MaxMonikerLength+1),
 				},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: ErrInvalidRequest,
 		}, {
 			name: "invalid identity length",
 			msg: MsgCreateSequencer{
@@ -88,7 +87,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Identity: strings.Repeat("a", MaxIdentityLength+1),
 				},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: ErrInvalidRequest,
 		}, {
 			name: "invalid website length",
 			msg: MsgCreateSequencer{
@@ -99,7 +98,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Website: strings.Repeat("a", MaxWebsiteLength+1),
 				},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: ErrInvalidRequest,
 		}, {
 			name: "invalid security contact length",
 			msg: MsgCreateSequencer{
@@ -110,7 +109,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
 				},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: ErrInvalidRequest,
 		}, {
 			name: "invalid details length",
 			msg: MsgCreateSequencer{
@@ -121,7 +120,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					Details: strings.Repeat("a", MaxDetailsLength+1),
 				},
 			},
-			err: sdkerrors.ErrInvalidRequest,
+			err: ErrInvalidRequest,
 		}, {
 			name: "invalid bond",
 			msg: MsgCreateSequencer{
@@ -129,7 +128,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         sdk.Coin{Denom: "k", Amount: sdk.NewInt(0)},
 			},
-			err: sdkerrors.ErrInvalidCoins,
+			err: ErrInvalidCoins,
 		}, {
 			name: "invalid public key",
 			msg: MsgCreateSequencer{
@@ -137,7 +136,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkInvalid,
 				Bond:         bond,
 			},
-			err: sdkerrors.ErrInvalidPubKey,
+			err: ErrInvalidPubKey,
 		},
 	}
 	for _, tt := range tests {

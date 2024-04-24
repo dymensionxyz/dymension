@@ -1,8 +1,8 @@
 package denommetadata
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -16,7 +16,7 @@ func NewDenomMetadataProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		case *types.UpdateDenomMetadataProposal:
 			return HandleUpdateDenomMetadataProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized denommetadata proposal content type: %T", c)
+			return errorsmod.Wrapf(types.ErrUnknownRequest, "unrecognized denommetadata proposal content type: %T", c)
 		}
 	}
 }

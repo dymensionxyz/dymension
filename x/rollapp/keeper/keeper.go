@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -73,11 +73,11 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 	}
 
 	if err := k.registerDenomMetadata(ctx, rollapp); err != nil {
-		return sdkerrors.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
+		return errorsmod.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
 	}
 
 	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
-		return sdkerrors.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
+		return errorsmod.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
 	}
 
 	rollapp.GenesisState.IsGenesisEvent = true

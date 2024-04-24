@@ -7,7 +7,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -26,7 +25,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 
 	// check rollapp version
 	if rollapp.Version != msg.Version {
-		return nil, sdkerrors.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", msg.RollappId, rollapp.Version, msg.Version)
+		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", msg.RollappId, rollapp.Version, msg.Version)
 	}
 
 	// call the before-update-state hook
@@ -42,7 +41,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		// this is a logic error, as the sequencer modules' BeforeUpdateState hook
 		// should check that the sequencer exists and register for serving this rollapp
 		// so if this check passed, an unpermissioned sequencer is registered
-		return nil, errorsmod.Wrapf(sdkerrors.ErrLogic,
+		return nil, errorsmod.Wrapf(types.ErrLogic,
 			"unpermissioned sequencer (%s) is registered for rollappId(%s)",
 			msg.Creator, msg.RollappId)
 	}
@@ -56,7 +55,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		// if latestStateInfoIndex exists, there must be an info for this state
 		if !found {
 			// if not, it's a logic error
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrLogic,
+			return nil, errorsmod.Wrapf(types.ErrLogic,
 				"missing stateInfo for state-index (%d) of rollappId(%s)",
 				latestStateInfoIndex.Index, msg.RollappId)
 		}
@@ -64,7 +63,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		// check to see if received height is the one we expected
 		expectedStartHeight := stateInfo.StartHeight + stateInfo.NumBlocks
 		if expectedStartHeight != msg.StartHeight {
-			return nil, sdkerrors.Wrapf(types.ErrWrongBlockHeight,
+			return nil, errorsmod.Wrapf(types.ErrWrongBlockHeight,
 				"expected height (%d), but received (%d)",
 				expectedStartHeight, msg.StartHeight)
 		}

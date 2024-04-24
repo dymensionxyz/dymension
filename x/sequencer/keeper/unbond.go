@@ -3,7 +3,7 @@ package keeper
 import (
 	"time"
 
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
@@ -32,7 +32,7 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 	}
 
 	if seq.Status == types.Unbonded {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer status is already unbonded",
 		)
@@ -85,7 +85,7 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 	}
 
 	if seq.Status != types.Unbonding {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer status is not unbonding: got %s",
 			seq.Status.String(),
