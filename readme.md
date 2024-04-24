@@ -167,7 +167,7 @@ Pre-requisite:
  Install [VSCode Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go)
  Install [Devel](https://github.com/go-delve/delve)
 
-To debug, you can use the the following command to run the debug container:
+To debug, you can use the following command to run the debug container:
 
 ```sh
 make docker-run-debug
