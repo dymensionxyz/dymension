@@ -40,30 +40,15 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
-- (rollapp) [#829](https://github.com/dymensionxyz/dymension/issues/829) Refactor rollapp cli to be more useful
 - (delayedack) [#825](https://github.com/dymensionxyz/dymension/issues/825) Add query for rollapp packets using CLI
-- 
 
 ### Bug Fixes
-
-- (rollapp) [#839](https://github.com/dymensionxyz/dymension/issues/839) Remove rollapp deprecated fields
-- (eibc) [#836](https://github.com/dymensionxyz/dymension/issues/836) Improve eibc memo error handling
-- (eibc) [#830](https://github.com/dymensionxyz/dymension/issues/830) Invalid tx should return ackErr
-- (eibc) [#828](https://github.com/dymensionxyz/dymension/issues/828) Wrong packet written on delayedack acknowledgment
-- (delayedack) [#822](https://github.com/dymensionxyz/dymension/issues/822) Acknowledgement not written in case of ackerr
-- (rollapp) [#820](https://github.com/dymensionxyz/dymension/issues/820) Invariant block-height-to-finalization-queue fix for freezing rollapp
-- (delayedack) [#814](https://github.com/dymensionxyz/dymension/issues/814) Proof height ante handler doesn't gurantee uniqueness
-- (fraud) [#811](https://github.com/dymensionxyz/dymension/issues/811) Refunding pending outgoing packets
-- (delayedack) [#810](https://github.com/dymensionxyz/dymension/issues/810) Wrong denom metadata created for eIBC on delayedack timeout and ack
-- (delayedack) [#809](https://github.com/dymensionxyz/dymension/issues/809) Delayed ack wrong channels on timeout and ack
-- (rollapp) [#807](https://github.com/dymensionxyz/dymension/issues/807) Allow creating rollapp same eip155 when forking
-- (delayedack) [#799](https://github.com/dymensionxyz/dymension/issues/799) Do not create eibc order on timeout/errAck if fee is not positive
-- (delayedack) [#794](https://github.com/dymensionxyz/dymension/issues/794) Fix missing validation of channel id when validating rollapp packet
 
 ## [v3.1.0](https://github.com/dymensionxyz/dymension/releases/tag/v3.1.0)
 
 ### Features
 
+- (rollapp) [#829](https://github.com/dymensionxyz/dymension/issues/829) Refactor rollapp cli to be more useful
 - (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) Create eibc order on err ack from rollapp
 - (delayedack) [#672](https://github.com/dymensionxyz/dymension/issues/672) Delayedack invariant for finalized and reverted packets
 - (evm) [#668](https://github.com/dymensionxyz/dymension/issues/668) Integrate virtual frontier bank contract
@@ -91,6 +76,19 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- (rollapp) [#839](https://github.com/dymensionxyz/dymension/issues/839) Remove rollapp deprecated fields
+- (eibc) [#836](https://github.com/dymensionxyz/dymension/issues/836) Improve eibc memo error handling
+- (eibc) [#830](https://github.com/dymensionxyz/dymension/issues/830) Invalid tx should return ackErr
+- (eibc) [#828](https://github.com/dymensionxyz/dymension/issues/828) Wrong packet written on delayedack acknowledgment
+- (delayedack) [#822](https://github.com/dymensionxyz/dymension/issues/822) Acknowledgement not written in case of ackerr
+- (rollapp) [#820](https://github.com/dymensionxyz/dymension/issues/820) Invariant block-height-to-finalization-queue fix for freezing rollapp
+- (delayedack) [#814](https://github.com/dymensionxyz/dymension/issues/814) Proof height ante handler doesn't gurantee uniqueness
+- (fraud) [#811](https://github.com/dymensionxyz/dymension/issues/811) Refunding pending outgoing packets
+- (delayedack) [#810](https://github.com/dymensionxyz/dymension/issues/810) Wrong denom metadata created for eIBC on delayedack timeout and ack
+- (delayedack) [#809](https://github.com/dymensionxyz/dymension/issues/809) Delayed ack wrong channels on timeout and ack
+- (rollapp) [#807](https://github.com/dymensionxyz/dymension/issues/807) Allow creating rollapp same eip155 when forking
+- (delayedack) [#799](https://github.com/dymensionxyz/dymension/issues/799) Do not create eibc order on timeout/errAck if fee is not positive
+- (delayedack) [#794](https://github.com/dymensionxyz/dymension/issues/794) Fix missing validation of channel id when validating rollapp packet
 - (rollapp) [#769](https://github.com/dymensionxyz/dymension/issues/769) Rollapp genesis related state shouldn't be imported
 - (rollapp) [#767](https://github.com/dymensionxyz/dymension/issues/767) Saved state info index as big endian
 - (delayedack) [#764](https://github.com/dymensionxyz/dymension/issues/764) Fix panic on `nil` dereferences if `UpdateRollappPacketWithStatus` errors
