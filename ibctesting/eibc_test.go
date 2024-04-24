@@ -164,7 +164,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	}
 }
 
-// TestEIBCDemandOrderCreation tests the creation of a demand order and its fulfillment logic.
+// TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
@@ -353,7 +353,7 @@ func (suite *EIBCTestSuite) rollappHasPacketCommitment(packet channeltypes.Packe
 	return true
 }
 
-// TestHubToRollappEarlyFulfillment : when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
+// TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
 func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
