@@ -1,5 +1,5 @@
-# this workflow will add changelog to the repository when a new commit is pushed to the main branch
-# e.g: manually edit the commit message to align with conventional commit messages, such as:
+# This workflow will add a changelog to the repository when a new commit is pushed to the main branch.
+# E.g., manually edit the commit message to align with conventional commit messages, such as:
 # feat(database): add new indexing capabilities
 # This update introduces advanced indexing options for handling complex queries more efficiently.
 
@@ -12,12 +12,15 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   update_changelog:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # Fetches all history for tags and branches
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
