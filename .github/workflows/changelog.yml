@@ -1,0 +1,36 @@
+# this workflow will add changelog to the repository when a new commit is pushed to the main branch
+# e.g: manually edit the commit message to align with conventional commit messages, such as:
+# feat(database): add new indexing capabilities
+# This update introduces advanced indexing options for handling complex queries more efficiently.
+
+name: Changelog Update
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  update_changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2 
+        with:
+          node-version: "18"
+
+      - name: Install conventional-changelog-cli
+        run: npm install -g conventional-changelog-cli
+
+      - name: Generate/update the changelog
+        run: conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'hoangdv2429'
+          git config --global user.email 'hoangdv2429@gmail.com'
+          git add CHANGELOG.md
+          git commit -m "Update CHANGELOG.md [skip ci]" || echo "No changes to commit"
+          git push origin main
