@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -20,7 +22,6 @@ func (k Keeper) GetStateInfo(
 	ctx sdk.Context,
 	rollappId string,
 	index uint64,
-
 ) (val types.StateInfo, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 
@@ -35,12 +36,22 @@ func (k Keeper) GetStateInfo(
 	return val, true
 }
 
+func (k Keeper) MustGetStateInfo(ctx sdk.Context,
+	rollappId string,
+	index uint64,
+) (val types.StateInfo) {
+	val, found := k.GetStateInfo(ctx, rollappId, index)
+	if !found {
+		panic(fmt.Sprintf("stateInfo not found for rollappId: %s, index: %d", rollappId, index))
+	}
+	return
+}
+
 // RemoveStateInfo removes a stateInfo from the store
 func (k Keeper) RemoveStateInfo(
 	ctx sdk.Context,
 	rollappId string,
 	index uint64,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StateInfoKeyPrefix))
 	store.Delete(types.StateInfoKey(

@@ -93,9 +93,10 @@ repos:
     #
     # -   id: golangci-lint
 -   repo: https://github.com/golangci/golangci-lint
-    rev: v1.53.3
+    rev: v1.57.2
     hooks:
     -   id: golangci-lint
+        args: [--config=./.golangci.yml]
     #
     # # Invoking Custom Go Tools
     # # - Configured *entirely* through the `args` attribute, ie:

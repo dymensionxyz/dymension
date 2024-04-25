@@ -83,7 +83,7 @@ func (k Keeper) Distribute(ctx sdk.Context, streams []types.Stream) (sdk.Coins, 
 func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coins, error) {
 	totalDistrCoins := sdk.NewCoins()
 	remainCoins := stream.Coins.Sub(stream.DistributedCoins...)
-	remainEpochs := uint64(stream.NumEpochsPaidOver - stream.FilledEpochs)
+	remainEpochs := stream.NumEpochsPaidOver - stream.FilledEpochs
 
 	for _, coin := range remainCoins {
 		epochAmt := coin.Amount.Quo(sdk.NewInt(int64(remainEpochs)))

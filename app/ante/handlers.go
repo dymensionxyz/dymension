@@ -10,7 +10,9 @@ import (
 	evmos_evmante "github.com/evmos/evmos/v12/app/ante/evm"
 
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	evmtypes "github.com/evmos/evmos/v12/x/evm/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
+	delayedack "github.com/dymensionxyz/dymension/v3/x/delayedack"
 )
 
 // newEVMAnteHandler creates the default ante handler for Ethereum transactions
@@ -18,11 +20,9 @@ func newEVMAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		evmos_evmante.NewEthSetUpContextDecorator(options.EvmKeeper),
 
-		//TODO: need to allow universal fees for Eth as well
-		// Check eth effective gas price against the node's minimal-gas-prices config
-		evmos_evmante.NewEthMempoolFeeDecorator(options.EvmKeeper), // Check eth effective gas price against minimal-gas-prices
-		// Check eth effective gas price against the global MinGasPrice
-		evmos_evmante.NewEthMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper), // Check eth effective gas price against the global MinGasPrice
+		// TODO: need to allow universal fees for Eth as well
+		ethante.NewEthMempoolFeeDecorator(options.EvmKeeper),                           // Check eth effective gas price against minimal-gas-prices
+		ethante.NewEthMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper), // Check eth effective gas price against the global MinGasPrice
 
 		evmos_evmante.NewEthValidateBasicDecorator(options.EvmKeeper),
 		evmos_evmante.NewEthSigVerificationDecorator(options.EvmKeeper),
@@ -42,8 +42,12 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
+		/*
+			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
+			for an explanation of these message blocking decorators
+		*/
 		NewRejectMessagesDecorator(), // reject MsgEthereumTxs
-		evmos_cosmosante.NewAuthzLimiterDecorator( // disable the Msg types that cannot be included on an authz.MsgExec msgs field
+		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreateVestingAccount{}),
 			sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}),
@@ -68,6 +72,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		//nolint: staticcheck
 		evmos_cosmosante.NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		evmos_evmante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)
@@ -101,6 +106,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		// evmos_evmante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 	)

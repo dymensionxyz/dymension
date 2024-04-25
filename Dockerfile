@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine3.16 as go-builder
+FROM golang:1.22-alpine3.19 as go-builder
 
 ARG LINK_STATICALLY
 
@@ -26,7 +26,6 @@ WORKDIR /app
 
 COPY scripts/* ./scripts/
 
-ENV CHAIN_ID=local-testnet
 ENV KEY_NAME=local-user
 ENV MONIKER_NAME=local
 

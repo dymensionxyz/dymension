@@ -24,8 +24,28 @@ I have...
 - [ ]  Wrote relevant migration scripts if necessary
 - [ ]  All CI checks have passed
 - [ ]  Added relevant `godoc` [comments](https://blog.golang.org/godoc-documenting-go-code)
+- [ ]  Updated the scripts for local run, e.g genesis_config_commands.sh if the PR changes parameters
+- [ ]  Add an issue in the [e2e-tests repo](https://github.com/dymensionxyz/e2e-tests) if necessary
 
----
+SDK Checklist
+- [ ] Import/Export Genesis
+- [ ] Registered Invariants
+- [ ] Registered Events
+- [ ] Updated openapi.yaml
+- [ ] No usage of go `map`
+- [ ] No usage of `time.Now()`
+- [ ] Used fixed point arithmetic and not float arithmetic
+- [ ] Avoid panicking in Begin/End block as much as possible
+- [ ] No unexpected math Overflow
+- [ ] Used `sendCoin` and not `SendCoins`
+- [ ] Out-of-block compute is bounded
+- [ ] No serialized ID at the end of store keys
+- [ ] UInt to byte conversion should use BigEndian
+
+Full security checklist [here](https://www.faulttolerant.xyz/2024-01-16-cosmos-security-1/)
+
+
+----;
 
 For Reviewer:
 
@@ -33,7 +53,7 @@ For Reviewer:
 - [ ]  Reviewers assigned
 - [ ]  Confirmed all author checklist items have been addressed
 
----
+---;
 
 After reviewer approval:
 

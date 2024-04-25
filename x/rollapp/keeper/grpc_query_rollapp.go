@@ -27,7 +27,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err
 		}
-		var rollappSummary = types.RollappSummary{
+		rollappSummary := types.RollappSummary{
 			RollappId: rollapp.RollappId,
 		}
 		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
@@ -42,7 +42,6 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		rollapps = append(rollapps, rollappSummary)
 		return nil
 	})
-
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

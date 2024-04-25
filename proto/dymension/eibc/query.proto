@@ -1,0 +1,59 @@
+syntax = "proto3";
+package dymensionxyz.dymension.eibc;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymension/eibc/params.proto";
+import "dymension/eibc/demand_order.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/params";
+  }
+  // Queries a Demand Order by id.
+	rpc DemandOrderById(QueryGetDemandOrderRequest) returns (QueryGetDemandOrderResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_order/{id}";
+	}
+  // Queries a list of demand orders by status.
+  rpc DemandOrdersByStatus(QueryDemandOrdersByStatusRequest) returns (QueryDemandOrdersByStatusResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/eibc/demand_orders/{status}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryGetDemandOrderRequest is the request type for the Query/GetDemandOrder RPC method.
+message QueryGetDemandOrderRequest {
+  // id of the demand order to get
+  string id = 1;
+}
+
+// QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
+message QueryDemandOrdersByStatusRequest {
+  // id of the demand order to get
+  string status = 1;
+}
+
+// QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.
+message QueryGetDemandOrderResponse {
+  // demand order with the given id
+  DemandOrder demand_order = 1;
+}
+
+// QueryDemandOrdersByStatusResponse is the response type for the Query/GetDemandOrdersByStatus RPC method.
+message QueryDemandOrdersByStatusResponse {
+  // A list of demand orders with the given status
+  repeated DemandOrder demand_orders = 1;
+}
