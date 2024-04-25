@@ -34,16 +34,6 @@ jobs:
           conventional-changelog -p angular -i CHANGELOG.md -s -r 0 > changelog_diff.md
           echo "::set-output name=changelog::$(cat changelog_diff.md)"
 
-      - name: Comment PR with changelog diff
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            ### Changelog Update
-            ```markdown
-            ${{ steps.changelog_diff.outputs.changelog }}
-            ```
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and push changelog update
         run: |
