@@ -1,10 +1,9 @@
 name: Changelog Update
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [opened, synchronize, reopened]
 
 permissions: write-all
 
@@ -13,33 +12,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "18"
+          cache: 'npm'
 
       - name: Install conventional-changelog-cli
         run: npm install -g conventional-changelog-cli
 
-      - name: Get PR title
-        id: pr_title
-        run: echo "::set-output name=title::$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)"
-
-      - name: Generate changelog diff
+      - name: Generate changelog
         run: |
-          git fetch origin main:main
-          conventional-changelog -p angular -i CHANGELOG.md -s -r 0 > changelog_diff.md
-          echo "### ${GITHUB_REF##*/} - ${{ steps.pr_title.outputs.title }}" >> changelog_diff.md
-          echo "::set-output name=changelog::$(cat changelog_diff.md)"
+          git fetch --unshallow || git fetch origin main:main
+          conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+          cat CHANGELOG.md
 
       - name: Commit and push changelog update
         run: |
           git config user.name 'github-actions'
           git config user.email 'github-actions@github.com'
           git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md [skip ci]"
-          git push origin HEAD:refs/heads/${{ github.head_ref }}
+          git commit -m "Update CHANGELOG.md" || echo "No changes to commit"
+          git push origin main
