@@ -1,8 +1,3 @@
-# This workflow will add a changelog to the repository when a new commit is pushed to the main branch.
-# E.g., manually edit the commit message to align with conventional commit messages, such as:
-# feat(database): add new indexing capabilities
-# This update introduces advanced indexing options for handling complex queries more efficiently.
-
 name: Changelog Update
 
 on:
@@ -30,10 +25,15 @@ jobs:
       - name: Install conventional-changelog-cli
         run: npm install -g conventional-changelog-cli
 
+      - name: Get PR title
+        id: pr_title
+        run: echo "::set-output name=title::$(jq --raw-output .pull_request.title $GITHUB_EVENT_PATH)"
+
       - name: Generate changelog diff
         run: |
           git fetch origin main:main
           conventional-changelog -p angular -i CHANGELOG.md -s -r 0 > changelog_diff.md
+          echo "### ${GITHUB_REF##*/} - ${{ steps.pr_title.outputs.title }}" >> changelog_diff.md
           echo "::set-output name=changelog::$(cat changelog_diff.md)"
 
       - name: Commit and push changelog update
