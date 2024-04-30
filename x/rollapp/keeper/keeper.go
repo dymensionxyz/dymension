@@ -7,7 +7,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	sdkfraudtypes "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,8 +30,6 @@ type (
 		denommetadataKeeper types.DenomMetadataKeeper
 	}
 )
-
-type FraudProofVerifier func(sdkfraudtypes.FraudProof) error
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
@@ -177,8 +174,4 @@ func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 
 func (k *Keeper) GetHooks() types.MultiRollappHooks {
 	return k.hooks
-}
-
-func (k *Keeper) SetFraudProofVerifier(fpv FraudProofVerifier) {
-	k.fraudProofVerifier = fpv
 }

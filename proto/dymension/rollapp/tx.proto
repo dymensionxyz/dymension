@@ -1,7 +1,5 @@
 syntax = "proto3";
-
 package dymensionxyz.dymension.rollapp;
-
 
 // this line is used by starport scaffolding # proto/tx/import
 import "dymension/rollapp/block_descriptor.proto";
@@ -21,75 +19,56 @@ service Msg {
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
 message MsgCreateRollapp {
-  
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
-  
   // rollappId is the unique identifier of the rollapp chain.
   // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2; // [(gogoproto.customname) = "ChainID"];
-  
+  string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
   // codeStamp is the description of the genesis file location on the DA
-  string codeStamp = 3 [deprecated = true];
-  
+  string codeStamp = 3 [deprecated=true];
   // genesisPath is the description of the genesis file location on the DA
-  string genesisPath = 4 [deprecated = true];
-  
+  string genesisPath = 4 [deprecated=true];
   // maxWithholdingBlocks is the maximum number of blocks for
   // an active sequencer to send a state update (MsgUpdateState)
-  uint64 maxWithholdingBlocks = 5 [deprecated = true];
-  
+  uint64 maxWithholdingBlocks = 5 [deprecated=true];   
   // maxSequencers is the maximum number of sequencers
   uint64 maxSequencers = 6;
-  
   // permissionedAddresses is a bech32-encoded address list of the 
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
-  
   // metadata provides the client information for all the registered tokens.
   repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false];
   // genesis_accounts for the rollapp on the hub
   repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false];
 }
 
-message MsgCreateRollappResponse {}
+message MsgCreateRollappResponse {
+}
+
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
 message MsgUpdateState {
-  
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
-  
   // rollappId is the rollapp that the sequencer belongs to and asking to update
   // The rollappId follows the same standard as cosmos chain_id
   string rollappId = 2;
-  
   // startHeight is the block height of the first block in the batch
   uint64 startHeight = 3;
-  
   // numBlocks is the number of blocks included in this batch update
   uint64 numBlocks = 4;
-  
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
-  
   // version is the version of the rollapp
   uint64 version = 6;
-  
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
 }
 
-message MsgUpdateStateResponse {}
-
-message MsgSubmitFraud {
-  string creator   = 1;
-  string rollappID = 2;
-  // TODO: should use the type from forked cometbft repo https://github.com/dymensionxyz/cometbft/pull/1/files#diff-8384a26745c978d00d66edad2513d2c0518fab0ddb4123c613f475b88ed95667R426-R437
-  bytes FraudProof = 3;
+message MsgUpdateStateResponse {
 }
 
 

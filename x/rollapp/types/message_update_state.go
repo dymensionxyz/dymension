@@ -65,14 +65,13 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 
 	// check that the blocks are sequential by height
 	for bdIndex := uint64(0); bdIndex < msg.NumBlocks; bdIndex += 1 {
-		block := msg.BDs.BD[bdIndex]
-		if block.Height != msg.StartHeight+bdIndex {
+		if msg.BDs.BD[bdIndex].Height != msg.StartHeight+bdIndex {
 			return ErrInvalidBlockSequence
 		}
 		// check to see stateRoot is a 32 byte array
-		if len(block.StateRoot) != 32 {
-			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block height (%d) must be 32 byte array. But received (%d) bytes",
-				block.Height, len(block.StateRoot))
+		if len(msg.BDs.BD[bdIndex].StateRoot) != 32 {
+			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+				msg.BDs.BD[bdIndex].Height, len(msg.BDs.BD[bdIndex].StateRoot))
 		}
 	}
 
