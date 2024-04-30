@@ -254,6 +254,5 @@ replace (
 	// use cometbft
 	// github.com/tendermint/tendermint => github.com/dymensionxyz/cometbft v0.34.29-fraudproof-0.0.1
 	github.com/tendermint/tendermint => /Users/danwt/Documents/dym/d-cometbft
-	// ~~~~
 
 )
