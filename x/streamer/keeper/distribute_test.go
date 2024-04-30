@@ -43,8 +43,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 				coins       sdk.Coins
 				numOfEpochs uint64
 				distrInfo   []types.DistrRecord
-			}{
-				{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
+			}{{sdk.Coins{sdk.NewInt64Coin("stake", 100), sdk.NewInt64Coin("udym", 300)}, 30, defaultDistrInfo},
 				{sdk.Coins{sdk.NewInt64Coin("stake", 1000)}, 365, defaultDistrInfo},
 				{sdk.Coins{sdk.NewInt64Coin("udym", 1000)}, 730, defaultDistrInfo},
 			},
@@ -55,7 +54,7 @@ func (suite *KeeperTestSuite) TestDistribute() {
 		// setup streams and defined in the above tests, then distribute to them
 
 		var streams []types.Stream
-		gaugesExpectedRewards := make(map[uint64]sdk.Coins)
+		var gaugesExpectedRewards = make(map[uint64]sdk.Coins)
 		for _, stream := range tc.streams {
 			// create a stream
 			_, newstream := suite.CreateStream(stream.distrInfo, stream.coins, time.Now(), "day", stream.numOfEpochs)

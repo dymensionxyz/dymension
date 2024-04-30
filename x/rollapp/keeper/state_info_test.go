@@ -41,7 +41,6 @@ func TestStateInfoGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNStateInfo(keeper, ctx, 10)
 	for _, item := range items {
-		item := item
 		rst, found := keeper.GetStateInfo(ctx,
 			item.StateInfoIndex.RollappId,
 			item.StateInfoIndex.Index,
@@ -53,7 +52,6 @@ func TestStateInfoGet(t *testing.T) {
 		)
 	}
 }
-
 func TestStateInfoRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNStateInfo(keeper, ctx, 10)

@@ -28,7 +28,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreateRollapp creates a new rollapp chain on the hub.
+// ===================== MsgCreateRollapp
 type MsgCreateRollapp struct {
 	// creator is the bech32-encoded address of the rollapp creator
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
@@ -50,8 +50,6 @@ type MsgCreateRollapp struct {
 	PermissionedAddresses []string `protobuf:"bytes,7,rep,name=permissionedAddresses,proto3" json:"permissionedAddresses,omitempty"`
 	// metadata provides the client information for all the registered tokens.
 	Metadatas []TokenMetadata `protobuf:"bytes,8,rep,name=metadatas,proto3" json:"metadatas"`
-	// genesis_accounts for the rollapp on the hub
-	GenesisAccounts []GenesisAccount `protobuf:"bytes,9,rep,name=genesis_accounts,json=genesisAccounts,proto3" json:"genesis_accounts"`
 }
 
 func (m *MsgCreateRollapp) Reset()         { *m = MsgCreateRollapp{} }
@@ -146,13 +144,6 @@ func (m *MsgCreateRollapp) GetMetadatas() []TokenMetadata {
 	return nil
 }
 
-func (m *MsgCreateRollapp) GetGenesisAccounts() []GenesisAccount {
-	if m != nil {
-		return m.GenesisAccounts
-	}
-	return nil
-}
-
 type MsgCreateRollappResponse struct {
 }
 
@@ -189,7 +180,8 @@ func (m *MsgCreateRollappResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateRollappResponse proto.InternalMessageInfo
 
-// MsgUpdateState updates a rollapp state with a block batch.
+// ===================== MsgUpdateState
+// Updating a rollapp state with a block batch
 // a block batch is a list of ordered blocks (by height)
 type MsgUpdateState struct {
 	// creator is the bech32-encoded address of the sequencer sending the update
@@ -328,29 +320,25 @@ func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
-// MsgRollappGenesisEvent is the message type for triggering the genesis event of the rollapp
-type MsgRollappGenesisEvent struct {
-	// address is the bech32-encoded address of the sender
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// channel_id is the rollapp channel id on the hub
-	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	// rollapp_id is the rollapp id we want to mint tokens on the hub.
-	// Used for validation against channel_id to reduce error surface.
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+type MsgSubmitFraud struct {
+	Creator   string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	RollappID string `protobuf:"bytes,2,opt,name=rollappID,proto3" json:"rollappID,omitempty"`
+	// TODO: should use the type from forked cometbft repo https://github.com/dymensionxyz/cometbft/pull/1/files#diff-8384a26745c978d00d66edad2513d2c0518fab0ddb4123c613f475b88ed95667R426-R437
+	FraudProof []byte `protobuf:"bytes,3,opt,name=FraudProof,proto3" json:"FraudProof,omitempty"`
 }
 
-func (m *MsgRollappGenesisEvent) Reset()         { *m = MsgRollappGenesisEvent{} }
-func (m *MsgRollappGenesisEvent) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEvent) ProtoMessage()    {}
-func (*MsgRollappGenesisEvent) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitFraud) Reset()         { *m = MsgSubmitFraud{} }
+func (m *MsgSubmitFraud) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFraud) ProtoMessage()    {}
+func (*MsgSubmitFraud) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{4}
 }
-func (m *MsgRollappGenesisEvent) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitFraud) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRollappGenesisEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitFraud) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEvent.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitFraud.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -360,54 +348,54 @@ func (m *MsgRollappGenesisEvent) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgRollappGenesisEvent) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEvent.Merge(m, src)
+func (m *MsgSubmitFraud) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFraud.Merge(m, src)
 }
-func (m *MsgRollappGenesisEvent) XXX_Size() int {
+func (m *MsgSubmitFraud) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRollappGenesisEvent) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEvent.DiscardUnknown(m)
+func (m *MsgSubmitFraud) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFraud.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRollappGenesisEvent proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitFraud proto.InternalMessageInfo
 
-func (m *MsgRollappGenesisEvent) GetAddress() string {
+func (m *MsgSubmitFraud) GetCreator() string {
 	if m != nil {
-		return m.Address
+		return m.Creator
 	}
 	return ""
 }
 
-func (m *MsgRollappGenesisEvent) GetChannelId() string {
+func (m *MsgSubmitFraud) GetRollappID() string {
 	if m != nil {
-		return m.ChannelId
+		return m.RollappID
 	}
 	return ""
 }
 
-func (m *MsgRollappGenesisEvent) GetRollappId() string {
+func (m *MsgSubmitFraud) GetFraudProof() []byte {
 	if m != nil {
-		return m.RollappId
+		return m.FraudProof
 	}
-	return ""
+	return nil
 }
 
-type MsgRollappGenesisEventResponse struct {
+type MsgSubmitFraudResponse struct {
 }
 
-func (m *MsgRollappGenesisEventResponse) Reset()         { *m = MsgRollappGenesisEventResponse{} }
-func (m *MsgRollappGenesisEventResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEventResponse) ProtoMessage()    {}
-func (*MsgRollappGenesisEventResponse) Descriptor() ([]byte, []int) {
+func (m *MsgSubmitFraudResponse) Reset()         { *m = MsgSubmitFraudResponse{} }
+func (m *MsgSubmitFraudResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSubmitFraudResponse) ProtoMessage()    {}
+func (*MsgSubmitFraudResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{5}
 }
-func (m *MsgRollappGenesisEventResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgSubmitFraudResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRollappGenesisEventResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgSubmitFraudResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEventResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgSubmitFraudResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -417,72 +405,68 @@ func (m *MsgRollappGenesisEventResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgRollappGenesisEventResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.Merge(m, src)
+func (m *MsgSubmitFraudResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSubmitFraudResponse.Merge(m, src)
 }
-func (m *MsgRollappGenesisEventResponse) XXX_Size() int {
+func (m *MsgSubmitFraudResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRollappGenesisEventResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.DiscardUnknown(m)
+func (m *MsgSubmitFraudResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSubmitFraudResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRollappGenesisEventResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgSubmitFraudResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
 	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
 	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
-	proto.RegisterType((*MsgRollappGenesisEvent)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEvent")
-	proto.RegisterType((*MsgRollappGenesisEventResponse)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEventResponse")
+	proto.RegisterType((*MsgSubmitFraud)(nil), "dymensionxyz.dymension.rollapp.MsgSubmitFraud")
+	proto.RegisterType((*MsgSubmitFraudResponse)(nil), "dymensionxyz.dymension.rollapp.MsgSubmitFraudResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/tx.proto", fileDescriptor_935cc363af28220c) }
 
 var fileDescriptor_935cc363af28220c = []byte{
-	// 647 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0x41, 0x4f, 0x13, 0x41,
-	0x14, 0xee, 0xb2, 0x05, 0xec, 0x34, 0x28, 0x19, 0x91, 0x4c, 0x36, 0xb8, 0x34, 0x0d, 0x87, 0x5e,
-	0xdc, 0x1a, 0x20, 0xc4, 0x93, 0x09, 0x15, 0x23, 0x1c, 0x6a, 0x74, 0xc1, 0x98, 0x78, 0x69, 0x86,
-	0xdd, 0x97, 0xed, 0x86, 0xee, 0xcc, 0x3a, 0x33, 0x25, 0x45, 0xaf, 0x5e, 0x3c, 0x98, 0xf8, 0xb3,
-	0x38, 0x72, 0x34, 0x1e, 0x8c, 0x81, 0x3f, 0x62, 0x66, 0x3b, 0xdd, 0x6d, 0xa1, 0xb1, 0xa0, 0x27,
-	0xf6, 0x7d, 0xdf, 0x7b, 0xdf, 0xbc, 0xfd, 0xbe, 0x59, 0x8a, 0x9c, 0xf0, 0x2c, 0x01, 0x26, 0x63,
-	0xce, 0x9a, 0x82, 0xf7, 0x7a, 0x34, 0x4d, 0x9b, 0x6a, 0xe0, 0xa5, 0x82, 0x2b, 0x8e, 0xdd, 0x9c,
-	0x1b, 0x9c, 0x7d, 0xf2, 0xf2, 0xc2, 0x33, 0x8d, 0x4e, 0xe3, 0xe6, 0xec, 0x71, 0x8f, 0x07, 0x27,
-	0x9d, 0x10, 0x64, 0x20, 0xe2, 0x54, 0x71, 0x31, 0x54, 0x72, 0xd6, 0xa6, 0x74, 0x52, 0x76, 0x62,
-	0xd8, 0xf5, 0x9b, 0xac, 0xf9, 0x6b, 0x1a, 0x56, 0x22, 0x1e, 0xf1, 0xec, 0xb1, 0xa9, 0x9f, 0x86,
-	0x68, 0xfd, 0xa7, 0x8d, 0x96, 0xdb, 0x32, 0x7a, 0x21, 0x80, 0x2a, 0xf0, 0x87, 0x03, 0x98, 0xa0,
-	0xc5, 0x40, 0x03, 0x5c, 0x10, 0xab, 0x66, 0x35, 0x2a, 0xfe, 0xa8, 0xc4, 0x6b, 0xa8, 0x62, 0x54,
-	0x0f, 0x42, 0x32, 0x97, 0x71, 0x05, 0x80, 0x6b, 0xa8, 0x12, 0xf0, 0x10, 0x0e, 0x15, 0x4d, 0x52,
-	0x62, 0x6b, 0xb6, 0x35, 0x47, 0x2c, 0xbf, 0x00, 0xf1, 0x06, 0xaa, 0x46, 0xc0, 0x40, 0xc6, 0xf2,
-	0x0d, 0x55, 0x5d, 0x52, 0xce, 0x7b, 0xc6, 0x61, 0xbc, 0x83, 0x56, 0x12, 0x3a, 0x78, 0x1f, 0xab,
-	0x6e, 0x97, 0xf7, 0xc2, 0x98, 0x45, 0x2d, 0xed, 0x88, 0x24, 0xf3, 0x35, 0xab, 0x51, 0xce, 0xda,
-	0xa7, 0xf2, 0x78, 0x03, 0x2d, 0x25, 0x74, 0x70, 0x08, 0x1f, 0xfb, 0xc0, 0x02, 0x10, 0x92, 0x2c,
-	0xe8, 0x01, 0x7f, 0x12, 0xc4, 0xdb, 0xe8, 0x51, 0x0a, 0x22, 0x89, 0xa5, 0x36, 0x0b, 0xc2, 0xdd,
-	0x30, 0x14, 0x20, 0x25, 0x48, 0xb2, 0x58, 0xb3, 0x1b, 0x15, 0x7f, 0x3a, 0x89, 0xdf, 0xa2, 0x4a,
-	0x02, 0x8a, 0x86, 0x54, 0x51, 0x49, 0xee, 0xd5, 0xec, 0x46, 0x75, 0xf3, 0x89, 0xf7, 0xf7, 0x6c,
-	0xbd, 0x23, 0x7e, 0x02, 0xac, 0x6d, 0xa6, 0x5a, 0xe5, 0xf3, 0x5f, 0xeb, 0x25, 0xbf, 0x50, 0xc1,
-	0x1d, 0xb4, 0x6c, 0xde, 0xba, 0x43, 0x83, 0x80, 0xf7, 0x99, 0x92, 0xa4, 0x92, 0x29, 0x7b, 0xb3,
-	0x94, 0x5f, 0x0d, 0xe7, 0x76, 0x87, 0x63, 0x46, 0xfa, 0x41, 0x34, 0x81, 0xca, 0xba, 0x83, 0xc8,
-	0xf5, 0x6c, 0x7d, 0x90, 0x29, 0x67, 0x12, 0xea, 0x5f, 0xe6, 0xd0, 0xfd, 0xb6, 0x8c, 0xde, 0xa5,
-	0x21, 0x55, 0x3a, 0x1c, 0x05, 0xff, 0x11, 0x7b, 0x55, 0x2a, 0x2a, 0xd4, 0x3e, 0xc4, 0x51, 0x57,
-	0x65, 0xc1, 0x97, 0xfd, 0x71, 0x48, 0xcf, 0xb3, 0x7e, 0x62, 0x52, 0x2c, 0x67, 0x7c, 0x01, 0xe0,
-	0x55, 0xb4, 0xb0, 0xb7, 0x9b, 0xdd, 0x87, 0xf9, 0x4c, 0xda, 0x54, 0x7a, 0x9f, 0x53, 0x10, 0xfa,
-	0xbd, 0x4d, 0x90, 0xa3, 0x12, 0xef, 0x23, 0xbb, 0xb5, 0xa7, 0x03, 0xb3, 0x1a, 0xd5, 0xcd, 0xa7,
-	0xb3, 0xcc, 0xca, 0x8e, 0xd9, 0xcb, 0x3f, 0x27, 0x69, 0xec, 0xd2, 0x12, 0x75, 0x82, 0x56, 0x27,
-	0x5d, 0xc8, 0x0d, 0x4a, 0x33, 0xc6, 0xd8, 0x66, 0xfc, 0x7e, 0x79, 0x0a, 0x4c, 0xe9, 0xbd, 0xe8,
-	0xf0, 0x5e, 0x8c, 0x7c, 0x32, 0x25, 0x7e, 0x8c, 0x50, 0xd0, 0xa5, 0x8c, 0x41, 0xaf, 0x13, 0xe7,
-	0x46, 0x19, 0xe4, 0x20, 0xd4, 0xb4, 0xd9, 0x49, 0xd3, 0xf6, 0x35, 0x1f, 0xeb, 0x35, 0xe4, 0x4e,
-	0x3f, 0x71, 0xb4, 0xd3, 0xe6, 0x57, 0x1b, 0xd9, 0x6d, 0x19, 0xe1, 0xcf, 0x68, 0x69, 0xf2, 0x8b,
-	0x9d, 0xe9, 0xc1, 0xf5, 0x7b, 0xe0, 0x3c, 0xbb, 0xeb, 0xc4, 0x68, 0x09, 0xdc, 0x47, 0xd5, 0xf1,
-	0x5b, 0xe3, 0xdd, 0x42, 0x68, 0xac, 0xdf, 0xd9, 0xb9, 0x5b, 0x7f, 0x7e, 0xec, 0x37, 0x0b, 0x3d,
-	0x3c, 0x12, 0x71, 0x14, 0x81, 0x98, 0x48, 0xe3, 0x36, 0x7a, 0x53, 0x3c, 0x75, 0x9e, 0xff, 0xdb,
-	0xdc, 0x68, 0x9f, 0xd6, 0xeb, 0xf3, 0x4b, 0xd7, 0xba, 0xb8, 0x74, 0xad, 0xdf, 0x97, 0xae, 0xf5,
-	0xfd, 0xca, 0x2d, 0x5d, 0x5c, 0xb9, 0xa5, 0x1f, 0x57, 0x6e, 0xe9, 0xc3, 0x76, 0x14, 0xab, 0x6e,
-	0xff, 0xd8, 0x0b, 0x78, 0xd2, 0x1c, 0x3f, 0xa3, 0x28, 0x9a, 0xa7, 0x5b, 0xcd, 0x41, 0xf1, 0x5b,
-	0x71, 0x96, 0x82, 0x3c, 0x5e, 0xc8, 0xfe, 0x21, 0x6f, 0xfd, 0x09, 0x00, 0x00, 0xff, 0xff, 0xc2,
-	0x31, 0xcb, 0xe7, 0x4d, 0x06, 0x00, 0x00,
+	// 586 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x94, 0x41, 0x6f, 0xd3, 0x30,
+	0x14, 0xc7, 0x9b, 0xb6, 0xdb, 0xa8, 0xcb, 0x10, 0xb2, 0xc6, 0x64, 0x45, 0x53, 0xa8, 0xaa, 0x1d,
+	0x72, 0x21, 0x41, 0xdb, 0x34, 0x71, 0x5d, 0xa9, 0xd0, 0x38, 0x14, 0x8d, 0x0c, 0x84, 0xc4, 0x05,
+	0xb9, 0xb1, 0x49, 0xa2, 0x36, 0x71, 0xb0, 0x9d, 0xa9, 0x85, 0x2b, 0x1f, 0x80, 0x8f, 0xb5, 0xe3,
+	0x8e, 0x9c, 0x10, 0x6a, 0xbf, 0x00, 0x57, 0x6e, 0xc8, 0x6e, 0xda, 0xa4, 0xa5, 0x62, 0x9d, 0xb8,
+	0xe5, 0xfd, 0xdf, 0x7b, 0xff, 0x67, 0xff, 0x5e, 0x12, 0x60, 0x92, 0x71, 0x4c, 0x13, 0x11, 0xb1,
+	0xc4, 0xe5, 0x6c, 0x38, 0xc4, 0x69, 0xea, 0xca, 0x91, 0x93, 0x72, 0x26, 0x19, 0xb4, 0x16, 0xb9,
+	0xd1, 0xf8, 0xb3, 0xb3, 0x08, 0x9c, 0xbc, 0xd0, 0xb4, 0xff, 0xee, 0xed, 0x0f, 0x99, 0x3f, 0xf8,
+	0x40, 0xa8, 0xf0, 0x79, 0x94, 0x4a, 0xc6, 0x67, 0x4e, 0xe6, 0xc1, 0x9a, 0x4a, 0x9c, 0x0c, 0xf2,
+	0xec, 0x5e, 0xc0, 0x02, 0xa6, 0x1f, 0x5d, 0xf5, 0x34, 0x53, 0xdb, 0xbf, 0xab, 0xe0, 0x61, 0x4f,
+	0x04, 0xcf, 0x39, 0xc5, 0x92, 0x7a, 0xb3, 0x2e, 0x88, 0xc0, 0x8e, 0xaf, 0x04, 0xc6, 0x91, 0xd1,
+	0x32, 0xec, 0x86, 0x37, 0x0f, 0xe1, 0x01, 0x68, 0xe4, 0xd6, 0x2f, 0x09, 0xaa, 0xea, 0x5c, 0x21,
+	0xc0, 0x16, 0x68, 0xf8, 0x8c, 0xd0, 0x4b, 0x89, 0xe3, 0x14, 0xd5, 0x54, 0xb6, 0x53, 0x45, 0x86,
+	0x57, 0x88, 0xf0, 0x10, 0x34, 0x03, 0x9a, 0x50, 0x11, 0x89, 0x0b, 0x2c, 0x43, 0x54, 0x5f, 0xd4,
+	0x94, 0x65, 0x78, 0x0a, 0xf6, 0x62, 0x3c, 0x7a, 0x17, 0xc9, 0x30, 0x64, 0x43, 0x12, 0x25, 0x41,
+	0x47, 0x5d, 0x58, 0xa0, 0xad, 0x96, 0x61, 0xd7, 0x75, 0xf9, 0xda, 0x3c, 0x3c, 0x04, 0xbb, 0x31,
+	0x1e, 0x5d, 0xd2, 0x4f, 0x19, 0x4d, 0x7c, 0xca, 0x05, 0xda, 0x56, 0x0d, 0xde, 0xb2, 0x08, 0x4f,
+	0xc0, 0xa3, 0x94, 0xf2, 0x38, 0x12, 0x8a, 0x14, 0x25, 0x67, 0x84, 0x70, 0x2a, 0x04, 0x15, 0x68,
+	0xa7, 0x55, 0xb3, 0x1b, 0xde, 0xfa, 0x24, 0x7c, 0x0d, 0x1a, 0x31, 0x95, 0x98, 0x60, 0x89, 0x05,
+	0xba, 0xd7, 0xaa, 0xd9, 0xcd, 0xa3, 0x27, 0xce, 0xbf, 0x57, 0xe7, 0xbc, 0x61, 0x03, 0x9a, 0xf4,
+	0xf2, 0xae, 0x4e, 0xfd, 0xfa, 0xc7, 0xe3, 0x8a, 0x57, 0xb8, 0xb4, 0x4d, 0x80, 0x56, 0xd1, 0x7b,
+	0x54, 0xa4, 0x2c, 0x11, 0xb4, 0xfd, 0xb5, 0x0a, 0x1e, 0xf4, 0x44, 0xf0, 0x36, 0x25, 0x58, 0x2a,
+	0x76, 0x92, 0xfe, 0xc7, 0x56, 0x9a, 0x42, 0x62, 0x2e, 0xcf, 0x69, 0x14, 0x84, 0x52, 0xef, 0xa5,
+	0xee, 0x95, 0x25, 0xd5, 0x9f, 0x64, 0x71, 0x0e, 0xb9, 0xae, 0xf3, 0x85, 0x00, 0xf7, 0xc1, 0x76,
+	0xf7, 0x4c, 0xaf, 0x6b, 0x4b, 0x5b, 0xe7, 0x91, 0x3a, 0xcf, 0x15, 0xe5, 0xea, 0xc2, 0x39, 0xe7,
+	0x79, 0x08, 0xcf, 0x41, 0xad, 0xd3, 0x55, 0x3c, 0x0d, 0xbb, 0x79, 0xf4, 0xf4, 0x36, 0x4a, 0x7a,
+	0x4c, 0x77, 0xf1, 0x32, 0x8b, 0x1c, 0x94, 0xb2, 0x68, 0x23, 0xb0, 0xbf, 0x4c, 0x61, 0x01, 0x28,
+	0xd4, 0x7c, 0x2e, 0xb3, 0x7e, 0x1c, 0xc9, 0x17, 0x1c, 0x67, 0x64, 0x33, 0x3e, 0xdd, 0x55, 0x3e,
+	0x5d, 0x68, 0x01, 0xa0, 0x0d, 0x2e, 0x38, 0x63, 0x1f, 0x35, 0x9e, 0xfb, 0x5e, 0x49, 0xc9, 0xcf,
+	0x50, 0x9a, 0x34, 0x3f, 0xc3, 0xd1, 0xaf, 0x2a, 0xa8, 0xf5, 0x44, 0x00, 0xbf, 0x80, 0xdd, 0xe5,
+	0x0f, 0xe8, 0xd6, 0x3b, 0xaf, 0xee, 0xdd, 0x7c, 0x76, 0xd7, 0x8e, 0xf9, 0x21, 0x60, 0x06, 0x9a,
+	0xe5, 0xb7, 0xc4, 0xd9, 0xc0, 0xa8, 0x54, 0x6f, 0x9e, 0xde, 0xad, 0xbe, 0x3c, 0xb6, 0x0c, 0x7f,
+	0x93, 0xb1, 0xa5, 0xfa, 0x8d, 0xc6, 0xae, 0x41, 0xde, 0x79, 0x75, 0x3d, 0xb1, 0x8c, 0x9b, 0x89,
+	0x65, 0xfc, 0x9c, 0x58, 0xc6, 0xb7, 0xa9, 0x55, 0xb9, 0x99, 0x5a, 0x95, 0xef, 0x53, 0xab, 0xf2,
+	0xfe, 0x24, 0x88, 0x64, 0x98, 0xf5, 0x1d, 0x9f, 0xc5, 0x6e, 0xd9, 0xbb, 0x08, 0xdc, 0xab, 0x63,
+	0x77, 0x54, 0xfc, 0x80, 0xc7, 0x29, 0x15, 0xfd, 0x6d, 0xfd, 0x1b, 0x3c, 0xfe, 0x13, 0x00, 0x00,
+	0xff, 0xff, 0xd2, 0xfc, 0xcd, 0x06, 0xa2, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -499,7 +483,7 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error)
 	UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error)
+	SubmitFraud(ctx context.Context, in *MsgSubmitFraud, opts ...grpc.CallOption) (*MsgSubmitFraudResponse, error)
 }
 
 type msgClient struct {
@@ -528,9 +512,9 @@ func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ..
 	return out, nil
 }
 
-func (c *msgClient) TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error) {
-	out := new(MsgRollappGenesisEventResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent", in, out, opts...)
+func (c *msgClient) SubmitFraud(ctx context.Context, in *MsgSubmitFraud, opts ...grpc.CallOption) (*MsgSubmitFraudResponse, error) {
+	out := new(MsgSubmitFraudResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/SubmitFraud", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -541,7 +525,7 @@ func (c *msgClient) TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenes
 type MsgServer interface {
 	CreateRollapp(context.Context, *MsgCreateRollapp) (*MsgCreateRollappResponse, error)
 	UpdateState(context.Context, *MsgUpdateState) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(context.Context, *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error)
+	SubmitFraud(context.Context, *MsgSubmitFraud) (*MsgSubmitFraudResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -554,8 +538,8 @@ func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreate
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
 }
-func (*UnimplementedMsgServer) TriggerGenesisEvent(ctx context.Context, req *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TriggerGenesisEvent not implemented")
+func (*UnimplementedMsgServer) SubmitFraud(ctx context.Context, req *MsgSubmitFraud) (*MsgSubmitFraudResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SubmitFraud not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -598,20 +582,20 @@ func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_TriggerGenesisEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRollappGenesisEvent)
+func _Msg_SubmitFraud_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSubmitFraud)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, in)
+		return srv.(MsgServer).SubmitFraud(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent",
+		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/SubmitFraud",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, req.(*MsgRollappGenesisEvent))
+		return srv.(MsgServer).SubmitFraud(ctx, req.(*MsgSubmitFraud))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -629,8 +613,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_UpdateState_Handler,
 		},
 		{
-			MethodName: "TriggerGenesisEvent",
-			Handler:    _Msg_TriggerGenesisEvent_Handler,
+			MethodName: "SubmitFraud",
+			Handler:    _Msg_SubmitFraud_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -657,20 +641,6 @@ func (m *MsgCreateRollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.GenesisAccounts) > 0 {
-		for iNdEx := len(m.GenesisAccounts) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.GenesisAccounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x4a
-		}
-	}
 	if len(m.Metadatas) > 0 {
 		for iNdEx := len(m.Metadatas) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -850,7 +820,7 @@ func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRollappGenesisEvent) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitFraud) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -860,41 +830,41 @@ func (m *MsgRollappGenesisEvent) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRollappGenesisEvent) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitFraud) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRollappGenesisEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitFraud) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+	if len(m.FraudProof) > 0 {
+		i -= len(m.FraudProof)
+		copy(dAtA[i:], m.FraudProof)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FraudProof)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.ChannelId) > 0 {
-		i -= len(m.ChannelId)
-		copy(dAtA[i:], m.ChannelId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
+	if len(m.RollappID) > 0 {
+		i -= len(m.RollappID)
+		copy(dAtA[i:], m.RollappID)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappID)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRollappGenesisEventResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgSubmitFraudResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -904,12 +874,12 @@ func (m *MsgRollappGenesisEventResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRollappGenesisEventResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgSubmitFraudResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRollappGenesisEventResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgSubmitFraudResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -968,12 +938,6 @@ func (m *MsgCreateRollapp) Size() (n int) {
 			n += 1 + l + sovTx(uint64(l))
 		}
 	}
-	if len(m.GenesisAccounts) > 0 {
-		for _, e := range m.GenesisAccounts {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
 	return n
 }
 
@@ -1027,28 +991,28 @@ func (m *MsgUpdateStateResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRollappGenesisEvent) Size() (n int) {
+func (m *MsgSubmitFraud) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Address)
+	l = len(m.Creator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.ChannelId)
+	l = len(m.RollappID)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.RollappId)
+	l = len(m.FraudProof)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
 
-func (m *MsgRollappGenesisEventResponse) Size() (n int) {
+func (m *MsgSubmitFraudResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1321,40 +1285,6 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 			}
 			m.Metadatas = append(m.Metadatas, TokenMetadata{})
 			if err := m.Metadatas[len(m.Metadatas)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GenesisAccounts", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GenesisAccounts = append(m.GenesisAccounts, GenesisAccount{})
-			if err := m.GenesisAccounts[len(m.GenesisAccounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1715,7 +1645,7 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitFraud) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1738,15 +1668,15 @@ func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitFraud: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitFraud: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1774,11 +1704,11 @@ func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Address = string(dAtA[iNdEx:postIndex])
+			m.Creator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappID", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1806,13 +1736,13 @@ func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChannelId = string(dAtA[iNdEx:postIndex])
+			m.RollappID = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field FraudProof", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1822,23 +1752,25 @@ func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthTx
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthTx
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
+			m.FraudProof = append(m.FraudProof[:0], dAtA[iNdEx:postIndex]...)
+			if m.FraudProof == nil {
+				m.FraudProof = []byte{}
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1861,7 +1793,7 @@ func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRollappGenesisEventResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgSubmitFraudResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1884,10 +1816,10 @@ func (m *MsgRollappGenesisEventResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgSubmitFraudResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgSubmitFraudResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

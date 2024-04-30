@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -10,17 +11,22 @@ var _ rollapptypes.RollappHooks = rollapphook{}
 
 // Hooks wrapper struct for rollapp keeper.
 type rollapphook struct {
+	rollapptypes.BaseRollappHook
 	k Keeper
 }
 
 // Return the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollapphook{
+		rollapptypes.BaseRollappHook{},
 		k,
 	}
 }
 
 func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+	// fmt.Printf("BeforeUpdateState seqAddr(%s), rollappId(%s)\n", seqAddr, rollappId)
+	// hook.k.Logger(ctx).Error(fmt.Sprintf("not implemented: BeforeUpdateState seqAddr(%s), rollappId(%s)\n", seqAddr, rollappId))
+
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -28,41 +34,24 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	}
 
 	// check to see if the rollappId matches the one of the sequencer
-	if sequencer.RollappId != rollappId {
+	rollappFound := false
+	for _, rollapp := range sequencer.RollappIDs {
+		if rollapp == rollappId {
+			rollappFound = true
+			break
+		}
+	}
+	if !rollappFound {
 		return types.ErrSequencerRollappMismatch
 	}
 
 	// check to see if the sequencer is active and can make the update
-	if sequencer.Status != types.Bonded {
-		return types.ErrInvalidSequencerStatus
+	scheduler, found := hook.k.GetScheduler(ctx, seqAddr)
+	if !found {
+		return sdkerrors.Wrapf(sdkerrors.ErrLogic, "sequencer address: %s not registered in scheduler", seqAddr)
 	}
-
-	if !sequencer.Proposer {
+	if scheduler.Status != types.Proposer {
 		return types.ErrNotActiveSequencer
 	}
-	return nil
-}
-
-func (hook rollapphook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
-	return nil
-}
-
-// FraudSubmitted implements the RollappHooks interface
-// It slashes the sequencer and unbonds all other bonded sequencers
-func (hook rollapphook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	err := hook.k.Slashing(ctx, seqAddr)
-	if err != nil {
-		return err
-	}
-
-	// unbond all other bonded sequencers
-	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	for _, sequencer := range sequencers {
-		err := hook.k.forceUnbondSequencer(ctx, sequencer.SequencerAddress)
-		if err != nil {
-			return err
-		}
-	}
-
 	return nil
 }

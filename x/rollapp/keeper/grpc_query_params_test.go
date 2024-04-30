@@ -14,7 +14,7 @@ func TestParamsQuery(t *testing.T) {
 	keeper, ctx := testkeeper.RollappKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	params := types.DefaultParams()
-	params.DeployerWhitelist = []types.DeployerParams{{Address: sample.AccAddress()}, {Address: sample.AccAddress()}}
+	params.DeployerWhitelist = []types.DeployerParams{{Address: sample.AccAddress(), MaxRollapps: 0}, {Address: sample.AccAddress(), MaxRollapps: 100}}
 	keeper.SetParams(ctx, params)
 
 	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})

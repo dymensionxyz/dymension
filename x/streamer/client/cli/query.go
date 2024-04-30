@@ -35,8 +35,7 @@ func GetCmdToDistributeCoins() (*osmocli.QueryDescriptor, *types.ModuleToDistrib
 			Use:   "to-distribute-coins",
 			Short: "Query coins that is going to be distributed",
 			Long: `This command allows you to query the coins that are scheduled to be distributed.
-		It returns a list of coins with their denominations and amounts.`,
-		},
+		It returns a list of coins with their denominations and amounts.`},
 		&types.ModuleToDistributeCoinsRequest{}
 }
 
@@ -47,8 +46,7 @@ func GetCmdStreamByID() (*osmocli.QueryDescriptor, *types.StreamByIDRequest) {
 		Short: "Query stream by id.",
 		Long: `{{.Short}}{{.ExampleHeader}}
 {{.CommandPrefix}} stream-by-id 1
-`,
-	}, &types.StreamByIDRequest{}
+`}, &types.StreamByIDRequest{}
 }
 
 // GetCmdActiveStreams returns active streams.
@@ -58,8 +56,7 @@ func GetCmdActiveStreams() (*osmocli.QueryDescriptor, *types.ActiveStreamsReques
 			Short: "Query active streams",
 			Long: `This command allows you to query all active streams.
 		An active stream is a stream that is currently in progress.
-		The command returns a list of active streams with their details.`,
-		},
+		The command returns a list of active streams with their details.`},
 		&types.ActiveStreamsRequest{}
 }
 
@@ -70,7 +67,6 @@ func GetCmdUpcomingStreams() (*osmocli.QueryDescriptor, *types.UpcomingStreamsRe
 			Short: "Query upcoming streams",
 			Long: `This command allows you to query all upcoming streams.
 		An upcoming stream is a stream that is scheduled to start in the future.
-		The command returns a list of upcoming streams with their details, including the start time, end time, and the coins it contains.`,
-		},
+		The command returns a list of upcoming streams with their details, including the start time, end time, and the coins it contains.`},
 		&types.UpcomingStreamsRequest{}
 }

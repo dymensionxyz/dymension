@@ -13,7 +13,6 @@ func TestParamsQuery(t *testing.T) {
 	keeper, ctx := testkeeper.SequencerKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
 	params := types.DefaultParams()
-	params.UnbondingTime = 1234
 	keeper.SetParams(ctx, params)
 
 	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})

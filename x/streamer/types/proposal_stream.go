@@ -18,14 +18,13 @@ const (
 )
 
 // Assert CreateStreamProposal implements govtypes.Content at compile-time
-var (
-	_ govtypes.Content = &CreateStreamProposal{}
-	_ govtypes.Content = &TerminateStreamProposal{}
-)
+var _ govtypes.Content = &CreateStreamProposal{}
+var _ govtypes.Content = &TerminateStreamProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCreateStream)
 	govtypes.RegisterProposalType(ProposalTypeTerminateStream)
+
 }
 
 // NewCreateStreamProposal creates a new create stream proposal.

@@ -48,7 +48,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 				return err
 			}
 
-			// TODO: fix to flag
+			//TODO: fix to flag
 			if len(args) > 0 && args[0] == "tendermint" {
 				return getTendermintState(serverCtx.Config)
 			}

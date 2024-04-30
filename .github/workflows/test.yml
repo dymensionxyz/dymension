@@ -7,22 +7,25 @@ on:
       - main
   pull_request:
 jobs:
+
   build:
     runs-on: ubuntu-latest
-    env:
-      GOPROXY: https://proxy.golang.org
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.22"
-      - name: Build
-        run: go build -v ./...
-      - name: Test & Coverage
-        run: |
-          go install github.com/ory/go-acc@v0.2.6
-          go-acc -o coverage.txt ./... -- -v --race
-      - uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.txt
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: 1.19
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test & Coverage
+      run: |
+        go install github.com/ory/go-acc@v0.2.6
+        go-acc -o coverage.txt ./... -- -v --race
+
+    - uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.txt

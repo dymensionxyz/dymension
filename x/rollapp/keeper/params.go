@@ -35,13 +35,3 @@ func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
 	return
 }
-
-func (k Keeper) IsAddressInDeployerWhiteList(ctx sdk.Context, address string) bool {
-	whitelist := k.DeployerWhitelist(ctx)
-	for _, item := range whitelist {
-		if item.Address == address {
-			return true
-		}
-	}
-	return false
-}

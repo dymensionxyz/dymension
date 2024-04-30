@@ -26,9 +26,6 @@ jobs:
         - 
           name: Check out the repo
           uses: actions/checkout@v3
-        -
-          name: Set up QEMU
-          uses: docker/setup-qemu-action@v3
         - 
           name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
@@ -58,7 +55,7 @@ jobs:
             file: Dockerfile
             context: .
             push: true
-            platforms: linux/amd64, linux/arm64
+            platforms: linux/amd64
             tags: |
                 ghcr.io/dymensionxyz/dymension:${{ env.MAJOR_VERSION }}
                 ghcr.io/dymensionxyz/dymension:${{ env.MAJOR_VERSION }}.${{ env.MINOR_VERSION }}

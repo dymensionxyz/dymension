@@ -1,13 +1,14 @@
 package keeper_test
 
 import (
-	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"testing"
 
 	"github.com/stretchr/testify/suite"
 
@@ -16,16 +17,18 @@ import (
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 )
 
-var defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
-	{
-		GaugeId: 1,
-		Weight:  math.NewInt(50),
-	},
-	{
-		GaugeId: 2,
-		Weight:  math.NewInt(50),
-	},
-}
+var (
+	defaultDistrInfo []types.DistrRecord = []types.DistrRecord{
+		{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
+		{
+			GaugeId: 2,
+			Weight:  math.NewInt(50),
+		},
+	}
+)
 
 type KeeperTestSuite struct {
 	apptesting.KeeperTestHelper

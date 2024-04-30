@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	app "github.com/dymensionxyz/dymension/v3/app"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -20,7 +20,7 @@ import (
 func TestStreamerExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
-	app := apptesting.Setup(t, false)
+	app := app.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 	genesis := app.StreamerKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
@@ -78,7 +78,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 
 // TestStreamerInitGenesis takes a genesis state and tests initializing that genesis for the streamer module.
 func TestStreamerInitGenesis(t *testing.T) {
-	app := apptesting.Setup(t, false)
+	app := app.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
 
 	// checks that the default genesis parameters pass validation
@@ -91,11 +91,10 @@ func TestStreamerInitGenesis(t *testing.T) {
 
 	distr := types.DistrInfo{
 		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{
-			{
-				GaugeId: 1,
-				Weight:  math.NewInt(50),
-			},
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
 			{
 				GaugeId: 2,
 				Weight:  math.NewInt(50),
@@ -130,7 +129,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 }
 
 func TestStreamerOrder(t *testing.T) {
-	app := apptesting.Setup(t, false)
+	app := app.Setup(t, false)
 	ctx := app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockTime(time.Now())
 
 	// checks that the default genesis parameters pass validation
@@ -142,11 +141,10 @@ func TestStreamerOrder(t *testing.T) {
 
 	distr := types.DistrInfo{
 		TotalWeight: math.NewInt(100),
-		Records: []types.DistrRecord{
-			{
-				GaugeId: 1,
-				Weight:  math.NewInt(50),
-			},
+		Records: []types.DistrRecord{{
+			GaugeId: 1,
+			Weight:  math.NewInt(50),
+		},
 			{
 				GaugeId: 2,
 				Weight:  math.NewInt(50),

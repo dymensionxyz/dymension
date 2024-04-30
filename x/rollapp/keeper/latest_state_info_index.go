@@ -21,6 +21,7 @@ func (k Keeper) SetLatestStateInfoIndex(ctx sdk.Context, latestStateInfoIndex ty
 func (k Keeper) GetLatestStateInfoIndex(
 	ctx sdk.Context,
 	rollappId string,
+
 ) (val types.StateInfoIndex, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 
@@ -39,6 +40,7 @@ func (k Keeper) GetLatestStateInfoIndex(
 func (k Keeper) RemoveLatestStateInfoIndex(
 	ctx sdk.Context,
 	rollappId string,
+
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.LatestStateInfoIndexKeyPrefix))
 	store.Delete(types.LatestStateInfoIndexKey(

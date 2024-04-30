@@ -157,6 +157,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		txCommand(),
 		ethermintclient.KeyCommands(app.DefaultNodeHome),
 	)
+
 }
 
 // queryCommand returns the sub-command to send queries to the app

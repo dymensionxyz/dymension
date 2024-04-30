@@ -82,23 +82,22 @@ all: install
 install: go.sum
 	go install -mod=readonly $(BUILD_FLAGS) ./cmd/dymd
 
-.PHONY: build build-debug
-
+.PHONY: build
 build: go.sum
-	go build $(BUILD_FLAGS) -o $(BUILDDIR)/dymd ./cmd/dymd
+	go build $(BUILD_FLAGS) -o build/dymd ./cmd/dymd
 
-build-debug: go.sum
-	$(eval temp_ldflags := $(filter-out -w -s,$(ldflags)))
-	go build -tags "$(build_tags)" -ldflags '$(temp_ldflags)' -gcflags "all=-N -l" -o $(BUILDDIR)/dymd ./cmd/dymd
+###############################################################################
+###                                E2E tests                                ###
+###############################################################################
 
-docker-build-e2e:
-	@DOCKER_BUILDKIT=1 docker build -t ghcr.io/dymensionxyz/dymension:e2e -f Dockerfile .
+# Executes IBC tests via rollup-e2e-testing
+e2e-test-ibc:
+	cd e2e && go test -timeout=25m -race -v -run TestIBCTransfer .
 
-docker-build-e2e-debug:
-	@DOCKER_BUILDKIT=1 CGO_ENABLED=0 docker build -t ghcr.io/dymensionxyz/dymension:e2e-debug -f Dockerfile.debug .
+# Executes all tests via rollup-e2e-testing
+e2e-test-all: ictest-ibc
 
-docker-run-debug:
-	@DOCKER_BUILDKIT=1 docker-compose -f docker-compose.debug.yml up
+.PHONY: e2e-test-ibc e2e-test-all
 
 ###############################################################################
 ###                                Proto                                    ###

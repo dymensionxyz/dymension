@@ -12,6 +12,9 @@ message BlockDescriptor {
   uint64 height = 1; 
   // stateRoot is a 32 byte array of the hash of the block (state root of the block)
   bytes stateRoot = 2; 
+  // intermediateStatesRoot is a 32 byte array representing 
+  // the root of a Merkle tree built from the ISRs of the block (Intermediate State Roots)
+  repeated bytes intermediateStatesRoots = 3; 
 }
 
 // BlockDescriptors defines list of BlockDescriptor.

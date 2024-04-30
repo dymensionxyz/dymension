@@ -74,7 +74,7 @@ func getTendermintState(config *cfg.Config) error {
 	fmt.Printf("%+v\n", latestBlock)
 
 	if bh != state.LastBlockHeight {
-		// printing block for state height
+		//priniting block for state height
 		fmt.Println("LOADING BLOCK FOR STATE HEIGHT")
 		block := blockStore.LoadBlock(state.LastBlockHeight)
 		if block == nil {

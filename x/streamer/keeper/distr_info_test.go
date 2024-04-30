@@ -51,6 +51,7 @@ func (suite *KeeperTestSuite) TestAllocateToGauges() {
 
 	for name, test := range tests {
 		suite.Run(test.name, func() {
+
 			var streams []types.Stream
 			suite.SetupTest()
 
@@ -103,12 +104,12 @@ func TestNewDistrInfo(t *testing.T) {
 	records = []types.DistrRecord{
 		{Weight: sdk.NewInt(-1)},
 	}
-	_, err = types.NewDistrInfo(records)
+	distrInfo, err = types.NewDistrInfo(records)
 	require.Error(t, err)
 
 	// Test case: total weight not positive
 	records = []types.DistrRecord{}
-	_, err = types.NewDistrInfo(records)
+	distrInfo, err = types.NewDistrInfo(records)
 	require.Error(t, err)
 	require.Equal(t, err, types.ErrDistrInfoNotPositiveWeight)
 }

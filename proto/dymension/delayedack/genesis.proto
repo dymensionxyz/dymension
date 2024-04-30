@@ -2,16 +2,13 @@ syntax = "proto3";
 package dymensionxyz.dymension.delayedack;
 
 import "gogoproto/gogo.proto";
-import "dymension/delayedack/params.proto";
-import "dymension/common/rollapp_packet.proto";
+import "dymension/delayedack/rollapp_packet.proto";
 
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 
 // GenesisState defines the delayedack module's genesis state.
 message GenesisState {
-  // params are all the parameters of the module
-	Params params = 1 [(gogoproto.nullable) = false];
   // streams are all streams that should exist at genesis
-  repeated common.RollappPacket rollapp_packets = 2 [ (gogoproto.nullable) = false ];
+  repeated RollappPacket rollapp_packets = 2 [ (gogoproto.nullable) = false ];
 }

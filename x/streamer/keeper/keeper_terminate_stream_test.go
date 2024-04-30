@@ -85,7 +85,7 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleToDistributeCoins() {
 	// create upcoming stream
 	id1, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinUpcoming}, time.Now().Add(10*time.Minute), "day", 30)
 
-	// create active stream
+	//create active stream
 	id2, stream2 := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinActive}, time.Time{}, "day", 30)
 	err := suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream2)
 	suite.Require().NoError(err)
@@ -116,7 +116,7 @@ func (suite *KeeperTestSuite) TestTerminateStream_ModuleDistributedCoins() {
 	// create upcoming stream
 	id1, _ := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinUpcoming}, time.Now().Add(10*time.Minute), "day", 30)
 
-	// create active stream
+	//create active stream
 	id2, stream2 := suite.CreateStream(defaultDistrInfo, sdk.Coins{coinActive}, time.Time{}, "day", 10)
 	err = suite.App.StreamerKeeper.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream2)
 	suite.Require().NoError(err)

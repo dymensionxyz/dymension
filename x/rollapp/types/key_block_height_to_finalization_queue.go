@@ -11,13 +11,13 @@ const (
 
 // BlockHeightToFinalizationQueueKey returns the store key to retrieve a BlockHeightToFinalizationQueue from the index fields
 func BlockHeightToFinalizationQueueKey(
-	creationHeight uint64,
+	finalizationHeight uint64,
 ) []byte {
 	var key []byte
 
-	creationHeightBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(creationHeightBytes, creationHeight)
-	key = append(key, creationHeightBytes...)
+	finalizationHeightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(finalizationHeightBytes, finalizationHeight)
+	key = append(key, finalizationHeightBytes...)
 	key = append(key, []byte("/")...)
 
 	return key

@@ -16,14 +16,13 @@ const (
 )
 
 // Assert ReplaceStreamDistributionProposal implements govtypes.Content at compile-time
-var (
-	_ govtypes.Content = &ReplaceStreamDistributionProposal{}
-	_ govtypes.Content = &UpdateStreamDistributionProposal{}
-)
+var _ govtypes.Content = &ReplaceStreamDistributionProposal{}
+var _ govtypes.Content = &UpdateStreamDistributionProposal{}
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeReplaceStreamDistribution)
 	govtypes.RegisterProposalType(ProposalTypeUpdateStreamDistribution)
+
 }
 
 // NewReplaceStreamDistributionProposal creates a new ReplaceStreamDistribution proposal.

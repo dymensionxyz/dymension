@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"encoding/json"
 	"strconv"
+
+	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

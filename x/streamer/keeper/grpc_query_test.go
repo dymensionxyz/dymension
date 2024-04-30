@@ -109,8 +109,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveStreams() {
 
 		// move the first 9 streams from upcoming to active (now 10 active streams, 30 total streams)
 		if i < 9 {
-			err = suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
-			suite.Require().NoError(err)
+			suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 		}
 	}
 
@@ -155,8 +154,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingStreams() {
 		// move the first 9 created streams to an active status
 		// 1 + (20 -9) = 12 upcoming streams
 		if i < 9 {
-			err = suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
-			suite.Require().NoError(err)
+			suite.querier.MoveUpcomingStreamToActiveStream(suite.Ctx, *stream)
 		}
 	}
 

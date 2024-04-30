@@ -3,10 +3,13 @@ package cli
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/spf13/cobra"
 )
 
+// TODO: move to utils/cli package
 func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {
 	gaugeIds, err := osmoutils.ParseUint64SliceFromString(gaugesRaw, ",")
 	if err != nil {
@@ -34,4 +37,17 @@ func parseRecords(gaugesRaw, weightsRaw string) ([]types.DistrRecord, error) {
 		})
 	}
 	return records, nil
+}
+
+func parseProposal(cmd *cobra.Command) (osmoutils.Proposal, sdk.Coins, error) {
+	proposal, err := osmoutils.ParseProposalFlags(cmd.Flags())
+	if err != nil {
+		return osmoutils.Proposal{}, nil, fmt.Errorf("failed to parse proposal: %w", err)
+	}
+
+	deposit, err := sdk.ParseCoinsNormalized(proposal.Deposit)
+	if err != nil {
+		return osmoutils.Proposal{}, nil, err
+	}
+	return *proposal, deposit, nil
 }

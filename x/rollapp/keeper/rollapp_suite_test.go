@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
@@ -40,16 +40,21 @@ const (
 	balTokenCarol                 = 1
 )
 
-var rollappModuleAddress string
+var (
+	rollappModuleAddress string
+)
 
 type RollappTestSuite struct {
-	apptesting.KeeperTestHelper
+	suite.Suite
+
+	app         *app.App
 	msgServer   types.MsgServer
+	ctx         sdk.Context
 	queryClient types.QueryClient
 }
 
 func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
-	app := apptesting.Setup(suite.T(), false)
+	app := app.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
 	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
@@ -61,30 +66,12 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	types.RegisterQueryServer(queryHelper, app.RollappKeeper)
 	queryClient := types.NewQueryClient(queryHelper)
 
-	suite.App = app
+	suite.app = app
 	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
-	suite.Ctx = ctx
+	suite.ctx = ctx
 	suite.queryClient = queryClient
 }
 
 func TestRollappKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(RollappTestSuite))
-}
-
-func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {
-	items := make([]types.Rollapp, n)
-	for i := range items {
-		items[i].RollappId = strconv.Itoa(i)
-		keeper.SetRollapp(ctx, items[i])
-	}
-
-	rollappSummaries := []types.RollappSummary{}
-	for _, item := range items {
-		rollappSummary := types.RollappSummary{
-			RollappId: item.RollappId,
-		}
-		rollappSummaries = append(rollappSummaries, rollappSummary)
-	}
-
-	return items, rollappSummaries
 }
