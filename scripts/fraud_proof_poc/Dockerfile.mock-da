@@ -1,0 +1,12 @@
+FROM golang:1.21.7-alpine AS builder
+
+RUN apk add git alpine-sdk
+RUN apk add linux-headers
+
+RUN git clone https://github.com/dymensionxyz/dymint.git
+WORKDIR /go/dymint/da/grpc/mockserv/cmd
+RUN go mod tidy
+
+EXPOSE 7980
+
+ENTRYPOINT ["go", "run", "main.go"]

@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ethcmd "github.com/evmos/evmos/v12/cmd/config"
 )
 
 const (
@@ -23,6 +24,8 @@ const (
 func init() {
 	SetAddressPrefixes()
 	RegisterDenoms()
+	ethcmd.SetBip44CoinType(sdk.GetConfig())
+	sdk.GetConfig().Seal()
 }
 
 // RegisterDenoms registers the base and display denominations to the SDK.

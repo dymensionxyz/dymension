@@ -110,6 +110,7 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
 	ante "github.com/dymensionxyz/dymension/v3/app/ante"
+	fraudproof "github.com/dymensionxyz/dymension/v3/app/fraudproof"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
@@ -145,7 +146,7 @@ import (
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
-	"github.com/evmos/ethermint/ethereum/eip712"
+	"github.com/evmos/evmos/v12/ethereum/eip712"
 
 	"github.com/evmos/ethermint/server/flags"
 	ethermint "github.com/evmos/ethermint/types"
@@ -509,7 +510,7 @@ func New(
 	app.EvmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey], authtypes.NewModuleAddress(govtypes.ModuleName),
 		app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.FeeMarketKeeper,
-		nil, geth.NewEVM, tracer, app.GetSubspace(evmtypes.ModuleName),
+		tracer, app.GetSubspace(evmtypes.ModuleName),
 	)
 
 	// Osmosis keepers
@@ -630,6 +631,9 @@ func New(
 		app.BankKeeper,
 		app.DenomMetadataKeeper,
 	)
+
+	fraudProofVerifier := fraudproof.NewVerifier("dymension_rollapp") // TODO: name?
+	app.RollappKeeper.SetFraudProofVerifier(fraudProofVerifier.Run)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -957,6 +961,8 @@ func New(
 		BankKeeper:             app.BankKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
+		StakingKeeper:          app.StakingKeeper,
+		DistributionKeeper:     app.DistrKeeper,
 		EvmKeeper:              app.EvmKeeper,
 		FeegrantKeeper:         app.FeeGrantKeeper,
 		TxFeesKeeper:           app.TxFeesKeeper,

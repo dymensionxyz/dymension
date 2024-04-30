@@ -28,12 +28,9 @@ set_hub_params() {
 }
 
 set_consenus_params() {
-    # cometbft's updated values
-	# 	MaxBytes: 4194304,  // four megabytes
-	# 	MaxGas:   10000000, // ten million
     echo "setting consensus params"
     jq '.consensus_params["block"]["max_bytes"] = "4194304"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq '.consensus_params["block"]["max_gas"] = "10000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.consensus_params["block"]["max_gas"] = "-1"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_EVM_params() {
