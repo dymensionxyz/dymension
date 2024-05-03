@@ -62,7 +62,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 			count := 0
 
 			for _, o := range res.DemandOrders {
-				if !o.Price.AmountOf(denom).IsPositive() {
+				if denom != "" && !o.Price.AmountOf(denom).IsPositive() {
 					continue
 				}
 
