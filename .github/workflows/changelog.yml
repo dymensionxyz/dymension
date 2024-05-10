@@ -1,50 +1,40 @@
-name: Changelog Update
+name: Auto Changelog Update
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [opened, synchronize, reopened]
-
-permissions: write-all
 
 jobs:
   update_changelog:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout the repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: '18'
 
-      - name: Install conventional-changelog-cli
-        run: npm install -g conventional-changelog-cli
-
-      - name: Simulate commit for PR title
+      - name: Generate Changelog Update
         run: |
-          # Format PR title as a conventional commit message
-          echo "${{ github.event.pull_request.title }}" > temp_message.txt
-          # Temporarily commit this message
-          git commit --allow-empty -F temp_message.txt
+          npm install -g conventional-changelog-cli
+          conventional-changelog -p angular -i CHANGELOG.md -s
 
-      - name: Generate changelog
+      - name: Create or Update Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "Update CHANGELOG.md [skip ci]"
+          title: "Automated Changelog Update"
+          body: "Update the CHANGELOG.md with recent pushes to branch main."
+          branch: "auto-changelog-update"  # Static branch name
+          delete-branch: false
+          branch-suffix: none
+      - name: Check if PR needs to be updated
+        if: steps.cpr.outputs.pull-request-operation == 'updated'
         run: |
-          conventional-changelog -p angular -i CHANGELOG.md -s -r 0
-          cat CHANGELOG.md
-
-      - name: Revert temporary commit
-        run: git reset HEAD~
-
-      - name: Commit and push changelog update
-        run: |
-          git config user.name 'github-actions'
-          git config user.email 'github-actions@github.com'
-          git add CHANGELOG.md
-          git commit -m "Update CHANGELOG.md based on PR #${{ github.event.pull_request.number }} title"
-          git push origin HEAD:refs/heads/${{ github.head_ref }}
+          echo "Changelog PR updated due to new commit to main."
