@@ -1,4 +1,4 @@
-name: Update Daily Rewards
+name: Upgrade Testing
 
 on: 
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     
     steps: 
     - name: Checkout
