@@ -35,6 +35,7 @@ linters:
     - gofumpt
     - misspell
     - revive
+    - errorlint
     - errcheck
     - govet
     - ineffassign

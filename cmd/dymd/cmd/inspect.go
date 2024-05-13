@@ -69,7 +69,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			height, _ := cmd.Flags().GetInt64(FlagHeight)
 			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, false, []string{}, serverCtx.Viper)
 			if err != nil {
-				return fmt.Errorf("error exporting state: %v", err)
+				return fmt.Errorf("error exporting state: %w", err)
 			}
 
 			appState := exported.AppState
@@ -116,7 +116,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			dataDir := filepath.Join(config.RootDir, "data")
 			directories, err := os.ReadDir(dataDir)
 			if err != nil {
-				return fmt.Errorf("Error reading directory: %v", err)
+				return fmt.Errorf("error reading directory: %w", err)
 			}
 
 			for _, dir := range directories {
