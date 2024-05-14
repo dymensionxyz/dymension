@@ -12,29 +12,66 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Generate Changelog Update
+      - name: Configure Git
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Check if "auto-changelog-update-do-not-create-manually" branch exists
+        id: check_branch
+        run: |
+          if [ -n "$(git ls-remote --heads origin auto-changelog-update-do-not-create-manually)" ]; then
+            git fetch origin auto-changelog-update-do-not-create-manually
+            echo "branch_exists=true" >> $GITHUB_ENV
+          else
+            echo "branch_exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Generate Changelog Update and update if branch exists
         run: |
           npm install -g conventional-changelog-cli
-          conventional-changelog -p angular -i CHANGELOG.md -s
+          if [ "$branch_exists" == "true" ]; then
+            git checkout auto-changelog-update-do-not-create-manually
+            git merge main --strategy-option theirs --allow-unrelated-histories --no-edit
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0 --append
+            git add CHANGELOG.md
+            git commit -m "Update CHANGELOG.md [skip ci]"
+            git push origin auto-changelog-update-do-not-create-manually
+            exit 0
+          else
+            git checkout main
+            git checkout -b auto-changelog-update-do-not-create-manually
+            git push origin auto-changelog-update-do-not-create-manually
+            conventional-changelog -p angular -i CHANGELOG.md -s -r 0 --append
+          fi
 
-      - name: Create or Update Pull Request
+      - name: Create Pull Request
+        if: env.branch_exists == 'false'
         id: cpr
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Update CHANGELOG.md [skip ci]"
-          title: "Automated Changelog Update"
+          title: "Chore(changelog): Automated Changelog Update [skip ci]"
           body: "Update the CHANGELOG.md with recent pushes to branch main."
-          branch: "auto-changelog-update"  # Static branch name
-          delete-branch: false
-          branch-suffix: none
-      - name: Check if PR needs to be updated
+          base: "main"
+          branch: "auto-changelog-update-do-not-create-manually"
+          delete-branch: true
+
+      - name: Check outputs
+        if: env.branch_exists == 'false'
+        run: |
+          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+
+      - name: Log if PR updated
         if: steps.cpr.outputs.pull-request-operation == 'updated'
         run: |
           echo "Changelog PR updated due to new commit to main."
