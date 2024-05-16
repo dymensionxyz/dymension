@@ -24,7 +24,7 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
   - [Bootstrapping liquidity pools](#bootstrapping-liquidity-pools)
-  - [Debugging Dymension container with Devel](#debugging-dymension-container-with-devel)
+  - [Debugging Dymension container with Delve](#debugging-dymension-container-with-delve)
   - [Adding incentives](#adding-incentives)
     - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
@@ -165,7 +165,7 @@ Pre-requisite:
  Install [Docker](https://docs.docker.com/get-docker/)
  Install [VSCode](https://code.visualstudio.com/)
  Install [VSCode Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go)
- Install [Devel](https://github.com/go-delve/delve)
+ Install [Delve](https://github.com/go-delve/delve)
 
 To debug, you can use the following command to run the debug container:
 
