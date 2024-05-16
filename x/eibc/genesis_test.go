@@ -49,6 +49,7 @@ func TestInitGenesis(t *testing.T) {
 
 	require.ElementsMatch(t, genesisState.DemandOrders, got.DemandOrders)
 }
+
 func TestExportGenesis(t *testing.T) {
 	k, ctx := keepertest.EibcKeeper(t)
 	params := types.Params{
