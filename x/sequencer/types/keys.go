@@ -49,7 +49,7 @@ func SequencerKey(sequencerAddress string) []byte {
 	return []byte(fmt.Sprintf("%s%s%s", SequencersKeyPrefix, KeySeparator, sequencerAddrBytes))
 }
 
-// SequencersByRollappKey returns the store key to retrieve a SequencersByRollapp from the index fields
+// SequencerByRollappByStatusKey returns the store key to retrieve a SequencersByRollapp from the index fields
 func SequencerByRollappByStatusKey(rollappId, seqAddr string, status OperatingStatus) []byte {
 	return append(SequencersByRollappByStatusKey(rollappId, status), []byte(seqAddr)...)
 }

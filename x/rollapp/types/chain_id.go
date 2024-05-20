@@ -81,7 +81,7 @@ func getEIP155ID(chainID string) (*big.Int, error) {
 	return chainIDInt, nil
 }
 
-// getEIP155ID parses a string chain identifier and returns the revision number
+// getRevisionNumber parses a string chain identifier and returns the revision number
 func getRevisionNumber(chainID string) (uint64, error) {
 	matches := strings.Split(chainID, "-")
 	if len(matches) == 1 {
