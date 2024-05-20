@@ -115,6 +115,6 @@ repos:
   hooks:
     - id: validate-toml
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.34.0
+  rev: v0.39.0
   hooks:
     - id: markdownlint
