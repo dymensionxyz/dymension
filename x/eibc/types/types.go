@@ -6,6 +6,6 @@ const (
 	AttributeKeyId           = "id"
 	AttributeKeyPrice        = "price"
 	AttributeKeyFee          = "fee"
-	AttributeKeyIsFullfilled = "is_fulfilled"
+	AttributeKeyIsFulfilled  = "is_fulfilled"
 	AttributeKeyPacketStatus = "packet_status"
 )

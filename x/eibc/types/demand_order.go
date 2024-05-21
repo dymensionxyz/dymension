@@ -23,7 +23,7 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
 		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
-		IsFullfilled:         false,
+		IsFulfilled:          false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
 	}
 }
@@ -67,7 +67,7 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyId, m.Id),
 		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
-		sdk.NewAttribute(AttributeKeyIsFullfilled, strconv.FormatBool(m.IsFullfilled)),
+		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled)),
 		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
 	}
 	return eventAttributes

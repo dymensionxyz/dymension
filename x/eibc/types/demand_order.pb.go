@@ -6,20 +6,23 @@ package types
 import (
 	errors "errors"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/dymensionxyz/dymension/v3/x/common/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -37,7 +40,7 @@ type DemandOrder struct {
 	Price                github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
 	Fee                  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=fee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee"`
 	Recipient            string                                   `protobuf:"bytes,5,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	IsFullfilled         bool                                     `protobuf:"varint,6,opt,name=is_fullfilled,json=isFullfilled,proto3" json:"is_fullfilled,omitempty"`
+	IsFulfilled          bool                                     `protobuf:"varint,6,opt,name=is_fulfilled,json=isFulfilled,proto3" json:"is_fulfilled,omitempty"`
 	TrackingPacketStatus types1.Status                            `protobuf:"varint,8,opt,name=tracking_packet_status,json=trackingPacketStatus,proto3,enum=dymensionxyz.dymension.common.Status" json:"tracking_packet_status,omitempty"`
 }
 
@@ -47,9 +50,11 @@ func (*DemandOrder) ProtoMessage()    {}
 func (*DemandOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_3808f42eed32f331, []int{0}
 }
+
 func (m *DemandOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *DemandOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_DemandOrder.Marshal(b, m, deterministic)
@@ -62,12 +67,15 @@ func (m *DemandOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
+
 func (m *DemandOrder) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DemandOrder.Merge(m, src)
 }
+
 func (m *DemandOrder) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *DemandOrder) XXX_DiscardUnknown() {
 	xxx_messageInfo_DemandOrder.DiscardUnknown(m)
 }
@@ -109,9 +117,9 @@ func (m *DemandOrder) GetRecipient() string {
 	return ""
 }
 
-func (m *DemandOrder) GetIsFullfilled() bool {
+func (m *DemandOrder) GetIsFulfilled() bool {
 	if m != nil {
-		return m.IsFullfilled
+		return m.IsFulfilled
 	}
 	return false
 }
@@ -184,9 +192,9 @@ func (m *DemandOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x40
 	}
-	if m.IsFullfilled {
+	if m.IsFulfilled {
 		i--
-		if m.IsFullfilled {
+		if m.IsFulfilled {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
@@ -257,6 +265,7 @@ func encodeVarintDemandOrder(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *DemandOrder) Size() (n int) {
 	if m == nil {
 		return 0
@@ -287,7 +296,7 @@ func (m *DemandOrder) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovDemandOrder(uint64(l))
 	}
-	if m.IsFullfilled {
+	if m.IsFulfilled {
 		n += 2
 	}
 	if m.TrackingPacketStatus != 0 {
@@ -299,9 +308,11 @@ func (m *DemandOrder) Size() (n int) {
 func sovDemandOrder(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozDemandOrder(x uint64) (n int) {
 	return sovDemandOrder(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -497,7 +508,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsFullfilled", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field IsFulfilled", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -514,7 +525,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.IsFullfilled = bool(v != 0)
+			m.IsFulfilled = bool(v != 0)
 		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TrackingPacketStatus", wireType)
@@ -555,6 +566,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipDemandOrder(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

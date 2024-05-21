@@ -34,7 +34,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 	// Check that the order is not fulfilled yet
-	if demandOrder.IsFullfilled {
+	if demandOrder.IsFulfilled {
 		return nil, types.ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
