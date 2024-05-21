@@ -68,7 +68,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 // TriggerRollappGenesisEvent triggers the genesis event for the rollapp.
 func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollapp) error {
 	// Validate it hasn't been triggered yet
-	if rollapp.GenesisState.IsGenesisEvent {
+	if rollapp.GenesisState.GenesisEventHappened {
 		return types.ErrGenesisEventAlreadyTriggered
 	}
 
@@ -80,7 +80,7 @@ func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollap
 		return errorsmod.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
 	}
 
-	rollapp.GenesisState.IsGenesisEvent = true
+	rollapp.GenesisState.GenesisEventHappened = true
 	k.SetRollapp(ctx, rollapp)
 	return nil
 }

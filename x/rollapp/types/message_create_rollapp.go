@@ -46,9 +46,7 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
 	// Build the genesis state from the genesis accounts
-	rollappGenesisState := RollappGenesisState{
-		IsGenesisEvent: false,
-	}
+	rollappGenesisState := RollappGenesisState{}
 	rollappGenesisState.GenesisAccounts = make([]*GenesisAccount, len(msg.GenesisAccounts))
 	for i := range msg.GenesisAccounts {
 		rollappGenesisState.GenesisAccounts[i] = &msg.GenesisAccounts[i]
