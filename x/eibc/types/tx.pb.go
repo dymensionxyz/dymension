@@ -27,7 +27,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgFulfillOrder defines the FullfillOrder request type.
+// MsgFulfillOrder defines the FulfillOrder request type.
 type MsgFulfillOrder struct {
 	// fulfiller_address is the bech32-encoded address of the account which the message was sent from.
 	FulfillerAddress string `protobuf:"bytes,1,opt,name=fulfiller_address,json=fulfillerAddress,proto3" json:"fulfiller_address,omitempty"`
@@ -81,7 +81,7 @@ func (m *MsgFulfillOrder) GetOrderId() string {
 	return ""
 }
 
-// MsgFulfillOrderResponse defines the FullfillOrder response type.
+// MsgFulfillOrderResponse defines the FulfillOrder response type.
 type MsgFulfillOrderResponse struct {
 }
 
