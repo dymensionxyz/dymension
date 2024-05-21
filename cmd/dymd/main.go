@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -13,10 +14,10 @@ import (
 func main() {
 	rootCmd, _ := cmd.NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, "", app.DefaultNodeHome); err != nil {
-		switch e := err.(type) {
-		case server.ErrorCode:
+		var e server.ErrorCode
+		switch {
+		case errors.As(err, &e):
 			os.Exit(e.Code)
-
 		default:
 			os.Exit(1)
 		}
