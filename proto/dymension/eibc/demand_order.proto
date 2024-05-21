@@ -23,6 +23,6 @@ message DemandOrder {
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
     string recipient = 5;
-    bool is_fullfilled = 6;
+    bool is_fulfilled = 6;
     dymensionxyz.dymension.common.Status tracking_packet_status = 8;
   }

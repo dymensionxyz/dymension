@@ -4,7 +4,6 @@
 package types
 
 import (
-	errors "errors"
 	fmt "fmt"
 	io "io"
 	math "math"
@@ -40,7 +39,7 @@ type DemandOrder struct {
 	Price                github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
 	Fee                  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=fee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee"`
 	Recipient            string                                   `protobuf:"bytes,5,opt,name=recipient,proto3" json:"recipient,omitempty"`
-	IsFulfilled          bool                                     `protobuf:"varint,6,opt,name=is_fulfilled,json=isFulfilled,proto3" json:"is_fulfilled,omitempty"`
+	IsFullfilled         bool                                     `protobuf:"varint,6,opt,name=is_fulfilled,json=isFullfilled,proto3" json:"is_fulfilled,omitempty"`
 	TrackingPacketStatus types1.Status                            `protobuf:"varint,8,opt,name=tracking_packet_status,json=trackingPacketStatus,proto3,enum=dymensionxyz.dymension.common.Status" json:"tracking_packet_status,omitempty"`
 }
 
@@ -117,9 +116,9 @@ func (m *DemandOrder) GetRecipient() string {
 	return ""
 }
 
-func (m *DemandOrder) GetIsFulfilled() bool {
+func (m *DemandOrder) GetIsFullfilled() bool {
 	if m != nil {
-		return m.IsFulfilled
+		return m.IsFullfilled
 	}
 	return false
 }
@@ -192,9 +191,9 @@ func (m *DemandOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x40
 	}
-	if m.IsFulfilled {
+	if m.IsFullfilled {
 		i--
-		if m.IsFulfilled {
+		if m.IsFullfilled {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
@@ -296,7 +295,7 @@ func (m *DemandOrder) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovDemandOrder(uint64(l))
 	}
-	if m.IsFulfilled {
+	if m.IsFullfilled {
 		n += 2
 	}
 	if m.TrackingPacketStatus != 0 {
@@ -336,7 +335,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: DemandOrder: wiretype end group for non-group")
+			return fmt.Errorf("proto: DemandOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: DemandOrder: illegal tag %d (wire type %d)", fieldNum, wire)
@@ -508,7 +507,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IsFulfilled", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field IsFullfilled", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -525,7 +524,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.IsFulfilled = bool(v != 0)
+			m.IsFullfilled = bool(v != 0)
 		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TrackingPacketStatus", wireType)
