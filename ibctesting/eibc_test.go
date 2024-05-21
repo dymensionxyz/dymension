@@ -259,7 +259,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
 				lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 				// Validate demand order wasn't fulfilled but finalized
-				suite.Require().False(lastDemandOrder.IsFullfilled)
+				suite.Require().False(lastDemandOrder.IsFulfilled)
 				suite.Require().Equal(commontypes.Status_FINALIZED, lastDemandOrder.TrackingPacketStatus)
 
 			}
@@ -335,7 +335,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				}
 			}
 			suite.Require().NotNil(finalizedDemandOrder)
-			suite.Require().True(finalizedDemandOrder.IsFullfilled)
+			suite.Require().True(finalizedDemandOrder.IsFulfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
 
 			path.EndpointA.Chain.NextBlock()

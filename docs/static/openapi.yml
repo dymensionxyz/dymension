@@ -690,7 +690,7 @@ paths:
                         signatures required by gogoproto.
                   recipient:
                     type: string
-                  is_fullfilled:
+                  is_fulfilled:
                     type: boolean
                   tracking_packet_status:
                     type: string
@@ -801,7 +801,7 @@ paths:
                           signatures required by gogoproto.
                     recipient:
                       type: string
-                    is_fullfilled:
+                    is_fulfilled:
                       type: boolean
                     tracking_packet_status:
                       type: string
@@ -53288,7 +53288,7 @@ definitions:
             signatures required by gogoproto.
       recipient:
         type: string
-      is_fullfilled:
+      is_fulfilled:
         type: boolean
       tracking_packet_status:
         type: string
@@ -53366,7 +53366,7 @@ definitions:
                   signatures required by gogoproto.
             recipient:
               type: string
-            is_fullfilled:
+            is_fulfilled:
               type: boolean
             tracking_packet_status:
               type: string
@@ -53437,7 +53437,7 @@ definitions:
                 signatures required by gogoproto.
           recipient:
             type: string
-          is_fullfilled:
+          is_fulfilled:
             type: boolean
           tracking_packet_status:
             type: string

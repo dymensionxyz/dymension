@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 			expectedPostFulfillmentEventsType:  eibcEventType,
@@ -55,7 +55,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "true"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 		},
@@ -75,7 +75,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 			expectedPostFulfillmentEventsType:  eibcEventType,
@@ -84,7 +84,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 		},
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150adym"),
 				sdk.NewAttribute(types.AttributeKeyFee, "50adym"),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 			expectedPostFulfillmentEventsType:  eibcEventType,
@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150adym"),
 				sdk.NewAttribute(types.AttributeKeyFee, "50adym"),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 		},
@@ -133,7 +133,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "true"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 			expectedPostFulfillmentEventsType:  eibcEventType,
@@ -142,7 +142,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "true"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 		},
@@ -162,7 +162,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_FINALIZED.String()),
 			},
 			expectedPostFulfillmentEventsType:  eibcEventType,
@@ -171,7 +171,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
 				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFullfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_FINALIZED.String()),
 			},
 		},
@@ -189,7 +189,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 		// Create new demand order
 		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String())
-		demandOrder.IsFullfilled = tc.demandOrderFulfillmentStatus
+		demandOrder.IsFulfilled = tc.demandOrderFulfillmentStatus
 		err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 		suite.Require().NoError(err)
 		// Update rollapp status if needed
@@ -219,7 +219,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// Check that the demand fulfillment
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFullfilled)
+		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled)
 		// Check balances updates in case of success
 		if tc.expectedFulfillmentError == nil {
 			afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
