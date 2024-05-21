@@ -18,21 +18,6 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "underlying-packet-exist", UnderlyingPacketExistInvariant(k))
 }
 
-// AllInvariants runs all invariants of the x/streamer module.
-func AllInvariants(k Keeper) sdk.Invariant {
-	return func(ctx sdk.Context) (string, bool) {
-		res, stop := DemandOrderCountInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-		res, stop = UnderlyingPacketExistInvariant(k)(ctx)
-		if stop {
-			return res, stop
-		}
-		return "", false
-	}
-}
-
 func DemandOrderCountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
