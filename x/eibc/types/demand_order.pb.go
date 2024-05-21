@@ -4,7 +4,6 @@
 package types
 
 import (
-	errors "errors"
 	fmt "fmt"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
@@ -33,8 +32,10 @@ type DemandOrder struct {
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// tracking_packet_key is the key of the packet that is being tracked.
 	// This key can change depends on the packet status.
-	TrackingPacketKey    string                                   `protobuf:"bytes,2,opt,name=tracking_packet_key,json=trackingPacketKey,proto3" json:"tracking_packet_key,omitempty"`
-	Price                github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
+	TrackingPacketKey string `protobuf:"bytes,2,opt,name=tracking_packet_key,json=trackingPacketKey,proto3" json:"tracking_packet_key,omitempty"`
+	// price is the amount that the fulfiller sends to original eibc transfer recipient
+	Price github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=price,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"price"`
+	// fee is the effective profit made by the fulfiller because they pay price and receive fee + price
 	Fee                  github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,4,rep,name=fee,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"fee"`
 	Recipient            string                                   `protobuf:"bytes,5,opt,name=recipient,proto3" json:"recipient,omitempty"`
 	IsFullfilled         bool                                     `protobuf:"varint,6,opt,name=is_fullfilled,json=isFullfilled,proto3" json:"is_fullfilled,omitempty"`
@@ -325,7 +326,7 @@ func (m *DemandOrder) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return errors.New("proto: DemandOrder: wiretype end group for non-group")
+			return fmt.Errorf("proto: DemandOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: DemandOrder: illegal tag %d (wire type %d)", fieldNum, wire)
