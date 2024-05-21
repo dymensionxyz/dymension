@@ -14,10 +14,12 @@ message DemandOrder {
     // tracking_packet_key is the key of the packet that is being tracked. 
     // This key can change depends on the packet status.
     string tracking_packet_key = 2;
+    // price is the amount that the fulfiller sends to original eibc transfer recipient
     repeated cosmos.base.v1beta1.Coin price = 3 [
       (gogoproto.nullable) = false,
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
+    // fee is the effective profit made by the fulfiller because they pay price and receive fee + price
     repeated cosmos.base.v1beta1.Coin fee = 4 [
       (gogoproto.nullable) = false,
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
