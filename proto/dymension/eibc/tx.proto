@@ -8,12 +8,12 @@ service Msg {
     rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
 }
 
-// MsgFulfillOrder defines the FullfillOrder request type.
+// MsgFulfillOrder defines the FulfillOrder request type.
 message MsgFulfillOrder {
     // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
     string fulfiller_address = 1;
     string order_id = 2;
 }
 
-// MsgFulfillOrderResponse defines the FullfillOrder response type.
+// MsgFulfillOrderResponse defines the FulfillOrder response type.
 message MsgFulfillOrderResponse {}

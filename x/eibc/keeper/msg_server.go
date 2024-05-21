@@ -34,7 +34,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 	// Check that the order is not fulfilled yet
-	if demandOrder.IsFullfilled {
+	if demandOrder.IsFulfilled {
 		return nil, types.ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
@@ -48,7 +48,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	// Check that the fulfiller has enough balance to fulfill the order
 	fulfillerAccount := m.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
-		return nil, types.ErrFullfillerAddressDoesNotExist
+		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
 	// Send the funds from the fulfiller to the eibc packet original recipient
 	err = m.BankKeeper.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
