@@ -58,8 +58,13 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
+	if transferPacketData.GetMemo() == "special" {
+		logger.Info("got the special memo!")
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	if rollappID == "" {
-		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
+		logger.Debug("Skipping eIBC transfer OnRecvPacket for non-rollapp chain") // TODO: this should say eIBC right?
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
