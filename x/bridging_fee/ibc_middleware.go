@@ -83,7 +83,7 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 
 	// get fee
 	feePercentage := im.GetBridgingFee(ctx)
-	fee := feePercentage.MulInt(transferAmount).RoundInt()
+	fee := feePercentage.MulInt(transferAmount).TruncateInt()
 
 	// update packet data for the fee charge
 	feePacket := *transferPacketData
