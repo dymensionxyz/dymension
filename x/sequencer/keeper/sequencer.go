@@ -17,8 +17,8 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 		sequencer.SequencerAddress,
 	), b)
 
-	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
-	store.Set(seqByrollappKey, b)
+	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
+	store.Set(seqByRollappKey, b)
 
 	// To support InitGenesis scenario
 	if sequencer.Status == types.Unbonding {
