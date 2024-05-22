@@ -31,8 +31,8 @@ func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldS
 	b := k.cdc.MustMarshal(&sequencer)
 	store.Set(types.SequencerKey(sequencer.SequencerAddress), b)
 
-	seqByrollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
-	store.Set(seqByrollappKey, b)
+	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
+	store.Set(seqByRollappKey, b)
 
 	// status changed, need to remove old status key
 	if sequencer.Status != oldStatus {
