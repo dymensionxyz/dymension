@@ -13,7 +13,7 @@ type rollapphook struct {
 	k Keeper
 }
 
-// Return the wrapper struct.
+// RollappHooks returns the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	return rollapphook{
 		k,
