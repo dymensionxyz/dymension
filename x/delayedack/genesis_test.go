@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInitGenesis(t *testing.T) {
-	var defBridgingFee = types.DefaultParams().BridgingFee
+var defBridgingFee = types.DefaultParams().BridgingFee
 
+func TestInitGenesis(t *testing.T) {
 	tests := []struct {
 		name           string
 		params         types.Params
@@ -70,6 +70,7 @@ func TestExportGenesis(t *testing.T) {
 	// Set params
 	params := types.Params{
 		EpochIdentifier: "week",
+		BridgingFee:     defBridgingFee,
 	}
 	k.SetParams(ctx, params)
 	// Set some demand orders

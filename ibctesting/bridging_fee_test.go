@@ -93,15 +93,13 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	suite.Require().NoError(err)
 
 	// check balance after finalization
-	//FIXME: update the test with params
-	feePrecntage := sdk.NewDecWithPrec(1, 1) // 10%
+	feePrecntage := ConvertToApp(suite.hubChain).DelayedAckKeeper.BridgingFee(suite.hubChain.GetContext())
 	expectedFee := feePrecntage.MulInt(transferredCoins.Amount).RoundInt()
 	expectedBalance := initialBalance.Add(transferredCoins).Sub(sdk.NewCoin(denom, expectedFee))
-
 	finalBalance := ConvertToApp(suite.hubChain).BankKeeper.SpendableCoins(suite.hubChain.GetContext(), recipient)
 	suite.Assert().Equal(expectedBalance, finalBalance)
 
-	//TODO: check txfees module
+	// check fees
 	addr := ConvertToApp(suite.hubChain).AccountKeeper.GetModuleAccount(suite.hubChain.GetContext(), txfees.ModuleName)
 	txfeesBalance := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), addr.GetAddress(), denom)
 	suite.Assert().Equal(expectedFee, txfeesBalance.Amount)

@@ -40,6 +40,7 @@ func (suite *EIBCTestSuite) SetupTest() {
 	delayedAckKeeper := ConvertToApp(suite.hubChain).DelayedAckKeeper
 	params := delayedAckKeeper.GetParams(suite.hubChain.GetContext())
 	params.EpochIdentifier = "month"
+	params.BridgingFee = sdk.ZeroDec()
 	delayedAckKeeper.SetParams(suite.hubChain.GetContext(), params)
 }
 
