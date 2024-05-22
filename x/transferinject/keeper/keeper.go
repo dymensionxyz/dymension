@@ -1,84 +1,53 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
-	ctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	icstypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	"github.com/gogo/protobuf/proto"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
 type Keeper struct {
 	cdc codec.BinaryCodec
-	icstypes.ICS4Wrapper
-	getValue injValFunc
+	porttypes.IBCModule
+	porttypes.ICS4Wrapper
+	delayedAckKeeper types.DelayedAckKeeper
+	rollappKeeper    types.RollappKeeper
+	bankKeeper       types.BankKeeper
 }
 
 func NewTransferInject(
 	cdc codec.BinaryCodec,
-	icswrap icstypes.ICS4Wrapper,
-	getValue injValFunc,
+	delayedAckKeeper types.DelayedAckKeeper,
+	rollappKeeper types.RollappKeeper,
+	bankKeeper types.BankKeeper,
 ) *Keeper {
 	return &Keeper{
-		cdc:         cdc,
-		ICS4Wrapper: icswrap,
-		getValue:    getValue,
+		cdc:              cdc,
+		delayedAckKeeper: delayedAckKeeper,
+		rollappKeeper:    rollappKeeper,
+		bankKeeper:       bankKeeper,
 	}
 }
 
-type injValFunc func(ctx sdk.Context, in proto.Message, destinationPort string, destinationChannel string) (out proto.Message, err error)
-
-func WithRollappDenomMetadata(delayedackKeeper delayedackkeeper.Keeper, bankKeeper types.BankKeeper) injValFunc {
-	return func(ctx sdk.Context, in proto.Message, destinationPort string, destinationChannel string) (proto.Message, error) {
-		// TODO: first check if rollapp has denom
-
-		rollapp, err := delayedackKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
-		if err != nil {
-			return nil, fmt.Errorf("cannot extract rollapp id from packet: %w", err)
-		}
-
-		if rollapp == nil {
-			return in, nil
-		}
-
-		fungibleTokenPacketData, ok := in.(*transfertypes.FungibleTokenPacketData)
-		if !ok {
-			return nil, errorsmod.Wrapf(errortypes.ErrInvalidType, "invalid packet data type")
-		}
-
-		inDenom := fungibleTokenPacketData.Denom
-
-		denomHash, err := DenomHash(inDenom)
-		if err != nil {
-			return nil, errorsmod.Wrapf(errortypes.ErrInvalidType, "denom hash not found")
-		}
-
-		// TODO: make sure token metadata in the rollapp is up to date
-		for _, dm := range rollapp.TokenMetadata {
-			if dm.Base == denomHash || dm.Base == inDenom { // TODO: probably won't work
-				return in, nil
-			}
-		}
-
-		denomMetaData, ok := bankKeeper.GetDenomMetaData(ctx, denomHash)
-		if !ok {
-			return nil, errorsmod.Wrapf(errortypes.ErrInvalidType, "denom metadata not found")
-		}
-
-		return &denomMetaData, nil
-	}
+func (t *Keeper) SetMiddleware(
+	ibc porttypes.IBCModule,
+	ics porttypes.ICS4Wrapper,
+) {
+	t.IBCModule = ibc
+	t.ICS4Wrapper = ics
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
@@ -90,29 +59,36 @@ func (t *Keeper) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	// if the packet is a wrapped fungible token packet, or getValue func was not provided, just move on with it
-	var wrappedPacket types.WrappedFungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(data, &wrappedPacket); err == nil || t.getValue == nil {
+	rollapp, err := t.delayedAckKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
+	if err != nil {
+		return 0, fmt.Errorf("cannot extract rollapp id from packet: %w", err)
+	}
+	// TODO: consider that other chains also might want this feature
+	if rollapp == nil {
 		return t.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	// otherwise, it's a normal packet, and we need to inject a custom value
-	wrappedPacket.FungibleTokenPacketData = new(transfertypes.FungibleTokenPacketData)
-	if err = types.ModuleCdc.UnmarshalJSON(data, wrappedPacket.FungibleTokenPacketData); err != nil {
-		return 0, fmt.Errorf("cannot unmarshal transfer packet data: %w", err)
+	packet := new(transfertypes.FungibleTokenPacketData)
+	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
+		return 0, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	val, err := t.getValue(ctx, wrappedPacket.FungibleTokenPacketData, destinationPort, destinationChannel)
-	if err != nil {
-		return 0, fmt.Errorf("cannot get injected value: %w", err)
+	// check if the rollapp already contains the denom metadata
+	if slices.ContainsFunc(rollapp.TokenMetadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == packet.Denom }) { // TODO: check denom
+		return t.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	wrappedPacket.Data, err = ctypes.NewAnyWithValue(val)
+	denomMetadata, ok := t.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
+	if !ok {
+		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "denom metadata not found")
+	}
+
+	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "cannot create injected value")
 	}
 
-	data, err = types.ModuleCdc.MarshalJSON(&wrappedPacket)
+	data, err = types.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "cannot marshal ICS-20 transfer packet data")
 	}
@@ -120,15 +96,69 @@ func (t *Keeper) SendPacket(
 	return t.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
-func DenomHash(trace string) (string, error) {
-	if trace == "adym" {
-		return trace, nil
+func (t *Keeper) OnAcknowledgementPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	acknowledgement []byte,
+	relayer sdk.AccAddress,
+) error {
+	var data transfertypes.FungibleTokenPacketData
+	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return errorsmod.Wrapf(errortypes.ErrUnknownRequest, "cannot unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	denomTrace := transfertypes.ParseDenomTrace(trace)
-	if err := denomTrace.Validate(); err != nil {
-		return "", status.Error(codes.InvalidArgument, err.Error())
+	if len(data.Memo) == 0 {
+		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	return "ibc/" + denomTrace.Hash().String(), nil
+	packetMetaData, err := types.ParsePacketMetadata(data.Memo)
+	if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoDMEmpty) {
+		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+	if err != nil {
+		return err
+	}
+
+	rollapp, err := t.delayedAckKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel) // TODO: CHECK CHANNEL
+	if err != nil {
+		return fmt.Errorf("cannot extract rollapp id from packet: %w", err)
+	}
+	if rollapp == nil {
+		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	if slices.ContainsFunc(rollapp.TokenMetadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == packetMetaData.DenomMetadata.Base }) {
+		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	tokenMetaData := &rtypes.TokenMetadata{
+		Description: packetMetaData.DenomMetadata.Description,
+		DenomUnits: func() []*rtypes.DenomUnit {
+			var denomUnits []*rtypes.DenomUnit
+			for _, du := range packetMetaData.DenomMetadata.DenomUnits {
+				if du.Exponent == 0 {
+					continue
+				}
+				ndu := &rtypes.DenomUnit{
+					Denom:    du.Denom,
+					Exponent: du.Exponent,
+					Aliases:  du.Aliases,
+				}
+				denomUnits = append(denomUnits, ndu)
+			}
+			return denomUnits
+		}(),
+		Base:    packetMetaData.DenomMetadata.Base,
+		Display: packetMetaData.DenomMetadata.Display,
+		Name:    packetMetaData.DenomMetadata.Name,
+		Symbol:  packetMetaData.DenomMetadata.Symbol,
+		URI:     packetMetaData.DenomMetadata.URI,
+		URIHash: packetMetaData.DenomMetadata.URIHash,
+	}
+	// add the new token metadata to the rollapp
+	rollapp.TokenMetadata = append(rollapp.TokenMetadata, tokenMetaData)
+
+	t.rollappKeeper.SetRollapp(ctx, *rollapp)
+
+	return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }

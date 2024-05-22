@@ -222,7 +222,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		}
 	}
 
-	return nil
+	return im.IBCModule.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
