@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -42,9 +43,9 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		var feeMultiplier sdk.Dec
 		switch t {
 		case commontypes.RollappPacket_ON_TIMEOUT:
-			feeMultiplier = im.keeper.TimeoutFee(ctx)
+			feeMultiplier = im.TimeoutFee(ctx)
 		case commontypes.RollappPacket_ON_ACK:
-			feeMultiplier = im.keeper.ErrAckFee(ctx)
+			feeMultiplier = im.ErrAckFee(ctx)
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
 		if !fee.IsPositive() {
@@ -63,7 +64,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		return fmt.Errorf("create eibc demand order: %w", err)
 	}
 
-	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	err = im.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
@@ -85,7 +86,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
-	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
+	if im.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
 	// Calculate the demand order price and validate it,

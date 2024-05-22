@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	transferinjectkeeper "github.com/dymensionxyz/dymension/v3/x/transferinject/keeper"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -28,7 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simapp "github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -109,7 +110,7 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
-	ante "github.com/dymensionxyz/dymension/v3/app/ante"
+	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
@@ -170,14 +171,14 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/gamm"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	incentives "github.com/osmosis-labs/osmosis/v15/x/incentives"
+	"github.com/osmosis-labs/osmosis/v15/x/incentives"
 	incentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
 	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
-	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
@@ -364,6 +365,9 @@ type App struct {
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+
+	TransferInjectKeeper *transferinjectkeeper.Keeper
+
 	// the module manager
 	mm *module.Manager
 
@@ -596,19 +600,6 @@ func New(
 		nil,
 	)
 
-	// Create Transfer Keepers
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
-
 	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		app.BankKeeper,
 	)
@@ -625,7 +616,6 @@ func New(
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 		app.IBCKeeper.ClientKeeper,
-		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
 		app.DenomMetadataKeeper,
@@ -655,6 +645,26 @@ func New(
 		app.BankKeeper,
 	)
 
+	app.TransferInjectKeeper = transferinjectkeeper.NewTransferInject(
+		appCodec,
+		app.IBCKeeper.ChannelKeeper,
+		transferinjectkeeper.WithRollappDenomMetadata(app.DelayedAckKeeper, app.BankKeeper),
+	)
+
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.TransferInjectKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+
+	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
 	/* -------------------------------- set hooks ------------------------------- */
