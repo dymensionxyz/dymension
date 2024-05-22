@@ -55,6 +55,7 @@ func (k Keeper) finalizeRollappPacket(
 
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
+		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		/*
 				We only write the ack if writing it succeeds:
