@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"slices"
 	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,19 +36,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// check if there are permissionedAddresses.
 	// if the list is not empty, it means that only processioned sequencers can be added
 	permissionedAddresses := rollapp.PermissionedAddresses
-	if len(permissionedAddresses) > 0 {
-		bPermissioned := false
-		// check to see if the sequencer is in the permissioned list
-		for _, addr := range permissionedAddresses {
-			if addr == msg.Creator {
-				// Found!
-				bPermissioned = true
-				break
-			}
-		}
-		if !bPermissioned {
-			return nil, types.ErrSequencerNotPermissioned
-		}
+	if 0 < len(permissionedAddresses) && !slices.Contains(permissionedAddresses, msg.Creator) {
+		return nil, types.ErrSequencerNotPermissioned
 	}
 
 	// check to see if the sequencer has enough balance and deduct the bond
