@@ -5,7 +5,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -30,7 +31,7 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seqAddr string) (time.T
 	}
 
 	if !seq.IsBonded() {
-		return time.Time{}, sdkerrors.Wrapf(
+		return time.Time{}, errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer status is not bonded: got %s",
 			seq.Status.String(),

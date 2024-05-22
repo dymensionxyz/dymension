@@ -1,8 +1,8 @@
 package streamer
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
@@ -20,7 +20,7 @@ func NewStreamerProposalHandler(k keeper.Keeper) govtypes.Handler {
 		case *types.UpdateStreamDistributionProposal:
 			return HandleUpdateStreamDistributionProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
+			return errorsmod.Wrapf(types.ErrUnknownRequest, "unrecognized streamer proposal content type: %T", c)
 		}
 	}
 }
@@ -42,7 +42,7 @@ func HandleTerminateStreamProposal(ctx sdk.Context, k keeper.Keeper, p *types.Te
 	}
 
 	if stream.IsFinishedStream(ctx.BlockTime()) {
-		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
 	}
 
 	return k.TerminateStream(ctx, p.StreamId)
@@ -56,7 +56,7 @@ func HandleReplaceStreamDistributionProposal(ctx sdk.Context, k keeper.Keeper, p
 	}
 
 	if stream.IsFinishedStream(ctx.BlockTime()) {
-		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
 	}
 
 	return k.ReplaceDistrRecords(ctx, p.StreamId, p.Records)
@@ -70,7 +70,7 @@ func HandleUpdateStreamDistributionProposal(ctx sdk.Context, k keeper.Keeper, p 
 	}
 
 	if stream.IsFinishedStream(ctx.BlockTime()) {
-		return sdkerrors.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
+		return errorsmod.Wrapf(types.ErrInvalidStreamStatus, "stream %d is already finished", p.StreamId)
 	}
 
 	return k.UpdateDistrRecords(ctx, p.StreamId, p.Records)

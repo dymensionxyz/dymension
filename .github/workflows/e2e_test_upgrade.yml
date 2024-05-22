@@ -1,0 +1,58 @@
+name: E2E Tests Upgrade
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      # trigger workflow if PR is opened directly as R4R.
+      - opened
+      # trigger workflow if changes are pushed to the branch.
+      - synchronize
+      # trigger workflow if PR is marked ready for review.
+      - ready_for_review
+    paths:
+      - 'app/upgrades/**'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:   
+  build-image:
+    runs-on: ubuntu-latest
+    outputs:
+      UPGRADE_NAME: ${{ steps.set-output.outputs.upgrade }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set environment variable
+        id: set-output
+        run: |
+          upgradeName=$(ls -d -- ./app/upgrades/v* | sort -Vr | head -n 1 | xargs basename)
+          echo "upgrade=$upgradeName" >> $GITHUB_OUTPUT
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export
+        uses: docker/build-push-action@v5
+        with:
+          file: Dockerfile
+          context: .
+          outputs: type=docker,dest=/tmp/e2e.tar
+          platforms: linux/amd64
+          tags: |
+              ghcr.io/dymensionxyz/dymension:e2e
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: e2e
+          path: /tmp/e2e.tar  
+
+  e2e-tests-upgrade:
+    needs: build-image
+    uses: dymensionxyz/e2e-tests/.github/workflows/e2e-test-hub-upgrade-workflow-call.yml@main
+    with:
+      dymension_ci: "e2e"
+      upgrade_name: "${{ needs.build-image.outputs.UPGRADE_NAME }}"

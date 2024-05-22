@@ -43,6 +43,12 @@ var (
 	ErrRegisterDenomMetadataFailed         = errorsmod.Register(ModuleName, 1033, "failed to register denom metadata")
 	ErrMismatchedChannelID                 = errorsmod.Register(ModuleName, 1034, "mismatched channel id")
 	ErrRollappNotRegistered                = errorsmod.Register(ModuleName, 1035, "rollapp not registered")
+	ErrUnknownRequest                      = errorsmod.Register(ModuleName, 1036, "unknown request")
+	ErrNotFound                            = errorsmod.Register(ModuleName, 1037, "not found")
+	ErrLogic                               = errorsmod.Register(ModuleName, 1038, "internal logic error")
+	ErrUnauthorized                        = errorsmod.Register(ModuleName, 1039, "unauthorized")
+	ErrInvalidAddress                      = errorsmod.Register(ModuleName, 1040, "invalid address")
+
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")
 	ErrDisputeAlreadyReverted  = errorsmod.Register(ModuleName, 2001, "disputed height already reverted")

@@ -1,7 +1,7 @@
 package types
 
 import (
-	"fmt"
+	"errors"
 )
 
 // DefaultIndex is the default capability global index
@@ -29,7 +29,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.RollappList {
 		index := string(RollappKey(elem.RollappId))
 		if _, ok := rollappIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for rollapp")
+			return errors.New("duplicated index for rollapp")
 		}
 		rollappIndexMap[index] = struct{}{}
 	}
@@ -39,7 +39,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.StateInfoList {
 		index := string(StateInfoKey(elem.StateInfoIndex))
 		if _, ok := stateInfoIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for stateInfo")
+			return errors.New("duplicated index for stateInfo")
 		}
 		stateInfoIndexMap[index] = struct{}{}
 	}
@@ -49,7 +49,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.LatestStateInfoIndexList {
 		index := string(LatestStateInfoIndexKey(elem.RollappId))
 		if _, ok := latestStateInfoIndexIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for latestStateInfoIndex")
+			return errors.New("duplicated index for latestStateInfoIndex")
 		}
 		latestStateInfoIndexIndexMap[index] = struct{}{}
 	}
@@ -59,7 +59,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.LatestFinalizedStateIndexList {
 		index := string(LatestFinalizedStateIndexKey(elem.RollappId))
 		if _, ok := latestFinalizedStateIndexIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for latestFinalizedStateIndex")
+			return errors.New("duplicated index for latestFinalizedStateIndex")
 		}
 		latestFinalizedStateIndexIndexMap[index] = struct{}{}
 	}
@@ -69,7 +69,7 @@ func (gs GenesisState) Validate() error {
 	for _, elem := range gs.BlockHeightToFinalizationQueueList {
 		index := string(BlockHeightToFinalizationQueueKey(elem.CreationHeight))
 		if _, ok := blockHeightToFinalizationQueueIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for blockHeightToFinalizationQueue")
+			return errors.New("duplicated index for blockHeightToFinalizationQueue")
 		}
 		blockHeightToFinalizationQueueIndexMap[index] = struct{}{}
 	}

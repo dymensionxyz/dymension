@@ -5,7 +5,6 @@ import (
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -321,7 +320,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
+	suite.ErrorIs(err, types.ErrLogic)
 }
 
 func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() {
@@ -465,7 +464,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, sdkerrors.ErrLogic)
+	suite.ErrorIs(err, types.ErrLogic)
 }
 
 // TODO: should test all status other than Proposer

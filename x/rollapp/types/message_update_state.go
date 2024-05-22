@@ -1,8 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const TypeMsgUpdateState = "update_state"
@@ -45,22 +45,22 @@ func (msg *MsgUpdateState) GetSignBytes() []byte {
 func (msg *MsgUpdateState) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	// an update cann't be with no BDs
 	if msg.NumBlocks == uint64(0) {
-		return sdkerrors.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
+		return errorsmod.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
 	}
 
 	// check to see that update contains all BDs
 	if len(msg.BDs.BD) != int(msg.NumBlocks) {
-		return sdkerrors.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of block descriptors(%d)", msg.NumBlocks, len(msg.BDs.BD))
+		return errorsmod.Wrapf(ErrInvalidNumBlocks, "number of blocks (%d) != number of block descriptors(%d)", msg.NumBlocks, len(msg.BDs.BD))
 	}
 
 	// check to see that startHeight is not zaro
 	if msg.StartHeight == 0 {
-		return sdkerrors.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
+		return errorsmod.Wrapf(ErrWrongBlockHeight, "StartHeight must be greater than zero")
 	}
 
 	// check that the blocks are sequential by height
@@ -70,7 +70,7 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		}
 		// check to see stateRoot is a 32 byte array
 		if len(msg.BDs.BD[bdIndex].StateRoot) != 32 {
-			return sdkerrors.Wrapf(ErrInvalidStateRoot, "StateRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
+			return errorsmod.Wrapf(ErrInvalidStateRoot, "StateRoot of block high (%d) must be 32 byte array. But received (%d) bytes",
 				msg.BDs.BD[bdIndex].Height, len(msg.BDs.BD[bdIndex].StateRoot))
 		}
 	}

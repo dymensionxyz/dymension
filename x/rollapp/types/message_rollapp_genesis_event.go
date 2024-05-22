@@ -1,8 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const TypeMsgRollappGenesisEvent = "rollapp_genesis_event"
@@ -46,17 +46,17 @@ func (msg *MsgRollappGenesisEvent) GetSignBytes() []byte {
 func (msg *MsgRollappGenesisEvent) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Address)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
+		return errorsmod.Wrapf(ErrInvalidAddress, "invalid address (%s)", err)
 	}
 	if msg.ChannelId == "" {
-		return sdkerrors.Wrap(ErrInvalidGenesisChannelId, "channel id cannot be empty")
+		return errorsmod.Wrap(ErrInvalidGenesisChannelId, "channel id cannot be empty")
 	} else if len(msg.ChannelId) > maxChannelIDLength {
-		return sdkerrors.Wrapf(ErrInvalidGenesisChannelId, "channel id cannot exceed %d characters", maxChannelIDLength)
+		return errorsmod.Wrapf(ErrInvalidGenesisChannelId, "channel id cannot exceed %d characters", maxChannelIDLength)
 	}
 	if msg.RollappId == "" {
-		return sdkerrors.Wrap(ErrInvalidRollappID, "rollapp id cannot be empty")
+		return errorsmod.Wrap(ErrInvalidRollappID, "rollapp id cannot be empty")
 	} else if len(msg.RollappId) > maxRollappIDLength {
-		return sdkerrors.Wrapf(ErrInvalidRollappID, "rollapp id cannot exceed %d characters", maxRollappIDLength)
+		return errorsmod.Wrapf(ErrInvalidRollappID, "rollapp id cannot exceed %d characters", maxRollappIDLength)
 	}
 	return nil
 }

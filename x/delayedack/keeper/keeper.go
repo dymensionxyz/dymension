@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -211,7 +210,7 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, rollappPortOnHub 
 	// Gets sequencer information from the sequencer address found in the latest state info
 	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
 	if !found {
-		return sdkerrors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollappID %s", stateInfo.Sequencer, rollappID)
+		return errorsmod.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollappID %s", stateInfo.Sequencer, rollappID)
 	}
 
 	// Gets the validator set hash made out of the pub key for the sequencer
@@ -224,7 +223,7 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, rollappPortOnHub 
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollappID sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
-		return sdkerrors.Wrap(types.ErrMismatchedSequencer, errMsg)
+		return errorsmod.Wrap(types.ErrMismatchedSequencer, errMsg)
 	}
 	return nil
 }
@@ -232,12 +231,12 @@ func (k *Keeper) ValidateRollappId(ctx sdk.Context, rollappID, rollappPortOnHub 
 func (k Keeper) GetConnectionEnd(ctx sdk.Context, portID string, channelID string) (connectiontypes.ConnectionEnd, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return connectiontypes.ConnectionEnd{}, sdkerrors.Wrap(channeltypes.ErrChannelNotFound, channelID)
+		return connectiontypes.ConnectionEnd{}, errorsmod.Wrap(channeltypes.ErrChannelNotFound, channelID)
 	}
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 
 	if !found {
-		return connectiontypes.ConnectionEnd{}, sdkerrors.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return connectiontypes.ConnectionEnd{}, errorsmod.Wrap(connectiontypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 	return connectionEnd, nil
 }
@@ -262,7 +261,7 @@ func (k Keeper) getTmConsensusState(ctx sdk.Context, portID string, channelID st
 	}
 	tmConsensusState, ok := consensusState.(*tenderminttypes.ConsensusState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "expected tendermint consensus state, got %T", consensusState)
+		return nil, errorsmod.Wrapf(types.ErrInvalidType, "expected tendermint consensus state, got %T", consensusState)
 	}
 	return tmConsensusState, nil
 }

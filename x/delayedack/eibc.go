@@ -61,12 +61,12 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 
 	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(data, &rollappPacket, *packetMetaData.EIBC)
 	if err != nil {
-		return fmt.Errorf("create eibc demand order: %s", err)
+		return fmt.Errorf("create eibc demand order: %w", err)
 	}
 
 	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
-		return fmt.Errorf("set eibc demand order: %s", err)
+		return fmt.Errorf("set eibc demand order: %w", err)
 	}
 	return nil
 }
@@ -131,7 +131,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 
 	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	if err := order.Validate(); err != nil {
-		return nil, fmt.Errorf("validate eibc data: %s", err)
+		return nil, fmt.Errorf("validate eibc data: %w", err)
 	}
 	return order, nil
 }
