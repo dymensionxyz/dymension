@@ -647,7 +647,6 @@ func New(
 
 	app.TransferInjectKeeper = transferinjectkeeper.NewTransferInject(
 		appCodec,
-		&app.DelayedAckKeeper,
 		app.RollappKeeper,
 		app.BankKeeper,
 	)
@@ -760,7 +759,7 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
-	middleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper)
+	middleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = middleware
 	app.TransferInjectKeeper.SetMiddleware(
 		transferStack,

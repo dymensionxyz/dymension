@@ -10,13 +10,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -79,20 +77,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
-	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
-	if err != nil {
-		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
-	}
-
-	tmClientState, ok := clientState.(*ibctypes.ClientState)
-	if !ok {
-		return "", nil
-	}
-
-	return tmClientState.ChainId, nil
-}
-
 func (k Keeper) IsRollappsEnabled(ctx sdk.Context) bool {
 	return k.rollappKeeper.GetParams(ctx).RollappsEnabled
 }
@@ -152,59 +136,6 @@ func (k *Keeper) GetHooks() types.MultiDelayedAckHooks {
 /* -------------------------------------------------------------------------- */
 /*                                 ICS4Wrapper                                */
 /* -------------------------------------------------------------------------- */
-
-// ExtractRollappAndTransferPacketFromData extracts the rollapp and fungible token from the packet data
-func (k *Keeper) ExtractRollappAndTransferPacketFromData(
-	ctx sdk.Context,
-	data []byte,
-	rollappPortOnHub string,
-	rollappChannelOnHub string,
-) (*rollapptypes.Rollapp, *transfertypes.FungibleTokenPacketData, error) {
-	// no-op if the packet is not a fungible token packet
-	var altPacket types.WrappedFungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(data, &altPacket); err != nil {
-		// try if it's a FungibleTokenPacketData packet
-		altPacket.FungibleTokenPacketData = new(transfertypes.FungibleTokenPacketData)
-		if err = types.ModuleCdc.UnmarshalJSON(data, altPacket.FungibleTokenPacketData); err != nil {
-			return nil, nil, fmt.Errorf("cannot unmarshal transfer packet data: %w", err)
-		}
-	}
-	rollapp, err := k.ExtractRollappFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return rollapp, altPacket.FungibleTokenPacketData, nil
-}
-
-// ExtractRollappFromChannel extracts the rollapp from the IBC port and channel
-func (k *Keeper) ExtractRollappFromChannel(
-	ctx sdk.Context,
-	rollappPortOnHub string,
-	rollappChannelOnHub string,
-) (*rollapptypes.Rollapp, error) {
-	// Check if the packet is destined for a rollapp
-	chainID, err := k.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		return nil, err
-	}
-	rollapp, found := k.GetRollapp(ctx, chainID)
-	if !found {
-		return nil, nil
-	}
-	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
-	}
-	// check if the channelID matches the rollappID's channelID
-	if rollapp.ChannelId != rollappChannelOnHub {
-		return nil, errorsmod.Wrapf(
-			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
-		)
-	}
-
-	return &rollapp, nil
-}
 
 // LookupModuleByChannel wraps ChannelKeeper LookupModuleByChannel function.
 func (k *Keeper) LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error) {

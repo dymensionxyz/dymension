@@ -20,13 +20,15 @@ import (
 type IBCMiddleware struct {
 	porttypes.IBCModule
 	keeper.Keeper
+	rollappKeeper types.RollappKeeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, k keeper.Keeper, rollappKeeper types.RollappKeeper) IBCMiddleware {
 	return IBCMiddleware{
-		IBCModule: app,
-		Keeper:    k,
+		IBCModule:     app,
+		Keeper:        k,
+		rollappKeeper: rollappKeeper,
 	}
 }
 
@@ -48,7 +50,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	rollapp, transferPacketData, err := im.ExtractRollappAndTransferPacketFromData(
+	rollapp, transferPacketData, err := im.rollappKeeper.ExtractRollappAndTransferPacketFromData(
 		ctx,
 		packet.Data,
 		rollappPortOnHub,
@@ -137,7 +139,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := wrappedPacket.SourcePort, wrappedPacket.SourceChannel
 
-	rollapp, transferPacketData, err := im.Keeper.ExtractRollappAndTransferPacketFromData(ctx, wrappedPacket.Data, rollappPortOnHub, rollappChannelOnHub)
+	rollapp, transferPacketData, err := im.rollappKeeper.ExtractRollappAndTransferPacketFromData(ctx, wrappedPacket.Data, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -239,7 +241,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := wrappedPacket.SourcePort, wrappedPacket.SourceChannel
 
-	rollapp, transferPacketData, err := im.ExtractRollappAndTransferPacketFromData(
+	rollapp, transferPacketData, err := im.rollappKeeper.ExtractRollappAndTransferPacketFromData(
 		ctx,
 		wrappedPacket.Data,
 		rollappPortOnHub,

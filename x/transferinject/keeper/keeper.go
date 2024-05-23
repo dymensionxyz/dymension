@@ -3,7 +3,7 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"slices"
+	. "slices"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,22 +23,19 @@ type Keeper struct {
 	cdc codec.BinaryCodec
 	porttypes.IBCModule
 	porttypes.ICS4Wrapper
-	delayedAckKeeper types.DelayedAckKeeper
-	rollappKeeper    types.RollappKeeper
-	bankKeeper       types.BankKeeper
+	rollappKeeper types.RollappKeeper
+	bankKeeper    types.BankKeeper
 }
 
 func NewTransferInject(
 	cdc codec.BinaryCodec,
-	delayedAckKeeper types.DelayedAckKeeper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
 ) *Keeper {
 	return &Keeper{
-		cdc:              cdc,
-		delayedAckKeeper: delayedAckKeeper,
-		rollappKeeper:    rollappKeeper,
-		bankKeeper:       bankKeeper,
+		cdc:           cdc,
+		rollappKeeper: rollappKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -59,7 +56,7 @@ func (t *Keeper) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	rollapp, err := t.delayedAckKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
+	rollapp, err := t.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
 	if err != nil {
 		return 0, fmt.Errorf("cannot extract rollapp id from packet: %w", err)
 	}
@@ -74,7 +71,7 @@ func (t *Keeper) SendPacket(
 	}
 
 	// check if the rollapp already contains the denom metadata
-	if slices.ContainsFunc(rollapp.TokenMetadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == packet.Denom }) { // TODO: check denom
+	if ContainsFunc(rollapp.TokenMetadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == packet.Denom }) {
 		return t.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
@@ -96,6 +93,7 @@ func (t *Keeper) SendPacket(
 	return t.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
+// OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
 func (t *Keeper) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -119,7 +117,7 @@ func (t *Keeper) OnAcknowledgementPacket(
 		return err
 	}
 
-	rollapp, err := t.delayedAckKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel) // TODO: CHECK CHANNEL
+	rollapp, err := t.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
 	if err != nil {
 		return fmt.Errorf("cannot extract rollapp id from packet: %w", err)
 	}
@@ -127,33 +125,34 @@ func (t *Keeper) OnAcknowledgementPacket(
 		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	if slices.ContainsFunc(rollapp.TokenMetadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == packetMetaData.DenomMetadata.Base }) {
+	dm := packetMetaData.DenomMetadata
+
+	if ContainsFunc(rollapp.TokenMetadata, func(tm *rtypes.TokenMetadata) bool { return tm.Base == dm.Base }) {
 		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
+	denomUnits := make([]*rtypes.DenomUnit, len(dm.DenomUnits))
+	for _, du := range dm.DenomUnits {
+		if du.Exponent == 0 {
+			continue
+		}
+		ndu := &rtypes.DenomUnit{
+			Denom:    du.Denom,
+			Exponent: du.Exponent,
+			Aliases:  du.Aliases,
+		}
+		denomUnits = append(denomUnits, ndu)
+	}
+
 	tokenMetaData := &rtypes.TokenMetadata{
-		Description: packetMetaData.DenomMetadata.Description,
-		DenomUnits: func() []*rtypes.DenomUnit {
-			var denomUnits []*rtypes.DenomUnit
-			for _, du := range packetMetaData.DenomMetadata.DenomUnits {
-				if du.Exponent == 0 {
-					continue
-				}
-				ndu := &rtypes.DenomUnit{
-					Denom:    du.Denom,
-					Exponent: du.Exponent,
-					Aliases:  du.Aliases,
-				}
-				denomUnits = append(denomUnits, ndu)
-			}
-			return denomUnits
-		}(),
-		Base:    packetMetaData.DenomMetadata.Base,
-		Display: packetMetaData.DenomMetadata.Display,
-		Name:    packetMetaData.DenomMetadata.Name,
-		Symbol:  packetMetaData.DenomMetadata.Symbol,
-		URI:     packetMetaData.DenomMetadata.URI,
-		URIHash: packetMetaData.DenomMetadata.URIHash,
+		Description: dm.Description,
+		DenomUnits:  denomUnits,
+		Base:        dm.Base,
+		Display:     dm.Display,
+		Name:        dm.Name,
+		Symbol:      dm.Symbol,
+		URI:         dm.URI,
+		URIHash:     dm.URIHash,
 	}
 	// add the new token metadata to the rollapp
 	rollapp.TokenMetadata = append(rollapp.TokenMetadata, tokenMetaData)
