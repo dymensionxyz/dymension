@@ -7,8 +7,6 @@ import (
 type StateStatus common.Status
 
 type TriggerGenesisArgs struct {
-	ChannelID       string
-	RollappID       string
-	TokenMetadata   []*TokenMetadata
-	GenesisAccounts []*GenesisAccount
+	ChannelID string
+	RollappID string
 }

@@ -66,22 +66,28 @@ func (im IBCMiddleware) OnRecvPacket(
 	if transferPacketData.GetMemo() == "special" {
 		/*
 			What are the steps that need to happen?
-			1. Make sure that this packet actually originated from the rollapp transfer channel
-			2. Unpack the token metadata and genesis accounts from the memo
-			3. Trigger the genesis (just markt it as happened)
+			1. Make sure that this packet actually originated from the rollapp transfer channel (how)
+			2. Mark the genesis as occurred
+			3. Pass on the ibc packet
+			(TODO: Order between 2-3)
+			(TODO: impact of one failure, how to properly error ack?)
 		*/
+
 		logger.Info("got the special memo!")
 		p := rollapptypes.TriggerGenesisArgs{
 			ChannelID: "channel-0",
 			RollappID: "rollappevm_1234-1",
 		}
+
 		ra, ok := im.raKeeper.GetRollapp(ctx, p.RollappID)
 		if !ok {
 			panic(errors.New("expect to find rollapp"))
 		}
-		// TODO: replace with passed in args
-		p.TokenMetadata = ra.TokenMetadata
-		p.GenesisAccounts = ra.GenesisState.GenesisAccounts
+		metadata := ra.TokenMetadata
+		accs := ra.GenesisState.GenesisAccounts
+		_ = ra
+		_ = metadata
+		_ = accs
 		err = im.raKeeper.MarkGenesisAsHappened(ctx, p)
 		if err != nil {
 			err = fmt.Errorf("trigger genesis func: %w", err)
