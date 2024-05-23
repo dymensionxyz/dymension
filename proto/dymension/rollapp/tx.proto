@@ -32,10 +32,8 @@ message MsgCreateRollapp {
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
-  // metadata provides the client information for all the registered tokens.
-  repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false];
-  // genesis_accounts for the rollapp on the hub
-  repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false];
+  repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false, deprecated=true];
+  repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false, deprecated=true];
 }
 
 message MsgCreateRollappResponse {
