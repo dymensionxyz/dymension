@@ -1,9 +1,10 @@
 package delayedack
 
 import (
-	"context"
 	"errors"
 	"fmt"
+
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -22,21 +23,19 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
-type TriggerGenesisFunc func(context.Context, rollapptypes.GenParams) error
-
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	keeper             keeper.Keeper
-	triggerGenesisFunc TriggerGenesisFunc
+	keeper   keeper.Keeper
+	raKeeper rollappkeeper.Keeper
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, genesisFunc TriggerGenesisFunc) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		IBCModule:          app,
-		keeper:             keeper,
-		triggerGenesisFunc: genesisFunc,
+		IBCModule: app,
+		keeper:    keeper,
+		raKeeper:  raK,
 	}
 }
 
@@ -70,7 +69,14 @@ func (im IBCMiddleware) OnRecvPacket(
 			ChannelID: "channel-0",
 			RollappID: "rollappevm_1234-1",
 		}
-		err = im.triggerGenesisFunc(sdk.WrapSDKContext(ctx), p)
+		ra, ok := im.raKeeper.GetRollapp(ctx, p.RollappID)
+		if !ok {
+			panic(errors.New("expect to find rollapp"))
+		}
+		// TODO: replace with passed in args
+		p.TokenMetadata = ra.TokenMetadata
+		p.GenesisAccounts = ra.GenesisState.GenesisAccounts
+		err = im.raKeeper.TriggerGen(sdk.WrapSDKContext(ctx), p)
 		if err != nil {
 			err = fmt.Errorf("trigger genesis func: %w", err)
 			logger.Error("OnRecvPacket", "err", err)

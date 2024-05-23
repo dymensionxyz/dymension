@@ -51,11 +51,11 @@ func (k Keeper) TriggerGen(goCtx context.Context, msg types.GenParams) error {
 	// Update the rollapp with the channelID and trigger the genesis event
 	rollapp.ChannelId = msg.ChannelID
 
-	if err := k.registerDenomMetadata(ctx, rollapp.RollappId, rollapp.ChannelId, rollapp.TokenMetadata); err != nil {
+	if err := k.registerDenomMetadata(ctx, rollapp.RollappId, rollapp.ChannelId, msg.TokenMetadata); err != nil {
 		return errorsmod.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
 	}
 
-	if err := k.mintRollappGenesisTokens(ctx, rollapp.RollappId, rollapp.GenesisState.GenesisAccounts); err != nil {
+	if err := k.mintRollappGenesisTokens(ctx, rollapp.RollappId, msg.GenesisAccounts); err != nil {
 		return errorsmod.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
 	}
 

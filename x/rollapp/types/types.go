@@ -7,6 +7,8 @@ import (
 type StateStatus common.Status
 
 type GenParams struct {
-	ChannelID string
-	RollappID string
+	ChannelID       string
+	RollappID       string
+	TokenMetadata   []*TokenMetadata
+	GenesisAccounts []*GenesisAccount
 }
