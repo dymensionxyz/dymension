@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -65,30 +64,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// TriggerRollappGenesisEvent triggers the genesis event for the rollapp.
-func (k Keeper) TriggerRollappGenesisEvent(ctx sdk.Context, rollapp types.Rollapp) error {
-	// Validate it hasn't been triggered yet
-	if rollapp.GenesisState.GenesisEventHappened {
-		return types.ErrGenesisEventAlreadyTriggered
-	}
-
-	if err := k.registerDenomMetadata(ctx, rollapp); err != nil {
-		return errorsmod.Wrapf(types.ErrRegisterDenomMetadataFailed, "register denom metadata: %s", err)
-	}
-
-	if err := k.mintRollappGenesisTokens(ctx, rollapp); err != nil {
-		return errorsmod.Wrapf(types.ErrMintTokensFailed, "mint rollapp genesis tokens: %s", err)
-	}
-
-	rollapp.GenesisState.GenesisEventHappened = true
-	k.SetRollapp(ctx, rollapp)
-	return nil
-}
-
 // registerDenomMetadata registers the denom metadata for the IBC token
-func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) error {
-	for i := range rollapp.TokenMetadata {
-		denomTrace := utils.GetForeignDenomTrace(rollapp.ChannelId, rollapp.TokenMetadata[i].Base)
+func (k Keeper) registerDenomMetadata(ctx sdk.Context,
+	rollappID string,
+	channelID string,
+	tokenMetadata []*types.TokenMetadata,
+) error {
+	for i := range tokenMetadata {
+		denomTrace := utils.GetForeignDenomTrace(channelID, tokenMetadata[i].Base)
 		traceHash := denomTrace.Hash()
 		// if the denom trace does not exist, add it
 		if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
@@ -98,19 +81,19 @@ func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) er
 		ibcBaseDenom := denomTrace.IBCDenom()
 
 		// create a new token denom metadata where it's base = ibcDenom,
-		// and the rest of the fields are taken from rollapp.metadata
+		// and the rest of the fields are taken from Metadata
 		metadata := banktypes.Metadata{
-			Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollapp.RollappId,
+			Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollappID,
 			Base:        ibcBaseDenom,
-			DenomUnits:  make([]*banktypes.DenomUnit, len(rollapp.TokenMetadata[i].DenomUnits)),
-			Display:     rollapp.TokenMetadata[i].Display,
-			Name:        rollapp.TokenMetadata[i].Name,
-			Symbol:      rollapp.TokenMetadata[i].Symbol,
-			URI:         rollapp.TokenMetadata[i].URI,
-			URIHash:     rollapp.TokenMetadata[i].URIHash,
+			DenomUnits:  make([]*banktypes.DenomUnit, len(tokenMetadata[i].DenomUnits)),
+			Display:     tokenMetadata[i].Display,
+			Name:        tokenMetadata[i].Name,
+			Symbol:      tokenMetadata[i].Symbol,
+			URI:         tokenMetadata[i].URI,
+			URIHash:     tokenMetadata[i].URIHash,
 		}
 		// Copy DenomUnits slice
-		for j, du := range rollapp.TokenMetadata[i].DenomUnits {
+		for j, du := range tokenMetadata[i].DenomUnits {
 			newDu := banktypes.DenomUnit{
 				Aliases:  du.Aliases,
 				Denom:    du.Denom,
@@ -134,14 +117,14 @@ func (k Keeper) registerDenomMetadata(ctx sdk.Context, rollapp types.Rollapp) er
 			return fmt.Errorf("create denom metadata: %w", err)
 		}
 
-		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollapp.RollappId, "denom", ibcBaseDenom)
+		k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", ibcBaseDenom)
 	}
 	return nil
 }
 
-func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp) error {
-	for _, acc := range rollapp.GenesisState.GenesisAccounts {
-		ibcBaseDenom := utils.GetForeignDenomTrace(rollapp.ChannelId, acc.Amount.Denom).IBCDenom()
+func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, channelID string, genesisAccounts []*types.GenesisAccount) error {
+	for _, acc := range genesisAccounts {
+		ibcBaseDenom := utils.GetForeignDenomTrace(channelID, acc.Amount.Denom).IBCDenom()
 		coinsToMint := sdk.NewCoins(sdk.NewCoin(ibcBaseDenom, acc.Amount.Amount))
 
 		if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint); err != nil {
