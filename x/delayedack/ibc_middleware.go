@@ -51,8 +51,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	logger := ctx.Logger().With(
 		"module", types.ModuleName,
-		"packet_source", packet.SourcePort,
-		"packet_destination", packet.DestinationPort,
+		"packet_source_port", packet.SourcePort,
+		"packet_destination_port", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
@@ -64,8 +64,14 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	if transferPacketData.GetMemo() == "special" {
+		/*
+			What are the steps that need to happen?
+			1. Make sure that this packet actually originated from the rollapp transfer channel
+			2. Unpack the token metadata and genesis accounts from the memo
+			3. Trigger the genesis (just markt it as happened)
+		*/
 		logger.Info("got the special memo!")
-		p := rollapptypes.GenParams{
+		p := rollapptypes.TriggerGenesisArgs{
 			ChannelID: "channel-0",
 			RollappID: "rollappevm_1234-1",
 		}
@@ -76,7 +82,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		// TODO: replace with passed in args
 		p.TokenMetadata = ra.TokenMetadata
 		p.GenesisAccounts = ra.GenesisState.GenesisAccounts
-		err = im.raKeeper.TriggerGen(sdk.WrapSDKContext(ctx), p)
+		err = im.raKeeper.MarkGenesisAsHappened(ctx, p)
 		if err != nil {
 			err = fmt.Errorf("trigger genesis func: %w", err)
 			logger.Error("OnRecvPacket", "err", err)
