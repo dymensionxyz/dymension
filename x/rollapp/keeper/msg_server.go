@@ -10,11 +10,6 @@ type msgServer struct {
 	Keeper
 }
 
-func (k msgServer) TriggerGenesisEvent(context.Context, *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
-	// TODO: return not implemented or deprecated error
-	return &types.MsgRollappGenesisEventResponse{}, nil
-}
-
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
@@ -22,3 +17,8 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 }
 
 var _ types.MsgServer = msgServer{}
+
+func (k msgServer) TriggerGenesisEvent(context.Context, *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
+	// TODO: return not implemented or deprecated error
+	return &types.MsgRollappGenesisEventResponse{}, nil
+}
