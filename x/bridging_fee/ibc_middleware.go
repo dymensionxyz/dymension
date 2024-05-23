@@ -41,8 +41,6 @@ func NewIBCMiddleware(transfer transfer.IBCModule, channelKeeper porttypes.ICS4W
 }
 
 func (im BridgingFeeMiddleware) GetBridgingFee(ctx sdk.Context) sdk.Dec {
-	// FIXME: move to param
-	// return sdk.NewDecWithPrec(1, 1) // 10%
 	return im.delayedAckKeeper.BridgingFee(ctx)
 }
 
@@ -98,51 +96,17 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		fee = sdk.ZeroInt()
 	} else {
 		logger.Debug("Charged bridging fee", "fee", fee)
-		// FIXME: Emit events for bridging fee
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				EventTypeBridgingFee,
+				sdk.NewAttribute(AttributeKeyFee, fee.String()),
+				sdk.NewAttribute(sdk.AttributeKeySender, transferPacketData.Sender),
+			),
+		)
 	}
 
+	// transfer the remaining amount
 	transferPacketData.Amount = transferAmount.Sub(fee).String()
 	packet.Data = transferPacketData.GetBytes()
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
-
-// /* -------------------------- unmodified interfaces ------------------------- */
-// // OnChanCloseConfirm implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanCloseConfirm(ctx sdk.Context, portID string, channelID string) error {
-// 	return im.transfer.OnChanCloseConfirm(ctx, portID, channelID)
-// }
-
-// // OnChanCloseInit implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanCloseInit(ctx sdk.Context, portID string, channelID string) error {
-// 	return im.transfer.OnChanCloseInit(ctx, portID, channelID)
-// }
-
-// // OnChanOpenAck implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanOpenAck(ctx sdk.Context, portID string, channelID string, counterpartyChannelID string, counterpartyVersion string) error {
-// 	return im.transfer.OnChanOpenAck(ctx, portID, channelID, counterpartyChannelID, counterpartyVersion)
-// }
-
-// // OnChanOpenConfirm implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanOpenConfirm(ctx sdk.Context, portID string, channelID string) error {
-// 	return im.transfer.OnChanOpenConfirm(ctx, portID, channelID)
-// }
-
-// // OnChanOpenInit implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanOpenInit(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, version string) (string, error) {
-// 	return im.transfer.OnChanOpenInit(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, version)
-// }
-
-// // OnChanOpenTry implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnChanOpenTry(ctx sdk.Context, order channeltypes.Order, connectionHops []string, portID string, channelID string, channelCap *capabilitytypes.Capability, counterparty channeltypes.Counterparty, counterpartyVersion string) (version string, err error) {
-// 	return im.transfer.OnChanOpenTry(ctx, order, connectionHops, portID, channelID, channelCap, counterparty, counterpartyVersion)
-// }
-
-// // OnAcknowledgementPacket implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnAcknowledgementPacket(ctx sdk.Context, packet channeltypes.Packet, acknowledgement []byte, relayer sdk.AccAddress) error {
-// 	return im.transfer.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-// }
-
-// // OnTimeoutPacket implements types.Middleware.
-// func (im *BridgingFeeMiddleware) OnTimeoutPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) error {
-// 	return im.transfer.OnTimeoutPacket(ctx, packet, relayer)
-// }
