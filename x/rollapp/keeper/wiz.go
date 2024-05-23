@@ -19,11 +19,11 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 	}
 
 	// Validate it hasn't been triggered yet
-	if genesisState.GenesisEventHappened {
+	if rollapp.GenesisState.GenesisEventHappened {
 		panic(errors.New("genesis event already happened - it shouldn't have"))
 	}
 
-	genesisState.GenesisEventHappened = true
+	rollapp.GenesisState.GenesisEventHappened = true
 	k.SetRollapp(ctx, rollapp)
 
 	return nil
