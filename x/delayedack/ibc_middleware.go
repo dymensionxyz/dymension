@@ -22,7 +22,7 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
-type TriggerGenesisFunc func(goCtx context.Context, msg *rollapptypes.MsgRollappGenesisEvent) (*rollapptypes.MsgRollappGenesisEventResponse, error)
+type TriggerGenesisFunc func(context.Context, rollapptypes.GenParams) error
 
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
@@ -66,11 +66,11 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	if transferPacketData.GetMemo() == "special" {
 		logger.Info("got the special memo!")
-		msg := &rollapptypes.MsgRollappGenesisEvent{}
-		msg.RollappId = "rollappevm_1234-1"
-		msg.ChannelId = "channel-0"
-		msg.Address = ""
-		_, err := im.triggerGenesisFunc(sdk.WrapSDKContext(ctx), msg)
+		p := rollapptypes.GenParams{
+			ChannelID: "channel-0",
+			RollappID: "rollappevm_1234-1",
+		}
+		err = im.triggerGenesisFunc(sdk.WrapSDKContext(ctx), p)
 		if err != nil {
 			err = fmt.Errorf("trigger genesis func: %w", err)
 			logger.Error("OnRecvPacket", "err", err)
