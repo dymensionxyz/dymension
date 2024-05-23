@@ -77,7 +77,11 @@ func (im IBCMiddleware) OnRecvPacket(
 			panic(err)
 		}
 		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		if !ack.Success() {
+			logger.Error("OnRecvPacket, forwarded special tx, but got an err ack", "ack", string(ack.Acknowledgement()))
+		}
+		return ack
 	}
 
 	if rollappID == "" {

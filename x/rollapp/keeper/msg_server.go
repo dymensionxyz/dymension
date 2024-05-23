@@ -43,14 +43,14 @@ func (k Keeper) TriggerGen(goCtx context.Context, msg *types.MsgRollappGenesisEv
 		return nil, errorsmod.Wrapf(types.ErrInvalidGenesisChannelId, "expected tendermint client state, got %T", clientState)
 	}
 	if tmClientState.GetChainID() != msg.RollappId {
-		return nil, errorsmod.Wrapf(types.ErrInvalidGenesisChannelId, "channel %s is connected to chain ID %s, expected %s",
+		return nil, errorsmod.Wrapf(types.ErrInvalidGenesisChannelId, "channel connected to wrong chain: channel: %s: got: %s: expect: %s",
 			msg.ChannelId, tmClientState.GetChainID(), msg.RollappId)
 	}
 
 	// Update the rollapp with the channelID and trigger the genesis event
 	rollapp.ChannelId = msg.ChannelId
 	if err = k.TriggerRollappGenesisEvent(ctx, rollapp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("trigger rollapp genesis event: %w", err)
 	}
 
 	return &types.MsgRollappGenesisEventResponse{}, nil
