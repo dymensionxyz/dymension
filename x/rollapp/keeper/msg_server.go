@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -35,7 +36,7 @@ func (k Keeper) TriggerGen(goCtx context.Context, msg *types.MsgRollappGenesisEv
 	// Get the channel and validate it's connected client chain is the same as the rollapp's
 	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, "transfer", msg.ChannelId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get channel client state: %w", err)
 	}
 	tmClientState, ok := clientState.(*tenderminttypes.ClientState)
 	if !ok {
