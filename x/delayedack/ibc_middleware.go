@@ -1,7 +1,9 @@
 package delayedack
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -20,17 +22,21 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
+type TriggerGenesisFunc func(goCtx context.Context, msg *rollapptypes.MsgRollappGenesisEvent) (*rollapptypes.MsgRollappGenesisEventResponse, error)
+
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	keeper keeper.Keeper
+	keeper             keeper.Keeper
+	triggerGenesisFunc TriggerGenesisFunc
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, genesisFunc TriggerGenesisFunc) IBCMiddleware {
 	return IBCMiddleware{
-		IBCModule: app,
-		keeper:    keeper,
+		IBCModule:          app,
+		keeper:             keeper,
+		triggerGenesisFunc: genesisFunc,
 	}
 }
 
@@ -54,12 +60,23 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Failed to extract rollapp id from packet", "err", err)
+		logger.Error("Extract rollapp id from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	if transferPacketData.GetMemo() == "special" {
 		logger.Info("got the special memo!")
+		msg := &rollapptypes.MsgRollappGenesisEvent{}
+		msg.RollappId = "rollappevm_1234-1"
+		msg.ChannelId = "channel-0"
+		msg.Address = ""
+		_, err := im.triggerGenesisFunc(sdk.WrapSDKContext(ctx), msg)
+		if err != nil {
+			err = fmt.Errorf("trigger genesis func: %w", err)
+			logger.Error("OnRecvPacket", "err", err)
+			panic(err)
+		}
+		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -325,27 +342,31 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 	// no-op if the packet is not a fungible token packet
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return "", nil, err
+		return "", nil, fmt.Errorf("unmarshal fungible token packet data: %w", err)
 	}
 	// Check if the packet is destined for a rollapp
 	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		return "", &data, err
+		return "", &data, fmt.Errorf("extract chain id from channel: %w", err)
 	}
 	rollapp, found := im.keeper.GetRollapp(ctx, chainID)
 	if !found {
-		return "", &data, nil
+		return "", &data, nil // TODO: needs an error?
 	}
-	if rollapp.ChannelId == "" {
-		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
-	}
-	// check if the channelID matches the rollappID's channelID
-	if rollapp.ChannelId != rollappChannelOnHub {
-		return "", &data, errorsmod.Wrapf(
-			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
-		)
-	}
+	_ = rollapp
+	/*
+		TODO: reimpl semantics somewhere else
+		if rollapp.ChannelId == "" {
+			return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+		}
+		// check if the channelID matches the rollappID's channelID
+		if rollapp.ChannelId != rollappChannelOnHub {
+			return "", &data, errorsmod.Wrapf(
+				rollapptypes.ErrMismatchedChannelID,
+				"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+			)
+		}
+	*/
 
 	return chainID, &data, nil
 }

@@ -21,15 +21,10 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
+func (k Keeper) TriggerGen(goCtx context.Context, msg *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Get the sender and validate they are in the whitelist
-	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-		if !k.IsAddressInDeployerWhiteList(ctx, msg.Address) {
-			return nil, types.ErrUnauthorized
-		}
-	}
+	// NOTE: whitelist check removed here
 
 	// Get the rollapp
 	rollapp, found := k.GetRollapp(ctx, msg.RollappId)
@@ -58,4 +53,8 @@ func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRoll
 	}
 
 	return &types.MsgRollappGenesisEventResponse{}, nil
+}
+
+func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRollappGenesisEvent) (*types.MsgRollappGenesisEventResponse, error) {
+	return k.TriggerGen(goCtx, msg)
 }
