@@ -66,10 +66,12 @@ message MsgUpdateStateResponse {
 
 
 message MsgRollappGenesisEvent {
-  string address = 1 [deprecated=true];
-  string channel_id = 2 [deprecated=true];
-  string rollapp_id = 3 [deprecated=true];
+  option deprecated = true;
+  reserved 1;
+  reserved 2;
+  reserved 3;
 }
 
 message MsgRollappGenesisEventResponse {
+  option deprecated = true;
 }
