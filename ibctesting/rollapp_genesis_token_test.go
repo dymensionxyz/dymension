@@ -64,7 +64,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -81,7 +81,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: true,
+				GenesisEventHappened: true,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -98,7 +98,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: true,
+				GenesisEventHappened: true,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   apptesting.CreateRandomAccounts(1)[0].String(),
@@ -115,7 +115,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -132,7 +132,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -149,7 +149,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -165,7 +165,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				GenesisAccounts: []*types.GenesisAccount{
 					{Address: ""},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -183,7 +183,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),

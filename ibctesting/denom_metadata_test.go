@@ -29,7 +29,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
 	suite.coordinator.Setup(path)
 
 	// register rollapp with metadata for stake denom
-	suite.CreateRollappWithMetadata(sdk.DefaultBondDenom)
+	suite.CreateRollappWithMetadata()
 	suite.RegisterSequencer()
 
 	app := ConvertToApp(suite.hubChain)

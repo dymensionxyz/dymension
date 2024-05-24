@@ -3,7 +3,6 @@ package ibctesting_test
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -75,26 +74,7 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.ChainID,
-		10,
-		[]string{},
-		[]rollapptypes.TokenMetadata{
-			{
-				Name:        "RollApp RAX",
-				Symbol:      "rax",
-				Description: "The native staking token of RollApp XYZ",
-				DenomUnits: []*rollapptypes.DenomUnit{
-					{Denom: "arax", Exponent: uint32(0), Aliases: nil},
-					{Denom: "rax", Exponent: uint32(10), Aliases: []string{"RAX"}},
-				},
-				Base:    "arax",
-				Display: "rax",
-			},
-		},
-		nil,
-	)
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{})
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 }
@@ -139,34 +119,8 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	suite.Require().NoError(err) // message committed
 }
 
-func (suite *IBCTestUtilSuite) CreateRollappWithMetadata(denom string) {
-	displayDenom := "big" + denom
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.ChainID,
-		10,
-		[]string{},
-		[]rollapptypes.TokenMetadata{
-			{
-				Base: denom,
-				DenomUnits: []*rollapptypes.DenomUnit{
-					{
-						Denom:    denom,
-						Exponent: 0,
-					},
-					{
-						Denom:    displayDenom,
-						Exponent: 6,
-					},
-				},
-				Description: "stake as rollapp token",
-				Display:     displayDenom,
-				Name:        displayDenom,
-				Symbol:      strings.ToUpper(displayDenom),
-			},
-		},
-		nil,
-	)
+func (suite *IBCTestUtilSuite) CreateRollappWithMetadata() {
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{})
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 }
