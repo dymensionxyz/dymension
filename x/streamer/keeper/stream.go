@@ -96,7 +96,7 @@ func (k Keeper) moveActiveStreamToFinishedStream(ctx sdk.Context, stream types.S
 	return k.moveStreamToFinishedStream(ctx, stream, types.KeyPrefixActiveStreams)
 }
 
-// moveActiveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
+// moveStreamToFinishedStream moves a stream that has completed its distribution from an active to a finished status.
 func (k Keeper) moveStreamToFinishedStream(ctx sdk.Context, stream types.Stream, prefixKey []byte) error {
 	timeKey := getTimeKey(stream.StartTime)
 	if err := k.deleteStreamRefByKey(ctx, combineKeys(prefixKey, timeKey), stream.Id); err != nil {
