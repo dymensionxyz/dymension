@@ -363,9 +363,8 @@ type App struct {
 	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper    delayedackkeeper.Keeper
-	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
-
+	DelayedAckKeeper     delayedackkeeper.Keeper
+	DenomMetadataKeeper  *denommetadatamodulekeeper.Keeper
 	TransferInjectKeeper *transferinjectkeeper.Keeper
 
 	// the module manager

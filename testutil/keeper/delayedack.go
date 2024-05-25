@@ -11,19 +11,21 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 type ChannelKeeperStub struct{}
@@ -111,6 +113,10 @@ func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId
 
 func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
 	return []rollapptypes.Rollapp{}
+}
+
+func (r RollappKeeperStub) ExtractRollappAndTransferPacketFromData(_ sdk.Context, data []byte, _ string, _ string) (*rollapptypes.Rollapp, *transfertypes.FungibleTokenPacketData, error) {
+	return &rollapptypes.Rollapp{}, &transfertypes.FungibleTokenPacketData{}, nil
 }
 
 type SequencerKeeperStub struct{}

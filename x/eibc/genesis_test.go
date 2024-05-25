@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestInitGenesis(t *testing.T) {
