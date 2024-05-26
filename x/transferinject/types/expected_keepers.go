@@ -10,6 +10,7 @@ import (
 // BankKeeper defines the expected interface needed
 type BankKeeper interface {
 	GetDenomMetaData(ctx sdk.Context, denom string) (types.Metadata, bool)
+	HasDenomMetaData(ctx sdk.Context, denom string) bool
 }
 
 type RollappKeeper interface {

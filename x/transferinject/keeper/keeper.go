@@ -131,6 +131,11 @@ func (t *Keeper) OnAcknowledgementPacket(
 		return t.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
+	// check if hub has the denom metadata
+	if !t.bankKeeper.HasDenomMetaData(ctx, dm.Base) {
+		return errorsmod.Wrapf(errortypes.ErrInvalidType, "denom metadata not found")
+	}
+
 	denomUnits := make([]*rtypes.DenomUnit, len(dm.DenomUnits))
 	for _, du := range dm.DenomUnits {
 		if du.Exponent == 0 {

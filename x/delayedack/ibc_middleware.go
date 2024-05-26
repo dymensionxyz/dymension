@@ -62,6 +62,10 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
+	if rollapp == nil {
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	rollappID := rollapp.RollappId
 
 	if rollappID == "" {
@@ -146,6 +150,10 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
+	if rollapp == nil {
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
 	rollappID := rollapp.RollappId
 
 	if rollappID == "" {
@@ -208,7 +216,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		}
 	}
 
-	return im.IBCModule.OnAcknowledgementPacket(cacheCtx, packet, acknowledgement, relayer)
+	return nil
 }
 
 // OnTimeoutPacket implements the IBCMiddleware interface
@@ -237,6 +245,10 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
+	}
+
+	if rollapp == nil {
+		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
 	rollappID := rollapp.RollappId

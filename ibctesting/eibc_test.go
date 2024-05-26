@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -34,6 +35,9 @@ func TestEIBCTestSuite(t *testing.T) {
 
 func (suite *EIBCTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
+	ConvertToApp(suite.hubChain).BankKeeper.SetDenomMetaData(suite.hubChain.GetContext(), banktypes.Metadata{
+		Base: sdk.DefaultBondDenom,
+	})
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 	suite.msgServer = eibckeeper.NewMsgServerImpl(eibcKeeper)
 	// Change the delayedAck epoch to trigger every month to not
