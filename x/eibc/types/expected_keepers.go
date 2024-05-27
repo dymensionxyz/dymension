@@ -20,4 +20,5 @@ type BankKeeper interface {
 
 type DelayedAckKeeper interface {
 	GetRollappPacket(ctx sdk.Context, rollappPacketKey string) (*commontypes.RollappPacket, error)
+	BridgingFee(ctx sdk.Context) (res sdk.Dec)
 }

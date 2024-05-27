@@ -175,6 +175,36 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_FINALIZED.String()),
 			},
 		},
+		{
+			name:                                 "Test demand order fulfillment - non profitable order",
+			demandOrderPrice:                     90,
+			demandOrderFee:                       10,
+			demandOrderFulfillmentStatus:         false,
+			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
+			demandOrderDenom:                     sdk.DefaultBondDenom,
+			underlyingRollappPacket:              rollappPacket,
+			expectedFulfillmentError:             types.ErrDemandOrderNotProfitable,
+			eIBCdemandAddrBalance:                math.NewInt(1000),
+			expectedDemandOrdefFulfillmentStatus: true,
+			expectedPostCreationEventsType:       eibcEventType,
+			expectedPostCreationEventsCount:      2,
+			expectedPostCreationEventsAttributes: []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
+				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
+				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			},
+			expectedPostFulfillmentEventsType:  eibcEventType,
+			expectedPostFulfillmentEventsCount: 0,
+			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
+				sdk.NewAttribute(types.AttributeKeyPrice, "150"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
+				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			},
+		},
 	}
 	totalEventsEmitted := 0
 	for _, tc := range tests {

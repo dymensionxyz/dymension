@@ -37,6 +37,15 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	if demandOrder.IsFulfilled {
 		return nil, types.ErrDemandAlreadyFulfilled
 	}
+
+	// Check the order is profitable in regards to the bridging fee
+	denom := demandOrder.Price[0].Denom
+	originalAmt := demandOrder.Price.AmountOf(denom).Add(demandOrder.Fee.AmountOf(denom))
+	bridgingFee := m.DelayedAckKeeper.BridgingFee(ctx).MulInt(originalAmt).TruncateInt()
+	if demandOrder.Fee.AmountOf(denom).LT(bridgingFee) {
+		return nil, types.ErrDemandOrderNotProfitable
+	}
+
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
 	if demandOrder.TrackingPacketStatus != commontypes.Status_PENDING {
 		return nil, types.ErrDemandOrderInactive
