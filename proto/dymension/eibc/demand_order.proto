@@ -29,5 +29,5 @@ message DemandOrder {
     bool is_fulfilled = 6;
     string rollapp_id = 7;
     common.Type type = 8;
-    dymensionxyz.dymension.common.Status tracking_packet_status = 9;
-  }
+    common.Status tracking_packet_status = 9;
+}

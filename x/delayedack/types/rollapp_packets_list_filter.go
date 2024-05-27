@@ -14,6 +14,8 @@ type Prefix struct {
 	End   []byte
 }
 
+var bypassFilter = func(packet commontypes.RollappPacket) bool { return true }
+
 func PendingByRollappIDByMaxHeight(
 	rollappID string,
 	maxProofHeight uint64,
@@ -26,7 +28,7 @@ func PendingByRollappIDByMaxHeight(
 				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, maxProofHeight+1), // inclusive end
 			},
 		},
-		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
+		FilterFunc: bypassFilter,
 	}
 }
 
@@ -37,7 +39,7 @@ func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) Rollapp
 	}
 	return RollappPacketListFilter{
 		Prefixes:   prefixes,
-		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
+		FilterFunc: bypassFilter,
 	}
 }
 
@@ -66,7 +68,7 @@ func ByStatus(status ...commontypes.Status) RollappPacketListFilter {
 	}
 	return RollappPacketListFilter{
 		Prefixes:   prefixes,
-		FilterFunc: func(packet commontypes.RollappPacket) bool { return true },
+		FilterFunc: bypassFilter,
 	}
 }
 

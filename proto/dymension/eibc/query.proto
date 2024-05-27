@@ -44,7 +44,7 @@ message QueryGetDemandOrderRequest {
 
 // QueryDemandOrdersByStatusRequest is the request type for the Query/GetDemandOrdersByStatus RPC method.
 message QueryDemandOrdersByStatusRequest {
-  // id of the demand order to get
+  // status of the demand order
   common.Status status = 1;
   // optional type
   common.Type type = 2;
