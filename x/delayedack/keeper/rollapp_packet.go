@@ -62,12 +62,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
 	var originalTransferTarget string
 	switch rollappPacket.Type {
-	case commontypes.Type_ON_RECV:
+	case commontypes.RollappPacket_ON_RECV:
 		originalTransferTarget = recipient
 		recipient = address
-	case commontypes.Type_ON_TIMEOUT:
+	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
-	case commontypes.Type_ON_ACK:
+	case commontypes.RollappPacket_ON_ACK:
 		originalTransferTarget = sender
 		sender = address
 	}

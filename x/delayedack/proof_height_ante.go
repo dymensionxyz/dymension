@@ -26,7 +26,7 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		case *channeltypes.MsgRecvPacket:
 			height = msg.ProofHeight
 			packetId = commontypes.NewPacketUID(
-				commontypes.Type_ON_RECV,
+				commontypes.RollappPacket_ON_RECV,
 				msg.Packet.DestinationPort,
 				msg.Packet.DestinationChannel,
 				msg.Packet.Sequence,
@@ -35,7 +35,7 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		case *channeltypes.MsgAcknowledgement:
 			height = msg.ProofHeight
 			packetId = commontypes.NewPacketUID(
-				commontypes.Type_ON_ACK,
+				commontypes.RollappPacket_ON_ACK,
 				msg.Packet.SourcePort,
 				msg.Packet.SourceChannel,
 				msg.Packet.Sequence,
@@ -44,7 +44,7 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 		case *channeltypes.MsgTimeout:
 			height = msg.ProofHeight
 			packetId = commontypes.NewPacketUID(
-				commontypes.Type_ON_TIMEOUT,
+				commontypes.RollappPacket_ON_TIMEOUT,
 				msg.Packet.SourcePort,
 				msg.Packet.SourceChannel,
 				msg.Packet.Sequence,

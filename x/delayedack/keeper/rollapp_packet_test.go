@@ -107,7 +107,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 					Sequence:           uint64(i),
 				},
 				Status:      sm[i%3],
-				Type:        commontypes.Type(i % 3),
+				Type:        commontypes.RollappPacket_Type(i % 3),
 				ProofHeight: uint64(6 - i),
 			}
 			packetsToSet = append(packetsToSet, packet)
@@ -151,15 +151,15 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	suite.Require().Equal(1, len(rollappPacket2MaxHeight3))
 
 	expectOnRecvLength := 3
-	onRecvPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.Type_ON_RECV, commontypes.Status_PENDING))
+	onRecvPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_RECV, commontypes.Status_PENDING))
 	suite.Assert().Equal(expectOnRecvLength, len(onRecvPackets))
 
 	expectOnAckLength := 6
-	onAckPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.Type_ON_ACK, commontypes.Status_FINALIZED))
+	onAckPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_ACK, commontypes.Status_FINALIZED))
 	suite.Assert().Equal(expectOnAckLength, len(onAckPackets))
 
 	expectOnTimeoutLength := 6
-	onTimeoutPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.Type_ON_TIMEOUT, commontypes.Status_REVERTED))
+	onTimeoutPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_TIMEOUT, commontypes.Status_REVERTED))
 	suite.Assert().Equal(expectOnTimeoutLength, len(onTimeoutPackets))
 
 	suite.Require().Equal(totalLength, len(onRecvPackets)+len(onAckPackets)+len(onTimeoutPackets))

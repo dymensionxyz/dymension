@@ -55,7 +55,7 @@ func (k Keeper) finalizeRollappPacket(
 	}
 
 	switch rollappPacket.Type {
-	case commontypes.Type_ON_RECV:
+	case commontypes.RollappPacket_ON_RECV:
 		ack := ibc.OnRecvPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 		/*
 				We only write the ack if writing it succeeds:
@@ -71,9 +71,9 @@ func (k Keeper) finalizeRollappPacket(
 		if ack != nil {
 			err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
-	case commontypes.Type_ON_ACK:
+	case commontypes.RollappPacket_ON_ACK:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
-	case commontypes.Type_ON_TIMEOUT:
+	case commontypes.RollappPacket_ON_TIMEOUT:
 		err = osmoutils.ApplyFuncIfNoError(ctx, k.onTimeoutPacket(rollappPacket, ibc))
 	default:
 		logger.Error("Unknown rollapp packet type", logContext...)

@@ -7,7 +7,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/eibc/params.proto";
 import "dymension/eibc/demand_order.proto";
 import "dymension/common/status.proto";
-import "dymension/common/type.proto";
+import "dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
@@ -47,7 +47,7 @@ message QueryDemandOrdersByStatusRequest {
   // status of the demand order
   common.Status status = 1;
   // optional type
-  common.Type type = 2;
+  common.RollappPacket.Type type = 2;
   // optional rollapp_id
   string rollapp_id = 3;
   // optional limit

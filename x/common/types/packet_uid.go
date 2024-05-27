@@ -4,14 +4,14 @@ import "fmt"
 
 // PacketUID is a unique identifier for an Rollapp IBC packet on the hub
 type PacketUID struct {
-	Type              Type
+	Type              RollappPacket_Type
 	RollappHubPort    string
 	RollappHubChannel string
 	Sequence          uint64
 }
 
 // NewPacketUID creates a new PacketUID with the provided details.
-func NewPacketUID(packetType Type, hubPort string, hubChannel string, sequence uint64) PacketUID {
+func NewPacketUID(packetType RollappPacket_Type, hubPort string, hubChannel string, sequence uint64) PacketUID {
 	return PacketUID{
 		Type:              packetType,
 		RollappHubPort:    hubPort,

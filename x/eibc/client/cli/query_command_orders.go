@@ -27,7 +27,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 			}
 			request := &types.QueryDemandOrdersByStatusRequest{
 				Status: commontypes.Status(status),
-				Type:   commontypes.Type_UNDEFINED, // default to undefined, as '0' is a valid type
+				Type:   commontypes.RollappPacket_UNDEFINED, // default to undefined, as '0' is a valid type
 			}
 
 			if len(args) > 1 {
@@ -38,11 +38,11 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				if !strings.HasPrefix(packetType, "ON_") {
 					packetType = "ON_" + packetType
 				}
-				ptype, ok := commontypes.Type_value[packetType]
+				ptype, ok := commontypes.RollappPacket_Type_value[packetType]
 				if !ok {
 					return fmt.Errorf("invalid packet type: %s", args[2])
 				}
-				request.Type = commontypes.Type(ptype)
+				request.Type = commontypes.RollappPacket_Type(ptype)
 			}
 			if len(args) > 3 {
 				limit, err := strconv.ParseInt(args[3], 10, 32)

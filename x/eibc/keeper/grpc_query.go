@@ -69,7 +69,7 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	if req.RollappId != "" {
 		opts = append(opts, isRollappId(req.RollappId))
 	}
-	if req.Type != commontypes.Type_UNDEFINED {
+	if req.Type != commontypes.RollappPacket_UNDEFINED {
 		opts = append(opts, isOrderType(req.Type))
 	}
 	if req.Limit > 0 {
@@ -86,7 +86,7 @@ func isRollappId(rollappId string) filterOption {
 	}
 }
 
-func isOrderType(orderType ...commontypes.Type) filterOption {
+func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 	return func(order types.DemandOrder) bool {
 		for _, ot := range orderType {
 			if order.Type == ot {

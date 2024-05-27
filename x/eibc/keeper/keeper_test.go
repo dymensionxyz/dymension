@@ -45,7 +45,7 @@ var (
 	rollappPacket = &commontypes.RollappPacket{
 		RollappId: "testRollappId",
 		Status:    commontypes.Status_PENDING,
-		Type:      commontypes.Type_ON_RECV,
+		Type:      commontypes.RollappPacket_ON_RECV,
 		Packet:    &packet,
 	}
 	rollappPacketKey = commontypes.RollappPacketKey(rollappPacket)

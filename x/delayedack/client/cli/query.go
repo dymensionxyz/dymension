@@ -78,8 +78,8 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 
 			req := &types.QueryRollappPacketsRequest{
 				RollappId: rollappId,
-				Status:    commontypes.Status_PENDING, // get pending packets by default
-				Type:      commontypes.Type_UNDEFINED, // must specify, as '0' is a valid type
+				Status:    commontypes.Status_PENDING,          // get pending packets by default
+				Type:      commontypes.RollappPacket_UNDEFINED, // must specify, as '0' is a valid type
 			}
 
 			if len(args) > 1 {
@@ -97,12 +97,12 @@ func CmdGetPacketsByRollapp() *cobra.Command {
 				if !strings.HasPrefix(typeStr, "ON_") {
 					typeStr = "ON_" + typeStr
 				}
-				dtype, ok := commontypes.Type_value[typeStr]
+				dtype, ok := commontypes.RollappPacket_Type_value[typeStr]
 				if !ok {
 					// Handle error: typeStr is not a valid commontypes.Type
 					return fmt.Errorf("invalid type: %s", typeStr)
 				}
-				req.Type = commontypes.Type(dtype)
+				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
@@ -140,7 +140,7 @@ func CmdGetPacketsByStatus() *cobra.Command {
 
 			req := &types.QueryRollappPacketsRequest{
 				Status: commontypes.Status(status),
-				Type:   commontypes.Type_UNDEFINED, // must specify, as '0' is a valid type
+				Type:   commontypes.RollappPacket_UNDEFINED, // must specify, as '0' is a valid type
 			}
 
 			if len(args) > 1 {
@@ -148,11 +148,11 @@ func CmdGetPacketsByStatus() *cobra.Command {
 				if !strings.HasPrefix(typeStr, "ON_") {
 					typeStr = "ON_" + typeStr
 				}
-				dtype, ok := commontypes.Type_value[typeStr]
+				dtype, ok := commontypes.RollappPacket_Type_value[typeStr]
 				if !ok {
 					return fmt.Errorf("invalid type: %s", typeStr)
 				}
-				req.Type = commontypes.Type(dtype)
+				req.Type = commontypes.RollappPacket_Type(dtype)
 			}
 
 			res, err := queryClient.GetPackets(cmd.Context(), req)
@@ -188,13 +188,13 @@ func CmdGetPacketsByType() *cobra.Command {
 				typeStr = "ON_" + typeStr
 			}
 
-			dtype, ok := commontypes.Type_value[typeStr]
+			dtype, ok := commontypes.RollappPacket_Type_value[typeStr]
 			if !ok {
 				return fmt.Errorf("invalid type: %s", typeStr)
 			}
 
 			req := &types.QueryRollappPacketsRequest{
-				Type:   commontypes.Type(dtype),
+				Type:   commontypes.RollappPacket_Type(dtype),
 				Status: commontypes.Status_PENDING, // get pending packets by default
 			}
 

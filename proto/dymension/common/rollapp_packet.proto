@@ -4,7 +4,6 @@ package dymensionxyz.dymension.common;
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
 import "dymension/common/status.proto";
-import "dymension/common/type.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 
@@ -15,6 +14,12 @@ message RollappPacket {
     Status status = 4;
     uint64 ProofHeight = 5;
     bytes relayer = 6;
+    enum Type {
+      ON_RECV = 0;
+      ON_ACK = 1;
+      ON_TIMEOUT = 2;
+      UNDEFINED = -1;
+    }
     Type type = 7;
     // stores the result of onAck, onTimeout or onRecv/writeAck
     string error = 8;
