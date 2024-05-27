@@ -61,3 +61,33 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 
 	return &types.MsgFulfillOrderResponse{}, err
 }
+
+// EditOrder implements types.MsgServer.
+func (m msgServer) EditOrder(goCtx context.Context, msg *types.MsgEditOrder) (*types.MsgEditOrderResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	logger := ctx.Logger()
+	// Check that the msg is valid
+	err := msg.ValidateBasic()
+	if err != nil {
+		return nil, err
+	}
+	// Check that the order exists in status PENDING
+	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, msg.OrderId)
+	if err != nil {
+		return nil, err
+	}
+	// Check that the order is not fulfilled yet
+	if demandOrder.IsFulfilled {
+		return nil, types.ErrDemandAlreadyFulfilled
+	}
+	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
+	if demandOrder.TrackingPacketStatus != commontypes.Status_PENDING {
+		return nil, types.ErrDemandOrderInactive
+	}
+
+	// TODO: check sender
+
+	// TODO: check profitable
+
+	// TODO: update the order
+}
