@@ -23,7 +23,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 	packetMetaData := &types.PacketMetadata{}
 
 	switch t := rollappPacket.Type; t {
-	case commontypes.Type_ON_RECV:
+	case commontypes.RollappPacket_ON_RECV:
 		var err error
 		packetMetaData, err = types.ParsePacketMetadata(data.Memo)
 		if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoEibcEmpty) {
@@ -33,7 +33,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		if err != nil {
 			return err
 		}
-	case commontypes.Type_ON_TIMEOUT, commontypes.Type_ON_ACK:
+	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
 		// Calculate the fee by multiplying the fee by the price
 		amountDec, err := sdk.NewDecFromStr(data.Amount)
 		if err != nil {
@@ -42,9 +42,9 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		// Calculate the fee by multiplying the fee by the price
 		var feeMultiplier sdk.Dec
 		switch t {
-		case commontypes.Type_ON_TIMEOUT:
+		case commontypes.RollappPacket_ON_TIMEOUT:
 			feeMultiplier = im.keeper.TimeoutFee(ctx)
-		case commontypes.Type_ON_ACK:
+		case commontypes.RollappPacket_ON_ACK:
 			feeMultiplier = im.keeper.ErrAckFee(ctx)
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
@@ -118,13 +118,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(fungibleTokenPacketData t
 	var demandOrderDenom string
 	var demandOrderRecipient string
 	switch rollappPacket.Type {
-	case commontypes.Type_ON_TIMEOUT:
+	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
-	case commontypes.Type_ON_ACK:
+	case commontypes.RollappPacket_ON_ACK:
 		trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
-	case commontypes.Type_ON_RECV:
+	case commontypes.RollappPacket_ON_RECV:
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}

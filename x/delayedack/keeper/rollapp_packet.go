@@ -62,12 +62,12 @@ func (k Keeper) UpdateRollappPacketTransferAddress(
 	recipient, sender := transferPacketData.Receiver, transferPacketData.Sender
 	var originalTransferTarget string
 	switch rollappPacket.Type {
-	case commontypes.Type_ON_RECV:
+	case commontypes.RollappPacket_ON_RECV:
 		originalTransferTarget = recipient
 		recipient = address
-	case commontypes.Type_ON_TIMEOUT:
+	case commontypes.RollappPacket_ON_TIMEOUT:
 		fallthrough
-	case commontypes.Type_ON_ACK:
+	case commontypes.RollappPacket_ON_ACK:
 		originalTransferTarget = sender
 		sender = address
 	}
@@ -130,20 +130,13 @@ func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPack
 		for ; iterator.Valid(); iterator.Next() {
 			var val commontypes.RollappPacket
 			k.cdc.MustUnmarshal(iterator.Value(), &val)
+			// Apply the filter function
+			if !listFilter.FilterFunc(val) {
+				continue
+			}
 			list = append(list, val)
 		}
 		_ = iterator.Close()
-	}
-
-	if listFilter.FilterFunc != nil {
-		// If a filter function is provided, apply the filter to the list
-		filtered := list[:0]
-		for _, packet := range list {
-			if listFilter.FilterFunc(packet) {
-				filtered = append(filtered, packet)
-			}
-		}
-		list = filtered
 	}
 
 	return list

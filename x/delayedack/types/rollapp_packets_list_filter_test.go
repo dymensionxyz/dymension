@@ -267,7 +267,7 @@ func TestPendingByRollappIDByMaxHeight(t *testing.T) {
 
 func TestByType(t *testing.T) {
 	type args struct {
-		packetType commontypes.Type
+		packetType commontypes.RollappPacket_Type
 	}
 	tests := []struct {
 		name string
@@ -277,19 +277,19 @@ func TestByType(t *testing.T) {
 		{
 			name: "Test with Type ON_RECV",
 			args: args{
-				packetType: commontypes.Type_ON_RECV,
+				packetType: commontypes.RollappPacket_ON_RECV,
 			},
 			want: testRollappPackets[1:2],
 		}, {
 			name: "Test with Type ON_ACK",
 			args: args{
-				packetType: commontypes.Type_ON_ACK,
+				packetType: commontypes.RollappPacket_ON_ACK,
 			},
 			want: testRollappPackets[2:3],
 		}, {
 			name: "Test with Type ON_TIMEOUT",
 			args: args{
-				packetType: commontypes.Type_ON_TIMEOUT,
+				packetType: commontypes.RollappPacket_ON_TIMEOUT,
 			},
 			want: testRollappPackets[3:4],
 		},
@@ -312,18 +312,18 @@ var testRollappPackets = []commontypes.RollappPacket{
 	{
 		RollappId: "rollapp-id-1",
 		Packet:    &channeltypes.Packet{},
-		Type:      commontypes.Type_UNDEFINED,
+		Type:      commontypes.RollappPacket_UNDEFINED,
 	}, {
 		RollappId: "rollapp-id-2",
 		Packet:    &channeltypes.Packet{},
-		Type:      commontypes.Type_ON_RECV,
+		Type:      commontypes.RollappPacket_ON_RECV,
 	}, {
 		RollappId: "rollapp-id-3",
 		Packet:    &channeltypes.Packet{},
-		Type:      commontypes.Type_ON_ACK,
+		Type:      commontypes.RollappPacket_ON_ACK,
 	}, {
 		RollappId: "rollapp-id-4",
 		Packet:    &channeltypes.Packet{},
-		Type:      commontypes.Type_ON_TIMEOUT,
+		Type:      commontypes.RollappPacket_ON_TIMEOUT,
 	},
 }

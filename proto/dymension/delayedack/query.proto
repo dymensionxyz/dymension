@@ -6,7 +6,6 @@ import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/delayedack/params.proto";
 import "dymension/common/status.proto";
-import "dymension/common/type.proto";
 import "dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
@@ -36,7 +35,7 @@ message QueryParamsResponse {
 message QueryRollappPacketsRequest {
 	string rollappId = 1;
 	common.Status status = 2;
-	common.Type type = 3;
+	common.RollappPacket.Type type = 3;
 	cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
