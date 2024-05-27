@@ -24,11 +24,13 @@ This guide will walk you through the steps required to set up and run a Dymensio
   - [Initializing `dymd`](#initializing-dymd)
   - [Running the Chain](#running-the-chain)
   - [Bootstrapping liquidity pools](#bootstrapping-liquidity-pools)
-  - [Debugging Dymension container with Devel](#debugging-dymension-container-with-devel)
   - [Adding incentives](#adding-incentives)
     - [Creating incentives streams](#creating-incentives-streams)
     - [Locking tokens](#locking-tokens)
     - [check rewards](#check-rewards)
+  - [Debugging Container](#debugging-container)
+  - [Developer](#developer)
+    - [Setup push hooks](#setup-push-hooks)
 
 ## Prerequisites
 
@@ -165,9 +167,9 @@ Pre-requisite:
  Install [Docker](https://docs.docker.com/get-docker/)
  Install [VSCode](https://code.visualstudio.com/)
  Install [VSCode Go extension](https://marketplace.visualstudio.com/items?itemName=golang.go)
- Install [Devel](https://github.com/go-delve/delve)
+ Install [Delve](https://github.com/go-delve/delve)
 
-To debug, you can use the the following command to run the debug container:
+To debug, you can use the following command to run the debug container:
 
 ```sh
 make docker-run-debug
@@ -211,6 +213,14 @@ func (q Querier) Params(goCtx context.Context, req *types.QueryParamsRequest) (*
 
 Open your browser and go to `http://localhost:1318/dymensionxyz/dymension/eibc/params` and you will see debugger stop and print the value at the breakpoint.
 
----
+## Developer
 
 For support, join our [Discord](http://discord.gg/dymension) community and find us in the Developer section.
+
+### Setup push hooks
+
+To setup push hooks, run the following command:
+
+```sh
+./scripts/setup_push_hooks.sh
+```

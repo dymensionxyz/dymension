@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	sdkerrors "cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -15,7 +15,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	}
 
 	if seq.Status == types.Unbonded {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			types.ErrInvalidSequencerStatus,
 			"cant slash unbonded sequencer",
 		)

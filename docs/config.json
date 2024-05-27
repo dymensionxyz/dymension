@@ -1,0 +1,227 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "HTTP API Console",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "apis": [
+    {
+      "url": "./tmp-swagger-gen/dymension/delayedack/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DelayedAckParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/eibc/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "EIbcParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/rollapp/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "RollAppParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/sequencer/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "SequencerParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/dymension/streamer/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "StreamerParams",
+          "ModuleToDistributeCoins": "StreamerModuleToDistributeCoins"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ethermint/evm/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "EvmParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ethermint/feemarket/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "FeeMarketParams",
+          "BaseFee": "FeeMarketBaseFee"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/gamm/v2/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "SpotPrice": "SpotPriceV2"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/gamm/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "GammParams",
+          "SpotPrice": "SpotPriceV1beta1",
+          "Pool": "GammPool"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/epochs/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/incentives/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "IncentivesParams",
+          "ModuleToDistributeCoins": "IncentivesModuleToDistributeCoins"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/lockup/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "LockupParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/osmosis/txfees/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "TxFeesParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ibc/applications/transfer/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "TransferParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ibc/core/client/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ClientParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ibc/core/connection/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ConnectionParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/ibc/core/channel/v1/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/auth/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Account": "AuthAccount",
+          "Params": "AuthParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/authz/v1beta1/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/bank/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Balance": "BankBalance",
+          "Params": "BankParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/distribution/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "DistributionParams",
+          "DelegatorValidators": "DistDelegatorValidators"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/feegrant/v1beta1/query.swagger.json"
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/gov/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "GovParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/gov/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "GovV1Params",
+          "Proposal": "GovV1Proposal",
+          "Proposals": "GovV1Proposal",
+          "Vote": "GovV1Vote",
+          "Votes": "GovV1Votes",
+          "Deposit": "GovV1Deposit",
+          "Deposits": "GovV1Deposit",
+          "TallyResult": "GovV1TallyResult"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/slashing/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "SlashingParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/staking/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "StakingParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/tx/v1beta1/service.swagger.json",
+      "dereference": {
+        "circular": "ignore"
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/base/tendermint/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "BaseParams"
+        }
+      }
+    }
+  ]
+}

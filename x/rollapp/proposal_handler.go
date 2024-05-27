@@ -7,7 +7,7 @@ import (
 
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
 )
 
 func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
@@ -16,7 +16,7 @@ func NewRollappProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		case *types.SubmitFraudProposal:
 			return HandleSubmitFraudProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized rollapp proposal content type: %T", c)
+			return errorsmod.Wrapf(types.ErrUnknownRequest, "unrecognized rollapp proposal content type: %T", c)
 		}
 	}
 }

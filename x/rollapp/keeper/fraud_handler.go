@@ -6,7 +6,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	tmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
@@ -20,7 +19,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 	// Get the rollapp from the store
 	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidRollappID, "rollapp with ID %s not found", rollappID)
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp with ID %s not found", rollappID)
 	}
 
 	stateInfo, err := k.FindStateInfoByHeight(ctx, rollappID, fraudHeight)
@@ -30,17 +29,17 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 
 	// check height is not finalized
 	if stateInfo.Status == common.Status_FINALIZED {
-		return sdkerrors.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
+		return errorsmod.Wrapf(types.ErrDisputeAlreadyFinalized, "state info for height %d is already finalized", fraudHeight)
 	}
 
 	// check height is not reverted
 	if stateInfo.Status == common.Status_REVERTED {
-		return sdkerrors.Wrapf(types.ErrDisputeAlreadyReverted, "state info for height %d is already reverted", fraudHeight)
+		return errorsmod.Wrapf(types.ErrDisputeAlreadyReverted, "state info for height %d is already reverted", fraudHeight)
 	}
 
 	// check the sequencer for this height is the same as the one in the fraud evidence
 	if stateInfo.Sequencer != seqAddr {
-		return sdkerrors.Wrapf(types.ErrWrongProposerAddr, "sequencer address %s does not match the one in the state info", seqAddr)
+		return errorsmod.Wrapf(types.ErrWrongProposerAddr, "sequencer address %s does not match the one in the state info", seqAddr)
 	}
 
 	// slash the sequencer, clean delayed packets
@@ -70,7 +69,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 			return err
 		}
 	} else if clientId != "" {
-		return sdkerrors.Wrapf(types.ErrWrongClientId, "rollapp with ID %s does not have a channel", rollappID)
+		return errorsmod.Wrapf(types.ErrWrongClientId, "rollapp with ID %s does not have a channel", rollappID)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -90,12 +89,12 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID, clientId string, fraudHe
 func (k Keeper) freezeClientState(ctx sdk.Context, clientId string) error {
 	clientState, ok := k.ibcclientKeeper.GetClientState(ctx, clientId)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
+		return errorsmod.Wrapf(types.ErrInvalidClientState, "client state for clientID %s not found", clientId)
 	}
 
 	tmClientState, ok := clientState.(*tmtypes.ClientState)
 	if !ok {
-		return sdkerrors.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
+		return errorsmod.Wrapf(types.ErrInvalidClientState, "client state with ID %s is not a tendermint client state", clientId)
 	}
 
 	tmClientState.FrozenHeight = clienttypes.NewHeight(tmClientState.GetLatestHeight().GetRevisionHeight(), tmClientState.GetLatestHeight().GetRevisionNumber())

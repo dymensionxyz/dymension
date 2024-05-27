@@ -10,6 +10,15 @@ TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::
 DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
+# Dependencies version
+DEPS_COSMOS_SDK_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-sdk' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_ETHERMINT_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/ethermint' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_OSMOSIS_VERSION := $(shell cat go.sum | grep 'github.com/dymensionxyz/osmosis' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_IBC_GO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/ibc-go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_PROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/cosmos-proto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_COSMOS_GOGOPROTO_VERSION := $(shell cat go.sum | grep 'github.com/cosmos/gogoproto' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+DEPS_CONFIO_ICS23_VERSION := go/$(shell cat go.sum | grep 'github.com/confio/ics23/go' | grep -v -e 'go.mod' | tail -n 1 | awk '{ print $$2; }')
+
 export GO111MODULE = on
 
 # process build tags
@@ -141,10 +150,23 @@ release:
 ###                                Proto                                    ###
 ###############################################################################
 
+# ------
+# NOTE: Link to the tendermintdev/sdk-proto-gen docker images:
+#       https://hub.docker.com/r/tendermintdev/sdk-proto-gen/tags
+#
 protoVer=v0.7
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=cosmos-sdk-proto-gen-$(protoVer)
 containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
+# ------
+# NOTE: cosmos/proto-builder image is needed because clang-format is not installed
+#       on the tendermintdev/sdk-proto-gen docker image.
+#		Link to the cosmos/proto-builder docker images:
+#       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
+#
+protoCosmosVer=0.11.2
+protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
+protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
 
 proto-gen:
 	@echo "Generating Protobuf files"
@@ -152,3 +174,82 @@ proto-gen:
 		sh ./scripts/protocgen.sh; fi
 	@go mod tidy
 
+proto-swagger-gen:
+	@echo "Downloading Protobuf dependencies"
+	@make proto-download-deps
+	@echo "Generating Protobuf Swagger"
+	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+
+SWAGGER_DIR=./swagger-proto
+THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
+
+proto-download-deps:
+	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/cosmos_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/cosmos/cosmos-sdk.git" && \
+	git config core.sparseCheckout true && \
+	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin "$(DEPS_COSMOS_SDK_VERSION)" && \
+	git checkout FETCH_HEAD && \
+	rm -f ./proto/buf.* && \
+	mv ./proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/cosmos_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/ethermint_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/dymensionxyz/ethermint.git" && \
+	git config core.sparseCheckout true && \
+	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin "$(DEPS_ETHERMINT_VERSION)" && \
+	git checkout FETCH_HEAD && \
+	rm -f ./proto/buf.* && \
+	mv ./proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/ethermint_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/osmosis_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/dymensionxyz/osmosis.git" && \
+	git config core.sparseCheckout true && \
+	printf "proto\nthird_party\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin "$(DEPS_OSMOSIS_VERSION)" && \
+	git checkout FETCH_HEAD && \
+	rm -f ./proto/buf.* && \
+	mv ./proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/osmosis_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/ibc_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/ibc_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/cosmos/ibc-go.git" && \
+	git config core.sparseCheckout true && \
+	printf "proto\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin "$(DEPS_IBC_GO_VERSION)" && \
+	git checkout FETCH_HEAD && \
+	rm -f ./proto/buf.* && \
+	mv ./proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/ibc_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/cosmos_proto_tmp" && \
+	cd "$(THIRD_PARTY_DIR)/cosmos_proto_tmp" && \
+	git init && \
+	git remote add origin "https://github.com/cosmos/cosmos-proto.git" && \
+	git config core.sparseCheckout true && \
+	printf "proto\n" > .git/info/sparse-checkout && \
+	git fetch --depth=1 origin "$(DEPS_COSMOS_PROTO_VERSION)" && \
+	git checkout FETCH_HEAD && \
+	rm -f ./proto/buf.* && \
+	mv ./proto/* ..
+	rm -rf "$(THIRD_PARTY_DIR)/cosmos_proto_tmp"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/gogoproto" && \
+	curl -SSL https://raw.githubusercontent.com/cosmos/gogoproto/$(DEPS_COSMOS_GOGOPROTO_VERSION)/gogoproto/gogo.proto > "$(THIRD_PARTY_DIR)/gogoproto/gogo.proto"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/google/api" && \
+	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto > "$(THIRD_PARTY_DIR)/google/api/annotations.proto"
+	curl -sSL https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto > "$(THIRD_PARTY_DIR)/google/api/http.proto"
+
+	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
+	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"

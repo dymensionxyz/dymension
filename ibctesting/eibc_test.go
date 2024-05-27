@@ -164,7 +164,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	}
 }
 
-// TestEIBCDemandOrderCreation tests the creation of a demand order and its fulfillment logic.
+// TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create rollapp only once
@@ -259,7 +259,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				// Get last demand order created by TrackingPacketKey. Last part of the key is the sequence
 				lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 				// Validate demand order wasn't fulfilled but finalized
-				suite.Require().False(lastDemandOrder.IsFullfilled)
+				suite.Require().False(lastDemandOrder.IsFulfilled)
 				suite.Require().Equal(commontypes.Status_FINALIZED, lastDemandOrder.TrackingPacketStatus)
 
 			}
@@ -335,7 +335,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				}
 			}
 			suite.Require().NotNil(finalizedDemandOrder)
-			suite.Require().True(finalizedDemandOrder.IsFullfilled)
+			suite.Require().True(finalizedDemandOrder.IsFulfilled)
 			suite.Require().Equal(commontypes.Status_FINALIZED, finalizedDemandOrder.TrackingPacketStatus)
 
 			path.EndpointA.Chain.NextBlock()
@@ -353,7 +353,7 @@ func (suite *EIBCTestSuite) rollappHasPacketCommitment(packet channeltypes.Packe
 	return true
 }
 
-// TestHubToRollappEarlyFulfillment : when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
+// TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
 func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)

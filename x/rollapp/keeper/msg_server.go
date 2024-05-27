@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -27,7 +27,7 @@ func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRoll
 	// Get the sender and validate they are in the whitelist
 	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
 		if !k.IsAddressInDeployerWhiteList(ctx, msg.Address) {
-			return nil, sdkerrors.ErrUnauthorized
+			return nil, types.ErrUnauthorized
 		}
 	}
 
@@ -44,10 +44,10 @@ func (k msgServer) TriggerGenesisEvent(goCtx context.Context, msg *types.MsgRoll
 	}
 	tmClientState, ok := clientState.(*tenderminttypes.ClientState)
 	if !ok {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidGenesisChannelId, "expected tendermint client state, got %T", clientState)
+		return nil, errorsmod.Wrapf(types.ErrInvalidGenesisChannelId, "expected tendermint client state, got %T", clientState)
 	}
 	if tmClientState.GetChainID() != msg.RollappId {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidGenesisChannelId, "channel %s is connected to chain ID %s, expected %s",
+		return nil, errorsmod.Wrapf(types.ErrInvalidGenesisChannelId, "channel %s is connected to chain ID %s, expected %s",
 			msg.ChannelId, tmClientState.GetChainID(), msg.RollappId)
 	}
 
