@@ -67,14 +67,10 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	genesisTransferDenom, err := rollappkeeper.ParseGenesisTransferDenom(transferPacketData.GetMemo())
 	if errorsmod.IsOf(err, sdkerrors.ErrUnauthorized) {
-		logger.Error("Parse ")
+		logger.Error("User tried to submit denom metadata")
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
-	if errorsmod.IsOf(err, sdkerrors.ErrJSONUnmarshal) {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-	_ = genesisTransferDenom
-	if transferPacketData.GetMemo() == "special" {
+	if err == nil {
 		/*
 			What are the steps that need to happen?
 			1. Make sure that this packet actually originated from the rollapp transfer channel (how)
@@ -105,7 +101,7 @@ func (im IBCMiddleware) OnRecvPacket(
 			logger.Error("OnRecvPacket", "err", err)
 			panic(err)
 		}
-		err = im.raKeeper.RegisterOneDenomMetadata(ctx, metadata[0], p.RollappID, p.ChannelID)
+		err = im.raKeeper.RegisterOneDenomMetadata(ctx, genesisTransferDenom, p.RollappID, p.ChannelID)
 		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
 		ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		if !ack.Success() {

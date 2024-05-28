@@ -39,4 +39,8 @@ func TestParseGenesisTransferDenom(t *testing.T) {
 		_, err := ParseGenesisTransferDenom(memoStr)
 		require.True(t, errorsmod.IsOf(err, sdkerrs.ErrUnauthorized))
 	})
+	t.Run("other kind of memo", func(t *testing.T) {
+		_, err := ParseGenesisTransferDenom("other")
+		require.True(t, errorsmod.IsOf(err, sdkerrs.ErrNotSupported))
+	})
 }
