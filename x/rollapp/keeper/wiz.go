@@ -1,11 +1,8 @@
 package keeper
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dymensionxyz/dymension/v3/utils"
@@ -13,23 +10,6 @@ import (
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
-
-func ParseSpecialTransferDenom(memo string) (*banktypes.Metadata, error) {
-	type T struct {
-		// If the packet originates from the chain itself, and not a user, this will be true
-		DoesNotOriginateFromUser bool               `json:"does_not_originate_from_user"`
-		DenomMetadata            banktypes.Metadata `json:"denom_metadata"`
-	}
-	var t T
-	err := json.Unmarshal([]byte(memo), &t)
-	if err != nil {
-		return nil, sdkerrors.ErrJSONUnmarshal
-	}
-	if !t.DoesNotOriginateFromUser {
-		return nil, sdkerrors.ErrUnauthorized
-	}
-	return &t.DenomMetadata, nil
-}
 
 func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGenesisArgs) error {
 	// Get the rollapp

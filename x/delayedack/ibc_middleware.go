@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
@@ -63,6 +65,15 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
+	genesisTransferDenom, err := rollappkeeper.ParseGenesisTransferDenom(transferPacketData.GetMemo())
+	if errorsmod.IsOf(err, sdkerrors.ErrUnauthorized) {
+		logger.Error("Parse ")
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+	if errorsmod.IsOf(err, sdkerrors.ErrJSONUnmarshal) {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+	_ = genesisTransferDenom
 	if transferPacketData.GetMemo() == "special" {
 		/*
 			What are the steps that need to happen?
