@@ -30,15 +30,11 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 }
 
 func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metadata, rollappID, channelID string) error {
-	denomTrace := utils.GetForeignDenomTrace(channelID, m.Base)
-	traceHash := denomTrace.Hash()
-	// if the denom trace does not exist, add it
-	if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
-		// TODO: why do we have this check? why not just set?
-		k.transferKeeper.SetDenomTrace(ctx, denomTrace)
-	}
+	trace := utils.GetForeignDenomTrace(channelID, m.Base)
 
-	ibcDenom := denomTrace.IBCDenom()
+	k.transferKeeper.SetDenomTrace(ctx, trace)
+
+	ibcDenom := trace.IBCDenom()
 
 	/*
 		Change the base to the ibc denom, and add an alias to the original
@@ -49,7 +45,6 @@ func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metad
 		if u.Exponent == 0 {
 			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
 			m.DenomUnits[i].Denom = ibcDenom
-
 		}
 	}
 
