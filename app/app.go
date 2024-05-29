@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/dymension/v3/x/transferinject"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -143,6 +142,8 @@ import (
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/transferinject"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
@@ -365,7 +366,6 @@ type App struct {
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
-
 	// the module manager
 	mm *module.Manager
 
@@ -598,6 +598,19 @@ func New(
 		nil,
 	)
 
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+
 	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		app.BankKeeper,
 	)
@@ -643,20 +656,6 @@ func New(
 		app.BankKeeper,
 	)
 
-	// Create Transfer Keepers
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
-
-	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
 	/* -------------------------------- set hooks ------------------------------- */
