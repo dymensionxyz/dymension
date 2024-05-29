@@ -12,7 +12,6 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateRollapp{}, "rollapp/CreateRollapp", nil)
 	cdc.RegisterConcrete(&MsgUpdateState{}, "rollapp/UpdateState", nil)
-	cdc.RegisterConcrete(&MsgRollappGenesisEvent{}, "rollapp/RollappGenesisEvent", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
