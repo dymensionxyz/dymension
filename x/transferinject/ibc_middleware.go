@@ -46,17 +46,6 @@ func NewIBCMiddleware(
 	}
 }
 
-// SetMiddleware sets the IBCModule and ICS4Wrapper.
-// The keeper is also itself middleware,
-// so it will handle the next `SendPacket` and `OnAcknowledgementPacket` calls.
-func (m *IBCMiddleware) SetMiddleware(
-	ibc porttypes.IBCModule,
-	ics porttypes.ICS4Wrapper,
-) {
-	m.IBCModule = ibc
-	m.ics4Wrapper = ics
-}
-
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
 func (m *IBCMiddleware) SendPacket(
 	ctx sdk.Context,
