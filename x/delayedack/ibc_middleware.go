@@ -73,12 +73,14 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 	if err == nil {
 		/*
-			What are the steps that need to happen?
-			1. Make sure that this packet actually originated from the rollapp transfer channel (how)
-			2. Mark the genesis as occurred
-			3. Pass on the ibc packet
-			(TODO: Order between 2-3)
-			(TODO: impact of one failure, how to properly error ack?)
+			TODO:
+				What are the steps that need to happen?
+					1. Make sure that this packet actually originated from the rollapp transfer channel (how?)
+					2. Mark the genesis as occurred (how?)
+					3. Pass on the ibc packet
+				Questions
+					Order between 2-3
+					Impact of one failure, how to properly error ack?
 		*/
 
 		logger.Info("got the special memo!")
@@ -91,18 +93,15 @@ func (im IBCMiddleware) OnRecvPacket(
 		if !ok {
 			panic(errors.New("expect to find rollapp"))
 		}
-		metadata := ra.TokenMetadata
-		accs := ra.GenesisState.GenesisAccounts
 		_ = ra
-		_ = metadata
-		_ = accs
-		err = im.raKeeper.MarkGenesisAsHappened(ctx, p)
+		err = im.raKeeper.MarkGenesisAsHappened(ctx, p) // TODO: need to replace with something better
 		if err != nil {
 			err = fmt.Errorf("trigger genesis func: %w", err)
 			logger.Error("OnRecvPacket", "err", err)
 			panic(err)
 		}
-		err = im.raKeeper.RegisterOneDenomMetadata(ctx, genesisTransferDenom, p.RollappID, p.ChannelID)
+		metadata := rollapptypes.TokenMetadata{}.FromBankMetadata(genesisTransferDenom)
+		err = im.raKeeper.RegisterOneDenomMetadata(ctx, &metadata, p.RollappID, p.ChannelID)
 		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
 		ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		if !ack.Success() {

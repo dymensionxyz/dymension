@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -20,7 +19,8 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 
 	// Validate it hasn't been triggered yet
 	if rollapp.GenesisState.GenesisEventHappened {
-		panic(errors.New("genesis event already happened - it shouldn't have"))
+		k.Logger().Error("genesis event already happened")
+		// panic(errors.New("genesis event already happened - it shouldn't have"))
 	}
 
 	rollapp.GenesisState.GenesisEventHappened = true
