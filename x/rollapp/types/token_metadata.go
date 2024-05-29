@@ -41,28 +41,3 @@ func (m *TokenMetadata) ConvertToBankMetadata() banktypes.Metadata {
 		URIHash:     m.URIHash,
 	}
 }
-
-// FromBankMetadata converts x/bank/types metadata to TokenMetadata
-// TODO: there is no good reason we have a duplicate type, so we should just use the bank one always
-func (m TokenMetadata) FromBankMetadata(b banktypes.Metadata) TokenMetadata {
-	var denomUnits []*DenomUnit
-
-	for _, denomUnit := range b.DenomUnits {
-		denomUnits = append(denomUnits, &DenomUnit{
-			Denom:    denomUnit.Denom,
-			Exponent: denomUnit.Exponent,
-			Aliases:  denomUnit.Aliases,
-		})
-	}
-
-	return TokenMetadata{
-		Description: b.Description,
-		DenomUnits:  denomUnits,
-		Base:        b.Base,
-		Display:     b.Display,
-		Name:        b.Name,
-		Symbol:      b.Symbol,
-		URI:         b.URI,
-		URIHash:     b.URIHash,
-	}
-}

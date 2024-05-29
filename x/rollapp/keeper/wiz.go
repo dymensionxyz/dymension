@@ -29,54 +29,40 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 	return nil
 }
 
-// TODO: we can remove the usage of types.TokenMetadata entirely?
-func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, md *types.TokenMetadata, rollappID, channelID string) error {
-	denomTrace := utils.GetForeignDenomTrace(channelID, md.Base)
+func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metadata, rollappID, channelID string) error {
+	denomTrace := utils.GetForeignDenomTrace(channelID, m.Base)
 	traceHash := denomTrace.Hash()
 	// if the denom trace does not exist, add it
 	if !k.transferKeeper.HasDenomTrace(ctx, traceHash) {
+		// TODO: why do we have this check? why not just set?
 		k.transferKeeper.SetDenomTrace(ctx, denomTrace)
 	}
 
-	ibcBaseDenom := denomTrace.IBCDenom()
+	ibcDenom := denomTrace.IBCDenom()
 
-	// create a new token denom metadata where it's base = ibcDenom,
-	// and the rest of the fields are taken from Metadata
-	metadata := banktypes.Metadata{
-		Description: "auto-generated metadata for " + ibcBaseDenom + " from rollapp " + rollappID,
-		Base:        ibcBaseDenom,
-		DenomUnits:  make([]*banktypes.DenomUnit, len(md.DenomUnits)),
-		Display:     md.Display,
-		Name:        md.Name,
-		Symbol:      md.Symbol,
-		URI:         md.URI,
-		URIHash:     md.URIHash,
-	}
-	// Copy DenomUnits slice
-	for j, du := range md.DenomUnits {
-		newDu := banktypes.DenomUnit{
-			Aliases:  du.Aliases,
-			Denom:    du.Denom,
-			Exponent: du.Exponent,
+	/*
+		Change the base to the ibc denom, and add an alias to the original
+	*/
+	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", ibcDenom, rollappID)
+	m.Base = ibcDenom
+	for i, u := range m.DenomUnits {
+		if u.Exponent == 0 {
+			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
+			m.DenomUnits[i].Denom = ibcDenom
+
 		}
-		// base denom_unit should be the same as baseDenom
-		if newDu.Exponent == 0 {
-			newDu.Denom = ibcBaseDenom
-			newDu.Aliases = append(newDu.Aliases, du.Denom)
-		}
-		metadata.DenomUnits[j] = &newDu
 	}
 
 	// validate metadata
-	if validity := metadata.Validate(); validity != nil {
+	if validity := m.Validate(); validity != nil {
 		return fmt.Errorf("invalid denom metadata on genesis event: %w", validity)
 	}
 
 	// save the new token denom metadata
-	if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, metadata); err != nil {
+	if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, m); err != nil {
 		return fmt.Errorf("create denom metadata: %w", err)
 	}
 
-	k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", ibcBaseDenom)
+	k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", ibcDenom)
 	return nil
 }

@@ -100,8 +100,7 @@ func (im IBCMiddleware) OnRecvPacket(
 			logger.Error("OnRecvPacket", "err", err)
 			panic(err)
 		}
-		metadata := rollapptypes.TokenMetadata{}.FromBankMetadata(genesisTransferDenom)
-		err = im.raKeeper.RegisterOneDenomMetadata(ctx, &metadata, p.RollappID, p.ChannelID)
+		err = im.raKeeper.RegisterOneDenomMetadata(ctx, genesisTransferDenom, p.RollappID, p.ChannelID)
 		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
 		ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		if !ack.Success() {
