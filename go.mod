@@ -6,6 +6,7 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	github.com/cometbft/cometbft-db v0.11.0
+	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6 v6.1.2-0.20240228222509-2b38263c41d3
 	github.com/cosmos/ibc-go/v6 v6.2.1
@@ -14,6 +15,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/osmosis-labs/osmosis/v15 v15.2.0
@@ -25,6 +27,7 @@ require (
 	github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gonum.org/v1/gonum v0.8.2
+	google.golang.org/genproto/googleapis/api v0.0.0-20240125205218-1f4bbc51befe
 	google.golang.org/grpc v1.61.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -68,7 +71,6 @@ require (
 	github.com/coinbase/rosetta-sdk-go v0.7.9 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-proto v1.0.0-beta.3 // indirect
 	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.7 // indirect
 	github.com/cosmos/gorocksdb v1.2.0 // indirect
@@ -104,7 +106,6 @@ require (
 	github.com/gogo/gateway v1.1.0 // indirect
 	github.com/golang/glog v1.1.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/flatbuffers v2.0.8+incompatible // indirect
@@ -209,7 +210,6 @@ require (
 	google.golang.org/api v0.149.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240116215550-a9fa1716bcac // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20240125205218-1f4bbc51befe // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240125205218-1f4bbc51befe // indirect
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect

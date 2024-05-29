@@ -33,7 +33,7 @@ message MsgCreateRollapp {
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
   repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false, deprecated=true];
-  repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false, deprecated=true];
+  reserved 9;
 }
 
 message MsgCreateRollappResponse {
