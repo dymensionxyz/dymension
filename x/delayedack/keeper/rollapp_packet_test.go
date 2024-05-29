@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -81,7 +82,7 @@ func (suite *DelayedAckTestSuite) TestRollappPacketEvents() {
 	}
 }
 
-func (suite *DelayedAckTestSuite) TestListRollappPacketsByStatus() {
+func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
 	rollappIDs := []string{"testRollappID1", "testRollappID2", "testRollappID3"}
 
@@ -106,6 +107,7 @@ func (suite *DelayedAckTestSuite) TestListRollappPacketsByStatus() {
 					Sequence:           uint64(i),
 				},
 				Status:      sm[i%3],
+				Type:        commontypes.RollappPacket_Type(i % 3),
 				ProofHeight: uint64(6 - i),
 			}
 			packetsToSet = append(packetsToSet, packet)
@@ -147,6 +149,20 @@ func (suite *DelayedAckTestSuite) TestListRollappPacketsByStatus() {
 
 	rollappPacket2MaxHeight3 := keeper.ListRollappPackets(ctx, types.PendingByRollappIDByMaxHeight(rollappIDs[1], 3))
 	suite.Require().Equal(1, len(rollappPacket2MaxHeight3))
+
+	expectOnRecvLength := 3
+	onRecvPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_RECV, commontypes.Status_PENDING))
+	suite.Assert().Equal(expectOnRecvLength, len(onRecvPackets))
+
+	expectOnAckLength := 6
+	onAckPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_ACK, commontypes.Status_FINALIZED))
+	suite.Assert().Equal(expectOnAckLength, len(onAckPackets))
+
+	expectOnTimeoutLength := 6
+	onTimeoutPackets := keeper.ListRollappPackets(ctx, types.ByTypeByStatus(commontypes.RollappPacket_ON_TIMEOUT, commontypes.Status_REVERTED))
+	suite.Assert().Equal(expectOnTimeoutLength, len(onTimeoutPackets))
+
+	suite.Require().Equal(totalLength, len(onRecvPackets)+len(onAckPackets)+len(onTimeoutPackets))
 }
 
 func (suite *DelayedAckTestSuite) TestUpdateRollappPacketWithStatus() {

@@ -18,7 +18,8 @@ message RollappPacket {
       ON_RECV = 0;
       ON_ACK = 1;
       ON_TIMEOUT = 2;
-    } 
+      UNDEFINED = -1;
+    }
     Type type = 7;
     // stores the result of onAck, onTimeout or onRecv/writeAck
     string error = 8;
