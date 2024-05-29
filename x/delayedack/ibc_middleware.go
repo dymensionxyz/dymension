@@ -71,6 +71,9 @@ func (im IBCMiddleware) OnRecvPacket(
 		logger.Error("User tried to submit denom metadata")
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
+	if err != nil {
+		logger.Error("parse genesis transfer denom", "err", err, "memo", transferPacketData.GetMemo())
+	}
 	if err == nil {
 		/*
 			TODO:
