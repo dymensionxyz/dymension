@@ -20,11 +20,10 @@ type (
 		hooks      types.MultiRollappHooks
 		paramstore paramtypes.Subspace
 
-		ibcClientKeeper     types.IBCClientKeeper
-		transferKeeper      types.TransferKeeper
-		channelKeeper       types.ChannelKeeper
-		bankKeeper          types.BankKeeper
-		denommetadataKeeper types.DenomMetadataKeeper
+		ibcClientKeeper types.IBCClientKeeper
+		transferKeeper  types.TransferKeeper
+		channelKeeper   types.ChannelKeeper
+		bankKeeper      types.BankKeeper
 	}
 )
 
@@ -37,7 +36,6 @@ func NewKeeper(
 	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
-	denommetadataKeeper types.DenomMetadataKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -45,16 +43,15 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:                 cdc,
-		storeKey:            storeKey,
-		memKey:              memKey,
-		paramstore:          ps,
-		hooks:               nil,
-		ibcClientKeeper:     ibcClientKeeper,
-		transferKeeper:      transferKeeper,
-		channelKeeper:       channelKeeper,
-		bankKeeper:          bankKeeper,
-		denommetadataKeeper: denommetadataKeeper,
+		cdc:             cdc,
+		storeKey:        storeKey,
+		memKey:          memKey,
+		paramstore:      ps,
+		hooks:           nil,
+		ibcClientKeeper: ibcClientKeeper,
+		transferKeeper:  transferKeeper,
+		channelKeeper:   channelKeeper,
+		bankKeeper:      bankKeeper,
 	}
 }
 

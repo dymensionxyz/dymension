@@ -20,7 +20,7 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 	// Validate it hasn't been triggered yet
 	if rollapp.GenesisState.GenesisEventHappened {
 		k.Logger(ctx).Error("genesis event already happened")
-		// panic(errors.New("genesis event already happened - it shouldn't have"))
+		// panic(errors.New("genesis event already happened - it shouldn't have")) TODO:
 	}
 
 	rollapp.GenesisState.GenesisEventHappened = true
@@ -48,16 +48,13 @@ func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metad
 		}
 	}
 
-	// validate metadata
-	if validity := m.Validate(); validity != nil {
-		return fmt.Errorf("invalid denom metadata on genesis event: %w", validity)
+	if err := m.Validate(); err != nil {
+		// TODO: errorsmod with nice wrapping
+		return fmt.Errorf("invalid denom metadata on genesis event: %w", err)
 	}
 
-	// save the new token denom metadata
-	if err := k.denommetadataKeeper.CreateDenomMetadata(ctx, m); err != nil {
-		return fmt.Errorf("create denom metadata: %w", err)
-	}
+	k.bankKeeper.SetDenomMetaData(ctx, m)
 
-	k.Logger(ctx).Info("registered denom metadata for IBC token", "rollappID", rollappID, "denom", ibcDenom)
+	k.Logger(ctx).Info("Registered denom metadata for IBC token.", "rollappID", rollappID, "denom", ibcDenom)
 	return nil
 }
