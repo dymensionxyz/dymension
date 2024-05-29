@@ -29,6 +29,7 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGe
 	return nil
 }
 
+// TODO: we can remove the usage of types.TokenMetadata entirely?
 func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, md *types.TokenMetadata, rollappID, channelID string) error {
 	denomTrace := utils.GetForeignDenomTrace(channelID, md.Base)
 	traceHash := denomTrace.Hash()
