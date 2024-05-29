@@ -7,17 +7,9 @@ import "dymension/rollapp/state_info.proto";
 import "dymension/rollapp/bank.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-// GenesisAccount is a struct for the genesis account for the rollapp
-message GenesisAccount {
-  // amount of coins to be sent to the genesis address
-  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
-  // address is a bech-32 address of the genesis account
-  string address = 2;
-}
-
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 message RollappGenesisState {
-  repeated GenesisAccount genesis_accounts = 1 [deprecated = true];
+  reserved 1;
   // did the genesis event already get triggered?
   bool genesis_event_happened = 2;
 }
