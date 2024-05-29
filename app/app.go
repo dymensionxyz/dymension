@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	transferinjectkeeper "github.com/dymensionxyz/dymension/v3/x/transferinject/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/transferinject"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -363,9 +363,8 @@ type App struct {
 	EIBCKeeper      eibckeeper.Keeper
 
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper     delayedackkeeper.Keeper
-	DenomMetadataKeeper  *denommetadatamodulekeeper.Keeper
-	TransferInjectKeeper *transferinjectkeeper.Keeper
+	DelayedAckKeeper    delayedackkeeper.Keeper
+	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -644,18 +643,12 @@ func New(
 		app.BankKeeper,
 	)
 
-	app.TransferInjectKeeper = transferinjectkeeper.NewTransferInject(
-		appCodec,
-		app.RollappKeeper,
-		app.BankKeeper,
-	)
-
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.TransferInjectKeeper,
+		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -760,11 +753,7 @@ func New(
 	)
 	middleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = middleware
-	app.TransferInjectKeeper.SetMiddleware(
-		transferStack,
-		middleware,
-	)
-	transferStack = app.TransferInjectKeeper
+	transferStack = transferinject.NewIBCMiddleware(transferStack, middleware, app.RollappKeeper, app.BankKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

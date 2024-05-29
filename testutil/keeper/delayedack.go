@@ -115,8 +115,8 @@ func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Ro
 	return []rollapptypes.Rollapp{}
 }
 
-func (r RollappKeeperStub) ExtractRollappAndTransferPacketFromData(_ sdk.Context, data []byte, _ string, _ string) (*rollapptypes.Rollapp, *transfertypes.FungibleTokenPacketData, error) {
-	return &rollapptypes.Rollapp{}, &transfertypes.FungibleTokenPacketData{}, nil
+func (r RollappKeeperStub) ExtractRollappIDAndTransferPacketFromData(sdk.Context, []byte, string, string) (string, *transfertypes.FungibleTokenPacketData, error) {
+	return "rollappID", &transfertypes.FungibleTokenPacketData{}, nil
 }
 
 type SequencerKeeperStub struct{}

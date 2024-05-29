@@ -15,12 +15,12 @@ func (p PacketMetadata) ValidateBasic() error {
 	return p.DenomMetadata.Validate()
 }
 
-const memoObjectKeyDM = "denom_metadata"
+const memoObjectKeyDenomMetadata = "denom_metadata"
 
 var (
 	ErrMemoUnmarshal          = fmt.Errorf("unmarshal memo")
 	ErrDenomMetadataUnmarshal = fmt.Errorf("unmarshal denom metadata")
-	ErrMemoDMEmpty            = fmt.Errorf("memo denom metadata field is missing")
+	ErrMemoDenomMetadataEmpty = fmt.Errorf("memo denom metadata field is missing")
 )
 
 func ParsePacketMetadata(input string) (*PacketMetadata, error) {
@@ -32,8 +32,8 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	if err != nil {
 		return nil, ErrMemoUnmarshal
 	}
-	if memo[memoObjectKeyDM] == nil {
-		return nil, ErrMemoDMEmpty
+	if memo[memoObjectKeyDenomMetadata] == nil {
+		return nil, ErrMemoDenomMetadataEmpty
 	}
 
 	var metadata PacketMetadata
@@ -46,19 +46,24 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 }
 
 func AddDenomMetadataToMemo(memo string, metadata types.Metadata) (string, error) {
-	memoMap := make(map[string]any)
-	_ = json.Unmarshal([]byte(memo), &memoMap)
-	// doesn't matter if there is an error, the memo can be empty
-
-	if _, ok := memoMap[memoObjectKeyDM]; ok {
+	memoMap, exists := MemoAlreadyHasDenomMetadata(memo)
+	if exists {
 		return "", fmt.Errorf("denom metadata already exists in memo. probably an attack")
 	}
 
-	memoMap[memoObjectKeyDM] = metadata
+	memoMap[memoObjectKeyDenomMetadata] = metadata
 	bz, err := json.Marshal(memoMap)
 	if err != nil {
 		return memo, err
 	}
 
 	return string(bz), nil
+}
+
+func MemoAlreadyHasDenomMetadata(memo string) (map[string]any, bool) {
+	memoMap := make(map[string]any)
+	// doesn't matter if there is an unmarshal error, the memo can be empty
+	_ = json.Unmarshal([]byte(memo), &memoMap)
+	_, exists := memoMap[memoObjectKeyDenomMetadata]
+	return memoMap, exists
 }

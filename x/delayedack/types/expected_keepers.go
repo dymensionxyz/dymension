@@ -38,12 +38,12 @@ type RollappKeeper interface {
 	GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
-	ExtractRollappAndTransferPacketFromData(
+	ExtractRollappIDAndTransferPacketFromData(
 		ctx sdk.Context,
 		data []byte,
 		rollappPortOnHub string,
 		rollappChannelOnHub string,
-	) (*rollapptypes.Rollapp, *transfertypes.FungibleTokenPacketData, error)
+	) (string, *transfertypes.FungibleTokenPacketData, error)
 }
 
 type SequencerKeeper interface {

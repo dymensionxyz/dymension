@@ -11,28 +11,34 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-// ExtractRollappAndTransferPacketFromData extracts the rollapp and fungible token from the packet data
-func (k Keeper) ExtractRollappAndTransferPacketFromData(
+// ExtractRollappIDAndTransferPacketFromData extracts the rollapp ID and fungible token from the packet data
+// Returns an empty string if the rollapp is not found
+func (k Keeper) ExtractRollappIDAndTransferPacketFromData(
 	ctx sdk.Context,
 	data []byte,
 	rollappPortOnHub string,
 	rollappChannelOnHub string,
-) (*types.Rollapp, *transfertypes.FungibleTokenPacketData, error) {
+) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
 	packet := new(transfertypes.FungibleTokenPacketData)
 	if err := types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
-		return nil, nil, errorsmod.Wrapf(err, "failed to unmarshal packet data")
+		return "", packet, errorsmod.Wrapf(err, "unmarshal packet data")
 	}
 
 	rollapp, err := k.ExtractRollappFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		return nil, nil, err
+		return "", packet, err
 	}
 
-	return rollapp, packet, nil
+	if rollapp == nil {
+		return "", packet, nil
+	}
+
+	return rollapp.RollappId, packet, nil
 }
 
-// ExtractRollappFromChannel extracts the rollapp from the IBC port and channel
+// ExtractRollappFromChannel extracts the rollapp from the IBC port and channel.
+// Returns nil if the rollapp is not found.
 func (k Keeper) ExtractRollappFromChannel(
 	ctx sdk.Context,
 	rollappPortOnHub string,
@@ -63,6 +69,7 @@ func (k Keeper) ExtractRollappFromChannel(
 	return &rollapp, nil
 }
 
+// ExtractChainIDFromChannel extracts the chain ID from the channel
 func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
 	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
 	if err != nil {
