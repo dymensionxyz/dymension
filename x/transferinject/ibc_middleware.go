@@ -20,27 +20,39 @@ import (
 
 type IBCMiddleware struct {
 	porttypes.IBCModule
+	porttypes.ICS4Wrapper
 
-	ics4Wrapper   porttypes.ICS4Wrapper
 	rollappKeeper types.RollappKeeper
 	bankKeeper    types.BankKeeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware keeper.
-// This keeper is a middleware that wraps the IBCModule and ICS4Wrapper.
-// It intercepts IBC packets and adds token metadata to the rollapp if it doesn't exist.
+// NewIBCSendMiddleware creates a new ICS4Wrapper.
+// It intercepts outgoing IBC packets and adds token metadata to the memo if the rollapp doesn't have it.
 // This is a solution for adding token metadata to fungible tokens transferred over IBC,
-// targeted at rollapps that don't have the token metadata.
+// targeted at rollapps that don't have the token metadata for the token being transferred.
 // More info here: https://www.notion.so/dymension/ADR-x-IBC-Denom-Metadata-Transfer-From-Hub-to-Rollapp-d3791f524ac849a9a3eb44d17968a30b
-func NewIBCMiddleware(
-	ibc porttypes.IBCModule,
+func NewIBCSendMiddleware(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
-) *IBCMiddleware {
+) porttypes.ICS4Wrapper {
+	return &IBCMiddleware{
+		ICS4Wrapper:   ics,
+		rollappKeeper: rollappKeeper,
+		bankKeeper:    bankKeeper,
+	}
+}
+
+// NewIBCAckMiddleware creates a new IBCModule.
+// It intercepts acknowledged incoming IBC packets and adds token metadata that had just been registered on the rollapp itself,
+// to the local rollapp record.
+func NewIBCAckMiddleware(
+	ibc porttypes.IBCModule,
+	rollappKeeper types.RollappKeeper,
+	bankKeeper types.BankKeeper,
+) porttypes.IBCModule {
 	return &IBCMiddleware{
 		IBCModule:     ibc,
-		ics4Wrapper:   ics,
 		rollappKeeper: rollappKeeper,
 		bankKeeper:    bankKeeper,
 	}
@@ -70,11 +82,11 @@ func (m *IBCMiddleware) SendPacket(
 	}
 	// TODO: consider that other chains also might want this feature
 	if rollapp == nil {
-		return m.ics4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	if hasDenom(rollapp.TokenMetadata, packet.Denom) {
-		return m.ics4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
@@ -92,7 +104,7 @@ func (m *IBCMiddleware) SendPacket(
 		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "marshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	return m.ics4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+	return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
