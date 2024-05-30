@@ -159,6 +159,7 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp)
 	return nil
 }
 
+// SetTransferKeeper MUST be called to set the IBC client keeper.
 func (k *Keeper) SetTransferKeeper(tk types.TransferKeeper) {
 	if k.transferKeeper != nil {
 		panic("cannot set transfer keeper twice")
@@ -170,7 +171,7 @@ func (k *Keeper) SetTransferKeeper(tk types.TransferKeeper) {
 /*                                    Hooks                                   */
 /* -------------------------------------------------------------------------- */
 
-// Set the rollapp hooks
+// SetHooks sets the rollapp hooks
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")
