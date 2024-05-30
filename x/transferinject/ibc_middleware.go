@@ -2,12 +2,12 @@ package transferinject
 
 import (
 	"errors"
-	"fmt"
 	. "slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -49,12 +49,10 @@ func NewIBCSendMiddleware(
 func NewIBCAckMiddleware(
 	ibc porttypes.IBCModule,
 	rollappKeeper types.RollappKeeper,
-	bankKeeper types.BankKeeper,
 ) porttypes.IBCModule {
 	return &IBCMiddleware{
 		IBCModule:     ibc,
 		rollappKeeper: rollappKeeper,
-		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -72,13 +70,13 @@ func (m *IBCMiddleware) SendPacket(
 		return 0, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if _, exists := types.MemoAlreadyHasDenomMetadata(packet.Memo); exists {
+	if types.MemoAlreadyHasPacketMetadata(packet.Memo) {
 		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "denom metadata already exists in memo")
 	}
 
 	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
 	if err != nil {
-		return 0, fmt.Errorf("extract rollapp id from packet: %w", err)
+		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "extract rollapp id from packet: %s", err.Error())
 	}
 	// TODO: consider that other chains also might want this feature
 	if rollapp == nil {
@@ -94,10 +92,7 @@ func (m *IBCMiddleware) SendPacket(
 		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "denom metadata not found")
 	}
 
-	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
-	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "add denom metadata to memo: %s", err.Error())
-	}
+	packet.Memo = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 
 	data, err = types.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
@@ -114,6 +109,15 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	var ack channeltypes.Acknowledgement
+	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
+		return errorsmod.Wrapf(rtypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+	}
+
+	if !ack.Success() {
+		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
 	var data transfertypes.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		return errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet data: %s", err.Error())
@@ -123,7 +127,7 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	packetMetaData, err := types.ParsePacketMetadata(data.Memo)
+	memoData, err := types.ParseMemoData(data.Memo)
 	if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoDenomMetadataEmpty) {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
@@ -131,25 +135,35 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
-	if err != nil {
-		return fmt.Errorf("extract rollapp id from packet: %w", err)
-	}
-	if rollapp == nil {
+	if memoData.PacketMetadata == nil || memoData.PacketMetadata.DenomMetadata == nil {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	dm := packetMetaData.DenomMetadata
+	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
+	if err != nil {
+		return errorsmod.Wrapf(errortypes.ErrNotFound, "extract rollapp id from packet: %s", err.Error())
+	}
+	if rollapp == nil {
+		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
+	}
+
+	dm := memoData.PacketMetadata.DenomMetadata
 
 	if hasDenom(rollapp.TokenMetadata, dm.Base) {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
+	// add the new token metadata to the rollapp
+	rollapp.TokenMetadata = append(rollapp.TokenMetadata, DenomToTokenMetadata(dm))
+
+	m.rollappKeeper.SetRollapp(ctx, *rollapp)
+
+	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+}
+
+func DenomToTokenMetadata(dm *banktypes.Metadata) *rtypes.TokenMetadata {
 	denomUnits := make([]*rtypes.DenomUnit, len(dm.DenomUnits))
 	for _, du := range dm.DenomUnits {
-		if du.Exponent == 0 {
-			continue
-		}
 		ndu := &rtypes.DenomUnit{
 			Denom:    du.Denom,
 			Exponent: du.Exponent,
@@ -158,7 +172,7 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 		denomUnits = append(denomUnits, ndu)
 	}
 
-	tokenMetaData := &rtypes.TokenMetadata{
+	return &rtypes.TokenMetadata{
 		Description: dm.Description,
 		DenomUnits:  denomUnits,
 		Base:        dm.Base,
@@ -168,12 +182,6 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 		URI:         dm.URI,
 		URIHash:     dm.URIHash,
 	}
-	// add the new token metadata to the rollapp
-	rollapp.TokenMetadata = append(rollapp.TokenMetadata, tokenMetaData)
-
-	m.rollappKeeper.SetRollapp(ctx, *rollapp)
-
-	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
 func hasDenom(metadata []*rtypes.TokenMetadata, denom string) bool {

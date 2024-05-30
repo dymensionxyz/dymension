@@ -598,6 +598,16 @@ func New(
 		nil,
 	)
 
+	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		app.BankKeeper,
+	)
+
+	app.DenomMetadataKeeper.SetHooks(
+		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
+		),
+	)
+
 	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
 		appCodec,
 		keys[rollappmoduletypes.StoreKey],
@@ -623,16 +633,6 @@ func New(
 	)
 
 	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
-
-	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		app.BankKeeper,
-	)
-
-	app.DenomMetadataKeeper.SetHooks(
-		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
-		),
-	)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -752,7 +752,7 @@ func New(
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper, app.BankKeeper)
+	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
