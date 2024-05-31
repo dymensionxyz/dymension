@@ -109,7 +109,10 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		panic(err)
 	}
 
-	newMemo := l.Info("Registered denom meta data from genesis transfer.")
+
+		l.Info("Registered denom meta data from genesis transfer.")
+
+	newMemo :=
 
 	return nil
 }
