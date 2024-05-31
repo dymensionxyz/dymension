@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	utilsmemo "github.com/dymensionxyz/dymension/v3/utils/memo"
+
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -109,10 +113,22 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		panic(err)
 	}
 
+	l.Info("Registered denom meta data from genesis transfer.")
 
-		l.Info("Registered denom meta data from genesis transfer.")
+	newMemo := delayedacktypes.Memo{}
+	newMemo.Data.SkipDelay = true
 
-	newMemo :=
+	newMemoStr, err := utilsmemo.Merge(memo, newMemo)
+	if err != nil {
+		return errorsmod.Wrap(err, "memo merge")
+	}
+	data.Memo = newMemoStr
+
+	bz, err := transfertypes.ModuleCdc.MarshalJSON(&data)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrJSONMarshal, "to ibc packet")
+	}
+	packet.Data = bz
 
 	return nil
 }
