@@ -27,7 +27,7 @@ func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, channelID, rollappID
 	return nil
 }
 
-func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metadata, rollappID, channelID string) error {
+func (k Keeper) RegisterDenomMetadata(ctx sdktypes.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	// TODO: only do it if it hasn't been done before?
 
 	trace := utils.GetForeignDenomTrace(channelID, m.Base)

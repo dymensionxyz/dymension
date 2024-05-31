@@ -104,7 +104,7 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		panic(err)
 	}
 
-	err = im.raKeeper.RegisterOneDenomMetadata(ctx, denom, raID, chaID)
+	err = im.raKeeper.RegisterDenomMetadata(ctx, raID, chaID, denom)
 	if err != nil {
 		err = fmt.Errorf("register denom meta: %w", err)
 		l.Error("OnRecvPacket", "err", err)
