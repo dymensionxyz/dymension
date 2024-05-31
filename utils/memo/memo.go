@@ -1,7 +1,7 @@
 package utilsmemo
 
 import (
-	"encoding/json"
+	"golang.org/x/exp/constraints"
 
 	utilsmap "github.com/dymensionxyz/dymension/v3/utils/map"
 
@@ -13,25 +13,17 @@ import (
 type Memo = map[string]any
 
 // Merge will merge the new objects into the existing memo, returning an error for any key clashes
-func Merge(memo string, new ...map[string]any) (string, error) {
-	asMap := make(map[string]any)
+func Merge[M ~map[K]V, K constraints.Ordered, V any](maps ...M) (M, error) {
+	ret := make(M)
 
-	err := json.Unmarshal([]byte(memo), &asMap)
-	if err != nil {
-		return "", sdkerrors.ErrJSONUnmarshal
-	}
-	for _, newMemo := range new {
-		for _, k := range utilsmap.SortedKeys(newMemo) {
-			if _, ok := asMap[k]; ok {
-				return "", errorsmod.Wrapf(sdkerrors.ErrConflict, "duplicate memo key: %s", k)
+	for _, m := range maps {
+		for _, k := range utilsmap.SortedKeys(m) {
+			if _, ok := ret[k]; ok {
+				return nil, errorsmod.Wrapf(sdkerrors.ErrConflict, "duplicate key: %s", k)
 			}
-			asMap[k] = newMemo[k]
+			ret[k] = m[k]
 		}
 	}
 
-	bz, err := json.Marshal(asMap)
-	if err != nil {
-		return "", sdkerrors.ErrJSONMarshal
-	}
-	return string(bz), nil
+	return ret, nil
 }
