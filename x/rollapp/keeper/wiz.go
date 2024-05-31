@@ -7,11 +7,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/utils"
 
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGenesisArgs) error {
-	rollapp, found := k.GetRollapp(ctx, args.RollappID)
+func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, channelID, rollappID string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappID)
 	if !found {
 		panic("expected to find rollapp")
 	}

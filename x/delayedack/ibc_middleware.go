@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
@@ -64,52 +62,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	if err != nil {
 		logger.Error("Extract rollapp id from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	genesisTransferDenom, err := rollappkeeper.ParseGenesisTransferDenom(transferPacketData.GetMemo())
-	if errorsmod.IsOf(err, sdkerrors.ErrUnauthorized) {
-		logger.Error("User tried to submit denom metadata")
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-	if err != nil {
-		logger.Error("parse genesis transfer denom", "err", err, "memo", transferPacketData.GetMemo())
-	}
-	if err == nil {
-		/*
-			TODO:
-				What are the steps that need to happen?
-					1. Make sure that this packet actually originated from the rollapp transfer channel (how?)
-					2. Mark the genesis as occurred (how?)
-					3. Pass on the ibc packet
-				Questions
-					Order between 2-3
-					Impact of one failure, how to properly error ack?
-		*/
-
-		logger.Info("got the special memo!")
-		p := rollapptypes.TriggerGenesisArgs{
-			ChannelID: "channel-0",
-			RollappID: "rollappevm_1234-1",
-		}
-
-		ra, ok := im.raKeeper.GetRollapp(ctx, p.RollappID)
-		if !ok {
-			panic(errors.New("expect to find rollapp"))
-		}
-		_ = ra
-		err = im.raKeeper.MarkGenesisAsHappened(ctx, p) // TODO: need to replace with something better
-		if err != nil {
-			err = fmt.Errorf("trigger genesis func: %w", err)
-			logger.Error("OnRecvPacket", "err", err)
-			panic(err)
-		}
-		err = im.raKeeper.RegisterOneDenomMetadata(ctx, genesisTransferDenom, p.RollappID, p.ChannelID)
-		logger.Info("Triggered genesis func due to special memo, now passing on packet.")
-		ack := im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-		if !ack.Success() {
-			logger.Error("OnRecvPacket, forwarded special tx, but got an err ack", "ack", string(ack.Acknowledgement()))
-		}
-		return ack
 	}
 
 	if rollappID == "" {
@@ -386,19 +338,16 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 		return "", &data, nil // TODO: needs an error?
 	}
 	_ = rollapp
-	/*
-		TODO: reimpl semantics somewhere else
-		if rollapp.ChannelId == "" {
-			return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
-		}
-		// check if the channelID matches the rollappID's channelID
-		if rollapp.ChannelId != rollappChannelOnHub {
-			return "", &data, errorsmod.Wrapf(
-				rollapptypes.ErrMismatchedChannelID,
-				"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
-			)
-		}
-	*/
+	if rollapp.ChannelId == "" {
+		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+	}
+	// check if the channelID matches the rollappID's channelID
+	if rollapp.ChannelId != rollappChannelOnHub {
+		return "", &data, errorsmod.Wrapf(
+			rollapptypes.ErrMismatchedChannelID,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+		)
+	}
 
 	return chainID, &data, nil
 }
