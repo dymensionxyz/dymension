@@ -19,7 +19,8 @@ func TestMerge(t *testing.T) {
 
 		res, err := Merge(memo, map[string]int{"fizz": 2, "buzz": 3})
 		require.NoError(t, err)
-		require.True(t, strings.Contains(res, "fizz"))
+		require.True(t, strings.Contains(res, "foo"))  // nothing is lost
+		require.True(t, strings.Contains(res, "fizz")) // something is gained
 	})
 	t.Run("conflict", func(t *testing.T) {
 		memo := `{
