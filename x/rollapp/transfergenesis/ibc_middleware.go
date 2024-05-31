@@ -21,19 +21,17 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
-// IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
-	porttypes.Middleware
-	keeper   delayedackkeeper.Keeper
-	raKeeper rollappkeeper.Keeper
+	porttypes.Middleware // next one
+	delayedackKeeper     delayedackkeeper.Keeper
+	rollappKeeper        rollappkeeper.Keeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(next porttypes.Middleware, keeper delayedackkeeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
-		Middleware: next,
-		keeper:     keeper,
-		raKeeper:   raK,
+		Middleware:       next,
+		delayedackKeeper: keeper,
+		rollappKeeper:    raK,
 	}
 }
 
@@ -52,8 +50,8 @@ func (im IBCMiddleware) OnRecvPacket(
 }
 
 type genesisTransferDenomMemo struct {
-	GenesisTransfer struct {
-		Data banktypes.Metadata `json:"data"`
+	Data struct {
+		Denom banktypes.Metadata `json:"denom"`
 	} `json:"genesis_transfer"`
 }
 
@@ -61,7 +59,7 @@ func (im IBCMiddleware) handleGenesisTransfers(
 	ctx sdk.Context,
 	packet *channeltypes.Packet,
 ) error {
-	if !im.keeper.IsRollappsEnabled(ctx) {
+	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return nil
 	}
 
@@ -83,35 +81,35 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		return errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "memo")
 	}
 
-	denom := wrappedDenom.GenesisTransfer.Data
+	denom := wrappedDenom.Data.Denom
 
-	l.Info("got the special memo!")
+	l.Info("got the special memo!") // TODO: fix
 
 	chaID := "channel-0"
 	raID := "rollappevm_1234-1"
 
-	ra, ok := im.raKeeper.GetRollapp(ctx, raID)
+	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID)
 	if !ok {
 		panic(errors.New("must find rollapp"))
 	}
 
 	_ = ra
 
-	err = im.raKeeper.MarkGenesisAsHappened(ctx, chaID, raID)
+	err = im.rollappKeeper.MarkGenesisAsHappened(ctx, chaID, raID)
 	if err != nil {
 		err = fmt.Errorf("mark genesis: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
 	}
 
-	err = im.raKeeper.RegisterDenomMetadata(ctx, raID, chaID, denom)
+	err = im.rollappKeeper.RegisterDenomMetadata(ctx, raID, chaID, denom)
 	if err != nil {
 		err = fmt.Errorf("register denom meta: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
 	}
 
-	l.Info("Registered denom meta data from genesis transfer.")
+	newMemo := l.Info("Registered denom meta data from genesis transfer.")
 
 	return nil
 }
