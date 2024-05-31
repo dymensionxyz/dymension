@@ -11,7 +11,6 @@ import (
 )
 
 func (k Keeper) MarkGenesisAsHappened(ctx sdktypes.Context, args types.TriggerGenesisArgs) error {
-	// Get the rollapp
 	rollapp, found := k.GetRollapp(ctx, args.RollappID)
 	if !found {
 		panic("expected to find rollapp")
@@ -55,6 +54,9 @@ func (k Keeper) RegisterOneDenomMetadata(ctx sdktypes.Context, m banktypes.Metad
 		return fmt.Errorf("invalid denom metadata on genesis event: %w", err)
 	}
 
+	/*
+		TODO: should not be direct as need to make sure vfc contracts etc are created
+	*/
 	k.bankKeeper.SetDenomMetaData(ctx, m)
 
 	k.Logger(ctx).Info("Registered denom metadata for IBC token.", "rollappID", rollappID, "denom", ibcDenom)
