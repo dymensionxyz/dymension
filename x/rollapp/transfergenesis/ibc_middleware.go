@@ -130,5 +130,15 @@ func (im IBCMiddleware) handleGenesisTransfers(
 	}
 	packet.Data = bz
 
+	/*
+			TODO: where was I on Friday afternoon?
+			I'll need to make delayed ack scrub out the skip memo, but only if it's an 'internal' skip memo, thereby knowing it came
+			from this chain
+			Actually, maybe instead of screwing with the memo, I can use the context?
+			Anyways, next steps are to check it's all working
+			Then redefine the memo to include the total number of genesis tx and the id
+		Then write the code that will wait for all of them to finish and trigger the dispute period
+	*/
+
 	return nil
 }
