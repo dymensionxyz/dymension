@@ -1,7 +1,8 @@
+// Package transferinject module provides IBC middleware for sending and acknowledging IBC packets with injecting additional packet metadata to IBC packets.
 package transferinject
 
 import (
-	"errors"
+	"fmt"
 	. "slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,7 +19,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
-type IBCMiddleware struct {
+type IBCSendMiddleware struct {
 	porttypes.IBCModule
 	porttypes.ICS4Wrapper
 
@@ -35,29 +36,16 @@ func NewIBCSendMiddleware(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
-) porttypes.ICS4Wrapper {
-	return &IBCMiddleware{
+) *IBCSendMiddleware {
+	return &IBCSendMiddleware{
 		ICS4Wrapper:   ics,
 		rollappKeeper: rollappKeeper,
 		bankKeeper:    bankKeeper,
 	}
 }
 
-// NewIBCAckMiddleware creates a new IBCModule.
-// It intercepts acknowledged incoming IBC packets and adds token metadata that had just been registered on the rollapp itself,
-// to the local rollapp record.
-func NewIBCAckMiddleware(
-	ibc porttypes.IBCModule,
-	rollappKeeper types.RollappKeeper,
-) porttypes.IBCModule {
-	return &IBCMiddleware{
-		IBCModule:     ibc,
-		rollappKeeper: rollappKeeper,
-	}
-}
-
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (m *IBCMiddleware) SendPacket(
+func (m *IBCSendMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	destinationPort string, destinationChannel string,
@@ -67,18 +55,20 @@ func (m *IBCMiddleware) SendPacket(
 ) (sequence uint64, err error) {
 	packet := new(transfertypes.FungibleTokenPacketData)
 	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
 	if types.MemoAlreadyHasPacketMetadata(packet.Memo) {
-		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "denom metadata already exists in memo")
+		return 0, types.ErrMemoTransferInjectAlreadyExists
 	}
 
 	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "extract rollapp id from packet: %s", err.Error())
 	}
-	// TODO: consider that other chains also might want this feature
+
+	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
+	// meaning, find a better way to check if the receiving chain supports this middleware
 	if rollapp == nil {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
@@ -87,23 +77,51 @@ func (m *IBCMiddleware) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
+	// get the denom metadata from the bank keeper, if it doesn't exist, return an error
+	// this is to ensure that the denom metadata is available before sending the packet,
+	// as the receiving chain might depend on the metadata in order to be able to represent
+	// the balances correctly (evm chains need it even more)
 	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
 	if !ok {
 		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "denom metadata not found")
 	}
 
-	packet.Memo = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
+	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
+	if err != nil {
+		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "add denom metadata to memo: %s", err.Error())
+	}
 
 	data, err = types.ModuleCdc.MarshalJSON(packet)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrInvalidType, "marshal ICS-20 transfer packet data: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 }
 
+type IBCAckMiddleware struct {
+	porttypes.IBCModule
+	porttypes.ICS4Wrapper
+
+	rollappKeeper types.RollappKeeper
+	bankKeeper    types.BankKeeper
+}
+
+// NewIBCAckMiddleware creates a new IBCModule.
+// It intercepts acknowledged incoming IBC packets and adds token metadata that had just been registered on the rollapp itself,
+// to the local rollapp record.
+func NewIBCAckMiddleware(
+	ibc porttypes.IBCModule,
+	rollappKeeper types.RollappKeeper,
+) *IBCAckMiddleware {
+	return &IBCAckMiddleware{
+		IBCModule:     ibc,
+		rollappKeeper: rollappKeeper,
+	}
+}
+
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
-func (m *IBCMiddleware) OnAcknowledgementPacket(
+func (m *IBCAckMiddleware) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -111,7 +129,7 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(rtypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
 	if !ack.Success() {
@@ -120,43 +138,34 @@ func (m *IBCMiddleware) OnAcknowledgementPacket(
 
 	var data transfertypes.FungibleTokenPacketData
 	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unmarshal ICS-20 transfer packet data: %s", err.Error())
+		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if len(data.Memo) == 0 {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
-
-	memoData, err := types.ParseMemoData(data.Memo)
-	if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoDenomMetadataEmpty) {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
+	packetMetadata, err := types.ParsePacketMetadata(data.Memo)
 	if err != nil {
-		return err
+		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	if memoData.PacketMetadata == nil || memoData.PacketMetadata.DenomMetadata == nil {
+	if packetMetadata.DenomMetadata == nil {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
 	if err != nil {
-		return errorsmod.Wrapf(errortypes.ErrNotFound, "extract rollapp id from packet: %s", err.Error())
+		return fmt.Errorf("extract rollapp id from packet: %w", err)
 	}
 	if rollapp == nil {
 		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
 	}
 
-	dm := memoData.PacketMetadata.DenomMetadata
+	dm := packetMetadata.DenomMetadata
 
-	if hasDenom(rollapp.TokenMetadata, dm.Base) {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if !hasDenom(rollapp.TokenMetadata, dm.Base) {
+		// add the new token metadata to the rollapp
+		rollapp.TokenMetadata = append(rollapp.TokenMetadata, DenomToTokenMetadata(dm))
+
+		m.rollappKeeper.SetRollapp(ctx, *rollapp)
 	}
-
-	// add the new token metadata to the rollapp
-	rollapp.TokenMetadata = append(rollapp.TokenMetadata, DenomToTokenMetadata(dm))
-
-	m.rollappKeeper.SetRollapp(ctx, *rollapp)
 
 	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }

@@ -47,9 +47,8 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			}),
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
-				Memo:  types.AddDenomMetadataToMemo("", validDenomMetadata),
+				Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 			}),
-			wantErr: "",
 		}, {
 			name: "success: added denom metadata to non-empty memo",
 			fields: fields{
@@ -67,9 +66,8 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			}),
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
-				Memo:  types.AddDenomMetadataToMemo("thanks for the sweater, grandma!", validDenomMetadata),
+				Memo:  addDenomMetadataToPacketData("thanks for the sweater, grandma!", validDenomMetadata),
 			}),
-			wantErr: "",
 		}, {
 			name: "error: unmarshal packet data",
 			data: []byte("invalid json"),
@@ -77,7 +75,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 				ICS4Wrapper: &mockICS4Wrapper{},
 			},
 			wantSentData: []byte(""),
-			wantErr:      "unmarshal ICS-20 transfer packet data: invalid character 'i' looking for beginning of value: unknown request",
+			wantErr:      "unmarshal ICS-20 transfer packet data: invalid character 'i' looking for beginning of value: failed to unmarshal JSON bytes",
 		}, {
 			name: "error: denom metadata already in memo",
 			fields: fields{
@@ -85,10 +83,10 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			},
 			data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
-				Memo:  `{"packet_metadata":{}}`,
+				Memo:  `{"transferinject":{}}`,
 			}),
 			wantSentData: []byte(""),
-			wantErr:      "denom metadata already exists in memo: unauthorized",
+			wantErr:      "'transferinject' already exists in memo: unauthorized",
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
@@ -116,7 +114,6 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 				Denom: "adym",
 				Memo:  "user memo",
 			}),
-			wantErr: "",
 		}, {
 			name: "send unaltered: denom metadata already in rollapp",
 			fields: fields{
@@ -133,7 +130,6 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 			}),
-			wantErr: "",
 		}, {
 			name: "error: get denom metadata",
 			fields: fields{
@@ -201,15 +197,14 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  types.AddDenomMetadataToMemo("", validDenomMetadata),
+						Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 					}),
 				},
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				TokenMetadata: []*rollapptypes.TokenMetadata{tokenMetadata(validDenomMetadata)},
+				TokenMetadata: []*rollapptypes.TokenMetadata{transferinject.DenomToTokenMetadata(&validDenomMetadata)},
 			},
-			wantErr: "",
 		}, {
 			name: "success: added token metadata to rollapp with user memo",
 			fields: fields{
@@ -222,15 +217,14 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  types.AddDenomMetadataToMemo("user memo", validDenomMetadata),
+						Memo:  addDenomMetadataToPacketData("user memo", validDenomMetadata),
 					}),
 				},
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				TokenMetadata: []*rollapptypes.TokenMetadata{tokenMetadata(validDenomMetadata)},
+				TokenMetadata: []*rollapptypes.TokenMetadata{transferinject.DenomToTokenMetadata(&validDenomMetadata)},
 			},
-			wantErr: "",
 		}, {
 			name: "error: unmarshal packet data",
 			fields: fields{
@@ -243,7 +237,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "unmarshal ICS-20 transfer packet data: invalid character 'i' looking for beginning of value: unknown request",
+			wantErr:     "unmarshal ICS-20 transfer packet data: invalid character 'i' looking for beginning of value: failed to unmarshal JSON bytes",
 		}, {
 			name: "return early: error acknowledgement",
 			fields: fields{
@@ -254,7 +248,6 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: badAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "",
 		}, {
 			name: "return early: no memo",
 			fields: fields{
@@ -270,7 +263,6 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "",
 		}, {
 			name: "return early: no packet metadata in memo",
 			fields: fields{
@@ -287,7 +279,6 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "",
 		}, {
 			name: "return early: no denom metadata in memo",
 			fields: fields{
@@ -298,13 +289,12 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  `{"packet_metadata":{}}`,
+						Memo:  `{"transferinject":{}}`,
 					}),
 				},
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "",
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
@@ -317,13 +307,13 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  types.AddDenomMetadataToMemo("", validDenomMetadata),
+						Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 					}),
 				},
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     "extract rollapp id from packet: empty channel id: not found",
+			wantErr:     "extract rollapp id from packet: empty channel id",
 		}, {
 			name: "error: rollapp not found",
 			fields: fields{
@@ -334,7 +324,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  types.AddDenomMetadataToMemo("", validDenomMetadata),
+						Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 					}),
 				},
 				acknowledgement: okAck(),
@@ -347,7 +337,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				IBCModule: mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{
-						TokenMetadata: []*rollapptypes.TokenMetadata{tokenMetadata(validDenomMetadata)},
+						TokenMetadata: []*rollapptypes.TokenMetadata{transferinject.DenomToTokenMetadata(&validDenomMetadata)},
 					},
 				},
 			},
@@ -355,15 +345,14 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				packet: channeltypes.Packet{
 					Data: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 						Denom: "adym",
-						Memo:  types.AddDenomMetadataToMemo("", validDenomMetadata),
+						Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
 					}),
 				},
 				acknowledgement: okAck(),
 			},
 			wantRollapp: &rollapptypes.Rollapp{
-				TokenMetadata: []*rollapptypes.TokenMetadata{tokenMetadata(validDenomMetadata)},
+				TokenMetadata: []*rollapptypes.TokenMetadata{transferinject.DenomToTokenMetadata(&validDenomMetadata)},
 			},
-			wantErr: "",
 		},
 	}
 	for _, tt := range tests {
@@ -400,8 +389,9 @@ var validDenomMetadata = banktypes.Metadata{
 	},
 }
 
-func tokenMetadata(metadata banktypes.Metadata) *rollapptypes.TokenMetadata {
-	return transferinject.DenomToTokenMetadata(&metadata)
+func addDenomMetadataToPacketData(memo string, metadata banktypes.Metadata) string {
+	memo, _ = types.AddDenomMetadataToMemo(memo, metadata)
+	return memo
 }
 
 func okAck() []byte {
