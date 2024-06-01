@@ -2,7 +2,6 @@
 package transferinject
 
 import (
-	"fmt"
 	. "slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -64,7 +63,7 @@ func (m *IBCSendMiddleware) SendPacket(
 
 	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "extract rollapp id from packet: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
 	}
 
 	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
@@ -146,19 +145,18 @@ func (m *IBCAckMiddleware) OnAcknowledgementPacket(
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	if packetMetadata.DenomMetadata == nil {
+	dm := packetMetadata.DenomMetadata
+	if dm == nil {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
 	if err != nil {
-		return fmt.Errorf("extract rollapp id from packet: %w", err)
+		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
 	}
 	if rollapp == nil {
 		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
 	}
-
-	dm := packetMetadata.DenomMetadata
 
 	if !hasDenom(rollapp.TokenMetadata, dm.Base) {
 		// add the new token metadata to the rollapp
