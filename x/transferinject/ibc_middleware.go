@@ -103,7 +103,6 @@ type IBCAckMiddleware struct {
 	porttypes.ICS4Wrapper
 
 	rollappKeeper types.RollappKeeper
-	bankKeeper    types.BankKeeper
 }
 
 // NewIBCAckMiddleware creates a new IBCModule.
