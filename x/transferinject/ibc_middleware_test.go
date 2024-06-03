@@ -135,8 +135,9 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			data: &transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 			},
-			wantSentData: []byte(""),
-			wantErr:      errortypes.ErrNotFound,
+			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+				Denom: "adym",
+			}),
 		},
 	}
 	for _, tt := range tests {
