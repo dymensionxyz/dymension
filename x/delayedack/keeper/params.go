@@ -24,3 +24,7 @@ func (k Keeper) BridgingFee(ctx sdk.Context) (res sdk.Dec) {
 	k.paramstore.Get(ctx, types.KeyBridgeFee, &res)
 	return
 }
+
+func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int) {
+	return k.BridgingFee(ctx).MulInt(amt).TruncateInt()
+}

@@ -125,7 +125,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
-		bridgingFee := im.keeper.BridgingFee(ctx).MulInt(amt).TruncateInt()
+		bridgingFee := im.keeper.BridgingFeeFromAmt(ctx, amt)
 		if bridgingFee.GT(fee) {
 			// We check that the fee the fulfiller makes is at least as big as the bridging fee they will have to pay later
 			// this is to improve UX and help fulfillers not lose money.

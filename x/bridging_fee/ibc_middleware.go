@@ -43,10 +43,6 @@ func NewIBCMiddleware(transfer transfer.IBCModule, channelKeeper porttypes.ICS4W
 	}
 }
 
-func (im BridgingFeeMiddleware) GetBridgingFee(ctx sdk.Context) sdk.Dec {
-	return im.delayedAckKeeper.BridgingFee(ctx)
-}
-
 // GetFeeRecipient returns the address that will receive the bridging fee
 func (im BridgingFeeMiddleware) GetFeeRecipient() sdk.AccAddress {
 	return im.feeModuleAddr
@@ -82,8 +78,7 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 	}
 
 	// get fee
-	feeMultiplier := im.GetBridgingFee(ctx)
-	fee := feeMultiplier.MulInt(transferAmount).TruncateInt()
+	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, transferAmount)
 
 	// update packet data for the fee charge
 	feePacket := *transferPacketData

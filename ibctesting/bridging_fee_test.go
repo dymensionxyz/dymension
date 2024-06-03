@@ -93,8 +93,7 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	suite.Require().NoError(err)
 
 	// check balance after finalization
-	feePercentage := ConvertToApp(suite.hubChain).DelayedAckKeeper.BridgingFee(suite.hubChain.GetContext())
-	expectedFee := feePercentage.MulInt(transferredCoins.Amount).TruncateInt()
+	expectedFee := ConvertToApp(suite.hubChain).DelayedAckKeeper.BridgingFeeFromAmt(suite.hubChain.GetContext(), transferredCoins.Amount)
 	expectedBalance := initialBalance.Add(transferredCoins).Sub(sdk.NewCoin(denom, expectedFee))
 	finalBalance := ConvertToApp(suite.hubChain).BankKeeper.SpendableCoins(suite.hubChain.GetContext(), recipient)
 	suite.Assert().Equal(expectedBalance, finalBalance)
