@@ -20,6 +20,8 @@ const (
 var _ porttypes.Middleware = &BridgingFeeMiddleware{}
 
 // BridgingFeeMiddleware implements the ICS26 callbacks
+// The middleware is responsible for charging a bridging fee on transfers coming from rollapps
+// The actual charge happens on the packet finalization
 type BridgingFeeMiddleware struct {
 	transfer.IBCModule
 	porttypes.ICS4Wrapper
@@ -44,7 +46,7 @@ func (im BridgingFeeMiddleware) GetBridgingFee(ctx sdk.Context) sdk.Dec {
 	return im.delayedAckKeeper.BridgingFee(ctx)
 }
 
-// Get the bridging fee param
+// GetFeeRecipient returns the address that will receive the bridging fee
 func (im BridgingFeeMiddleware) GetFeeRecipient(ctx sdk.Context) sdk.AccAddress {
 	return im.feeModuleAddr
 }

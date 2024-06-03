@@ -127,7 +127,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 	case commontypes.RollappPacket_ON_RECV:
 		bridgingFee := im.keeper.BridgingFee(ctx).MulInt(amt).TruncateInt()
 		if bridgingFee.GT(fee) {
-			return nil, fmt.Errorf("fee cannot be smaller than bridging fee: fee: %s: bridging fee: %s", fee, bridgingFee)
+			return nil, fmt.Errorf("eibc fee cannot be smaller than bridging fee: eibc fee: %s: bridging fee: %s", fee, bridgingFee)
 		}
 		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to

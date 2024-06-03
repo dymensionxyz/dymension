@@ -20,7 +20,7 @@ var (
 
 const (
 	defaultEpochIdentifier = "hour"
-	defaultBridgeFee       = "0.01" // 1%
+	defaultBridgeFee       = 1 // 1%
 )
 
 // ParamKeyTable the param key table for launch module
@@ -38,7 +38,7 @@ func NewParams(epochIdentifier string, bridgingFee sdk.Dec) Params {
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(defaultEpochIdentifier, sdk.MustNewDecFromStr(defaultBridgeFee))
+	return NewParams(defaultEpochIdentifier, sdk.NewDecWithPrec(defaultBridgeFee, 2))
 }
 
 // ParamSetPairs get the params.ParamSet
