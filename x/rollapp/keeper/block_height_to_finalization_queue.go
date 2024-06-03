@@ -51,7 +51,7 @@ func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 
 			// emit event
 			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStateUpdate,
+				sdk.NewEvent(types.EventTypeStatusChange,
 					stateInfo.GetEvents()...,
 				),
 			)
