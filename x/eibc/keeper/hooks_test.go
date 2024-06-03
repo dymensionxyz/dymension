@@ -65,7 +65,9 @@ func (suite *KeeperTestSuite) TestAfterRollappPacketDeleted() {
 
 			// Trigger the delayed ack hook which should delete the rollapp packet and the demand order
 			epochIdentifier := "minute"
-			suite.App.DelayedAckKeeper.SetParams(suite.Ctx, delayedacktypes.Params{EpochIdentifier: epochIdentifier, BridgingFee: suite.App.DelayedAckKeeper.BridgingFee(suite.Ctx)})
+			defParams := delayedacktypes.DefaultParams()
+			defParams.EpochIdentifier = epochIdentifier
+			suite.App.DelayedAckKeeper.SetParams(suite.Ctx, defParams)
 			hooks := suite.App.DelayedAckKeeper.GetEpochHooks()
 			err = hooks.AfterEpochEnd(suite.Ctx, epochIdentifier, 1)
 			suite.Require().NoError(err)
