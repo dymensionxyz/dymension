@@ -76,13 +76,10 @@ func (m *IBCSendMiddleware) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	// get the denom metadata from the bank keeper, if it doesn't exist, return an error
-	// this is to ensure that the denom metadata is available before sending the packet,
-	// as the receiving chain might depend on the metadata in order to be able to represent
-	// the balances correctly (evm chains need it even more)
+	// get the denom metadata from the bank keeper, if it doesn't exist, move on to the next middleware in the chain
 	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
 	if !ok {
-		return 0, errorsmod.Wrapf(errortypes.ErrNotFound, "denom metadata not found")
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
