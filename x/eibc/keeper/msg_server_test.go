@@ -165,7 +165,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		},
 		{
 			name:                                 "Test demand order fulfillment - non profitable order",
-			demandOrderPrice:                     200,
+			demandOrderPrice:                     2000,
 			demandOrderFee:                       1,
 			demandOrderFulfillmentStatus:         false,
 			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
@@ -178,7 +178,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			expectedPostCreationEventsCount:      1,
 			expectedPostCreationEventsAttributes: []sdk.Attribute{
 				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyPrice, "2000"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyFee, "1"+sdk.DefaultBondDenom),
 				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
@@ -207,31 +207,30 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// Update rollapp status if needed
 		if rollappPacket.Status != tc.demandOrderUnderlyingPacketStatus {
 			_, err = suite.App.DelayedAckKeeper.UpdateRollappPacketWithStatus(suite.Ctx, *rollappPacket, tc.demandOrderUnderlyingPacketStatus)
-			suite.Require().NoError(err)
+			suite.Require().NoError(err, tc.name)
 		}
 		// Validate creation events emitted
 		suite.AssertEventEmitted(suite.Ctx, tc.expectedPostCreationEventsType, tc.expectedPostCreationEventsCount+totalEventsEmitted)
 		totalEventsEmitted += tc.expectedPostCreationEventsCount
 		lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), tc.expectedPostCreationEventsType)
-		suite.Require().True(ok)
+		suite.Require().True(ok, tc.name)
 		suite.AssertAttributes(lastEvent, tc.expectedPostCreationEventsAttributes)
 		// try to fulfill the demand order
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
-		suite.Require().NoError(err)
+		suite.Require().NoError(err, tc.name)
 		_, err = suite.msgServer.FulfillOrder(suite.Ctx, &types.MsgFulfillOrder{
 			FulfillerAddress: eibcDemandAddr.String(),
 			OrderId:          demandOrder.Id,
 		})
 		if tc.expectedFulfillmentError != nil {
-			suite.Require().Error(err)
-			suite.Require().ErrorIs(err, tc.expectedFulfillmentError)
+			suite.Require().ErrorIs(err, tc.expectedFulfillmentError, tc.name)
 		} else {
-			suite.Require().NoError(err)
+			suite.Require().NoError(err, tc.name)
 		}
 		// Check that the demand fulfillment
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled)
+		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled, tc.name)
 		// Check balances updates in case of success
 		if tc.expectedFulfillmentError == nil {
 			afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
