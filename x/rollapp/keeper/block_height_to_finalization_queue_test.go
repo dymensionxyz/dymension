@@ -84,35 +84,38 @@ func (suite *RollappTestSuite) TestFinalize() {
 
 	initialheight := uint64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
-	ctx := &suite.Ctx
 
 	keeper := suite.App.RollappKeeper
 
 	// Create a rollapp
 	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	proposer := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
 
 	// Create 2 state updates
-	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
+	_, err := suite.PostStateUpdate(suite.Ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
-	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
+	_, err = suite.PostStateUpdate(suite.Ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
 	// Finalize pending queues and check
-	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
+	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx), 2)
+	suite.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
-	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(suite.Ctx)))
+	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx), 1)
+	suite.True(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
-	suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(suite.Ctx) + 1))
+	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx), 0)
+	suite.True(findEvent(response, types.EventTypeStatusChange))
+
 }
 
 /* ---------------------------------- utils --------------------------------- */
@@ -123,4 +126,14 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
 	}
 	return items
+}
+
+func findEvent(response abci.ResponseEndBlock, eventType string) bool {
+	found := false
+	for _, event := range response.Events {
+		if event.Type == eventType {
+			found = true
+		}
+	}
+	return found
 }
