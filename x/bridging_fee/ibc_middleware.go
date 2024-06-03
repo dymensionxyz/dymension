@@ -1,9 +1,9 @@
 package bridging_fee
 
 import (
-	"errors"
-
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -22,6 +22,7 @@ var _ porttypes.Middleware = &BridgingFeeMiddleware{}
 // BridgingFeeMiddleware implements the ICS26 callbacks
 // The middleware is responsible for charging a bridging fee on transfers coming from rollapps
 // The actual charge happens on the packet finalization
+// based on ADR: https://www.notion.so/dymension/ADR-x-Bridging-Fee-Middleware-7ba8c191373f43ce81782fc759913299?pvs=4
 type BridgingFeeMiddleware struct {
 	transfer.IBCModule
 	porttypes.ICS4Wrapper
@@ -47,12 +48,11 @@ func (im BridgingFeeMiddleware) GetBridgingFee(ctx sdk.Context) sdk.Dec {
 }
 
 // GetFeeRecipient returns the address that will receive the bridging fee
-func (im BridgingFeeMiddleware) GetFeeRecipient(ctx sdk.Context) sdk.AccAddress {
+func (im BridgingFeeMiddleware) GetFeeRecipient() sdk.AccAddress {
 	return im.feeModuleAddr
 }
 
 func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
-	// skip check if source chain is not a rollapp
 	if !im.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -77,18 +77,18 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 	// parse the transfer amount
 	transferAmount, ok := sdk.NewIntFromString(transferPacketData.Amount)
 	if !ok {
-		err = errors.New("unable to parse transfer amount into math.Int")
+		err = errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "parse transfer amount into math.Int")
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// get fee
-	feePercentage := im.GetBridgingFee(ctx)
-	fee := feePercentage.MulInt(transferAmount).TruncateInt()
+	feeMultiplier := im.GetBridgingFee(ctx)
+	fee := feeMultiplier.MulInt(transferAmount).TruncateInt()
 
 	// update packet data for the fee charge
 	feePacket := *transferPacketData
 	feePacket.Amount = fee.String()
-	feePacket.Receiver = im.GetFeeRecipient(ctx).String()
+	feePacket.Receiver = im.GetFeeRecipient().String()
 
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
 	err = im.transferKeeper.OnRecvPacket(ctx, packet, feePacket)
