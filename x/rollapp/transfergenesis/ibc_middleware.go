@@ -42,8 +42,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	// may modify packet
-	ctx, err := im.handleGenesisTransfers(ctx, &packet)
+	ctx, err := im.handleGenesisTransfers(ctx, packet)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -59,9 +58,10 @@ type genesisTransferDenomMemo struct {
 
 func (im IBCMiddleware) handleGenesisTransfers(
 	ctx sdk.Context,
-	packet *channeltypes.Packet,
+	packet channeltypes.Packet,
 ) (sdk.Context, error) {
 	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
+		// TODO: makes sense?
 		return ctx, nil
 	}
 
