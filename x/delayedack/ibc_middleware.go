@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/goccy/go-json"
-
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
@@ -50,10 +47,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if types.Skip(ctx) {
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	if !im.keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -63,23 +56,17 @@ func (im IBCMiddleware) OnRecvPacket(
 		"packet_destination_port", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
+	if types.Skip(ctx) {
+		logger.Info("Skipping eIBC transfer OnRecvPacket because of skip delay memo") // TODO: this should say eIBC right?
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
 	rollappID, transferPacketData, err := im.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Extract rollapp id from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	var memo types.Memo
-	err = json.Unmarshal([]byte(transferPacketData.GetMemo()), &memo)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "memo"))
-	}
-
-	if memo.Data.SkipDelay {
-		logger.Info("Skipping eIBC transfer OnRecvPacket because of skip delay memo") // TODO: this should say eIBC right?
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	if rollappID == "" {
