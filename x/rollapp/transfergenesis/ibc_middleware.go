@@ -167,6 +167,7 @@ func (im IBCMiddleware) RegisterDenomMetadata(ctx sdk.Context, rollappID, channe
 	*/
 	err := im.denomKeeper.CreateDenomMetadata(ctx, m)
 	if err != nil {
+		errorsmod.ErrStopIterating
 		sdkerrors.ErrNotSupported
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, m)
