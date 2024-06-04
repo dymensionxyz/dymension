@@ -127,24 +127,24 @@ func (m *MsgFulfillOrderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgFulfillOrderResponse proto.InternalMessageInfo
 
-type MsgEditOrder struct {
+type MsgUpdateDemandOrder struct {
 	RecipientAddress string `protobuf:"bytes,1,opt,name=recipient_address,json=recipientAddress,proto3" json:"recipient_address,omitempty"`
 	OrderId          string `protobuf:"bytes,2,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
 	NewFee           string `protobuf:"bytes,3,opt,name=new_fee,json=newFee,proto3" json:"new_fee,omitempty"`
 }
 
-func (m *MsgEditOrder) Reset()         { *m = MsgEditOrder{} }
-func (m *MsgEditOrder) String() string { return proto.CompactTextString(m) }
-func (*MsgEditOrder) ProtoMessage()    {}
-func (*MsgEditOrder) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateDemandOrder) Reset()         { *m = MsgUpdateDemandOrder{} }
+func (m *MsgUpdateDemandOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateDemandOrder) ProtoMessage()    {}
+func (*MsgUpdateDemandOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b6b186a723f445fa, []int{2}
 }
-func (m *MsgEditOrder) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateDemandOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgEditOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateDemandOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgEditOrder.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateDemandOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -154,54 +154,54 @@ func (m *MsgEditOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *MsgEditOrder) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgEditOrder.Merge(m, src)
+func (m *MsgUpdateDemandOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateDemandOrder.Merge(m, src)
 }
-func (m *MsgEditOrder) XXX_Size() int {
+func (m *MsgUpdateDemandOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgEditOrder) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgEditOrder.DiscardUnknown(m)
+func (m *MsgUpdateDemandOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateDemandOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgEditOrder proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateDemandOrder proto.InternalMessageInfo
 
-func (m *MsgEditOrder) GetRecipientAddress() string {
+func (m *MsgUpdateDemandOrder) GetRecipientAddress() string {
 	if m != nil {
 		return m.RecipientAddress
 	}
 	return ""
 }
 
-func (m *MsgEditOrder) GetOrderId() string {
+func (m *MsgUpdateDemandOrder) GetOrderId() string {
 	if m != nil {
 		return m.OrderId
 	}
 	return ""
 }
 
-func (m *MsgEditOrder) GetNewFee() string {
+func (m *MsgUpdateDemandOrder) GetNewFee() string {
 	if m != nil {
 		return m.NewFee
 	}
 	return ""
 }
 
-type MsgEditOrderResponse struct {
+type MsgUpdateDemandOrderResponse struct {
 }
 
-func (m *MsgEditOrderResponse) Reset()         { *m = MsgEditOrderResponse{} }
-func (m *MsgEditOrderResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgEditOrderResponse) ProtoMessage()    {}
-func (*MsgEditOrderResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateDemandOrderResponse) Reset()         { *m = MsgUpdateDemandOrderResponse{} }
+func (m *MsgUpdateDemandOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateDemandOrderResponse) ProtoMessage()    {}
+func (*MsgUpdateDemandOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_b6b186a723f445fa, []int{3}
 }
-func (m *MsgEditOrderResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateDemandOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgEditOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateDemandOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgEditOrderResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateDemandOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -211,29 +211,29 @@ func (m *MsgEditOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *MsgEditOrderResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgEditOrderResponse.Merge(m, src)
+func (m *MsgUpdateDemandOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateDemandOrderResponse.Merge(m, src)
 }
-func (m *MsgEditOrderResponse) XXX_Size() int {
+func (m *MsgUpdateDemandOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgEditOrderResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgEditOrderResponse.DiscardUnknown(m)
+func (m *MsgUpdateDemandOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateDemandOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgEditOrderResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateDemandOrderResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgFulfillOrder)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrder")
 	proto.RegisterType((*MsgFulfillOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgFulfillOrderResponse")
-	proto.RegisterType((*MsgEditOrder)(nil), "dymensionxyz.dymension.eibc.MsgEditOrder")
-	proto.RegisterType((*MsgEditOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgEditOrderResponse")
+	proto.RegisterType((*MsgUpdateDemandOrder)(nil), "dymensionxyz.dymension.eibc.MsgUpdateDemandOrder")
+	proto.RegisterType((*MsgUpdateDemandOrderResponse)(nil), "dymensionxyz.dymension.eibc.MsgUpdateDemandOrderResponse")
 }
 
 func init() { proto.RegisterFile("dymension/eibc/tx.proto", fileDescriptor_b6b186a723f445fa) }
 
 var fileDescriptor_b6b186a723f445fa = []byte{
-	// 355 bytes of a gzipped FileDescriptorProto
+	// 364 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4f, 0xa9, 0xcc, 0x4d,
 	0xcd, 0x2b, 0xce, 0xcc, 0xcf, 0xd3, 0x4f, 0xcd, 0x4c, 0x4a, 0xd6, 0x2f, 0xa9, 0xd0, 0x2b, 0x28,
 	0xca, 0x2f, 0xc9, 0x17, 0x92, 0x86, 0x4b, 0x54, 0x54, 0x56, 0xe9, 0xc1, 0x39, 0x7a, 0x20, 0x55,
@@ -245,18 +245,18 @@ var fileDescriptor_b6b186a723f445fa = []byte{
 	0xc0, 0x6a, 0xd8, 0xc1, 0x7c, 0xcf, 0x14, 0x21, 0x71, 0x2e, 0xf6, 0xdc, 0xcc, 0xbc, 0xf8, 0xb4,
 	0xd4, 0x54, 0x09, 0x66, 0xb0, 0x0c, 0x5b, 0x6e, 0x66, 0x9e, 0x5b, 0x6a, 0xaa, 0x95, 0x58, 0xd3,
 	0xf3, 0x0d, 0x5a, 0x98, 0x76, 0x28, 0x49, 0x72, 0x89, 0xa3, 0xb9, 0x25, 0x28, 0xb5, 0xb8, 0x20,
-	0x3f, 0xaf, 0x38, 0x55, 0xa9, 0x9d, 0x91, 0x8b, 0xc7, 0xb7, 0x38, 0xdd, 0x35, 0x25, 0xb3, 0x04,
-	0xee, 0xc8, 0xa2, 0xd4, 0xe4, 0xcc, 0x82, 0xcc, 0xd4, 0xbc, 0x12, 0x74, 0x47, 0xc2, 0x25, 0x88,
-	0x73, 0x64, 0x5e, 0x6a, 0x39, 0xb2, 0x23, 0xf3, 0x52, 0xcb, 0x11, 0x8e, 0xc4, 0xb0, 0x43, 0x49,
-	0x8c, 0x4b, 0x04, 0xd9, 0x21, 0x30, 0x17, 0x1a, 0xbd, 0x60, 0xe4, 0x62, 0xf6, 0x2d, 0x4e, 0x17,
-	0x2a, 0xe1, 0xe2, 0x41, 0x09, 0x4d, 0x1d, 0x3d, 0x3c, 0x11, 0xa3, 0x87, 0xe6, 0x5f, 0x29, 0x13,
-	0x52, 0x54, 0xc3, 0x43, 0x87, 0x41, 0x28, 0x9b, 0x8b, 0x13, 0x11, 0x36, 0x9a, 0x84, 0x0c, 0x81,
-	0x2b, 0x95, 0x32, 0x24, 0x5a, 0x29, 0xc2, 0x32, 0x27, 0xef, 0x13, 0x8f, 0xe4, 0x18, 0x2f, 0x3c,
-	0x92, 0x63, 0x7c, 0xf0, 0x48, 0x8e, 0x71, 0xc2, 0x63, 0x39, 0x86, 0x0b, 0x8f, 0xe5, 0x18, 0x6e,
-	0x3c, 0x96, 0x63, 0x88, 0x32, 0x4c, 0xcf, 0x2c, 0xc9, 0x28, 0x4d, 0xd2, 0x4b, 0xce, 0xcf, 0xd5,
-	0x47, 0x36, 0x18, 0xc1, 0xd1, 0x2f, 0x33, 0xd6, 0xaf, 0x80, 0x26, 0xdd, 0xca, 0x82, 0xd4, 0xe2,
-	0x24, 0x36, 0x70, 0x42, 0x34, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x62, 0x47, 0x5f, 0x33, 0xd9,
-	0x02, 0x00, 0x00,
+	0x3f, 0xaf, 0x38, 0x55, 0xa9, 0x9f, 0x91, 0x4b, 0xc4, 0xb7, 0x38, 0x3d, 0xb4, 0x20, 0x25, 0xb1,
+	0x24, 0xd5, 0x25, 0x35, 0x37, 0x31, 0x2f, 0x05, 0xee, 0xd8, 0xa2, 0xd4, 0xe4, 0xcc, 0x82, 0xcc,
+	0xd4, 0xbc, 0x12, 0x74, 0xc7, 0xc2, 0x25, 0x88, 0x73, 0x6c, 0x5e, 0x6a, 0x39, 0xb2, 0x63, 0xf3,
+	0x52, 0xcb, 0x11, 0x8e, 0xc5, 0xb0, 0x43, 0x49, 0x8e, 0x4b, 0x06, 0x9b, 0x83, 0x60, 0x2e, 0x36,
+	0x6a, 0x64, 0xe2, 0x62, 0xf6, 0x2d, 0x4e, 0x17, 0x2a, 0xe1, 0xe2, 0x41, 0x09, 0x5d, 0x1d, 0x3d,
+	0x3c, 0x11, 0xa5, 0x87, 0xe6, 0x7f, 0x29, 0x13, 0x52, 0x54, 0xc3, 0x43, 0x8b, 0x41, 0xa8, 0x99,
+	0x91, 0x4b, 0x10, 0x33, 0xb0, 0x0c, 0x09, 0x99, 0x86, 0xa1, 0x45, 0xca, 0x92, 0x64, 0x2d, 0x08,
+	0x57, 0x38, 0x79, 0x9f, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83, 0x47, 0x72, 0x8c,
+	0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43, 0x94, 0x61, 0x7a,
+	0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x3e, 0xb2, 0x05, 0x08, 0x8e, 0x7e, 0x99,
+	0xb1, 0x7e, 0x05, 0x34, 0x8d, 0x57, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0x53, 0xac, 0x31, 0x20,
+	0x00, 0x00, 0xff, 0xff, 0x6b, 0x8b, 0x10, 0xb6, 0x02, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -272,7 +272,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
 	FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts ...grpc.CallOption) (*MsgFulfillOrderResponse, error)
-	EditOrder(ctx context.Context, in *MsgEditOrder, opts ...grpc.CallOption) (*MsgEditOrderResponse, error)
+	UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOrder, opts ...grpc.CallOption) (*MsgUpdateDemandOrderResponse, error)
 }
 
 type msgClient struct {
@@ -292,9 +292,9 @@ func (c *msgClient) FulfillOrder(ctx context.Context, in *MsgFulfillOrder, opts 
 	return out, nil
 }
 
-func (c *msgClient) EditOrder(ctx context.Context, in *MsgEditOrder, opts ...grpc.CallOption) (*MsgEditOrderResponse, error) {
-	out := new(MsgEditOrderResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Msg/EditOrder", in, out, opts...)
+func (c *msgClient) UpdateDemandOrder(ctx context.Context, in *MsgUpdateDemandOrder, opts ...grpc.CallOption) (*MsgUpdateDemandOrderResponse, error) {
+	out := new(MsgUpdateDemandOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.eibc.Msg/UpdateDemandOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +304,7 @@ func (c *msgClient) EditOrder(ctx context.Context, in *MsgEditOrder, opts ...grp
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	FulfillOrder(context.Context, *MsgFulfillOrder) (*MsgFulfillOrderResponse, error)
-	EditOrder(context.Context, *MsgEditOrder) (*MsgEditOrderResponse, error)
+	UpdateDemandOrder(context.Context, *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -314,8 +314,8 @@ type UnimplementedMsgServer struct {
 func (*UnimplementedMsgServer) FulfillOrder(ctx context.Context, req *MsgFulfillOrder) (*MsgFulfillOrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FulfillOrder not implemented")
 }
-func (*UnimplementedMsgServer) EditOrder(ctx context.Context, req *MsgEditOrder) (*MsgEditOrderResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method EditOrder not implemented")
+func (*UnimplementedMsgServer) UpdateDemandOrder(ctx context.Context, req *MsgUpdateDemandOrder) (*MsgUpdateDemandOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDemandOrder not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -340,20 +340,20 @@ func _Msg_FulfillOrder_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_EditOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgEditOrder)
+func _Msg_UpdateDemandOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateDemandOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).EditOrder(ctx, in)
+		return srv.(MsgServer).UpdateDemandOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.eibc.Msg/EditOrder",
+		FullMethod: "/dymensionxyz.dymension.eibc.Msg/UpdateDemandOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).EditOrder(ctx, req.(*MsgEditOrder))
+		return srv.(MsgServer).UpdateDemandOrder(ctx, req.(*MsgUpdateDemandOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -367,8 +367,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_FulfillOrder_Handler,
 		},
 		{
-			MethodName: "EditOrder",
-			Handler:    _Msg_EditOrder_Handler,
+			MethodName: "UpdateDemandOrder",
+			Handler:    _Msg_UpdateDemandOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -442,7 +442,7 @@ func (m *MsgFulfillOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgEditOrder) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateDemandOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -452,12 +452,12 @@ func (m *MsgEditOrder) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgEditOrder) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateDemandOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgEditOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateDemandOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -486,7 +486,7 @@ func (m *MsgEditOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgEditOrderResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateDemandOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -496,12 +496,12 @@ func (m *MsgEditOrderResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgEditOrderResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateDemandOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgEditOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateDemandOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -550,7 +550,7 @@ func (m *MsgFulfillOrderResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgEditOrder) Size() (n int) {
+func (m *MsgUpdateDemandOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -571,7 +571,7 @@ func (m *MsgEditOrder) Size() (n int) {
 	return n
 }
 
-func (m *MsgEditOrderResponse) Size() (n int) {
+func (m *MsgUpdateDemandOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -782,7 +782,7 @@ func (m *MsgFulfillOrderResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgEditOrder) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateDemandOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -805,10 +805,10 @@ func (m *MsgEditOrder) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgEditOrder: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateDemandOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgEditOrder: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateDemandOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -928,7 +928,7 @@ func (m *MsgEditOrder) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgEditOrderResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateDemandOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -951,10 +951,10 @@ func (m *MsgEditOrderResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgEditOrderResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateDemandOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgEditOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateDemandOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

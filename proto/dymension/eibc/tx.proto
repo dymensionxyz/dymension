@@ -8,7 +8,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
     rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
-    rpc EditOrder(MsgEditOrder) returns (MsgEditOrderResponse) {}
+    rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.
@@ -23,11 +23,11 @@ message MsgFulfillOrder {
 // MsgFulfillOrderResponse defines the FulfillOrder response type.
 message MsgFulfillOrderResponse {}
 
-message MsgEditOrder {
+message MsgUpdateDemandOrder {
     option (cosmos.msg.v1.signer) = "recipient_address";
     string recipient_address = 1;
     string order_id = 2;
     string new_fee = 3;
 }
 
-message MsgEditOrderResponse {}
+message MsgUpdateDemandOrderResponse {}

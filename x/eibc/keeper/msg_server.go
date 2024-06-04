@@ -23,7 +23,7 @@ var _ types.MsgServer = msgServer{}
 func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrder) (*types.MsgFulfillOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
-	// Check that the msg is valid
+
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
@@ -40,6 +40,13 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
 	if demandOrder.TrackingPacketStatus != commontypes.Status_PENDING {
 		return nil, types.ErrDemandOrderInactive
+	}
+	// Check that the demand order fee is higher than the minimum fee
+	minFee, _ := sdk.NewIntFromString(msg.MinFee)
+	for _, coin := range demandOrder.Fee {
+		if coin.Amount.LT(minFee) {
+			return nil, types.ErrMinFeeNotMet
+		}
 	}
 	// Check for blocked address
 	if m.BankKeeper.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
@@ -62,11 +69,11 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	return &types.MsgFulfillOrderResponse{}, err
 }
 
-// EditOrder implements types.MsgServer.
-func (m msgServer) EditOrder(goCtx context.Context, msg *types.MsgEditOrder) (*types.MsgEditOrderResponse, error) {
+// UpdateDemandOrder implements types.MsgServer.
+func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	logger := ctx.Logger()
-	// Check that the msg is valid
+
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err

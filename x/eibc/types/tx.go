@@ -3,6 +3,9 @@ package types
 import (
 	"encoding/hex"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -45,6 +48,11 @@ func (m *MsgFulfillOrder) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(m.FulfillerAddress)
 	if err != nil {
 		return err
+	}
+
+	_, ok := sdk.NewIntFromString(m.MinFee)
+	if !ok {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid min fee: %s", m.MinFee)
 	}
 	return nil
 }
