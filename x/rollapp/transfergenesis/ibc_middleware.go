@@ -69,7 +69,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	return im.OnRecvPacket(ctx, packet, relayer)
+	return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 }
 
 type genesisTransferDenomMemo struct {
