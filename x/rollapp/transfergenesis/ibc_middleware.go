@@ -164,9 +164,7 @@ func (im IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channe
 		return fmt.Errorf("invalid denom metadata on genesis event: %w", err)
 	}
 
-	/*
-		TODO: should not be direct as need to make sure vfc contracts etc are created
-	*/
+	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
 	err := im.denomKeeper.CreateDenomMetadata(ctx, m)
 	if errorsmod.IsOf(err, gerr.ErrAlreadyExist) {
 		return nil
