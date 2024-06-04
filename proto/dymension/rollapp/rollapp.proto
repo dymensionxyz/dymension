@@ -41,6 +41,17 @@ message Rollapp {
   string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
   bool frozen = 9;
+
+  // The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
+  uint64 num_genesis_transfers = 10;
+  // The indexes of genesis transfers received thus far during the genesis transfer period
+  /*
+  TODO: what was I doing?
+  I was wondering how to implement this check without exposing an n2 attack
+  I guess I need to use map values where the keys are <rollappID/keyID/ix> and the values are empty but I'm
+  wondering how does that map to this proto and the export/import state funcs?
+   */
+  repeated uint64 genesis_transfers_received = 11;
 }
 
 // Rollapp summary is a compact representation of Rollapp
