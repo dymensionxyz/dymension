@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	utilsmemo "github.com/dymensionxyz/dymension/v3/utils/memo"
-
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -22,6 +20,10 @@ import (
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
+
+type ctxKey struct{}
+
+var CtxKey = ctxKey{}
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
@@ -45,7 +47,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	// may modify packet
-	err := im.handleGenesisTransfers(ctx, &packet)
+	ctx, err := im.handleGenesisTransfers(ctx, &packet)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -62,9 +64,9 @@ type genesisTransferDenomMemo struct {
 func (im IBCMiddleware) handleGenesisTransfers(
 	ctx sdk.Context,
 	packet *channeltypes.Packet,
-) error {
+) (sdk.Context, error) {
 	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
-		return nil
+		return ctx, nil
 	}
 
 	l := ctx.Logger().With(
@@ -75,14 +77,14 @@ func (im IBCMiddleware) handleGenesisTransfers(
 
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "fungible token packet")
+		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "fungible token packet")
 	}
 
 	memo := data.GetMemo()
 	var wrappedDenom genesisTransferDenomMemo // wrapped for memo namespacing reasons
 	err := json.Unmarshal([]byte(memo), &wrappedDenom)
 	if err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "memo")
+		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "memo")
 	}
 
 	denom := wrappedDenom.Data.Denom
@@ -115,30 +117,5 @@ func (im IBCMiddleware) handleGenesisTransfers(
 
 	l.Info("Registered denom meta data from genesis transfer.")
 
-	newMemo := delayedacktypes.Memo{}
-	newMemo.Data.SkipDelay = true
-
-	newMemoStr, err := utilsmemo.Merge(memo, newMemo)
-	if err != nil {
-		return errorsmod.Wrap(err, "memo merge")
-	}
-	data.Memo = newMemoStr
-
-	bz, err := transfertypes.ModuleCdc.MarshalJSON(&data)
-	if err != nil {
-		return errorsmod.Wrap(sdkerrors.ErrJSONMarshal, "to ibc packet")
-	}
-	packet.Data = bz
-
-	/*
-			TODO: where was I on Friday afternoon?
-			I'll need to make delayed ack scrub out the skip memo, but only if it's an 'internal' skip memo, thereby knowing it came
-			from this chain
-			Actually, maybe instead of screwing with the memo, I can use the context?
-			Anyways, next steps are to check it's all working
-			Then redefine the memo to include the total number of genesis tx and the id
-		Then write the code that will wait for all of them to finish and trigger the dispute period
-	*/
-
-	return nil
+	return delayedacktypes.SkipContext(ctx), nil
 }
