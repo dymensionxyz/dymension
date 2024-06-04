@@ -764,7 +764,7 @@ func New(
 	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
-		transferStack.(delayedackmodule.IBCMiddleware),
+		delayedAckMiddleware.(delayedackmodule.IBCMiddleware),
 	))
 
 	/****  Module Options ****/
