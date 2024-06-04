@@ -627,7 +627,6 @@ func New(
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
 		app.IBCKeeper.ClientKeeper,
-		app.TransferKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
 	)

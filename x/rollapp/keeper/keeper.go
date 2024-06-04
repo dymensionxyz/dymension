@@ -21,7 +21,6 @@ type (
 		paramstore paramtypes.Subspace
 
 		ibcClientKeeper types.IBCClientKeeper
-		transferKeeper  types.TransferKeeper
 		channelKeeper   types.ChannelKeeper
 		bankKeeper      types.BankKeeper
 	}
@@ -33,7 +32,6 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	ibcClientKeeper types.IBCClientKeeper,
-	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
 ) *Keeper {
@@ -49,7 +47,6 @@ func NewKeeper(
 		paramstore:      ps,
 		hooks:           nil,
 		ibcClientKeeper: ibcClientKeeper,
-		transferKeeper:  transferKeeper,
 		channelKeeper:   channelKeeper,
 		bankKeeper:      bankKeeper,
 	}
