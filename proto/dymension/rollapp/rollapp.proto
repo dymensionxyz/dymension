@@ -10,8 +10,12 @@ import "cosmos/base/v1beta1/coin.proto";
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 message RollappGenesisState {
   reserved 1;
-  // did the genesis event already get triggered?
-  bool genesis_event_happened = 2;
+  // If true, then full usage of the canonical ibc transfer channel is enabled.
+  // Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
+  // Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+  // to the new genesis transfer protocol
+  // Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+  bool transfers_enabled = 2;
 }
 
 // Rollapp defines a rollapp object. First the RollApp is created and then
