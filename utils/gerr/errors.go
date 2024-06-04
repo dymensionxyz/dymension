@@ -14,12 +14,12 @@ var (
 
 	ErrCancelled          = errorsmod.RegisterWithGRPCCode(GErrors, 1, 1, "cancelled") // no obvious sdk mapping exists
 	ErrUnknown            = errorsmod.RegisterWithGRPCCode(GErrors, 2, 2, "unknown")   // no obvious sdk mapping exists
-	ErrInvalidArgument    = sdkerrors.ErrInvalidRequest
+	ErrInvalidArgument    = errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid argument")
 	ErrDeadlineExceeded   = errorsmod.RegisterWithGRPCCode(GErrors, 4, 4, "deadline exceeded") // no obvious sdk mapping exists
-	ErrNotFound           = sdkerrors.ErrNotFound
+	ErrNotFound           = errorsmod.Wrapf(sdkerrors.ErrNotFound, "not found")
 	ErrAlreadyExist       = errorsmod.RegisterWithGRPCCode(GErrors, 5, 6, "already exist") // no obvious sdk mapping exists
-	ErrPermissionDenied   = sdkerrors.ErrUnauthorized
-	ErrUnauthenticated    = sdkerrors.ErrWrongPassword
+	ErrPermissionDenied   = errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "permission denied")
+	ErrUnauthenticated    = errorsmod.Wrapf(sdkerrors.ErrWrongPassword, "unauthenticated")
 	ErrResourceExhausted  = errorsmod.RegisterWithGRPCCode(GErrors, 8, 8, "resource exhausted")  // no obvious sdk mapping exists
 	ErrFailedPrecondition = errorsmod.RegisterWithGRPCCode(GErrors, 9, 9, "failed precondition") // no obvious sdk mapping exists
 	ErrAborted            = errorsmod.RegisterWithGRPCCode(GErrors, 10, 10, "aborted")           // no obvious sdk mapping exists
