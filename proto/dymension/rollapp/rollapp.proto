@@ -41,14 +41,14 @@ message Rollapp {
   repeated string permissionedAddresses = 5;
   // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
   repeated TokenMetadata tokenMetadata = 6;
-  // registeredDenoms is a list of registered denoms on this rollapp
-  repeated string registeredDenoms = 7;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
-  RollappGenesisState genesis_state = 8 [(gogoproto.nullable) = false];
+  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
-  string channel_id = 9;
+  string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
-  bool frozen = 10;
+  bool frozen = 9;
+  // registeredDenoms is a list of registered denom bases on this rollapp
+  repeated string registeredDenoms = 10;
 }
 
 // Rollapp summary is a compact representation of Rollapp
