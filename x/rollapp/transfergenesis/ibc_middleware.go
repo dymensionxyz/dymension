@@ -21,10 +21,6 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
-type ctxKey struct{}
-
-var CtxKey = ctxKey{}
-
 var _ porttypes.Middleware = &IBCMiddleware{}
 
 type IBCMiddleware struct {

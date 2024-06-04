@@ -57,7 +57,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		"packet_sequence", packet.Sequence)
 
 	if types.Skip(ctx) {
-		logger.Info("Skipping eIBC transfer OnRecvPacket because of skip delay memo") // TODO: this should say eIBC right?
+		logger.Info("Skipping eIBC transfer OnRecvPacket because of skip delay ctx.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

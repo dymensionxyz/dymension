@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -749,6 +751,7 @@ func New(
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 	transferStack = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	transferStack = transfergenesis.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
