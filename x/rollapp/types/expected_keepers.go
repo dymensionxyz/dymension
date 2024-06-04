@@ -4,9 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -28,11 +26,10 @@ type IBCClientKeeper interface {
 	SetClientState(ctx sdk.Context, clientID string, clientState exported.ClientState)
 }
 
-type TransferKeeper interface {
-	HasDenomTrace(ctx sdk.Context, denomTraceHash tmbytes.HexBytes) bool
-	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
-}
-
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+}
+
+type DenomMetadataKeeper interface {
+	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
 }

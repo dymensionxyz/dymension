@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils"
+
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -23,17 +25,35 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
+type DenomMetadataKeeper interface {
+	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
+}
+
+type TransferKeeper interface {
+	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
+}
+
 type IBCMiddleware struct {
 	porttypes.Middleware // next one
 	delayedackKeeper     delayedackkeeper.Keeper
 	rollappKeeper        rollappkeeper.Keeper
+	transferKeeper       TransferKeeper
+	denomKeeper          DenomMetadataKeeper
 }
 
-func NewIBCMiddleware(next porttypes.Middleware, keeper delayedackkeeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
+func NewIBCMiddleware(
+	next porttypes.Middleware,
+	keeper delayedackkeeper.Keeper,
+	raK rollappkeeper.Keeper,
+	transferKeeper TransferKeeper,
+	denomKeeper DenomMetadataKeeper,
+) IBCMiddleware {
 	return IBCMiddleware{
 		Middleware:       next,
 		delayedackKeeper: keeper,
 		rollappKeeper:    raK,
+		transferKeeper:   transferKeeper,
+		denomKeeper:      denomKeeper,
 	}
 }
 
@@ -114,4 +134,43 @@ func (im IBCMiddleware) handleGenesisTransfers(
 	l.Info("Registered denom meta data from genesis transfer.")
 
 	return delayedacktypes.SkipContext(ctx), nil
+}
+
+func (im IBCMiddleware) RegisterDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
+	// TODO: only do it if it hasn't been done before?
+
+	trace := utils.GetForeignDenomTrace(channelID, m.Base)
+
+	im.transferKeeper.SetDenomTrace(ctx, trace)
+
+	ibcDenom := trace.IBCDenom()
+
+	/*
+		Change the base to the ibc denom, and add an alias to the original
+	*/
+	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", ibcDenom, rollappID)
+	m.Base = ibcDenom
+	for i, u := range m.DenomUnits {
+		if u.Exponent == 0 {
+			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
+			m.DenomUnits[i].Denom = ibcDenom
+		}
+	}
+
+	if err := m.Validate(); err != nil {
+		// TODO: errorsmod with nice wrapping
+		return fmt.Errorf("invalid denom metadata on genesis event: %w", err)
+	}
+
+	/*
+		TODO: should not be direct as need to make sure vfc contracts etc are created
+	*/
+	err := im.denomKeeper.CreateDenomMetadata(ctx, m)
+	if err != nil {
+		sdkerrors.ErrNotSupported
+	}
+	k.bankKeeper.SetDenomMetaData(ctx, m)
+
+	k.Logger(ctx).Info("Registered denom metadata for IBC token.", "rollappID", rollappID, "denom", ibcDenom)
+	return nil
 }
