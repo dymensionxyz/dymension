@@ -7,19 +7,16 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 
-	rtypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
 type IBCSendMiddleware struct {
-	porttypes.IBCModule
 	porttypes.ICS4Wrapper
 
 	rollappKeeper types.RollappKeeper
@@ -72,7 +69,11 @@ func (m *IBCSendMiddleware) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	if hasDenom(rollapp.TokenMetadata, packet.Denom) {
+	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
+	// At the first match, we assume that the rollapp already contains the metadata.
+	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
+	// from another packet before this packet is acknowledged.
+	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
@@ -97,7 +98,6 @@ func (m *IBCSendMiddleware) SendPacket(
 
 type IBCAckMiddleware struct {
 	porttypes.IBCModule
-	porttypes.ICS4Wrapper
 
 	rollappKeeper types.RollappKeeper
 }
@@ -154,43 +154,12 @@ func (m *IBCAckMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
 	}
 
-	if !hasDenom(rollapp.TokenMetadata, dm.Base) {
-		// add the new token metadata to the rollapp
-		rollapp.TokenMetadata = append(rollapp.TokenMetadata, DenomToTokenMetadata(dm))
+	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+		// add the new token denom base to the list of rollapp's registered denoms
+		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
 
 		m.rollappKeeper.SetRollapp(ctx, *rollapp)
 	}
 
 	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-}
-
-func DenomToTokenMetadata(dm *banktypes.Metadata) *rtypes.TokenMetadata {
-	denomUnits := make([]*rtypes.DenomUnit, len(dm.DenomUnits))
-	for _, du := range dm.DenomUnits {
-		ndu := &rtypes.DenomUnit{
-			Denom:    du.Denom,
-			Exponent: du.Exponent,
-			Aliases:  du.Aliases,
-		}
-		denomUnits = append(denomUnits, ndu)
-	}
-
-	return &rtypes.TokenMetadata{
-		Description: dm.Description,
-		DenomUnits:  denomUnits,
-		Base:        dm.Base,
-		Display:     dm.Display,
-		Name:        dm.Name,
-		Symbol:      dm.Symbol,
-		URI:         dm.URI,
-		URIHash:     dm.URIHash,
-	}
-}
-
-func hasDenom(metadata []*rtypes.TokenMetadata, denom string) bool {
-	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
-	// At the first match, we assume that the rollapp already contains the metadata.
-	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
-	// from another packet before this packet is acknowledged.
-	return ContainsFunc(metadata, func(dm *rtypes.TokenMetadata) bool { return dm.Base == denom })
 }
