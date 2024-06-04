@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"slices"
 	"strconv"
 	"testing"
 
@@ -129,11 +130,5 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 }
 
 func findEvent(response abci.ResponseEndBlock, eventType string) bool {
-	found := false
-	for _, event := range response.Events {
-		if event.Type == eventType {
-			found = true
-		}
-	}
-	return found
+	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
