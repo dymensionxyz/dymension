@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -29,7 +31,7 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
 	if found {
-		return types.ErrDenomAlreadyExists
+		return gerr.ErrAlreadyExist
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataCreation(ctx, metadata)

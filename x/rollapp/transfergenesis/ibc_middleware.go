@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
@@ -124,7 +126,7 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		panic(err)
 	}
 
-	err = im.rollappKeeper.RegisterDenomMetadata(ctx, raID, chaID, denom)
+	err = im.registerDenomMetadata(ctx, raID, chaID, denom)
 	if err != nil {
 		err = fmt.Errorf("register denom meta: %w", err)
 		l.Error("OnRecvPacket", "err", err)
@@ -136,7 +138,7 @@ func (im IBCMiddleware) handleGenesisTransfers(
 	return delayedacktypes.SkipContext(ctx), nil
 }
 
-func (im IBCMiddleware) RegisterDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
+func (im IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	// TODO: only do it if it hasn't been done before?
 
 	trace := utils.GetForeignDenomTrace(channelID, m.Base)
@@ -166,12 +168,12 @@ func (im IBCMiddleware) RegisterDenomMetadata(ctx sdk.Context, rollappID, channe
 		TODO: should not be direct as need to make sure vfc contracts etc are created
 	*/
 	err := im.denomKeeper.CreateDenomMetadata(ctx, m)
-	if err != nil {
-		errorsmod.ErrStopIterating
-		sdkerrors.ErrNotSupported
+	if errorsmod.IsOf(err, gerr.ErrAlreadyExist) {
+		return nil
 	}
-	k.bankKeeper.SetDenomMetaData(ctx, m)
+	if err != nil {
+		return errorsmod.Wrap(err, "create denom metadata")
+	}
 
-	k.Logger(ctx).Info("Registered denom metadata for IBC token.", "rollappID", rollappID, "denom", ibcDenom)
 	return nil
 }
