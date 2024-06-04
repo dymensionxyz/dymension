@@ -9,9 +9,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -27,7 +25,7 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 // IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	keeper   keeper.Keeper
+	*keeper.Keeper
 	raKeeper rollappkeeper.Keeper
 }
 
@@ -35,7 +33,7 @@ type IBCMiddleware struct {
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		IBCModule: app,
-		keeper:    keeper,
+		Keeper:    &keeper,
 		raKeeper:  raK,
 	}
 }
@@ -47,15 +45,17 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if !im.keeper.IsRollappsEnabled(ctx) {
-		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
 	logger := ctx.Logger().With(
 		"module", types.ModuleName,
 		"packet_source_port", packet.SourcePort,
 		"packet_destination_port", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
+	logger.Debug("delayed ack ibc middleware on recv packet!!")
+
+	if !im.Keeper.IsRollappsEnabled(ctx) {
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
 	if types.Skip(ctx) {
 		logger.Info("Skipping eIBC transfer OnRecvPacket because of skip delay ctx.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -74,7 +74,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -106,7 +106,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	im.Keeper.SetRollappPacket(ctx, rollappPacket)
 
 	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
@@ -128,7 +128,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsRollappsEnabled(ctx) {
+	if !im.Keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	logger := ctx.Logger().With(
@@ -155,7 +155,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
@@ -195,7 +195,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		ProofHeight:     proofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	im.Keeper.SetRollappPacket(ctx, rollappPacket)
 
 	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
@@ -220,7 +220,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
-	if !im.keeper.IsRollappsEnabled(ctx) {
+	if !im.Keeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 	logger := ctx.Logger().With(
@@ -242,7 +242,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	err = im.keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
@@ -281,7 +281,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
-	im.keeper.SetRollappPacket(ctx, rollappPacket)
+	im.Keeper.SetRollappPacket(ctx, rollappPacket)
 
 	logger.Debug("Set rollapp packet",
 		"rollappID", rollappPacket.RollappId,
@@ -296,36 +296,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	return nil
 }
 
-/* ------------------------------- ICS4Wrapper ------------------------------ */
-
-// SendPacket implements the ICS4 Wrapper interface
-func (im IBCMiddleware) SendPacket(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	sourcePort string,
-	sourceChannel string,
-	timeoutHeight clienttypes.Height,
-	timeoutTimestamp uint64,
-	data []byte,
-) (sequence uint64, err error) {
-	return im.keeper.SendPacket(ctx, chanCap, sourcePort, sourceChannel, timeoutHeight, timeoutTimestamp, data)
-}
-
-// WriteAcknowledgement implements the ICS4 Wrapper interface
-func (im IBCMiddleware) WriteAcknowledgement(
-	ctx sdk.Context,
-	chanCap *capabilitytypes.Capability,
-	packet exported.PacketI,
-	ack exported.Acknowledgement,
-) error {
-	return im.keeper.WriteAcknowledgement(ctx, chanCap, packet, ack)
-}
-
-// GetAppVersion returns the application version of the underlying application
-func (im IBCMiddleware) GetAppVersion(ctx sdk.Context, portID, channelID string) (string, bool) {
-	return im.keeper.GetAppVersion(ctx, portID, channelID)
-}
-
 // ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
 func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
@@ -334,11 +304,11 @@ func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packe
 		return "", nil, fmt.Errorf("unmarshal fungible token packet data: %w", err)
 	}
 	// Check if the packet is destined for a rollapp
-	chainID, err := im.keeper.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+	chainID, err := im.Keeper.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		return "", &data, fmt.Errorf("extract chain id from channel: %w", err)
 	}
-	rollapp, found := im.keeper.GetRollapp(ctx, chainID)
+	rollapp, found := im.Keeper.GetRollapp(ctx, chainID)
 	if !found {
 		return "", &data, nil // TODO: needs an error?
 	}
@@ -374,7 +344,7 @@ func (im IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.R
 
 // CheckIfFinalized checks if the packet is finalized and if so, updates the packet status
 func (im IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, proofHeight uint64) (bool, error) {
-	finalizedHeight, err := im.keeper.GetRollappFinalizedHeight(ctx, rollappID)
+	finalizedHeight, err := im.Keeper.GetRollappFinalizedHeight(ctx, rollappID)
 	if err != nil {
 		if errors.Is(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
 			return false, nil
