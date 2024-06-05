@@ -21,6 +21,12 @@ message Params {
   uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
+  // the number of blocks it takes for a rollapp who has finished
+  // all genesis transfers to have its bridge opened
+  // during that period, any user could submit fraud proof
+  uint64 transfer_genesis_dispute_period_in_blocks = 4
+  [ (gogoproto.moretags) = "yaml:\"transfer_genesis_dispute_period_in_blocks\"" ];
+
   // deployer_whitelist is a list of the 
   // accounts that are allowed to create a rollapp and maximum number of rollapps.
   // In the case of an empty list, there are no restrictions
