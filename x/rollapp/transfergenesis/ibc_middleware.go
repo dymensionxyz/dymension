@@ -60,6 +60,23 @@ func NewIBCMiddleware(
 	}
 }
 
+// OnRecvPacket ..
+// Happy path: the genesis transfer window is open. In this case, record the transfer.
+/*
+TODO: what was I doing yesterday afternoon?
+	I need to finish implementing this - essentially
+	If the transfer does not contain the memo, need to check that transfers are enabled
+		If they are, forward it
+		Else, return a protocol violation (TODO: or an error ack?)
+	If it does contain the memo, record it, check for a violation
+		If valid:
+			register denom data
+		    forward it with eibc skipper
+		If the last one, need to disable transfers and start the clock
+
+Probably easiest to inline the sub method,
+	/
+*/
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
