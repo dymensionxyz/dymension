@@ -12,7 +12,8 @@ import (
 // If we have previously seen a different n, we reject it, the sequencer is not following protocol.
 // If we have previously seen the same IX already, we reject it, as IBC guarantees exactly once delivery, then the sequencer must not be following protocol
 // Once we have recorded n indexes, this rollapp can proceed to the next step of the genesis transfer protocol
-func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) error {
+// Returns the number of transfers recorded so far (including this one)
+func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) (uint64, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisKeyPrefix))
 
 	nTotalKey := types.TransferGenesisNumTotalKey(rollappID)
@@ -21,7 +22,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
-			return errorsmod.Wrapf(dymerror.ErrSequencerProtocolViolation,
+			return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
 				"different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
 		}
 	} else {
@@ -31,11 +32,11 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 
 	ixKey := types.TransferGenesisSetMembershipKey(rollappID, ix)
 	if store.Has(ixKey) {
-		return errorsmod.Wrapf(dymerror.ErrSequencerProtocolViolation,
+		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
 			"already received genesis transfer: ix: %d", ix)
 	}
 	if !(0 <= ix && ix < nTotal) {
-		return errorsmod.Wrapf(dymerror.ErrSequencerProtocolViolation,
+		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
 			"ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
 	}
 
@@ -43,13 +44,17 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	n := sdk.BigEndianToUint64(nBz)
 	n++
 	store.Set(nKey, sdk.Uint64ToBigEndian(n))
-	if n == nTotal {
-	}
+	return n, nil
+}
 
-	return nil
+func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
+	ra := k.MustGetRollapp(ctx, rollappID)
+	ra.GenesisState.TransfersEnabled = true
+	k.SetRollapp(ctx, ra)
 }
 
 func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers {
 	var ret []types.GenesisTransfers
+	// TODO: impl
 	return ret
 }

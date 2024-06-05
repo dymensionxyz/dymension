@@ -21,6 +21,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	dymerror "github.com/dymensionxyz/dymension/v3/x/common/errors"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
@@ -109,32 +110,38 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
 	}
 
-	denom := memo.Data.Denom
-
 	l.Info("got the special rawMemo!") // TODO: fix
 
 	chaID := "channel-0"
 	raID := "rollappevm_1234-1"
 
-	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID)
+	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
 	if !ok {
 		panic(errors.New("must find rollapp"))
 	}
 
 	_ = ra
 
-	err = im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, memo.Data.ThisTransferIx, memo.Data.TotalNumTransfers)
+	nTransfersDone, err := im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, memo.Data.ThisTransferIx, memo.Data.TotalNumTransfers)
+	if errorsmod.IsOf(err, dymerror.ErrProtocolViolation) {
+		// TODO: emit event or freeze rollapp, or something else?
+	}
 	if err != nil {
 		err = fmt.Errorf("verify and record genesis transfer: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
 	}
 
-	err = im.registerDenomMetadata(ctx, raID, chaID, denom)
+	err = im.registerDenomMetadata(ctx, raID, chaID, memo.Data.Denom)
 	if err != nil {
 		err = fmt.Errorf("register denom meta: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
+	}
+
+	if nTransfersDone == memo.Data.TotalNumTransfers {
+		// The transfer window is finished!
+		// TODO: emit event
 	}
 
 	l.Info("Registered denom meta data from genesis transfer.")
