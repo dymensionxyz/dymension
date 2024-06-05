@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -76,6 +77,36 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+// ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
+func (k Keeper) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
+	// no-op if the packet is not a fungible token packet
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return "", nil, err
+	}
+	// Check if the packet is destined for a rollapp
+	chainID, err := k.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		return "", &data, err
+	}
+	rollapp, found := k.GetRollapp(ctx, chainID)
+	if !found {
+		return "", &data, nil
+	}
+	if rollapp.ChannelId == "" {
+		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+	}
+	// check if the channelID matches the rollappID's channelID
+	if rollapp.ChannelId != rollappChannelOnHub {
+		return "", &data, errorsmod.Wrapf(
+			rollapptypes.ErrMismatchedChannelID,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+		)
+	}
+
+	return chainID, &data, nil
 }
 
 func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
