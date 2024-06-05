@@ -9,9 +9,14 @@ import (
 // InitGenesis initializes the module's state from a provided genesis state.
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	k.SetParams(ctx, genState.Params)
-	// Validate all other genesis fields are empty
-	if len(genState.DemandOrders) != 0 {
-		panic("Only params can be initialized at genesis")
+	// Add the demand orders
+	for _, demandOrder := range genState.DemandOrders {
+		// Create a copy of demandOrder to avoid reusing the same memory address
+		demandOrderCopy := demandOrder
+		err := k.SetDemandOrder(ctx, &demandOrderCopy)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

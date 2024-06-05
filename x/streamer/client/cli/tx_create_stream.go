@@ -18,7 +18,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
+// NewCmdSubmitCreateStreamProposal broadcasts a CreateStream message.
 func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-stream-proposal gaugeIds weights reward [flags]",
