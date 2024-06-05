@@ -16,34 +16,38 @@ import (
 func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) (uint64, error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisKeyPrefix))
 
-	nTotalKey := types.TransferGenesisNumTotalKey(rollappID)
 	nKey := types.TransferGenesisNumKey(rollappID)
-	if store.Has(nTotalKey) {
+	nTotalKey := types.TransferGenesisNumTotalKey(rollappID)
+	ixKey := types.TransferGenesisSetMembershipKey(rollappID, ix)
+
+	n := uint64(0)
+	/*
+		We do all the verification first and only write at the end, to make it easier to reason about partial failures
+	*/
+
+	if !!store.Has(nTotalKey) {
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
 			return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
 				"different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
 		}
-	} else {
-		store.Set(nTotalKey, sdk.Uint64ToBigEndian(nTotal))
-		store.Set(nKey, sdk.Uint64ToBigEndian(0))
-	}
-
-	ixKey := types.TransferGenesisSetMembershipKey(rollappID, ix)
-	if store.Has(ixKey) {
-		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
-			"already received genesis transfer: ix: %d", ix)
+		nBz := store.Get(nKey)
+		n = sdk.BigEndianToUint64(nBz)
 	}
 	if !(0 <= ix && ix < nTotal) {
 		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
 			"ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
 	}
+	if store.Has(ixKey) {
+		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
+			"already received genesis transfer: ix: %d", ix)
+	}
 
-	nBz := store.Get(nKey)
-	n := sdk.BigEndianToUint64(nBz)
 	n++
+	store.Set(nTotalKey, sdk.Uint64ToBigEndian(nTotal))
 	store.Set(nKey, sdk.Uint64ToBigEndian(n))
+	store.Set(ixKey, []byte{})
 	return n, nil
 }
 
@@ -60,6 +64,9 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 	var ret []types.GenesisTransfers
 	// TODO: impl
 	return ret
+}
+
+func (k Keeper) AddRollappToGenesisTransferFinalizationQueue(ctx sdk.Context, rollappID bool) error {
 }
 
 func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.GenesisTransferFinalization { // TODO: needs to be public

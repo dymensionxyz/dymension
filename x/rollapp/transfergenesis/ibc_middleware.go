@@ -140,6 +140,12 @@ func (im IBCMiddleware) handleGenesisTransfers(
 	}
 
 	if nTransfersDone == memo.Data.TotalNumTransfers {
+		err = im.rollappKeeper.AddRollappToGenesisTransferFinalizationQueue(ctx, raID)
+		if err != nil {
+			err = fmt.Errorf("register denom meta: %w", err)
+			l.Error("OnRecvPacket", "err", err)
+			panic(err)
+		}
 		// The transfer window is finished!
 		// TODO: emit event
 	}
