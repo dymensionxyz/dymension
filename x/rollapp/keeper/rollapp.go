@@ -65,7 +65,7 @@ func (k Keeper) GetRollapp(
 	return val, true
 }
 
-func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp {
+func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp { // TODO: needed?
 	ret, found := k.GetRollapp(ctx, rollappId)
 	if !found {
 		panic(fmt.Sprintf("rollapp not found: id: %s", rollappId))
