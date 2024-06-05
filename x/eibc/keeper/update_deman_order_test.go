@@ -7,7 +7,6 @@ import (
 )
 
 func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
-
 	// Create and fund the account
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]

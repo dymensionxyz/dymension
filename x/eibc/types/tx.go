@@ -10,8 +10,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var _ = sdk.Msg(&MsgFulfillOrder{})
-var _ = sdk.Msg(&MsgUpdateDemandOrder{})
+var (
+	_ = sdk.Msg(&MsgFulfillOrder{})
+	_ = sdk.Msg(&MsgUpdateDemandOrder{})
+)
 
 func NewMsgFulfillOrder(fulfillerAddress, orderId, minFee string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
