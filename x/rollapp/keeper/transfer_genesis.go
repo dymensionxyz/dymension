@@ -13,7 +13,6 @@ import (
 // If we have previously seen the same IX already, we reject it, as IBC guarantees exactly once delivery, then the sequencer must not be following protocol
 // Once we have recorded n indexes, this rollapp can proceed to the next step of the genesis transfer protocol
 func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix int, n int) error {
-
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisKeyPrefix))
 
 	nKey := types.TransferGenesisNumTotalKey(rollappID)
@@ -27,7 +26,15 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	}
 	store.Set(nKey, sdk.Uint64ToBigEndian(uint64(n)))
 
-	if
+	ixKey := types.TransferGenesisSetMembershipKey(rollappID, ix)
+	if store.Has(ixKey) {
+		return errorsmod.Wrapf(dymerror.ErrSequencerProtocolViolation,
+			"already received genesis transfer: ix: %d", ix)
+	}
+	if !(0 <= ix && ix < n) {
+		return errorsmod.Wrapf(dymerror.ErrSequencerProtocolViolation,
+			"ix must be less than n: ix: %d: n: %d", ix, n)
+	}
 
 	return nil
 }
