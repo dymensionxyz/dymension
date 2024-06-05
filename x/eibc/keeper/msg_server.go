@@ -28,19 +28,12 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	if err != nil {
 		return nil, err
 	}
-	// Check that the order exists in status PENDING
-	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, msg.OrderId)
+
+	demandOrder, err := m.ValidateOrderMutable(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
-	// Check that the order is not fulfilled yet
-	if demandOrder.IsFulfilled {
-		return nil, types.ErrDemandAlreadyFulfilled
-	}
-	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if demandOrder.TrackingPacketStatus != commontypes.Status_PENDING {
-		return nil, types.ErrDemandOrderInactive
-	}
+
 	// Check that the demand order fee is higher than the minimum fee
 	minFee, _ := sdk.NewIntFromString(msg.MinFee)
 	for _, coin := range demandOrder.Fee {
@@ -79,7 +72,36 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 	// Check that the order exists in status PENDING
-	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, msg.OrderId)
+	demandOrder, err := m.ValidateOrderMutable(ctx, msg.OrderId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check that the submitter is the expected recipient of the order
+	submitter := msg.GetSubmitterAddr()
+	if !submitter.Equals(demandOrder.GetRecipientBech32Address()) {
+		return nil, types.ErrInvalidSubmitter
+	}
+
+	// TODO: check profitable
+
+	// TODO: update the order (fee and price)
+	demandOrder.Fee = msg.NewFee
+	for _, coin := range demandOrder.Fee {
+		if coin.Amount.LT(minFee) {
+			return nil, types.ErrMinFeeNotMet
+		}
+	}
+
+	err = m.SetDemandOrder(ctx, demandOrder)
+	if err != nil {
+		return err
+	}
+}
+
+func (m msgServer) ValidateOrderMutable(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+	// Check that the order exists in status PENDING
+	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +114,5 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, types.ErrDemandOrderInactive
 	}
 
-	// TODO: check sender
-
-	// TODO: check profitable
-
-	// TODO: update the order
+	return demandOrder, nil
 }

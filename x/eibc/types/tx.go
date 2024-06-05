@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+	fmt "fmt"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -9,9 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const TypeMsgFulfillOrder = "fulfill_order"
-
 var _ = sdk.Msg(&MsgFulfillOrder{})
+var _ = sdk.Msg(&MsgUpdateDemandOrder{})
 
 func NewMsgFulfillOrder(fulfillerAddress string, orderId string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
@@ -25,7 +25,7 @@ func (msg *MsgFulfillOrder) Route() string {
 }
 
 func (msg *MsgFulfillOrder) Type() string {
-	return TypeMsgFulfillOrder
+	return sdk.MsgTypeURL(msg)
 }
 
 func (msg *MsgFulfillOrder) GetSigners() []sdk.AccAddress {
@@ -42,22 +42,38 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (m *MsgFulfillOrder) ValidateBasic() error {
-	if !m.isValidOrderId(m.OrderId) {
-		return ErrInvalidOrderID
-	}
-	_, err := sdk.AccAddressFromBech32(m.FulfillerAddress)
+	err := validateCommon(m.OrderId, m.FulfillerAddress, m.MinFee)
 	if err != nil {
-		return err
-	}
-
-	_, ok := sdk.NewIntFromString(m.MinFee)
-	if !ok {
-		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid min fee: %s", m.MinFee)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
 	return nil
 }
 
-func (m *MsgFulfillOrder) isValidOrderId(orderId string) bool {
+func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
+	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
+}
+
+func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(m.RecipientAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (m *MsgUpdateDemandOrder) ValidateBasic() error {
+	err := validateCommon(m.OrderId, m.RecipientAddress, m.NewFee)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
+	}
+	return nil
+}
+
+func (m *MsgUpdateDemandOrder) GetSubmitterAddr() sdk.AccAddress {
+	return sdk.MustAccAddressFromBech32(m.RecipientAddress)
+}
+
+func isValidOrderId(orderId string) bool {
 	hashBytes, err := hex.DecodeString(orderId)
 	if err != nil {
 		// The string is not a valid hexadecimal string
@@ -67,13 +83,19 @@ func (m *MsgFulfillOrder) isValidOrderId(orderId string) bool {
 	return len(hashBytes) == 32
 }
 
-func (m *MsgFulfillOrder) Validate() error {
-	if err := m.ValidateBasic(); err != nil {
+func validateCommon(orderId, address, fee string) error {
+	if !isValidOrderId(orderId) {
+		return ErrInvalidOrderID
+	}
+	_, err := sdk.AccAddressFromBech32(address)
+	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
-	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
+	_, ok := sdk.NewIntFromString(fee)
+	if !ok {
+		return fmt.Errorf("parse fee: %s", fee)
+	}
+
+	return nil
 }
