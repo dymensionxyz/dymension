@@ -76,9 +76,9 @@ type genesisTransferDenomMemo struct {
 	Data struct {
 		Denom banktypes.Metadata `json:"denom"`
 		// How many transfers in total will be sent in the transfer genesis period
-		TotalNumTransfers int `json:"total_num_transfers"`
+		TotalNumTransfers uint64 `json:"total_num_transfers"`
 		// Which transfer is this? If there are 5 transfers total, they will be numbered 0,1,2,3,4.
-		ThisTransferIx int `json:"this_transfer_ix"`
+		ThisTransferIx uint64 `json:"this_transfer_ix"`
 	} `json:"genesis_transfer"`
 }
 

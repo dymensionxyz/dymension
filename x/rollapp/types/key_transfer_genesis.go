@@ -21,19 +21,18 @@ var (
 // TransferGenesisSetMembershipKey returns the store key to check the presence of a transfer genesis transfer by its index
 func TransferGenesisSetMembershipKey(
 	rollappID string,
-	index int,
+	index uint64,
 ) []byte {
 	var key []byte
 	// build the key bytes
 	rollappIdBytes := []byte(rollappID)
-	ixBytes := sdk.Uint64ToBigEndian(uint64(index))
+	ixBytes := sdk.Uint64ToBigEndian(index)
 	// concatenate the byte slices directly
 	key = append(key, transferGenesisSetMembershipSubkey...)
 	key = append(key, []byte("/")...)
 	key = append(key, rollappIdBytes...)
 	key = append(key, []byte("/")...)
 	key = append(key, ixBytes...)
-	key = append(key, []byte("/")...)
 
 	return key
 }
@@ -49,7 +48,6 @@ func TransferGenesisNumTotalKey(
 	key = append(key, transferGenesisNumTotalSubkey...)
 	key = append(key, []byte("/")...)
 	key = append(key, rollappIdBytes...)
-	key = append(key, []byte("/")...)
 
 	return key
 }
@@ -65,7 +63,6 @@ func TransferGenesisNumKey(
 	key = append(key, transferGenesisNumSubkey...)
 	key = append(key, []byte("/")...)
 	key = append(key, rollappIdBytes...)
-	key = append(key, []byte("/")...)
 
 	return key
 }
