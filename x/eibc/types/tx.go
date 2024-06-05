@@ -92,9 +92,13 @@ func validateCommon(orderId, address, fee string) error {
 		return err
 	}
 
-	_, ok := sdk.NewIntFromString(fee)
+	feeInt, ok := sdk.NewIntFromString(fee)
 	if !ok {
 		return fmt.Errorf("parse fee: %s", fee)
+	}
+
+	if !feeInt.IsPositive() {
+		return ErrNegativeFee
 	}
 
 	return nil

@@ -74,11 +74,11 @@ func validateTimeoutFee(i interface{}) error {
 		return fmt.Errorf("invalid global pool params: %+v", i)
 	}
 	if v.IsNegative() {
-		return ErrNegativeTimeoutFee
+		return ErrNegativeFee
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchTimeoutFee
+		return ErrTooMuchFee
 	}
 
 	return nil
@@ -93,11 +93,11 @@ func validateErrAckFee(i any) error {
 		return fmt.Errorf("invalid global pool params: %+v", i)
 	}
 	if v.IsNegative() {
-		return ErrNegativeErrAckFee
+		return ErrNegativeFee
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchErrAckFee
+		return ErrTooMuchFee
 	}
 
 	return nil

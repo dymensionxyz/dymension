@@ -3,7 +3,9 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -29,7 +31,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	demandOrder, err := m.ValidateOrderMutable(ctx, msg.OrderId)
+	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -65,14 +67,13 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 // UpdateDemandOrder implements types.MsgServer.
 func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdateDemandOrder) (*types.MsgUpdateDemandOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	logger := ctx.Logger()
 
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
 	// Check that the order exists in status PENDING
-	demandOrder, err := m.ValidateOrderMutable(ctx, msg.OrderId)
+	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -80,26 +81,37 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	// Check that the submitter is the expected recipient of the order
 	submitter := msg.GetSubmitterAddr()
 	if !submitter.Equals(demandOrder.GetRecipientBech32Address()) {
-		return nil, types.ErrInvalidSubmitter
+		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the recipient can update the order")
 	}
 
-	// TODO: check profitable
+	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
+	var updatedDemandOrderFee, updatedDemandOrderPrice sdk.Coins
+	for i := range len(demandOrder.Fee) {
+		transferTotal := demandOrder.Price[i].Amount.Add(demandOrder.Fee[i].Amount) // original transfer amount (price + fee)
 
-	// TODO: update the order (fee and price)
-	demandOrder.Fee = msg.NewFee
-	for _, coin := range demandOrder.Fee {
-		if coin.Amount.LT(minFee) {
-			return nil, types.ErrMinFeeNotMet
+		newPrice := transferTotal.Sub(newFeeInt) // new price = original transfer amount - new fee
+		if newPrice.IsNegative() {
+			return nil, types.ErrTooMuchFee
 		}
+
+		// TODO: check profitable
+
+		updatedDemandOrderFee = append(updatedDemandOrderFee, sdk.NewCoin(demandOrder.Fee[i].Denom, newFeeInt))
+		updatedDemandOrderPrice = append(updatedDemandOrderPrice, sdk.NewCoin(demandOrder.Price[i].Denom, newPrice))
 	}
+
+	demandOrder.Fee = updatedDemandOrderFee
+	demandOrder.Price = updatedDemandOrderPrice
 
 	err = m.SetDemandOrder(ctx, demandOrder)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) ValidateOrderMutable(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+func (m msgServer) ValidateOrderIsMutable(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
 	// Check that the order exists in status PENDING
 	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
 	if err != nil {
