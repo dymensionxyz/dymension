@@ -17,11 +17,15 @@ message GenesisState {
   repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
   repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
+  GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];;
+  // this line is used by starport scaffolding # genesis/proto/state
+}
 
+// bookkeeping for the genesis transfer bridge protocol
+message GenesisTransfers {
   // The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
-  uint64 numGenesisTransfers = 7;
+  uint64 numGenesisTransfers = 1;
   // The indexes of genesis transfers received thus far during the genesis transfer period
   // This cannot be implemented on the rollapp type, because we index into this like a map, but the rollapp is read/writ as a whole
-  repeated uint64 genesisTransfersReceived = 8;
-  // this line is used by starport scaffolding # genesis/proto/state
+  repeated uint64 genesisTransfersReceived = 2;
 }
