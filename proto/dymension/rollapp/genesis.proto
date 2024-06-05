@@ -19,9 +19,9 @@ message GenesisState {
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
 
   // The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
-  uint64 num_genesis_transfers = 7;
+  uint64 numGenesisTransfers = 7;
   // The indexes of genesis transfers received thus far during the genesis transfer period
   // This cannot be implemented on the rollapp type, because we index into this like a map, but the rollapp is read/writ as a whole
-  repeated uint64 genesis_transfers_received = 8;
+  repeated uint64 genesisTransfersReceived = 8;
   // this line is used by starport scaffolding # genesis/proto/state
 }
