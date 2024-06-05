@@ -1,19 +1,18 @@
 package keeper
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+)
 
-func (k Keeper) MarkGenesisAsHappened(ctx sdk.Context, channelID, rollappID string) error {
-	rollapp, found := k.GetRollapp(ctx, rollappID)
-	if !found {
-		panic("expected to find rollapp")
-	}
-
-	// TODO: something with transfers enabled?
-
-	k.SetRollapp(ctx, rollapp)
+// VerifyAndRecordGenesisTransfer TODO: could just pass the rollapp object?
+func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix int, n int) error {
+	ra := k.MustGetRollapp(ctx, rollappID)
 
 	return nil
 }
 
-func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) {
+func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers {
+	var ret []types.GenesisTransfers
+	return ret
 }

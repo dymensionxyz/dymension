@@ -23,6 +23,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 			panic("Only params can be initialized at genesis")
 		}
 	}
+	// TODO: pull latest main and fix it
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -35,6 +36,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
 	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
+	genesis.GenesisTransfers = k.GetAllGenesisTransfers(ctx)
 
 	return genesis
 }

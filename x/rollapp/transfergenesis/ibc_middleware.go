@@ -45,15 +45,15 @@ type IBCMiddleware struct {
 
 func NewIBCMiddleware(
 	next porttypes.Middleware,
-	keeper delayedackkeeper.Keeper,
-	raK rollappkeeper.Keeper,
+	delayedAckKeeper delayedackkeeper.Keeper,
+	rollappKeeper rollappkeeper.Keeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
 ) IBCMiddleware {
 	return IBCMiddleware{
 		Middleware:       next,
-		delayedackKeeper: keeper,
-		rollappKeeper:    raK,
+		delayedackKeeper: delayedAckKeeper,
+		rollappKeeper:    rollappKeeper,
 		transferKeeper:   transferKeeper,
 		denomKeeper:      denomKeeper,
 	}
@@ -102,16 +102,16 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "fungible token packet")
 	}
 
-	memo := data.GetMemo()
-	var wrappedDenom genesisTransferDenomMemo // wrapped for memo namespacing reasons
-	err := json.Unmarshal([]byte(memo), &wrappedDenom)
+	rawMemo := data.GetMemo()
+	var memo genesisTransferDenomMemo
+	err := json.Unmarshal([]byte(rawMemo), &memo)
 	if err != nil {
-		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "memo")
+		return sdk.Context{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
 	}
 
-	denom := wrappedDenom.Data.Denom
+	denom := memo.Data.Denom
 
-	l.Info("got the special memo!") // TODO: fix
+	l.Info("got the special rawMemo!") // TODO: fix
 
 	chaID := "channel-0"
 	raID := "rollappevm_1234-1"
@@ -123,9 +123,9 @@ func (im IBCMiddleware) handleGenesisTransfers(
 
 	_ = ra
 
-	err = im.rollappKeeper.MarkGenesisAsHappened(ctx, chaID, raID)
+	err = im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, memo.Data.ThisTransferIx, memo.Data.TotalNumTransfers)
 	if err != nil {
-		err = fmt.Errorf("mark genesis: %w", err)
+		err = fmt.Errorf("verify and record genesis transfer: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
 	}
