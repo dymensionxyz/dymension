@@ -67,7 +67,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// progress finalization queue
-	err := suite.App.RollappKeeper.FinalizeQueue(suite.Ctx)
+	err := suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 	suite.Require().NoError(err)
 
 	// test fraud

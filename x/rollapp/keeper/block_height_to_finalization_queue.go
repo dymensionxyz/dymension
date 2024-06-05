@@ -10,8 +10,8 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// FinalizeQueue is called every block to finalize states when their dispute period over.
-func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
+// FinalizeRollappStates is called every block to finalize states when their dispute period over.
+func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
 		return nil
 	}
