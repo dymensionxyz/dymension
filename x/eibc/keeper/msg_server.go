@@ -104,7 +104,11 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 			return nil, types.ErrTooMuchFee
 		}
 
-		// TODO: check profitable
+		// Check the order is profitable in regards to the bridging fee
+		bridgingFee := m.DelayedAckKeeper.BridgingFeeFromAmt(ctx, transferTotal)
+		if newFeeInt.LT(bridgingFee) {
+			return nil, types.ErrDemandOrderNotProfitable
+		}
 
 		updatedDemandOrderFee = append(updatedDemandOrderFee, sdk.NewCoin(demandOrder.Fee[i].Denom, newFeeInt))
 		updatedDemandOrderPrice = append(updatedDemandOrderPrice, sdk.NewCoin(demandOrder.Price[i].Denom, newPrice))

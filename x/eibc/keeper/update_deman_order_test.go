@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
@@ -10,6 +11,9 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	// Create and fund the account
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
+
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
@@ -42,7 +46,12 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},
-		// TODO: too low fee
+		{
+			name:        "too low fee",
+			fee:         sdk.NewInt(1), // lower than 1%
+			submittedBy: eibcSupplyAddr.String(),
+			expectError: true,
+		},
 	}
 
 	for _, tc := range testCases {
