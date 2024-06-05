@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -63,14 +61,6 @@ func (k Keeper) GetRollapp(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
-}
-
-func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp { // TODO: needed?
-	ret, found := k.GetRollapp(ctx, rollappId)
-	if !found {
-		panic(fmt.Sprintf("rollapp not found: id: %s", rollappId))
-	}
-	return ret
 }
 
 // RemoveRollapp removes a rollapp from the store using rollapp name
