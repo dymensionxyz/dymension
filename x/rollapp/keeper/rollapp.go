@@ -74,7 +74,7 @@ func (k Keeper) RemoveRollapp(
 	))
 }
 
-// GetAllRollapp returns all rollapp
+// GetAllRollapps returns all rollapp
 func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
