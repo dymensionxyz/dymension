@@ -18,7 +18,7 @@ RUN make build
 
 FROM alpine:3.16.1
 
-RUN apk add curl jq bash vim 
+RUN apk add --no-cache curl jq bash vim 
 
 COPY --from=go-builder /app/build/dymd /usr/local/bin/
 

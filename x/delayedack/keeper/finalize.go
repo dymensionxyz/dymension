@@ -8,10 +8,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
-	osmoutils "github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 	"github.com/tendermint/tendermint/libs/log"
 )
 

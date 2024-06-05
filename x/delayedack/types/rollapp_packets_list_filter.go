@@ -1,15 +1,20 @@
 package types
 
-import commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+import (
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+)
 
 type RollappPacketListFilter struct {
-	Prefixes []Prefix
+	Prefixes   []Prefix
+	FilterFunc func(packet commontypes.RollappPacket) bool
 }
 
 type Prefix struct {
 	Start []byte
 	End   []byte
 }
+
+var bypassFilter = func(packet commontypes.RollappPacket) bool { return true }
 
 func PendingByRollappIDByMaxHeight(
 	rollappID string,
@@ -23,6 +28,7 @@ func PendingByRollappIDByMaxHeight(
 				End:   commontypes.RollappPacketByStatusByRollappIDByProofHeightPrefix(rollappID, status, maxProofHeight+1), // inclusive end
 			},
 		},
+		FilterFunc: bypassFilter,
 	}
 }
 
@@ -32,8 +38,19 @@ func ByRollappIDByStatus(rollappID string, status ...commontypes.Status) Rollapp
 		prefixes[i] = Prefix{Start: commontypes.RollappPacketByStatusByRollappIDPrefix(s, rollappID)}
 	}
 	return RollappPacketListFilter{
-		Prefixes: prefixes,
+		Prefixes:   prefixes,
+		FilterFunc: bypassFilter,
 	}
+}
+
+func ByRollappIDByTypeByStatus(rollappID string, packetType commontypes.RollappPacket_Type, status ...commontypes.Status) RollappPacketListFilter {
+	filter := ByRollappIDByStatus(rollappID, status...)
+	if packetType != commontypes.RollappPacket_UNDEFINED {
+		filter.FilterFunc = func(packet commontypes.RollappPacket) bool {
+			return packet.Type == packetType
+		}
+	}
+	return filter
 }
 
 func ByRollappID(rollappID string) RollappPacketListFilter {
@@ -50,6 +67,17 @@ func ByStatus(status ...commontypes.Status) RollappPacketListFilter {
 		prefixes[i] = Prefix{Start: commontypes.RollappPacketByStatusPrefix(s)}
 	}
 	return RollappPacketListFilter{
-		Prefixes: prefixes,
+		Prefixes:   prefixes,
+		FilterFunc: bypassFilter,
 	}
+}
+
+func ByTypeByStatus(packetType commontypes.RollappPacket_Type, status ...commontypes.Status) RollappPacketListFilter {
+	filter := ByStatus(status...)
+	if packetType != commontypes.RollappPacket_UNDEFINED {
+		filter.FilterFunc = func(packet commontypes.RollappPacket) bool {
+			return packet.Type == packetType
+		}
+	}
+	return filter
 }
