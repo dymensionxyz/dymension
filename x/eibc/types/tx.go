@@ -13,10 +13,11 @@ import (
 var _ = sdk.Msg(&MsgFulfillOrder{})
 var _ = sdk.Msg(&MsgUpdateDemandOrder{})
 
-func NewMsgFulfillOrder(fulfillerAddress string, orderId string) *MsgFulfillOrder {
+func NewMsgFulfillOrder(fulfillerAddress, orderId, minFee string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
 		FulfillerAddress: fulfillerAddress,
 		OrderId:          orderId,
+		MinFee:           minFee,
 	}
 }
 
@@ -53,8 +54,16 @@ func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
 }
 
+func NewMsgUpdateDemandOrder(orderId, ownerAddr, newFee string) *MsgUpdateDemandOrder {
+	return &MsgUpdateDemandOrder{
+		OrderId: orderId,
+		Owner:   ownerAddr,
+		NewFee:  newFee,
+	}
+}
+
 func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.RecipientAddress)
+	creator, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
 		panic(err)
 	}
@@ -62,7 +71,7 @@ func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.RecipientAddress, m.NewFee)
+	err := validateCommon(m.OrderId, m.Owner, m.NewFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -70,7 +79,7 @@ func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 }
 
 func (m *MsgUpdateDemandOrder) GetSubmitterAddr() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(m.RecipientAddress)
+	return sdk.MustAccAddressFromBech32(m.Owner)
 }
 
 func isValidOrderId(orderId string) bool {

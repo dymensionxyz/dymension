@@ -33,18 +33,52 @@ func NewFullfilOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order [order-id]",
 		Short:   "Fullfil a new eibc order",
-		Example: "dymd tx eibc fulfill-order <order-id>",
-		Args:    cobra.ExactArgs(1),
+		Example: "dymd tx eibc fulfill-order <order-id> <expected-fee-amount>",
+		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			orderId := args[0]
+			fee := args[1]
 
 			msg := types.NewMsgFulfillOrder(
 				clientCtx.GetFromAddress().String(),
 				orderId,
+				fee,
+			)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateDemandOrderTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-demand-order [order-id]",
+		Short:   "Update a demand order",
+		Example: "dymd tx eibc update-demand-order <order-id> <fee-amount>",
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			orderId := args[0]
+			newFee := args[1]
+
+			msg := types.NewMsgFulfillOrder(
+				clientCtx.GetFromAddress().String(),
+				orderId,
+				newFee,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {
