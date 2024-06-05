@@ -47,14 +47,23 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	return n, nil
 }
 
-func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
+func (k Keeper) enableTransfers(ctx sdk.Context, rollappID string) {
 	ra := k.MustGetRollapp(ctx, rollappID)
 	ra.GenesisState.TransfersEnabled = true
 	k.SetRollapp(ctx, ra)
 }
 
-func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers {
+func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { // TODO: needs to be public?
+}
+
+func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers { // TODO: needs to be public?
 	var ret []types.GenesisTransfers
+	// TODO: impl
+	return ret
+}
+
+func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.GenesisTransferFinalization { // TODO: needs to be public
+	var ret []types.GenesisTransferFinalization
 	// TODO: impl
 	return ret
 }
