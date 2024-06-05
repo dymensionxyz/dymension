@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var defBridgingFee = types.DefaultParams().BridgingFee
+
 func TestInitGenesis(t *testing.T) {
 	tests := []struct {
 		name           string
@@ -22,14 +24,24 @@ func TestInitGenesis(t *testing.T) {
 			name: "only params - success",
 			params: types.Params{
 				EpochIdentifier: "week",
+				BridgingFee:     defBridgingFee,
 			},
 			rollappPackets: []commontypes.RollappPacket{},
 			expPanic:       false,
 		},
 		{
+			name: "only params - missing bridging fee - fail",
+			params: types.Params{
+				EpochIdentifier: "week",
+			},
+			rollappPackets: []commontypes.RollappPacket{},
+			expPanic:       true,
+		},
+		{
 			name: "params and rollapp packets - panic",
 			params: types.Params{
 				EpochIdentifier: "week",
+				BridgingFee:     defBridgingFee,
 			},
 			rollappPackets: []commontypes.RollappPacket{{RollappId: "0"}},
 			expPanic:       true,
@@ -58,6 +70,7 @@ func TestExportGenesis(t *testing.T) {
 	// Set params
 	params := types.Params{
 		EpochIdentifier: "week",
+		BridgingFee:     defBridgingFee,
 	}
 	k.SetParams(ctx, params)
 	// Set some demand orders

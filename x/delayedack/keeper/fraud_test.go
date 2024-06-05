@@ -63,7 +63,7 @@ func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
 
 	suite.Require().Equal(10, len(keeper.GetAllRollappPackets(ctx)))
 
-	keeper.SetParams(ctx, types.Params{EpochIdentifier: "minute"})
+	keeper.SetParams(ctx, types.Params{EpochIdentifier: "minute", BridgingFee: keeper.BridgingFee(ctx)})
 	epochHooks := keeper.GetEpochHooks()
 	err = epochHooks.AfterEpochEnd(ctx, "minute", 1)
 	suite.Require().NoError(err)

@@ -43,6 +43,16 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 			return nil, types.ErrMinFeeNotMet
 		}
 	}
+
+	// Check the order is profitable in regards to the bridging fee
+	denom := demandOrder.Price[0].Denom
+	originalAmt := demandOrder.Price.AmountOf(denom).Add(demandOrder.Fee.AmountOf(denom))
+	bridgingFee := m.DelayedAckKeeper.BridgingFeeFromAmt(ctx, originalAmt)
+
+	if demandOrder.Fee.AmountOf(denom).LT(bridgingFee) {
+		return nil, types.ErrDemandOrderNotProfitable
+	}
+
 	// Check for blocked address
 	if m.BankKeeper.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
 		return nil, types.ErrBlockedAddress
