@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "dymension/rollapp/params.proto";
 import "dymension/rollapp/rollapp.proto";
 import "dymension/rollapp/state_info.proto";
+import "dymension/rollapp/genesis_transfer.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
@@ -17,18 +18,7 @@ message GenesisState {
   repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
   repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
-  repeated GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];;
+  repeated GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];
+  repeated GenesisTransferFinalization genesisTransferFinalizationQueue = 8 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
-}
-
-// bookkeeping for the genesis transfer bridge protocol
-message GenesisTransfers {
-  string rollappID = 1;
-  // The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
-  uint64 numTotal = 2;
-  // The number of transfers already processed, when this number reaches numTotal the genesis transfer window closes.
-  uint64 numReceived = 3;
-  // The indexes of genesis transfers received thus far during the genesis transfer period
-  // This cannot be implemented on the rollapp type, because we index into this like a map, but the rollapp is read/writ as a whole
-  repeated uint64 received = 4;
 }
