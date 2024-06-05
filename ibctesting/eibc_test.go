@@ -284,10 +284,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			lastDemandOrder := getLastDemandOrderByChannelAndSequence(demandOrders)
 			// Try and fulfill the demand order
 			preFulfillmentAccountBalance := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain.GetContext(), fulfiller)
-			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
-				FulfillerAddress: fulfiller.String(),
-				OrderId:          lastDemandOrder.Id,
-			}
+			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfiller.String(), lastDemandOrder.Id, tc.EIBCTransferFee)
 			// Validate demand order status based on fulfillment success
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			if !tc.isFulfilledSuccess {
@@ -470,10 +467,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 			suite.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order
-			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
-				FulfillerAddress: fulfillerAccount.String(),
-				OrderId:          lastDemandOrder.Id,
-			}
+			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfillerAccount.String(), lastDemandOrder.Id, lastDemandOrder.Fee[0].Amount.String())
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			suite.Require().NoError(err)
 			// Validate balances of fulfiller and sender are updated while the original recipient is not

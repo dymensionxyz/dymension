@@ -9,6 +9,7 @@ import (
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
+// TODO: separate into logic test and events tests
 func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 	tests := []struct {
 		name                                    string
@@ -146,6 +147,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
 			},
 		},
+		// TODO: add min fee validation test
 		{
 			name:                                 "Test demand order fulfillment - status not pending",
 			demandOrderPrice:                     150,
@@ -206,10 +208,8 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// try to fulfill the demand order
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		_, err = suite.msgServer.FulfillOrder(suite.Ctx, &types.MsgFulfillOrder{
-			FulfillerAddress: eibcDemandAddr.String(),
-			OrderId:          demandOrder.Id,
-		})
+		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, math.NewIntFromUint64(tc.demandOrderFee).String())
+		_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
 		if tc.expectedFulfillmentError != nil {
 			suite.Require().Error(err)
 			suite.Require().ErrorIs(err, tc.expectedFulfillmentError)
