@@ -77,7 +77,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if !im.delayedackKeeper.IsRollappsEnabled(ctx) || !isTransferPacket(packet) {
+	if !im.delayedackKeeper.IsRollappsEnabled(ctx) || !isTransferPacket(packet) { // TODO: check !isTransfer..
 		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -118,20 +118,19 @@ func (im IBCMiddleware) OnRecvPacket(
 		// TODO:
 	}
 
-	// it's a valid genesis transfer
+	// it's a valid genesis transfer!
 
 	err = im.registerDenomMetadata(ctx, raID, chaID, m.Denom)
 	if err != nil {
 		// TODO:
 	}
 
-	l.Info("Registered denom meta data from genesis transfer.")
-
 	if nTransfersDone == m.TotalNumTransfers {
-		// The transfer window is finished!
+		// The transfer window is finished! Queue up a finalization
 		im.rollappKeeper.AddTransferGenesisFinalization(ctx, raID)
-		// TODO: emit event
 	}
+
+	l.Info("Received valid genesis transfer. Registered denom data.", "num total", m.TotalNumTransfers, "num so far", nTransfersDone, "ix", m.ThisTransferIx)
 
 	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
