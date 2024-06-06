@@ -17,7 +17,7 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, &finalizationHeight)
 
 	return osmoutils.ApplyFuncIfNoError(ctx,
 		// we trap at this granularity because we want to avoid iterating inside the
@@ -108,7 +108,7 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if height < val.CreationHeight {
+		if height != 0 && height < val.CreationHeight {
 			break
 		}
 		list = append(list, val)
@@ -119,16 +119,5 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
 func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.BlockHeightToFinalizationQueue
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
-	}
-
-	return
+	return k.GetAllFinalizationQueueUntilHeight(ctx, 0)
 }

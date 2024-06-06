@@ -85,11 +85,10 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 	return ret
 }
 
-// GetBlockHeightToFinalizationQueue returns a blockHeightToFinalizationQueue from its index
-func (k Keeper) GetBlockHeightToFinalizationQueue(
+func (k Keeper) GetBlockHeightToTransferGenesisFinalizations(
 	ctx sdk.Context,
 	creationHeight uint64,
-) (val types.BlockHeightToFinalizationQueue, found bool) {
+) (val types.BlockHeightToTransferGenesisFinalizations, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 
 	b := store.Get(types.BlockHeightToFinalizationQueueKey(
@@ -104,7 +103,7 @@ func (k Keeper) GetBlockHeightToFinalizationQueue(
 }
 
 // RemoveBlockHeightToFinalizationQueue removes a blockHeightToFinalizationQueue from the store
-func (k Keeper) RemoveBlockHeightToFinalizationQueue(
+func (k Keeper) RemoveBlockHeightToFinalizationQueueX(
 	ctx sdk.Context,
 	creationHeight uint64,
 ) {
@@ -115,7 +114,7 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 }
 
 // GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
-func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+func (k Keeper) GetAllFinalizationQueueUntilHeightX(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
@@ -133,7 +132,7 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
-func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
+func (k Keeper) GetAllBlockHeightToFinalizationQueueX(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
