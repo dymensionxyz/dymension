@@ -64,6 +64,7 @@ func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { /
 		return nil
 	}
 
+	toFinalize := k.GetTransferGenesisFinalizations(h)
 	var queue []types.GenesisTransferFinalization
 
 	for _, f := range k.GetGenesisTransferFinalizationQueue(ctx) {

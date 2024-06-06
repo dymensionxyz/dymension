@@ -28,8 +28,8 @@ message GenesisTransfers {
 // The queue contains rollapps whose genesis transfer window has closed, and are awaiting
 // the end of their dispute period, and the opening of their bridge.
 message BlockHeightToTransferGenesisFinalizations {
-  // height is the hub height from which the transfers will be enabled
-  uint64 height = 1;
+  // when the hub height reaches creationHeight + P, where P is a param, transfers will become enabled
+  uint64 creationHeight = 1;
   // ids of rollapps for whom to finalize their transfer genesis at this height
   repeated string rollapps = 2 [(gogoproto.nullable) = false];
 }
