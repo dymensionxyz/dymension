@@ -66,7 +66,7 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 	return ret
 }
 
-func (k Keeper) AddRollappToGenesisTransferFinalizationQueue(ctx sdk.Context, rollappID bool) error {
+func (k Keeper) AddRollappToGenesisTransferFinalizationQueue(ctx sdk.Context, rollappID string) error {
 }
 
 func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.GenesisTransferFinalization { // TODO: needs to be public

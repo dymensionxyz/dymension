@@ -68,23 +68,6 @@ type memo struct {
 	ThisTransferIx uint64 `json:"this_transfer_ix"`
 }
 
-// OnRecvPacket ..
-// Happy path: the genesis transfer window is open. In this case, record the transfer.
-/*
-TODO: what was I doing yesterday afternoon?
-	I need to finish implementing this - essentially
-	If the transfer does not contain the memo, need to check that transfers are enabled
-		If they are, forward it
-		Else, return a protocol violation (TODO: or an error ack?)
-	If it does contain the memo, record it, check for a violation
-		If valid:
-			register denom data
-		    forward it with eibc skipper
-		If the last one, need to disable transfers and start the clock
-
-Probably easiest to inline the sub method,
-	/
-*/
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -113,10 +96,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	m, err := getMemo(packet)
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
 		// This is a normal transfer
-		if ra.GenesisState.TransfersEnabled {
+		if !ra.GenesisState.TransfersEnabled {
 			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
 			return channeltypes.NewErrorAcknowledgement(err) // TODO: check with Omri
 		}
+		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
 		// TODO:
@@ -130,23 +114,23 @@ func (im IBCMiddleware) OnRecvPacket(
 		// TODO:
 	}
 
+	// it's a valid genesis transfer
+
 	err = im.registerDenomMetadata(ctx, raID, chaID, m.Denom)
 	if err != nil {
 		// TODO:
 	}
 
+	l.Info("Registered denom meta data from genesis transfer.")
+
 	if nTransfersDone == m.TotalNumTransfers {
+		// The transfer window is finished!
 		err = im.rollappKeeper.AddRollappToGenesisTransferFinalizationQueue(ctx, raID)
 		if err != nil {
-			err = fmt.Errorf("register denom meta: %w", err)
-			l.Error("OnRecvPacket", "err", err)
-			panic(err)
+			// TODO:
 		}
-		// The transfer window is finished!
 		// TODO: emit event
 	}
-
-	l.Info("Registered denom meta data from genesis transfer.")
 
 	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
