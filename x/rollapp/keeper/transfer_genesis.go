@@ -60,17 +60,21 @@ func (k Keeper) enableTransfers(ctx sdk.Context, rollappID string) {
 func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { // TODO: needs to be public?
 
 	h := uint64(ctx.BlockHeight())
-	if h <= k.DisputePeriodTransferGenesisInBlocks(ctx) {
+	if h <= k.DisputePeriodTransferGenesisInBlocks(ctx) { // TODO: check =
 		return nil
 	}
 
-	toFinalize := k.GetTransferGenesisFinalizations(ctx, h-k.DisputePeriodTransferGenesisInBlocks(ctx))
-	for _, rollapp := range toFinalize.Rollapps {
-		ra := k.MustGetRollapp(ctx, rollapp)
-		ra.GenesisState.TransfersEnabled = true
-		k.SetRollapp(ctx, ra)
-		k.DelTransferGenesisFinalizations()
+	toFinalize := k.GetTransferGenesisFinalizationQueue(ctx, h-k.DisputePeriodTransferGenesisInBlocks(ctx)+1)
+	for _, rollapps := range toFinalize {
+		for _, rollapp := range rollapps.Rollapps {
+			ra := k.MustGetRollapp(ctx, rollapp)
+			ra.GenesisState.TransfersEnabled = true
+			k.SetRollapp(ctx, ra)
+		}
+		k.DelTransferGenesisFinalizations(ctx, rollapps.CreationHeight)
 	}
+
+	return nil
 }
 
 func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers { // TODO: needs to be public?
