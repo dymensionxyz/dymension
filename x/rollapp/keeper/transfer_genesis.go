@@ -58,6 +58,25 @@ func (k Keeper) enableTransfers(ctx sdk.Context, rollappID string) {
 }
 
 func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { // TODO: needs to be public?
+
+	h := uint64(ctx.BlockHeight())
+	if h < k.DisputePeriodTransferGenesisInBlocks(ctx) {
+		return nil
+	}
+
+	var queue []types.GenesisTransferFinalization
+
+	for _, f := range k.GetGenesisTransferFinalizationQueue(ctx) {
+		if h <= f.GetHeightLastGenesisTransfer() + k.DisputePeriodTransferGenesisInBlocks(ctx){
+			ra := k.MustGetRollapp(ctx, f.RollappID)
+			ra.GenesisState.TransfersEnabled = true
+			k.SetRollapp(ctx, ra)
+		}else{
+			queue = append(queue, f)
+		}
+	}
+
+	return k.SetGenesisTransferFinalizationQueue(ctx, queue)
 }
 
 func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers { // TODO: needs to be public?
@@ -69,8 +88,24 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 func (k Keeper) AddRollappToGenesisTransferFinalizationQueue(ctx sdk.Context, rollappID string) error {
 }
 
+func (k Keeper) SetGenesisTransferFinalizationQueue(ctx sdk.Context, q  []types.GenesisTransferFinalization) error {
+
+}
+
 func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.GenesisTransferFinalization { // TODO: needs to be public
 	var ret []types.GenesisTransferFinalization
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.BlockHeightToFinalizationQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if height < val.CreationHeight {
+			break
+		}
+		list = append(list, val)
 	// TODO: impl
 	return ret
 }

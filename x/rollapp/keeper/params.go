@@ -10,6 +10,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.RollappsEnabled(ctx),
 		k.DisputePeriodInBlocks(ctx),
+		k.DisputePeriodTransferGenesisInBlocks(ctx),
 		k.DeployerWhitelist(ctx),
 	)
 }
@@ -22,6 +23,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // DisputePeriodInBlocks returns the DisputePeriodInBlocks param
 func (k Keeper) DisputePeriodInBlocks(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyDisputePeriodInBlocks, &res)
+	return
+}
+
+func (k Keeper) DisputePeriodTransferGenesisInBlocks(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyDisputePeriodTransferGenesisInBlocks, &res)
 	return
 }
 
