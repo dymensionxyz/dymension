@@ -68,12 +68,16 @@ type memo struct {
 	ThisTransferIx uint64 `json:"this_transfer_ix"`
 }
 
+// OnRecvPacket will, if the packet is a transfer packet:
+// if it's not a genesis transfer: pass on the packet only if transfers are enabled
+// else: check it's a valid genesis transfer. If it is, then register the denom, if
+// it's the last one, trigger the finalization period to begin.
 func (im IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
+	if !im.delayedackKeeper.IsRollappsEnabled(ctx) || !isTransferPacket(packet) {
 		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -133,6 +137,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	}
 
 	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+}
+
+func isTransferPacket(packet channeltypes.Packet) bool {
+	var data transfertypes.FungibleTokenPacketData
+	return transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data) == nil
 }
 
 func getMemo(packet channeltypes.Packet) (memo, error) {
