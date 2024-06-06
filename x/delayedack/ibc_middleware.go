@@ -2,16 +2,12 @@ package delayedack
 
 import (
 	"errors"
-	"fmt"
 
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -65,7 +61,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	rollappID, transferPacketData, err := im.keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	rollappID, transferPacketData, err := im.Keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Extract rollapp id from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -147,7 +143,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	rollappID, transferPacketData, err := im.keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	rollappID, transferPacketData, err := im.Keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -233,7 +229,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
-	rollappID, transferPacketData, err := im.keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	rollappID, transferPacketData, err := im.Keeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from channel", "err", err)
 		return err
@@ -296,37 +292,6 @@ func (im IBCMiddleware) OnTimeoutPacket(
 	}
 
 	return nil
-}
-
-// ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
-func (im IBCMiddleware) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
-	// no-op if the packet is not a fungible token packet
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return "", nil, fmt.Errorf("unmarshal fungible token packet data: %w", err)
-	}
-	// Check if the packet is destined for a rollapp
-	chainID, err := im.Keeper.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		return "", &data, fmt.Errorf("extract chain id from channel: %w", err)
-	}
-	rollapp, found := im.Keeper.GetRollapp(ctx, chainID)
-	if !found {
-		return "", &data, nil // TODO: needs an error?
-	}
-	_ = rollapp
-	if rollapp.ChannelId == "" {
-		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
-	}
-	// check if the channelID matches the rollappID's channelID
-	if rollapp.ChannelId != rollappChannelOnHub {
-		return "", &data, errorsmod.Wrapf(
-			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
-		)
-	}
-
-	return chainID, &data, nil
 }
 
 // GetProofHeight returns the proof height of the packet
