@@ -67,11 +67,11 @@ func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { /
 	var queue []types.GenesisTransferFinalization
 
 	for _, f := range k.GetGenesisTransferFinalizationQueue(ctx) {
-		if h <= f.GetHeightLastGenesisTransfer() + k.DisputePeriodTransferGenesisInBlocks(ctx){
+		if h <= f.GetHeightLastGenesisTransfer()+k.DisputePeriodTransferGenesisInBlocks(ctx) {
 			ra := k.MustGetRollapp(ctx, f.RollappID)
 			ra.GenesisState.TransfersEnabled = true
 			k.SetRollapp(ctx, ra)
-		}else{
+		} else {
 			queue = append(queue, f)
 		}
 	}
@@ -85,16 +85,37 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 	return ret
 }
 
-func (k Keeper) AddRollappToGenesisTransferFinalizationQueue(ctx sdk.Context, rollappID string) error {
+// GetBlockHeightToFinalizationQueue returns a blockHeightToFinalizationQueue from its index
+func (k Keeper) GetBlockHeightToFinalizationQueue(
+	ctx sdk.Context,
+	creationHeight uint64,
+) (val types.BlockHeightToFinalizationQueue, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+
+	b := store.Get(types.BlockHeightToFinalizationQueueKey(
+		creationHeight,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
 }
 
-func (k Keeper) SetGenesisTransferFinalizationQueue(ctx sdk.Context, q  []types.GenesisTransferFinalization) error {
-
+// RemoveBlockHeightToFinalizationQueue removes a blockHeightToFinalizationQueue from the store
+func (k Keeper) RemoveBlockHeightToFinalizationQueue(
+	ctx sdk.Context,
+	creationHeight uint64,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+	store.Delete(types.BlockHeightToFinalizationQueueKey(
+		creationHeight,
+	))
 }
 
-func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.GenesisTransferFinalization { // TODO: needs to be public
-	var ret []types.GenesisTransferFinalization
-
+// GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
+func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close() // nolint: errcheck
@@ -106,6 +127,23 @@ func (k Keeper) GetGenesisTransferFinalizationQueue(ctx sdk.Context) []types.Gen
 			break
 		}
 		list = append(list, val)
-	// TODO: impl
-	return ret
+	}
+
+	return
+}
+
+// GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
+func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.BlockHeightToFinalizationQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
 }

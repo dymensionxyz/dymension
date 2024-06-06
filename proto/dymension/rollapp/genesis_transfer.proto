@@ -24,10 +24,12 @@ message GenesisTransfers {
   repeated uint64 received = 4;
 }
 
-// An item to go in a queue. The queue contains rollapps whose genesis transfer window has closed, and are awaiting
+// BlockHeightToTransferGenesisFinalizationQueue defines a map from block height to list of rollapps to finalize
+// The queue contains rollapps whose genesis transfer window has closed, and are awaiting
 // the end of their dispute period, and the opening of their bridge.
-message GenesisTransferFinalization {
-  string rollappID = 1;
-  // the hub height of the last genesis transfer. Some time (dispute window) after this, we shall open the bridge.
-  uint64 heightLastGenesisTransfer = 2;
+message BlockHeightToTransferGenesisFinalizationQueue {
+  // height is the hub height from which the transfers will be enabled
+  uint64 height = 1;
+  // ids of rollapps for whom to finalize their transfer genesis at this height
+  repeated string rollapps = 2 [(gogoproto.nullable) = false];
 }
