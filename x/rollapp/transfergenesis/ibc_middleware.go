@@ -60,6 +60,14 @@ func NewIBCMiddleware(
 	}
 }
 
+type memo struct {
+	Denom banktypes.Metadata `json:"denom"`
+	// How many transfers in total will be sent in the transfer genesis period
+	TotalNumTransfers uint64 `json:"total_num_transfers"`
+	// Which transfer is this? If there are 5 transfers total, they will be numbered 0,1,2,3,4.
+	ThisTransferIx uint64 `json:"this_transfer_ix"`
+}
+
 // OnRecvPacket ..
 // Happy path: the genesis transfer window is open. In this case, record the transfer.
 /*
@@ -90,18 +98,6 @@ func (im IBCMiddleware) OnRecvPacket(
 	return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 }
 
-type memo struct {
-	Denom banktypes.Metadata `json:"denom"`
-	// How many transfers in total will be sent in the transfer genesis period
-	TotalNumTransfers uint64 `json:"total_num_transfers"`
-	// Which transfer is this? If there are 5 transfers total, they will be numbered 0,1,2,3,4.
-	ThisTransferIx uint64 `json:"this_transfer_ix"`
-}
-
-type genesisTransferDenomMemo struct {
-	Data memo `json:"genesis_transfer"`
-}
-
 func (im IBCMiddleware) handleGenesisTransfers(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -127,12 +123,12 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		// TODO:
 	}
 
-	memo, err := getMemo(packet)
+	m, err := getMemo(packet)
 	if err != nil {
 		// TODO:
 	}
 
-	nTransfersDone, err := im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, memo.ThisTransferIx, memo.TotalNumTransfers)
+	nTransfersDone, err := im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, dymerror.ErrProtocolViolation) {
 		// TODO: emit event or freeze rollapp, or something else?
 	}
@@ -142,14 +138,14 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		panic(err)
 	}
 
-	err = im.registerDenomMetadata(ctx, raID, chaID, memo.Denom)
+	err = im.registerDenomMetadata(ctx, raID, chaID, m.Denom)
 	if err != nil {
 		err = fmt.Errorf("register denom meta: %w", err)
 		l.Error("OnRecvPacket", "err", err)
 		panic(err)
 	}
 
-	if nTransfersDone == memo.TotalNumTransfers {
+	if nTransfersDone == m.TotalNumTransfers {
 		err = im.rollappKeeper.AddRollappToGenesisTransferFinalizationQueue(ctx, raID)
 		if err != nil {
 			err = fmt.Errorf("register denom meta: %w", err)
@@ -171,8 +167,12 @@ func getMemo(packet channeltypes.Packet) (memo, error) {
 		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "fungible token packet")
 	}
 
+	type t struct {
+		Data memo `json:"genesis_transfer"`
+	}
+
 	rawMemo := data.GetMemo()
-	var m genesisTransferDenomMemo
+	var m t
 	err := json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
 		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
