@@ -11,6 +11,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
+	"github.com/dymensionxyz/dymension/v3/x/bridging_fee"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -739,9 +740,11 @@ func New(
 	)
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
+	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = bridging_fee.NewIBCMiddleware(transferMiddleware, app.IBCKeeper.ChannelKeeper, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName))
+
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(
 		transferStack,
 		app.PacketForwardMiddlewareKeeper,
@@ -1027,6 +1030,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 
 	// exclude the streamer as we want him to be able to get external incentives
 	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
 	return modAccAddrs
 }
 

@@ -14,7 +14,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
+// NewCmdSubmitUpdateStreamDistributionProposal broadcasts a CreateStream message.
 func NewCmdSubmitUpdateStreamDistributionProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-stream-distribution-proposal streamID gaugeIds weights [flags]",
