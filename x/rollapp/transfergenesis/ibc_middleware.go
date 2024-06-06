@@ -129,10 +129,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	if nTransfersDone == m.TotalNumTransfers {
 		// The transfer window is finished!
-		err = im.rollappKeeper.AddRollappToGenesisTransferFinalizationQueue(ctx, raID)
-		if err != nil {
-			// TODO:
-		}
+		im.rollappKeeper.AddTransferGenesisFinalization(ctx, raID)
 		// TODO: emit event
 	}
 
