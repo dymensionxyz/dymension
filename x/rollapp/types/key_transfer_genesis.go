@@ -67,3 +67,9 @@ func TransferGenesisNumKey(
 
 	return key
 }
+
+func TransferGenesisFinalizationsKey(
+	height uint64,
+) []byte {
+	return sdk.Uint64ToBigEndian(height)
+}

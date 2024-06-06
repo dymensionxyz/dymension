@@ -85,31 +85,38 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 	return ret
 }
 
-func (k Keeper) GetBlockHeightToTransferGenesisFinalizations(
-	ctx sdk.Context,
-	creationHeight uint64,
-) (val types.BlockHeightToTransferGenesisFinalizations, found bool) {
+func (k Keeper) AddTransferGenesisFinalization(ctx sdk.Context, rollappID string, height uint64) {
+	fs := k.GetTransferGenesisFinalizations(ctx, height)
+	fs.Rollapps = append(fs.Rollapps, rollappID) // we assume it's not there already
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-
-	b := store.Get(types.BlockHeightToFinalizationQueueKey(
-		creationHeight,
-	))
-	if b == nil {
-		return val, false
-	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	b := k.cdc.MustMarshal(&fs)
+	store.Set(types.TransferGenesisFinalizationsKey(height), b)
 }
 
-func (k Keeper) RemoveBlockHeightToFinalizationQueueX(
+func (k Keeper) GetTransferGenesisFinalizations(
 	ctx sdk.Context,
-	creationHeight uint64,
+	h uint64,
+) types.BlockHeightToTransferGenesisFinalizations {
+	var ret types.BlockHeightToTransferGenesisFinalizations
+	ret.Rollapps = make([]string, 0)
+	ret.Height = h
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
+	b := store.Get(types.TransferGenesisFinalizationsKey(h))
+	if b == nil {
+		return ret
+	}
+
+	k.cdc.MustUnmarshal(b, &ret)
+	return ret
+}
+
+func (k Keeper) DelTransferGenesisFinalizations(
+	ctx sdk.Context,
+	h uint64,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-	store.Delete(types.BlockHeightToFinalizationQueueKey(
-		creationHeight,
-	))
+	store.Delete(types.TransferGenesisFinalizationsKey(h))
 }
 
 // GetTransferGenesisFinalizationQueue returns the queue up to but not including height
