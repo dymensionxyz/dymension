@@ -21,7 +21,7 @@ message GenesisTransfers {
   uint64 numReceived = 3;
   // The indexes of genesis transfers received thus far during the genesis transfer period
   // This cannot be implemented on the rollapp type, because we index into this like a map, but the rollapp is read/writ as a whole
-  repeated uint64 received = 4;
+  repeated uint64 received = 4 [(gogoproto.nullable) = false];
 }
 
 // BlockHeightToTransferGenesisFinalizationQueue defines a map from block height to list of rollapps to finalize
@@ -31,5 +31,5 @@ message BlockHeightToTransferGenesisFinalizations {
   // height is the hub height from which the transfers will be enabled
   uint64 height = 1;
   // ids of rollapps for whom to finalize their transfer genesis at this height
-  repeated string rollapps = 2;
+  repeated string rollapps = 2 [(gogoproto.nullable) = false];
 }
