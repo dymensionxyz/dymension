@@ -19,6 +19,9 @@ message GenesisState {
   repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
   repeated GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];
+
+  // How to store the queue? If we determine the finalization height at H1, then we can save
+  // a list to each height and iterate through only that small list on beginBlock
   repeated GenesisTransferFinalization genesisTransferFinalizationQueue = 8 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }
