@@ -60,7 +60,7 @@ func (k Keeper) enableTransfers(ctx sdk.Context, rollappID string) {
 func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { // TODO: needs to be public?
 
 	h := uint64(ctx.BlockHeight())
-	if h <= k.DisputePeriodTransferGenesisInBlocks(ctx) { // TODO: check =
+	if h <= k.DisputePeriodTransferGenesisInBlocks(ctx) { // TODO: check <= is ok
 		return nil
 	}
 
@@ -71,11 +71,19 @@ func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { /
 			ra.GenesisState.TransfersEnabled = true
 			k.SetRollapp(ctx, ra)
 			k.DelGenesisTransfers(ctx, raID)
+			ctx.EventManager().EmitEvent(transfersEnabledEvent(raID))
+			k.Logger(ctx).Info("Genesis transfer window finalized. Transfers enabled.", "rollapp", raID)
 		}
 		k.DelTransferGenesisFinalizations(ctx, rollapps.CreationHeight)
 	}
 
 	return nil
+}
+
+func transfersEnabledEvent(raID string) sdk.Event {
+	return sdk.NewEvent(types.EventTypeTransferGenesisH2,
+		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
+	)
 }
 
 // TODO: expensive? explain
@@ -113,6 +121,7 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 }
 
 // DelGenesisTransfers deletes bookkeeping for one rollapp, it's not needed for correctness, but it's good to prune state
+// TODO: need to justify correct pruning property for this and the other state, in all possibilities (e.g. fraud recovery)
 func (k Keeper) DelGenesisTransfers(ctx sdk.Context, raID string) { // TODO: needs to be public?
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))

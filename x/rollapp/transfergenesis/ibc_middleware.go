@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
@@ -125,14 +128,29 @@ func (im IBCMiddleware) OnRecvPacket(
 		// TODO:
 	}
 
+	l.Debug("Received valid genesis transfer. Registered denom data.",
+		"num total", m.TotalNumTransfers,
+		"num so far", nTransfersDone,
+		"ix", m.ThisTransferIx,
+	)
+
 	if nTransfersDone == m.TotalNumTransfers {
 		// The transfer window is finished! Queue up a finalization
 		im.rollappKeeper.AddTransferGenesisFinalization(ctx, raID)
+		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(raID, nTransfersDone))
+		l.Info("All genesis transfers received, scheduling genesis transfer window finalization.",
+			"rollapp", raID,
+			"n transfers", nTransfersDone)
 	}
 
-	l.Info("Received valid genesis transfer. Registered denom data.", "num total", m.TotalNumTransfers, "num so far", nTransfersDone, "ix", m.ThisTransferIx)
-
 	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+}
+
+func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
+	return sdk.NewEvent(types.EventTypeTransferGenesisH1,
+		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
+		sdk.NewAttribute(types.AttributeKeyTransferGenesisNReceived, strconv.FormatUint(nReceived, 10)),
+	)
 }
 
 func isTransferPacket(packet channeltypes.Packet) bool {
