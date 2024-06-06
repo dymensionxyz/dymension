@@ -9,7 +9,8 @@ import (
 var _ binary.ByteOrder
 
 const (
-	TransferGenesisKeyPrefix = "TransferGenesis/value/"
+	TransferGenesisMapKeyPrefix   = "TransferGenesis/map/value/"
+	TransferGenesisQueueKeyPrefix = "TransferGenesis/queue/value/"
 )
 
 var (

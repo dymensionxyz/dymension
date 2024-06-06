@@ -14,7 +14,7 @@ import (
 // Once we have recorded n indexes, this rollapp can proceed to the next step of the genesis transfer protocol
 // Returns the number of transfers recorded so far (including this one)
 func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) (uint64, error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
 
 	nKey := types.TransferGenesisNumKey(rollappID)
 	nTotalKey := types.TransferGenesisNumTotalKey(rollappID)
