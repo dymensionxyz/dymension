@@ -80,7 +80,7 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	if !im.delayedackKeeper.IsRollappsEnabled(ctx) || !isTransferPacket(packet) { // TODO: check !isTransfer..
+	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -151,11 +151,6 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
 		sdk.NewAttribute(types.AttributeKeyTransferGenesisNReceived, strconv.FormatUint(nReceived, 10)),
 	)
-}
-
-func isTransferPacket(packet channeltypes.Packet) bool {
-	var data transfertypes.FungibleTokenPacketData
-	return transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data) == nil
 }
 
 func getMemo(packet channeltypes.Packet) (memo, error) {
