@@ -66,10 +66,11 @@ func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { /
 
 	toFinalize := k.GetTransferGenesisFinalizationQueue(ctx, h-k.DisputePeriodTransferGenesisInBlocks(ctx)+1)
 	for _, rollapps := range toFinalize {
-		for _, rollapp := range rollapps.Rollapps {
-			ra := k.MustGetRollapp(ctx, rollapp)
+		for _, raID := range rollapps.Rollapps {
+			ra := k.MustGetRollapp(ctx, raID)
 			ra.GenesisState.TransfersEnabled = true
 			k.SetRollapp(ctx, ra)
+			k.DelGenesisTransfers(ctx, raID)
 		}
 		k.DelTransferGenesisFinalizations(ctx, rollapps.CreationHeight)
 	}
@@ -77,10 +78,55 @@ func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { /
 	return nil
 }
 
+// TODO: expensive? explain
 func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers { // TODO: needs to be public?
 	var ret []types.GenesisTransfers
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
+
+	for _, ra := range k.GetAllRollapps(ctx) {
+
+		raID := ra.RollappId
+		nTotalKey := types.TransferGenesisNumTotalKey(raID)
+		nTotalBz := store.Get(nTotalKey)
+		nTotal := sdk.BigEndianToUint64(nTotalBz)
+		nKey := types.TransferGenesisNumKey(raID)
+		nBz := store.Get(nKey)
+		n := sdk.BigEndianToUint64(nBz)
+		x := types.GenesisTransfers{
+			RollappID:   raID,
+			NumTotal:    nTotal,
+			NumReceived: n,
+		}
+		for ix := range nTotal {
+			ixKey := types.TransferGenesisSetMembershipKey(raID, ix)
+			if store.Has(ixKey) {
+				x.Received = append(x.Received, ix)
+			}
+		}
+
+		ret = append(ret, x)
+	}
+
 	// TODO: impl
 	return ret
+}
+
+// DelGenesisTransfers deletes bookkeeping for one rollapp, it's not needed for correctness, but it's good to prune state
+func (k Keeper) DelGenesisTransfers(ctx sdk.Context, raID string) { // TODO: needs to be public?
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
+
+	nTotalKey := types.TransferGenesisNumTotalKey(raID)
+	nTotalBz := store.Get(nTotalKey)
+	nTotal := sdk.BigEndianToUint64(nTotalBz)
+	nKey := types.TransferGenesisNumKey(raID)
+	store.Delete(nTotalBz)
+	store.Delete(nKey)
+
+	for ix := range nTotal {
+		store.Delete(types.TransferGenesisSetMembershipKey(raID, ix))
+	}
 }
 
 func (k Keeper) AddTransferGenesisFinalization(ctx sdk.Context, rollappID string) {
