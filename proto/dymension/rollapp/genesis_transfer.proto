@@ -27,7 +27,7 @@ message GenesisTransfers {
 // BlockHeightToTransferGenesisFinalizationQueue defines a map from block height to list of rollapps to finalize
 // The queue contains rollapps whose genesis transfer window has closed, and are awaiting
 // the end of their dispute period, and the opening of their bridge.
-message BlockHeightToTransferGenesisFinalizationQueue {
+message BlockHeightToTransferGenesisFinalizations {
   // height is the hub height from which the transfers will be enabled
   uint64 height = 1;
   // ids of rollapps for whom to finalize their transfer genesis at this height

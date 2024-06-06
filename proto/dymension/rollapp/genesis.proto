@@ -19,6 +19,6 @@ message GenesisState {
   repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
   repeated GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];
-  repeated BlockHeightToTransferGenesisFinalizationQueue genesisTransferFinalizationQueue = 8 [(gogoproto.nullable) = false];
+  repeated BlockHeightToTransferGenesisFinalizations genesisTransferFinalizationQueue = 8;
   // this line is used by starport scaffolding # genesis/proto/state
 }
