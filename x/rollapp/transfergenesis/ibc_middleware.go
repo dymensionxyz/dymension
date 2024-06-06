@@ -90,21 +90,8 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	ctx, err := im.handleGenesisTransfers(ctx, packet)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	return im.Middleware.OnRecvPacket(ctx, packet, relayer)
-}
-
-func (im IBCMiddleware) handleGenesisTransfers(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-) (sdk.Context, error) {
 	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
-		// TODO: makes sense?
-		return ctx, nil
+		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	l := ctx.Logger().With(
@@ -118,12 +105,19 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		// TODO:
 	}
 
-	err = im.ensureRollappExists(ctx, raID)
-	if err != nil {
+	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
+	if !ok {
 		// TODO:
 	}
 
 	m, err := getMemo(packet)
+	if errorsmod.IsOf(err, gerr.ErrNotFound) {
+		// This is a normal transfer
+		if ra.GenesisState.TransfersEnabled {
+			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
+			return channeltypes.NewErrorAcknowledgement(err) // TODO: check with Omri
+		}
+	}
 	if err != nil {
 		// TODO:
 	}
@@ -133,16 +127,12 @@ func (im IBCMiddleware) handleGenesisTransfers(
 		// TODO: emit event or freeze rollapp, or something else?
 	}
 	if err != nil {
-		err = fmt.Errorf("verify and record genesis transfer: %w", err)
-		l.Error("OnRecvPacket", "err", err)
-		panic(err)
+		// TODO:
 	}
 
 	err = im.registerDenomMetadata(ctx, raID, chaID, m.Denom)
 	if err != nil {
-		err = fmt.Errorf("register denom meta: %w", err)
-		l.Error("OnRecvPacket", "err", err)
-		panic(err)
+		// TODO:
 	}
 
 	if nTransfersDone == m.TotalNumTransfers {
@@ -158,7 +148,7 @@ func (im IBCMiddleware) handleGenesisTransfers(
 
 	l.Info("Registered denom meta data from genesis transfer.")
 
-	return delayedacktypes.SkipContext(ctx), nil
+	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
 func getMemo(packet channeltypes.Packet) (memo, error) {
