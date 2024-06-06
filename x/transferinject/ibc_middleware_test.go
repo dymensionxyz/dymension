@@ -25,10 +25,15 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 		rollappKeeper types.RollappKeeper
 		bankKeeper    types.BankKeeper
 	}
+	type args struct {
+		destinationPort    string
+		destinationChannel string
+		data               *transfertypes.FungibleTokenPacketData
+	}
 	tests := []struct {
 		name         string
 		fields       fields
-		data         *transfertypes.FungibleTokenPacketData
+		args         args
 		wantSentData []byte
 		wantErr      error
 	}{
@@ -43,8 +48,12 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 					returnMetadata: validDenomMetadata,
 				},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+				},
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
@@ -61,9 +70,13 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 					returnMetadata: validDenomMetadata,
 				},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
-				Memo:  "thanks for the sweater, grandma!",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+					Memo:  "thanks for the sweater, grandma!",
+				},
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
@@ -74,9 +87,13 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 			fields: fields{
 				ICS4Wrapper: &mockICS4Wrapper{},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
-				Memo:  `{"transferinject":{}}`,
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+					Memo:  `{"transferinject":{}}`,
+				},
 			},
 			wantSentData: []byte(""),
 			wantErr:      types.ErrMemoTransferInjectAlreadyExists,
@@ -88,8 +105,12 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 					err: errortypes.ErrInvalidRequest,
 				},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+				},
 			},
 			wantSentData: []byte(""),
 			wantErr:      errortypes.ErrInvalidRequest,
@@ -99,13 +120,38 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 				ICS4Wrapper:   &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
-				Memo:  "user memo",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+					Memo:  "user memo",
+				},
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
 				Memo:  "user memo",
+			}),
+		}, {
+			name: "send unaltered: receiver chain is source",
+			fields: fields{
+				ICS4Wrapper: &mockICS4Wrapper{},
+				rollappKeeper: &mockRollappKeeper{
+					returnRollapp: &rollapptypes.Rollapp{},
+				},
+				bankKeeper: mockBankKeeper{
+					returnMetadata: validDenomMetadata,
+				},
+			},
+			args: args{
+				destinationPort:    "transfer",
+				destinationChannel: "channel-56",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "transfer/channel-56/alex",
+				},
+			},
+			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
+				Denom: "transfer/channel-56/alex",
 			}),
 		}, {
 			name: "send unaltered: denom metadata already in rollapp",
@@ -117,8 +163,12 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 					},
 				},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+				},
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
@@ -132,8 +182,12 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 				},
 				bankKeeper: mockBankKeeper{},
 			},
-			data: &transfertypes.FungibleTokenPacketData{
-				Denom: "adym",
+			args: args{
+				destinationPort:    "port",
+				destinationChannel: "channel",
+				data: &transfertypes.FungibleTokenPacketData{
+					Denom: "adym",
+				},
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
@@ -144,13 +198,13 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := transferinject.NewIBCSendMiddleware(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
-			data := types.ModuleCdc.MustMarshalJSON(tt.data)
+			data := types.ModuleCdc.MustMarshalJSON(tt.args.data)
 
 			_, err := m.SendPacket(
 				sdk.Context{},
 				&capabilitytypes.Capability{},
-				"transfer",
-				"channel-0",
+				tt.args.destinationPort,
+				tt.args.destinationChannel,
 				clienttypes.Height{},
 				0,
 				data,

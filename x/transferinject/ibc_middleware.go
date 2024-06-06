@@ -69,6 +69,10 @@ func (m *IBCSendMiddleware) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
+	if transfertypes.ReceiverChainIsSource(destinationPort, destinationChannel, packet.Denom) {
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+	}
+
 	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
