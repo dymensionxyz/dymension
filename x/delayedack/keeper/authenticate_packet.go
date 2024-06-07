@@ -59,13 +59,34 @@ func (k Keeper) GetValidTransferData(
 ) (data types.TransferData, err error) {
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	data, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		err = errorsmod.Wrap(err, "unmarshal transfer data")
 		return
 	}
-
-	if data.RollappID == "" {
+	if err := data.ValidateBasic(); err != nil {
+		err = errorsmod.Wrap(err, "validate basic")
+		return
+	}
+	chainID, err := k.chainIDFromPortChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		err = errorsmod.Wrap(err, "chain id from port and channel")
+		return
+	}
+	rollapp, ok := k.GetRollapp(ctx, chainID)
+	if !ok {
+		// no problem, it corresponds to a regular non-rollapp chain
+		return
+	}
+	data.RollappID = chainID
+	if rollapp.ChannelId == "" {
+		err = errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+		return
+	}
+	if rollapp.ChannelId != rollappChannelOnHub {
+		err = errorsmod.Wrapf(
+			rollapptypes.ErrMismatchedChannelID,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+		)
 		return
 	}
 
@@ -76,45 +97,6 @@ func (k Keeper) GetValidTransferData(
 	}
 
 	return
-}
-
-// GetRollappAndTransferDataFromPacket returns a rollapp ID and the data of the transfer
-// The rollappID may be empty if this is a transfer not associated to a rollapp
-func (k Keeper) GetRollappAndTransferDataFromPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	rollappPortOnHub string,
-	rollappChannelOnHub string,
-) (types.TransferData, error) {
-	ret := types.TransferData{}
-
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &ret.FungibleTokenPacketData); err != nil {
-		return types.TransferData{}, err
-	}
-	if err := ret.ValidateBasic(); err != nil {
-		return types.TransferData{}, errorsmod.Wrap(err, "validate basic")
-	}
-	chainID, err := k.chainIDFromPortChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		return ret, errorsmod.Wrap(err, "chain id from port and channel")
-	}
-	rollapp, ok := k.GetRollapp(ctx, chainID)
-	if !ok {
-		// no problem, it corresponds to a regular non-rollapp chain
-		return ret, nil
-	}
-	if rollapp.ChannelId == "" {
-		return ret, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
-	}
-	if rollapp.ChannelId != rollappChannelOnHub {
-		return ret, errorsmod.Wrapf(
-			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
-		)
-	}
-
-	ret.RollappID = chainID
-	return ret, nil
 }
 
 func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
