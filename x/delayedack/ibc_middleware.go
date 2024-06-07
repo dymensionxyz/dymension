@@ -67,7 +67,7 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
-		l.Error("Get valid rollapp and transfer data.", "err", err)
+		l.Error("Get valid rollapp and transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
@@ -100,13 +100,13 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		l.Error("Unmarshal acknowledgement", "err", err)
+		l.Error("Unmarshal acknowledgement.", "err", err)
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
 	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)
 	if err != nil {
-		l.Error("Get valid rollapp and transfer data.", "err", err)
+		l.Error("Get valid rollapp and transfer.", "err", err)
 		return err
 	}
 
@@ -148,7 +148,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 
 	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {
-		l.Error("Get valid rollapp and transfer data.", "err", err)
+		l.Error("Get valid rollapp and transfer.", "err", err)
 		return err
 	}
 

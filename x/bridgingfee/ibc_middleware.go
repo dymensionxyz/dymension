@@ -60,23 +60,19 @@ func (w IBCMiddleware) logger(
 }
 
 func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
+	l := w.logger(ctx, packet, "OnRecvPacket")
+
 	if !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-	logger := ctx.Logger().With(
-		"module", ModuleName,
-		"packet_source", packet.SourcePort,
-		"packet_destination", packet.DestinationPort,
-		"packet_sequence", packet.Sequence)
 
 	transfer, err := w.delayedAckKeeper.ExtractValidTransfer(ctx, packet)
 	if err != nil {
-		logger.Error("Get valid transfer transfer", "err", err)
+		l.Error("Get valid transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	if !transfer.HasRollapp() {
-		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -89,11 +85,10 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
 	err = w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
 	if err == nil {
-		logger.Error("Charge bridging fee.", "err", err)
+		l.Error("Charge bridging fee.", "err", err)
 		// we continue as we don't want the fee charge to fail the transfer in any case
 		fee = sdk.ZeroInt()
 	} else {
-		logger.Debug("Charged bridging fee.", "fee", fee)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				EventTypeBridgingFee,
@@ -101,6 +96,7 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 				sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
 			),
 		)
+		l.Debug("Charged bridging fee.", "fee", fee)
 	}
 
 	// transfer the rest to the original recipient
