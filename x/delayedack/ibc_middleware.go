@@ -72,7 +72,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappID(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -153,7 +153,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappID(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
@@ -240,7 +240,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
-	err = im.Keeper.ValidateRollappId(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappID(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
 		return err
