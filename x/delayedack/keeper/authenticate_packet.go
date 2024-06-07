@@ -108,13 +108,23 @@ func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(c
 	}
 
 	/*
-		TODO: Support trustless sequencer.
-			Sergi quote:
-				"""
-				Get the sequencer from the latest state info update and check the validator set hash
-				from the headers match with the sequencer for the raID
-				As the assumption the sequencer is honest we don't check the packet proof height.
-				"""
+			TODO: Support trustless sequencer.
+				Ask Sergi for help, also see https://github.com/dymensionxyz/research/issues/258#issue-2152850199
+					"""
+					This solution is with the following assumptions:
+						1. The sequencer is honest.
+						2. The sequencer doesn't change (i.e unbond).
+						In that case we can take the matching consensus state for the packet height and validate
+		 				the signature pubKey against the current active sequencer on the hub (assuming sequencer
+						hasn't changed). Assuming the sequencer is honest it won't create a malicious chain with
+						invalid headers and at least a 3rd party can't pretend to be the rollapp chain.
+					"""
+				Sergi quote:
+					"""
+					Get the sequencer from the latest state info update and check the validator set hash
+					from the headers match with the sequencer for the raID
+					As the assumption the sequencer is honest we don't check the packet proof height.
+					"""
 	*/
 	sequencerID, latestSequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, raID)
 	if err != nil {
