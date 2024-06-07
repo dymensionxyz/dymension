@@ -2,6 +2,10 @@ package keeper
 
 import (
 	"bytes"
+	"fmt"
+
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
@@ -12,11 +16,11 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 
-	"github.com/cosmos/cosmos-sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ValidateRollappID checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
-func (k Keeper) ValidateRollappID(ctx types.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
+func (k Keeper) ValidateRollappID(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
@@ -45,7 +49,7 @@ func (k Keeper) ValidateRollappID(ctx types.Context, raID, rollappPortOnHub stri
 }
 
 // getLatestSequencerPubKey returns the *hash* of the pub key of the latest validator
-func (k Keeper) getLatestSequencerPubKey(ctx types.Context, rollappID string) (string, []byte, error) {
+func (k Keeper) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
 	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
 		return "", nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
@@ -63,7 +67,7 @@ func (k Keeper) getLatestSequencerPubKey(ctx types.Context, rollappID string) (s
 }
 
 // getNextValidatorsHash returns the tendermint consensus state next validators hash for the latest client height associated to the channel
-func (k Keeper) getNextValidatorsHash(ctx types.Context, portID string, channelID string) ([]byte, error) {
+func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID string) ([]byte, error) {
 	conn, err := k.getConnectionEnd(ctx, portID, channelID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get connection end")
@@ -96,7 +100,7 @@ func (k Keeper) getNextValidatorsHash(ctx types.Context, portID string, channelI
 	return tmConsensusState.NextValidatorsHash, nil
 }
 
-func (k Keeper) getConnectionEnd(ctx types.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
+func (k Keeper) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
 		return conntypes.ConnectionEnd{}, errorsmod.Wrap(channeltypes.ErrChannelNotFound, channelID)
@@ -107,4 +111,48 @@ func (k Keeper) getConnectionEnd(ctx types.Context, portID string, channelID str
 		return conntypes.ConnectionEnd{}, errorsmod.Wrap(conntypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 	return connectionEnd, nil
+}
+
+// ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
+func (k Keeper) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
+	// no-op if the packet is not a fungible token packet
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+		return "", nil, err
+	}
+	// Check if the packet is destined for a rollapp
+	chainID, err := k.extractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		return "", &data, err
+	}
+	rollapp, found := k.GetRollapp(ctx, chainID)
+	if !found {
+		return "", &data, nil
+	}
+	if rollapp.ChannelId == "" {
+		return "", &data, errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+	}
+	// check if the channelID matches the rollappID's channelID
+	if rollapp.ChannelId != rollappChannelOnHub {
+		return "", &data, errorsmod.Wrapf(
+			rollapptypes.ErrMismatchedChannelID,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+		)
+	}
+
+	return chainID, &data, nil
+}
+
+func (k Keeper) extractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
+	if err != nil {
+		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
+	}
+
+	tmClientState, ok := clientState.(*ibctmtypes.ClientState)
+	if !ok {
+		return "", nil
+	}
+
+	return tmClientState.ChainId, nil
 }
