@@ -176,12 +176,12 @@ func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	return nil
 }
 
-func (k Keeper) GetValidTransferDataWithFinalizationInfo(
+func (k Keeper) GetValidTransferWithFinalizationInfo(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
-	transferData, err := k.ExtractValidTransfer(ctx, packet)
+	transferData, err := k.GetValidTransfer(ctx, packet)
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
 	}

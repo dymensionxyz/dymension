@@ -20,7 +20,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (k Keeper) ExtractValidTransfer(
+func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) (data types.TransferData, err error) {
