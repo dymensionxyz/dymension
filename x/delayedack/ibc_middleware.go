@@ -69,13 +69,13 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	data, finalized, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	data, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if data.RollappID == "" || finalized {
+	if data.RollappID == "" || data.Finalized {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -85,7 +85,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
-		ProofHeight: proofHeight,
+		ProofHeight: data.ProofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
 
@@ -122,13 +122,13 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, finalized, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_ACK)
+	data, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_ACK)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return err
 	}
 
-	if data.RollappID == "" || finalized {
+	if data.RollappID == "" || data.Finalized {
 		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	// Run the underlying app's OnAcknowledgementPacket callback
@@ -146,7 +146,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		Acknowledgement: acknowledgement,
 		Status:          commontypes.Status_PENDING,
 		Relayer:         relayer,
-		ProofHeight:     proofHeight,
+		ProofHeight:     data.ProofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
 	}
 	w.Keeper.SetRollappPacket(ctx, rollappPacket)
@@ -180,13 +180,13 @@ func (w IBCMiddleware) OnTimeoutPacket(
 
 	l := w.logger(ctx, packet, "OnTimeoutPacket")
 
-	data, finalized, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
+	data, err := w.GetValidRollappAndTransferData(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return err
 	}
 
-	if data.RollappID == "" || finalized {
+	if data.RollappID == "" || data.Finalized {
 		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
@@ -204,7 +204,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
-		ProofHeight: proofHeight,
+		ProofHeight: data.ProofHeight,
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
 	w.Keeper.SetRollappPacket(ctx, rollappPacket)
@@ -226,7 +226,7 @@ func (w IBCMiddleware) GetValidRollappAndTransferData(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
-) (data types.TransferData, finalized bool, err error) {
+) (data types.TransferData, err error) {
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
 	data, err = w.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
