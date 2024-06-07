@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
@@ -22,7 +23,8 @@ import (
 
 // GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id,
 // if the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
-// agrees. If it does,
+// agrees.
+// If packet has come from the canonical channel, we must
 func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -86,7 +88,8 @@ func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID
 	return tmState.ChainId, nil
 }
 
-// validateRollappID checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
+// validateRollappID checks that the rollapp id from the ibc connection matches the rollapp,
+// checking the sequencer registered with the consensus state validator set
 func (k Keeper) validateRollappID(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
@@ -105,7 +108,8 @@ func (k Keeper) validateRollappID(ctx sdk.Context, raID, rollappPortOnHub string
 		return errorsmod.Wrap(err, "get latest sequencer pub key")
 	}
 
-	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the raID chain
+	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer.
+	// If its true it means the chain corresponds to the raID chain
 	if !bytes.Equal(nextValidatorsHash, sequencerPubKeyHash) {
 		return errorsmod.Wrapf(
 			gerr.ErrUnauthenticated,
@@ -168,14 +172,13 @@ func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 }
 
 func (k Keeper) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
-	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !found {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(channeltypes.ErrChannelNotFound, channelID)
+	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !ok {
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
 	}
-	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
-
-	if !found {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(conntypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+	conn, ok := k.connectionKeeper.GetConnection(ctx, ch.ConnectionHops[0])
+	if !ok {
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
 	}
-	return connectionEnd, nil
+	return conn, nil
 }
