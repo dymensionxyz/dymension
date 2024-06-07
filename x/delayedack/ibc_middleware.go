@@ -90,7 +90,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	proofHeight, err := w.GetProofHeight(ctx, commontypes.RollappPacket_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := w.GetPacketProofHeight(ctx, commontypes.RollappPacket_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		l.Error("Get proof height from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -169,7 +169,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	proofHeight, err := w.GetProofHeight(ctx, commontypes.RollappPacket_ON_ACK, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := w.GetPacketProofHeight(ctx, commontypes.RollappPacket_ON_ACK, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		l.Error("get proof height from packet", "err", err)
 		return err
@@ -252,7 +252,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	proofHeight, err := w.GetProofHeight(ctx, commontypes.RollappPacket_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	proofHeight, err := w.GetPacketProofHeight(ctx, commontypes.RollappPacket_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
 		l.Error("Get proof height from packet.", "err", err)
 		return err
@@ -300,9 +300,9 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	return nil
 }
 
-// GetProofHeight returns the proof height of the packet
+// GetPacketProofHeight returns the proof height of the packet
 // TODO: should probably be a panic ('must')
-func (w IBCMiddleware) GetProofHeight(
+func (w IBCMiddleware) GetPacketProofHeight(
 	ctx sdk.Context,
 	packetType commontypes.RollappPacket_Type,
 	rollappPortOnHub string,
