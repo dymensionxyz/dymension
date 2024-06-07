@@ -160,6 +160,7 @@ func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 		return nil, errorsmod.Wrap(err, "get client state")
 	}
 
+	// TODO: see todos in ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer for discussion of latest height
 	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
 	if !ok {
 		return nil, errors.Join(gerr.ErrNotFound, clienttypes.ErrConsensusStateNotFound)
