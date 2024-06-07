@@ -109,8 +109,6 @@ func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(c
 
 	/*
 		TODO: Support trustless sequencer.
-
-
 			Sergi quote:
 				"""
 				Get the sequencer from the latest state info update and check the validator set hash
