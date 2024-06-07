@@ -246,23 +246,23 @@ func (w IBCMiddleware) OnTimeoutPacket(
 
 	err = w.Keeper.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		l.Error("validate rollappID", "rollappID", data.RollappID, "err", err)
+		l.Error("Validate rollappID.", "rollappID", data.RollappID, "err", err)
 		return err
 	}
 
 	proofHeight, err := w.GetProofHeight(ctx, commontypes.RollappPacket_ON_TIMEOUT, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
-		l.Error("get proof height from packet", "err", err)
+		l.Error("Get proof height from packet.", "err", err)
 		return err
 	}
 	finalized, err := w.CheckIfFinalized(ctx, data.RollappID, proofHeight)
 	if err != nil {
-		l.Error("check if packet is finalized", "err", err)
+		l.Error("Check if packet is finalized.", "err", err)
 		return err
 	}
 
 	if finalized {
-		l.Debug("Skipping IBC transfer OnTimeoutPacket as the packet proof height is already finalized")
+		l.Debug("Skipping because packet proof height is already finalized")
 		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
