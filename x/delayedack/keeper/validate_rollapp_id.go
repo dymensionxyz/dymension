@@ -16,7 +16,7 @@ import (
 )
 
 // ValidateRollappID checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
-func (k Keeper) ValidateRollappID(ctx types.Context, rollappID, rollappPortOnHub string, rollappChannelOnHub string) error {
+func (k Keeper) ValidateRollappID(ctx types.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
@@ -27,18 +27,18 @@ func (k Keeper) ValidateRollappID(ctx types.Context, rollappID, rollappPortOnHub
 	}
 
 	// Get the sequencer from the latest state info update and check the validator set hash
-	// from the headers match with the sequencer for the rollappID
+	// from the headers match with the sequencer for the raID
 	// As the assumption the sequencer is honest we don't check the packet proof height.
-	sequencerID, sequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, rollappID)
+	sequencerID, sequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, raID)
 	if err != nil {
 		return errorsmod.Wrap(err, "get latest sequencer pub key")
 	}
 
-	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollappID chain
+	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the raID chain
 	if !bytes.Equal(nextValidatorsHash, sequencerPubKeyHash) {
 		return errorsmod.Wrapf(
 			gerr.ErrUnauthenticated,
-			"consensus state does not match: consensus state validators: %x, rollappID sequencer: %x", nextValidatorsHash, sequencerID)
+			"consensus state does not match: consensus state validators: %x, raID sequencer: %x", nextValidatorsHash, sequencerID)
 	}
 	return nil
 }
