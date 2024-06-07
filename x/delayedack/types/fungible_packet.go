@@ -23,6 +23,10 @@ type TransferDataWithFinalization struct {
 	Finalized bool
 }
 
+func (d TransferData) HasRollapp() bool {
+	return d.RollappID != ""
+}
+
 // MustAmountInt returns the int amount. Should call validateBasic first!
 func (d TransferData) MustAmountInt() math.Int {
 	x, ok := sdk.NewIntFromString(d.Amount)

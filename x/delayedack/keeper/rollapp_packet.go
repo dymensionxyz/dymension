@@ -181,7 +181,7 @@ func (k Keeper) GetValidTransferDataWithFinalizationInfo(
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
-	transferData, err := k.GetValidTransferData(ctx, packet)
+	transferData, err := k.ExtractValidTransfer(ctx, packet)
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
 	}

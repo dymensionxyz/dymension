@@ -19,14 +19,12 @@ import (
 
 var _ porttypes.Middleware = &IBCMiddleware{}
 
-// IBCMiddleware implements the ICS26 callbacks
 type IBCMiddleware struct {
 	porttypes.IBCModule
 	*keeper.Keeper
 	raKeeper rollappkeeper.Keeper
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
 	return IBCMiddleware{
 		IBCModule: app,
@@ -66,23 +64,23 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	data, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
+	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if data.RollappID == "" || data.Finalized {
+	if !transfer.HasRollapp() || transfer.Finalized {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	// Save the packet data to the store for later processing
+	// Save the packet transfer to the store for later processing
 	rollappPacket := commontypes.RollappPacket{
-		RollappId:   data.RollappID,
+		RollappId:   transfer.RollappID,
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
-		ProofHeight: data.ProofHeight,
+		ProofHeight: transfer.ProofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
 
@@ -93,7 +91,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
 
-	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, data.FungibleTokenPacketData)
+	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -119,13 +117,13 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	data, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)
+	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_ACK)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return err
 	}
 
-	if data.RollappID == "" || data.Finalized {
+	if !transfer.HasRollapp() || transfer.Finalized {
 		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 	// Run the underlying app's OnAcknowledgementPacket callback
@@ -136,14 +134,14 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	if err != nil {
 		return err
 	}
-	// Save the packet data to the store for later processing
+	// Save the packet transfer to the store for later processing
 	rollappPacket := commontypes.RollappPacket{
-		RollappId:       data.RollappID,
+		RollappId:       transfer.RollappID,
 		Packet:          &packet,
 		Acknowledgement: acknowledgement,
 		Status:          commontypes.Status_PENDING,
 		Relayer:         relayer,
-		ProofHeight:     data.ProofHeight,
+		ProofHeight:     transfer.ProofHeight,
 		Type:            commontypes.RollappPacket_ON_ACK,
 	}
 	w.Keeper.SetRollappPacket(ctx, rollappPacket)
@@ -156,7 +154,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
 	case *channeltypes.Acknowledgement_Error:
-		err = w.eIBCDemandOrderHandler(ctx, rollappPacket, data.FungibleTokenPacketData)
+		err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 		if err != nil {
 			return err
 		}
@@ -177,13 +175,13 @@ func (w IBCMiddleware) OnTimeoutPacket(
 
 	l := w.logger(ctx, packet, "OnTimeoutPacket")
 
-	data, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
+	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer data.", "err", err)
 		return err
 	}
 
-	if data.RollappID == "" || data.Finalized {
+	if !transfer.HasRollapp() || transfer.Finalized {
 		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
@@ -195,13 +193,13 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	if err != nil {
 		return err
 	}
-	// Save the packet data to the store for later processing
+	// Save the packet transfer to the store for later processing
 	rollappPacket := commontypes.RollappPacket{
-		RollappId:   data.RollappID,
+		RollappId:   transfer.RollappID,
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
-		ProofHeight: data.ProofHeight,
+		ProofHeight: transfer.ProofHeight,
 		Type:        commontypes.RollappPacket_ON_TIMEOUT,
 	}
 	w.Keeper.SetRollappPacket(ctx, rollappPacket)
@@ -211,7 +209,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
 
-	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, data.FungibleTokenPacketData)
+	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
 		return err
 	}

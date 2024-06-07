@@ -2,12 +2,13 @@ package bridging_fee
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	transferapp "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	delayedaackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 const (
@@ -16,12 +17,11 @@ const (
 
 var _ porttypes.Middleware = &BridgingFeeMiddleware{}
 
-// BridgingFeeMiddleware implements the ICS26 callbacks
-// The middleware is responsible for charging a bridging fee on transfers coming from rollapps
+// BridgingFeeMiddleware is responsible for charging a bridging fee on transfers coming from rollapps
 // The actual charge happens on the packet finalization
 // based on ADR: https://www.notion.so/dymension/ADR-x-Bridging-Fee-Middleware-7ba8c191373f43ce81782fc759913299?pvs=4
 type BridgingFeeMiddleware struct {
-	transfer.IBCModule
+	transferapp.IBCModule
 	porttypes.ICS4Wrapper
 
 	delayedAckKeeper delayedaackkeeper.Keeper
@@ -29,9 +29,8 @@ type BridgingFeeMiddleware struct {
 	feeModuleAddr    sdk.AccAddress
 }
 
-// NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
 func NewIBCMiddleware(
-	transfer transfer.IBCModule,
+	transfer transferapp.IBCModule,
 	channelKeeper porttypes.ICS4Wrapper,
 	keeper delayedaackkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
@@ -46,6 +45,20 @@ func NewIBCMiddleware(
 	}
 }
 
+func (im BridgingFeeMiddleware) logger(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	method string,
+) log.Logger {
+	return ctx.Logger().With(
+		"module", ModuleName,
+		"packet_source_port", packet.SourcePort,
+		"packet_destination_port", packet.DestinationPort,
+		"packet_sequence", packet.Sequence,
+		"method", method,
+	)
+}
+
 func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if !im.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -56,20 +69,20 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
-	data, err := im.delayedAckKeeper.GetValidTransferData(ctx, packet)
+	transfer, err := im.delayedAckKeeper.ExtractValidTransfer(ctx, packet)
 	if err != nil {
-		logger.Error("Get valid transfer data", "err", err)
+		logger.Error("Get valid transfer transfer", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if data.RollappID == "" {
+	if !transfer.HasRollapp() {
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// Use the packet as a basis for a fee transfer
-	feeData := data
-	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, data.MustAmountInt())
+	feeData := transfer
+	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, transfer.MustAmountInt())
 	feeData.Amount = fee.String()
 	feeData.Receiver = im.feeModuleAddr.String()
 
@@ -85,13 +98,13 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 			sdk.NewEvent(
 				EventTypeBridgingFee,
 				sdk.NewAttribute(AttributeKeyFee, fee.String()),
-				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
+				sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
 			),
 		)
 	}
 
 	// transfer the rest to the original recipient
-	data.Amount = data.MustAmountInt().Sub(fee).String()
-	packet.Data = data.GetBytes()
+	transfer.Amount = transfer.MustAmountInt().Sub(fee).String()
+	packet.Data = transfer.GetBytes()
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
