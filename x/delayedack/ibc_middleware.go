@@ -144,16 +144,17 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(types.ErrUnknownRequest, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
 	}
 
-	rollappID, transferPacketData, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	data, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Failed to extract rollapp id from channel", "err", err)
+		logger.Error("Get transfer data from packet.", "err", err)
 		return err
 	}
 
-	if rollappID == "" {
-		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain")
+	if data.RollappID == "" {
+		logger.Debug("Skipping IBC transfer OnAcknowledgementPacket for non-rollapp chain.")
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
+
 	err = im.Keeper.ValidateRollappID(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
@@ -230,14 +231,14 @@ func (im IBCMiddleware) OnTimeoutPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := packet.SourcePort, packet.SourceChannel
 
-	rollappID, transferPacketData, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	data, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Failed to extract rollapp id from channel", "err", err)
+		logger.Error("Get transfer data from packet.", "err", err)
 		return err
 	}
 
-	if rollappID == "" {
-		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain")
+	if data.RollappID == "" {
+		logger.Debug("Skipping IBC transfer OnTimeoutPacket for non-rollapp chain.")
 		return im.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 
