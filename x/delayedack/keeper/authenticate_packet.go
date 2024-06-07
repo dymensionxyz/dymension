@@ -54,7 +54,7 @@ func (k Keeper) GetValidRollappAndTransferData(
 	}
 	data.ProofHeight = height.RevisionHeight
 
-	finalizedHeight, err := k.GetRollappFinalizedHeight(ctx, data.RollappID)
+	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.RollappID)
 	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
 		err = errorsmod.Wrap(err, "get rollapp finalized height")
 		return
