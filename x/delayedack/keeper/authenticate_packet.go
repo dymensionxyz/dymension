@@ -20,7 +20,12 @@ import (
 )
 
 // ExtractRollappIDAndTransferPacket extracts the rollapp ID from the packet
-func (k Keeper) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channeltypes.Packet, rollappPortOnHub string, rollappChannelOnHub string) (string, *transfertypes.FungibleTokenPacketData, error) {
+func (k Keeper) ExtractRollappIDAndTransferPacket(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	rollappPortOnHub string,
+	rollappChannelOnHub string,
+) (string, *transfertypes.FungibleTokenPacketData, error) {
 	// no-op if the packet is not a fungible token packet
 	var data transfertypes.FungibleTokenPacketData
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
