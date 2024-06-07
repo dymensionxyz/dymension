@@ -59,6 +59,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	if !w.Keeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
+
 	if types.Skip(ctx) {
 		l.Info("Skipping because of skip delay ctx.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -91,10 +92,11 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	acknowledgement []byte,
 	relayer sdk.AccAddress,
 ) error {
+	l := w.logger(ctx, packet, "OnAcknowledgementPacket")
+
 	if !w.Keeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
-	l := w.logger(ctx, packet, "OnAcknowledgementPacket")
 
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -111,6 +113,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	if !transfer.HasRollapp() || transfer.Finalized {
 		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
+
 	// Run the underlying app's OnAcknowledgementPacket callback
 	// with cache context to avoid state changes and report the acknowledgement result.
 	// Only save the packet if the underlying app's callback succeeds.
@@ -125,10 +128,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
 	case *channeltypes.Acknowledgement_Error:
-		err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
-		if err != nil {
-			return err
-		}
+		return w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	}
 
 	return nil
@@ -140,11 +140,11 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) error {
+	l := w.logger(ctx, packet, "OnTimeoutPacket")
+
 	if !w.Keeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
-
-	l := w.logger(ctx, packet, "OnTimeoutPacket")
 
 	transfer, err := w.GetValidTransferDataWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {
@@ -167,12 +167,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 
 	rollappPacket := w.getSavedPacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_TIMEOUT, nil)
 
-	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 }
 
 // savePacket the packet to the store for later processing and returns it
