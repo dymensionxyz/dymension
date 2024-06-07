@@ -1,8 +1,6 @@
 package delayedack
 
 import (
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
@@ -17,7 +15,6 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ porttypes.Middleware = &IBCMiddleware{}
@@ -220,45 +217,4 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	}
 
 	return nil
-}
-
-func (w IBCMiddleware) GetValidRollappAndTransferData(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	packetType commontypes.RollappPacket_Type,
-) (data types.TransferData, err error) {
-	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-
-	data, err = w.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
-		return
-	}
-
-	if data.RollappID == "" {
-		return
-	}
-
-	err = w.Keeper.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		err = errorsmod.Wrap(err, "validate rollapp id")
-		return
-	}
-
-	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
-	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
-	if !ok {
-		// TODO: should probably be a panic
-		err = errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
-		return
-	}
-	data.ProofHeight = height.RevisionHeight
-
-	finalizedHeight, err := w.Keeper.GetRollappFinalizedHeight(ctx, data.RollappID)
-	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
-		err = errorsmod.Wrap(err, "get rollapp finalized height")
-		return
-	}
-	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
-	return
 }

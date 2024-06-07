@@ -30,7 +30,13 @@ type BridgingFeeMiddleware struct {
 }
 
 // NewIBCMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCMiddleware(transfer transfer.IBCModule, channelKeeper porttypes.ICS4Wrapper, keeper delayedaackkeeper.Keeper, transferKeeper transferkeeper.Keeper, feeModuleAddr sdk.AccAddress) *BridgingFeeMiddleware {
+func NewIBCMiddleware(
+	transfer transfer.IBCModule,
+	channelKeeper porttypes.ICS4Wrapper,
+	keeper delayedaackkeeper.Keeper,
+	transferKeeper transferkeeper.Keeper,
+	feeModuleAddr sdk.AccAddress,
+) *BridgingFeeMiddleware {
 	return &BridgingFeeMiddleware{
 		IBCModule:        transfer,
 		ICS4Wrapper:      channelKeeper,

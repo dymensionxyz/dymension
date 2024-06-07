@@ -3,6 +3,8 @@ package keeper
 import (
 	"bytes"
 
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -19,6 +21,47 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
+
+func (k Keeper) GetValidRollappAndTransferData(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	packetType commontypes.RollappPacket_Type,
+) (data types.TransferData, err error) {
+	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
+
+	data, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
+		return
+	}
+
+	if data.RollappID == "" {
+		return
+	}
+
+	err = k.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		err = errorsmod.Wrap(err, "validate rollapp id")
+		return
+	}
+
+	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
+	if !ok {
+		// TODO: should probably be a panic
+		err = errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		return
+	}
+	data.ProofHeight = height.RevisionHeight
+
+	finalizedHeight, err := k.GetRollappFinalizedHeight(ctx, data.RollappID)
+	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+		err = errorsmod.Wrap(err, "get rollapp finalized height")
+		return
+	}
+	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
+	return
+}
 
 // GetRollappAndTransferDataFromPacket returns a rollapp ID and the data of the transfer
 // The rollappID may be empty if this is a transfer not associated to a rollapp
