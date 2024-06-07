@@ -11,25 +11,20 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
-func (k *Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHub string, rollappChannelOnHub string) error {
+func (k Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollappID
 	// As the assumption the sequencer is honest we don't check the packet proof height.
-	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
-	if !ok {
-		return errors.Wrap(gerr.ErrNotFound, "latest state info")
-	}
-	sequencerID := state.GetSequencer()
-	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
-	if !ok {
-		return errors.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
+	seqPubKeyHash, err := k.getLatestSequencerPubKey(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "get latest sequencer pub key")
 	}
 
 	// Compare the validators set hash of the consensus state to the sequencer hash.
@@ -42,19 +37,30 @@ func (k *Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHu
 		return err
 	}
 
-	// Gets the validator set hash made out of the pub key for the sequencer
-	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
-	if err != nil {
-		return err
-	}
-
 	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollappID chain
 	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollappID sequencer %x",
 			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
-		return errors.Wrap(delayedacktypes.ErrMismatchedSequencer, errMsg)
+		return errorsmod.Wrap(delayedacktypes.ErrMismatchedSequencer, errMsg)
 	}
 	return nil
+}
+
+func (k Keeper) getLatestSequencerPubKey(ctx types.Context, rollappID string) ([]byte, error) {
+	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
+	if !ok {
+		return nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
+	}
+	sequencerID := state.GetSequencer()
+	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
+	if !ok {
+		return nil, errorsmod.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
+	}
+	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
+	if err != nil {
+		return nil, err
+	}
+	return seqPubKeyHash, nil
 }
 
 // getTmConsensusState returns the tendermint consensus state for the channel for specific height
@@ -77,7 +83,7 @@ func (k Keeper) getTmConsensusState(ctx types.Context, portID string, channelID 
 	}
 	tmConsensusState, ok := consensusState.(*ibctmtypes.ConsensusState)
 	if !ok {
-		return nil, errors.Wrapf(delayedacktypes.ErrInvalidType, "expected tendermint consensus state, got %T", consensusState)
+		return nil, errorsmod.Wrapf(delayedacktypes.ErrInvalidType, "expected tendermint consensus state, got %T", consensusState)
 	}
 	return tmConsensusState, nil
 }
@@ -85,12 +91,12 @@ func (k Keeper) getTmConsensusState(ctx types.Context, portID string, channelID 
 func (k Keeper) getConnectionEnd(ctx types.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
 	channel, found := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !found {
-		return conntypes.ConnectionEnd{}, errors.Wrap(channeltypes.ErrChannelNotFound, channelID)
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(channeltypes.ErrChannelNotFound, channelID)
 	}
 	connectionEnd, found := k.connectionKeeper.GetConnection(ctx, channel.ConnectionHops[0])
 
 	if !found {
-		return conntypes.ConnectionEnd{}, errors.Wrap(conntypes.ErrConnectionNotFound, channel.ConnectionHops[0])
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(conntypes.ErrConnectionNotFound, channel.ConnectionHops[0])
 	}
 	return connectionEnd, nil
 }
