@@ -65,10 +65,6 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 
 	// TODO: missing the 'validate rollapp id' here? Exploitable?
 
-	if err := data.ValidateBasic(); err != nil { // TODO: double check ok, need to wrap?
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
 	// Use the packet as a basis for a fee transfer
 	feeData := data
 	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, data.MustAmountInt())

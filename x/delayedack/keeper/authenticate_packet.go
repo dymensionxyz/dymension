@@ -33,6 +33,9 @@ func (k Keeper) GetRollappAndTransferDataFromPacket(
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &ret.FungibleTokenPacketData); err != nil {
 		return types.TransferData{}, err
 	}
+	if err := ret.ValidateBasic(); err != nil {
+		return types.TransferData{}, errorsmod.Wrap(err, "validate basic")
+	}
 	chainID, err := k.chainIDFromPortChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		return ret, errorsmod.Wrap(err, "chain id from port and channel")
