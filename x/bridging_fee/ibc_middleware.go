@@ -56,11 +56,9 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		"packet_destination", packet.DestinationPort,
 		"packet_sequence", packet.Sequence)
 
-	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-
-	data, err := im.delayedAckKeeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	data, err := im.delayedAckKeeper.GetValidTransferData(ctx, packet)
 	if err != nil {
-		logger.Error("Get transfer data from packet.", "err", err)
+		logger.Error("Get valid transfer data", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
@@ -68,8 +66,6 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
-
-	// TODO: missing the 'validate rollapp id' here? Exploitable?
 
 	// Use the packet as a basis for a fee transfer
 	feeData := data
