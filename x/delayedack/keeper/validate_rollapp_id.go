@@ -19,14 +19,6 @@ import (
 
 // ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
 func (k Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHub string, rollappChannelOnHub string) error {
-	// Get the sequencer from the latest state info update and check the validator set hash
-	// from the headers match with the sequencer for the rollappID
-	// As the assumption the sequencer is honest we don't check the packet proof height.
-	seqPubKeyHash, err := k.getLatestSequencerPubKey(ctx, rollappID)
-	if err != nil {
-		return errorsmod.Wrap(err, "get latest sequencer pub key")
-	}
-
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
@@ -37,30 +29,38 @@ func (k Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHub
 		return err
 	}
 
+	// Get the sequencer from the latest state info update and check the validator set hash
+	// from the headers match with the sequencer for the rollappID
+	// As the assumption the sequencer is honest we don't check the packet proof height.
+	sequencerID, sequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, rollappID)
+	if err != nil {
+		return errorsmod.Wrap(err, "get latest sequencer pub key")
+	}
+
 	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer. If its true it means the chain corresponds to the rollappID chain
-	if !bytes.Equal(tmConsensusState.NextValidatorsHash, seqPubKeyHash) {
+	if !bytes.Equal(tmConsensusState.NextValidatorsHash, sequencerPubKeyHash) {
 		errMsg := fmt.Sprintf("consensus state does not match: consensus state validators %x, rollappID sequencer %x",
-			tmConsensusState.NextValidatorsHash, stateInfo.Sequencer)
+			tmConsensusState.NextValidatorsHash, sequencerID)
 		return errorsmod.Wrap(delayedacktypes.ErrMismatchedSequencer, errMsg)
 	}
 	return nil
 }
 
-func (k Keeper) getLatestSequencerPubKey(ctx types.Context, rollappID string) ([]byte, error) {
+func (k Keeper) getLatestSequencerPubKey(ctx types.Context, rollappID string) (string, []byte, error) {
 	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
-		return nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
+		return "", nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
 	}
 	sequencerID := state.GetSequencer()
 	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
 	if !ok {
-		return nil, errorsmod.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
+		return "", nil, errorsmod.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
 	}
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	return seqPubKeyHash, nil
+	return sequencerID, seqPubKeyHash, nil
 }
 
 // getTmConsensusState returns the tendermint consensus state for the channel for specific height
