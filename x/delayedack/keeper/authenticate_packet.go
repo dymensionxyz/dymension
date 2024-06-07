@@ -21,10 +21,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id,
-// if the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
-// agrees.
-// If packet has come from the canonical channel, we also
+// GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
+// If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
+// agrees is indeed the channel we are receiving from.
+// If packet HAS come from the canonical channel, we also
 func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -109,7 +109,8 @@ func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(c
 
 	/*
 		TODO: Support trustless sequencer.
-			Ask Sergi for help
+
+
 			Sergi quote:
 				"""
 				Get the sequencer from the latest state info update and check the validator set hash
