@@ -24,7 +24,7 @@ import (
 // GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id,
 // if the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
 // agrees.
-// If packet has come from the canonical channel, we must
+// If packet has come from the canonical channel, we also
 func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -65,7 +65,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	err = k.validateRollappID(ctx, data.RollappID, packet.DestinationPort, packet.DestinationChannel)
+	err = k.ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx, data.RollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		err = errorsmod.Wrap(err, "validate rollapp id")
 		return
@@ -88,32 +88,44 @@ func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID
 	return tmState.ChainId, nil
 }
 
-// validateRollappID checks that the rollapp id from the ibc connection matches the rollapp,
-// checking the sequencer registered with the consensus state validator set
-func (k Keeper) validateRollappID(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
-	// Compare the validators set hash of the consensus state to the sequencer hash.
-	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
-	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
-	// If the sequencer is changed, then the validation will fail till the new sequencer sends a new state info update.
-	nextValidatorsHash, err := k.getNextValidatorsHash(ctx, rollappPortOnHub, rollappChannelOnHub)
+// ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer checks that the current sequencer' pub key hash for the rollapp
+// actually matches the nextValidators hash in the ibc light client for the rollapp
+//
+// ASSUMPTIONS:
+//
+//	sequencer is fixed, see todo 1
+//	sequencer is valid, see todo 2
+func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
+	/*
+		TODO: Support sequencer changes: we use the latest nextValidators hash, but really we should check the validator set at the light
+			client header corresponding to the last (finalized?) state info, because the sequencer may have changed after that.
+			Currently, if the sequencer were to change suddenly, the light client may change before the state info is updated, and this
+			would resolve to invalid.
+	*/
+	lightClientNextValidatorsHash, err := k.getNextValidatorsHash(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		return errorsmod.Wrap(err, "get next validators hash")
 	}
 
-	// Get the sequencer from the latest state info update and check the validator set hash
-	// from the headers match with the sequencer for the raID
-	// As the assumption the sequencer is honest we don't check the packet proof height.
-	sequencerID, sequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, raID)
+	/*
+		TODO: Support trustless sequencer.
+			Ask Sergi for help
+			Sergi quote:
+				"""
+				Get the sequencer from the latest state info update and check the validator set hash
+				from the headers match with the sequencer for the raID
+				As the assumption the sequencer is honest we don't check the packet proof height.
+				"""
+	*/
+	sequencerID, latestSequencerPubKeyHash, err := k.getLatestSequencerPubKey(ctx, raID)
 	if err != nil {
 		return errorsmod.Wrap(err, "get latest sequencer pub key")
 	}
 
-	// It compares the validator set hash from the consensus state with the one we recreated from the sequencer.
-	// If its true it means the chain corresponds to the raID chain
-	if !bytes.Equal(nextValidatorsHash, sequencerPubKeyHash) {
+	if !bytes.Equal(lightClientNextValidatorsHash, latestSequencerPubKeyHash) {
 		return errorsmod.Wrapf(
 			gerr.ErrUnauthenticated,
-			"consensus state does not match: consensus state validators: %x, raID sequencer: %x", nextValidatorsHash, sequencerID)
+			"consensus state does not match: consensus state validators: %x, raID sequencer: %x", lightClientNextValidatorsHash, sequencerID)
 	}
 
 	return nil
@@ -147,13 +159,6 @@ func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get client state")
 	}
-
-	/*
-		TODO:
-			Person to ask: srene
-			The call to get the client consensus state if we dont pass the latest client height
-			' This can be an issue if the sequencer changes'
-	*/
 
 	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
 	if !ok {
