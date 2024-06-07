@@ -40,11 +40,6 @@ func NewIBCMiddleware(transfer transfer.IBCModule, channelKeeper porttypes.ICS4W
 	}
 }
 
-// GetFeeRecipient returns the address that will receive the bridging fee
-func (im BridgingFeeMiddleware) GetFeeRecipient() sdk.AccAddress {
-	return im.feeModuleAddr
-}
-
 func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	if !im.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -76,7 +71,7 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 	feeData := data
 	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, data.MustAmountInt())
 	feeData.Amount = fee.String()
-	feeData.Receiver = im.GetFeeRecipient().String()
+	feeData.Receiver = im.feeModuleAddr.String()
 
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
 	err = im.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
