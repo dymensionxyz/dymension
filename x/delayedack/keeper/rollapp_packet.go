@@ -1,9 +1,13 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -170,4 +174,34 @@ func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	}
 
 	return nil
+}
+
+func (k Keeper) GetValidTransferDataWithFinalizationInfo(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	packetType commontypes.RollappPacket_Type,
+) (data types.TransferDataWithFinalization, err error) {
+	transferData, err := k.GetValidTransferData(ctx, packet)
+	if err != nil {
+		err = errorsmod.Wrap(err, "get valid transfer data")
+	}
+	data.TransferData = transferData
+
+	packetId := commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
+	if !ok {
+		// TODO: should probably be a panic
+		err = errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		return
+	}
+	data.ProofHeight = height.RevisionHeight
+
+	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.RollappID)
+	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+		err = errorsmod.Wrap(err, "get rollapp finalized height")
+		return
+	}
+	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
+
+	return
 }
