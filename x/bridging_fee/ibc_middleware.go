@@ -63,6 +63,8 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	// TODO: missing the 'validate rollapp id' here? Exploitable?
+
 	if err := data.ValidateBasic(); err != nil { // TODO: double check ok, need to wrap?
 		return channeltypes.NewErrorAcknowledgement(err)
 	}

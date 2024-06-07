@@ -61,32 +61,32 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	rollappID, transferPacketData, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	data, err := im.Keeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Extract rollapp id from packet.", "err", err)
+		logger.Error("Get transfer data from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if rollappID == "" {
-		logger.Debug("Skipping eIBC transfer OnRecvPacket for non-rollapp chain") // TODO: this should say eIBC right?
+	if data.RollappID == "" {
+		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	err = im.Keeper.ValidateRollappID(ctx, rollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = im.Keeper.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Failed to validate rollappID", "rollappID", rollappID, "err", err)
+		logger.Error("Validate rollappID.", "rollappID", data.RollappID, "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	proofHeight, err := im.GetProofHeight(ctx, commontypes.RollappPacket_ON_RECV, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	if err != nil {
-		logger.Error("Failed to get proof height from packet", "err", err)
+		logger.Error("Get proof height from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	finalized, err := im.CheckIfFinalized(ctx, rollappID, proofHeight)
+	finalized, err := im.CheckIfFinalized(ctx, data.RollappID, proofHeight)
 	if err != nil {
-		logger.Error("Failed to check if packet is finalized", "err", err)
+		logger.Error("Check if packet is finalized.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
@@ -97,21 +97,22 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// Save the packet data to the store for later processing
 	rollappPacket := commontypes.RollappPacket{
-		RollappId:   rollappID,
+		RollappId:   data.RollappID,
 		Packet:      &packet,
 		Status:      commontypes.Status_PENDING,
 		Relayer:     relayer,
 		ProofHeight: proofHeight,
 		Type:        commontypes.RollappPacket_ON_RECV,
 	}
+
 	im.Keeper.SetRollappPacket(ctx, rollappPacket)
 
-	logger.Debug("Set rollapp packet",
+	logger.Debug("Set rollapp packet.",
 		"rollappID", rollappPacket.RollappId,
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
 
-	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, data.FungibleTokenPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
