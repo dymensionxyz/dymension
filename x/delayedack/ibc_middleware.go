@@ -211,7 +211,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
 	case *channeltypes.Acknowledgement_Error:
-		err = w.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+		err = w.eIBCDemandOrderHandler(ctx, rollappPacket, data.FungibleTokenPacketData)
 		if err != nil {
 			return err
 		}
