@@ -83,7 +83,7 @@ func (k Keeper) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channe
 		return "", nil, err
 	}
 	// Check if the packet is destined for a rollapp
-	chainID, err := k.ExtractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+	chainID, err := k.extractChainIDFromChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		return "", &data, err
 	}
@@ -105,7 +105,7 @@ func (k Keeper) ExtractRollappIDAndTransferPacket(ctx sdk.Context, packet channe
 	return chainID, &data, nil
 }
 
-func (k Keeper) ExtractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+func (k Keeper) extractChainIDFromChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
 	_, clientState, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
 	if err != nil {
 		return "", fmt.Errorf("failed to extract clientID from channel: %w", err)
