@@ -310,7 +310,7 @@ func (w IBCMiddleware) GetProofHeight(
 	sequence uint64,
 ) (uint64, error) {
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
-	height, ok := types.FromIBCProofContext(ctx, packetId)
+	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
 	if !ok {
 		return 0, errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
 	}
