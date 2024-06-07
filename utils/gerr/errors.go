@@ -9,6 +9,8 @@ import (
 
 const GErrors = "gerr"
 
+// TODO: not ideal to have the sdk errors as the 'last' place in the chain, because they dont' freely convert to grpc codes
+
 var (
 	// uses canonical codes defined here https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
 
