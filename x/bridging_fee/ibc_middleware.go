@@ -1,15 +1,12 @@
 package bridging_fee
 
 import (
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-
 	delayedaackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 )
 
@@ -59,26 +56,24 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-	rollappID, transferPacketData, err := im.delayedAckKeeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+
+	data, err := im.delayedAckKeeper.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
-		logger.Error("Failed to extract rollapp id from packet", "err", err)
+		logger.Error("Get transfer data from packet.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if rollappID == "" {
-		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain")
+	if data.RollappID == "" {
+		logger.Debug("Skipping IBC transfer OnRecvPacket for non-rollapp chain.")
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	// parse the transfer amount
-	transferAmount, ok := sdk.NewIntFromString(transferPacketData.Amount)
-	if !ok {
-		err = errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "parse transfer amount into math.Int")
+	if err := data.ValidateBasic(); err != nil { // TODO: double check ok, need to wrap?
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	// get fee
-	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, transferAmount)
+	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, data.MustAmountInt())
 
 	// update packet data for the fee charge
 	feePacket := *transferPacketData

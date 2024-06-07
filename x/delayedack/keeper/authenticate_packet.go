@@ -20,8 +20,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// ExtractRollappIDAndTransferPacket
-func (k Keeper) ExtractRollappIDAndTransferPacket(
+// GetRollappAndTransferDataFromPacket returns a rollapp ID and the data of the transfer
+// The rollappID may be empty if this is a transfer not associated to a rollapp
+func (k Keeper) GetRollappAndTransferDataFromPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	rollappPortOnHub string,
