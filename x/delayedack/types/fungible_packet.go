@@ -12,6 +12,10 @@ import (
 type TransferData struct {
 	transfertypes.FungibleTokenPacketData
 	RollappID string
+	// Proof height is only be populated if and only if the rollappID is not empty
+	ProofHeight uint64
+	// Finalized is only be populated if and only if the rollappID is not empty
+	Finalized bool
 }
 
 // MustAmountInt returns the int amount. Should call validateBasic first!

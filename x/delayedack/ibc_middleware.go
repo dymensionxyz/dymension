@@ -1,8 +1,6 @@
 package delayedack
 
 import (
-	"errors"
-
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -247,46 +245,20 @@ func (w IBCMiddleware) GetValidRollappAndTransferData(
 		return
 	}
 
-	proofHeight, err := w.GetPacketProofHeight(ctx, packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
-	if err != nil {
-		err = errorsmod.Wrapf(err, "get packet proof height")
-		return
-	}
-
-	finalized, err = w.HeightIsFinalized(ctx, data.RollappID, proofHeight)
-	if err != nil {
-		err = errorsmod.Wrapf(err, "height is finalized")
-		return
-	}
-
-	return
-}
-
-// GetPacketProofHeight returns the proof height of the packet
-// TODO: should probably be a panic ('must')
-func (w IBCMiddleware) GetPacketProofHeight(
-	ctx sdk.Context,
-	packetType commontypes.RollappPacket_Type,
-	rollappPortOnHub string,
-	rollappChannelOnHub string,
-	sequence uint64,
-) (uint64, error) {
-	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
+	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
 	if !ok {
-		return 0, errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		// TODO: should probably be a panic
+		err = errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		return
 	}
-	return height.RevisionHeight, nil
-}
+	data.ProofHeight = height.RevisionHeight
 
-// HeightIsFinalized checks if the packet is finalized
-func (w IBCMiddleware) HeightIsFinalized(ctx sdk.Context, rollappID string, height uint64) (bool, error) {
-	finalizedHeight, err := w.Keeper.GetRollappFinalizedHeight(ctx, rollappID)
-	if errors.Is(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
-		return false, nil
+	finalizedHeight, err := w.Keeper.GetRollappFinalizedHeight(ctx, data.RollappID)
+	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+		err = errorsmod.Wrap(err, "get rollapp finalized height")
+		return
 	}
-	if err != nil {
-		return false, err
-	}
-	return finalizedHeight >= height, nil
+	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
+	return
 }
