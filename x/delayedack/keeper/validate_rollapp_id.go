@@ -13,7 +13,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/types"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 // ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
@@ -78,15 +77,20 @@ func (k Keeper) getNextValidatorsHash(ctx types.Context, portID string, channelI
 
 	/*
 		TODO:
+			Person to ask: srene
+			It fails if now passing the latest client height
+			If the sequencer changes, we
+
+
 	*/
 
-	consensusState, found := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
-	if !found {
+	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
+	if !ok {
 		return nil, clienttypes.ErrConsensusStateNotFound
 	}
 	tmConsensusState, ok := consensusState.(*ibctmtypes.ConsensusState)
 	if !ok {
-		return nil, errorsmod.Wrapf(delayedacktypes.ErrInvalidType, "expected tendermint consensus state, got %T", consensusState)
+		return nil, errorsmod.Wrapf(gerr.ErrInvalidArgument, "expected tendermint consensus state, got: %T", consensusState)
 	}
 	return tmConsensusState.NextValidatorsHash, nil
 }
