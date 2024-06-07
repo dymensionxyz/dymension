@@ -29,24 +29,11 @@ func (k Keeper) GetTransferDataWithFinalizationInfo(
 ) (data types.TransferDataWithFinalization, err error) {
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	var transfer types.TransferData
-	transfer, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	transferData, err := k.GetValidTransferData(ctx, packet)
 	if err != nil {
-		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
-		return
+		err = errorsmod.Wrap(err, "get valid transfer data")
 	}
-
-	if data.RollappID == "" {
-		return
-	}
-
-	err = k.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
-	if err != nil {
-		err = errorsmod.Wrap(err, "validate rollapp id")
-		return
-	}
-
-	data.TransferData = transfer
+	data.TransferData = transferData
 
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
@@ -63,6 +50,31 @@ func (k Keeper) GetTransferDataWithFinalizationInfo(
 		return
 	}
 	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
+	return
+}
+
+func (k Keeper) GetValidTransferData(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+) (data types.TransferData, err error) {
+	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
+
+	data, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
+		return
+	}
+
+	if data.RollappID == "" {
+		return
+	}
+
+	err = k.ValidateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
+	if err != nil {
+		err = errorsmod.Wrap(err, "validate rollapp id")
+		return
+	}
+
 	return
 }
 
