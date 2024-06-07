@@ -9,9 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
-	"github.com/dymensionxyz/dymension/v3/x/bridging_fee"
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -743,7 +744,7 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridging_fee.NewIBCMiddleware(transferMiddleware, app.IBCKeeper.ChannelKeeper, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName))
+	transferStack = bridgingfee.NewIBCMiddleware(transferMiddleware, app.IBCKeeper.ChannelKeeper, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName))
 
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(
 		transferStack,

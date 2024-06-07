@@ -1,4 +1,4 @@
-package bridging_fee
+package bridgingfee
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
