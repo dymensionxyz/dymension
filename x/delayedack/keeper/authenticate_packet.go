@@ -27,15 +27,13 @@ func (k Keeper) GetValidTransferDataWithFinalizationInfo(
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
-	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-
 	transferData, err := k.GetValidTransferData(ctx, packet)
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
 	}
 	data.TransferData = transferData
 
-	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
+	packetId := commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
 	if !ok {
 		// TODO: should probably be a panic
@@ -50,6 +48,7 @@ func (k Keeper) GetValidTransferDataWithFinalizationInfo(
 		return
 	}
 	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
+
 	return
 }
 
@@ -57,40 +56,43 @@ func (k Keeper) GetValidTransferData(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) (data types.TransferData, err error) {
-	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-
 	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
 		err = errorsmod.Wrap(err, "unmarshal transfer data")
 		return
 	}
+
 	if err := data.ValidateBasic(); err != nil {
 		err = errorsmod.Wrap(err, "validate basic")
 		return
 	}
-	chainID, err := k.chainIDFromPortChannel(ctx, rollappPortOnHub, rollappChannelOnHub)
+
+	chainID, err := k.chainIDFromPortChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		err = errorsmod.Wrap(err, "chain id from port and channel")
 		return
 	}
+
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
 	}
+
 	data.RollappID = chainID
 	if rollapp.ChannelId == "" {
 		err = errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
 		return
 	}
-	if rollapp.ChannelId != rollappChannelOnHub {
+
+	if rollapp.ChannelId != packet.DestinationChannel {
 		err = errorsmod.Wrapf(
 			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, rollappChannelOnHub,
+			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
 		)
 		return
 	}
 
-	err = k.validateRollappID(ctx, data.RollappID, rollappPortOnHub, rollappChannelOnHub)
+	err = k.validateRollappID(ctx, data.RollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		err = errorsmod.Wrap(err, "validate rollapp id")
 		return
