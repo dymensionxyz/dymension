@@ -72,33 +72,31 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	// get fee
+	// Use the packet as a basis for a fee transfer
+	feeData := data
 	fee := im.delayedAckKeeper.BridgingFeeFromAmt(ctx, data.MustAmountInt())
-
-	// update packet data for the fee charge
-	feePacket := *transferPacketData
-	feePacket.Amount = fee.String()
-	feePacket.Receiver = im.GetFeeRecipient().String()
+	feeData.Amount = fee.String()
+	feeData.Receiver = im.GetFeeRecipient().String()
 
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
-	err = im.transferKeeper.OnRecvPacket(ctx, packet, feePacket)
-	if err != nil {
-		logger.Error("Failed to charge bridging fee", "err", err)
+	err = im.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
+	if err == nil {
+		logger.Error("Charge bridging fee.", "err", err)
 		// we continue as we don't want the fee charge to fail the transfer in any case
 		fee = sdk.ZeroInt()
 	} else {
-		logger.Debug("Charged bridging fee", "fee", fee)
+		logger.Debug("Charged bridging fee.", "fee", fee)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				EventTypeBridgingFee,
 				sdk.NewAttribute(AttributeKeyFee, fee.String()),
-				sdk.NewAttribute(sdk.AttributeKeySender, transferPacketData.Sender),
+				sdk.NewAttribute(sdk.AttributeKeySender, data.Sender),
 			),
 		)
 	}
 
-	// transfer the remaining amount
-	transferPacketData.Amount = transferAmount.Sub(fee).String()
-	packet.Data = transferPacketData.GetBytes()
+	// transfer the rest to the original recipient
+	data.Amount = data.MustAmountInt().Sub(fee).String()
+	packet.Data = data.GetBytes()
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
