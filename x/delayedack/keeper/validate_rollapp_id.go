@@ -40,6 +40,7 @@ func (k Keeper) ValidateRollappID(ctx types.Context, raID, rollappPortOnHub stri
 			gerr.ErrUnauthenticated,
 			"consensus state does not match: consensus state validators: %x, raID sequencer: %x", nextValidatorsHash, sequencerID)
 	}
+
 	return nil
 }
 
