@@ -3,6 +3,8 @@ package delayedack
 import (
 	"errors"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 
 	errorsmod "cosmossdk.io/errors"
@@ -94,7 +96,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	finalized, err := w.CheckIfFinalized(ctx, data.RollappID, proofHeight)
+	finalized, err := w.HeightIsFinalized(ctx, data.RollappID, proofHeight)
 	if err != nil {
 		l.Error("Check if packet is finalized.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -173,7 +175,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	finalized, err := w.CheckIfFinalized(ctx, data.RollappID, proofHeight)
+	finalized, err := w.HeightIsFinalized(ctx, data.RollappID, proofHeight)
 	if err != nil {
 		l.Error("check if packet is finalized", "err", err)
 		return err
@@ -255,7 +257,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		l.Error("Get proof height from packet.", "err", err)
 		return err
 	}
-	finalized, err := w.CheckIfFinalized(ctx, data.RollappID, proofHeight)
+	finalized, err := w.HeightIsFinalized(ctx, data.RollappID, proofHeight)
 	if err != nil {
 		l.Error("Check if packet is finalized.", "err", err)
 		return err
@@ -299,29 +301,30 @@ func (w IBCMiddleware) OnTimeoutPacket(
 }
 
 // GetProofHeight returns the proof height of the packet
-func (w IBCMiddleware) GetProofHeight(ctx sdk.Context, packetType commontypes.RollappPacket_Type,
-	rollappPortOnHub string, rollappChannelOnHub string, sequence uint64,
+// TODO: should probably be a panic ('must')
+func (w IBCMiddleware) GetProofHeight(
+	ctx sdk.Context,
+	packetType commontypes.RollappPacket_Type,
+	rollappPortOnHub string,
+	rollappChannelOnHub string,
+	sequence uint64,
 ) (uint64, error) {
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, sequence)
 	height, ok := types.FromIBCProofContext(ctx, packetId)
-	if ok {
-		return height.RevisionHeight, nil
-	} else {
-		err := errors.New("get proof height from context")
-		ctx.Logger().Error(err.Error(), "packetId", packetId)
-		return 0, err
+	if !ok {
+		return 0, errorsmod.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
 	}
+	return height.RevisionHeight, nil
 }
 
-// CheckIfFinalized checks if the packet is finalized and if so, updates the packet status
-func (w IBCMiddleware) CheckIfFinalized(ctx sdk.Context, rollappID string, proofHeight uint64) (bool, error) {
+// HeightIsFinalized checks if the packet is finalized
+func (w IBCMiddleware) HeightIsFinalized(ctx sdk.Context, rollappID string, height uint64) (bool, error) {
 	finalizedHeight, err := w.Keeper.GetRollappFinalizedHeight(ctx, rollappID)
+	if errors.Is(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+		return false, nil
+	}
 	if err != nil {
-		if errors.Is(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
-			return false, nil
-		}
 		return false, err
 	}
-
-	return finalizedHeight >= proofHeight, nil
+	return finalizedHeight >= height, nil
 }
