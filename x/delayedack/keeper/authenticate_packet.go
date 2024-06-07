@@ -148,21 +148,16 @@ func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 		return nil, errorsmod.Wrap(err, "get client state")
 	}
 
-	// TODO(srene) : consensus state is only obtained when getting it for latestheight.
-	// 	this can be an issue when sequencer changes. i have to figure out why is only returned for latest height
-
 	/*
 		TODO:
 			Person to ask: srene
-			It fails if now passing the latest client height
-			If the sequencer changes, we
-
-
+			The call to get the client consensus state if we dont pass the latest client height
+			' This can be an issue if the sequencer changes'
 	*/
 
 	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
 	if !ok {
-		return nil, clienttypes.ErrConsensusStateNotFound
+		return nil, errors.Join(gerr.ErrNotFound, clienttypes.ErrConsensusStateNotFound)
 	}
 	tmConsensusState, ok := consensusState.(*ibctmtypes.ConsensusState)
 	if !ok {
