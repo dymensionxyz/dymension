@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -13,8 +15,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // ValidateRollappId checks that the rollapp id from the ibc connection matches the rollapp, checking the sequencer registered with the consensus state validator set
@@ -22,14 +22,16 @@ func (k *Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHu
 	// Get the sequencer from the latest state info update and check the validator set hash
 	// from the headers match with the sequencer for the rollappID
 	// As the assumption the sequencer is honest we don't check the packet proof height.
-	latestStateIndex, found := k.rollappKeeper.GetLatestStateInfoIndex(ctx, rollappID)
-	if !found {
-		return errors.Wrapf(rollapptypes.ErrUnknownRollappID, "state index not found for the rollappID: %s", rollappID)
+	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
+	if !ok {
+		return errors.Wrap(gerr.ErrNotFound, "latest state info")
 	}
-	stateInfo, found := k.rollappKeeper.GetStateInfo(ctx, rollappID, latestStateIndex.Index)
-	if !found {
-		return errors.Wrapf(rollapptypes.ErrUnknownRollappID, "state info not found for the rollappID: %s with index: %d", rollappID, latestStateIndex.Index)
+	sequencerID := state.GetSequencer()
+	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
+	if !ok {
+		return errors.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
 	}
+
 	// Compare the validators set hash of the consensus state to the sequencer hash.
 	// TODO (srene): We compare the validator set of the last consensus height, because it fails to  get consensus for a different height,
 	// but we should compare the validator set at the height of the last state info, because sequencer may have changed after that.
@@ -38,12 +40,6 @@ func (k *Keeper) ValidateRollappId(ctx types.Context, rollappID, rollappPortOnHu
 	if err != nil {
 		k.Logger(ctx).Error("error consensus state", err)
 		return err
-	}
-
-	// Gets sequencer information from the sequencer address found in the latest state info
-	sequencer, found := k.sequencerKeeper.GetSequencer(ctx, stateInfo.Sequencer)
-	if !found {
-		return errors.Wrapf(sequencertypes.ErrUnknownSequencer, "sequencer %s not found for the rollappID %s", stateInfo.Sequencer, rollappID)
 	}
 
 	// Gets the validator set hash made out of the pub key for the sequencer

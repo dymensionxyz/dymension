@@ -34,6 +34,7 @@ type RollappKeeper interface {
 	GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool)
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
 	GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool)
+	GetLatestStateInfo(ctx sdk.Context, rollappId string) (types.StateInfo, bool)
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
 }
