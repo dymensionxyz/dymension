@@ -11,7 +11,12 @@ import (
 
 type TransferData struct {
 	transfertypes.FungibleTokenPacketData
+	// RollappID will be the empty string if the packet does not pertain to a registered rollapp
 	RollappID string
+}
+
+type TransferDataWithFinalization struct {
+	TransferData
 	// Proof height is only be populated if and only if the rollappID is not empty
 	ProofHeight uint64
 	// Finalized is only be populated if and only if the rollappID is not empty

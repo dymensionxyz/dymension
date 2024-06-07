@@ -22,14 +22,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func (k Keeper) GetValidRollappAndTransferData(
+func (k Keeper) GetTransferDataWithFinalizationInfo(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
-) (data types.TransferData, err error) {
+) (data types.TransferDataWithFinalization, err error) {
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
 
-	data, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	var transfer types.TransferData
+	transfer, err = k.GetRollappAndTransferDataFromPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		err = errorsmod.Wrap(err, "get rollapp and transfer data from packet")
 		return
@@ -44,6 +45,8 @@ func (k Keeper) GetValidRollappAndTransferData(
 		err = errorsmod.Wrap(err, "validate rollapp id")
 		return
 	}
+
+	data.TransferData = transfer
 
 	packetId := commontypes.NewPacketUID(packetType, rollappPortOnHub, rollappChannelOnHub, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
