@@ -52,16 +52,17 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, types.ErrDemandOrderInactive
 	}
 	// Check for blocked address
-	if m.BankKeeper.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
+	if m.bk.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
 		return nil, types.ErrBlockedAddress
 	}
 	// Check that the fulfiller has enough balance to fulfill the order
-	fulfillerAccount := m.GetAccount(ctx, msg.GetFulfillerBech32Address())
+	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
+
 	// Send the funds from the fulfiller to the eibc packet original recipient
-	err = m.BankKeeper.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.bk.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err

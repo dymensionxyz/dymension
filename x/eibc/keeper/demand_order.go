@@ -1,4 +1,4 @@
-package delayedack
+package keeper
 
 import (
 	"errors"
@@ -14,11 +14,19 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-// eIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
+func (k Keeper) BlockedAddr(addr string) bool {
+	account, err := sdk.AccAddressFromBech32(addr)
+	if err != nil {
+		return false
+	}
+	return k.bk.BlockedAddr(account)
+}
+
+// EIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
 // the rollapp packet can be of type ON_RECV or ON_TIMEOUT.
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
 // If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
-func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
+func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
 	packetMetaData := &types.PacketMetadata{}
 
@@ -43,9 +51,9 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		var feeMultiplier sdk.Dec
 		switch t {
 		case commontypes.RollappPacket_ON_TIMEOUT:
-			feeMultiplier = im.keeper.TimeoutFee(ctx)
+			feeMultiplier = k.TimeoutFee(ctx)
 		case commontypes.RollappPacket_ON_ACK:
-			feeMultiplier = im.keeper.ErrAckFee(ctx)
+			feeMultiplier = k.ErrAckFee(ctx)
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
 		if !fee.IsPositive() {
@@ -59,12 +67,12 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		}
 	}
 
-	eibcDemandOrder, err := im.createDemandOrderFromIBCPacket(ctx, data, &rollappPacket, *packetMetaData.EIBC)
+	eibcDemandOrder, err := k.createDemandOrderFromIBCPacket(ctx, data, &rollappPacket, *packetMetaData.EIBC)
 	if err != nil {
 		return fmt.Errorf("create eibc demand order: %w", err)
 	}
 
-	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	err = k.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
@@ -75,7 +83,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 // It validates the fungible token packet data, extracts the fee from the memo,
 // calculates the demand order price, and creates a new demand order.
 // It returns the created demand order or an error if there is any.
-func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
+func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket, eibcMetaData types.EIBCMetadata,
 ) (*eibctypes.DemandOrder, error) {
 	// Validate the fungible token packet data as we're going to use it to create the demand order
@@ -86,7 +94,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
-	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
+	if k.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
 	// Calculate the demand order price and validate it,
@@ -94,10 +102,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 
 	// Get the fee from the memo
 	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
-
 	if amt.LT(fee) {
 		return nil, fmt.Errorf("fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
 	}
+
+	// Get the bridging fee from the amount
+	bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
+	demandOrderPrice := amt.Sub(fee).Sub(bridgingFee)
 
 	/*
 		   In case of timeout/errack:
@@ -113,7 +124,6 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		           demander balance += (transfer_amount - fee)
 		              equivalent to += (1-fee_multiplier)*transfer_amount
 	*/
-	demandOrderPrice := amt.Sub(fee)
 
 	// Get the denom for the demand order
 	var demandOrderDenom string
@@ -126,13 +136,13 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
-		bridgingFee := im.keeper.BridgingFeeFromAmt(ctx, amt)
+		bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
 		if bridgingFee.GT(fee) {
 			// We check that the fee the fulfiller makes is at least as big as the bridging fee they will have to pay later
 			// this is to improve UX and help fulfillers not lose money.
 			return nil, fmt.Errorf("eibc fee cannot be smaller than bridging fee: eibc fee: %s: bridging fee: %s", fee, bridgingFee)
 		}
-		demandOrderDenom = im.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
+		demandOrderDenom = k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}
 
@@ -146,7 +156,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 // getEIBCTransferDenom returns the actual denom that will be credited to the eIBC fulfiller.
 // The denom logic follows the transfer middleware's logic and is necessary in order to prefix/non-prefix the denom
 // based on the original chain it was sent from.
-func (im IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
+func (k *Keeper) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenPacketData transfertypes.FungibleTokenPacketData) string {
 	var denom string
 	if transfertypes.ReceiverChainIsSource(packet.GetSourcePort(), packet.GetSourceChannel(), fungibleTokenPacketData.Denom) {
 		// remove prefix added by sender chain
