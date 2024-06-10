@@ -9,4 +9,5 @@ import (
 // For example, if your caller code wants to differentiate between a generic failed precondition, and a failed precondition due to
 // misbehavior, you would define a misbehavior error here.
 
-var ErrProtocolViolation = errorsmod.Wrap(gerr.ErrFailedPrecondition, "actor is violating protocol")
+// ErrFraud means that someone is deviating from protocol
+var ErrFraud = errorsmod.Wrap(gerr.ErrFailedPrecondition, "actor is violating protocol")

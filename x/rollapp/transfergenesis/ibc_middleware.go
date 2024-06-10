@@ -156,16 +156,16 @@ func (w IBCMiddleware) OnRecvPacket(
 		// This is a normal transfer
 		if !ra.GenesisState.TransfersEnabled {
 			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
-			return channeltypes.NewErrorAcknowledgement(err) // TODO: check with Omri
+			// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
+			return channeltypes.NewErrorAcknowledgement(err)
 		}
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
-		// TODO:
 	}
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
-	if errorsmod.IsOf(err, dymerror.ErrProtocolViolation) {
+	if errorsmod.IsOf(err, dymerror.ErrFraud) {
 		// TODO: emit event or freeze rollapp, or something else?
 	}
 	if err != nil {
@@ -204,6 +204,7 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 	)
 }
 
+// TODO: need proper testing
 func getMemo(rawMemo string) (memo, error) {
 	type t struct {
 		Data memo `json:"genesis_transfer"`

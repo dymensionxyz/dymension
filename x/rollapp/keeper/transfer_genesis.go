@@ -14,6 +14,13 @@ import (
 // Once we have recorded n indexes, this rollapp can proceed to the next step of the genesis transfer protocol
 // Returns the number of transfers recorded so far (including this one)
 func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) (uint64, error) {
+	ra := k.MustGetRollapp(ctx, rollappID)
+	if ra.GenesisState.TransfersEnabled {
+		// Could plausibly occur if a chain sends too many genesis transfers (not matching their memo)
+		// or if a chain which registered with the bridge enabled tries to send some genesis transfers
+		return 0, errorsmod.Wrap(dymerror.ErrFraud, "received genesis transfer but transfers are already enabled")
+	}
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
 
 	nKey := types.TransferGenesisNumKey(rollappID)
@@ -29,19 +36,16 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
-			return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
-				"different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
+			return 0, errorsmod.Wrapf(dymerror.ErrFraud, "different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
 		}
 		nBz := store.Get(nKey)
 		n = sdk.BigEndianToUint64(nBz)
 	}
 	if !(0 <= ix && ix < nTotal) {
-		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
-			"ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
+		return 0, errorsmod.Wrapf(dymerror.ErrFraud, "ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
 	}
 	if store.Has(ixKey) {
-		return 0, errorsmod.Wrapf(dymerror.ErrProtocolViolation,
-			"already received genesis transfer: ix: %d", ix)
+		return 0, errorsmod.Wrapf(dymerror.ErrFraud, "already received genesis transfer: ix: %d", ix)
 	}
 
 	n++
