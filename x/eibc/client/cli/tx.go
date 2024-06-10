@@ -32,7 +32,7 @@ func GetTxCmd() *cobra.Command {
 func NewFulfilOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order [order-id]",
-		Short:   "Fulfil a new eibc order",
+		Short:   "Fulfill a new eibc order",
 		Example: "dymd tx eibc fulfill-order <order-id>",
 		Args:    cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

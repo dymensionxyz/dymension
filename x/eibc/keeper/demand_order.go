@@ -11,8 +11,8 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/utils"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func (k Keeper) BlockedAddr(addr string) bool {
@@ -29,13 +29,13 @@ func (k Keeper) BlockedAddr(addr string) bool {
 // If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
 func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	packetMetaData := &types.PacketMetadata{}
+	packetMetaData := &dacktypes.PacketMetadata{}
 
 	switch t := rollappPacket.Type; t {
 	case commontypes.RollappPacket_ON_RECV:
 		var err error
-		packetMetaData, err = types.ParsePacketMetadata(data.Memo)
-		if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoEibcEmpty) {
+		packetMetaData, err = dacktypes.ParsePacketMetadata(data.Memo)
+		if errors.Is(err, dacktypes.ErrMemoUnmarshal) || errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
 			logger.Debug("skipping demand order creation - no eibc memo provided")
 			return nil
 		}
@@ -61,8 +61,8 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 			logger.Debug("fee is not positive, skipping demand order creation", "fee type", t, "fee", fee.String(), "multiplier", feeMultiplier.String())
 			return nil
 		}
-		packetMetaData = &types.PacketMetadata{
-			EIBC: &types.EIBCMetadata{
+		packetMetaData = &dacktypes.PacketMetadata{
+			EIBC: &dacktypes.EIBCMetadata{
 				Fee: fee.String(),
 			},
 		}
@@ -85,8 +85,8 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 // calculates the demand order price, and creates a new demand order.
 // It returns the created demand order or an error if there is any.
 func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
-	rollappPacket *commontypes.RollappPacket, eibcMetaData types.EIBCMetadata,
-) (*eibctypes.DemandOrder, error) {
+	rollappPacket *commontypes.RollappPacket, eibcMetaData dacktypes.EIBCMetadata,
+) (*types.DemandOrder, error) {
 	// Validate the fungible token packet data as we're going to use it to create the demand order
 	if err := fungibleTokenPacketData.ValidateBasic(); err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 	// Get the fee from the memo
 	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
 	if amt.LT(fee) {
-		return nil, errorsmod.Wrapf(eibctypes.ErrTooMuchFee, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
+		return nil, errorsmod.Wrapf(types.ErrTooMuchFee, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
 	}
 
 	// Get the bridging fee from the amount
@@ -147,7 +147,7 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}
 
-	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	if err := order.Validate(); err != nil {
 		return nil, fmt.Errorf("validate eibc data: %w", err)
 	}

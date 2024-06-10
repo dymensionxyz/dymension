@@ -141,7 +141,6 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			expectedPostFulfillmentEventsCount:      0,
 			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{},
 		},
-		// TODO: add min fee validation test
 		{
 			name:                                 "Test demand order fulfillment - status not pending",
 			demandOrderPrice:                     150,
