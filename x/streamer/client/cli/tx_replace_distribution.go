@@ -14,7 +14,7 @@ import (
 	utils "github.com/dymensionxyz/dymension/v3/utils"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
+// NewCmdSubmitReplaceStreamDistributionProposal broadcasts a CreateStream message.
 func NewCmdSubmitReplaceStreamDistributionProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "replace-stream-distribution-proposal streamID gaugeIds weights [flags]",

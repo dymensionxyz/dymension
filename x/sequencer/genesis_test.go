@@ -5,53 +5,40 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInitGenesis(t *testing.T) {
-	tests := []struct {
-		name       string
-		params     types.Params
-		sequencers []types.Sequencer
-		expPanic   bool
-	}{
-		{
-			name: "only params - success",
-			params: types.Params{
-				MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
-				UnbondingTime: 100,
+	genesisState := types.GenesisState{
+		Params: types.DefaultParams(),
+
+		SequencerList: []types.Sequencer{
+			{
+				SequencerAddress: "0",
+				Status:           types.Bonded,
+				Proposer:         true,
 			},
-			sequencers: []types.Sequencer{},
-			expPanic:   false,
-		},
-		{
-			name: "params and sequencer list - panic",
-			params: types.Params{
-				MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
-				UnbondingTime: 100,
+			{
+				SequencerAddress: "1",
+				Status:           types.Bonded,
 			},
-			sequencers: []types.Sequencer{{SequencerAddress: "0"}},
-			expPanic:   true,
 		},
+		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			genesisState := types.GenesisState{Params: tt.params, SequencerList: tt.sequencers}
-			k, ctx := keepertest.SequencerKeeper(t)
-			if tt.expPanic {
-				require.Panics(t, func() {
-					sequencer.InitGenesis(ctx, *k, genesisState)
-				})
-			} else {
-				sequencer.InitGenesis(ctx, *k, genesisState)
-				params := k.GetParams(ctx)
-				require.Equal(t, genesisState.Params, params)
-			}
-		})
-	}
+	k, ctx := keepertest.SequencerKeeper(t)
+	sequencer.InitGenesis(ctx, *k, genesisState)
+	got := sequencer.ExportGenesis(ctx, *k)
+	require.NotNil(t, got)
+
+	nullify.Fill(&genesisState)
+	nullify.Fill(got)
+
+	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
+	// this line is used by starport scaffolding # genesis/test/assert
 }
 
 func TestExportGenesis(t *testing.T) {

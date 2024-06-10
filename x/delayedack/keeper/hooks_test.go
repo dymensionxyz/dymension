@@ -70,7 +70,7 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 			finalizedRollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
 			suite.Require().Equal(tc.finalizePacketsNum, len(finalizedRollappPackets))
 
-			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam})
+			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam, BridgingFee: keeper.BridgingFee(ctx)})
 			epochHooks := keeper.GetEpochHooks()
 			err := epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
 			suite.Require().NoError(err)
