@@ -2,6 +2,7 @@ package transfergenesis
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -245,8 +246,7 @@ func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channel
 	}
 
 	if err := m.Validate(); err != nil {
-		// TODO: errorsmod with nice wrapping
-		return fmt.Errorf("invalid denom metadata on genesis event: %w", err)
+		return errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, err), "metadata validate")
 	}
 
 	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
