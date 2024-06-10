@@ -169,7 +169,12 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, dymerror.ErrFraud) {
-		// TODO: emit event or freeze rollapp, or something else?
+		l.Info("rollapp fraud: verify and record genesis transfer", "err", err)
+		// The rollapp has deviated from the protocol!
+		err = w.handleFraud(ra.RollappId)
+		if err != nil {
+			l.Error("handle fraud", "error", err)
+		}
 	}
 	if err != nil {
 		l.Error("verify and record transfer", "error", err)
@@ -200,6 +205,14 @@ func (w IBCMiddleware) OnRecvPacket(
 	}
 
 	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+}
+
+func (w IBCMiddleware) handleFraud(raID string) error {
+	// TODO: assumes we have a robust mechanism to freeze and rollback
+	// 		 NOTE: this may not be a fraud in the sense that the sequencer posted the wrong state root
+	//             it might be that the canonical state transition function for the RA is wrong somehow
+	//             and resulted in a protocol breakage
+	return nil
 }
 
 func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {

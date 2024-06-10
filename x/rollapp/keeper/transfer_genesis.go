@@ -18,7 +18,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	if ra.GenesisState.TransfersEnabled {
 		// Could plausibly occur if a chain sends too many genesis transfers (not matching their memo)
 		// or if a chain which registered with the bridge enabled tries to send some genesis transfers
-		return 0, errorsmod.Wrap(dymerror.ErrFraud, "received genesis transfer but transfers are already enabled")
+		return 0, errorsmod.Wrap(dymerror.ErrFraud, "received genesis transfer but all bridge transfers are already enabled")
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
