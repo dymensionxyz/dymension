@@ -38,7 +38,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	rollapp, ok := k.GetRollapp(ctx, chainID)
+	rollapp, ok := k.rollappKeeper.GetRollapp(ctx, chainID)
 	if !ok {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
