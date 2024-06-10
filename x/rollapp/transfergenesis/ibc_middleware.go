@@ -102,10 +102,9 @@ TODO: prior to this we relied on the whitelist addr to set the canonical channel
 func hackSetCanonicalChannel(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	l log.Logger,
 	w IBCMiddleware,
 ) {
-	l = l.With("hack set canonical channel")
+	l := ctx.Logger().With("hack set canonical channel")
 	t, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
 	if err != nil {
 		l.Error("get valid transfer", "error", err)
@@ -132,9 +131,9 @@ func (w IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	l := w.logger(ctx, packet)
+	hackSetCanonicalChannel(ctx, packet, w) // TODO: remove
 
-	hackSetCanonicalChannel(ctx, packet, l, w)
+	l := w.logger(ctx, packet)
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
