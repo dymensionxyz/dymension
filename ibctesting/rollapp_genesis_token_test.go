@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/utils/ibc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -243,7 +241,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 			moduleAcc := accountKeeper.GetModuleAccount(suite.ctx, types.ModuleName)
 			suite.Require().Equal(sdk.NewCoins(), bankKeeper.GetAllBalances(suite.ctx, moduleAcc.GetAddress()))
 			// Validate the genesis accounts balances
-			rollappIBCDenom := ibc.GetForeignIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
+			rollappIBCDenom := utilsibc.GetForeignIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
 			for _, roallppGenesisAccount := range tc.gensisState.GenesisAccounts {
 				if roallppGenesisAccount.Address != "" {
 					balance := bankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(roallppGenesisAccount.Address), rollappIBCDenom)

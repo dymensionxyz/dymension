@@ -1,2 +1,2 @@
-// Package ibc contains ibc utils
-package ibc
+// Package utilsibc contains ibc utils
+package utilsibc

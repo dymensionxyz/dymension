@@ -1,4 +1,4 @@
-package ibc
+package utilsibc
 
 import (
 	errorsmod "cosmossdk.io/errors"
@@ -34,7 +34,7 @@ const (
 	ibcPort = "transfer"
 )
 
-func GetForeignIBCDenom(channelId string, denom string) string {
+func GetForeignDenom(channelId string, denom string) string {
 	return GetForeignDenomTrace(channelId, denom).IBCDenom()
 }
 

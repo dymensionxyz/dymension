@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/utils/ibc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -162,7 +160,7 @@ func (w IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungible
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		denom = ibc.GetForeignIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
+		denom = utilsibc.GetForeignIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
 	}
 	return denom
 }
