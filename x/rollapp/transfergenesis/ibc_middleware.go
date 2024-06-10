@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
@@ -41,12 +43,17 @@ type TransferKeeper interface {
 	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
 }
 
+type ChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+}
+
 type IBCMiddleware struct {
 	porttypes.Middleware // next one
 	delayedackKeeper     delayedackkeeper.Keeper
 	rollappKeeper        rollappkeeper.Keeper
 	transferKeeper       TransferKeeper
 	denomKeeper          DenomMetadataKeeper
+	channelKeeper        ChannelKeeper
 }
 
 func NewIBCMiddleware(
@@ -55,6 +62,7 @@ func NewIBCMiddleware(
 	rollappKeeper rollappkeeper.Keeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
+	channelKeeper ChannelKeeper,
 ) IBCMiddleware {
 	return IBCMiddleware{
 		Middleware:       next,
@@ -62,6 +70,7 @@ func NewIBCMiddleware(
 		rollappKeeper:    rollappKeeper,
 		transferKeeper:   transferKeeper,
 		denomKeeper:      denomKeeper,
+		channelKeeper:    channelKeeper,
 	}
 }
 
@@ -89,7 +98,7 @@ type memo struct {
 // OnRecvPacket will, if the packet is a transfer packet:
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
-// it's the last one, trigger the finalization period to begin.
+// it's the last one, open the bridge.
 func (w IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -99,6 +108,12 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
+	}
+
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		err = errorsmod.Wrap(err, "chain id from port and channel")
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
 	chaID, raID, err := w.getChannelAndRollappID(ctx, packet)
