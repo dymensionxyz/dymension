@@ -30,33 +30,29 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
-	if err != nil {
-		err = errorsmod.Wrap(err, "chain id from port and channel")
-		return
-	}
-
-	rollapp, ok := k.rollappKeeper.GetRollapp(ctx, chainID)
-	if !ok {
+	rollappID, err := k.getRollappID(ctx, packet)
+	if errorsmod.IsOf(err, ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
 	}
-
-	data.RollappID = chainID
-
-	if rollapp.ChannelId == "" {
-		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", data.RollappID)
+	if err != nil {
+		err = errorsmod.Wrap(err, "get rollapp id")
 		return
 	}
 
-	if rollapp.ChannelId != packet.DestinationChannel {
-		err = errorsmod.Wrapf(
-			gerr.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
-		)
-		return
-	}
+	data.RollappID = rollappID
 
+	return
+}
+
+var ErrRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
+
+// getRollappID returns the rollapp id that a packet came from, if we are certain
+// that the packet came from that rollapp. That means that the canonical channel
+// has already been set.
+func (k Keeper) getRollappID(ctx sdk.Context,
+	packet channeltypes.Packet,
+) (string, error) {
 	/*
 		TODO:
 			There is an open issue of how we go about making sure that the packet really came from the rollapp, and once we know that it came
@@ -69,10 +65,23 @@ func (k Keeper) GetValidTransfer(
 				https://github.com/dymensionxyz/dymension/blob/986d51ccd4807d514c91b3a147ac1b8ce5b590a1/x/delayedack/keeper/authenticate_packet.go#L47-L59
 				for the old implementations of checks
 	*/
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		return "", errorsmod.Wrap(err, "chain id from port and channel")
+	}
+	rollapp, ok := k.rollappKeeper.GetRollapp(ctx, chainID)
+	if !ok {
+		return "", ErrRollappNotFound
+	}
+	if rollapp.ChannelId == "" {
+		return "", errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+	}
 
-	return
-}
-
-func GetRollappID(ctx sdk.Context,
-	packet channeltypes.Packet) (string, error) {
+	if rollapp.ChannelId != packet.DestinationChannel {
+		return "", errorsmod.Wrapf(
+			gerr.ErrInvalidArgument,
+			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
+		)
+	}
+	return rollapp.ChannelId, nil
 }
