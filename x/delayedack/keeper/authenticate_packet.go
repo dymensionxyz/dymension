@@ -65,6 +65,16 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
+	/*
+		TODO:
+			There is an open issue of how we go about making sure that the packet really came from the rollapp, and once we know that it came
+			from the rollapp, also how we deal with fraud from the sequencer
+			See https://github.com/dymensionxyz/research/issues/242 for info
+			See
+
+
+	*/
+
 	err = k.ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx, data.RollappID, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		err = errorsmod.Wrap(err, "validate rollapp id")
