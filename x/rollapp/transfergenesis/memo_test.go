@@ -16,7 +16,7 @@ import (
 )
 
 func Test_getExample(t *testing.T) {
-	// t.Skip("Not a real test. You can use this during development to quickly generate example json")
+	t.Skip("Not a real test. You can use this during development to quickly generate example json")
 
 	type M struct {
 		Data memo `json:"genesis_transfer"`
