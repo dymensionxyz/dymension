@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -21,7 +23,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
@@ -217,7 +218,7 @@ func getMemo(rawMemo string) (memo, error) {
 	var m t
 	err := json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
-		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
+		return memo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 	return m.Data, nil
 }
