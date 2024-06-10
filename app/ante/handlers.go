@@ -39,6 +39,10 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	mempoolFeeDecorator := txfeesante.NewMempoolFeeDecorator(*options.TxFeesKeeper)
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
+	/*
+		TODO: where was I? need to populate the decorators with RA, channel keeper
+	*/
+
 	return sdk.ChainAnteDecorators(
 		transfersenabled.NewDecorator(nil), // TODO: check pos
 		/*

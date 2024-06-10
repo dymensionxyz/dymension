@@ -1,7 +1,10 @@
 package transfersenabled
 
 import (
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transferTypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
@@ -11,21 +14,28 @@ import (
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
 
 type Decorator struct {
-	getRollapp GetRollapp
+	getRollapp            GetRollapp
+	getChannelClientState uibc.GetChannelClientState
 }
 
-func NewDecorator(getRollapp GetRollapp) *Decorator {
+func NewDecorator(getRollapp GetRollapp, getChannelClientState uibc.GetChannelClientState) *Decorator {
 	return &Decorator{
-		getRollapp: getRollapp,
+		getRollapp:            getRollapp,
+		getChannelClientState: getChannelClientState,
 	}
 }
 
 func (h Decorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
-	/*
-		TODO:
-		need to get the intended rollapp and check if the transfers are enabled
-	*/
-	return false, nil
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, h.getChannelClientState, transfer.SourcePort, transfer.SourceChannel)
+	if err != nil {
+		return false, errorsmod.Wrap(err, "chain id from port channel")
+	}
+	ra, ok := h.getRollapp(ctx, chainID)
+	if !ok {
+		return true, nil
+	}
+	// TODO: check security
+	return ra.GenesisState.TransfersEnabled, nil
 }
 
 func (h Decorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
