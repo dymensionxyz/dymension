@@ -92,7 +92,7 @@ func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 // GetClientState retrieves the client state for a given packet.
 func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string) (exported.ClientState, error) {
 	_, ret, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
-	return ret, err
+	_ = ret
 	/*
 		TODO: friday afternoon: I was looking at the bizzare spaghetti involving several getClientState* and similar methods
 			including this one, and ones in authenticate_packet
