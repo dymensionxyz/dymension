@@ -29,6 +29,9 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 }
 
 func (m *DemandOrder) ValidateBasic() error {
+	if len(m.Price) != 1 || len(m.Fee) != 1 {
+		return ErrMultipleDenoms
+	}
 	if err := m.Price.Validate(); err != nil {
 		return err
 	}
@@ -40,15 +43,11 @@ func (m *DemandOrder) ValidateBasic() error {
 		return ErrInvalidRecipientAddress
 	}
 	// Validate all tokens has a valid ibc denom
-	for _, coin := range m.Price {
-		if err := ibctransfertypes.ValidatePrefixedDenom(coin.Denom); err != nil {
-			return err
-		}
+	if err := ibctransfertypes.ValidatePrefixedDenom(m.Price[0].Denom); err != nil {
+		return err
 	}
-	for _, coin := range m.Fee {
-		if err := ibctransfertypes.ValidatePrefixedDenom(coin.Denom); err != nil {
-			return err
-		}
+	if err := ibctransfertypes.ValidatePrefixedDenom(m.Fee[0].Denom); err != nil {
+		return err
 	}
 	// Validate the tracking packet key
 

@@ -16,7 +16,6 @@ var (
 	ErrBlockedAddress               = errorsmod.Register(ModuleName, 9, "Can't purchase demand order for recipient with blocked address")
 	ErrDemandAlreadyFulfilled       = errorsmod.Register(ModuleName, 10, "Demand order already fulfilled")
 	ErrTooMuchFee                   = errorsmod.Register(ModuleName, 11, "Fee must be less than or equal to the total amount")
-	ErrMinFeeNotMet                 = errorsmod.Register(ModuleName, 12, "Minimum fee not met")
 	ErrNegativeFee                  = errorsmod.Register(ModuleName, 13, "Fee must be greater than or equal to 0")
-	ErrDemandOrderNotProfitable     = errorsmod.Register(ModuleName, 14, "Demand order not profitable")
+	ErrMultipleDenoms               = errorsmod.Register(ModuleName, 15, "Multiple denoms not allowed")
 )

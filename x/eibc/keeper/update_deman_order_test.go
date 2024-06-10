@@ -16,8 +16,10 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
+	// Set a rollapp packet with 1000 amount
 	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-	initialPrice := sdk.NewInt(900)
+	// Set the initial price and fee for total amount 1000 and 1% bridge fee
+	initialPrice := sdk.NewInt(890)
 	initialFee := sdk.NewInt(100)
 
 	testCases := []struct {
@@ -32,7 +34,14 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 			fee:           sdk.NewInt(400),
 			submittedBy:   eibcSupplyAddr.String(),
 			expectError:   false,
-			expectedPrice: sdk.NewInt(600),
+			expectedPrice: sdk.NewInt(590),
+		},
+		{
+			name:          "happy case - zero eibc fee",
+			fee:           sdk.NewInt(0),
+			submittedBy:   eibcSupplyAddr.String(),
+			expectError:   false,
+			expectedPrice: sdk.NewInt(990),
 		},
 		{
 			name:        "wrong owner",
@@ -43,12 +52,6 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 		{
 			name:        "too high fee",
 			fee:         sdk.NewInt(1001),
-			submittedBy: eibcSupplyAddr.String(),
-			expectError: true,
-		},
-		{
-			name:        "too low fee",
-			fee:         sdk.NewInt(1), // lower than 1%
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},

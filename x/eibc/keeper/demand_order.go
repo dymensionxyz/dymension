@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -103,7 +104,7 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 	// Get the fee from the memo
 	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
 	if amt.LT(fee) {
-		return nil, fmt.Errorf("fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
+		return nil, errorsmod.Wrapf(eibctypes.ErrTooMuchFee, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
 	}
 
 	// Get the bridging fee from the amount

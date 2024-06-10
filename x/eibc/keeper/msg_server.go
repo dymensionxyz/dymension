@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -34,14 +35,6 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
-	}
-
-	// Check that the demand order fee is higher than the minimum fee
-	minFee, _ := sdk.NewIntFromString(msg.MinFee)
-	for _, coin := range demandOrder.Fee {
-		if coin.Amount.LT(minFee) {
-			return nil, types.ErrMinFeeNotMet
-		}
 	}
 
 	// Check for blocked address
@@ -77,6 +70,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	if err != nil {
 		return nil, err
 	}
+
 	// Check that the order exists in status PENDING
 	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
 	if err != nil {
@@ -89,28 +83,29 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the recipient can update the order")
 	}
 
-	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
-	var updatedDemandOrderFee, updatedDemandOrderPrice sdk.Coins
-	for i := range len(demandOrder.Fee) {
-		transferTotal := demandOrder.Price[i].Amount.Add(demandOrder.Fee[i].Amount) // original transfer amount (price + fee)
-
-		newPrice := transferTotal.Sub(newFeeInt) // new price = original transfer amount - new fee
-		if newPrice.IsNegative() {
-			return nil, types.ErrTooMuchFee
-		}
-
-		// Check the order is profitable in regards to the bridging fee
-		bridgingFee := m.dack.BridgingFeeFromAmt(ctx, transferTotal)
-		if newFeeInt.LT(bridgingFee) {
-			return nil, types.ErrDemandOrderNotProfitable
-		}
-
-		updatedDemandOrderFee = append(updatedDemandOrderFee, sdk.NewCoin(demandOrder.Fee[i].Denom, newFeeInt))
-		updatedDemandOrderPrice = append(updatedDemandOrderPrice, sdk.NewCoin(demandOrder.Price[i].Denom, newPrice))
+	raPacket, err := m.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+	if err != nil {
+		return nil, err
 	}
 
-	demandOrder.Fee = updatedDemandOrderFee
-	demandOrder.Price = updatedDemandOrderPrice
+	var data transfertypes.FungibleTokenPacketData
+	if err := transfertypes.ModuleCdc.UnmarshalJSON(raPacket.GetPacket().GetData(), &data); err != nil {
+		return nil, err
+	}
+
+	// calculate the new price: transferTotal - newFee - bridgingFee
+	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
+	transferTotal, _ := sdk.NewIntFromString(data.Amount)
+	newPrice := transferTotal.Sub(newFeeInt)
+	if newPrice.IsNegative() {
+		return nil, types.ErrTooMuchFee
+	}
+	bridgingFee := m.dack.BridgingFeeFromAmt(ctx, transferTotal)
+	newPrice = newPrice.Sub(bridgingFee)
+
+	denom := demandOrder.Price[0].Denom
+	demandOrder.Fee = sdk.NewCoins(sdk.NewCoin(denom, newFeeInt))
+	demandOrder.Price = sdk.NewCoins(sdk.NewCoin(denom, newPrice))
 
 	err = m.SetDemandOrder(ctx, demandOrder)
 	if err != nil {
