@@ -8,11 +8,11 @@ import (
 
 // InitGenesis initializes the sequencer module's state from a provided genesis
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
-	k.SetParams(ctx, genState.Params)
-	// Validate all other genesis fields are empty
-	if len(genState.SequencerList) != 0 {
-		panic("Only params can be initialized at genesis")
+	// Set all the sequencer
+	for _, elem := range genState.SequencerList {
+		k.SetSequencer(ctx, elem)
 	}
+	k.SetParams(ctx, genState.Params)
 }
 
 // ExportGenesis returns the sequencer module's exported genesis.

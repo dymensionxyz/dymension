@@ -14,7 +14,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
-// NewCreateStreamCmd broadcasts a CreateStream message.
+// NewCmdSubmitTerminateStreamProposal broadcasts a CreateStream message.
 func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "terminate-stream-proposal streamID [flags]",
