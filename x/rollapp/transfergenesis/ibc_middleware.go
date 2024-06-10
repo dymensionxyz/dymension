@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	utilsibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -223,7 +223,7 @@ func getMemo(rawMemo string) (memo, error) {
 func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	// TODO: only do it if it hasn't been done before?
 
-	trace := utilsibc.GetForeignDenomTrace(channelID, m.Base)
+	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
 
 	w.transferKeeper.SetDenomTrace(ctx, trace)
 
