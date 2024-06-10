@@ -43,7 +43,12 @@ func CmdCreateRollapp() *cobra.Command {
 				return err
 			}
 
-			msg := types.NewMsgCreateRollapp(clientCtx.GetFromAddress().String(), argRollappId, argMaxSequencers, argPermissionedAddresses.Addresses)
+			transfersEnabled, err := cmd.Flags().GetBool(FlagGenesisTransfersEnabled)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateRollapp(clientCtx.GetFromAddress().String(), argRollappId, argMaxSequencers, argPermissionedAddresses.Addresses, transfersEnabled)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
