@@ -92,18 +92,16 @@ type memo struct {
 	ThisTransferIx uint64 `json:"this_transfer_ix"`
 }
 
-/*
-TODO: prior to this we relied on the whitelist addr to set the canonical channel
-
-	This is a hack (not secure)
-	The real solution will come in a followup PR
-	See https://github.com/dymensionxyz/research/issues/242
-*/
 func hackSetCanonicalChannel(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	w IBCMiddleware,
 ) {
+	// TODO: prior to this we relied on the whitelist addr to set the canonical channel
+	//	 This is a hack (not secure)
+	//	 The real solution will come in a followup PR
+	//	 See https://github.com/dymensionxyz/research/issues/242
+
 	l := ctx.Logger().With("hack set canonical channel")
 	t, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
 	if err != nil {
@@ -131,7 +129,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	hackSetCanonicalChannel(ctx, packet, w) // TODO: remove
+	hackSetCanonicalChannel(ctx, packet, w) // TODO: remove!
 
 	l := w.logger(ctx, packet)
 
@@ -162,6 +160,8 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
+		l.Debug("get memo", "error", err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
@@ -169,14 +169,16 @@ func (w IBCMiddleware) OnRecvPacket(
 		// TODO: emit event or freeze rollapp, or something else?
 	}
 	if err != nil {
-		// TODO:
+		l.Error("verify and record transfer", "error", err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "verify and record genesis transfer"))
 	}
 
 	// it's a valid genesis transfer!
 
 	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, m.Denom)
 	if err != nil {
-		// TODO:
+		l.Error("register denom metadata", "error", err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "register denom metadata"))
 	}
 
 	l.Debug("Received valid genesis transfer. Registered denom data.",
