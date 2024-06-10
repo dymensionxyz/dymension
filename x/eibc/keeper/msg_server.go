@@ -59,7 +59,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 	// Fulfill the order by updating the order status and underlying packet recipient
-	err = m.Keeper.FulfillOrder(ctx, demandOrder, fulfillerAccount.GetAddress())
+	err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress())
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgFulfillOrderResponse{}, err
 }
