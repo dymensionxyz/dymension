@@ -147,7 +147,7 @@ func (im IBCMiddleware) OnRecvPacket(
 }
 
 func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
-	return sdk.NewEvent(types.EventTypeTransferGenesisH1,
+	return sdk.NewEvent(types.EventTypeTransferGenesisAllReceived,
 		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
 		sdk.NewAttribute(types.AttributeKeyTransferGenesisNReceived, strconv.FormatUint(nReceived, 10)),
 	)

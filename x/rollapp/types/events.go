@@ -17,9 +17,9 @@ const (
 	AttributeKeyFraudSequencer = "fraud_sequencer"
 	AttributeKeyClientID       = "client_id"
 
-	// EventTypeTransferGenesisH1 is when all genesis transfers from the rollapp have been received
-	EventTypeTransferGenesisH1 = "transfer_genesis_h1"
-	// EventTypeTransferGenesisH2 is when the dispute period has elapsed after all genesis transfers from the rollapp have been received
-	EventTypeTransferGenesisH2           = "transfer_genesis_h2"
-	AttributeKeyTransferGenesisNReceived = "num_transfers_received"
+	// EventTypeTransferGenesisAllReceived is when all genesis transfers from the rollapp have been received
+	EventTypeTransferGenesisAllReceived = "transfer_genesis_all_received"
+	// EventTypeTransferGenesisTransfersEnabled is when the bridge is enabled
+	EventTypeTransferGenesisTransfersEnabled = "transfer_genesis_transfers_enabled"
+	AttributeKeyTransferGenesisNReceived     = "num_transfers_received"
 )

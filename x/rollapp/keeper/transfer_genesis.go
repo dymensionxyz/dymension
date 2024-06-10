@@ -59,7 +59,7 @@ func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
 }
 
 func transfersEnabledEvent(raID string) sdk.Event {
-	return sdk.NewEvent(types.EventTypeTransferGenesisH2,
+	return sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
 	)
 }
