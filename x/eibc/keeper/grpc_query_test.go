@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -76,7 +77,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 		suite.Require().NoError(err)
 
 		// Query demand orders by status
-		res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: status.String()})
+		res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: status})
 		suite.Require().NoError(err)
 		suite.Require().NotNil(res.DemandOrders)
 		suite.Require().Len(res.DemandOrders, 1, fmt.Sprintf("Expected 1 demand order for status %s, but got %d", status, len(res.DemandOrders)))
@@ -84,7 +85,7 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	}
 
 	// Query with invalid status should return an error
-	res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: "INVALID"})
+	res, err := suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: -1})
 	suite.Require().Error(err)
 	suite.Require().Nil(res)
 }
