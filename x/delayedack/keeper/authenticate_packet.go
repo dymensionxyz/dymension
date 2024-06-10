@@ -71,6 +71,10 @@ func (k Keeper) GetValidTransfer(
 			from the rollapp, also how we deal with fraud from the sequencer
 			See https://github.com/dymensionxyz/research/issues/242 for info
 			See
+				https://github.com/dymensionxyz/dymension/blob/8734e239483bb6290de6d01c196da35fa033e160/x/delayedack/keeper/authenticate_packet.go#L100-L204
+
+				for old implementation
+
 
 
 	*/
