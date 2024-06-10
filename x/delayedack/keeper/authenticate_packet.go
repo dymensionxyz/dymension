@@ -1,16 +1,11 @@
 package keeper
 
 import (
-	"errors"
-
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
-	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
@@ -89,16 +84,4 @@ func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID
 	}
 
 	return tmState.ChainId, nil
-}
-
-func (k Keeper) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
-	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !ok {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
-	}
-	conn, ok := k.connectionKeeper.GetConnection(ctx, ch.ConnectionHops[0])
-	if !ok {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
-	}
-	return conn, nil
 }

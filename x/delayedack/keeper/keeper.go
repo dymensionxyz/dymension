@@ -1,7 +1,14 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
+
+	errorsmod "cosmossdk.io/errors"
+
+	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -103,11 +110,15 @@ func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string)
 			bit stuck
 
 	*/
-	connectionEnd, err := k.getConnectionEnd(ctx, portID, channelID)
-	if err != nil {
-		return nil, err
+	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
+	if !ok {
+		return nil, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
 	}
-	clientState, found := k.clientKeeper.GetClientState(ctx, connectionEnd.GetClientID())
+	conn, ok := k.connectionKeeper.GetConnection(ctx, ch.ConnectionHops[0])
+	if !ok {
+		return nil, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
+	}
+	clientState, found := k.clientKeeper.GetClientState(ctx, conn.GetClientID())
 	if !found {
 		return nil, clienttypes.ErrConsensusStateNotFound
 	}
