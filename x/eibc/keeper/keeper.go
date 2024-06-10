@@ -101,8 +101,6 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	// TODO: emit event
-
 	return demandOrder, nil
 }
 
