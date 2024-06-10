@@ -28,16 +28,24 @@ func (k Keeper) BlockedAddr(addr string) bool {
 // If the rollapp packet is of type ON_RECV, the function will validate the memo and create a demand order from the packet data.
 // If the rollapp packet is of type ON_TIMEOUT, the function will calculate the fee and create a demand order from the packet data.
 func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
-	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	packetMetaData := &dacktypes.PacketMetadata{}
+	var (
+		err            error
+		logger         = ctx.Logger().With("module", "DelayedAckMiddleware")
+		packetMetaData = &dacktypes.PacketMetadata{}
+	)
 
 	switch t := rollappPacket.Type; t {
 	case commontypes.RollappPacket_ON_RECV:
-		var err error
 		packetMetaData, err = dacktypes.ParsePacketMetadata(data.Memo)
+		//FIXME
 		if errors.Is(err, dacktypes.ErrMemoUnmarshal) || errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
-			logger.Debug("skipping demand order creation - no eibc memo provided")
-			return nil
+			logger.Debug("no eibc memo provided - creating zero fee demand order")
+			packetMetaData = &dacktypes.PacketMetadata{
+				EIBC: &dacktypes.EIBCMetadata{
+					Fee: "0",
+				},
+			}
+			break
 		}
 		if err != nil {
 			return err
@@ -137,12 +145,6 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
-		bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
-		if bridgingFee.GT(fee) {
-			// We check that the fee the fulfiller makes is at least as big as the bridging fee they will have to pay later
-			// this is to improve UX and help fulfillers not lose money.
-			return nil, fmt.Errorf("eibc fee cannot be smaller than bridging fee: eibc fee: %s: bridging fee: %s", fee, bridgingFee)
-		}
 		demandOrderDenom = k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}

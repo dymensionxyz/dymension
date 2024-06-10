@@ -29,12 +29,10 @@ func (e EIBCMetadata) ValidateBasic() error {
 	return nil
 }
 
-var ErrEIBCFeeNotPositiveInt = fmt.Errorf("eibc fee is not a positive integer")
-
 func (e EIBCMetadata) FeeInt() (math.Int, error) {
 	i, ok := sdk.NewIntFromString(e.Fee)
-	if !ok || !i.IsPositive() {
-		return math.Int{}, ErrEIBCFeeNotPositiveInt
+	if !ok || i.IsNegative() {
+		return math.Int{}, ErrBadEIBCFee
 	}
 	return i, nil
 }
@@ -59,6 +57,7 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	if err != nil {
 		return nil, ErrMemoUnmarshal
 	}
+	//FIXME: move down
 	if memo[memoObjectKeyEIBC] == nil {
 		return nil, ErrMemoEibcEmpty
 	}
@@ -72,4 +71,14 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 		return nil, ErrEIBCMetadataUnmarshal
 	}
 	return &metadata, nil
+}
+
+func IsMemoContainsPFM(input string) bool {
+	bz := []byte(input)
+	memo := make(map[string]any)
+	err := json.Unmarshal(bz, &memo)
+	if err != nil {
+		return false
+	}
+	return memo[memoObjectKeyPFM] != nil
 }
