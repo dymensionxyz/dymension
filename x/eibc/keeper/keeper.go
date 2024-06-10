@@ -157,7 +157,7 @@ func (k Keeper) ListAllDemandOrders(
 	return list, nil
 }
 
-func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status, opts ...filterOption) (list []*types.DemandOrder, err error) {
+func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status, limit int, opts ...filterOption) (list []*types.DemandOrder, err error) {
 	store := ctx.KVStore(k.storeKey)
 
 	var statusPrefix []byte
@@ -176,6 +176,9 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
+		if limit > 0 && len(list) >= limit {
+			break
+		}
 		var val types.DemandOrder
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		for _, opt := range opts {

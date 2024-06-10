@@ -56,7 +56,7 @@ func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDem
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	// Get the demand orders by status, with optional filters
-	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, filterOpts(req)...)
+	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, req.Limit, filterOpts(req)...)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -71,9 +71,6 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	}
 	if req.Type != commontypes.RollappPacket_UNDEFINED {
 		opts = append(opts, isOrderType(req.Type))
-	}
-	if req.Limit > 0 {
-		opts = append(opts, limit(int(req.Limit)))
 	}
 	return opts
 }
@@ -94,13 +91,5 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 			}
 		}
 		return false
-	}
-}
-
-func limit(limit int) filterOption {
-	var count int
-	return func(order types.DemandOrder) bool {
-		count++
-		return count <= limit
 	}
 }
