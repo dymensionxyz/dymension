@@ -2,11 +2,8 @@ package transfergenesis
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
-
-	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -99,6 +96,8 @@ type memo struct {
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
 // it's the last one, open the bridge.
+// NOTE: we assume that by this point the canonical channel ID has already been set
+// for the rollapp, in a secure way.
 func (w IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
@@ -110,17 +109,19 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	chaID, raID, err := w.getChannelAndRollappID(ctx, packet)
+	transfer, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
 	if err != nil {
-		// TODO:
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
 	}
 
-	ra, ok := w.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
-	if !ok {
-		// TODO:
+	if !transfer.HasRollapp() {
+		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	m, err := getMemo(packet)
+	// if valid transfer returns a rollapp, we know we must get it
+	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
+
+	m, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
 		// This is a normal transfer
 		if !ra.GenesisState.TransfersEnabled {
@@ -133,7 +134,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		// TODO:
 	}
 
-	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, m.ThisTransferIx, m.TotalNumTransfers)
+	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, dymerror.ErrProtocolViolation) {
 		// TODO: emit event or freeze rollapp, or something else?
 	}
@@ -143,7 +144,7 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	// it's a valid genesis transfer!
 
-	err = w.registerDenomMetadata(ctx, raID, chaID, m.Denom)
+	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, m.Denom)
 	if err != nil {
 		// TODO:
 	}
@@ -156,28 +157,14 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	if nTransfersDone == m.TotalNumTransfers {
 		// The transfer window is finished! Queue up a finalization
-		w.rollappKeeper.EnableTransfers(ctx, raID)
-		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(raID, nTransfersDone))
+		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
+		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(ra.RollappId, nTransfersDone))
 		l.Info("All genesis transfers received, bridge opened.",
-			"rollapp", raID,
+			"rollapp", ra.RollappId,
 			"n transfers", nTransfersDone)
 	}
 
 	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
-}
-
-func (w IBCMiddleware) getChannelAndRollappID(ctx sdk.Context, packet channeltypes.Packet,
-) (string, string, error) {
-	chaID := "channel-0"
-	raID := "rollappevm_1234-1"
-
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
-	if err != nil {
-		err = errorsmod.Wrap(err, "chain id from port and channel")
-		return "", "", err
-	}
-	_ = chainID
-	return chaID, raID, nil
 }
 
 func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
@@ -187,34 +174,17 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 	)
 }
 
-func getMemo(packet channeltypes.Packet) (memo, error) {
-	var data transfertypes.FungibleTokenPacketData
-	if err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "fungible token packet")
-	}
-
+func getMemo(rawMemo string) (memo, error) {
 	type t struct {
 		Data memo `json:"genesis_transfer"`
 	}
 
-	rawMemo := data.GetMemo()
 	var m t
 	err := json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
 		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
 	}
 	return m.Data, nil
-}
-
-func (w IBCMiddleware) ensureRollappExists(ctx sdk.Context, raID string) error {
-	ra, ok := w.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
-	if !ok {
-		panic(errors.New("must find rollapp"))
-	}
-
-	_ = ra
-	// TODO:
-	return nil
 }
 
 func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
