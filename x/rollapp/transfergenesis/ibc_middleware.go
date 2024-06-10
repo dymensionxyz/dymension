@@ -209,7 +209,6 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 	)
 }
 
-// TODO: need proper testing
 func getMemo(rawMemo string) (memo, error) {
 	if len(rawMemo) == 0 {
 		return memo{}, gerr.ErrNotFound
@@ -245,6 +244,8 @@ func getMemo(rawMemo string) (memo, error) {
 
 func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	if w.denomKeeper.HasDenomMetadata(ctx, m.Base) {
+		// Not strictly necessary but an easy optimisation, as, in general, we dont place restrictions on the number
+		// of genesis transfers that a rollapp might do.
 		return nil
 	}
 
