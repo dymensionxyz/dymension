@@ -32,8 +32,11 @@ message MsgCreateRollapp {
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
-  repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false, deprecated=true];
+  reserved 8;
   reserved 9;
+  // enable ibc transfers initially? Must be set false if intending
+  // to send genesis transfers.
+  bool transfersEnabled = 10;
 }
 
 message MsgCreateRollappResponse {
