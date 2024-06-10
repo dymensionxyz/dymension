@@ -8,6 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -160,7 +161,7 @@ func (w IBCMiddleware) getEIBCTransferDenom(packet channeltypes.Packet, fungible
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		denom = utilsibc.GetForeignIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
+		denom = uibc.GetForeignDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
 	}
 	return denom
 }
