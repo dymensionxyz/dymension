@@ -18,7 +18,7 @@ import (
 func NewCmdSubmitTerminateStreamProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "terminate-stream-proposal streamID [flags]",
-		Short: "proposal to terminate an exisiting stream",
+		Short: "proposal to terminate an existing stream",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

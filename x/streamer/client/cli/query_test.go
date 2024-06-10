@@ -82,7 +82,7 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 			&types.StreamsResponse{},
 		},
 		{
-			"Query module to distibute coins",
+			"Query module to distribute coins",
 			"/dymensionxyz.dymension.streamer.Query/ModuleToDistributeCoins",
 			&types.ModuleToDistributeCoinsRequest{},
 			&types.ModuleToDistributeCoinsResponse{},
