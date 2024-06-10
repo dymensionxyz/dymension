@@ -51,33 +51,11 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	return n, nil
 }
 
-func (k Keeper) enableTransfers(ctx sdk.Context, rollappID string) {
+func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
 	ra := k.MustGetRollapp(ctx, rollappID)
 	ra.GenesisState.TransfersEnabled = true
+	ctx.EventManager().EmitEvent(transfersEnabledEvent(rollappID))
 	k.SetRollapp(ctx, ra)
-}
-
-func (k Keeper) FinalizeGenesisTransferDisputeWindows(ctx sdk.Context) error { // TODO: needs to be public?
-
-	h := uint64(ctx.BlockHeight())
-	if h <= k.DisputePeriodTransferGenesisInBlocks(ctx) { // TODO: check <= is ok
-		return nil
-	}
-
-	toFinalize := k.GetTransferGenesisFinalizationQueue(ctx, h-k.DisputePeriodTransferGenesisInBlocks(ctx)+1)
-	for _, rollapps := range toFinalize {
-		for _, raID := range rollapps.Rollapps {
-			ra := k.MustGetRollapp(ctx, raID)
-			ra.GenesisState.TransfersEnabled = true
-			k.SetRollapp(ctx, ra)
-			k.DelGenesisTransfers(ctx, raID)
-			ctx.EventManager().EmitEvent(transfersEnabledEvent(raID))
-			k.Logger(ctx).Info("Genesis transfer window finalized. Transfers enabled.", "rollapp", raID)
-		}
-		k.DelTransferGenesisFinalizations(ctx, rollapps.CreationHeight)
-	}
-
-	return nil
 }
 
 func transfersEnabledEvent(raID string) sdk.Event {
@@ -136,59 +114,4 @@ func (k Keeper) DelGenesisTransfers(ctx sdk.Context, raID string) { // TODO: nee
 	for ix := range nTotal {
 		store.Delete(types.TransferGenesisSetMembershipKey(raID, ix))
 	}
-}
-
-func (k Keeper) AddTransferGenesisFinalization(ctx sdk.Context, rollappID string) {
-	h := uint64(ctx.BlockHeight())
-	fs := k.GetTransferGenesisFinalizations(ctx, h)
-	fs.Rollapps = append(fs.Rollapps, rollappID) // we assume it's not there already
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-	b := k.cdc.MustMarshal(&fs)
-	store.Set(types.TransferGenesisFinalizationsKey(h), b)
-}
-
-func (k Keeper) GetTransferGenesisFinalizations(
-	ctx sdk.Context,
-	creationHeight uint64,
-) types.BlockHeightToTransferGenesisFinalizations {
-	var ret types.BlockHeightToTransferGenesisFinalizations
-	ret.Rollapps = make([]string, 0)
-	ret.CreationHeight = creationHeight
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-	b := store.Get(types.TransferGenesisFinalizationsKey(creationHeight))
-	if b == nil {
-		return ret
-	}
-
-	k.cdc.MustUnmarshal(b, &ret)
-	return ret
-}
-
-func (k Keeper) DelTransferGenesisFinalizations(
-	ctx sdk.Context,
-	creationHeight uint64,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-	store.Delete(types.TransferGenesisFinalizationsKey(creationHeight))
-}
-
-// GetTransferGenesisFinalizationQueue returns the queue up to but not including height
-// Passing height = 0 returns all
-func (k Keeper) GetTransferGenesisFinalizationQueue(ctx sdk.Context, creationHeight uint64) []types.BlockHeightToTransferGenesisFinalizations {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	var ret []types.BlockHeightToTransferGenesisFinalizations
-	for ; iterator.Valid(); iterator.Next() {
-		var x types.BlockHeightToTransferGenesisFinalizations
-		k.cdc.MustUnmarshal(iterator.Value(), &x)
-		if creationHeight != 0 && creationHeight <= x.CreationHeight {
-			break
-		}
-		ret = append(ret, x)
-	}
-
-	return ret
 }

@@ -45,7 +45,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
 	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
 	genesis.GenesisTransfers = k.GetAllGenesisTransfers(ctx)
-	genesis.GenesisTransferFinalizationQueue = k.GetTransferGenesisFinalizationQueue(ctx, 0)
 
 	return genesis
 }

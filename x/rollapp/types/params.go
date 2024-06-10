@@ -17,11 +17,8 @@ var (
 	// KeyDeployerWhitelist is store's key for DeployerWhitelist Params
 	KeyDeployerWhitelist = []byte("DeployerWhitelist")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
-	// KeyDisputePeriodTransferGenesisInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodTransferGenesisInBlocks            = []byte("DisputePeriodTransferGenesisInBlocks")
-	DefaultDisputePeriodInBlocks                uint64 = 3
-	DefaultDisputePeriodInBlocksTransferGenesis uint64 = 20 // TODO:
+	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
+	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 )
@@ -35,21 +32,19 @@ func ParamKeyTable() paramtypes.KeyTable {
 func NewParams(
 	enabled bool,
 	disputePeriodInBlocks uint64,
-	disputePeriodInBlocksTransferGenesis uint64,
 	deployerWhitelist []DeployerParams,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks:                disputePeriodInBlocks,
-		TransferGenesisDisputePeriodInBlocks: disputePeriodInBlocksTransferGenesis,
-		DeployerWhitelist:                    deployerWhitelist,
-		RollappsEnabled:                      enabled,
+		DisputePeriodInBlocks: disputePeriodInBlocks,
+		DeployerWhitelist:     deployerWhitelist,
+		RollappsEnabled:       enabled,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		true, DefaultDisputePeriodInBlocks, DefaultDisputePeriodInBlocksTransferGenesis, []DeployerParams{},
+		true, DefaultDisputePeriodInBlocks, []DeployerParams{},
 	)
 }
 
@@ -57,7 +52,6 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyDisputePeriodTransferGenesisInBlocks, &p.TransferGenesisDisputePeriodInBlocks, validateDisputePeriodTransferGenesisInBlocks),
 		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
 		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
 	}
@@ -66,9 +60,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
-		return err
-	}
-	if err := validateDisputePeriodTransferGenesisInBlocks(p.DisputePeriodInBlocks); err != nil {
 		return err
 	}
 
@@ -90,15 +81,6 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 
 	if disputePeriodInBlocks < MinDisputePeriodInBlocks {
 		return errors.New("dispute period cannot be lower than 1 block")
-	}
-
-	return nil
-}
-
-func validateDisputePeriodTransferGenesisInBlocks(v interface{}) error {
-	_, ok := v.(uint64)
-	if !ok {
-		return fmt.Errorf("wrong type: %T", v)
 	}
 
 	return nil
