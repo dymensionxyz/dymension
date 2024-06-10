@@ -136,12 +136,6 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
-		bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
-		if bridgingFee.GT(fee) {
-			// We check that the fee the fulfiller makes is at least as big as the bridging fee they will have to pay later
-			// this is to improve UX and help fulfillers not lose money.
-			return nil, fmt.Errorf("eibc fee cannot be smaller than bridging fee: eibc fee: %s: bridging fee: %s", fee, bridgingFee)
-		}
 		demandOrderDenom = k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 		demandOrderRecipient = fungibleTokenPacketData.Receiver // who we tried to send to
 	}
