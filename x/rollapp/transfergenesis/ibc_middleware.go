@@ -212,6 +212,7 @@ func (w IBCMiddleware) handleFraud(raID string) error {
 	// 		 NOTE: this may not be a fraud in the sense that the sequencer posted the wrong state root
 	//             it might be that the canonical state transition function for the RA is wrong somehow
 	//             and resulted in a protocol breakage
+	// 		https://github.com/dymensionxyz/dymension/issues/921
 	return nil
 }
 
