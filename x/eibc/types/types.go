@@ -8,4 +8,7 @@ const (
 	AttributeKeyFee          = "fee"
 	AttributeKeyIsFulfilled  = "is_fulfilled"
 	AttributeKeyPacketStatus = "packet_status"
+	AttributeKeyPacketKey    = "packet_key"
+	AttributeKeyRollappId    = "rollapp_id"
+	AttributeKeyRecipient    = "recipient"
 )
