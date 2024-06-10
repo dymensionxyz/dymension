@@ -1,11 +1,10 @@
 package keeper
 
 import (
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 
@@ -45,15 +44,16 @@ func (k Keeper) GetValidTransfer(
 	}
 
 	data.RollappID = chainID
+
 	if rollapp.ChannelId == "" {
-		err = errorsmod.Wrapf(rollapptypes.ErrGenesisEventNotTriggered, "empty channel id: rollap id: %s", chainID)
+		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", data.RollappID)
 		return
 	}
 
 	if rollapp.ChannelId != packet.DestinationChannel {
 		err = errorsmod.Wrapf(
-			rollapptypes.ErrMismatchedChannelID,
-			"channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
+			gerr.ErrInvalidArgument,
+			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
 		)
 		return
 	}
