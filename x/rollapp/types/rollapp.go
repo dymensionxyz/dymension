@@ -5,13 +5,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string) Rollapp {
-	return Rollapp{
+func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
+	ret := Rollapp{
 		RollappId:             rollappId,
 		Creator:               creator,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
 	}
+	ret.GenesisState.TransfersEnabled = transfersEnabled
+	return ret
 }
 
 func (r Rollapp) ValidateBasic() error {
