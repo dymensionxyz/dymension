@@ -149,7 +149,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		// The transfer window is finished! Queue up a finalization
 		w.rollappKeeper.EnableTransfers(ctx, raID)
 		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(raID, nTransfersDone))
-		l.Info("All genesis transfers received, scheduling genesis transfer window finalization.",
+		l.Info("All genesis transfers received, bridge opened.",
 			"rollapp", raID,
 			"n transfers", nTransfersDone)
 	}

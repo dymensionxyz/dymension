@@ -54,8 +54,8 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
 	ra := k.MustGetRollapp(ctx, rollappID)
 	ra.GenesisState.TransfersEnabled = true
-	ctx.EventManager().EmitEvent(transfersEnabledEvent(rollappID))
 	k.SetRollapp(ctx, ra)
+	ctx.EventManager().EmitEvent(transfersEnabledEvent(rollappID))
 }
 
 func transfersEnabledEvent(raID string) sdk.Event {
