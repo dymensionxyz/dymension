@@ -1,23 +1,14 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
-
-	errorsmod "cosmossdk.io/errors"
-
-	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -94,25 +85,6 @@ func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 
 	stateInfo := k.rollappKeeper.MustGetStateInfo(ctx, chainID, latestFinalizedStateIndex.Index)
 	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
-}
-
-// GetClientState retrieves the client state for a given packet.
-func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string) (exported.ClientState, error) {
-	// TODO: this is the main impl https://github.com/dymensionxyz/dymension/blob/a74ffb0cec00768bbb8dbe3fd6413e66388010d3/x/delayedack/keeper/keeper.go#L145-L157, check ok
-	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
-	if !ok {
-		return nil, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
-	}
-	conn, ok := k.connectionKeeper.GetConnection(ctx, ch.ConnectionHops[0])
-	if !ok {
-		return nil, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
-	}
-	clientState, found := k.clientKeeper.GetClientState(ctx, conn.GetClientID())
-	if !found {
-		return nil, clienttypes.ErrConsensusStateNotFound
-	}
-
-	return clientState, nil
 }
 
 func (k Keeper) BlockedAddr(addr string) bool {
