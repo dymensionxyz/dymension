@@ -34,6 +34,7 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 type DenomMetadataKeeper interface {
 	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
+	HasDenomMetadata(ctx sdk.Context, base string) bool
 }
 
 type TransferKeeper interface {
@@ -221,7 +222,9 @@ func getMemo(rawMemo string) (memo, error) {
 }
 
 func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
-	// TODO: only do it if it hasn't been done before?
+	if w.denomKeeper.HasDenomMetadata(ctx, m.Base) {
+		return nil
+	}
 
 	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
 
@@ -248,9 +251,6 @@ func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channel
 
 	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
 	err := w.denomKeeper.CreateDenomMetadata(ctx, m)
-	if errorsmod.IsOf(err, gerr.ErrAlreadyExist) {
-		return nil
-	}
 	if err != nil {
 		return errorsmod.Wrap(err, "create denom metadata")
 	}
