@@ -44,32 +44,27 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		}
 	}
 
-	// Check the order is profitable in regards to the bridging fee
-	denom := demandOrder.Price[0].Denom
-	originalAmt := demandOrder.Price.AmountOf(denom).Add(demandOrder.Fee.AmountOf(denom))
-	bridgingFee := m.DelayedAckKeeper.BridgingFeeFromAmt(ctx, originalAmt)
-
-	if demandOrder.Fee.AmountOf(denom).LT(bridgingFee) {
-		return nil, types.ErrDemandOrderNotProfitable
-	}
-
 	// Check for blocked address
-	if m.BankKeeper.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
+	if m.bk.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
 		return nil, types.ErrBlockedAddress
 	}
 	// Check that the fulfiller has enough balance to fulfill the order
-	fulfillerAccount := m.GetAccount(ctx, msg.GetFulfillerBech32Address())
+	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
 		return nil, types.ErrFulfillerAddressDoesNotExist
 	}
+
 	// Send the funds from the fulfiller to the eibc packet original recipient
-	err = m.BankKeeper.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
+	err = m.bk.SendCoins(ctx, fulfillerAccount.GetAddress(), demandOrder.GetRecipientBech32Address(), demandOrder.Price)
 	if err != nil {
 		logger.Error("Failed to send coins", "error", err)
 		return nil, err
 	}
 	// Fulfill the order by updating the order status and underlying packet recipient
-	err = m.Keeper.FulfillOrder(ctx, demandOrder, fulfillerAccount.GetAddress())
+	err = m.Keeper.SetOrderFulfilled(ctx, demandOrder, fulfillerAccount.GetAddress())
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgFulfillOrderResponse{}, err
 }
@@ -105,7 +100,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		}
 
 		// Check the order is profitable in regards to the bridging fee
-		bridgingFee := m.DelayedAckKeeper.BridgingFeeFromAmt(ctx, transferTotal)
+		bridgingFee := m.dack.BridgingFeeFromAmt(ctx, transferTotal)
 		if newFeeInt.LT(bridgingFee) {
 			return nil, types.ErrDemandOrderNotProfitable
 		}

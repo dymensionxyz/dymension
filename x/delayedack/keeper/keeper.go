@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -156,12 +157,8 @@ func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string)
 	return clientState, nil
 }
 
-func (k Keeper) BlockedAddr(addr string) bool {
-	account, err := sdk.AccAddressFromBech32(addr)
-	if err != nil {
-		return false
-	}
-	return k.bankKeeper.BlockedAddr(account)
+func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, transferPacketData transfertypes.FungibleTokenPacketData) error {
+	return k.EIBCKeeper.EIBCDemandOrderHandler(ctx, rollappPacket, transferPacketData)
 }
 
 /* -------------------------------------------------------------------------- */

@@ -3,9 +3,11 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -45,6 +47,7 @@ type EIBCKeeper interface {
 	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder) error
 	TimeoutFee(ctx sdk.Context) sdk.Dec
 	ErrAckFee(ctx sdk.Context) sdk.Dec
+	EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error
 }
 
 type BankKeeper interface {

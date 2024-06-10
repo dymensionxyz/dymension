@@ -67,7 +67,7 @@ func UnderlyingPacketExistInvariant(k Keeper) sdk.Invariant {
 		}
 		for _, demandOrder := range allDemandOrders {
 			// Get the underlying packet for the demand order
-			_, err := k.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
+			_, err := k.dack.GetRollappPacket(ctx, demandOrder.TrackingPacketKey)
 			if err != nil {
 				msg += fmt.Sprintf("underlying packet for demand order %s not found: %v\n", demandOrder.Id, err)
 				broken = true

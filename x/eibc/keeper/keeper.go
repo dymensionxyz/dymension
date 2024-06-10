@@ -20,9 +20,9 @@ type (
 		memKey     storetypes.StoreKey
 		hooks      types.EIBCHooks
 		paramstore paramtypes.Subspace
-		types.AccountKeeper
-		types.BankKeeper
-		types.DelayedAckKeeper
+		ak         types.AccountKeeper
+		bk         types.BankKeeper
+		dack       types.DelayedAckKeeper
 	}
 )
 
@@ -41,13 +41,13 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:              cdc,
-		storeKey:         storeKey,
-		memKey:           memKey,
-		paramstore:       ps,
-		AccountKeeper:    accountKeeper,
-		BankKeeper:       bankKeeper,
-		DelayedAckKeeper: delayedAckKeeper,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		memKey:     memKey,
+		paramstore: ps,
+		ak:         accountKeeper,
+		bk:         bankKeeper,
+		dack:       delayedAckKeeper,
 	}
 }
 
@@ -101,17 +101,19 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
+	// TODO: emit event
+
 	return demandOrder, nil
 }
 
-// FulfillOrder should be called only at most once per order.
-func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
+// SetOrderFulfilled should be called only at most once per order.
+func (k Keeper) SetOrderFulfilled(ctx sdk.Context, order *types.DemandOrder, fulfillerAddress sdk.AccAddress) error {
 	order.IsFulfilled = true
 	err := k.SetDemandOrder(ctx, order)
 	if err != nil {
 		return err
 	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfilment.
+	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
 	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, fulfillerAddress.String())
 	if err != nil {
 		return err
@@ -205,5 +207,5 @@ func (k *Keeper) GetHooks() types.EIBCHooks {
 // SetDelayedAckKeeper sets the delayedack keeper.
 // must be called when initializing the keeper.
 func (k *Keeper) SetDelayedAckKeeper(delayedAckKeeper types.DelayedAckKeeper) {
-	k.DelayedAckKeeper = delayedAckKeeper
+	k.dack = delayedAckKeeper
 }

@@ -102,7 +102,7 @@ func (im IBCMiddleware) OnRecvPacket(
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
 
-	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+	err = im.keeper.EIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
@@ -194,7 +194,7 @@ func (im IBCMiddleware) OnAcknowledgementPacket(
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
 	case *channeltypes.Acknowledgement_Error:
-		err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+		err = im.keeper.EIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 		if err != nil {
 			return err
 		}
@@ -277,7 +277,7 @@ func (im IBCMiddleware) OnTimeoutPacket(
 		"proofHeight", rollappPacket.ProofHeight,
 		"type", rollappPacket.Type)
 
-	err = im.eIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
+	err = im.keeper.EIBCDemandOrderHandler(ctx, rollappPacket, *transferPacketData)
 	if err != nil {
 		return err
 	}
