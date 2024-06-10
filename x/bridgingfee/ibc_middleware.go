@@ -72,7 +72,7 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if !transfer.HasRollapp() {
+	if !transfer.IsFromRollapp() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

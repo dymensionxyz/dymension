@@ -77,10 +77,10 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 		return "", errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
-	if rollapp.ChannelId != packet.DestinationChannel {
+	if rollapp.ChannelId != packet.GetDestChannel() {
 		return "", errorsmod.Wrapf(
 			gerr.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.DestinationChannel,
+			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.GetDestChannel(),
 		)
 	}
 	return rollapp.ChannelId, nil

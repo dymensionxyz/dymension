@@ -92,6 +92,35 @@ type memo struct {
 	ThisTransferIx uint64 `json:"this_transfer_ix"`
 }
 
+/*
+TODO: prior to this we relied on the whitelist addr to set the canonical channel
+
+	This is a hack (not secure)
+	The real solution will come in a followup PR
+	See https://github.com/dymensionxyz/research/issues/242
+*/
+func hackSetCanonicalChannel(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+	l log.Logger,
+	w IBCMiddleware,
+) {
+	l = l.With("hack set canonical channel")
+	t, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
+	if err != nil {
+		l.Error("get valid transfer", "error", err)
+	}
+
+	if !t.IsFromRollapp() {
+		return
+	}
+
+	// if valid t returns a rollapp, we know we must get it
+	ra := w.rollappKeeper.MustGetRollapp(ctx, t.RollappID)
+	ra.ChannelId = packet.GetDestChannel()
+	w.rollappKeeper.SetRollapp(ctx, ra)
+}
+
 // OnRecvPacket will, if the packet is a transfer packet:
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
@@ -105,6 +134,8 @@ func (w IBCMiddleware) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
+	hackSetCanonicalChannel(ctx, packet, l, w)
+
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -114,7 +145,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
 	}
 
-	if !transfer.HasRollapp() {
+	if !transfer.IsFromRollapp() {
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
