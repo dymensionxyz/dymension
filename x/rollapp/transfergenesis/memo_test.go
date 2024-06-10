@@ -63,8 +63,12 @@ var (
 )
 
 func TestGetMemo(t *testing.T) {
-	t.Run("empty: returns not found", func(t *testing.T) {
+	t.Run("empty str: returns not found", func(t *testing.T) {
 		_, err := getMemo("")
+		require.True(t, errorsmod.IsOf(err, gerr.ErrNotFound))
+	})
+	t.Run("empty json: returns not found", func(t *testing.T) {
+		_, err := getMemo("{}")
 		require.True(t, errorsmod.IsOf(err, gerr.ErrNotFound))
 	})
 	t.Run("does not have namespace key: returns not found", func(t *testing.T) {

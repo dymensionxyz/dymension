@@ -211,12 +211,32 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 
 // TODO: need proper testing
 func getMemo(rawMemo string) (memo, error) {
+	if len(rawMemo) == 0 {
+		return memo{}, gerr.ErrNotFound
+	}
+
+	key := "genesis_transfer"
+
+	// check if the key is there, because we want to differentiate between people not sending us the data, vs
+	// them sending it but it being malformed
+
+	keyMap := make(map[string]any)
+
+	err := json.Unmarshal([]byte(rawMemo), &keyMap)
+	if err != nil {
+		return memo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+	}
+
+	if _, ok := keyMap[key]; !ok {
+		return memo{}, gerr.ErrNotFound
+	}
+
 	type t struct {
 		Data memo `json:"genesis_transfer"`
 	}
 
 	var m t
-	err := json.Unmarshal([]byte(rawMemo), &m)
+	err = json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
 		return memo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
