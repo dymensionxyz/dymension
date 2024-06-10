@@ -34,7 +34,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	// check if there are permissionedAddresses.
-	// if the list is not empty, it means that only processioned sequencers can be added
+	// if the list is not empty, it means that only permissioned sequencers can be added
 	permissionedAddresses := rollapp.PermissionedAddresses
 	if 0 < len(permissionedAddresses) && !slices.Contains(permissionedAddresses, msg.Creator) {
 		return nil, types.ErrSequencerNotPermissioned
