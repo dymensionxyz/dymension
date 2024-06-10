@@ -14,6 +14,8 @@ import (
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -63,6 +65,19 @@ func NewIBCMiddleware(
 	}
 }
 
+func (im IBCMiddleware) logger(
+	ctx sdk.Context,
+	packet channeltypes.Packet,
+) log.Logger {
+	return ctx.Logger().With(
+		"module", "transferGenesis",
+		"packet_source_port", packet.SourcePort,
+		"packet_destination_port", packet.DestinationPort,
+		"packet_sequence", packet.Sequence,
+		"method", "OnRecvPacket",
+	)
+}
+
 type memo struct {
 	Denom banktypes.Metadata `json:"denom"`
 	// How many transfers in total will be sent in the transfer genesis period
@@ -80,15 +95,11 @@ func (im IBCMiddleware) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	l := im.logger(ctx, packet)
+
 	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
-
-	l := ctx.Logger().With(
-		"middleware", "transferGenesis",
-		"packet_source_port", packet.SourcePort,
-		"packet_destination_port", packet.DestinationPort,
-		"packet_sequence", packet.Sequence)
 
 	chaID, raID, err := im.getChannelAndRollappID(ctx, packet)
 	if err != nil {
