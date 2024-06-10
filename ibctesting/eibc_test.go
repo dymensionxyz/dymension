@@ -472,7 +472,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 			suite.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order
-			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfillerAccount.String(), lastDemandOrder.Id, lastDemandOrder.Fee[0].Amount.String())
+			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfillerAccount.String(), lastDemandOrder.Id)
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			suite.Require().NoError(err)
 			// Validate balances of fulfiller and sender are updated while the original recipient is not

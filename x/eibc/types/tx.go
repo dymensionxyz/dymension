@@ -15,7 +15,7 @@ var (
 	_ = sdk.Msg(&MsgUpdateDemandOrder{})
 )
 
-func NewMsgFulfillOrder(fulfillerAddress, orderId, minFee string) *MsgFulfillOrder {
+func NewMsgFulfillOrder(fulfillerAddress, orderId string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
 		FulfillerAddress: fulfillerAddress,
 		OrderId:          orderId,
