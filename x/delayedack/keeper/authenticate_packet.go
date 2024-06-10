@@ -2,13 +2,12 @@ package keeper
 
 import (
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
+	errorsmod "cosmossdk.io/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-
-	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -31,7 +30,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	chainID, err := k.chainIDFromPortChannel(ctx, packet.DestinationPort, packet.DestinationChannel)
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		err = errorsmod.Wrap(err, "chain id from port and channel")
 		return
@@ -72,18 +71,4 @@ func (k Keeper) GetValidTransfer(
 	*/
 
 	return
-}
-
-func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
-	_, state, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
-	if err != nil {
-		return "", errorsmod.Wrap(err, "get channel client state")
-	}
-
-	tmState, ok := state.(*ibctmtypes.ClientState)
-	if !ok {
-		return "", nil
-	}
-
-	return tmState.ChainId, nil
 }
