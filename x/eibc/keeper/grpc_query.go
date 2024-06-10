@@ -56,7 +56,7 @@ func (q Querier) DemandOrdersByStatus(goCtx context.Context, req *types.QueryDem
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 	// Get the demand orders by status, with optional filters
-	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, req.Limit, filterOpts(req)...)
+	demandOrders, err := q.ListDemandOrdersByStatus(sdk.UnwrapSDKContext(goCtx), req.Status, int(req.Limit), filterOpts(req)...)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
