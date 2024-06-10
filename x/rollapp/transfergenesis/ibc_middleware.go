@@ -110,12 +110,6 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
-	if err != nil {
-		err = errorsmod.Wrap(err, "chain id from port and channel")
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
 	chaID, raID, err := w.getChannelAndRollappID(ctx, packet)
 	if err != nil {
 		// TODO:
@@ -172,6 +166,20 @@ func (w IBCMiddleware) OnRecvPacket(
 	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
+func (w IBCMiddleware) getChannelAndRollappID(ctx sdk.Context, packet channeltypes.Packet,
+) (string, string, error) {
+	chaID := "channel-0"
+	raID := "rollappevm_1234-1"
+
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
+	if err != nil {
+		err = errorsmod.Wrap(err, "chain id from port and channel")
+		return "", "", err
+	}
+	_ = chainID
+	return chaID, raID, nil
+}
+
 func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 	return sdk.NewEvent(types.EventTypeTransferGenesisAllReceived,
 		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
@@ -196,13 +204,6 @@ func getMemo(packet channeltypes.Packet) (memo, error) {
 		return memo{}, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, "rawMemo")
 	}
 	return m.Data, nil
-}
-
-func (w IBCMiddleware) getChannelAndRollappID(ctx sdk.Context, packet channeltypes.Packet,
-) (string, string, error) {
-	chaID := "channel-0"
-	raID := "rollappevm_1234-1"
-	return chaID, raID, nil
 }
 
 func (w IBCMiddleware) ensureRollappExists(ctx sdk.Context, raID string) error {
