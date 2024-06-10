@@ -98,18 +98,7 @@ func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 
 // GetClientState retrieves the client state for a given packet.
 func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string) (exported.ClientState, error) {
-	_, ret, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
-	_ = ret
-	/*
-		TODO: friday afternoon: I was looking at the bizzare spaghetti involving several getClientState* and similar methods
-			including this one, and ones in authenticate_packet
-			Need to simplify and be clear (was sergi doing somethign wrong, that's why he could only get the latest height?)
-
-			Also: trying to disect packet security and impersonation
-			https://www.notion.so/dymension/Did-that-packet-really-come-from-the-rollapp-11f1eeefcd9f405f9395aaaa410be4d0
-			bit stuck
-
-	*/
+	// TODO: this is the main impl https://github.com/dymensionxyz/dymension/blob/a74ffb0cec00768bbb8dbe3fd6413e66388010d3/x/delayedack/keeper/keeper.go#L145-L157, check ok
 	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !ok {
 		return nil, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
