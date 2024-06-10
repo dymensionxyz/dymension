@@ -755,14 +755,6 @@ func New(
 	)
 	var delayedAckMiddleware ibcporttypes.Middleware
 	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	/*
-		TODO: where was I?
-		I was merging in upstream changes and I might have to do some more manual resolution?
-		Then I was making a plan for how to attack the 'did the packet really come from a valid sequencer?' problem
-		First things to do
-			- try to build
-			- analyse sergis code
-	*/
 	transferStack = transfergenesis.NewIBCMiddleware(delayedAckMiddleware, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
