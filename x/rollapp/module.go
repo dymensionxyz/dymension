@@ -186,9 +186,5 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 		// but for the first few rollapps we can handle this way.
 		ctx.Logger().Error("finalize queue", "error", err.Error())
 	}
-	err = am.keeper.FinalizeGenesisTransferDisputeWindows(ctx) // TODO: need to add a panic/rollback wrapper?
-	if err != nil {
-		// TODO:
-	}
 	return []abci.ValidatorUpdate{}
 }
