@@ -72,3 +72,7 @@ func (k Keeper) GetValidTransfer(
 
 	return
 }
+
+func GetRollappID(ctx sdk.Context,
+	packet channeltypes.Packet) (string, error) {
+}
