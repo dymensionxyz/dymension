@@ -4,13 +4,14 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	transfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 
 	delayedaackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
 const (
@@ -27,6 +28,7 @@ type BridgingFeeMiddleware struct {
 	transfer.IBCModule
 	porttypes.ICS4Wrapper
 
+	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedaackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
 	feeModuleAddr    sdk.AccAddress
@@ -59,7 +61,7 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 		"packet_sequence", packet.Sequence)
 
 	rollappPortOnHub, rollappChannelOnHub := packet.DestinationPort, packet.DestinationChannel
-	rollappID, transferPacketData, err := im.delayedAckKeeper.ExtractRollappIDAndTransferPacket(ctx, packet, rollappPortOnHub, rollappChannelOnHub)
+	rollappID, transferPacketData, err := im.rollappKeeper.ExtractRollappIDAndTransferPacketFromData(ctx, packet.Data, rollappPortOnHub, rollappChannelOnHub)
 	if err != nil {
 		logger.Error("Failed to extract rollapp id from packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
