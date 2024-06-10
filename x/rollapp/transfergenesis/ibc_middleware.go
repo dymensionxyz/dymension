@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/dymensionxyz/dymension/v3/utils/ibc"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
-	"github.com/dymensionxyz/dymension/v3/utils"
 
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
@@ -223,7 +223,7 @@ func getMemo(rawMemo string) (memo, error) {
 func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	// TODO: only do it if it hasn't been done before?
 
-	trace := utils.GetForeignDenomTrace(channelID, m.Base)
+	trace := ibc.GetForeignDenomTrace(channelID, m.Base)
 
 	w.transferKeeper.SetDenomTrace(ctx, trace)
 

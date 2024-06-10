@@ -3,6 +3,7 @@ package ibc
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
@@ -27,4 +28,20 @@ func ChainIDFromPortChannel(
 	}
 
 	return tmState.ChainId, nil
+}
+
+const (
+	ibcPort = "transfer"
+)
+
+func GetForeignIBCDenom(channelId string, denom string) string {
+	return GetForeignDenomTrace(channelId, denom).IBCDenom()
+}
+
+func GetForeignDenomTrace(channelId string, denom string) types.DenomTrace {
+	sourcePrefix := types.GetDenomPrefix(ibcPort, channelId)
+	// NOTE: sourcePrefix contains the trailing "/"
+	prefixedDenom := sourcePrefix + denom
+	// construct the denomination trace from the full raw denomination
+	return types.ParseDenomTrace(prefixedDenom)
 }
