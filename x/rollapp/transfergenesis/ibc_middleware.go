@@ -65,7 +65,7 @@ func NewIBCMiddleware(
 	}
 }
 
-func (im IBCMiddleware) logger(
+func (w IBCMiddleware) logger(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) log.Logger {
@@ -90,23 +90,23 @@ type memo struct {
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
 // it's the last one, trigger the finalization period to begin.
-func (im IBCMiddleware) OnRecvPacket(
+func (w IBCMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	l := im.logger(ctx, packet)
+	l := w.logger(ctx, packet)
 
-	if !im.delayedackKeeper.IsRollappsEnabled(ctx) {
-		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
+	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	chaID, raID, err := im.getChannelAndRollappID(ctx, packet)
+	chaID, raID, err := w.getChannelAndRollappID(ctx, packet)
 	if err != nil {
 		// TODO:
 	}
 
-	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
+	ra, ok := w.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
 	if !ok {
 		// TODO:
 	}
@@ -118,13 +118,13 @@ func (im IBCMiddleware) OnRecvPacket(
 			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
 			return channeltypes.NewErrorAcknowledgement(err) // TODO: check with Omri
 		}
-		return im.Middleware.OnRecvPacket(ctx, packet, relayer)
+		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
 		// TODO:
 	}
 
-	nTransfersDone, err := im.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, m.ThisTransferIx, m.TotalNumTransfers)
+	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, raID, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, dymerror.ErrProtocolViolation) {
 		// TODO: emit event or freeze rollapp, or something else?
 	}
@@ -134,7 +134,7 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	// it's a valid genesis transfer!
 
-	err = im.registerDenomMetadata(ctx, raID, chaID, m.Denom)
+	err = w.registerDenomMetadata(ctx, raID, chaID, m.Denom)
 	if err != nil {
 		// TODO:
 	}
@@ -147,14 +147,14 @@ func (im IBCMiddleware) OnRecvPacket(
 
 	if nTransfersDone == m.TotalNumTransfers {
 		// The transfer window is finished! Queue up a finalization
-		im.rollappKeeper.EnableTransfers(ctx, raID)
+		w.rollappKeeper.EnableTransfers(ctx, raID)
 		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(raID, nTransfersDone))
 		l.Info("All genesis transfers received, scheduling genesis transfer window finalization.",
 			"rollapp", raID,
 			"n transfers", nTransfersDone)
 	}
 
-	return im.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
 func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
@@ -183,15 +183,15 @@ func getMemo(packet channeltypes.Packet) (memo, error) {
 	return m.Data, nil
 }
 
-func (im IBCMiddleware) getChannelAndRollappID(ctx sdk.Context, packet channeltypes.Packet,
+func (w IBCMiddleware) getChannelAndRollappID(ctx sdk.Context, packet channeltypes.Packet,
 ) (string, string, error) {
 	chaID := "channel-0"
 	raID := "rollappevm_1234-1"
 	return chaID, raID, nil
 }
 
-func (im IBCMiddleware) ensureRollappExists(ctx sdk.Context, raID string) error {
-	ra, ok := im.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
+func (w IBCMiddleware) ensureRollappExists(ctx sdk.Context, raID string) error {
+	ra, ok := w.rollappKeeper.GetRollapp(ctx, raID) // TODO: necessary?
 	if !ok {
 		panic(errors.New("must find rollapp"))
 	}
@@ -201,12 +201,12 @@ func (im IBCMiddleware) ensureRollappExists(ctx sdk.Context, raID string) error 
 	return nil
 }
 
-func (im IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
+func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	// TODO: only do it if it hasn't been done before?
 
 	trace := utils.GetForeignDenomTrace(channelID, m.Base)
 
-	im.transferKeeper.SetDenomTrace(ctx, trace)
+	w.transferKeeper.SetDenomTrace(ctx, trace)
 
 	ibcDenom := trace.IBCDenom()
 
@@ -228,7 +228,7 @@ func (im IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channe
 	}
 
 	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
-	err := im.denomKeeper.CreateDenomMetadata(ctx, m)
+	err := w.denomKeeper.CreateDenomMetadata(ctx, m)
 	if errorsmod.IsOf(err, gerr.ErrAlreadyExist) {
 		return nil
 	}
