@@ -32,7 +32,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simapp "github.com/cosmos/cosmos-sdk/simapp"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/store/streaming"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -113,7 +113,7 @@ import (
 
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 
-	ante "github.com/dymensionxyz/dymension/v3/app/ante"
+	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
@@ -147,6 +147,8 @@ import (
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
 
+	"github.com/dymensionxyz/dymension/v3/x/transferinject"
+
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -174,14 +176,14 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/gamm"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	incentives "github.com/osmosis-labs/osmosis/v15/x/incentives"
+	"github.com/osmosis-labs/osmosis/v15/x/incentives"
 	incentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
 	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/x/poolmanager"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
 	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
 
-	txfees "github.com/osmosis-labs/osmosis/v15/x/txfees"
+	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
 
@@ -600,19 +602,6 @@ func New(
 		nil,
 	)
 
-	// Create Transfer Keepers
-	app.TransferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		&app.IBCKeeper.PortKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-		scopedTransferKeeper,
-	)
-
 	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
 		app.BankKeeper,
 	)
@@ -633,12 +622,26 @@ func New(
 		app.BankKeeper,
 	)
 
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+
+	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
+
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		keys[sequencermoduletypes.StoreKey],
 		keys[sequencermoduletypes.MemStoreKey],
 		app.GetSubspace(sequencermoduletypes.ModuleName),
-
 		app.BankKeeper,
 		app.RollappKeeper,
 	)
@@ -744,7 +747,14 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridgingfee.NewIBCMiddleware(transferMiddleware, app.IBCKeeper.ChannelKeeper, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName))
+	transferStack = bridging_fee.NewIBCMiddleware(
+		transferMiddleware,
+		app.IBCKeeper.ChannelKeeper,
+		app.DelayedAckKeeper,
+		app.RollappKeeper,
+		app.TransferKeeper,
+		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
+	)
 
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(
 		transferStack,
@@ -753,9 +763,8 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
-	var delayedAckMiddleware ibcporttypes.Middleware
-	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transfergenesis.NewIBCMiddleware(delayedAckMiddleware, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper, app.IBCKeeper.ChannelKeeper)
+	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -767,7 +776,7 @@ func New(
 	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
-		delayedAckMiddleware.(delayedackmodule.IBCMiddleware),
+		delayedAckMiddleware,
 	))
 
 	/****  Module Options ****/

@@ -41,6 +41,8 @@ message Rollapp {
   string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
   bool frozen = 9;
+  // registeredDenoms is a list of registered denom bases on this rollapp
+  repeated string registeredDenoms = 10;
 }
 
 // Rollapp summary is a compact representation of Rollapp

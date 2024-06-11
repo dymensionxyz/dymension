@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"cosmossdk.io/math"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -27,7 +28,7 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 		suite.Require().NoError(err)
 	}
 	// Get the demand orders with status active
-	demandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+	demandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING, 0)
 	suite.Require().NoError(err)
 	suite.Equal(demandOrdersNum, len(demandOrders))
 
@@ -37,10 +38,10 @@ func (suite *KeeperTestSuite) TestListDemandOrdersByStatus() {
 		suite.Require().NoError(err)
 	}
 	// Retrieve the updated demand orders after status change
-	updatedDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED)
+	updatedDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_FINALIZED, 0)
 	suite.Require().NoError(err)
 	// Validate that there are exactly demandOrderNum packets in total
-	pendingDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING)
+	pendingDemandOrders, err := keeper.ListDemandOrdersByStatus(ctx, commontypes.Status_PENDING, 0)
 	suite.Require().NoError(err)
 	totalDemandOrders := len(updatedDemandOrders) + len(pendingDemandOrders)
 	suite.Require().Equal(demandOrdersNum, totalDemandOrders)
