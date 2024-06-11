@@ -15,6 +15,7 @@ type TransferData struct {
 	RollappID string
 }
 
+// IsRollapp returns whether the transfer came from a rollapp or was sent to a rollapp
 func (d TransferData) IsRollapp() bool {
 	return d.RollappID != ""
 }

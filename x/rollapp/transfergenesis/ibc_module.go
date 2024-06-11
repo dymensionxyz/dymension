@@ -104,12 +104,12 @@ func hackSetCanonicalChannel(
 	//	 See https://github.com/dymensionxyz/research/issues/242
 
 	l := ctx.Logger().With("hack set canonical channel")
-	t, err := w.delayedackKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	t, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		l.Error("get valid transfer", "error", err)
 	}
 
-	if !t.IsFromRollapp() {
+	if !t.IsRollapp() {
 		return
 	}
 
@@ -135,16 +135,16 @@ func (w IBCModule) OnRecvPacket(
 	l := w.logger(ctx, packet)
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
-		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
+		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transfer, err := w.delayedackKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
 	}
 
-	if !transfer.IsFromRollapp() {
-		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
+	if !transfer.IsRollapp() {
+		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// if valid transfer returns a rollapp, we know we must get it
@@ -158,7 +158,7 @@ func (w IBCModule) OnRecvPacket(
 			// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
 			return channeltypes.NewErrorAcknowledgement(err)
 		}
-		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
+		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
 		l.Debug("get memo", "error", err)
@@ -202,7 +202,7 @@ func (w IBCModule) OnRecvPacket(
 			"n transfers", nTransfersDone)
 	}
 
-	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+	return w.IBCModule.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
 func (w IBCModule) handleFraud(raID string) error {
