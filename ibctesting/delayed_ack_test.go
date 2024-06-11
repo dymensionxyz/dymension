@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -25,6 +26,9 @@ func TestDelayedAckTestSuite(t *testing.T) {
 
 func (suite *DelayedAckTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
+	ConvertToApp(suite.hubChain).BankKeeper.SetDenomMetaData(suite.hubChain.GetContext(), banktypes.Metadata{
+		Base: sdk.DefaultBondDenom,
+	})
 }
 
 // Transfer from cosmos chain to the hub. No delay expected

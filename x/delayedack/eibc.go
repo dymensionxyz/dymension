@@ -43,9 +43,9 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		var feeMultiplier sdk.Dec
 		switch t {
 		case commontypes.RollappPacket_ON_TIMEOUT:
-			feeMultiplier = im.keeper.TimeoutFee(ctx)
+			feeMultiplier = im.TimeoutFee(ctx)
 		case commontypes.RollappPacket_ON_ACK:
-			feeMultiplier = im.keeper.ErrAckFee(ctx)
+			feeMultiplier = im.ErrAckFee(ctx)
 		}
 		fee := amountDec.Mul(feeMultiplier).TruncateInt()
 		if !fee.IsPositive() {
@@ -64,7 +64,7 @@ func (im IBCMiddleware) eIBCDemandOrderHandler(ctx sdk.Context, rollappPacket co
 		return fmt.Errorf("create eibc demand order: %w", err)
 	}
 
-	err = im.keeper.SetDemandOrder(ctx, eibcDemandOrder)
+	err = im.SetDemandOrder(ctx, eibcDemandOrder)
 	if err != nil {
 		return fmt.Errorf("set eibc demand order: %w", err)
 	}
@@ -86,7 +86,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
-	if im.keeper.BlockedAddr(fungibleTokenPacketData.Receiver) {
+	if im.BlockedAddr(fungibleTokenPacketData.Receiver) {
 		return nil, fmt.Errorf("not allowed to receive funds: receiver: %s", fungibleTokenPacketData.Receiver)
 	}
 	// Calculate the demand order price and validate it,
@@ -126,7 +126,7 @@ func (im IBCMiddleware) createDemandOrderFromIBCPacket(ctx sdk.Context, fungible
 		demandOrderDenom = trace.IBCDenom()
 		demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 	case commontypes.RollappPacket_ON_RECV:
-		bridgingFee := im.keeper.BridgingFeeFromAmt(ctx, amt)
+		bridgingFee := im.BridgingFeeFromAmt(ctx, amt)
 		if bridgingFee.GT(fee) {
 			// We check that the fee the fulfiller makes is at least as big as the bridging fee they will have to pay later
 			// this is to improve UX and help fulfillers not lose money.
