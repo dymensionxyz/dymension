@@ -52,7 +52,6 @@ type IBCModule struct {
 	rollappKeeper       rollappkeeper.Keeper
 	transferKeeper      TransferKeeper
 	denomKeeper         DenomMetadataKeeper
-	channelKeeper       ChannelKeeper
 }
 
 func NewIBCModule(
@@ -61,7 +60,6 @@ func NewIBCModule(
 	rollappKeeper rollappkeeper.Keeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
-	channelKeeper ChannelKeeper,
 ) IBCModule {
 	return IBCModule{
 		IBCModule:        next,
@@ -69,7 +67,6 @@ func NewIBCModule(
 		rollappKeeper:    rollappKeeper,
 		transferKeeper:   transferKeeper,
 		denomKeeper:      denomKeeper,
-		channelKeeper:    channelKeeper,
 	}
 }
 
@@ -105,6 +102,7 @@ func hackSetCanonicalChannel(
 	//	 See https://github.com/dymensionxyz/research/issues/242
 
 	l := ctx.Logger().With("hack set canonical channel")
+
 	t, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		l.Error("get valid transfer", "error", err)
@@ -114,6 +112,8 @@ func hackSetCanonicalChannel(
 	ra := w.rollappKeeper.MustGetRollapp(ctx, t.RollappID)
 	ra.ChannelId = packet.GetDestChannel()
 	w.rollappKeeper.SetRollapp(ctx, ra)
+
+	l.Info("Set the canonical channel", "channel id", packet.GetDestChannel())
 }
 
 // OnRecvPacket will, if the packet is a transfer packet:
