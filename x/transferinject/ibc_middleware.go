@@ -49,12 +49,12 @@ func NewIBCSendMiddleware(
 func (m *IBCSendMiddleware) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
-	destinationPort string, destinationChannel string,
+	srcPort string, srcChan string,
 	timeoutHeight clienttypes.Height,
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx, data, destinationPort, destinationChannel)
+	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx, data, srcPort, srcChan)
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "get valid transfer")
 	}
@@ -63,7 +63,7 @@ func (m *IBCSendMiddleware) SendPacket(
 		return 0, types.ErrMemoTransferInjectAlreadyExists
 	}
 
-	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
+	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, srcPort, srcChan)
 	if err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
 	}
@@ -71,11 +71,11 @@ func (m *IBCSendMiddleware) SendPacket(
 	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
 	// meaning, find a better way to check if the receiving chain supports this middleware
 	if rollapp == nil {
-		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	if !transfer.IsFromRollapp() || transfertypes.ReceiverChainIsSource(destinationPort, destinationChannel, transfer.Denom) {
-		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+	if !transfer.IsFromRollapp() || transfertypes.ReceiverChainIsSource(srcPort, srcChan, transfer.Denom) {
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
@@ -83,13 +83,13 @@ func (m *IBCSendMiddleware) SendPacket(
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
 	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
-		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	// get the denom metadata from the bank keeper, if it doesn't exist, move on to the next middleware in the chain
 	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
 	if !ok {
-		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
@@ -102,7 +102,7 @@ func (m *IBCSendMiddleware) SendPacket(
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
+	return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 }
 
 type IBCAckMiddleware struct {
