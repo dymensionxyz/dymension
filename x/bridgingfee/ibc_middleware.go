@@ -66,7 +66,7 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transfer, err := w.delayedAckKeeper.GetValidTransferFromPacket(ctx, packet)
+	transfer, err := w.delayedAckKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)

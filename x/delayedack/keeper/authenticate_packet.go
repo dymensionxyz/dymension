@@ -12,17 +12,19 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GetValidTransferFromPacket takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
-// If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
-// agrees is indeed the channel we are receiving from. In this way, we stop anyone from pretending to be the RA. (Assuming
-// that the mechanism for setting the canonical channel in the first place is correct).
-func (k Keeper) GetValidTransferFromPacket(
+// GetValidTransferFromReceivedPacket takes a packet a and does GetValidTransfer, assuming
+// that the packet is incoming.
+func (k Keeper) GetValidTransferFromReceivedPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) (data types.TransferData, err error) {
 	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 }
 
+// GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
+// If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
+// agrees is indeed the channel we are receiving from. In this way, we stop anyone from pretending to be the RA. (Assuming
+// that the mechanism for setting the canonical channel in the first place is correct).
 func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packetData []byte,
