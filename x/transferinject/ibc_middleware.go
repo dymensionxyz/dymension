@@ -4,8 +4,6 @@ package transferinject
 import (
 	. "slices"
 
-	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -21,9 +19,8 @@ import (
 type IBCSendMiddleware struct {
 	porttypes.ICS4Wrapper
 
-	rollappKeeper    types.RollappKeeper
-	bankKeeper       types.BankKeeper
-	delayedackKeeper delayedackkeeper.Keeper
+	rollappKeeper types.RollappKeeper
+	bankKeeper    types.BankKeeper
 }
 
 // NewIBCSendMiddleware creates a new ICS4Wrapper.
@@ -35,13 +32,11 @@ func NewIBCSendMiddleware(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
-	delayedackKeeper delayedackkeeper.Keeper,
 ) *IBCSendMiddleware {
 	return &IBCSendMiddleware{
-		ICS4Wrapper:      ics,
-		rollappKeeper:    rollappKeeper,
-		bankKeeper:       bankKeeper,
-		delayedackKeeper: delayedackKeeper,
+		ICS4Wrapper:   ics,
+		rollappKeeper: rollappKeeper,
+		bankKeeper:    bankKeeper,
 	}
 }
 
@@ -54,7 +49,7 @@ func (m *IBCSendMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx, data, srcPort, srcChan)
+	transfer, err := m.rollappKeeper.GetValidTransfer(ctx, data, srcPort, srcChan)
 	if err != nil {
 		return 0, errorsmod.Wrap(err, "get valid transfer")
 	}
