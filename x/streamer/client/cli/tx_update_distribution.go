@@ -18,7 +18,7 @@ import (
 func NewCmdSubmitUpdateStreamDistributionProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-stream-distribution-proposal streamID gaugeIds weights [flags]",
-		Short: "Submit an update to the distribution records of an exisiting stream",
+		Short: "Submit an update to the distribution records of an existing stream",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

@@ -13,6 +13,7 @@ import (
 	"io"
 	"net/http"
 
+	types_0 "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -105,12 +106,17 @@ func local_request_Query_DemandOrderById_0(ctx context.Context, marshaler runtim
 
 }
 
+var (
+	filter_Query_DemandOrdersByStatus_0 = &utilities.DoubleArray{Encoding: map[string]int{"status": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+)
+
 func request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryDemandOrdersByStatusRequest
 	var metadata runtime.ServerMetadata
 
 	var (
 		val string
+		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -121,10 +127,19 @@ func request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler runtime
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	protoReq.Status, err = runtime.String(val)
+	e, err = runtime.Enum(val, types_0.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
+	}
+
+	protoReq.Status = types_0.Status(e)
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_DemandOrdersByStatus_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.DemandOrdersByStatus(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -138,6 +153,7 @@ func local_request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler r
 
 	var (
 		val string
+		e   int32
 		ok  bool
 		err error
 		_   = err
@@ -148,10 +164,19 @@ func local_request_Query_DemandOrdersByStatus_0(ctx context.Context, marshaler r
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "status")
 	}
 
-	protoReq.Status, err = runtime.String(val)
+	e, err = runtime.Enum(val, types_0.Status_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "status", err)
+	}
+
+	protoReq.Status = types_0.Status(e)
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_DemandOrdersByStatus_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.DemandOrdersByStatus(ctx, &protoReq)

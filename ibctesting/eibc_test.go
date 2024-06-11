@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -16,6 +17,7 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -33,6 +35,9 @@ func TestEIBCTestSuite(t *testing.T) {
 
 func (suite *EIBCTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
+	ConvertToApp(suite.hubChain).BankKeeper.SetDenomMetaData(suite.hubChain.GetContext(), banktypes.Metadata{
+		Base: sdk.DefaultBondDenom,
+	})
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 	suite.msgServer = eibckeeper.NewMsgServerImpl(eibcKeeper)
 	// Change the delayedAck epoch to trigger every month to not
@@ -231,9 +236,9 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			memo := string(eibcJson)
 			var IBCDenom string
 			{
-				////
+				// //
 				// Transfer initial IBC funds to fulfiller account with ibc memo, to give him some funds to use to fulfill stuff
-				////
+				// //
 
 				packet := suite.TransferRollappToHub(path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 				// Finalize rollapp state - at this state no demand order was fulfilled
@@ -302,7 +307,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			rollappPacket, err := delayedAckKeeper.GetRollappPacket(suite.hubChain.GetContext(), lastDemandOrder.TrackingPacketKey)
 			suite.Require().NoError(err)
 			var data transfertypes.FungibleTokenPacketData
-			err = transfertypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
+			err = eibctypes.ModuleCdc.UnmarshalJSON(rollappPacket.Packet.GetData(), &data)
 			suite.Require().NoError(err)
 			suite.Require().Equal(msgFulfillDemandOrder.FulfillerAddress, data.Receiver)
 
@@ -327,7 +332,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.Require().True(fulfillerAccountBalanceAfterFinalization.IsEqual(preFulfillmentAccountBalance.Add(sdk.NewCoin(IBCDenom, sdk.NewInt(eibcTransferFeeInt)))))
 
 			// Validate demand order fulfilled and packet status updated
-			finalizedDemandOrders, err := eibcKeeper.ListDemandOrdersByStatus(suite.hubChain.GetContext(), commontypes.Status_FINALIZED)
+			finalizedDemandOrders, err := eibcKeeper.ListDemandOrdersByStatus(suite.hubChain.GetContext(), commontypes.Status_FINALIZED, 0)
 			suite.Require().NoError(err)
 			var finalizedDemandOrder *eibctypes.DemandOrder
 			for _, order := range finalizedDemandOrders {
