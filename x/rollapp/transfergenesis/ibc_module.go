@@ -95,6 +95,7 @@ func hackSetCanonicalChannel(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	w IBCModule,
+	getRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool),
 ) {
 	// TODO: prior to this we relied on the whitelist addr to set the canonical channel
 	//	 This is a hack (not secure)
@@ -103,17 +104,15 @@ func hackSetCanonicalChannel(
 
 	l := ctx.Logger().With("hack set canonical channel")
 
-	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
-		l.Error("get valid transfer", "error", err)
+		return
 	}
-
-	if !transfer.IsRollapp() {
+	ra, ok := getRollapp(ctx, chainID)
+	if !ok {
 		return
 	}
 
-	// if valid transfer returns a rollapp, we know we must get it
-	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
 	ra.ChannelId = packet.GetDestChannel()
 	w.rollappKeeper.SetRollapp(ctx, ra)
 
@@ -131,7 +130,7 @@ func (w IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	hackSetCanonicalChannel(ctx, packet, w) // TODO: remove!
+	hackSetCanonicalChannel(ctx, packet, w, w.rollappKeeper.GetRollapp) // TODO: remove!
 
 	l := w.logger(ctx, packet)
 

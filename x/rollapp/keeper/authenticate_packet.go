@@ -6,7 +6,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	chantypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-	"github.com/dymensionxyz/dymension/v3/utils/ibc"
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -82,7 +82,7 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 				https://github.com/dymensionxyz/dymension/blob/986d51ccd4807d514c91b3a147ac1b8ce5b590a1/x/delayedack/keeper/authenticate_packet.go#L47-L59
 				for the old implementations of checks
 	*/
-	chainID, err := utilsibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, raPortOnHub, raChanOnHub)
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, raPortOnHub, raChanOnHub)
 	if err != nil {
 		return "", errors.Wrap(err, "chain id from port and channel")
 	}
