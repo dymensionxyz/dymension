@@ -54,14 +54,12 @@ func (m *IBCSendMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	transfer, err := m.delayedackKeeper.GetValidTransferFromPacket(ctx)
-
-	packet := new(transfertypes.FungibleTokenPacketData)
-	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
+	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx, data, destinationPort, destinationChannel)
+	if err != nil {
+		return 0, errorsmod.Wrap(err, "get valid transfer")
 	}
 
-	if types.MemoAlreadyHasPacketMetadata(packet.Memo) {
+	if types.MemoAlreadyHasPacketMetadata(transfer.GetMemo()) {
 		return 0, types.ErrMemoTransferInjectAlreadyExists
 	}
 
@@ -76,7 +74,7 @@ func (m *IBCSendMiddleware) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	if transfertypes.ReceiverChainIsSource(destinationPort, destinationChannel, packet.Denom) {
+	if !transfer.IsFromRollapp() || transfertypes.ReceiverChainIsSource(destinationPort, destinationChannel, transfer.Denom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, destinationPort, destinationChannel, timeoutHeight, timeoutTimestamp, data)
 	}
 
