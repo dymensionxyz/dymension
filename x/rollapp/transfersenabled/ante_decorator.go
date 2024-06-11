@@ -40,7 +40,12 @@ func (h Decorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.Msg
 
 func (h Decorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
-		if m, ok := msg.(*transferTypes.MsgTransfer); ok {
+		typeURL := sdk.MsgTypeURL(msg)
+		if typeURL == sdk.MsgTypeURL(&transferTypes.MsgTransfer{}) {
+			m, ok := msg.(*transferTypes.MsgTransfer)
+			if !ok {
+				return ctx, errorsmod.Wrap(gerr.ErrUnknown, "type url matched transfer type url but could not type cast")
+			}
 			ok, err := h.transfersEnabled(ctx, m)
 			if err != nil {
 				return ctx, errorsmod.Wrap(err, "transfer genesis: transfers enabled")
