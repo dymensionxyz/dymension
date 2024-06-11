@@ -103,13 +103,17 @@ func hackSetCanonicalChannel(
 
 	l := ctx.Logger().With("hack set canonical channel")
 
-	t, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		l.Error("get valid transfer", "error", err)
 	}
 
-	// if valid t returns a rollapp, we know we must get it
-	ra := w.rollappKeeper.MustGetRollapp(ctx, t.RollappID)
+	if !transfer.IsRollapp() {
+		return
+	}
+
+	// if valid transfer returns a rollapp, we know we must get it
+	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
 	ra.ChannelId = packet.GetDestChannel()
 	w.rollappKeeper.SetRollapp(ctx, ra)
 
