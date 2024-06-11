@@ -37,7 +37,7 @@ func (k Keeper) GetValidTransfer(
 	packetData []byte,
 	raPortOnHub, raChanOnHub string,
 ) (data types.TransferData, err error) {
-	if err = transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
+	if err = transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data.FungibleTokenPacketData); err != nil {
 		err = errors.Wrap(err, "unmarshal transfer data")
 		return
 	}
