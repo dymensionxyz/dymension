@@ -90,7 +90,7 @@ func (m *IBCSendMiddleware) SendPacket(
 
 	data, err = types.ModuleCdc.MarshalJSON(&transfer.FungibleTokenPacketData)
 	if err != nil {
-		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONMarshal), "ICS-20 transfer packet data")
+		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONMarshal), "ics20 transfer packet data")
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
@@ -124,41 +124,34 @@ func (m *IBCAckMiddleware) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet acknowledgement: %v", err)
+		return errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONUnmarshal), "ics20 transfer packet acknowledgement")
 	}
 
 	if !ack.Success() {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	var data transfertypes.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
+	transfer, err := m.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
+	if err != nil {
+		return errorsmod.Wrap(err, "get valid transfer from sent packet")
 	}
 
-	packetMetadata, err := types.ParsePacketMetadata(data.Memo)
+	packetMetadata, err := types.ParsePacketMetadata(transfer.GetMemo())
 	if err != nil {
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	dm := packetMetadata.DenomMetadata
-	if dm == nil {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	if !transfer.IsRollapp() {
+		return errorsmod.Wrap(errors.Join(err, errortypes.ErrInvalidRequest), "got a memo so should get rollapp, but didnt")
 	}
 
-	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
-	if err != nil {
-		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
-	}
-	if rollapp == nil {
-		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
-	}
+	ra := m.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+	if !Contains(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base) {
 		// add the new token denom base to the list of rollapp's registered denoms
-		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
+		ra.RegisteredDenoms = append(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base)
 
-		m.rollappKeeper.SetRollapp(ctx, *rollapp)
+		m.rollappKeeper.SetRollapp(ctx, ra)
 	}
 
 	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)

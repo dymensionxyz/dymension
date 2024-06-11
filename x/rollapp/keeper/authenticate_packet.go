@@ -19,6 +19,15 @@ func (k Keeper) GetValidTransferFromReceivedPacket(
 	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 }
 
+// GetValidTransferFromSentPacket takes a packet a and does GetValidTransfer, assuming
+// that the packet is outbound.
+func (k Keeper) GetValidTransferFromSentPacket(
+	ctx sdk.Context,
+	packet chantypes.Packet,
+) (data delayedacktypes.TransferData, err error) {
+	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
+}
+
 // GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
 // If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
 // agrees is indeed the channel we are receiving from. In this way, we stop anyone from pretending to be the RA. (Assuming
