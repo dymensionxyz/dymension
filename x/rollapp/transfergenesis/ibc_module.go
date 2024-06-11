@@ -42,10 +42,6 @@ type TransferKeeper interface {
 	SetDenomTrace(ctx sdk.Context, denomTrace transfertypes.DenomTrace)
 }
 
-type ChannelKeeper interface {
-	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
-}
-
 type IBCModule struct {
 	porttypes.IBCModule // next one
 	delayedackKeeper    delayedackkeeper.Keeper
@@ -91,34 +87,6 @@ type memo struct {
 	ThisTransferIx uint64 `json:"this_transfer_ix"`
 }
 
-func hackSetCanonicalChannel(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	w IBCModule,
-	getRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool),
-) {
-	// TODO: prior to this we relied on the whitelist addr to set the canonical channel
-	//	 This is a hack (not secure)
-	//	 The real solution will come in a followup PR
-	//	 See https://github.com/dymensionxyz/research/issues/242
-
-	l := ctx.Logger().With("hack set canonical channel")
-
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
-	if err != nil {
-		return
-	}
-	ra, ok := getRollapp(ctx, chainID)
-	if !ok {
-		return
-	}
-
-	ra.ChannelId = packet.GetDestChannel()
-	w.rollappKeeper.SetRollapp(ctx, ra)
-
-	l.Info("Set the canonical channel", "channel id", packet.GetDestChannel())
-}
-
 // OnRecvPacket will, if the packet is a transfer packet:
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
@@ -130,8 +98,6 @@ func (w IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	hackSetCanonicalChannel(ctx, packet, w, w.rollappKeeper.GetRollapp) // TODO: remove!
-
 	l := w.logger(ctx, packet)
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
