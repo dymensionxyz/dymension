@@ -34,7 +34,6 @@ func (h Decorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.Msg
 	if !ok {
 		return true, nil
 	}
-	// TODO: check security reasoning
 	return ra.GenesisState.TransfersEnabled, nil
 }
 
