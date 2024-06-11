@@ -744,9 +744,8 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridgingfee.NewIBCMiddleware(
+	transferStack = bridgingfee.NewIBCModule(
 		transferMiddleware,
-		app.IBCKeeper.ChannelKeeper,
 		app.DelayedAckKeeper,
 		app.TransferKeeper,
 		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
