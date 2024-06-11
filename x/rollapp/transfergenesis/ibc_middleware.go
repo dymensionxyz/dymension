@@ -106,7 +106,7 @@ func hackSetCanonicalChannel(
 	//	 See https://github.com/dymensionxyz/research/issues/242
 
 	l := ctx.Logger().With("hack set canonical channel")
-	t, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
+	t, err := w.delayedackKeeper.GetValidTransferFromPacket(ctx, packet)
 	if err != nil {
 		l.Error("get valid transfer", "error", err)
 	}
@@ -140,7 +140,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.Middleware.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transfer, err := w.delayedackKeeper.GetValidTransfer(ctx, packet)
+	transfer, err := w.delayedackKeeper.GetValidTransferFromPacket(ctx, packet)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
 	}

@@ -12,15 +12,23 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// GetValidTransfer takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
+// GetValidTransferFromPacket takes a packet, ensures it is a (basic) validated fungible token packet, and gets the chain id.
 // If the channel chain id is also a rollapp id, we check that the canonical channel id we have saved for that rollapp
 // agrees is indeed the channel we are receiving from. In this way, we stop anyone from pretending to be the RA. (Assuming
 // that the mechanism for setting the canonical channel in the first place is correct).
-func (k Keeper) GetValidTransfer(
+func (k Keeper) GetValidTransferFromPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) (data types.TransferData, err error) {
-	if err = transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
+	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+}
+
+func (k Keeper) GetValidTransfer(
+	ctx sdk.Context,
+	outgoingData []byte,
+	dstPort, dstChannel string,
+) (data types.TransferData, err error) {
+	if err = transfertypes.ModuleCdc.UnmarshalJSON(outgoingData, &data); err != nil {
 		err = errorsmod.Wrap(err, "unmarshal transfer data")
 		return
 	}
@@ -30,7 +38,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	rollappID, err := k.getRollappID(ctx, packet)
+	rollappID, err := k.getRollappID(ctx, dstPort, dstChannel)
 	if errorsmod.IsOf(err, ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
@@ -51,7 +59,7 @@ var ErrRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
 // that the packet came from that rollapp. That means that the canonical channel
 // has already been set.
 func (k Keeper) getRollappID(ctx sdk.Context,
-	packet channeltypes.Packet,
+	dstPort, dstChannel string,
 ) (string, error) {
 	/*
 		TODO:
@@ -65,7 +73,7 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 				https://github.com/dymensionxyz/dymension/blob/986d51ccd4807d514c91b3a147ac1b8ce5b590a1/x/delayedack/keeper/authenticate_packet.go#L47-L59
 				for the old implementations of checks
 	*/
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, packet.GetDestPort(), packet.GetDestChannel())
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, dstPort, dstChannel)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "chain id from port and channel")
 	}
@@ -77,10 +85,10 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 		return "", errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
-	if rollapp.ChannelId != packet.GetDestChannel() {
+	if rollapp.ChannelId != dstChannel {
 		return "", errorsmod.Wrapf(
 			gerr.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, packet.GetDestChannel(),
+			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, dstChannel,
 		)
 	}
 	return rollapp.ChannelId, nil

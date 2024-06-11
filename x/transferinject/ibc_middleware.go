@@ -54,7 +54,7 @@ func (m *IBCSendMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
-	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx)
+	transfer, err := m.delayedackKeeper.GetValidTransferFromPacket(ctx)
 
 	packet := new(transfertypes.FungibleTokenPacketData)
 	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
