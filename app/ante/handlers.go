@@ -78,7 +78,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 
-		transfersenabled.NewDecorator(nil), // TODO: check pos
+		transfersenabled.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
 
@@ -114,6 +114,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 
-		transfersenabled.NewDecorator(nil), // TODO: check pos
+		transfersenabled.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
