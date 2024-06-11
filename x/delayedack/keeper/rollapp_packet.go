@@ -186,11 +186,15 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	// TODO: instead of calling this function in every middleware, we could call it eg. once in the stack, either in a middleware or in an
 	//       ante handler, and modify the sdk.Context to make it available downstream https://github.com/dymensionxyz/dymension/issues/914
 
-	transferData, err := k.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	switch packetType {
+	case commontypes.RollappPacket_ON_RECV:
+		data.TransferData, err = k.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
+		data.TransferData, err = k.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
+	}
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
 	}
-	data.TransferData = transferData
 
 	packetId := commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)

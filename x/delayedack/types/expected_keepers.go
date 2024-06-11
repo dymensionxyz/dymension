@@ -39,6 +39,10 @@ type RollappKeeper interface {
 		ctx sdk.Context,
 		packet channeltypes.Packet,
 	) (data rollapptypes.TransferData, err error)
+	GetValidTransferFromSentPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
 }
 
 type SequencerKeeper interface {
