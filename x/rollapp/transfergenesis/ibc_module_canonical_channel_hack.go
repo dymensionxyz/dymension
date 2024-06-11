@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 /*
@@ -21,16 +20,15 @@ TODO: this whole file is temporary
 type IBCModuleCanonicalChannelHack struct {
 	porttypes.IBCModule // next one
 	rollappKeeper       rollappkeeper.Keeper
-	getRollapp          func(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	channelKeeper       uibc.GetChannelClientState
 }
 
 func NewIBCModuleCanonicalChannelHack(
 	next porttypes.IBCModule,
-	getRollapp func(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool),
+	rollappKeeper rollappkeeper.Keeper,
 	channelKeeper uibc.GetChannelClientState,
 ) *IBCModuleCanonicalChannelHack {
-	return &IBCModuleCanonicalChannelHack{IBCModule: next, getRollapp: getRollapp, channelKeeper: channelKeeper}
+	return &IBCModuleCanonicalChannelHack{IBCModule: next, rollappKeeper: rollappKeeper, channelKeeper: channelKeeper}
 }
 
 func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
@@ -42,7 +40,7 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper, packet.GetDestPort(), packet.GetDestChannel())
 	if err == nil {
-		ra, ok := w.getRollapp(ctx, chainID)
+		ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
 		if ok {
 			ra.ChannelId = packet.GetDestChannel()
 			w.rollappKeeper.SetRollapp(ctx, ra)
