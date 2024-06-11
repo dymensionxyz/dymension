@@ -764,7 +764,7 @@ func New(
 	var delayedAckMiddleware ibcporttypes.Middleware
 	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = delayedAckMiddleware
-	transferStack = transfergenesis.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper, app.IBCKeeper.ChannelKeeper)
+	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper, app.IBCKeeper.ChannelKeeper)
 	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it

@@ -32,8 +32,6 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
 
-var _ porttypes.Middleware = &IBCMiddleware{}
-
 type DenomMetadataKeeper interface {
 	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
 	HasDenomMetadata(ctx sdk.Context, base string) bool
@@ -47,25 +45,25 @@ type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
-type IBCMiddleware struct {
-	porttypes.Middleware // next one
-	delayedackKeeper     delayedackkeeper.Keeper
-	rollappKeeper        rollappkeeper.Keeper
-	transferKeeper       TransferKeeper
-	denomKeeper          DenomMetadataKeeper
-	channelKeeper        ChannelKeeper
+type IBCModule struct {
+	porttypes.IBCModule // next one
+	delayedackKeeper    delayedackkeeper.Keeper
+	rollappKeeper       rollappkeeper.Keeper
+	transferKeeper      TransferKeeper
+	denomKeeper         DenomMetadataKeeper
+	channelKeeper       ChannelKeeper
 }
 
-func NewIBCMiddleware(
-	next porttypes.Middleware,
+func NewIBCModule(
+	next porttypes.IBCModule,
 	delayedAckKeeper delayedackkeeper.Keeper,
 	rollappKeeper rollappkeeper.Keeper,
 	transferKeeper TransferKeeper,
 	denomKeeper DenomMetadataKeeper,
 	channelKeeper ChannelKeeper,
-) IBCMiddleware {
-	return IBCMiddleware{
-		Middleware:       next,
+) IBCModule {
+	return IBCModule{
+		IBCModule:        next,
 		delayedackKeeper: delayedAckKeeper,
 		rollappKeeper:    rollappKeeper,
 		transferKeeper:   transferKeeper,
@@ -74,7 +72,7 @@ func NewIBCMiddleware(
 	}
 }
 
-func (w IBCMiddleware) logger(
+func (w IBCModule) logger(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 ) log.Logger {
@@ -98,7 +96,7 @@ type memo struct {
 func hackSetCanonicalChannel(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
-	w IBCMiddleware,
+	w IBCModule,
 ) {
 	// TODO: prior to this we relied on the whitelist addr to set the canonical channel
 	//	 This is a hack (not secure)
@@ -127,7 +125,7 @@ func hackSetCanonicalChannel(
 // it's the last one, open the bridge.
 // NOTE: we assume that by this point the canonical channel ID has already been set
 // for the rollapp, in a secure way.
-func (w IBCMiddleware) OnRecvPacket(
+func (w IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -207,7 +205,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	return w.Middleware.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
-func (w IBCMiddleware) handleFraud(raID string) error {
+func (w IBCModule) handleFraud(raID string) error {
 	// TODO: assumes we have a robust mechanism to freeze and rollback
 	// 		 NOTE: this may not be a fraud in the sense that the sequencer posted the wrong state root
 	//             it might be that the canonical state transition function for the RA is wrong somehow
@@ -256,7 +254,7 @@ func getMemo(rawMemo string) (memo, error) {
 	return m.Data, nil
 }
 
-func (w IBCMiddleware) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
+func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	if w.denomKeeper.HasDenomMetadata(ctx, m.Base) {
 		// Not strictly necessary but an easy optimisation, as, in general, we dont place restrictions on the number
 		// of genesis transfers that a rollapp might do.

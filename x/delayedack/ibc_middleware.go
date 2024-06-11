@@ -21,8 +21,8 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	*keeper.Keeper
-	raKeeper rollappkeeper.Keeper
+	*keeper.Keeper // keeper is an ics4 wrapper
+	raKeeper       rollappkeeper.Keeper
 }
 
 func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
