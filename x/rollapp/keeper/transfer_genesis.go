@@ -4,7 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	dymerror "github.com/dymensionxyz/dymension/v3/x/common/errors"
+	"github.com/dymensionxyz/dymension/v3/utils/derr"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -18,7 +18,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	if ra.GenesisState.TransfersEnabled {
 		// Could plausibly occur if a chain sends too many genesis transfers (not matching their memo)
 		// or if a chain which registered with the bridge enabled tries to send some genesis transfers
-		return 0, errorsmod.Wrap(dymerror.ErrFraud, "received genesis transfer but all bridge transfers are already enabled")
+		return 0, errorsmod.Wrap(derr.ErrViolatesDymensionRollappStandard, "received genesis transfer but all bridge transfers are already enabled")
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
@@ -36,16 +36,16 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
-			return 0, errorsmod.Wrapf(dymerror.ErrFraud, "different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
+			return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
 		}
 		nBz := store.Get(nKey)
 		n = sdk.BigEndianToUint64(nBz)
 	}
 	if !(0 <= ix && ix < nTotal) {
-		return 0, errorsmod.Wrapf(dymerror.ErrFraud, "ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
+		return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
 	}
 	if store.Has(ixKey) {
-		return 0, errorsmod.Wrapf(dymerror.ErrFraud, "already received genesis transfer: ix: %d", ix)
+		return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "already received genesis transfer: ix: %d", ix)
 	}
 
 	n++

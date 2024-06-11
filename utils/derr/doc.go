@@ -1,13 +1,8 @@
-package errors
-
-import (
-	errorsmod "cosmossdk.io/errors"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-)
-
+// Package derr = dymension err is for errors besides the google ones
+//
 // This file should contain ubiquitous domain specific errors which warrant their own handling on top of gerr handling
 // For example, if your caller code wants to differentiate between a generic failed precondition, and a failed precondition due to
 // misbehavior, you would define a misbehavior error here.
-
-// ErrFraud means that someone is deviating from protocol
-var ErrFraud = errorsmod.Wrap(gerr.ErrFailedPrecondition, "actor is violating protocol")
+//
+// It is likely that there are not many of these errors, since their usage should be ubiquitous.
+package derr

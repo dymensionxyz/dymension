@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/dymensionxyz/dymension/v3/utils/derr"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
@@ -27,7 +29,6 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	dymerror "github.com/dymensionxyz/dymension/v3/x/common/errors"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 )
@@ -109,10 +110,6 @@ func hackSetCanonicalChannel(
 		l.Error("get valid transfer", "error", err)
 	}
 
-	if !t.IsRollapp() {
-		return
-	}
-
 	// if valid t returns a rollapp, we know we must get it
 	ra := w.rollappKeeper.MustGetRollapp(ctx, t.RollappID)
 	ra.ChannelId = packet.GetDestChannel()
@@ -166,13 +163,14 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
-	if errorsmod.IsOf(err, dymerror.ErrFraud) {
+	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {
 		l.Info("rollapp fraud: verify and record genesis transfer", "err", err)
 		// The rollapp has deviated from the protocol!
-		err = w.handleFraud(ra.RollappId)
+		handleFraudErr := w.handleFraud(ra.RollappId)
 		if err != nil {
-			l.Error("handle fraud", "error", err)
+			l.Error("handle fraud", "error", handleFraudErr)
 		}
+		return channeltypes.NewErrorAcknowledgement(err)
 	}
 	if err != nil {
 		l.Error("verify and record transfer", "error", err)
@@ -205,12 +203,9 @@ func (w IBCModule) OnRecvPacket(
 	return w.IBCModule.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }
 
+// handleFraud : the rollapp has violated the DRS!
 func (w IBCModule) handleFraud(raID string) error {
-	// TODO: assumes we have a robust mechanism to freeze and rollback
-	// 		 NOTE: this may not be a fraud in the sense that the sequencer posted the wrong state root
-	//             it might be that the canonical state transition function for the RA is wrong somehow
-	//             and resulted in a protocol breakage
-	// 		https://github.com/dymensionxyz/dymension/issues/921
+	// TODO: see https://github.com/dymensionxyz/dymension/issues/930
 	return nil
 }
 
