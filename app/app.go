@@ -11,8 +11,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
-
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -549,7 +547,7 @@ func New(
 		app.AccountKeeper,
 	)
 
-	txfeeskeeper := txfeeskeeper.NewKeeper(
+	txFeesKeeper := txfeeskeeper.NewKeeper(
 		app.keys[txfeestypes.StoreKey],
 		app.GetSubspace(txfeestypes.ModuleName),
 		app.AccountKeeper,
@@ -558,7 +556,7 @@ func New(
 		app.PoolManagerKeeper,
 		app.GAMMKeeper,
 	)
-	app.TxFeesKeeper = &txfeeskeeper
+	app.TxFeesKeeper = &txFeesKeeper
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 	app.GAMMKeeper.SetTxFees(app.TxFeesKeeper)
 
@@ -747,11 +745,10 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridging_fee.NewIBCMiddleware(
+	transferStack = bridgingfee.NewIBCMiddleware(
 		transferMiddleware,
 		app.IBCKeeper.ChannelKeeper,
 		app.DelayedAckKeeper,
-		app.RollappKeeper,
 		app.TransferKeeper,
 		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
 	)

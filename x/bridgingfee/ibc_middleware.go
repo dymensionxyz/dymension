@@ -7,7 +7,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	delayedaackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -24,7 +24,7 @@ type IBCMiddleware struct {
 	transferapp.IBCModule
 	porttypes.ICS4Wrapper
 
-	delayedAckKeeper delayedaackkeeper.Keeper
+	delayedAckKeeper delayedackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
 	feeModuleAddr    sdk.AccAddress
 }
@@ -32,7 +32,7 @@ type IBCMiddleware struct {
 func NewIBCMiddleware(
 	transfer transferapp.IBCModule,
 	channelKeeper porttypes.ICS4Wrapper,
-	keeper delayedaackkeeper.Keeper,
+	keeper delayedackkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
 	feeModuleAddr sdk.AccAddress,
 ) *IBCMiddleware {
@@ -96,7 +96,6 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 				sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
 			),
 		)
-		l.Debug("Charged bridging fee.", "fee", fee)
 	}
 
 	// transfer the rest to the original recipient
