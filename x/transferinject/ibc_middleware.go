@@ -2,6 +2,7 @@
 package transferinject
 
 import (
+	"errors"
 	. "slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -58,43 +59,38 @@ func (m *IBCSendMiddleware) SendPacket(
 		return 0, types.ErrMemoTransferInjectAlreadyExists
 	}
 
-	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, srcPort, srcChan)
-	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
-	}
-
+	if
 	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
 	// meaning, find a better way to check if the receiving chain supports this middleware
-	if rollapp == nil {
+	!transfer.IsRollapp() || // proceed as normal
+		transfertypes.ReceiverChainIsSource(srcPort, srcChan, transfer.Denom) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	if !transfer.IsFromRollapp() || transfertypes.ReceiverChainIsSource(srcPort, srcChan, transfer.Denom) {
-		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
-	}
+	rollapp := m.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
 
 	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-	if Contains(rollapp.RegisteredDenoms, packet.Denom) {
+	if Contains(rollapp.RegisteredDenoms, transfer.GetDenom()) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
 	// get the denom metadata from the bank keeper, if it doesn't exist, move on to the next middleware in the chain
-	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, packet.Denom)
+	denomMetadata, ok := m.bankKeeper.GetDenomMetaData(ctx, transfer.GetDenom())
 	if !ok {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
+	transfer.Memo, err = types.AddDenomMetadataToMemo(transfer.Memo, denomMetadata)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "add denom metadata to memo: %s", err.Error())
+		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrUnauthorized), "add denom metadata to memo")
 	}
 
-	data, err = types.ModuleCdc.MarshalJSON(packet)
+	data, err = types.ModuleCdc.MarshalJSON(&transfer.FungibleTokenPacketData)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrJSONMarshal, "marshal ICS-20 transfer packet data: %s", err.Error())
+		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONMarshal), "ICS-20 transfer packet data")
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)

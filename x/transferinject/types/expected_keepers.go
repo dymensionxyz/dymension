@@ -15,6 +15,7 @@ type BankKeeper interface {
 
 type RollappKeeper interface {
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
+	MustGetRollapp(ctx sdk.Context, rollappId string) rollapptypes.Rollapp
 	GetValidTransfer(
 		ctx sdk.Context,
 		packetData []byte,

@@ -71,7 +71,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if !transfer.IsFromRollapp() || transfer.Finalized {
+	if !transfer.IsRollapp() || transfer.Finalized {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -110,7 +110,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	if !transfer.IsFromRollapp() || transfer.Finalized {
+	if !transfer.IsRollapp() || transfer.Finalized {
 		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
@@ -152,7 +152,7 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	if !transfer.IsFromRollapp() || transfer.Finalized {
+	if !transfer.IsRollapp() || transfer.Finalized {
 		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
 	}
 

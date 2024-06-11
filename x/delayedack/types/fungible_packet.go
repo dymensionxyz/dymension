@@ -23,7 +23,7 @@ type TransferDataWithFinalization struct {
 	Finalized bool
 }
 
-func (d TransferData) IsFromRollapp() bool {
+func (d TransferData) IsRollapp() bool {
 	return d.RollappID != ""
 }
 

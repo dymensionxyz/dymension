@@ -39,7 +39,7 @@ func (k Keeper) GetValidTransfer(
 	}
 
 	rollappID, err := k.getRollappID(ctx, raPortOnHub, raChanOnHub)
-	if errors.IsOf(err, ErrRollappNotFound) {
+	if errors.IsOf(err, errRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
 	}
@@ -53,7 +53,7 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-var ErrRollappNotFound = errors.Wrap(gerr.ErrNotFound, "rollapp")
+var errRollappNotFound = errors.Wrap(gerr.ErrNotFound, "rollapp")
 
 // getRollappID returns the rollapp id that a packet came from, if we are certain
 // that the packet came from that rollapp. That means that the canonical channel
@@ -79,7 +79,7 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return "", ErrRollappNotFound
+		return "", errRollappNotFound
 	}
 	if rollapp.ChannelId == "" {
 		return "", errors.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
