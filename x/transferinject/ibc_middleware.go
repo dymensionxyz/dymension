@@ -4,6 +4,8 @@ package transferinject
 import (
 	. "slices"
 
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -19,8 +21,9 @@ import (
 type IBCSendMiddleware struct {
 	porttypes.ICS4Wrapper
 
-	rollappKeeper types.RollappKeeper
-	bankKeeper    types.BankKeeper
+	rollappKeeper    types.RollappKeeper
+	bankKeeper       types.BankKeeper
+	delayedackKeeper delayedackkeeper.Keeper
 }
 
 // NewIBCSendMiddleware creates a new ICS4Wrapper.
@@ -32,11 +35,13 @@ func NewIBCSendMiddleware(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
+	delayedackKeeper delayedackkeeper.Keeper,
 ) *IBCSendMiddleware {
 	return &IBCSendMiddleware{
-		ICS4Wrapper:   ics,
-		rollappKeeper: rollappKeeper,
-		bankKeeper:    bankKeeper,
+		ICS4Wrapper:      ics,
+		rollappKeeper:    rollappKeeper,
+		bankKeeper:       bankKeeper,
+		delayedackKeeper: delayedackKeeper,
 	}
 }
 
@@ -49,6 +54,8 @@ func (m *IBCSendMiddleware) SendPacket(
 	timeoutTimestamp uint64,
 	data []byte,
 ) (sequence uint64, err error) {
+	transfer, err := m.delayedackKeeper.GetValidTransfer(ctx)
+
 	packet := new(transfertypes.FungibleTokenPacketData)
 	if err = types.ModuleCdc.UnmarshalJSON(data, packet); err != nil {
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
