@@ -5,6 +5,7 @@ import (
 
 	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -14,8 +15,8 @@ import (
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
 
-	keeper := suite.App.DelayedAckKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper)
+	keeper, rollappKeeper := suite.App.DelayedAckKeeper, suite.App.RollappKeeper
+	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
 
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
