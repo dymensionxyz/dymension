@@ -46,7 +46,7 @@ func (h Decorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sd
 				return ctx, errorsmod.Wrap(err, "transfer genesis: transfers enabled")
 			}
 			if !ok {
-				return ctx, errorsmod.Wrap(gerr.ErrFailedPrecondition, "transfers for rollapp are disabled")
+				return ctx, errorsmod.Wrap(gerr.ErrFailedPrecondition, "transfers to/from rollapp are disabled")
 			}
 		}
 	}
