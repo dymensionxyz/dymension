@@ -14,9 +14,6 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc TriggerGenesisEvent(MsgRollappGenesisEvent) returns (MsgRollappGenesisEventResponse) {
-    option deprecated = true;
-  };
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -65,16 +62,4 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
-}
-
-
-message MsgRollappGenesisEvent {
-  option deprecated = true;
-  reserved 1;
-  reserved 2;
-  reserved 3;
-}
-
-message MsgRollappGenesisEventResponse {
-  option deprecated = true;
 }
