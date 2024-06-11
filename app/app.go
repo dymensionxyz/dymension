@@ -748,6 +748,7 @@ func New(
 		app.DelayedAckKeeper,
 		app.TransferKeeper,
 		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
+		app.RollappKeeper,
 	)
 
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(

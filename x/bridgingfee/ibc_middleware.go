@@ -8,6 +8,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -24,6 +25,7 @@ type IBCMiddleware struct {
 	transferapp.IBCModule
 	porttypes.ICS4Wrapper
 
+	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedackkeeper.Keeper
 	transferKeeper   transferkeeper.Keeper
 	feeModuleAddr    sdk.AccAddress
@@ -35,6 +37,7 @@ func NewIBCMiddleware(
 	keeper delayedackkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
 	feeModuleAddr sdk.AccAddress,
+	rollappKeeper rollappkeeper.Keeper,
 ) *IBCMiddleware {
 	return &IBCMiddleware{
 		IBCModule:        transfer,
@@ -42,6 +45,7 @@ func NewIBCMiddleware(
 		delayedAckKeeper: keeper,
 		transferKeeper:   transferKeeper,
 		feeModuleAddr:    feeModuleAddr,
+		rollappKeeper:    rollappKeeper,
 	}
 }
 
@@ -66,13 +70,13 @@ func (w *IBCMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transfer, err := w.delayedAckKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if !transfer.IsFromRollapp() {
+	if !transfer.IsRollapp() {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

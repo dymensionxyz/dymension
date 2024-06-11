@@ -7,7 +7,7 @@ import (
 	chantypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	"github.com/dymensionxyz/dymension/v3/utils/ibc"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // GetValidTransferFromReceivedPacket takes a packet a and does GetValidTransfer, assuming
@@ -15,7 +15,7 @@ import (
 func (k Keeper) GetValidTransferFromReceivedPacket(
 	ctx sdk.Context,
 	packet chantypes.Packet,
-) (data delayedacktypes.TransferData, err error) {
+) (data types.TransferData, err error) {
 	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 }
 
@@ -24,7 +24,7 @@ func (k Keeper) GetValidTransferFromReceivedPacket(
 func (k Keeper) GetValidTransferFromSentPacket(
 	ctx sdk.Context,
 	packet chantypes.Packet,
-) (data delayedacktypes.TransferData, err error) {
+) (data types.TransferData, err error) {
 	return k.GetValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
 }
 
@@ -36,7 +36,7 @@ func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
 	packetData []byte,
 	raPortOnHub, raChanOnHub string,
-) (data delayedacktypes.TransferData, err error) {
+) (data types.TransferData, err error) {
 	if err = transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
 		err = errors.Wrap(err, "unmarshal transfer data")
 		return
