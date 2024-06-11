@@ -25,10 +25,10 @@ func (k Keeper) GetValidTransferFromPacket(
 
 func (k Keeper) GetValidTransfer(
 	ctx sdk.Context,
-	outgoingData []byte,
-	dstPort, dstChannel string,
+	packetData []byte,
+	raPortOnHub, raChanOnHub string,
 ) (data types.TransferData, err error) {
-	if err = transfertypes.ModuleCdc.UnmarshalJSON(outgoingData, &data); err != nil {
+	if err = transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data); err != nil {
 		err = errorsmod.Wrap(err, "unmarshal transfer data")
 		return
 	}
@@ -38,7 +38,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	rollappID, err := k.getRollappID(ctx, dstPort, dstChannel)
+	rollappID, err := k.getRollappID(ctx, raPortOnHub, raChanOnHub)
 	if errorsmod.IsOf(err, ErrRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
@@ -59,7 +59,7 @@ var ErrRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
 // that the packet came from that rollapp. That means that the canonical channel
 // has already been set.
 func (k Keeper) getRollappID(ctx sdk.Context,
-	dstPort, dstChannel string,
+	raPortOnHub, raChanOnHub string,
 ) (string, error) {
 	/*
 		TODO:
@@ -73,7 +73,7 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 				https://github.com/dymensionxyz/dymension/blob/986d51ccd4807d514c91b3a147ac1b8ce5b590a1/x/delayedack/keeper/authenticate_packet.go#L47-L59
 				for the old implementations of checks
 	*/
-	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, dstPort, dstChannel)
+	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, raPortOnHub, raChanOnHub)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "chain id from port and channel")
 	}
@@ -85,10 +85,10 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 		return "", errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
-	if rollapp.ChannelId != dstChannel {
+	if rollapp.ChannelId != raChanOnHub {
 		return "", errorsmod.Wrapf(
 			gerr.ErrInvalidArgument,
-			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, dstChannel,
+			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
 	}
 	return rollapp.ChannelId, nil
