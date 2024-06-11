@@ -9,8 +9,7 @@ import (
 var _ binary.ByteOrder
 
 const (
-	TransferGenesisMapKeyPrefix   = "TransferGenesis/map/value/"
-	TransferGenesisQueueKeyPrefix = "TransferGenesis/queue/value/"
+	TransferGenesisMapKeyPrefix = "TransferGenesis/map/value/"
 )
 
 var (
@@ -66,10 +65,4 @@ func TransferGenesisNumKey(
 	key = append(key, rollappIdBytes...)
 
 	return key
-}
-
-func TransferGenesisFinalizationsKey(
-	height uint64,
-) []byte {
-	return sdk.Uint64ToBigEndian(height)
 }
