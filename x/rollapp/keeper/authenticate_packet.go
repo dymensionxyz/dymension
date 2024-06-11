@@ -100,5 +100,5 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
 	}
-	return rollapp.ChannelId, nil
+	return rollapp.RollappId, nil
 }
