@@ -164,8 +164,8 @@ func (w IBCModule) OnRecvPacket(
 
 	l.Debug("Received valid genesis transfer. Registered denom data.",
 		"num total", m.TotalNumTransfers,
-		"num so far", nTransfersDone,
-		"ix", m.ThisTransferIx,
+		"num received so far", nTransfersDone,
+		"this transfer ix", m.ThisTransferIx,
 	)
 
 	if nTransfersDone == m.TotalNumTransfers {
@@ -229,23 +229,22 @@ func getMemo(rawMemo string) (memo, error) {
 }
 
 func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
-	if w.denomKeeper.HasDenomMetadata(ctx, m.Base) {
+	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
+	ibcDenom := trace.IBCDenom()
+	m.Base = ibcDenom
+
+	if w.denomKeeper.HasDenomMetadata(ctx, m.GetBase()) {
 		// Not strictly necessary but an easy optimisation, as, in general, we dont place restrictions on the number
 		// of genesis transfers that a rollapp might do.
 		return nil
 	}
 
-	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
-
 	w.transferKeeper.SetDenomTrace(ctx, trace)
-
-	ibcDenom := trace.IBCDenom()
 
 	/*
 		Change the base to the ibc denom, and add an alias to the original
 	*/
 	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", ibcDenom, rollappID)
-	m.Base = ibcDenom
 	for i, u := range m.DenomUnits {
 		if u.Exponent == 0 {
 			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
