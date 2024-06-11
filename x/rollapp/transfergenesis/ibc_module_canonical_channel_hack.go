@@ -41,10 +41,9 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper, packet.GetDestPort(), packet.GetDestChannel())
 	if err == nil {
 		ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
-		if ok {
+		if ok && ra.ChannelId == "" {
 			ra.ChannelId = packet.GetDestChannel()
 			w.rollappKeeper.SetRollapp(ctx, ra)
-
 			l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
 		}
 	}
