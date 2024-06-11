@@ -624,7 +624,7 @@ func New(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		transferinject.NewICS4Wrapper(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -759,7 +759,7 @@ func New(
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
+	transferStack = transferinject.NewIBCModule(delayedAckMiddleware, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

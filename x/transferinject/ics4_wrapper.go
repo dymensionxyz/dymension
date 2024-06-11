@@ -1,4 +1,3 @@
-// Package transferinject module provides IBC middleware for sending and acknowledging IBC packets with injecting additional packet metadata to IBC packets.
 package transferinject
 
 import (
@@ -11,30 +10,29 @@ import (
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
-type IBCSendMiddleware struct {
+type ICS4Wrapper struct {
 	porttypes.ICS4Wrapper
 
 	rollappKeeper types.RollappKeeper
 	bankKeeper    types.BankKeeper
 }
 
-// NewIBCSendMiddleware creates a new ICS4Wrapper.
+// NewICS4Wrapper creates a new ICS4Wrapper.
 // It intercepts outgoing IBC packets and adds token metadata to the memo if the rollapp doesn't have it.
 // This is a solution for adding token metadata to fungible tokens transferred over IBC,
 // targeted at rollapps that don't have the token metadata for the token being transferred.
 // More info here: https://www.notion.so/dymension/ADR-x-IBC-Denom-Metadata-Transfer-From-Hub-to-Rollapp-d3791f524ac849a9a3eb44d17968a30b
-func NewIBCSendMiddleware(
+func NewICS4Wrapper(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
-) *IBCSendMiddleware {
-	return &IBCSendMiddleware{
+) *ICS4Wrapper {
+	return &ICS4Wrapper{
 		ICS4Wrapper:   ics,
 		rollappKeeper: rollappKeeper,
 		bankKeeper:    bankKeeper,
@@ -42,7 +40,7 @@ func NewIBCSendMiddleware(
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (m *IBCSendMiddleware) SendPacket(
+func (m *ICS4Wrapper) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	srcPort string, srcChan string,
@@ -94,65 +92,4 @@ func (m *IBCSendMiddleware) SendPacket(
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
-}
-
-type IBCAckMiddleware struct {
-	porttypes.IBCModule
-
-	rollappKeeper types.RollappKeeper
-}
-
-// NewIBCAckMiddleware creates a new IBCModule.
-// It intercepts acknowledged incoming IBC packets and adds token metadata that had just been registered on the rollapp itself,
-// to the local rollapp record.
-func NewIBCAckMiddleware(
-	ibc porttypes.IBCModule,
-	rollappKeeper types.RollappKeeper,
-) *IBCAckMiddleware {
-	return &IBCAckMiddleware{
-		IBCModule:     ibc,
-		rollappKeeper: rollappKeeper,
-	}
-}
-
-// OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
-func (m *IBCAckMiddleware) OnAcknowledgementPacket(
-	ctx sdk.Context,
-	packet channeltypes.Packet,
-	acknowledgement []byte,
-	relayer sdk.AccAddress,
-) error {
-	var ack channeltypes.Acknowledgement
-	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONUnmarshal), "ics20 transfer packet acknowledgement")
-	}
-
-	if !ack.Success() {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
-
-	transfer, err := m.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
-	if err != nil {
-		return errorsmod.Wrap(err, "get valid transfer from sent packet")
-	}
-
-	packetMetadata, err := types.ParsePacketMetadata(transfer.GetMemo())
-	if err != nil {
-		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
-
-	if !transfer.IsRollapp() {
-		return errorsmod.Wrap(errors.Join(err, errortypes.ErrInvalidRequest), "got a memo so should get rollapp, but didnt")
-	}
-
-	ra := m.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
-
-	if !Contains(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base) {
-		// add the new token denom base to the list of rollapp's registered denoms
-		ra.RegisteredDenoms = append(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base)
-
-		m.rollappKeeper.SetRollapp(ctx, ra)
-	}
-
-	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }

@@ -196,7 +196,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := transferinject.NewIBCSendMiddleware(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
+			m := transferinject.NewICS4Wrapper(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
 			data := types.ModuleCdc.MustMarshalJSON(tt.args.data)
 
@@ -378,7 +378,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := transferinject.NewIBCAckMiddleware(tt.fields.IBCModule, tt.fields.rollappKeeper)
+			m := transferinject.NewIBCModule(tt.fields.IBCModule, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 
