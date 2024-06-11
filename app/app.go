@@ -632,8 +632,6 @@ func New(
 		scopedTransferKeeper,
 	)
 
-	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
-
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
 		keys[sequencermoduletypes.StoreKey],
