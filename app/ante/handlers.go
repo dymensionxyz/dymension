@@ -44,7 +44,6 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 	*/
 
 	return sdk.ChainAnteDecorators(
-		transfersenabled.NewDecorator(nil), // TODO: check pos
 		/*
 			See https://jumpcrypto.com/writing/bypassing-ethermint-ante-handlers/
 			for an explanation of these message blocking decorators
@@ -78,6 +77,8 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+
+		transfersenabled.NewDecorator(nil), // TODO: check pos
 	)
 }
 
@@ -86,7 +87,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
-		transfersenabled.NewDecorator(nil), // TODO: check pos
 
 		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
 		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
@@ -113,5 +113,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+
+		transfersenabled.NewDecorator(nil), // TODO: check pos
 	)
 }
