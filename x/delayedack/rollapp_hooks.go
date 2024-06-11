@@ -19,6 +19,6 @@ func (w IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, st
 	return im.FinalizeRollappPackets(ctx, im.IBCModule, rollappID, stateEndHeight)
 }
 
-func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	return im.HandleFraud(ctx, rollappID, im.IBCModule)
+func (w IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	return w.HandleFraud(ctx, rollappID, w.IBCModule)
 }
