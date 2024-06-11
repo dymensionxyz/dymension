@@ -100,16 +100,21 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
+	l.Debug("Processing inbound packet.")
+
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+		l.Debug("Rollapps are disabled.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
 	if err != nil {
+		l.Error("Get valid transfer from received packet", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
 	}
 
 	if !transfer.IsRollapp() {
+		l.Debug("Transfer is not from a rollapp.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -122,27 +127,30 @@ func (w IBCModule) OnRecvPacket(
 		if !ra.GenesisState.TransfersEnabled {
 			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
 			// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
+			l.Debug("Not continuing.", "err", err)
 			return channeltypes.NewErrorAcknowledgement(err)
 		}
+		l.Debug("Memo not found.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
-		l.Debug("get memo", "error", err)
+		l.Error("Get memo.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {
-		l.Info("rollapp fraud: verify and record genesis transfer", "err", err)
 		// The rollapp has deviated from the protocol!
 		handleFraudErr := w.handleFraud(ra.RollappId)
 		if err != nil {
-			l.Error("handle fraud", "error", handleFraudErr)
+			l.Error("Handling fraud.", "err", handleFraudErr)
+		} else {
+			l.Info("Handled fraud: verify and record genesis transfer.", "err", err)
 		}
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 	if err != nil {
-		l.Error("verify and record transfer", "error", err)
+		l.Error("Verify and record transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "verify and record genesis transfer"))
 	}
 
@@ -150,7 +158,7 @@ func (w IBCModule) OnRecvPacket(
 
 	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, m.Denom)
 	if err != nil {
-		l.Error("register denom metadata", "error", err)
+		l.Error("Register denom metadata.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "register denom metadata"))
 	}
 
@@ -168,6 +176,8 @@ func (w IBCModule) OnRecvPacket(
 			"rollapp", ra.RollappId,
 			"n transfers", nTransfersDone)
 	}
+
+	l.Debug("Passing on the transfer down the stack, but skipping delayedack.")
 
 	return w.IBCModule.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
 }

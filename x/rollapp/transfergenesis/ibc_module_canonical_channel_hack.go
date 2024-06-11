@@ -36,7 +36,7 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	l := ctx.Logger().With("hack set canonical channel")
+	l := ctx.Logger().With("module", "hack set canonical channel")
 
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper, packet.GetDestPort(), packet.GetDestChannel())
 	if err == nil {
@@ -45,7 +45,7 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 			ra.ChannelId = packet.GetDestChannel()
 			w.rollappKeeper.SetRollapp(ctx, ra)
 
-			l.Info("Set the canonical channel", "channel id", packet.GetDestChannel())
+			l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
 		}
 	}
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
