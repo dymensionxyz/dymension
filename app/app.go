@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
@@ -758,8 +760,12 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
-	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transferinject.NewIBCModule(delayedAckMiddleware, app.RollappKeeper)
+
+	var delayedAckMiddleware ibcporttypes.Middleware
+	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	transferStack = delayedAckMiddleware
+	transferStack = transfergenesis.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper, app.IBCKeeper.ChannelKeeper)
+	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -771,7 +777,7 @@ func New(
 	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
-		delayedAckMiddleware,
+		delayedAckMiddleware.(delayedackmodule.IBCMiddleware),
 	))
 
 	/****  Module Options ****/
