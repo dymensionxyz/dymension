@@ -98,7 +98,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 
 	// No event emitted, as we called the transfer keeper directly (vs the transfer middleware)
 	err = w.transferKeeper.OnRecvPacket(ctx, packet, feeData.FungibleTokenPacketData)
-	if err == nil {
+	if err != nil {
 		l.Error("Charge bridging fee.", "err", err)
 		// we continue as we don't want the fee charge to fail the transfer in any case
 		fee = sdk.ZeroInt()
