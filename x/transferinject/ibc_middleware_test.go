@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -19,7 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
-func TestIBCMiddleware_SendPacket(t *testing.T) {
+func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
 		ICS4Wrapper   porttypes.ICS4Wrapper
 		rollappKeeper types.RollappKeeper
@@ -200,7 +202,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 }
 
-func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
+func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		packetData    *transfertypes.FungibleTokenPacketData
 		ack           []byte
@@ -250,7 +252,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
 				IBCModule:     mockIBCModule{},
-				ack:           badAck(),
+				ack:           errAck(),
 			},
 			wantRollapp: nil,
 		}, {
@@ -315,7 +317,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				ack: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     errortypes.ErrNotFound,
+			wantErr:     gerr.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
@@ -388,7 +390,7 @@ func okAck() []byte {
 	return types.ModuleCdc.MustMarshalJSON(&ack)
 }
 
-func badAck() []byte {
+func errAck() []byte {
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("unsuccessful"))
 	return types.ModuleCdc.MustMarshalJSON(&ack)
 }
@@ -434,12 +436,13 @@ type mockRollappKeeper struct {
 
 func (m *mockRollappKeeper) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
 	ret := rollapptypes.TransferData{}
-	if m.err != nil {
+	if m.transfer != nil {
 		ret.FungibleTokenPacketData = *m.transfer
 	}
 	if m.rollapp != nil {
 		ret.Rollapp = m.rollapp
 	}
+	return ret, nil
 }
 
 func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rollapp) {

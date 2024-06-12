@@ -5,6 +5,8 @@ import (
 	"errors"
 	. "slices"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -60,7 +62,7 @@ func (m *IBCModule) OnAcknowledgementPacket(
 	}
 
 	if !transfer.IsRollapp() {
-		return errorsmod.Wrap(errors.Join(err, errortypes.ErrInvalidRequest), "got a memo so should get rollapp, but didnt")
+		return errorsmod.Wrap(errors.Join(gerr.ErrNotFound, errortypes.ErrInvalidRequest), "got a memo so should get rollapp, but didnt")
 	}
 
 	if !Contains(transfer.Rollapp.RegisteredDenoms, packetMetadata.DenomMetadata.Base) {

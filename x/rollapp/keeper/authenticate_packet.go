@@ -3,7 +3,6 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
@@ -35,7 +34,7 @@ func (k Keeper) GetValidTransfer(
 	}
 
 	ra, err := k.getRollapp(ctx, raPortOnHub, raChanOnHub)
-	if errors.IsOf(err, errRollappNotFound) {
+	if errorsmod.IsOf(err, errRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		err = nil
 		return
