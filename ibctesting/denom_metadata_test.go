@@ -25,6 +25,10 @@ func (suite *DenomMetaDataTestSuite) SetupTest() {
 }
 
 func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
+	/*
+		TODO: gonna come back to this one because it needs a rethink
+	*/
+
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 
