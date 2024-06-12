@@ -724,10 +724,10 @@ func New(
 	)
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
-	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridgingfee.NewIBCModule(transferMiddleware, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
+	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = bridgingfee.NewIBCModule(transferStack, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	var delayedAckMiddleware ibcporttypes.Middleware

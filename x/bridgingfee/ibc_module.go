@@ -3,9 +3,9 @@ package bridgingfee
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	transferapp "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -20,7 +20,7 @@ const (
 // The actual charge happens on the packet finalization
 // based on ADR: https://www.notion.so/dymension/ADR-x-Bridging-Fee-Middleware-7ba8c191373f43ce81782fc759913299?pvs=4
 type IBCModule struct {
-	transferapp.IBCModule
+	porttypes.IBCModule
 
 	rollappKeeper    rollappkeeper.Keeper
 	delayedAckKeeper delayedackkeeper.Keeper
@@ -29,14 +29,14 @@ type IBCModule struct {
 }
 
 func NewIBCModule(
-	transfer transferapp.IBCModule,
+	next porttypes.IBCModule,
 	keeper delayedackkeeper.Keeper,
 	transferKeeper transferkeeper.Keeper,
 	feeModuleAddr sdk.AccAddress,
 	rollappKeeper rollappkeeper.Keeper,
 ) *IBCModule {
 	return &IBCModule{
-		IBCModule:        transfer,
+		IBCModule:        next,
 		delayedAckKeeper: keeper,
 		transferKeeper:   transferKeeper,
 		feeModuleAddr:    feeModuleAddr,
