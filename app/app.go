@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -764,6 +766,7 @@ func New(
 	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = delayedAckMiddleware
 	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
+	transferStack = transfersenabled.NewIBCModule(transferStack, app.RollappKeeper, app.DelayedAckKeeper)
 	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
 	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper.GetChannelClientState)
 
