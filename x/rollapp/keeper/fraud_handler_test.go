@@ -238,7 +238,7 @@ func (suite *RollappTestSuite) assertFraudHandled(rollappId string) {
 
 	// check queue
 	queue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(suite.Ctx)
-	suite.Assert().Greater(len(queue), 0)
+	suite.Greater(len(queue), 0)
 	for _, q := range queue {
 		for _, stateInfoIndex := range q.FinalizationQueue {
 			suite.Require().NotEqual(rollappId, stateInfoIndex.RollappId)

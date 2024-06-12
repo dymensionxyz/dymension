@@ -34,10 +34,10 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	suite.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight-1), 0)
-	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight), 1)
-	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+1), 2)
-	suite.Assert().Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+100), 2)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight-1), 0)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight), 1)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+1), 2)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+100), 2)
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
