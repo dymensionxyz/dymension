@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
+
 	"github.com/dymensionxyz/dymension/v3/utils/derr"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -118,25 +120,20 @@ func (w IBCModule) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	// if valid transfer returns a rollapp, we know we must get it
-	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
-
 	m, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
-		// This is a normal transfer
-		if !ra.GenesisState.TransfersEnabled {
-			err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
-			// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
-			l.Debug("Not continuing.", "err", err)
-			return channeltypes.NewErrorAcknowledgement(err)
-		}
 		l.Debug("Memo not found.")
+		// If someone tries to send a transfer without the memo before the bridge is open, they will
+		// be blocked at the transfersenabled middleware
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
 		l.Error("Get memo.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
+
+	// if valid transfer returns a rollapp, we know we must get it
+	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {
@@ -177,9 +174,9 @@ func (w IBCModule) OnRecvPacket(
 			"n transfers", nTransfersDone)
 	}
 
-	l.Debug("Passing on the transfer down the stack, but skipping delayedack.")
+	l.Debug("Passing on the transfer down the stack, but skipping delayedack and the transferEnabled blocker.")
 
-	return w.IBCModule.OnRecvPacket(delayedacktypes.SkipContext(ctx), packet, relayer)
+	return w.IBCModule.OnRecvPacket(transfersenabled.SkipContext(delayedacktypes.SkipContext(ctx)), packet, relayer)
 }
 
 // handleFraud : the rollapp has violated the DRS!
