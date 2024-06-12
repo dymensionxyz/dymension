@@ -108,7 +108,7 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if height != 0 && height < val.CreationHeight {
+		if height < val.CreationHeight {
 			break
 		}
 		list = append(list, val)
@@ -119,5 +119,16 @@ func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint6
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
 func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
-	return k.GetAllFinalizationQueueUntilHeight(ctx, 0)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.BlockHeightToFinalizationQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		list = append(list, val)
+	}
+
+	return
 }
