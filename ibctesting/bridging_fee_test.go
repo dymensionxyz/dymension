@@ -19,10 +19,6 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 	suite.Run(t, new(BridgingFeeTestSuite))
 }
 
-func (suite *BridgingFeeTestSuite) SetupTest() {
-	suite.IBCTestUtilSuite.SetupTest()
-}
-
 func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	// setup between cosmosChain and hubChain
 	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
