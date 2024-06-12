@@ -3,6 +3,9 @@ package keeper_test
 import (
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -64,7 +67,7 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	suite.Require().NoError(err)
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
-	suite.Require().EqualError(err, types.ErrDenomAlreadyExists.Error())
+	suite.Require().True(errorsmod.IsOf(err, gerr.ErrAlreadyExists))
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {

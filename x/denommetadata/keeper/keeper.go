@@ -35,7 +35,7 @@ func (k *Keeper) HasDenomMetadata(ctx sdk.Context, base string) bool {
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	found := k.HasDenomMetadata(ctx, metadata.Base)
 	if found {
-		return gerr.ErrAlreadyExist
+		return gerr.ErrAlreadyExists
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataCreation(ctx, metadata)

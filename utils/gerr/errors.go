@@ -19,7 +19,7 @@ var (
 	ErrInvalidArgument    = errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "invalid argument")
 	ErrDeadlineExceeded   = errorsmod.RegisterWithGRPCCode(GErrors, 3, 4, "deadline exceeded") // no obvious sdk mapping exists
 	ErrNotFound           = sdkerrors.ErrNotFound
-	ErrAlreadyExist       = errorsmod.RegisterWithGRPCCode(GErrors, 4, 6, "already exist") // no obvious sdk mapping exists
+	ErrAlreadyExists      = errorsmod.RegisterWithGRPCCode(GErrors, 4, 6, "already exists") // no obvious sdk mapping exists
 	ErrPermissionDenied   = errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "permission denied")
 	ErrUnauthenticated    = errorsmod.Wrapf(sdkerrors.ErrWrongPassword, "unauthenticated")
 	ErrResourceExhausted  = errorsmod.RegisterWithGRPCCode(GErrors, 5, 8, "resource exhausted")  // no obvious sdk mapping exists
