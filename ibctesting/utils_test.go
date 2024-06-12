@@ -119,12 +119,6 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	suite.Require().NoError(err) // message committed
 }
 
-func (suite *IBCTestUtilSuite) CreateRollappWithMetadata() {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{}, false)
-	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
-	suite.Require().NoError(err) // message committed
-}
-
 func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
 	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper

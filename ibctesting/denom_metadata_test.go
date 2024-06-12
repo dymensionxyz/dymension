@@ -29,13 +29,12 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
 	suite.coordinator.Setup(path)
 
 	// register rollapp with metadata for stake denom
-	suite.CreateRollappWithMetadata()
+	suite.CreateRollapp()
 	suite.RegisterSequencer()
 
 	app := ConvertToApp(suite.hubChain)
 
-	// invoke genesis event, in order to register denoms
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
+	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID) // TODO: could delete
 
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
@@ -55,7 +54,16 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
 	/* ------------------- move non-registered token from rollapp ------------------- */
 	dymTokensToSend := sdk.NewCoin("udym", amount)
 	apptesting.FundAccount(ConvertToApp(suite.rollappChain), suite.rollappChain.GetContext(), suite.rollappChain.SenderAccount.GetAddress(), sdk.Coins{dymTokensToSend})
-	msg := types.NewMsgTransfer(path.EndpointB.ChannelConfig.PortID, path.EndpointB.ChannelID, dymTokensToSend, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	msg := types.NewMsgTransfer(
+		path.EndpointB.ChannelConfig.PortID,
+		path.EndpointB.ChannelID,
+		dymTokensToSend,
+		suite.rollappChain.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		"",
+	)
 	res, err := suite.rollappChain.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
