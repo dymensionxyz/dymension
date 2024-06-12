@@ -140,19 +140,7 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"DelayedackParams",
 	)
 
-	k := keeper.NewKeeper(
-		cdc,
-		storeKey,
-		paramsSubspace,
-		RollappKeeperStub{},
-		SequencerKeeperStub{},
-		ICS4WrapperStub{},
-		ChannelKeeperStub{},
-		ClientKeeperStub{},
-		ConnectionKeeperStub{},
-		nil,
-		nil,
-	)
+	k := keeper.NewKeeper(cdc, storeKey, paramsSubspace, RollappKeeperStub{}, ICS4WrapperStub{}, ChannelKeeperStub{}, nil, nil)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
 

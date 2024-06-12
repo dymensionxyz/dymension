@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -100,15 +102,15 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        *keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	accountKeeper simulationtypes.AccountKeeper
+	bankKeeper    simulationtypes.BankKeeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *keeper.Keeper,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
+	accountKeeper simulationtypes.AccountKeeper,
+	bankKeeper simulationtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),

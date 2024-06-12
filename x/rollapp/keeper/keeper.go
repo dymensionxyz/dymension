@@ -23,18 +23,10 @@ type (
 
 		ibcClientKeeper types.IBCClientKeeper
 		channelKeeper   types.ChannelKeeper
-		bankKeeper      types.BankKeeper
 	}
 )
 
-func NewKeeper(
-	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
-	channelKeeper types.ChannelKeeper,
-	bankKeeper types.BankKeeper,
-) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
@@ -47,7 +39,6 @@ func NewKeeper(
 		paramstore:    ps,
 		hooks:         nil,
 		channelKeeper: channelKeeper,
-		bankKeeper:    bankKeeper,
 	}
 }
 

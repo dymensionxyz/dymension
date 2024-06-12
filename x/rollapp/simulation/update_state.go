@@ -7,14 +7,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/dymensionxyz/dymension/v3/simulation"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func SimulateMsgUpdateState(
-	ak types.AccountKeeper,
-	bk types.BankKeeper,
-	k keeper.Keeper,
+	ak simulationtypes.AccountKeeper,
+	bk simulationtypes.BankKeeper,
 ) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
