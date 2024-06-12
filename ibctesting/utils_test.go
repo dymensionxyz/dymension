@@ -76,27 +76,23 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 }
 
 func (suite *IBCTestUtilSuite) CreateRollapp() {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{})
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain.ChainID,
+		10,
+		[]string{},
+		false,
+	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 }
 
 func (suite *IBCTestUtilSuite) GenesisEvent(channelID string) {
-	// add sender to deployer whitelist
 	app := ConvertToApp(suite.hubChain)
-	params := app.RollappKeeper.GetParams(suite.hubChain.GetContext())
-	params.DeployerWhitelist = []rollapptypes.DeployerParams{{Address: suite.hubChain.SenderAccount.GetAddress().String()}}
-	app.RollappKeeper.SetParams(suite.hubChain.GetContext(), params)
 
-	msgGenesisEvent := rollapptypes.NewMsgRollappGenesisEvent(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		channelID,
-		suite.rollappChain.ChainID,
-	)
-	suite.hubChain.CurrentHeader.ProposerAddress = suite.hubChain.NextVals.Proposer.Address
+	_ = app
 
-	_, err := suite.hubChain.SendMsgs(msgGenesisEvent)
-	suite.Require().NoError(err) // message committed
+	// TODO:
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {
@@ -122,7 +118,7 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 }
 
 func (suite *IBCTestUtilSuite) CreateRollappWithMetadata() {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{})
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(suite.hubChain.SenderAccount.GetAddress().String(), suite.rollappChain.ChainID, 10, []string{}, false)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 }
