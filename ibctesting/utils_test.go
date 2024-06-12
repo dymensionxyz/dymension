@@ -248,7 +248,12 @@ func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coo
 	signersByAddress[valPubKey.Address().String()] = valPrivKey
 	valSet := tmtypes.NewValidatorSet(validators)
 
+	// TODO: review
+	oldSetup := ibctesting.DefaultTestingAppInit
+	originalSetup := ibctesting.SetupTestingApp
+	ibctesting.DefaultTestingAppInit = originalSetup
 	app := ibctesting.SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
+	ibctesting.DefaultTestingAppInit = oldSetup
 
 	// create current header and call begin block
 	header := tmproto.Header{
