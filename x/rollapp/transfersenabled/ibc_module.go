@@ -67,8 +67,6 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
-	_ = l
-
 	if skip(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
@@ -87,8 +85,9 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	if !transfer.Rollapp.GenesisState.TransfersEnabled {
-		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", transfer.Rollapp.RollappId)
 		// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
+		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", transfer.Rollapp.RollappId)
+		l.Debug("Returning error ack.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
