@@ -181,7 +181,7 @@ func (w IBCMiddleware) getSavedPacket(
 	ack []byte,
 ) commontypes.RollappPacket {
 	p := commontypes.RollappPacket{
-		RollappId:       transfer.RollappID,
+		RollappId:       transfer.Rollapp.RollappId,
 		Packet:          &packet,
 		Acknowledgement: ack,
 		Status:          commontypes.Status_PENDING,

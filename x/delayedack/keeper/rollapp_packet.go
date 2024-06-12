@@ -176,16 +176,13 @@ func (k Keeper) deleteRollappPacket(ctx sdk.Context, rollappPacket *commontypes.
 	return nil
 }
 
-// GetValidTransferWithFinalizationInfo does GetValidTransferFromReceivedPacket but additionally it gets the finalization status and proof height
+// GetValidTransferWithFinalizationInfo does GetValidTransferFromReceivedPacket, but additionally it gets the finalization status and proof height
 // of the packet.
 func (k Keeper) GetValidTransferWithFinalizationInfo(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
-	// TODO: instead of calling this function in every middleware, we could call it eg. once in the stack, either in a middleware or in an
-	//       ante handler, and modify the sdk.Context to make it available downstream https://github.com/dymensionxyz/dymension/issues/914
-
 	switch packetType {
 	case commontypes.RollappPacket_ON_RECV:
 		data.TransferData, err = k.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
@@ -205,7 +202,11 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	}
 	data.ProofHeight = height.RevisionHeight
 
-	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.RollappID)
+	if !data.IsRollapp() {
+		return
+	}
+
+	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.Rollapp.RollappId)
 	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
 		err = errorsmod.Wrap(err, "get rollapp finalized height")
 		return

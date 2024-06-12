@@ -65,13 +65,11 @@ func (m *ICS4Wrapper) SendPacket(
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 
-	rollapp := m.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
-
 	// Check if the rollapp already contains the denom metadata by matching the base of the denom metadata.
 	// At the first match, we assume that the rollapp already contains the metadata.
 	// It would be technically possible to have a race condition where the denom metadata is added to the rollapp
 	// from another packet before this packet is acknowledged.
-	if Contains(rollapp.RegisteredDenoms, transfer.GetDenom()) {
+	if Contains(transfer.Rollapp.RegisteredDenoms, transfer.GetDenom()) {
 		return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)
 	}
 

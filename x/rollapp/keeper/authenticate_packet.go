@@ -52,7 +52,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	rollappID, err := k.getRollappID(ctx, raPortOnHub, raChanOnHub)
+	ra, err := k.getRollapp(ctx, raPortOnHub, raChanOnHub)
 	if errors.IsOf(err, errRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		return
@@ -62,19 +62,19 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	data.RollappID = rollappID
+	data.Rollapp = ra
 
 	return
 }
 
 var errRollappNotFound = errors.Wrap(gerr.ErrNotFound, "rollapp")
 
-// getRollappID returns the rollapp id that a packet came from, if we are certain
+// getRollapp returns the rollapp id that a packet came from, if we are certain
 // that the packet came from that rollapp. That means that the canonical channel
 // has already been set.
-func (k Keeper) getRollappID(ctx sdk.Context,
+func (k Keeper) getRollapp(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
-) (string, error) {
+) (*types.Rollapp, error) {
 	/*
 		TODO:
 			There is an open issue of how we go about making sure that the packet really came from the rollapp, and once we know that it came
@@ -89,21 +89,21 @@ func (k Keeper) getRollappID(ctx sdk.Context,
 	*/
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, raPortOnHub, raChanOnHub)
 	if err != nil {
-		return "", errors.Wrap(err, "chain id from port and channel")
+		return nil, errors.Wrap(err, "chain id from port and channel")
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return "", errRollappNotFound
+		return nil, errRollappNotFound
 	}
 	if rollapp.ChannelId == "" {
-		return "", errors.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+		return nil, errors.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
 	if rollapp.ChannelId != raChanOnHub {
-		return "", errors.Wrapf(
+		return nil, errors.Wrapf(
 			gerr.ErrInvalidArgument,
 			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
 	}
-	return rollapp.RollappId, nil
+	return &rollapp, nil
 }

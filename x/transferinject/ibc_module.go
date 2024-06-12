@@ -63,13 +63,11 @@ func (m *IBCModule) OnAcknowledgementPacket(
 		return errorsmod.Wrap(errors.Join(err, errortypes.ErrInvalidRequest), "got a memo so should get rollapp, but didnt")
 	}
 
-	ra := m.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
-
-	if !Contains(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base) {
+	if !Contains(transfer.Rollapp.RegisteredDenoms, packetMetadata.DenomMetadata.Base) {
 		// add the new token denom base to the list of rollapp's registered denoms
-		ra.RegisteredDenoms = append(ra.RegisteredDenoms, packetMetadata.DenomMetadata.Base)
+		transfer.Rollapp.RegisteredDenoms = append(transfer.Rollapp.RegisteredDenoms, packetMetadata.DenomMetadata.Base)
 
-		m.rollappKeeper.SetRollapp(ctx, ra)
+		m.rollappKeeper.SetRollapp(ctx, *transfer.Rollapp)
 	}
 
 	return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)

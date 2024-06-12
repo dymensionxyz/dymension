@@ -86,10 +86,8 @@ func (w IBCModule) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
-
-	if !ra.GenesisState.TransfersEnabled {
-		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", ra.RollappId)
+	if !transfer.Rollapp.GenesisState.TransfersEnabled {
+		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", transfer.Rollapp.RollappId)
 		// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
 		return channeltypes.NewErrorAcknowledgement(err)
 	}

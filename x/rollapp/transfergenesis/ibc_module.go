@@ -132,8 +132,7 @@ func (w IBCModule) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
 
-	// if valid transfer returns a rollapp, we know we must get it
-	ra := w.rollappKeeper.MustGetRollapp(ctx, transfer.RollappID)
+	ra := transfer.Rollapp
 
 	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
 	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {

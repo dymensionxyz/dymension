@@ -11,13 +11,13 @@ import (
 
 type TransferData struct {
 	transfertypes.FungibleTokenPacketData
-	// RollappID will be the empty string if the packet does not pertain to a registered rollapp
-	RollappID string
+	// Rollapp will be the nil if the packet is not to/from a registered rollapp
+	Rollapp *Rollapp
 }
 
 // IsRollapp returns whether the transfer came from a rollapp or was sent to a rollapp
 func (d TransferData) IsRollapp() bool {
-	return d.RollappID != ""
+	return d.Rollapp != nil
 }
 
 // MustAmountInt returns the int amount. Should call validateBasic first!
