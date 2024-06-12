@@ -8,17 +8,17 @@ import (
 
 var _ rollapptypes.RollappHooks = &IBCMiddleware{}
 
-func (im IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (w IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
 	return nil
 }
 
 // AfterStateFinalized implements the RollappHooks interface
-func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+func (w IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	// Finalize the packets for the rollapp at the given height
 	stateEndHeight := stateInfo.StartHeight + stateInfo.NumBlocks - 1
-	return im.FinalizeRollappPackets(ctx, im.IBCModule, rollappID, stateEndHeight)
+	return w.FinalizeRollappPackets(ctx, w.IBCModule, rollappID, stateEndHeight)
 }
 
-func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
-	return im.HandleFraud(ctx, rollappID, im.IBCModule)
+func (w IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	return w.HandleFraud(ctx, rollappID, w.IBCModule)
 }

@@ -18,6 +18,7 @@ func (m *TokenMetadata) Validate() error {
 }
 
 // ConvertToBankMetadata converts TokenMetadata to Metadata of x/bank/types
+// TODO: there is no good reason we have a duplicate type, so we should just use the bank one always
 func (m *TokenMetadata) ConvertToBankMetadata() banktypes.Metadata {
 	var denomUnits []*banktypes.DenomUnit
 

@@ -31,6 +31,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
+	// TODO: fix
 }
 
 // ExportGenesis returns the capability module's exported genesis.
@@ -43,6 +44,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.LatestStateInfoIndexList = k.GetAllLatestStateInfoIndex(ctx)
 	genesis.LatestFinalizedStateIndexList = k.GetAllLatestFinalizedStateIndex(ctx)
 	genesis.BlockHeightToFinalizationQueueList = k.GetAllBlockHeightToFinalizationQueue(ctx)
+	genesis.GenesisTransfers = k.GetAllGenesisTransfers(ctx)
 
 	return genesis
 }

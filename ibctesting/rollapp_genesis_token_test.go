@@ -8,7 +8,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/utils"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -64,7 +63,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -81,7 +80,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: true,
+				GenesisEventHappened: true,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -98,7 +97,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: true,
+				GenesisEventHappened: true,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   apptesting.CreateRandomAccounts(1)[0].String(),
@@ -115,7 +114,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -132,7 +131,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -149,7 +148,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -165,7 +164,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 				GenesisAccounts: []*types.GenesisAccount{
 					{Address: ""},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -183,7 +182,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(350))},
 					{Address: apptesting.CreateRandomAccounts(1)[0].String(), Amount: sdk.NewCoin(rollappDenom, sdk.NewInt(140))},
 				},
-				IsGenesisEvent: false,
+				GenesisEventHappened: false,
 			},
 			msg: &types.MsgRollappGenesisEvent{
 				Address:   genesisAuthorizedAccount.String(),
@@ -242,7 +241,7 @@ func (suite *RollappGenesisTokenTestSuite) TestTriggerGenesisEvent() {
 			moduleAcc := accountKeeper.GetModuleAccount(suite.ctx, types.ModuleName)
 			suite.Require().Equal(sdk.NewCoins(), bankKeeper.GetAllBalances(suite.ctx, moduleAcc.GetAddress()))
 			// Validate the genesis accounts balances
-			rollappIBCDenom := utils.GetForeignIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
+			rollappIBCDenom := utilsibc.GetForeignIBCDenom(hubToRollappPath.EndpointB.ChannelID, rollappDenom)
 			for _, roallppGenesisAccount := range tc.gensisState.GenesisAccounts {
 				if roallppGenesisAccount.Address != "" {
 					balance := bankKeeper.GetBalance(suite.ctx, sdk.MustAccAddressFromBech32(roallppGenesisAccount.Address), rollappIBCDenom)

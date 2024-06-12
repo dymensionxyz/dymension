@@ -12,5 +12,4 @@ var (
 	ErrMismatchedSequencer        = errorsmod.Register(ModuleName, 6, "mismatched sequencer")
 	ErrMissingEIBCMetadata        = errorsmod.Register(ModuleName, 7, "missing eibc metadata")
 	ErrUnknownRequest             = errorsmod.Register(ModuleName, 8, "unknown request")
-	ErrInvalidType                = errorsmod.Register(ModuleName, 9, "invalid type")
 )

@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
@@ -15,7 +14,7 @@ import (
 
 var _ = strconv.Itoa(0)
 
-// TODO: refactor to be flag of []string
+// PermissionedAddresses .. TODO: refactor to be flag of []string
 type PermissionedAddresses struct {
 	Addresses []string `json:"addresses"`
 }
@@ -25,7 +24,7 @@ func CmdCreateRollapp() *cobra.Command {
 		Use:     "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
 		Short:   "Create a new rollapp",
 		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
-		Args:    cobra.RangeArgs(3, 4),
+		Args:    cobra.RangeArgs(3, 3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
@@ -43,29 +42,13 @@ func CmdCreateRollapp() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// Parse metadata
-			var metadatas []types.TokenMetadata
-			if len(args) == 4 {
-				metadatas, err = utils.ParseJsonFromFile[types.TokenMetadata](args[3])
-				if err != nil {
-					return err
-				}
-			}
-			// Parse genesis accounts
-			genesisAccountsPath, _ := cmd.Flags().GetString(FlagGenesisAccountsPath)
-			genesisAccounts, err := utils.ParseJsonFromFile[types.GenesisAccount](genesisAccountsPath)
-			if err != nil && genesisAccountsPath != "" {
+
+			transfersEnabled, err := cmd.Flags().GetBool(FlagGenesisTransfersEnabled)
+			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateRollapp(
-				clientCtx.GetFromAddress().String(),
-				argRollappId,
-				argMaxSequencers,
-				argPermissionedAddresses.Addresses,
-				metadatas,
-				genesisAccounts,
-			)
+			msg := types.NewMsgCreateRollapp(clientCtx.GetFromAddress().String(), argRollappId, argMaxSequencers, argPermissionedAddresses.Addresses, transfersEnabled)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

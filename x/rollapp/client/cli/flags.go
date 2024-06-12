@@ -6,13 +6,14 @@ import (
 
 const (
 	// Create rollapp flags
-	FlagGenesisAccountsPath = "genesis-accounts-path"
+
+	FlagGenesisTransfersEnabled = "transfers-enabled"
 )
 
 // FlagSetCreateRollapp returns flags for creating gauges.
 func FlagSetCreateRollapp() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagGenesisAccountsPath, "", "path to a json file containing genesis accounts")
+	fs.Bool(FlagGenesisTransfersEnabled, false, "Enable ibc transfers immediately. Must be false if using genesis transfers (genesis accounts).")
 	return fs
 }
