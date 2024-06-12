@@ -727,21 +727,8 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridgingfee.NewIBCModule(
-		transferMiddleware,
-		app.DelayedAckKeeper,
-		app.TransferKeeper,
-		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-		app.RollappKeeper,
-	)
-
-	transferStack = packetforwardmiddleware.NewIBCMiddleware(
-		transferStack,
-		app.PacketForwardMiddlewareKeeper,
-		0,
-		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
-	)
+	transferStack = bridgingfee.NewIBCModule(transferMiddleware, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
 	var delayedAckMiddleware ibcporttypes.Middleware
 	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)

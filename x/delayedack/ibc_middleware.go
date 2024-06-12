@@ -68,7 +68,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_RECV)
 	if err != nil {
 		l.Error("Get valid rollapp and transfer.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack: get valid transfer with finalization info"))
 	}
 
 	if !transfer.IsRollapp() || transfer.Finalized {
@@ -79,7 +79,7 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack"))
 	}
 
 	return nil

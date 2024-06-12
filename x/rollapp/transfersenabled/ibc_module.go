@@ -77,7 +77,7 @@ func (w IBCModule) OnRecvPacket(
 
 	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer enabled?: get valid transfer"))
 	}
 
 	if !transfer.IsRollapp() {

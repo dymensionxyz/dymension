@@ -112,7 +112,7 @@ func (w IBCModule) OnRecvPacket(
 	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		l.Error("Get valid transfer from received packet", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get valid transfer"))
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: get valid transfer"))
 	}
 
 	if !transfer.IsRollapp() {
@@ -143,11 +143,11 @@ func (w IBCModule) OnRecvPacket(
 		} else {
 			l.Info("Handled fraud: verify and record genesis transfer.", "err", err)
 		}
-		return channeltypes.NewErrorAcknowledgement(err)
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis"))
 	}
 	if err != nil {
 		l.Error("Verify and record transfer.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "verify and record genesis transfer"))
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: verify and record"))
 	}
 
 	// it's a valid genesis transfer!
@@ -155,7 +155,7 @@ func (w IBCModule) OnRecvPacket(
 	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, m.Denom)
 	if err != nil {
 		l.Error("Register denom metadata.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "register denom metadata"))
+		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
 	}
 
 	l.Debug("Received valid genesis transfer. Registered denom data.",
