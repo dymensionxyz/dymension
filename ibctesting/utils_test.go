@@ -81,7 +81,9 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		suite.rollappChain.ChainID,
 		10,
 		[]string{},
-		false,
+
+		// in most cases we want to test when the genesis bridge setup is already complete
+		true,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
