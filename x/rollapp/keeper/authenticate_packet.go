@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"cosmossdk.io/errors"
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
@@ -24,12 +25,12 @@ func (k Keeper) GetValidTransfer(
 	raPortOnHub, raChanOnHub string,
 ) (data types.TransferData, err error) {
 	if err = transfertypes.ModuleCdc.UnmarshalJSON(packetData, &data.FungibleTokenPacketData); err != nil {
-		err = errors.Wrap(err, "unmarshal transfer data")
+		err = errorsmod.Wrap(err, "unmarshal transfer data")
 		return
 	}
 
 	if err = data.ValidateBasic(); err != nil {
-		err = errors.Wrap(err, "validate basic")
+		err = errorsmod.Wrap(err, "validate basic")
 		return
 	}
 
@@ -40,7 +41,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 	if err != nil {
-		err = errors.Wrap(err, "get rollapp id")
+		err = errorsmod.Wrap(err, "get rollapp id")
 		return
 	}
 
@@ -49,7 +50,7 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-var errRollappNotFound = errors.Wrap(gerr.ErrNotFound, "rollapp")
+var errRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
 
 // getRollapp returns the rollapp id that a packet came from, if we are certain
 // that the packet came from that rollapp. That means that the canonical channel
@@ -71,18 +72,18 @@ func (k Keeper) getRollapp(ctx sdk.Context,
 	*/
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, k.channelKeeper.GetChannelClientState, raPortOnHub, raChanOnHub)
 	if err != nil {
-		return nil, errors.Wrap(err, "chain id from port and channel")
+		return nil, errorsmod.Wrap(err, "chain id from port and channel")
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return nil, errors.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
+		return nil, errorsmod.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
 	}
 	if rollapp.ChannelId == "" {
-		return nil, errors.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+		return nil, errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
 	if rollapp.ChannelId != raChanOnHub {
-		return nil, errors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			gerr.ErrInvalidArgument,
 			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
