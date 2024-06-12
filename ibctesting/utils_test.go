@@ -66,7 +66,7 @@ type IBCTestUtilSuite struct {
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)              // initializes 3 test chains
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)              // initializes test chains
 	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))    // convenience and readability
 	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
 	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
