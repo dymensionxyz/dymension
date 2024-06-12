@@ -467,6 +467,7 @@ func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadat
 type mockRollappKeeper struct {
 	returnRollapp *rollapptypes.Rollapp
 	err           error
+	transfer      transfertypes.FungibleTokenPacketData
 }
 
 func (m *mockRollappKeeper) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
