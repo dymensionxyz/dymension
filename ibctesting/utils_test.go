@@ -90,11 +90,11 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 }
 
 func (suite *IBCTestUtilSuite) GenesisEvent(channelID string) {
+	// TODO: should this have the canonical channel or the transfersEnabled, both, neither?
 	app := ConvertToApp(suite.hubChain)
-
-	_ = app
-
-	// TODO:
+	ra := app.RollappKeeper.MustGetRollapp(suite.rollappChain.GetContext(), suite.rollappChain.ChainID)
+	ra.ChannelId = channelID
+	app.RollappKeeper.SetRollapp(suite.rollappChain.GetContext(), ra)
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {
