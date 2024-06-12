@@ -92,9 +92,9 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 func (suite *IBCTestUtilSuite) SetCanonicalRollappChannel(channelID string) {
 	// TODO: should this have the canonical channel or the transfersEnabled, both, neither?
 	app := ConvertToApp(suite.hubChain)
-	ra := app.RollappKeeper.MustGetRollapp(suite.rollappChain.GetContext(), suite.rollappChain.ChainID)
+	ra := app.RollappKeeper.MustGetRollapp(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
 	ra.ChannelId = channelID
-	app.RollappKeeper.SetRollapp(suite.rollappChain.GetContext(), ra)
+	app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), ra)
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {
