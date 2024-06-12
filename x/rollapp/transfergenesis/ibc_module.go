@@ -230,8 +230,7 @@ func getMemo(rawMemo string) (memo, error) {
 
 func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID string, m banktypes.Metadata) error {
 	trace := uibc.GetForeignDenomTrace(channelID, m.Base)
-	ibcDenom := trace.IBCDenom()
-	m.Base = ibcDenom
+	m.Base = trace.IBCDenom()
 
 	if w.denomKeeper.HasDenomMetadata(ctx, m.GetBase()) {
 		// Not strictly necessary but an easy optimisation, as, in general, we dont place restrictions on the number
@@ -244,11 +243,11 @@ func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID s
 	/*
 		Change the base to the ibc denom, and add an alias to the original
 	*/
-	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", ibcDenom, rollappID)
+	m.Description = fmt.Sprintf("auto-generated ibc denom for rollapp: base: %s: rollapp: %s", m.GetBase(), rollappID)
 	for i, u := range m.DenomUnits {
 		if u.Exponent == 0 {
 			m.DenomUnits[i].Aliases = append(m.DenomUnits[i].Aliases, u.Denom)
-			m.DenomUnits[i].Denom = ibcDenom
+			m.DenomUnits[i].Denom = m.GetBase()
 		}
 	}
 
