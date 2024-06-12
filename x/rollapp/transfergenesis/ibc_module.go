@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
 
 	"github.com/dymensionxyz/dymension/v3/utils/derr"
@@ -175,7 +177,13 @@ func (w IBCModule) OnRecvPacket(
 
 	l.Debug("Passing on the transfer down the stack, but skipping delayedack and the transferEnabled blocker.")
 
-	return w.IBCModule.OnRecvPacket(transfersenabled.SkipContext(delayedacktypes.SkipContext(ctx)), packet, relayer)
+	return w.IBCModule.OnRecvPacket(
+		bridgingfee.SkipContext(
+			transfersenabled.SkipContext(
+				delayedacktypes.SkipContext(ctx),
+			),
+		),
+		packet, relayer)
 }
 
 // handleFraud : the rollapp has violated the DRS!

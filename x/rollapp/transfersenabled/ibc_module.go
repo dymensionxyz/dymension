@@ -52,7 +52,6 @@ func SkipContext(ctx sdk.Context) sdk.Context {
 }
 
 // skip returns if the context contains the skip directive
-// Not intended to be used outside of module
 func skip(ctx sdk.Context) bool {
 	val, ok := ctx.Value(ctxKeySkip{}).(bool)
 	return ok && val
@@ -67,11 +66,7 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
-	if skip(ctx) {
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
-	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+	if skip(ctx) || !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

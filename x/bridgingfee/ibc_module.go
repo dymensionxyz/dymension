@@ -58,10 +58,24 @@ func (w IBCModule) logger(
 	)
 }
 
+type ctxKeySkip struct{}
+
+// SkipContext returns a context which can be used when this middleware
+// processes received packets in order to skip the check.
+func SkipContext(ctx sdk.Context) sdk.Context {
+	return ctx.WithValue(ctxKeySkip{}, true)
+}
+
+// skip returns if the context contains the skip directive
+func skip(ctx sdk.Context) bool {
+	val, ok := ctx.Value(ctxKeySkip{}).(bool)
+	return ok && val
+}
+
 func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
+	if skip(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
