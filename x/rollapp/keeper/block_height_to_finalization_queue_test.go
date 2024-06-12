@@ -19,8 +19,8 @@ var _ = strconv.IntSize
 
 func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	suite.SetupTest()
-	initialheight := uint64(10)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
+	initialHeight := uint64(10)
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
@@ -29,15 +29,15 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + 1))
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + 1))
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight-1), 0)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight), 1)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+1), 2)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialheight+100), 2)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialHeight-1), 0)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialHeight), 1)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialHeight+1), 2)
+	suite.Len(keeper.GetAllFinalizationQueueUntilHeight(*ctx, initialHeight+100), 2)
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
