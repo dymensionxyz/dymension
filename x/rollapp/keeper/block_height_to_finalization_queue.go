@@ -101,32 +101,26 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 
 // GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
 func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.BlockHeightToFinalizationQueue
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if height < val.CreationHeight {
-			break
-		}
-		list = append(list, val)
-	}
-
-	return
+	height++
+	return k.getFinalizationQueue(ctx, &height)
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
 func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
+	return k.getFinalizationQueue(ctx, nil)
+}
+
+func (k Keeper) getFinalizationQueue(ctx sdk.Context, endHeightNonInclusive *uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if endHeightNonInclusive != nil && *endHeightNonInclusive <= val.CreationHeight {
+			break
+		}
 		list = append(list, val)
 	}
 
