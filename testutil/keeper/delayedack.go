@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -81,29 +80,17 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 
 type RollappKeeperStub struct{}
 
-// MustGetStateInfo implements types.RollappKeeper.
-func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
-	return rollapptypes.StateInfo{}
-}
-
 func (RollappKeeperStub) GetParams(ctx sdk.Context) rollapptypes.Params {
 	return rollapptypes.Params{}
-}
-
-func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
-	return rollapptypes.Rollapp{}, false
-}
-
-func (RollappKeeperStub) StateInfo(c context.Context, req *rollapptypes.QueryGetStateInfoRequest) (*rollapptypes.QueryGetStateInfoResponse, error) {
-	return nil, nil
 }
 
 func (RollappKeeperStub) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
 	return rollapptypes.StateInfo{}, false
 }
 
-func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
-	return rollapptypes.StateInfoIndex{}, false
+// MustGetStateInfo implements types.RollappKeeper.
+func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
+	return rollapptypes.StateInfo{}
 }
 
 func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
@@ -112,6 +99,10 @@ func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId
 
 func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
 	return []rollapptypes.Rollapp{}
+}
+
+func (r RollappKeeperStub) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
+	return rollapptypes.TransferData{}, nil
 }
 
 type SequencerKeeperStub struct{}
