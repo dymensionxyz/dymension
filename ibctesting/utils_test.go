@@ -89,7 +89,7 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 	suite.Require().NoError(err) // message committed
 }
 
-func (suite *IBCTestUtilSuite) GenesisEvent(channelID string) {
+func (suite *IBCTestUtilSuite) SetCanonicalRollappChannel(channelID string) {
 	// TODO: should this have the canonical channel or the transfersEnabled, both, neither?
 	app := ConvertToApp(suite.hubChain)
 	ra := app.RollappKeeper.MustGetRollapp(suite.rollappChain.GetContext(), suite.rollappChain.ChainID)

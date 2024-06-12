@@ -35,7 +35,7 @@ func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
 	app := ConvertToApp(suite.hubChain)
 
 	// invoke genesis event, in order to register denoms
-	suite.GenesisEvent(path.EndpointA.ChannelID)
+	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
 
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
