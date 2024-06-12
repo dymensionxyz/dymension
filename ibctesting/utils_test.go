@@ -69,7 +69,7 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 3)              // initializes 3 test chains
 	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))    // convenience and readability
 	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
-	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.ChainIDPrefix+"3")
+	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
 	suite.coordinator.Chains[suite.rollappChain.ChainID] = suite.rollappChain
 	// Setup msg server for the rollapp keeper
 	suite.rollappMsgServer = rollappkeeper.NewMsgServerImpl(ConvertToApp(suite.hubChain).RollappKeeper)

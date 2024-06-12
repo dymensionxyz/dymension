@@ -74,7 +74,7 @@ func (k Keeper) getRollapp(ctx sdk.Context,
 	}
 	rollapp, ok := k.GetRollapp(ctx, chainID)
 	if !ok {
-		return nil, errRollappNotFound
+		return nil, errors.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
 	}
 	if rollapp.ChannelId == "" {
 		return nil, errors.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)

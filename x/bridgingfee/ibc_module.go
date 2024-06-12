@@ -1,6 +1,7 @@
 package bridgingfee
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transferapp "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
@@ -67,6 +68,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
+		err = errorsmod.Wrap(err, "get valid transfer")
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 

@@ -66,7 +66,16 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 	/* --------------------- initiating transfer on rollapp --------------------- */
-	msg := types.NewMsgTransfer(rollappEndpoint.ChannelConfig.PortID, rollappEndpoint.ChannelID, coinToSendToB, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	msg := types.NewMsgTransfer(
+		rollappEndpoint.ChannelConfig.PortID,
+		rollappEndpoint.ChannelID,
+		coinToSendToB,
+		suite.rollappChain.SenderAccount.GetAddress().String(),
+		suite.hubChain.SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		"",
+	)
 	res, err := suite.rollappChain.SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
