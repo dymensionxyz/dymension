@@ -109,6 +109,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		if i == 6 {
 			disputePeriodInBlocks -= 3
 		}
+
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 		goCtx = sdk.WrapSDKContext(suite.Ctx)
 
@@ -126,7 +127,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		suite.Require().EqualValues(expectedFinalizationQueue, types.BlockHeightToFinalizationQueue{
 			CreationHeight:    expectedStateInfo.CreationHeight,
 			FinalizationQueue: []types.StateInfoIndex{latestStateInfoIndex},
-		})
+		}, "finalization queue", "i", i)
 
 		// create new update
 		updateState := types.MsgUpdateState{
