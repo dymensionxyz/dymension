@@ -206,12 +206,12 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 	// Setup accounts
 	senderAccount := hubEndpoint.Chain.SenderAccount.GetAddress()
-	recieverAccount := rollappEndpoint.Chain.SenderAccount.GetAddress()
+	receiverAccount := rollappEndpoint.Chain.SenderAccount.GetAddress()
 	// Check balances
 	bankKeeper := ConvertToApp(suite.hubChain).BankKeeper
 	preSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
 	// send from hubChain to rollappChain
-	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), recieverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
+	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), receiverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
 	res, err := hubEndpoint.Chain.SendMsgs(msg)
 	suite.Require().NoError(err)
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
