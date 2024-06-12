@@ -730,8 +730,7 @@ func New(
 	transferStack = bridgingfee.NewIBCModule(transferStack, app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
-	var delayedAckMiddleware ibcporttypes.Middleware
-	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = delayedAckMiddleware
 	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
 	transferStack = transfersenabled.NewIBCModule(transferStack, app.RollappKeeper, app.DelayedAckKeeper)
@@ -748,7 +747,7 @@ func New(
 	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
-		delayedAckMiddleware.(delayedackmodule.IBCMiddleware),
+		delayedAckMiddleware,
 	))
 
 	/****  Module Options ****/
