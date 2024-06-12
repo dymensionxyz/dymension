@@ -230,7 +230,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// Check that the demand fulfillment
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled, tc.name)
+		suite.Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled, tc.name)
 		// Check balances updates in case of success
 		if tc.expectedFulfillmentError == nil {
 			afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)
