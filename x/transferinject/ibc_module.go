@@ -42,7 +42,7 @@ func (m *IBCModule) OnAcknowledgementPacket(
 ) error {
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
-		return errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONUnmarshal), "ics20 transfer packet acknowledgement")
+		return errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONUnmarshal), "ics20 transfer packet ack")
 	}
 
 	if !ack.Success() {
