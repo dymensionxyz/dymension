@@ -42,11 +42,11 @@ func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
 	err = path.RelayPacket(packet)
-	suite.Require().NoError(err) // relay committed
+	suite.NoError(err) // relay committed
 
 	denom := suite.GetRollappToHubIBCDenomFromPacket(packet)
 	finalBalance := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), denom)
-	suite.Assert().Equal(sdk.NewCoin(denom, coinToSendToB.Amount), finalBalance)
+	suite.Equal(sdk.NewCoin(denom, coinToSendToB.Amount), finalBalance)
 }
 
 func (suite *BridgingFeeTestSuite) TestBridgingFee() {
