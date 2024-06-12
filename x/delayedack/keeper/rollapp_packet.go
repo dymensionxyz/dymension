@@ -207,11 +207,14 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	}
 
 	finalizedHeight, err := k.getRollappFinalizedHeight(ctx, data.Rollapp.RollappId)
-	if err != nil && !errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+	if errorsmod.IsOf(err, rollapptypes.ErrNoFinalizedStateYetForRollapp) {
+		err = nil
+	} else if err != nil {
 		err = errorsmod.Wrap(err, "get rollapp finalized height")
 		return
+	} else {
+		data.Finalized = finalizedHeight >= data.ProofHeight
 	}
-	data.Finalized = err == nil && finalizedHeight >= data.ProofHeight
 
 	return
 }
