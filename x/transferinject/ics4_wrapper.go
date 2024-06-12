@@ -30,12 +30,12 @@ type ICS4Wrapper struct {
 // targeted at rollapps that don't have the token metadata for the token being transferred.
 // More info here: https://www.notion.so/dymension/ADR-x-IBC-Denom-Metadata-Transfer-From-Hub-to-Rollapp-d3791f524ac849a9a3eb44d17968a30b
 func NewICS4Wrapper(
-	ics porttypes.ICS4Wrapper,
+	next porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
 ) *ICS4Wrapper {
 	return &ICS4Wrapper{
-		ICS4Wrapper:   ics,
+		ICS4Wrapper:   next,
 		rollappKeeper: rollappKeeper,
 		bankKeeper:    bankKeeper,
 	}

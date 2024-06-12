@@ -23,7 +23,6 @@ import (
 
 func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
-		ICS4Wrapper   porttypes.ICS4Wrapper
 		rollappKeeper types.RollappKeeper
 		bankKeeper    types.BankKeeper
 		dstPort       string
@@ -39,7 +38,6 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		{
 			name: "success: added denom metadata to memo",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
@@ -54,12 +52,11 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
-				Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
+				Memo:  addDenomMetadataToExistingMemo("", validDenomMetadata),
 			}),
 		}, {
 			name: "success: added denom metadata to non-empty user memo",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
@@ -75,14 +72,15 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			},
 			wantSentData: types.ModuleCdc.MustMarshalJSON(&transfertypes.FungibleTokenPacketData{
 				Denom: "adym",
-				Memo:  addDenomMetadataToPacketData("thanks for the sweater, grandma!", validDenomMetadata),
+				Memo:  addDenomMetadataToExistingMemo("thanks for the sweater, grandma!", validDenomMetadata),
 			}),
 		}, {
 			name: "error: denom metadata already in memo",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
-				dstPort:     "port",
-				dstChannel:  "channel",
+				rollappKeeper: &mockRollappKeeper{},
+				bankKeeper:    mockBankKeeper{},
+				dstPort:       "port",
+				dstChannel:    "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  `{"transferinject":{}}`,
@@ -93,10 +91,10 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					err: errortypes.ErrInvalidRequest,
 				},
+				bankKeeper: mockBankKeeper{},
 				dstPort:    "port",
 				dstChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
@@ -108,8 +106,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		}, {
 			name: "send unaltered: rollapp not found",
 			fields: fields{
-				ICS4Wrapper:   &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{},
+				bankKeeper:    mockBankKeeper{},
 				dstPort:       "port",
 				dstChannel:    "channel",
 				data: &transfertypes.FungibleTokenPacketData{
@@ -124,7 +122,6 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		}, {
 			name: "send unaltered: receiver chain is source",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
@@ -143,12 +140,12 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		}, {
 			name: "send unaltered: denom metadata already in rollapp",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{
 						RegisteredDenoms: []string{"adym"},
 					},
 				},
+				bankKeeper: mockBankKeeper{},
 				dstPort:    "port",
 				dstChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
@@ -161,7 +158,6 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 		}, {
 			name: "error: get denom metadata",
 			fields: fields{
-				ICS4Wrapper: &mockICS4Wrapper{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
@@ -179,7 +175,9 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := transferinject.NewICS4Wrapper(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
+			ics4 := mockICS4Wrapper{}
+
+			m := transferinject.NewICS4Wrapper(&ics4, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
 			data := types.ModuleCdc.MustMarshalJSON(tt.fields.data)
 
@@ -197,7 +195,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			} else {
 				require.ErrorIs(t, err, tt.wantErr)
 			}
-			require.Equal(t, string(tt.wantSentData), string(tt.fields.ICS4Wrapper.(*mockICS4Wrapper).sentData))
+			require.Equal(t, string(tt.wantSentData), string(ics4.sentData))
 		})
 	}
 }
@@ -206,7 +204,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		packetData    *transfertypes.FungibleTokenPacketData
 		ack           []byte
-		IBCModule     porttypes.IBCModule
+		ibcModule     porttypes.IBCModule
 		rollappKeeper *mockRollappKeeper
 	}
 	tests := []struct {
@@ -218,13 +216,13 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		{
 			name: "success: added token metadata to rollapp",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				ibcModule: mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
+					Memo:  addDenomMetadataToExistingMemo("", validDenomMetadata),
 				},
 				ack: okAck(),
 			},
@@ -234,13 +232,13 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "success: added token metadata to rollapp with user memo",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				ibcModule: mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{},
 				},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  addDenomMetadataToPacketData("user memo", validDenomMetadata),
+					Memo:  addDenomMetadataToExistingMemo("user memo", validDenomMetadata),
 				},
 				ack: okAck(),
 			},
@@ -251,7 +249,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: error ack",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				ibcModule:     mockIBCModule{},
 				ack:           errAck(),
 			},
 			wantRollapp: nil,
@@ -259,7 +257,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: no memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				ibcModule:     mockIBCModule{},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 				},
@@ -270,7 +268,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: no packet metadata in memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				ibcModule:     mockIBCModule{},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  "user memo",
@@ -282,7 +280,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: no denom metadata in memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				ibcModule:     mockIBCModule{},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  `{"transferinject":{}}`,
@@ -293,13 +291,13 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				ibcModule: mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					err: errortypes.ErrInvalidRequest,
 				},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
+					Memo:  addDenomMetadataToExistingMemo("", validDenomMetadata),
 				},
 				ack: okAck(),
 			},
@@ -308,11 +306,11 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "error: rollapp not found",
 			fields: fields{
-				IBCModule:     mockIBCModule{},
+				ibcModule:     mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
+					Memo:  addDenomMetadataToExistingMemo("", validDenomMetadata),
 				},
 				ack: okAck(),
 			},
@@ -321,7 +319,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				ibcModule: mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					rollapp: &rollapptypes.Rollapp{
 						RegisteredDenoms: []string{validDenomMetadata.Base},
@@ -329,7 +327,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				},
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  addDenomMetadataToPacketData("", validDenomMetadata),
+					Memo:  addDenomMetadataToExistingMemo("", validDenomMetadata),
 				},
 				ack: okAck(),
 			},
@@ -342,7 +340,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.fields.rollappKeeper.transfer = tt.fields.packetData
 
-			m := transferinject.NewIBCModule(tt.fields.IBCModule, tt.fields.rollappKeeper)
+			m := transferinject.NewIBCModule(tt.fields.ibcModule, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 
@@ -380,7 +378,7 @@ var validDenomMetadata = banktypes.Metadata{
 	},
 }
 
-func addDenomMetadataToPacketData(memo string, metadata banktypes.Metadata) string {
+func addDenomMetadataToExistingMemo(memo string, metadata banktypes.Metadata) string {
 	memo, _ = types.AddDenomMetadataToMemo(memo, metadata)
 	return memo
 }
