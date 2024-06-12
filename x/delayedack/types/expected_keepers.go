@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -36,12 +35,14 @@ type RollappKeeper interface {
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
-	ExtractRollappIDAndTransferPacketFromData(
+	GetValidTransferFromReceivedPacket(
 		ctx sdk.Context,
-		data []byte,
-		rollappPortOnHub string,
-		rollappChannelOnHub string,
-	) (string, *transfertypes.FungibleTokenPacketData, error)
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
+	GetValidTransferFromSentPacket(
+		ctx sdk.Context,
+		packet channeltypes.Packet,
+	) (data rollapptypes.TransferData, err error)
 }
 
 type SequencerKeeper interface {

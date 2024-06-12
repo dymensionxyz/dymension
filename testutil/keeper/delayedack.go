@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -113,10 +112,6 @@ func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId
 
 func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp) {
 	return []rollapptypes.Rollapp{}
-}
-
-func (r RollappKeeperStub) ExtractRollappIDAndTransferPacketFromData(sdk.Context, []byte, string, string) (string, *transfertypes.FungibleTokenPacketData, error) {
-	return "rollappID", &transfertypes.FungibleTokenPacketData{}, nil
 }
 
 type SequencerKeeperStub struct{}
