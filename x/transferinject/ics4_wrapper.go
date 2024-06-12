@@ -4,6 +4,8 @@ import (
 	"errors"
 	. "slices"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -50,7 +52,7 @@ func (m *ICS4Wrapper) SendPacket(
 ) (sequence uint64, err error) {
 	transfer, err := m.rollappKeeper.GetValidTransfer(ctx, data, srcPort, srcChan)
 	if err != nil {
-		return 0, errorsmod.Wrap(err, "get valid transfer")
+		return 0, errorsmod.Wrap(err, "transfer inject: get valid transfer")
 	}
 
 	if types.MemoAlreadyHasPacketMetadata(transfer.GetMemo()) {
@@ -81,12 +83,15 @@ func (m *ICS4Wrapper) SendPacket(
 
 	transfer.Memo, err = types.AddDenomMetadataToMemo(transfer.Memo, denomMetadata)
 	if err != nil {
-		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrUnauthorized), "add denom metadata to memo")
+		if errors.Is(err, types.ErrMemoTransferInjectAlreadyExists) {
+			err = errors.Join(err, gerr.ErrPermissionDenied)
+		}
+		return 0, errorsmod.Wrap(err, "transfer inject: add denom metadata to memo")
 	}
 
 	data, err = types.ModuleCdc.MarshalJSON(&transfer.FungibleTokenPacketData)
 	if err != nil {
-		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONMarshal), "ics20 transfer packet data")
+		return 0, errorsmod.Wrap(errors.Join(err, errortypes.ErrJSONMarshal), "transfer inject: ics20 transfer packet data")
 	}
 
 	return m.ICS4Wrapper.SendPacket(ctx, chanCap, srcPort, srcChan, timeoutHeight, timeoutTimestamp, data)

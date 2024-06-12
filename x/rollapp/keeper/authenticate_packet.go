@@ -36,6 +36,7 @@ func (k Keeper) GetValidTransfer(
 	ra, err := k.getRollapp(ctx, raPortOnHub, raChanOnHub)
 	if errors.IsOf(err, errRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
+		err = nil
 		return
 	}
 	if err != nil {
