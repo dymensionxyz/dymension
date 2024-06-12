@@ -45,6 +45,8 @@ func (w IBCModule) logger(
 
 type ctxKeySkip struct{}
 
+// SkipContext returns a context which can be used when this middleware
+// processes received packets in order to skip the transfer enabled check.
 func SkipContext(ctx sdk.Context) sdk.Context {
 	return ctx.WithValue(ctxKeySkip{}, true)
 }
@@ -56,6 +58,8 @@ func skip(ctx sdk.Context) bool {
 	return ok && val
 }
 
+// OnRecvPacket will block any packet from a rollapp for which transfers are not enabled
+// for that rollapp. Pass a skip context to skip the check.
 func (w IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
