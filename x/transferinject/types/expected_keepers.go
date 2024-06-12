@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
-	chantypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -19,9 +18,5 @@ type RollappKeeper interface {
 		ctx sdk.Context,
 		packetData []byte,
 		raPortOnHub, raChanOnHub string,
-	) (data rollapptypes.TransferData, err error)
-	GetValidTransferFromSentPacket(
-		ctx sdk.Context,
-		packet chantypes.Packet,
 	) (data rollapptypes.TransferData, err error)
 }

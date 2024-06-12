@@ -64,7 +64,7 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	transfer, err := w.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+	transfer, err := w.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	if err != nil {
 		l.Error("Get valid transfer.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)

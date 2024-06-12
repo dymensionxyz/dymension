@@ -185,9 +185,9 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 ) (data types.TransferDataWithFinalization, err error) {
 	switch packetType {
 	case commontypes.RollappPacket_ON_RECV:
-		data.TransferData, err = k.rollappKeeper.GetValidTransferFromReceivedPacket(ctx, packet)
+		data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
-		data.TransferData, err = k.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
+		data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
 	}
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")

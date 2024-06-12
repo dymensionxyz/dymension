@@ -49,7 +49,7 @@ func (m *IBCModule) OnAcknowledgementPacket(
 		return m.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	transfer, err := m.rollappKeeper.GetValidTransferFromSentPacket(ctx, packet)
+	transfer, err := m.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
 	if err != nil {
 		return errorsmod.Wrap(err, "get valid transfer from sent packet")
 	}

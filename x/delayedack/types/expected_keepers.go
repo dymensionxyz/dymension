@@ -35,14 +35,11 @@ type RollappKeeper interface {
 	MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo
 	GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val types.StateInfoIndex, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []types.Rollapp)
-	GetValidTransferFromReceivedPacket(
+	GetValidTransfer(
 		ctx sdk.Context,
-		packet channeltypes.Packet,
-	) (data rollapptypes.TransferData, err error)
-	GetValidTransferFromSentPacket(
-		ctx sdk.Context,
-		packet channeltypes.Packet,
-	) (data rollapptypes.TransferData, err error)
+		packetData []byte,
+		raPortOnHub, raChanOnHub string,
+	) (data types.TransferData, err error)
 }
 
 type SequencerKeeper interface {
