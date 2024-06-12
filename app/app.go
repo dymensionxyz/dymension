@@ -617,6 +617,7 @@ func New(
 		keys[rollappmoduletypes.StoreKey],
 		keys[rollappmoduletypes.MemStoreKey],
 		app.GetSubspace(rollappmoduletypes.ModuleName),
+		app.IBCKeeper.ClientKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.BankKeeper,
 	)
@@ -633,6 +634,21 @@ func New(
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
+
+	// Create Transfer Keepers
+	app.TransferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		app.GetSubspace(ibctransfertypes.ModuleName),
+		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		scopedTransferKeeper,
+	)
+
+	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -744,12 +760,13 @@ func New(
 	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridgingfee.NewIBCModule(
+	transferStack = bridging_fee.NewIBCMiddleware(
 		transferMiddleware,
+		app.IBCKeeper.ChannelKeeper,
 		app.DelayedAckKeeper,
+		app.RollappKeeper,
 		app.TransferKeeper,
 		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-		app.RollappKeeper,
 	)
 
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(
@@ -759,13 +776,8 @@ func New(
 		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
-
-	var delayedAckMiddleware ibcporttypes.Middleware
-	delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = delayedAckMiddleware
-	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
-	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
-	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper.GetChannelClientState)
+	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -777,7 +789,7 @@ func New(
 	app.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
-		delayedAckMiddleware.(delayedackmodule.IBCMiddleware),
+		delayedAckMiddleware,
 	))
 
 	/****  Module Options ****/

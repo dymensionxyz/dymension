@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -41,10 +39,6 @@ func ParsePacketMetadata(input string) (*TransferInject, error) {
 
 	if memo.TransferInject == nil {
 		return nil, ErrMemoTransferInjectEmpty
-	}
-
-	if memo.TransferInject.DenomMetadata == nil {
-		return nil, errorsmod.Wrap(gerr.ErrNotFound, "denom metadata")
 	}
 
 	return memo.TransferInject, nil
