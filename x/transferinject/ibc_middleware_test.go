@@ -469,10 +469,10 @@ type mockRollappKeeper struct {
 	err           error
 }
 
-func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rollapp) {
-	m.returnRollapp = &rollapp
+func (m *mockRollappKeeper) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
+	panic("todo, implement get valid transfer on transferinject ibc middleware test")
 }
 
-func (m *mockRollappKeeper) ExtractRollappFromChannel(sdk.Context, string, string) (*rollapptypes.Rollapp, error) {
-	return m.returnRollapp, m.err
+func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rollapp) {
+	m.returnRollapp = &rollapp
 }
