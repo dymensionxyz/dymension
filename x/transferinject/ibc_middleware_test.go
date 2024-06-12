@@ -23,10 +23,10 @@ import (
 
 func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
-		rollappKeeper types.RollappKeeper
+		rollappKeeper *mockRollappKeeper
 		bankKeeper    types.BankKeeper
-		dstPort       string
-		dstChannel    string
+		srcPort       string
+		srcChannel    string
 		data          *transfertypes.FungibleTokenPacketData
 	}
 	tests := []struct {
@@ -44,8 +44,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
 				},
-				dstPort:    "port",
-				dstChannel: "channel",
+				srcPort:    "port",
+				srcChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 				},
@@ -63,8 +63,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
 				},
-				dstPort:    "port",
-				dstChannel: "channel",
+				srcPort:    "port",
+				srcChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  "thanks for the sweater, grandma!",
@@ -79,8 +79,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
 				bankKeeper:    mockBankKeeper{},
-				dstPort:       "port",
-				dstChannel:    "channel",
+				srcPort:       "port",
+				srcChannel:    "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  `{"transferinject":{}}`,
@@ -89,27 +89,12 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			wantSentData: []byte(""),
 			wantErr:      types.ErrMemoTransferInjectAlreadyExists,
 		}, {
-			name: "error: extract rollapp from channel",
-			fields: fields{
-				rollappKeeper: &mockRollappKeeper{
-					err: errortypes.ErrInvalidRequest,
-				},
-				bankKeeper: mockBankKeeper{},
-				dstPort:    "port",
-				dstChannel: "channel",
-				data: &transfertypes.FungibleTokenPacketData{
-					Denom: "adym",
-				},
-			},
-			wantSentData: []byte(""),
-			wantErr:      errortypes.ErrInvalidRequest,
-		}, {
 			name: "send unaltered: rollapp not found",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
 				bankKeeper:    mockBankKeeper{},
-				dstPort:       "port",
-				dstChannel:    "channel",
+				srcPort:       "port",
+				srcChannel:    "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 					Memo:  "user memo",
@@ -128,8 +113,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 				bankKeeper: mockBankKeeper{
 					returnMetadata: validDenomMetadata,
 				},
-				dstPort:    "transfer",
-				dstChannel: "channel-56",
+				srcPort:    "transfer",
+				srcChannel: "channel-56",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "transfer/channel-56/alex",
 				},
@@ -146,8 +131,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					},
 				},
 				bankKeeper: mockBankKeeper{},
-				dstPort:    "port",
-				dstChannel: "channel",
+				srcPort:    "port",
+				srcChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 				},
@@ -162,8 +147,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 					rollapp: &rollapptypes.Rollapp{},
 				},
 				bankKeeper: mockBankKeeper{},
-				dstPort:    "port",
-				dstChannel: "channel",
+				srcPort:    "port",
+				srcChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
 				},
@@ -176,6 +161,7 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ics4 := mockICS4Wrapper{}
+			tt.fields.rollappKeeper.transfer = tt.fields.data
 
 			m := transferinject.NewICS4Wrapper(&ics4, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
@@ -184,8 +170,8 @@ func TestICS4Wrapper_SendPacket(t *testing.T) {
 			_, err := m.SendPacket(
 				sdk.Context{},
 				&capabilitytypes.Capability{},
-				tt.fields.dstPort,
-				tt.fields.dstChannel,
+				tt.fields.srcPort,
+				tt.fields.srcChannel,
 				clienttypes.Height{},
 				0,
 				data,
