@@ -10,6 +10,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+/*
+TODO: : instead of calling these all the time in every middleware, we could do it once and use
+	context https://github.com/dymensionxyz/dymension/issues/914
+*/
+
 // GetValidTransferFromReceivedPacket takes a packet a and does GetValidTransfer, assuming
 // that the packet is incoming.
 func (k Keeper) GetValidTransferFromReceivedPacket(
