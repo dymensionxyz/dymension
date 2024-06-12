@@ -175,7 +175,7 @@ func (w IBCModule) OnRecvPacket(
 			"n transfers", nTransfersDone)
 	}
 
-	l.Debug("Passing on the transfer down the stack, but skipping delayedack and the transferEnabled blocker.")
+	l.Debug("Passing on the transfer down the stack, but skipping delayedack, the transferEnabled blocker and bridging fee.")
 
 	return w.IBCModule.OnRecvPacket(
 		bridgingfee.SkipContext(
