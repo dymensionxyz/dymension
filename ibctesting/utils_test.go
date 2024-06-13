@@ -75,7 +75,11 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 	suite.rollappMsgServer = rollappkeeper.NewMsgServerImpl(ConvertToApp(suite.hubChain).RollappKeeper)
 }
 
-func (suite *IBCTestUtilSuite) CreateRollapp() {
+func (suite *IBCTestUtilSuite) CreateRollappWithFinishedGenesis(canonicalChannelID string) {
+	suite.CreateRollapp(true, &canonicalChannelID)
+}
+
+func (suite *IBCTestUtilSuite) CreateRollapp(transfersEnabled bool, channelID *string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		suite.hubChain.SenderAccount.GetAddress().String(),
 		suite.rollappChain.ChainID,
@@ -83,10 +87,13 @@ func (suite *IBCTestUtilSuite) CreateRollapp() {
 		[]string{},
 
 		// in most cases we want to test when the genesis bridge setup is already complete
-		true,
+		transfersEnabled,
 	)
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
+	if channelID != nil {
+		suite.SetCanonicalRollappChannel(*channelID)
+	}
 }
 
 func (suite *IBCTestUtilSuite) SetCanonicalRollappChannel(channelID string) {
