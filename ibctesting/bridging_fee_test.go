@@ -40,7 +40,7 @@ func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 	s.NoError(err) // relay committed
 
 	denom := s.getRollappToHubIBCDenomFromPacket(packet)
-	finalBalance := s.hubApp().BankKeeper.GetBalance(s.hubChain().GetContext(), s.hubChain().SenderAccount.GetAddress(), denom)
+	finalBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), denom)
 	s.Equal(sdk.NewCoin(denom, coinToSendToB.Amount), finalBalance)
 }
 
@@ -54,7 +54,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	rollappIBCKeeper := s.rollappChain().App.GetIBCKeeper()
 
 	// Update rollapp state
-	currentRollappBlockHeight := uint64(s.rollappChain().GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -77,7 +77,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
-	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(s.rollappChain().GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(s.rollappCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	s.Require().True(found)
 	err = path.RelayPacket(packet)
 	s.Require().Error(err) // expecting error as no AcknowledgePacket expected to return
@@ -86,22 +86,22 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	denom := s.getRollappToHubIBCDenomFromPacket(packet)
 	transferredCoins := sdk.NewCoin(denom, coinToSendToB.Amount)
 	recipient := s.hubChain().SenderAccount.GetAddress()
-	initialBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubChain().GetContext(), recipient)
+	initialBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
 	s.Require().Equal(initialBalance.AmountOf(denom), sdk.ZeroInt())
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(s.rollappChain().GetContext().BlockHeight())
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 
 	// check balance after finalization
-	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubChain().GetContext(), transferredCoins.Amount)
+	expectedFee := s.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(s.hubCtx(), transferredCoins.Amount)
 	expectedBalance := initialBalance.Add(transferredCoins).Sub(sdk.NewCoin(denom, expectedFee))
-	finalBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubChain().GetContext(), recipient)
+	finalBalance := s.hubApp().BankKeeper.SpendableCoins(s.hubCtx(), recipient)
 	s.Equal(expectedBalance, finalBalance)
 
 	// check fees
-	addr := s.hubApp().AccountKeeper.GetModuleAccount(s.hubChain().GetContext(), txfees.ModuleName)
-	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubChain().GetContext(), addr.GetAddress(), denom)
+	addr := s.hubApp().AccountKeeper.GetModuleAccount(s.hubCtx(), txfees.ModuleName)
+	txFeesBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), addr.GetAddress(), denom)
 	s.Equal(expectedFee, txFeesBalance.Amount)
 }

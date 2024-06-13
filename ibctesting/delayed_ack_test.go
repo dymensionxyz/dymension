@@ -26,7 +26,7 @@ func TestDelayedAckTestSuite(t *testing.T) {
 
 func (s *delayedAckSuite) SetupTest() {
 	s.utilSuite.SetupTest()
-	s.hubApp().BankKeeper.SetDenomMetaData(s.hubChain().GetContext(), banktypes.Metadata{
+	s.hubApp().BankKeeper.SetDenomMetaData(s.hubCtx(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})
 }
@@ -57,7 +57,7 @@ func (s *delayedAckSuite) TestTransferCosmosToHub() {
 	err = path.RelayPacket(packet)
 	s.Require().NoError(err) // relay committed
 
-	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
 }
 
@@ -86,7 +86,7 @@ func (s *delayedAckSuite) TestTransferHubToCosmos() {
 	err = path.RelayPacket(packet)
 	s.Require().NoError(err) // relay committed
 
-	found := cosmosIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.cosmosChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	found := cosmosIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.cosmosCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
 }
 
@@ -99,7 +99,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappChain().GetContext().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
@@ -126,7 +126,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubNotFinalized() {
 	err = path.RelayPacket(packet)
 	// expecting error as no AcknowledgePacket expected
 	s.Require().Error(err) // relay committed
-	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().False(found)
 }
 
@@ -143,7 +143,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.registerSequencer()
 
 	// Upate rollapp state
-	currentRollappBlockHeight := uint64(s.rollappChain().GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	s.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -158,7 +158,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
 
-	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(s.rollappChain().GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(s.rollappCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	s.Require().True(found)
 
 	// relay send
@@ -166,16 +166,16 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	// expecting error as no AcknowledgePacket expected to return
 	s.Require().Error(err) // relay committed
 
-	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().False(found)
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(s.rollappChain().GetContext().BlockHeight())
+	currentRollappBlockHeight = uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 
 	// Validate ack is found
-	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+	found = hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 	s.Require().True(found)
 }
 
@@ -190,9 +190,9 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	// Create rollapp and update its initial state
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
-	s.updateRollappState(uint64(s.rollappChain().GetContext().BlockHeight()))
+	s.updateRollappState(uint64(s.rollappCtx().BlockHeight()))
 	// Set the timeout height
-	timeoutHeight := clienttypes.GetSelfHeight(s.rollappChain().GetContext())
+	timeoutHeight := clienttypes.GetSelfHeight(s.rollappCtx())
 	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
 	s.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
@@ -201,17 +201,17 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	receiverAccount := s.rollappChain().SenderAccount.GetAddress()
 	// Check balances
 	bankKeeper := s.hubApp().BankKeeper
-	preSendBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
+	preSendBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	// send from hubChain to rollappChain
 	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), receiverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
 	res, err := s.hubChain().SendMsgs(msg)
 	s.Require().NoError(err)
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
-	found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubChain().GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubCtx(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	s.Require().True(found)
 	// Check balance decreased
-	postSendBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postSendBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(preSendBalance.Amount.Sub(coinToSendToB.Amount), postSendBalance.Amount)
 	// Update the client to create timeout
 	err = hubEndpoint.UpdateClient()
@@ -220,13 +220,13 @@ func (s *delayedAckSuite) TestHubToRollappTimeout() {
 	err = path.EndpointA.TimeoutPacket(packet)
 	s.Require().NoError(err)
 	// Validate funds are still not returned to the sender
-	postTimeoutBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postTimeoutBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
 	// Finalize the rollapp state
-	currentRollappBlockHeight := uint64(s.rollappChain().GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	_, err = s.finalizeRollappState(1, currentRollappBlockHeight)
 	s.Require().NoError(err)
 	// Validate funds are returned to the sender
-	postFinalizeBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postFinalizeBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
 	s.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
 }

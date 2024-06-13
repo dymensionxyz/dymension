@@ -133,16 +133,16 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
 		app := s.hubApp()
-		ra := app.RollappKeeper.MustGetRollapp(s.hubChain().GetContext(), rollappChainID())
+		ra := app.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
-		app.RollappKeeper.SetRollapp(s.hubChain().GetContext(), ra)
+		app.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
 }
 
 func (s *utilSuite) registerSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account
-	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubChain().GetContext(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	err := bankutil.FundAccount(s.hubApp().BankKeeper, s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	s.Require().Nil(err)
 
 	// using validator pubkey as the dymint pubkey
@@ -164,8 +164,8 @@ func (s *utilSuite) registerSequencer() {
 func (s *utilSuite) updateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
 	rollappKeeper := s.hubApp().RollappKeeper
-	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(s.hubChain().GetContext(), rollappChainID())
-	stateInfo, found := rollappKeeper.GetStateInfo(s.hubChain().GetContext(), rollappChainID(), latestStateInfoIndex.Index)
+	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(s.hubCtx(), rollappChainID())
+	stateInfo, found := rollappKeeper.GetStateInfo(s.hubCtx(), rollappChainID(), latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
 		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
@@ -191,13 +191,13 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	)
 	err := msgUpdateState.ValidateBasic()
 	s.Require().NoError(err)
-	_, err = s.rollappMsgServer().UpdateState(s.hubChain().GetContext(), msgUpdateState)
+	_, err = s.rollappMsgServer().UpdateState(s.hubCtx(), msgUpdateState)
 	s.Require().NoError(err)
 }
 
 func (s *utilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := s.hubApp().RollappKeeper
-	ctx := s.hubChain().GetContext()
+	ctx := s.hubCtx()
 
 	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: rollappChainID(), Index: index}
 	stateInfo, found := rollappKeeper.GetStateInfo(ctx, rollappChainID(), stateInfoIdx.Index)
