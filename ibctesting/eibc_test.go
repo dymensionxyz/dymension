@@ -25,8 +25,10 @@ import (
 
 type EIBCTestSuite struct {
 	utilSuite
+}
 
-	msgServer eibctypes.MsgServer
+func (suite *EIBCTestSuite) msgServer() eibctypes.MsgServer {
+	return eibckeeper.NewMsgServerImpl(suite.hubApp().EIBCKeeper)
 }
 
 func TestEIBCTestSuite(t *testing.T) {
@@ -38,8 +40,6 @@ func (suite *EIBCTestSuite) SetupTest() {
 	suite.hubApp().BankKeeper.SetDenomMetaData(suite.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})
-	eibcKeeper := suite.hubApp().EIBCKeeper
-	suite.msgServer = eibckeeper.NewMsgServerImpl(eibcKeeper)
 	// Change the delayedAck epoch to trigger every month to not
 	// delete the rollapp packets and demand orders
 	delayedAckKeeper := suite.hubApp().DelayedAckKeeper
@@ -291,7 +291,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				OrderId:          lastDemandOrder.Id,
 			}
 			// Validate demand order status based on fulfillment success
-			_, err = suite.msgServer.FulfillOrder(suite.hubChain().GetContext(), msgFulfillDemandOrder)
+			_, err = suite.msgServer().FulfillOrder(suite.hubChain().GetContext(), msgFulfillDemandOrder)
 			if !tc.isFulfilledSuccess {
 				suite.Require().Error(err)
 				return
@@ -474,7 +474,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 				FulfillerAddress: fulfillerAccount.String(),
 				OrderId:          lastDemandOrder.Id,
 			}
-			_, err = suite.msgServer.FulfillOrder(suite.hubChain().GetContext(), msgFulfillDemandOrder)
+			_, err = suite.msgServer().FulfillOrder(suite.hubChain().GetContext(), msgFulfillDemandOrder)
 			suite.Require().NoError(err)
 			// Validate balances of fulfiller and sender are updated while the original recipient is not
 			fulfillerAccountBalance := bankKeeper.GetBalance(suite.hubChain().GetContext(), fulfillerAccount, sdk.DefaultBondDenom)
