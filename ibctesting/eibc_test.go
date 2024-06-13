@@ -23,20 +23,20 @@ import (
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-type EIBCSuite struct {
+type eibcSuite struct {
 	utilSuite
 	path *ibctesting.Path
 }
 
-func (s *EIBCSuite) msgServer() eibctypes.MsgServer {
+func (s *eibcSuite) msgServer() eibctypes.MsgServer {
 	return eibckeeper.NewMsgServerImpl(s.hubApp().EIBCKeeper)
 }
 
 func TestEIBCTestSuite(t *testing.T) {
-	suite.Run(t, new(EIBCSuite))
+	suite.Run(t, new(eibcSuite))
 }
 
-func (s *EIBCSuite) SetupTest() {
+func (s *eibcSuite) SetupTest() {
 	s.utilSuite.SetupTest()
 	s.hubApp().BankKeeper.SetDenomMetaData(s.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
@@ -58,7 +58,7 @@ func (s *EIBCSuite) SetupTest() {
 	s.path = path
 }
 
-func (s *EIBCSuite) TestEIBCDemandOrderCreation() {
+func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 	// adding state for the rollapp
 	s.updateRollappState(uint64(s.rollappChain().GetContext().BlockHeight()))
 	// Setup globals for the test cases
@@ -148,7 +148,7 @@ func (s *EIBCSuite) TestEIBCDemandOrderCreation() {
 			}
 			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)
-			_ = s.TransferRollappToHub(s.path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.expectAck)
+			_ = s.transferRollappToHub(s.path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.expectAck)
 			// Validate demand orders results
 			eibcKeeper := s.hubApp().EIBCKeeper
 			demandOrders, err := eibcKeeper.ListAllDemandOrders(s.hubChain().GetContext())
@@ -172,14 +172,14 @@ func (s *EIBCSuite) TestEIBCDemandOrderCreation() {
 
 // TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
-func (s *EIBCSuite) TestEIBCDemandOrderFulfillment() {
+func (s *eibcSuite) TestEIBCDemandOrderFulfillment() {
 	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := s.hubApp().EIBCKeeper
 	delayedAckKeeper := s.hubApp().DelayedAckKeeper
 	IBCSenderAccount := s.rollappChain().SenderAccount.GetAddress().String()
 	rollappStateIndex := uint64(0)
-	IBCrecipientAccountInitialIndex := 0
+	IBCRecipientAccountInitialIndex := 0
 	fulfillerAccountInitialIndex := 1
 	// Create cases
 	cases := []struct {
@@ -207,7 +207,7 @@ func (s *EIBCSuite) TestEIBCDemandOrderFulfillment() {
 	for idx, tc := range cases {
 		s.Run(tc.name, func() {
 			// Get the initial state of the accounts
-			IBCOriginalRecipient := s.hubChain().SenderAccounts[IBCrecipientAccountInitialIndex+idx].SenderAccount.GetAddress()
+			IBCOriginalRecipient := s.hubChain().SenderAccounts[IBCRecipientAccountInitialIndex+idx].SenderAccount.GetAddress()
 			initialIBCOriginalRecipientBalance := eibcKeeper.BankKeeper.SpendableCoins(s.hubChain().GetContext(), IBCOriginalRecipient)
 			fulfiller := s.hubChain().SenderAccounts[fulfillerAccountInitialIndex+idx].SenderAccount.GetAddress()
 
@@ -230,7 +230,7 @@ func (s *EIBCSuite) TestEIBCDemandOrderFulfillment() {
 				// Transfer initial IBC funds to fulfiller account with ibc memo, to give him some funds to use to fulfill stuff
 				// //
 
-				packet := s.TransferRollappToHub(s.path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
+				packet := s.transferRollappToHub(s.path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 				// Finalize rollapp state - at this state no demand order was fulfilled
 				currentRollappBlockHeight = uint64(s.rollappChain().GetContext().BlockHeight())
 				_, err := s.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
@@ -267,7 +267,7 @@ func (s *EIBCSuite) TestEIBCDemandOrderFulfillment() {
 			currentRollappBlockHeight = uint64(s.rollappChain().GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
 			s.updateRollappState(currentRollappBlockHeight)
-			packet := s.TransferRollappToHub(s.path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
+			packet := s.transferRollappToHub(s.path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
 
 			s.Require().True(s.rollappHasPacketCommitment(packet))
 			// Validate demand order created. Calling TransferRollappToHub also promotes the block time for
@@ -343,7 +343,7 @@ func (s *EIBCSuite) TestEIBCDemandOrderFulfillment() {
 	}
 }
 
-func (s *EIBCSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool {
+func (s *eibcSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool {
 	// TODO: this should be used to check that a commitment does (or doesn't) exist, when it should
 	// TODO: this is important to check that things actually work as expected and dont just look ok on the outside
 	// TODO: finish implementing, true is a temporary placeholder
@@ -351,7 +351,7 @@ func (s *EIBCSuite) rollappHasPacketCommitment(packet channeltypes.Packet) bool 
 }
 
 // TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
-func (s *EIBCSuite) TestTimeoutEIBCDemandOrderFulfillment() {
+func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	// Setup endpoints
 	hubEndpoint := s.path.EndpointA
 	rollappEndpoint := s.path.EndpointB
@@ -489,8 +489,8 @@ func (s *EIBCSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 /*                                    Utils                                   */
 /* -------------------------------------------------------------------------- */
 
-// TransferRollappToHub sends a transfer packet from rollapp to hub and returns the packet
-func (s *EIBCSuite) TransferRollappToHub(
+// transferRollappToHub sends a transfer packet from rollapp to hub and returns the packet
+func (s *eibcSuite) transferRollappToHub(
 	path *ibctesting.Path,
 	sender string,
 	receiver string,
