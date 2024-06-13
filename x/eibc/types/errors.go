@@ -19,4 +19,5 @@ var (
 	ErrExpectedFeeNotMet            = errorsmod.Register(ModuleName, 12, "Expected fee not met")
 	ErrNegativeFee                  = errorsmod.Register(ModuleName, 13, "Fee must be greater than or equal to 0")
 	ErrMultipleDenoms               = errorsmod.Register(ModuleName, 15, "Multiple denoms not allowed")
+	ErrEmptyPrice                   = errorsmod.Register(ModuleName, 16, "Price must be greater than 0")
 )

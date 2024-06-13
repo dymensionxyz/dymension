@@ -289,6 +289,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
 				FulfillerAddress: fulfiller.String(),
 				OrderId:          lastDemandOrder.Id,
+				ExpectedFee:      tc.EIBCTransferFee,
 			}
 			// Validate demand order status based on fulfillment success
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
