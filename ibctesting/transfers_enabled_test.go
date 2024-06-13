@@ -85,7 +85,6 @@ func (s *transfersEnabledSuite) TestRollappToHubDisabled() {
 }
 
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
-// Note: we don't explicitly test the 'enabled' case, since this is tested in other tests in this package
 func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 	amt := math.NewIntFromUint64(10000000000000000000)
 	denom := "foo"
@@ -104,19 +103,35 @@ func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 		"",
 	)
 
-	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
-	_, _, err := simapp.SignAndDeliver(
-		s.hubChain().T,
-		s.hubChain().TxConfig,
-		s.hubApp().GetBaseApp(),
-		s.hubCtx().BlockHeader(),
-		[]sdk.Msg{msg},
-		hubChainID(),
-		[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
-		[]uint64{s.hubChain().SenderAccount.GetSequence()},
-		true,
-		false, // should fail
-		s.hubChain().SenderPrivKey,
-	)
-	s.Require().True(errorsmod.IsOf(err, gerr.ErrFailedPrecondition))
+	shouldFail := true
+
+	for range 2 {
+
+		apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
+
+		_, _, err := simapp.SignAndDeliver(
+			s.hubChain().T,
+			s.hubChain().TxConfig,
+			s.hubApp().GetBaseApp(),
+			s.hubCtx().BlockHeader(),
+			[]sdk.Msg{msg},
+			hubChainID(),
+			[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
+			[]uint64{s.hubChain().SenderAccount.GetSequence()},
+			true,
+			!shouldFail,
+			s.hubChain().SenderPrivKey,
+		)
+
+		if shouldFail {
+			shouldFail = false
+			s.Require().True(errorsmod.IsOf(err, gerr.ErrFailedPrecondition))
+			ra := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+			ra.ChannelId = s.path.EndpointA.ChannelID
+			s.hubApp().RollappKeeper.SetRollapp(s.hubCtx(), ra)
+			s.hubApp().RollappKeeper.EnableTransfers(s.hubCtx(), ra.RollappId)
+		} else {
+			s.Require().NoError(err)
+		}
+	}
 }

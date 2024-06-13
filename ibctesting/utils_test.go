@@ -126,7 +126,6 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		10,
 		[]string{},
 
-		// in most cases we want to test when the genesis bridge setup is already complete
 		transfersEnabled,
 	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
