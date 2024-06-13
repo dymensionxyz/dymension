@@ -12,19 +12,21 @@ import (
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 )
 
-type DenomMetaDataTestSuite struct {
+type TransferGenesisTestSuite struct {
 	IBCTestUtilSuite
 }
 
-func TestDenomMetaDataTestSuite(t *testing.T) {
-	suite.Run(t, new(DenomMetaDataTestSuite))
+func TestTransferGenesisTestSuite(t *testing.T) {
+	suite.Run(t, new(TransferGenesisTestSuite))
 }
 
-func (suite *DenomMetaDataTestSuite) SetupTest() {
+func (suite *TransferGenesisTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
 }
 
-func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
+// In the happy path, the new rollapp will send ibc transfers with a special
+// memo immediately when the channel opens. This will cause  all the denoms to get registered.
+func (suite *TransferGenesisTestSuite) TestHappyPath() {
 	/*
 		TODO: gonna come back to this one because it needs a rethink
 	*/
