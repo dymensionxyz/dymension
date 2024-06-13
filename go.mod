@@ -8,9 +8,9 @@ require (
 	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.46.16
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6 v6.1.2-0.20240228222509-2b38263c41d3
-	github.com/cosmos/ibc-go/v6 v6.2.1
+	github.com/cosmos/cosmos-sdk v0.47.12
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3
+	github.com/cosmos/ibc-go/v7 v7.5.1
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac
 	github.com/ethereum/go-ethereum v1.10.26

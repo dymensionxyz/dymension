@@ -5,7 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	tenderminttypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
