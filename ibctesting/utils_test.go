@@ -32,25 +32,25 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// ChainIDPrefix defines the default chain ID prefix for Evmos test chains
-var ChainIDPrefix = "evmos_9000-"
+// chainIDPrefix defines the default chain ID prefix for Evmos test chains
+var chainIDPrefix = "evmos_9000-"
 
 func init() {
-	ibctesting.ChainIDPrefix = ChainIDPrefix
+	ibctesting.ChainIDPrefix = chainIDPrefix
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		return apptesting.SetupTestingApp()
 	}
 }
 
-func ConvertToApp(chain *ibctesting.TestChain) *app.App {
+func convertToApp(chain *ibctesting.TestChain) *app.App {
 	app, ok := chain.App.(*app.App)
 	require.True(chain.T, ok)
 
 	return app
 }
 
-// IBCTestUtilSuite is a testing suite to test keeper functions.
-type IBCTestUtilSuite struct {
+// ibcTestUtilSuite is a testing suite to test keeper functions.
+type ibcTestUtilSuite struct {
 	suite.Suite
 	coordinator *ibctesting.Coordinator
 }
@@ -67,47 +67,47 @@ func rollappChainID() string {
 	return ibctesting.GetChainID(3)
 }
 
-func (suite *IBCTestUtilSuite) hubChain() *ibctesting.TestChain {
+func (suite *ibcTestUtilSuite) hubChain() *ibctesting.TestChain {
 	return suite.coordinator.GetChain(hubChainID())
 }
 
-func (suite *IBCTestUtilSuite) cosmosChain() *ibctesting.TestChain {
+func (suite *ibcTestUtilSuite) cosmosChain() *ibctesting.TestChain {
 	return suite.coordinator.GetChain(cosmosChainID())
 }
 
-func (suite *IBCTestUtilSuite) rollappChain() *ibctesting.TestChain {
+func (suite *ibcTestUtilSuite) rollappChain() *ibctesting.TestChain {
 	return suite.coordinator.GetChain(rollappChainID())
 }
 
-func (suite *IBCTestUtilSuite) hubApp() *app.App {
-	return ConvertToApp(suite.hubChain())
+func (suite *ibcTestUtilSuite) hubApp() *app.App {
+	return convertToApp(suite.hubChain())
 }
 
-func (suite *IBCTestUtilSuite) cosmosApp() *app.App {
-	return ConvertToApp(suite.cosmosChain())
+func (suite *ibcTestUtilSuite) cosmosApp() *app.App {
+	return convertToApp(suite.cosmosChain())
 }
 
-func (suite *IBCTestUtilSuite) rollappApp() *app.App {
-	return ConvertToApp(suite.rollappChain())
+func (suite *ibcTestUtilSuite) rollappApp() *app.App {
+	return convertToApp(suite.rollappChain())
 }
 
-func (suite *IBCTestUtilSuite) rollappMsgServer() rollapptypes.MsgServer {
+func (suite *ibcTestUtilSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(suite.hubApp().RollappKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.
-func (suite *IBCTestUtilSuite) SetupTest() {
+func (suite *ibcTestUtilSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes test chains
 	suite.coordinator.Chains[rollappChainID()] = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, rollappChainID())
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
 // that is, they have finished all genesis transfers and their bridge is enabled.
-func (suite *IBCTestUtilSuite) CreateRollappWithFinishedGenesis(canonicalChannelID string) {
-	suite.CreateRollapp(true, &canonicalChannelID)
+func (suite *ibcTestUtilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) {
+	suite.createRollapp(true, &canonicalChannelID)
 }
 
-func (suite *IBCTestUtilSuite) CreateRollapp(transfersEnabled bool, channelID *string) {
+func (suite *ibcTestUtilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		suite.hubChain().SenderAccount.GetAddress().String(),
 		suite.rollappChain().ChainID,
@@ -127,7 +127,7 @@ func (suite *IBCTestUtilSuite) CreateRollapp(transfersEnabled bool, channelID *s
 	}
 }
 
-func (suite *IBCTestUtilSuite) RegisterSequencer() {
+func (suite *ibcTestUtilSuite) registerSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account
 	err := bankutil.FundAccount(suite.hubApp().BankKeeper, suite.hubChain().GetContext(), suite.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
@@ -149,7 +149,7 @@ func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	suite.Require().NoError(err) // message committed
 }
 
-func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
+func (suite *ibcTestUtilSuite) updateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
 	rollappKeeper := suite.hubApp().RollappKeeper
 	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(suite.hubChain().GetContext(), suite.rollappChain().ChainID)
@@ -183,7 +183,7 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	suite.Require().NoError(err)
 }
 
-func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
+func (suite *ibcTestUtilSuite) finalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
 	rollappKeeper := suite.hubApp().RollappKeeper
 	ctx := suite.hubChain().GetContext()
 
@@ -205,7 +205,7 @@ func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint
 	return ctx.EventManager().Events(), err
 }
 
-func (suite *IBCTestUtilSuite) NewTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
+func (suite *ibcTestUtilSuite) newTransferPath(chainA, chainB *ibctesting.TestChain) *ibctesting.Path {
 	path := ibctesting.NewPath(chainA, chainB)
 	path.EndpointA.ChannelConfig.PortID = ibctesting.TransferPort
 	path.EndpointB.ChannelConfig.PortID = ibctesting.TransferPort
@@ -216,14 +216,14 @@ func (suite *IBCTestUtilSuite) NewTransferPath(chainA, chainB *ibctesting.TestCh
 	return path
 }
 
-func (suite *IBCTestUtilSuite) GetRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
+func (suite *ibcTestUtilSuite) getRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
 	var data transfertypes.FungibleTokenPacketData
 	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	suite.Require().NoError(err)
-	return suite.GetIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
+	return suite.getIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
 }
 
-func (suite *IBCTestUtilSuite) GetIBCDenomForChannel(channel string, denom string) string {
+func (suite *ibcTestUtilSuite) getIBCDenomForChannel(channel string, denom string) string {
 	// since SendPacket did not prefix the denomination, we must prefix denomination here
 	sourcePrefix := types.GetDenomPrefix("transfer", channel)
 	// NOTE: sourcePrefix contains the trailing "/"
@@ -233,7 +233,7 @@ func (suite *IBCTestUtilSuite) GetIBCDenomForChannel(channel string, denom strin
 	return denomTrace.IBCDenom()
 }
 
-func (suite *IBCTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
+func (suite *ibcTestUtilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctesting.Coordinator, chainID string) *ibctesting.TestChain {
 	genAccs := []authtypes.GenesisAccount{}
 	genBals := []banktypes.Balance{}
 	senderAccs := []ibctesting.SenderAccount{}

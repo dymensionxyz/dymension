@@ -13,7 +13,7 @@ import (
 )
 
 type TransferGenesisTestSuite struct {
-	IBCTestUtilSuite
+	ibcTestUtilSuite
 }
 
 func TestTransferGenesisTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 }
 
 func (suite *TransferGenesisTestSuite) SetupTest() {
-	suite.IBCTestUtilSuite.SetupTest()
+	suite.ibcTestUtilSuite.SetupTest()
 }
 
 // In the happy path, the new rollapp will send ibc transfers with a special
@@ -31,19 +31,19 @@ func (suite *TransferGenesisTestSuite) TestHappyPath() {
 		TODO: gonna come back to this one because it needs a rethink
 	*/
 
-	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 
 	// register rollapp with metadata for stake denom
-	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	suite.RegisterSequencer()
+	suite.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	suite.registerSequencer()
 
 	app := suite.hubApp()
 
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
-	suite.UpdateRollappState(currentRollappBlockHeight)
-	_, err := suite.FinalizeRollappState(1, currentRollappBlockHeight+100)
+	suite.updateRollappState(currentRollappBlockHeight)
+	_, err := suite.finalizeRollappState(1, currentRollappBlockHeight+100)
 	suite.Require().NoError(err)
 
 	found := app.BankKeeper.HasDenomMetaData(suite.hubChain().GetContext(), sdk.DefaultBondDenom)
@@ -57,7 +57,7 @@ func (suite *TransferGenesisTestSuite) TestHappyPath() {
 
 	/* ------------------- move non-registered token from rollapp ------------------- */
 	dymTokensToSend := sdk.NewCoin("udym", amount)
-	apptesting.FundAccount(ConvertToApp(suite.rollappChain()), suite.rollappChain().GetContext(), suite.rollappChain().SenderAccount.GetAddress(), sdk.Coins{dymTokensToSend})
+	apptesting.FundAccount(suite.rollappApp(), suite.rollappChain().GetContext(), suite.rollappChain().SenderAccount.GetAddress(), sdk.Coins{dymTokensToSend})
 	msg := types.NewMsgTransfer(
 		path.EndpointB.ChannelConfig.PortID,
 		path.EndpointB.ChannelID,

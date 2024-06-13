@@ -12,7 +12,7 @@ import (
 )
 
 type BridgingFeeTestSuite struct {
-	IBCTestUtilSuite
+	ibcTestUtilSuite
 }
 
 func TestBridgingFeeTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 
 func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	// setup between cosmosChain and hubChain
-	path := suite.NewTransferPath(suite.hubChain(), suite.cosmosChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.cosmosChain())
 	suite.coordinator.Setup(path)
 	hubEndpoint := path.EndpointA
 	cosmosEndpoint := path.EndpointB
@@ -40,24 +40,24 @@ func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	err = path.RelayPacket(packet)
 	suite.NoError(err) // relay committed
 
-	denom := suite.GetRollappToHubIBCDenomFromPacket(packet)
+	denom := suite.getRollappToHubIBCDenomFromPacket(packet)
 	finalBalance := suite.hubApp().BankKeeper.GetBalance(suite.hubChain().GetContext(), suite.hubChain().SenderAccount.GetAddress(), denom)
 	suite.Equal(sdk.NewCoin(denom, coinToSendToB.Amount), finalBalance)
 }
 
 func (suite *BridgingFeeTestSuite) TestBridgingFee() {
-	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 
 	rollappEndpoint := path.EndpointB
 	rollappIBCKeeper := suite.rollappChain().App.GetIBCKeeper()
 
-	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	suite.RegisterSequencer()
+	suite.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	suite.registerSequencer()
 
 	// Update rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
-	suite.UpdateRollappState(currentRollappBlockHeight)
+	suite.updateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
@@ -85,7 +85,7 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	suite.Require().Error(err) // expecting error as no AcknowledgePacket expected to return
 
 	// check balance before finalization
-	denom := suite.GetRollappToHubIBCDenomFromPacket(packet)
+	denom := suite.getRollappToHubIBCDenomFromPacket(packet)
 	transferredCoins := sdk.NewCoin(denom, coinToSendToB.Amount)
 	recipient := suite.hubChain().SenderAccount.GetAddress()
 	initialBalance := suite.hubApp().BankKeeper.SpendableCoins(suite.hubChain().GetContext(), recipient)
@@ -93,7 +93,7 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 
 	// Finalize the rollapp state
 	currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
-	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+	_, err = suite.finalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 
 	// check balance after finalization

@@ -24,7 +24,7 @@ import (
 )
 
 type EIBCTestSuite struct {
-	IBCTestUtilSuite
+	ibcTestUtilSuite
 
 	msgServer eibctypes.MsgServer
 }
@@ -34,7 +34,7 @@ func TestEIBCTestSuite(t *testing.T) {
 }
 
 func (suite *EIBCTestSuite) SetupTest() {
-	suite.IBCTestUtilSuite.SetupTest()
+	suite.ibcTestUtilSuite.SetupTest()
 	suite.hubApp().BankKeeper.SetDenomMetaData(suite.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})
@@ -51,14 +51,14 @@ func (suite *EIBCTestSuite) SetupTest() {
 
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 	// Create path so we'll be using the same channel
-	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 	// Create rollapp only once
-	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	suite.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	// Register sequencer
-	suite.RegisterSequencer()
+	suite.registerSequencer()
 	// adding state for the rollapp
-	suite.UpdateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
+	suite.updateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
 	// Setup globals for the test cases
 	IBCSenderAccount := suite.rollappChain().SenderAccount.GetAddress().String()
 	// Create cases
@@ -172,12 +172,12 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 	// Create the path once here so we'll be using the same channel all the time and hence same IBC denom
-	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 	// Create rollapp only once
-	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	suite.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	// Register sequencer
-	suite.RegisterSequencer()
+	suite.registerSequencer()
 	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := suite.hubApp().EIBCKeeper
@@ -220,7 +220,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain().NextBlock()
 			currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(currentRollappBlockHeight)
+			suite.updateRollappState(currentRollappBlockHeight)
 
 			eibc := map[string]map[string]string{
 				"eibc": {
@@ -238,12 +238,12 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 				packet := suite.TransferRollappToHub(path, IBCSenderAccount, fulfiller.String(), tc.fulfillerInitialIBCDenomBalance, memo, false)
 				// Finalize rollapp state - at this state no demand order was fulfilled
 				currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
-				_, err := suite.FinalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
+				_, err := suite.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 				suite.Require().NoError(err)
 				// Check the fulfiller balance was updated fully with the IBC amount
 				isUpdated := false
 				fulfillerAccountBalanceAfterFinalization := eibcKeeper.BankKeeper.SpendableCoins(suite.hubChain().GetContext(), fulfiller)
-				IBCDenom = suite.GetRollappToHubIBCDenomFromPacket(packet)
+				IBCDenom = suite.getRollappToHubIBCDenomFromPacket(packet)
 				requiredFulfillerBalance, ok := sdk.NewIntFromString(tc.fulfillerInitialIBCDenomBalance)
 				suite.Require().True(ok)
 				for _, coin := range fulfillerAccountBalanceAfterFinalization {
@@ -271,7 +271,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			suite.rollappChain().NextBlock()
 			currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
 			rollappStateIndex = rollappStateIndex + 1
-			suite.UpdateRollappState(currentRollappBlockHeight)
+			suite.updateRollappState(currentRollappBlockHeight)
 			packet := suite.TransferRollappToHub(path, IBCSenderAccount, IBCOriginalRecipient.String(), tc.IBCTransferAmount, memo, false)
 
 			suite.Require().True(suite.rollappHasPacketCommitment(packet))
@@ -317,7 +317,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 
 			// Finalize rollapp and check fulfiller balance was updated with fee
 			currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
-			evts, err := suite.FinalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
+			evts, err := suite.finalizeRollappState(rollappStateIndex, currentRollappBlockHeight)
 			suite.Require().NoError(err)
 
 			ack, err := ibctesting.ParseAckFromEvents(evts)
@@ -357,16 +357,16 @@ func (suite *EIBCTestSuite) rollappHasPacketCommitment(packet channeltypes.Packe
 
 // TestTimeoutEIBCDemandOrderFulfillment: when a packet hub->rollapp times out, or gets an error ack, than eIBC can be used to recover quickly.
 func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
-	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
+	path := suite.newTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 	// Setup endpoints
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
 	hubIBCKeeper := suite.hubChain().App.GetIBCKeeper()
 	// Create rollapp and update its initial state
-	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
-	suite.RegisterSequencer()
-	suite.UpdateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
+	suite.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	suite.registerSequencer()
+	suite.updateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
 
 	type TC struct {
 		name     string
@@ -485,7 +485,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			suite.Require().True(receiverAccountBalance.IsEqual(receiverInitialBalance))
 			// Finalize the rollapp state
 			currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
-			_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
+			_, err = suite.finalizeRollappState(1, currentRollappBlockHeight)
 			suite.Require().NoError(err)
 			// Funds are passed to the fulfiller
 			fulfillerAccountBalanceAfterTimeout := bankKeeper.GetBalance(suite.hubChain().GetContext(), fulfillerAccount, sdk.DefaultBondDenom)
