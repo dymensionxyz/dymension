@@ -4,10 +4,10 @@ package dymensionxyz.dymension.eibc;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "dymension/eibc/params.proto";
-import "dymension/eibc/demand_order.proto";
-import "dymension/common/status.proto";
-import "dymension/common/rollapp_packet.proto";
+import "dymensionxyz/dymension/eibc/params.proto";
+import "dymensionxyz/dymension/eibc/demand_order.proto";
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 

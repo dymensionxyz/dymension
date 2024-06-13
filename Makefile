@@ -164,19 +164,16 @@ containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 #		Link to the cosmos/proto-builder docker images:
 #       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
 #
-protoCosmosVer=0.11.2
+protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
 protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protocgen.sh; fi
+	$(protoCosmosImage) sh ./scripts/protocgen.sh
 	@go mod tidy
 
 proto-swagger-gen:
-	@echo "Downloading Protobuf dependencies"
-	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 

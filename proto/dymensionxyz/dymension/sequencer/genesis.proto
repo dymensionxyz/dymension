@@ -2,8 +2,8 @@ syntax = "proto3";
 package dymensionxyz.dymension.sequencer;
 
 import "gogoproto/gogo.proto";
-import "dymension/sequencer/params.proto";
-import "dymension/sequencer/sequencer.proto";
+import "dymensionxyz/dymension/sequencer/params.proto";
+import "dymensionxyz/dymension/sequencer/sequencer.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";

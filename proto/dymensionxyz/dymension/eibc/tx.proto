@@ -1,6 +1,8 @@
 syntax = "proto3";
 package dymensionxyz.dymension.eibc;
 
+import "cosmos/msg/v1/msg.proto";
+
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 
 // Msg defines the Msg service.
@@ -10,6 +12,7 @@ service Msg {
 
 // MsgFulfillOrder defines the FulfillOrder request type.
 message MsgFulfillOrder {
+    option (cosmos.msg.v1.signer) = "fulfiller_address";
     // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
     string fulfiller_address = 1;
     string order_id = 2;
