@@ -37,6 +37,14 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
+	// Check that the demand order fee is higher than the minimum fee
+	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	for _, coin := range demandOrder.Fee {
+		if !coin.Amount.Equal(expectedFee) {
+			return nil, types.ErrExpectedFeeNotMet
+		}
+	}
+
 	// Check for blocked address
 	if m.bk.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
 		return nil, types.ErrBlockedAddress

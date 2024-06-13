@@ -15,10 +15,11 @@ var (
 	_ = sdk.Msg(&MsgUpdateDemandOrder{})
 )
 
-func NewMsgFulfillOrder(fulfillerAddress, orderId string) *MsgFulfillOrder {
+func NewMsgFulfillOrder(fulfillerAddress, orderId, expectedFee string) *MsgFulfillOrder {
 	return &MsgFulfillOrder{
 		FulfillerAddress: fulfillerAddress,
 		OrderId:          orderId,
+		ExpectedFee:      expectedFee,
 	}
 }
 
@@ -44,7 +45,7 @@ func (msg *MsgFulfillOrder) GetSignBytes() []byte {
 }
 
 func (m *MsgFulfillOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.FulfillerAddress)
+	err := validateCommon(m.OrderId, m.FulfillerAddress, m.ExpectedFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -72,18 +73,9 @@ func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.Owner)
+	err := validateCommon(m.OrderId, m.Owner, m.NewFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
-	}
-
-	feeInt, ok := sdk.NewIntFromString(m.NewFee)
-	if !ok {
-		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", m.NewFee))
-	}
-
-	if feeInt.IsNegative() {
-		return ErrNegativeFee
 	}
 
 	return nil
@@ -103,13 +95,22 @@ func isValidOrderId(orderId string) bool {
 	return len(hashBytes) == 32
 }
 
-func validateCommon(orderId, address string) error {
+func validateCommon(orderId, address, fee string) error {
 	if !isValidOrderId(orderId) {
 		return ErrInvalidOrderID
 	}
 	_, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
 		return err
+	}
+
+	feeInt, ok := sdk.NewIntFromString(fee)
+	if !ok {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("parse fee: %s", fee))
+	}
+
+	if feeInt.IsNegative() {
+		return ErrNegativeFee
 	}
 
 	return nil

@@ -17,6 +17,7 @@ message MsgFulfillOrder {
     // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
     string fulfiller_address = 1;
     string order_id = 2;
+    string expected_fee = 3;
 }
 
 // MsgFulfillOrderResponse defines the FulfillOrder response type.

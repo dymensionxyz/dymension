@@ -195,7 +195,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// try to fulfill the demand order
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id)
+		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, demandOrder.Fee[0].Amount.String())
 		_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
 		if tc.expectedFulfillmentError != nil {
 			suite.Require().ErrorIs(err, tc.expectedFulfillmentError, tc.name)
