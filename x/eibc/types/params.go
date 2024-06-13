@@ -78,7 +78,7 @@ func validateTimeoutFee(i interface{}) error {
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchFee
+		return ErrFeeTooHigh
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func validateErrAckFee(i any) error {
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchFee
+		return ErrFeeTooHigh
 	}
 
 	return nil

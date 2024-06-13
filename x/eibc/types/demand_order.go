@@ -82,6 +82,18 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 	return recipientBech32
 }
 
+func (m *DemandOrder) IsMutable() error {
+	// Check that the order is not fulfilled yet
+	if m.IsFulfilled {
+		return ErrDemandAlreadyFulfilled
+	}
+	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
+	if m.TrackingPacketStatus != commontypes.Status_PENDING {
+		return ErrDemandOrderInactive
+	}
+	return nil
+}
+
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.
 // PacketKey is used as a foreign key of rollapp packet in the demand order and as the demand order id.
 // This is useful for when we want to get the demand order related to a specific rollapp packet and avoid

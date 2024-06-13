@@ -104,7 +104,7 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 	// Get the fee from the memo
 	fee, _ := eibcMetaData.FeeInt() // guaranteed ok by above validation
 	if amt.LT(fee) {
-		return nil, errorsmod.Wrapf(types.ErrTooMuchFee, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
+		return nil, errorsmod.Wrapf(types.ErrFeeTooHigh, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
 	}
 
 	// Get the bridging fee from the amount

@@ -15,7 +15,7 @@ var (
 	ErrInvalidRecipientAddress      = errorsmod.Register(ModuleName, 8, "Invalid recipient address")
 	ErrBlockedAddress               = errorsmod.Register(ModuleName, 9, "Can't purchase demand order for recipient with blocked address")
 	ErrDemandAlreadyFulfilled       = errorsmod.Register(ModuleName, 10, "Demand order already fulfilled")
-	ErrTooMuchFee                   = errorsmod.Register(ModuleName, 11, "Fee must be less than or equal to the total amount")
+	ErrFeeTooHigh                   = errorsmod.Register(ModuleName, 11, "Fee must be less than or equal to the total amount")
 	ErrNegativeFee                  = errorsmod.Register(ModuleName, 13, "Fee must be greater than or equal to 0")
 	ErrMultipleDenoms               = errorsmod.Register(ModuleName, 15, "Multiple denoms not allowed")
 )
