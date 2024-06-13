@@ -32,9 +32,17 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
+	demandOrder, err := m.GetActiveOrder(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
+	}
+
+	// Check that the fulfiller expected fee is equal to the demand order fee
+	for _, coin := range demandOrder.Fee {
+		expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+		if !coin.Amount.Equal(expectedFee) {
+			return nil, types.ErrExpectedFeeNotMet
+		}
 	}
 
 	// Check for blocked address
@@ -72,7 +80,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	// Check that the order exists in status PENDING
-	demandOrder, err := m.ValidateOrderIsMutable(ctx, msg.OrderId)
+	demandOrder, err := m.GetActiveOrder(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +106,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	transferTotal, _ := sdk.NewIntFromString(data.Amount)
 	newPrice := transferTotal.Sub(newFeeInt)
 	if newPrice.IsNegative() {
-		return nil, types.ErrTooMuchFee
+		return nil, types.ErrFeeTooHigh
 	}
 	bridgingFee := m.dack.BridgingFeeFromAmt(ctx, transferTotal)
 	newPrice = newPrice.Sub(bridgingFee)
@@ -115,20 +123,12 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) ValidateOrderIsMutable(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+func (m msgServer) GetActiveOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
 	// Check that the order exists in status PENDING
 	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
 	if err != nil {
 		return nil, err
 	}
-	// Check that the order is not fulfilled yet
-	if demandOrder.IsFulfilled {
-		return nil, types.ErrDemandAlreadyFulfilled
-	}
-	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
-	if demandOrder.TrackingPacketStatus != commontypes.Status_PENDING {
-		return nil, types.ErrDemandOrderInactive
-	}
 
-	return demandOrder, nil
+	return demandOrder, demandOrder.IsActive()
 }

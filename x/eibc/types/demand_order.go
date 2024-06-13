@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 )
 
@@ -25,6 +26,8 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Recipient:            recipient,
 		IsFulfilled:          false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
+		RollappId:            rollappPacket.RollappId,
+		Type:                 rollappPacket.Type,
 	}
 }
 
@@ -78,6 +81,9 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
 		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled)),
 		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
+		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
+		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
+		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
 	}
 	return eventAttributes
 }
@@ -90,6 +96,18 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 		panic(ErrInvalidRecipientAddress)
 	}
 	return recipientBech32
+}
+
+func (m *DemandOrder) IsActive() error {
+	// Check that the order is not fulfilled yet
+	if m.IsFulfilled {
+		return ErrDemandAlreadyFulfilled
+	}
+	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
+	if m.TrackingPacketStatus != commontypes.Status_PENDING {
+		return ErrDemandOrderInactive
+	}
+	return nil
 }
 
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.

@@ -11,6 +11,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -37,7 +38,6 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	ibcclientKeeper types.IBCClientKeeper,
-	transferKeeper types.TransferKeeper,
 	channelKeeper types.ChannelKeeper,
 	bankKeeper types.BankKeeper,
 	denommetadataKeeper types.DenomMetadataKeeper,
@@ -54,7 +54,6 @@ func NewKeeper(
 		paramstore:          ps,
 		hooks:               nil,
 		ibcclientKeeper:     ibcclientKeeper,
-		transferKeeper:      transferKeeper,
 		channelKeeper:       channelKeeper,
 		bankKeeper:          bankKeeper,
 		denommetadataKeeper: denommetadataKeeper,
@@ -160,11 +159,19 @@ func (k Keeper) mintRollappGenesisTokens(ctx sdk.Context, rollapp types.Rollapp)
 	return nil
 }
 
+// SetTransferKeeper MUST be called to set the IBC client keeper.
+func (k *Keeper) SetTransferKeeper(tk types.TransferKeeper) {
+	if k.transferKeeper != nil {
+		panic("cannot set transfer keeper twice")
+	}
+	k.transferKeeper = tk
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                    Hooks                                   */
 /* -------------------------------------------------------------------------- */
 
-// Set the rollapp hooks
+// SetHooks sets the rollapp hooks
 func (k *Keeper) SetHooks(sh types.MultiRollappHooks) {
 	if k.hooks != nil {
 		panic("cannot set rollapp hooks twice")

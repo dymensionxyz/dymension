@@ -7,8 +7,9 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -101,8 +102,6 @@ func (k *Keeper) UpdateDemandOrderWithStatus(ctx sdk.Context, demandOrder *types
 		return nil, err
 	}
 
-	// TODO: emit event
-
 	return demandOrder, nil
 }
 
@@ -158,10 +157,10 @@ func (k Keeper) ListAllDemandOrders(
 	return list, nil
 }
 
-func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status) (list []*types.DemandOrder, err error) {
+func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Status, limit int, opts ...filterOption) (list []*types.DemandOrder, err error) {
 	store := ctx.KVStore(k.storeKey)
-	var statusPrefix []byte
 
+	var statusPrefix []byte
 	switch status {
 	case commontypes.Status_PENDING:
 		statusPrefix = types.PendingDemandOrderKeyPrefix
@@ -177,8 +176,16 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
+		if limit > 0 && len(list) >= limit {
+			break
+		}
 		var val types.DemandOrder
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		for _, opt := range opts {
+			if !opt(val) {
+				continue
+			}
+		}
 		list = append(list, &val)
 	}
 

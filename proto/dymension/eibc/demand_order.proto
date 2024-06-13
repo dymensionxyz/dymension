@@ -3,6 +3,7 @@ package dymensionxyz.dymension.eibc;
 
 import "gogoproto/gogo.proto";
 import "dymension/common/status.proto";
+import "dymension/common/rollapp_packet.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
@@ -27,4 +28,6 @@ message DemandOrder {
     string recipient = 5;
     bool is_fulfilled = 6;
     dymensionxyz.dymension.common.Status tracking_packet_status = 8;
-  }
+    string rollapp_id = 9;
+    common.RollappPacket.Type type = 10;
+}
