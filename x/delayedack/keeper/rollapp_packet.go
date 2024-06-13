@@ -191,6 +191,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	}
 	if err != nil {
 		err = errorsmod.Wrap(err, "get valid transfer data")
+		return
 	}
 
 	packetId := commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
@@ -211,9 +212,8 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 		err = nil
 	} else if err != nil {
 		err = errorsmod.Wrap(err, "get rollapp finalized height")
-		return
 	} else {
-		data.Finalized = finalizedHeight >= data.ProofHeight
+		data.Finalized = data.ProofHeight <= finalizedHeight
 	}
 
 	return
