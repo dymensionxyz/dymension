@@ -13,10 +13,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/require"
-	tmdb "github.com/tendermint/tm-db"
 )
 
 func RollappKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {

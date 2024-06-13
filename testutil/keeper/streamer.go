@@ -3,6 +3,7 @@ package keeper
 import (
 	"testing"
 
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +15,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/streamer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	"github.com/stretchr/testify/require"
-	tmdb "github.com/tendermint/tm-db"
 )
 
 func StreamerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {

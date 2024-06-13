@@ -10,9 +10,9 @@ import (
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 
+	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	"github.com/stretchr/testify/require"
-	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 )
