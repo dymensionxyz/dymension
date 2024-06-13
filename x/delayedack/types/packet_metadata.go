@@ -57,13 +57,12 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	if err != nil {
 		return nil, ErrMemoUnmarshal
 	}
-	//FIXME: move down
-	if memo[memoObjectKeyEIBC] == nil {
-		return nil, ErrMemoEibcEmpty
-	}
 	if memo[memoObjectKeyPFM] != nil {
 		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
 		return nil, ErrMemoHashPFMandEIBC
+	}
+	if memo[memoObjectKeyEIBC] == nil {
+		return nil, ErrMemoEibcEmpty
 	}
 	var metadata PacketMetadata
 	err = json.Unmarshal(bz, &metadata)
