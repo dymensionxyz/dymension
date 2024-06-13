@@ -62,9 +62,14 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		s.Require().NoError(err)
 
+		// required for creating the VFC
+		s.hubChain().CurrentHeader.ProposerAddress, err = s.hubApp().StakingKeeper.GetValidators(s.hubCtx(), 1)[0].GetConsAddr()
+		hooks := mockDenomMetaDataHooks{}
+		s.hubApp().DenomMetadataKeeper.SetHooks(hooks)
+		s.Require().NotEmpty(s.hubCtx().BlockHeader().ProposerAddress)
+
 		err = s.path.RelayPacket(packet)
 		s.Require().NoError(err)
-
 		// after the last one, it should be OK
 		transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
 		s.Require().Equal(i == len(denoms)-1, transfersEnabled, "transfers enabled check", "i", i)
@@ -75,11 +80,16 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		ibcDenom := types.ParseDenomTrace(types.GetPrefixedDenom(s.path.EndpointB.ChannelConfig.PortID, s.path.EndpointB.ChannelID, denom)).IBCDenom()
 		metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), ibcDenom)
 		s.Require().True(found, "missing denom metadata for rollapps taking token")
-		s.Require().Equal(denom, metadata.Base)
+		s.Require().Equal(ibcDenom, metadata.Base)
 		// has the tokens?
 		c := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), ibcDenom)
 		s.Require().Equal(amt, c.Amount)
 	}
+}
+
+type mockDenomMetaDataHooks struct {
+	AfterDenomMetadataCreation(ctx sdk.Context, metadata banktypes.Metadata) error
+	AfterDenomMetadataUpdate(ctx sdk.Context, metadata banktypes.Metadata) error
 }
 
 func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenomsTotal int) *types.MsgTransfer {
