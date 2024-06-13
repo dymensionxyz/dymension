@@ -72,6 +72,9 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	if req.Type != commontypes.RollappPacket_UNDEFINED {
 		opts = append(opts, isOrderType(req.Type))
 	}
+	if req.FulfillmentState != types.FulfillmentState_UNDEFINED {
+		opts = append(opts, isFulfillmentState(req.FulfillmentState))
+	}
 	return opts
 }
 
@@ -91,5 +94,11 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 			}
 		}
 		return false
+	}
+}
+
+func isFulfillmentState(fulfillmentState types.FulfillmentState) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.IsFulfilled == (types.FulfillmentState_FULFILLED == fulfillmentState)
 	}
 }

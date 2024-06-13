@@ -112,7 +112,7 @@ func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfille
 	if err != nil {
 		return err
 	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfilment.
+	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
 	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, fulfillerAddress.String())
 	if err != nil {
 		return err
@@ -175,6 +175,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 	iterator := sdk.KVStorePrefixIterator(store, statusPrefix)
 	defer iterator.Close() // nolint: errcheck
 
+outer:
 	for ; iterator.Valid(); iterator.Next() {
 		if limit > 0 && len(list) >= limit {
 			break
@@ -183,7 +184,7 @@ func (k Keeper) ListDemandOrdersByStatus(ctx sdk.Context, status commontypes.Sta
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		for _, opt := range opts {
 			if !opt(val) {
-				continue
+				continue outer
 			}
 		}
 		list = append(list, &val)
