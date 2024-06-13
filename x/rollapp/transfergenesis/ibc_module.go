@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/dymensionxyz/dymension/v3/x/delayedack"
+
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
@@ -19,8 +21,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -173,7 +173,7 @@ func (w IBCModule) OnRecvPacket(
 	return w.IBCModule.OnRecvPacket(
 		bridgingfee.SkipContext(
 			transfersenabled.SkipContext(
-				delayedacktypes.SkipContext(ctx),
+				delayedack.SkipContext(ctx),
 			),
 		),
 		packet, relayer)
