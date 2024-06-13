@@ -21,7 +21,7 @@ func TestBridgingFeeTestSuite(t *testing.T) {
 
 func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	// setup between cosmosChain and hubChain
-	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.cosmosChain())
 	suite.coordinator.Setup(path)
 	hubEndpoint := path.EndpointA
 	cosmosEndpoint := path.EndpointB
@@ -41,22 +41,22 @@ func (suite *BridgingFeeTestSuite) TestNotRollappNoBridgingFee() {
 	suite.NoError(err) // relay committed
 
 	denom := suite.GetRollappToHubIBCDenomFromPacket(packet)
-	finalBalance := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), denom)
+	finalBalance := suite.hubApp().BankKeeper.GetBalance(suite.hubChain().GetContext(), suite.hubChain().SenderAccount.GetAddress(), denom)
 	suite.Equal(sdk.NewCoin(denom, coinToSendToB.Amount), finalBalance)
 }
 
 func (suite *BridgingFeeTestSuite) TestBridgingFee() {
-	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 
 	rollappEndpoint := path.EndpointB
-	rollappIBCKeeper := suite.rollappChain.App.GetIBCKeeper()
+	rollappIBCKeeper := suite.rollappChain().App.GetIBCKeeper()
 
 	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
 
 	// Update rollapp state
-	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
 	suite.UpdateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -69,13 +69,13 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 		rollappEndpoint.ChannelConfig.PortID,
 		rollappEndpoint.ChannelID,
 		coinToSendToB,
-		suite.rollappChain.SenderAccount.GetAddress().String(),
-		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain().SenderAccount.GetAddress().String(),
+		suite.hubChain().SenderAccount.GetAddress().String(),
 		timeoutHeight,
 		0,
 		"",
 	)
-	res, err := suite.rollappChain.SendMsgs(msg)
+	res, err := suite.rollappChain().SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
@@ -87,23 +87,23 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	// check balance before finalization
 	denom := suite.GetRollappToHubIBCDenomFromPacket(packet)
 	transferredCoins := sdk.NewCoin(denom, coinToSendToB.Amount)
-	recipient := suite.hubChain.SenderAccount.GetAddress()
-	initialBalance := ConvertToApp(suite.hubChain).BankKeeper.SpendableCoins(suite.hubChain.GetContext(), recipient)
+	recipient := suite.hubChain().SenderAccount.GetAddress()
+	initialBalance := suite.hubApp().BankKeeper.SpendableCoins(suite.hubChain().GetContext(), recipient)
 	suite.Require().Equal(initialBalance.AmountOf(denom), sdk.ZeroInt())
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
+	currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
 	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 
 	// check balance after finalization
-	expectedFee := ConvertToApp(suite.hubChain).DelayedAckKeeper.BridgingFeeFromAmt(suite.hubChain.GetContext(), transferredCoins.Amount)
+	expectedFee := suite.hubApp().DelayedAckKeeper.BridgingFeeFromAmt(suite.hubChain().GetContext(), transferredCoins.Amount)
 	expectedBalance := initialBalance.Add(transferredCoins).Sub(sdk.NewCoin(denom, expectedFee))
-	finalBalance := ConvertToApp(suite.hubChain).BankKeeper.SpendableCoins(suite.hubChain.GetContext(), recipient)
+	finalBalance := suite.hubApp().BankKeeper.SpendableCoins(suite.hubChain().GetContext(), recipient)
 	suite.Equal(expectedBalance, finalBalance)
 
 	// check fees
-	addr := ConvertToApp(suite.hubChain).AccountKeeper.GetModuleAccount(suite.hubChain.GetContext(), txfees.ModuleName)
-	txFeesBalance := ConvertToApp(suite.hubChain).BankKeeper.GetBalance(suite.hubChain.GetContext(), addr.GetAddress(), denom)
+	addr := suite.hubApp().AccountKeeper.GetModuleAccount(suite.hubChain().GetContext(), txfees.ModuleName)
+	txFeesBalance := suite.hubApp().BankKeeper.GetBalance(suite.hubChain().GetContext(), addr.GetAddress(), denom)
 	suite.Equal(expectedFee, txFeesBalance.Amount)
 }

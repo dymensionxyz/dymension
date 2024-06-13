@@ -26,7 +26,7 @@ func TestDelayedAckTestSuite(t *testing.T) {
 
 func (suite *DelayedAckTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
-	ConvertToApp(suite.hubChain).BankKeeper.SetDenomMetaData(suite.hubChain.GetContext(), banktypes.Metadata{
+	suite.hubApp().BankKeeper.SetDenomMetaData(suite.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})
 }
@@ -34,12 +34,12 @@ func (suite *DelayedAckTestSuite) SetupTest() {
 // Transfer from cosmos chain to the hub. No delay expected
 func (suite *DelayedAckTestSuite) TestTransferCosmosToHub() {
 	// setup between cosmosChain and hubChain
-	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.cosmosChain())
 	suite.coordinator.Setup(path)
 
 	hubEndpoint := path.EndpointA
 	cosmosEndpoint := path.EndpointB
-	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
+	hubIBCKeeper := suite.hubChain().App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
@@ -64,12 +64,12 @@ func (suite *DelayedAckTestSuite) TestTransferCosmosToHub() {
 
 func (suite *DelayedAckTestSuite) TestTransferHubToCosmos() {
 	// setup between cosmosChain and hubChain
-	path := suite.NewTransferPath(suite.hubChain, suite.cosmosChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.cosmosChain())
 	suite.coordinator.Setup(path)
 
 	hubEndpoint := path.EndpointA
 	cosmosEndpoint := path.EndpointB
-	cosmosIBCKeeper := suite.cosmosChain.App.GetIBCKeeper()
+	cosmosIBCKeeper := suite.cosmosChain().App.GetIBCKeeper()
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
@@ -93,16 +93,16 @@ func (suite *DelayedAckTestSuite) TestTransferHubToCosmos() {
 }
 
 func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
-	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
-	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
+	hubIBCKeeper := suite.hubChain().App.GetIBCKeeper()
 
 	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
-	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
+	suite.UpdateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
 	amount, ok := sdk.NewIntFromString("10000000000000000000") // 10DYM
@@ -113,13 +113,13 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 		rollappEndpoint.ChannelConfig.PortID,
 		rollappEndpoint.ChannelID,
 		coinToSendToB,
-		suite.rollappChain.SenderAccount.GetAddress().String(),
-		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.rollappChain().SenderAccount.GetAddress().String(),
+		suite.hubChain().SenderAccount.GetAddress().String(),
 		timeoutHeight,
 		0,
 		"",
 	)
-	res, err := suite.rollappChain.SendMsgs(msg)
+	res, err := suite.rollappChain().SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
@@ -134,20 +134,20 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubNotFinalized() {
 }
 
 func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
-	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 
 	hubEndpoint := path.EndpointA
-	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
+	hubIBCKeeper := suite.hubChain().App.GetIBCKeeper()
 
 	rollappEndpoint := path.EndpointB
-	rollappIBCKeeper := suite.rollappChain.App.GetIBCKeeper()
+	rollappIBCKeeper := suite.rollappChain().App.GetIBCKeeper()
 
 	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
 
 	// Upate rollapp state
-	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
 	suite.UpdateRollappState(currentRollappBlockHeight)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -156,8 +156,8 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 	/* --------------------- initiating transfer on rollapp --------------------- */
-	msg := types.NewMsgTransfer(rollappEndpoint.ChannelConfig.PortID, rollappEndpoint.ChannelID, coinToSendToB, suite.rollappChain.SenderAccount.GetAddress().String(), suite.hubChain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
-	res, err := suite.rollappChain.SendMsgs(msg)
+	msg := types.NewMsgTransfer(rollappEndpoint.ChannelConfig.PortID, rollappEndpoint.ChannelID, coinToSendToB, suite.rollappChain().SenderAccount.GetAddress().String(), suite.hubChain().SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	res, err := suite.rollappChain().SendMsgs(msg)
 	suite.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	suite.Require().NoError(err)
@@ -174,7 +174,7 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 	suite.Require().False(found)
 
 	// Finalize the rollapp state
-	currentRollappBlockHeight = uint64(suite.rollappChain.GetContext().BlockHeight())
+	currentRollappBlockHeight = uint64(suite.rollappChain().GetContext().BlockHeight())
 	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 
@@ -186,18 +186,18 @@ func (suite *DelayedAckTestSuite) TestTransferRollappToHubFinalization() {
 // TestHubToRollappTimeout tests the scenario where a packet is sent from the hub to the rollapp and the rollapp times out the packet.
 // The packet should actually get timed out and funds returned to the user only after the rollapp state is finalized.
 func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
-	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
+	path := suite.NewTransferPath(suite.hubChain(), suite.rollappChain())
 	suite.coordinator.Setup(path)
 	// Setup endpoints
 	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
-	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
+	hubIBCKeeper := suite.hubChain().App.GetIBCKeeper()
 	// Create rollapp and update its initial state
 	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
-	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
+	suite.UpdateRollappState(uint64(suite.rollappChain().GetContext().BlockHeight()))
 	// Set the timeout height
-	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain.GetContext())
+	timeoutHeight := clienttypes.GetSelfHeight(suite.rollappChain().GetContext())
 	amount, ok := sdk.NewIntFromString("1000000000000000000") // 1DYM
 	suite.Require().True(ok)
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
@@ -205,8 +205,8 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	senderAccount := hubEndpoint.Chain.SenderAccount.GetAddress()
 	receiverAccount := rollappEndpoint.Chain.SenderAccount.GetAddress()
 	// Check balances
-	bankKeeper := ConvertToApp(suite.hubChain).BankKeeper
-	preSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	bankKeeper := suite.hubApp().BankKeeper
+	preSendBalance := bankKeeper.GetBalance(suite.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
 	// send from hubChain to rollappChain
 	msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), receiverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
 	res, err := hubEndpoint.Chain.SendMsgs(msg)
@@ -216,7 +216,7 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(hubEndpoint.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	suite.Require().True(found)
 	// Check balance decreased
-	postSendBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postSendBalance := bankKeeper.GetBalance(suite.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(preSendBalance.Amount.Sub(coinToSendToB.Amount), postSendBalance.Amount)
 	// Update the client to create timeout
 	err = hubEndpoint.UpdateClient()
@@ -225,13 +225,13 @@ func (suite *DelayedAckTestSuite) TestHubToRollappTimeout() {
 	err = path.EndpointA.TimeoutPacket(packet)
 	suite.Require().NoError(err)
 	// Validate funds are still not returned to the sender
-	postTimeoutBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postTimeoutBalance := bankKeeper.GetBalance(suite.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(postSendBalance.Amount, postTimeoutBalance.Amount)
 	// Finalize the rollapp state
-	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
+	currentRollappBlockHeight := uint64(suite.rollappChain().GetContext().BlockHeight())
 	_, err = suite.FinalizeRollappState(1, currentRollappBlockHeight)
 	suite.Require().NoError(err)
 	// Validate funds are returned to the sender
-	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain.GetContext(), senderAccount, sdk.DefaultBondDenom)
+	postFinalizeBalance := bankKeeper.GetBalance(suite.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
 	suite.Require().Equal(preSendBalance.Amount, postFinalizeBalance.Amount)
 }

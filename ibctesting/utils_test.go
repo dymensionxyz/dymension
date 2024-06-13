@@ -98,7 +98,7 @@ func (suite *IBCTestUtilSuite) rollappMsgServer() rollapptypes.MsgServer {
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {
 	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes test chains
-	suite.coordinator.Chains[rollappChainID()] = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
+	suite.coordinator.Chains[rollappChainID()] = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, rollappChainID())
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
@@ -109,51 +109,51 @@ func (suite *IBCTestUtilSuite) CreateRollappWithFinishedGenesis(canonicalChannel
 
 func (suite *IBCTestUtilSuite) CreateRollapp(transfersEnabled bool, channelID *string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.ChainID,
+		suite.hubChain().SenderAccount.GetAddress().String(),
+		suite.rollappChain().ChainID,
 		10,
 		[]string{},
 
 		// in most cases we want to test when the genesis bridge setup is already complete
 		transfersEnabled,
 	)
-	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
+	_, err := suite.hubChain().SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 	if channelID != nil {
-		app := ConvertToApp(suite.hubChain)
-		ra := app.RollappKeeper.MustGetRollapp(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
+		app := suite.hubApp()
+		ra := app.RollappKeeper.MustGetRollapp(suite.hubChain().GetContext(), suite.rollappChain().ChainID)
 		ra.ChannelId = *channelID
-		app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), ra)
+		app.RollappKeeper.SetRollapp(suite.hubChain().GetContext(), ra)
 	}
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {
 	bond := sequencertypes.DefaultParams().MinBond
 	// fund account
-	err := bankutil.FundAccount(ConvertToApp(suite.hubChain).BankKeeper, suite.hubChain.GetContext(), suite.hubChain.SenderAccount.GetAddress(), sdk.NewCoins(bond))
+	err := bankutil.FundAccount(suite.hubApp().BankKeeper, suite.hubChain().GetContext(), suite.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(bond))
 	suite.Require().Nil(err)
 
 	// using validator pubkey as the dymint pubkey
-	pk, err := cryptocodec.FromTmPubKeyInterface(suite.rollappChain.Vals.Validators[0].PubKey)
+	pk, err := cryptocodec.FromTmPubKeyInterface(suite.rollappChain().Vals.Validators[0].PubKey)
 	suite.Require().Nil(err)
 
 	msgCreateSequencer, err := sequencertypes.NewMsgCreateSequencer(
-		suite.hubChain.SenderAccount.GetAddress().String(),
+		suite.hubChain().SenderAccount.GetAddress().String(),
 		pk,
-		suite.rollappChain.ChainID,
+		suite.rollappChain().ChainID,
 		&sequencertypes.Description{},
 		bond,
 	)
 	suite.Require().NoError(err) // message committed
-	_, err = suite.hubChain.SendMsgs(msgCreateSequencer)
+	_, err = suite.hubChain().SendMsgs(msgCreateSequencer)
 	suite.Require().NoError(err) // message committed
 }
 
 func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	// Get the start index and start height based on the latest state info
-	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
-	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
-	stateInfo, found := rollappKeeper.GetStateInfo(suite.hubChain.GetContext(), suite.rollappChain.ChainID, latestStateInfoIndex.Index)
+	rollappKeeper := suite.hubApp().RollappKeeper
+	latestStateInfoIndex, _ := rollappKeeper.GetLatestStateInfoIndex(suite.hubChain().GetContext(), suite.rollappChain().ChainID)
+	stateInfo, found := rollappKeeper.GetStateInfo(suite.hubChain().GetContext(), suite.rollappChain().ChainID, latestStateInfoIndex.Index)
 	startHeight := uint64(1)
 	if found {
 		startHeight = stateInfo.StartHeight + stateInfo.NumBlocks
@@ -169,8 +169,8 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	}
 	// Update the state
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
-		suite.hubChain.SenderAccount.GetAddress().String(),
-		suite.rollappChain.ChainID,
+		suite.hubChain().SenderAccount.GetAddress().String(),
+		suite.rollappChain().ChainID,
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
 		"mock-da-path",
@@ -179,16 +179,16 @@ func (suite *IBCTestUtilSuite) UpdateRollappState(endHeight uint64) {
 	)
 	err := msgUpdateState.ValidateBasic()
 	suite.Require().NoError(err)
-	_, err = suite.rollappMsgServer.UpdateState(suite.hubChain.GetContext(), msgUpdateState)
+	_, err = suite.rollappMsgServer().UpdateState(suite.hubChain().GetContext(), msgUpdateState)
 	suite.Require().NoError(err)
 }
 
 func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint64) (sdk.Events, error) {
-	rollappKeeper := ConvertToApp(suite.hubChain).RollappKeeper
-	ctx := suite.hubChain.GetContext()
+	rollappKeeper := suite.hubApp().RollappKeeper
+	ctx := suite.hubChain().GetContext()
 
-	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: suite.rollappChain.ChainID, Index: index}
-	stateInfo, found := rollappKeeper.GetStateInfo(ctx, suite.rollappChain.ChainID, stateInfoIdx.Index)
+	stateInfoIdx := rollapptypes.StateInfoIndex{RollappId: suite.rollappChain().ChainID, Index: index}
+	stateInfo, found := rollappKeeper.GetStateInfo(ctx, suite.rollappChain().ChainID, stateInfoIdx.Index)
 	suite.Require().True(found)
 	stateInfo.NumBlocks = endHeight - stateInfo.StartHeight + 1
 	stateInfo.Status = common.Status_FINALIZED
@@ -198,7 +198,7 @@ func (suite *IBCTestUtilSuite) FinalizeRollappState(index uint64, endHeight uint
 	rollappKeeper.SetLatestFinalizedStateIndex(ctx, stateInfoIdx)
 	err := rollappKeeper.GetHooks().AfterStateFinalized(
 		ctx,
-		suite.rollappChain.ChainID,
+		suite.rollappChain().ChainID,
 		&stateInfo,
 	)
 
