@@ -52,11 +52,11 @@ message QueryDemandOrdersByStatusRequest {
   string rollapp_id = 3;
   // optional limit
   int32 limit = 4;
-  // optional fulfilment state
-  FulfilmentState fulfilment_state = 5;
+  // optional fulfillment state
+  FulfillmentState fulfillment_state = 5;
 }
 
-enum FulfilmentState {
+enum FulfillmentState {
   UNDEFINED = 0;
   FULFILLED = 1;
   UNFULFILLED = 2;

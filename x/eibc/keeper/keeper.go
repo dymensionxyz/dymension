@@ -112,7 +112,7 @@ func (k Keeper) FulfillOrder(ctx sdk.Context, order *types.DemandOrder, fulfille
 	if err != nil {
 		return err
 	}
-	// Call hooks if fulfilled. This hook should be called only once per fulfilment.
+	// Call hooks if fulfilled. This hook should be called only once per fulfillment.
 	err = k.hooks.AfterDemandOrderFulfilled(ctx, order, fulfillerAddress.String())
 	if err != nil {
 		return err

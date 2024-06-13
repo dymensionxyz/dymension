@@ -89,15 +89,15 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	suite.Require().Error(err)
 	suite.Require().Nil(res)
 
-	// Query by fulfilment status: FULFILLED
-	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_FINALIZED, FulfilmentState: types.FulfilmentState_FULFILLED})
+	// Query by fulfillment status: FULFILLED
+	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_FINALIZED, FulfillmentState: types.FulfillmentState_FULFILLED})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
-	suite.Require().Equal(true, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfilment state fulfilled")
+	suite.Require().Equal(true, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfillment state fulfilled")
 
-	// Query by fulfilment status: UNFULFILLED
-	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_PENDING, FulfilmentState: types.FulfilmentState_UNFULFILLED})
+	// Query by fulfillment status: UNFULFILLED
+	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_PENDING, FulfillmentState: types.FulfillmentState_UNFULFILLED})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
-	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfilment state unfulfilled")
+	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfillment state unfulfilled")
 }
