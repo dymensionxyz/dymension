@@ -109,6 +109,10 @@ func (k *Keeper) createDemandOrderFromIBCPacket(ctx sdk.Context, fungibleTokenPa
 	// Get the bridging fee from the amount
 	bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
 	demandOrderPrice := amt.Sub(fee).Sub(bridgingFee)
+	if !demandOrderPrice.IsPositive() {
+		return nil, fmt.Errorf("remaining price is not positive: price: %s, bridging fee: %s, fee: %s, amount: %s",
+			demandOrderPrice, bridgingFee, fee, amt)
+	}
 
 	/*
 		   In case of timeout/errack:
