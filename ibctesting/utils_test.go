@@ -19,13 +19,15 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/mock"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -240,7 +242,7 @@ func (suite *IBCTestUtilSuite) NewTransferPath(chainA, chainB *ibctesting.TestCh
 
 func (suite *IBCTestUtilSuite) GetRollappToHubIBCDenomFromPacket(packet channeltypes.Packet) string {
 	var data transfertypes.FungibleTokenPacketData
-	err := transfertypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
+	err := eibctypes.ModuleCdc.UnmarshalJSON(packet.GetData(), &data)
 	suite.Require().NoError(err)
 	return suite.GetIBCDenomForChannel(packet.GetDestChannel(), data.Denom)
 }

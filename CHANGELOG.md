@@ -48,6 +48,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (denommetadata) [#907](https://github.com/dymensionxyz/dymension/issues/907) Add IBC middleware to migrate denom metadata to rollappp, remove `CreateDenomMetadata` and `UpdateDenomMetadata` tx handlers
+- (delayedack) [#849](https://github.com/dymensionxyz/dymension/issues/849) Add demand order filters: type, rollapp id and limit
 - (delayedack) [#850](https://github.com/dymensionxyz/dymension/issues/850) Add type filter for delayedack
 - (rollapp) [#829](https://github.com/dymensionxyz/dymension/issues/829) Refactor rollapp cli to be more useful
 - (delayedack) [#728](https://github.com/dymensionxyz/dymension/issues/728) Create eibc order on err ack from rollapp
@@ -80,7 +82,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rollapp) [#839](https://github.com/dymensionxyz/dymension/issues/839) Remove rollapp deprecated fields
 - (eibc) [#836](https://github.com/dymensionxyz/dymension/issues/836) Improve eibc memo error handling
 - (eibc) [#830](https://github.com/dymensionxyz/dymension/issues/830) Invalid tx should return ackErr
-- (eibc) [#828](https://github.com/dymensionxyz/dymension/issues/828) Wrong packet written on delayedack acknowledgment
+- (eibc) [#828](https://github.com/dymensionxyz/dymension/issues/828) Wrong packet written on delayedack acknowledgement
 - (delayedack) [#822](https://github.com/dymensionxyz/dymension/issues/822) Acknowledgement not written in case of ackerr
 - (rollapp) [#820](https://github.com/dymensionxyz/dymension/issues/820) Invariant block-height-to-finalization-queue fix for freezing rollapp
 - (delayedack) [#814](https://github.com/dymensionxyz/dymension/issues/814) Proof height ante handler doesn't gurantee uniqueness
