@@ -1,7 +1,6 @@
 package rollapp
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -53,24 +52,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // ProposalContents doesn't return any content functions for governance proposals
 func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 	return nil
-}
-
-// RandomizedParams creates randomized  param changes for the simulator
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	_ = r
-	rollappParams := types.DefaultParams()
-	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDisputePeriodInBlocks),
-			func(r *rand.Rand) string {
-				return string(types.Amino.MustMarshalJSON(rollappParams.DisputePeriodInBlocks))
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDeployerWhitelist),
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("%v", []string{})
-			},
-		),
-	}
 }
 
 // RegisterStoreDecoder registers a decoder
