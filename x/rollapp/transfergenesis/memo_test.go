@@ -1,8 +1,9 @@
 package transfergenesis
 
 import (
-	"encoding/json"
 	"testing"
+
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -18,11 +19,7 @@ import (
 func Test_getExample(t *testing.T) {
 	t.Skip("Not a real test. You can use this during development to quickly generate example json")
 
-	type M struct {
-		Data memo `json:"genesis_transfer"`
-	}
-
-	m := memo{
+	m := rollapptypes.GenesisTransferMemo{
 		Denom: banktypes.Metadata{
 			Description: "The native staking and governance token of the rollappevm_1234-1",
 			DenomUnits:  make([]*banktypes.DenomUnit, 2),
@@ -44,11 +41,7 @@ func Test_getExample(t *testing.T) {
 	m.TotalNumTransfers = 42
 	m.ThisTransferIx = 12
 
-	raw := M{Data: m}
-
-	bz, err := json.MarshalIndent(raw, "", "\t")
-	require.NoError(t, err)
-	t.Log(string(bz))
+	t.Log(m.Namespaced().MustString())
 }
 
 var (

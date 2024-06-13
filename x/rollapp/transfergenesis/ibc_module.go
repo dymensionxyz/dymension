@@ -35,6 +35,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 type DenomMetadataKeeper interface {
@@ -83,14 +84,6 @@ func (w IBCModule) logger(
 	)
 }
 
-type memo struct {
-	Denom banktypes.Metadata `json:"denom"`
-	// How many transfers in total will be sent in the transfer genesis period
-	TotalNumTransfers uint64 `json:"total_num_transfers"`
-	// Which transfer is this? If there are 5 transfers total, they will be numbered 0,1,2,3,4.
-	ThisTransferIx uint64 `json:"this_transfer_ix"`
-}
-
 // OnRecvPacket will, if the packet is a transfer packet:
 // if it's not a genesis transfer: pass on the packet only if transfers are enabled
 // else: check it's a valid genesis transfer. If it is, then register the denom, if
@@ -122,7 +115,7 @@ func (w IBCModule) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	m, err := getMemo(transfer.GetMemo())
+	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
 		l.Debug("Memo not found.")
 		// If someone tries to send a transfer without the memo before the bridge is open, they will
@@ -136,7 +129,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ra := transfer.Rollapp
 
-	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, m.ThisTransferIx, m.TotalNumTransfers)
+	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, memo.ThisTransferIx, memo.TotalNumTransfers)
 	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {
 		// The rollapp has deviated from the protocol!
 		handleFraudErr := w.handleFraud(ra.RollappId)
@@ -154,19 +147,19 @@ func (w IBCModule) OnRecvPacket(
 
 	// it's a valid genesis transfer!
 
-	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, m.Denom)
+	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, memo.Denom)
 	if err != nil {
 		l.Error("Register denom metadata.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
 	}
 
 	l.Debug("Received valid genesis transfer. Registered denom data.",
-		"num total", m.TotalNumTransfers,
+		"num total", memo.TotalNumTransfers,
 		"num received so far", nTransfersDone,
-		"this transfer ix", m.ThisTransferIx,
+		"this transfer ix", memo.ThisTransferIx,
 	)
 
-	if nTransfersDone == m.TotalNumTransfers {
+	if nTransfersDone == memo.TotalNumTransfers {
 		// The transfer window is finished! Queue up a finalization
 		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
 		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(ra.RollappId, nTransfersDone))
@@ -199,9 +192,9 @@ func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
 	)
 }
 
-func getMemo(rawMemo string) (memo, error) {
+func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 	if len(rawMemo) == 0 {
-		return memo{}, gerr.ErrNotFound
+		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
 	}
 
 	key := "genesis_transfer"
@@ -213,21 +206,17 @@ func getMemo(rawMemo string) (memo, error) {
 
 	err := json.Unmarshal([]byte(rawMemo), &keyMap)
 	if err != nil {
-		return memo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 
 	if _, ok := keyMap[key]; !ok {
-		return memo{}, gerr.ErrNotFound
+		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
 	}
 
-	type t struct {
-		Data memo `json:"genesis_transfer"`
-	}
-
-	var m t
+	var m rollapptypes.GenesisTransferMemoRaw
 	err = json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
-		return memo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 	return m.Data, nil
 }

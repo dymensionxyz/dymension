@@ -34,10 +34,6 @@ const (
 	ibcPort = "transfer"
 )
 
-func GetForeignDenom(channelId string, denom string) string {
-	return GetForeignDenomTrace(channelId, denom).IBCDenom()
-}
-
 func GetForeignDenomTrace(channelId string, denom string) types.DenomTrace {
 	sourcePrefix := types.GetDenomPrefix(ibcPort, channelId)
 	// NOTE: sourcePrefix contains the trailing "/"
