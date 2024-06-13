@@ -52,27 +52,53 @@ func ConvertToApp(chain *ibctesting.TestChain) *app.App {
 // IBCTestUtilSuite is a testing suite to test keeper functions.
 type IBCTestUtilSuite struct {
 	suite.Suite
-
 	coordinator *ibctesting.Coordinator
+}
 
-	// testing chains used for convenience and readability
-	hubChain     *ibctesting.TestChain
-	cosmosChain  *ibctesting.TestChain
-	rollappChain *ibctesting.TestChain
+func hubChainID() string {
+	return ibctesting.GetChainID(1)
+}
 
-	// msg servers
-	rollappMsgServer rollapptypes.MsgServer
+func cosmosChainID() string {
+	return ibctesting.GetChainID(2)
+}
+
+func rollappChainID() string {
+	return ibctesting.GetChainID(3)
+}
+
+func (suite *IBCTestUtilSuite) hubChain() *ibctesting.TestChain {
+	return suite.coordinator.GetChain(hubChainID())
+}
+
+func (suite *IBCTestUtilSuite) cosmosChain() *ibctesting.TestChain {
+	return suite.coordinator.GetChain(cosmosChainID())
+}
+
+func (suite *IBCTestUtilSuite) rollappChain() *ibctesting.TestChain {
+	return suite.coordinator.GetChain(rollappChainID())
+}
+
+func (suite *IBCTestUtilSuite) hubApp() *app.App {
+	return ConvertToApp(suite.hubChain())
+}
+
+func (suite *IBCTestUtilSuite) cosmosApp() *app.App {
+	return ConvertToApp(suite.cosmosChain())
+}
+
+func (suite *IBCTestUtilSuite) rollappApp() *app.App {
+	return ConvertToApp(suite.rollappChain())
+}
+
+func (suite *IBCTestUtilSuite) rollappMsgServer() rollapptypes.MsgServer {
+	return rollappkeeper.NewMsgServerImpl(suite.hubApp().RollappKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.
 func (suite *IBCTestUtilSuite) SetupTest() {
-	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2)              // initializes test chains
-	suite.hubChain = suite.coordinator.GetChain(ibctesting.GetChainID(1))    // convenience and readability
-	suite.cosmosChain = suite.coordinator.GetChain(ibctesting.GetChainID(2)) // convenience and readability
-	suite.rollappChain = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
-	suite.coordinator.Chains[suite.rollappChain.ChainID] = suite.rollappChain
-	// Setup msg server for the rollapp keeper
-	suite.rollappMsgServer = rollappkeeper.NewMsgServerImpl(ConvertToApp(suite.hubChain).RollappKeeper)
+	suite.coordinator = ibctesting.NewCoordinator(suite.T(), 2) // initializes test chains
+	suite.coordinator.Chains[rollappChainID()] = suite.newTestChainWithSingleValidator(suite.T(), suite.coordinator, ibctesting.GetChainID(3))
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
