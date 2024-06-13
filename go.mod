@@ -5,6 +5,7 @@ go 1.22.0
 require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
+	github.com/cometbft/cometbft v0.37.2
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.16
@@ -23,7 +24,6 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
-	github.com/tendermint/tendermint v0.34.29
 	github.com/tendermint/tm-db v0.6.8-0.20220506192307-f628bb5dc95b
 	golang.org/x/exp v0.0.0-20230626212559-97b1e661b5df
 	gonum.org/v1/gonum v0.8.2
@@ -184,6 +184,7 @@ require (
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
+	github.com/tendermint/tendermint v0.34.29 // indirect
 	github.com/tidwall/btree v1.5.0 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
 	github.com/tidwall/match v1.1.1 // indirect

@@ -1,11 +1,11 @@
 package types
 
 import (
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func (seq Sequencer) IsBonded() bool {

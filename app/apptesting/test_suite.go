@@ -1,12 +1,12 @@
 package apptesting
 
 import (
+	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/libs/rand"
 
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"

@@ -12,8 +12,8 @@ import (
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is

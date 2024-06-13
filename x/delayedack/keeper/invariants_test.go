@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/tendermint/tendermint/libs/rand"
+	"github.com/cometbft/cometbft/libs/rand"
 
 	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"

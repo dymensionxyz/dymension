@@ -6,7 +6,7 @@ VERSION ?= $(shell git describe --tags --always)
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
-TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+TM_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::')
 DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
@@ -65,7 +65,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=dymension \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-	      -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION)
+	      -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(TM_VERSION)
 
 ifeq (cleveldb,$(findstring cleveldb,$(DYMENSION_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb

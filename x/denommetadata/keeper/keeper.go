@@ -5,8 +5,8 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
+	"github.com/cometbft/cometbft/libs/log"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

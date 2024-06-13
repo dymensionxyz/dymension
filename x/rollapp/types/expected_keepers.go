@@ -1,12 +1,12 @@
 package types
 
 import (
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
