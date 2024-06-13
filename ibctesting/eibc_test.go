@@ -413,8 +413,8 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			s.Require().True(ok)
 			coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 			// Setup accounts
-			senderAccount := hubEndpoint.Chain.SenderAccount.GetAddress()
-			receiverAccount := rollappEndpoint.Chain.SenderAccount.GetAddress()
+			senderAccount := s.hubChain().SenderAccount.GetAddress()
+			receiverAccount := s.rollappChain().SenderAccount.GetAddress()
 			fulfillerAccount := s.hubChain().SenderAccounts[1].SenderAccount.GetAddress()
 			// Get initial balances
 			bankKeeper := s.hubApp().BankKeeper
@@ -423,11 +423,11 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			receiverInitialBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), receiverAccount, sdk.DefaultBondDenom)
 			// Send from hubChain to rollappChain
 			msg := types.NewMsgTransfer(hubEndpoint.ChannelConfig.PortID, hubEndpoint.ChannelID, coinToSendToB, senderAccount.String(), receiverAccount.String(), timeoutHeight, disabledTimeoutTimestamp, "")
-			res, err := hubEndpoint.Chain.SendMsgs(msg)
+			res, err := s.hubChain().SendMsgs(msg)
 			s.Require().NoError(err)
 			packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 			s.Require().NoError(err)
-			found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(hubEndpoint.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+			found := hubIBCKeeper.ChannelKeeper.HasPacketCommitment(s.hubChain().GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 			s.Require().True(found)
 			// Check balance decreased
 			postSendBalance := bankKeeper.GetBalance(s.hubChain().GetContext(), senderAccount, sdk.DefaultBondDenom)
@@ -498,7 +498,6 @@ func (s *eibcSuite) transferRollappToHub(
 	memo string,
 	expectAck bool,
 ) channeltypes.Packet {
-	hubEndpoint := path.EndpointA
 	rollappEndpoint := path.EndpointB
 
 	hubIBCKeeper := s.hubChain().App.GetIBCKeeper()
@@ -522,11 +521,11 @@ func (s *eibcSuite) transferRollappToHub(
 	// return an error if there isn't one.
 	if expectAck {
 		s.Require().NoError(err)
-		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		s.Require().True(found)
 	} else {
 		s.Require().Error(err)
-		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(hubEndpoint.Chain.GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+		found := hubIBCKeeper.ChannelKeeper.HasPacketAcknowledgement(s.hubChain().GetContext(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
 		s.Require().False(found)
 	}
 	return packet

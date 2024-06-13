@@ -23,7 +23,6 @@ func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 	// setup between cosmosChain and hubChain
 	path := s.newTransferPath(s.hubChain(), s.cosmosChain())
 	s.coordinator.Setup(path)
-	hubEndpoint := path.EndpointA
 	cosmosEndpoint := path.EndpointB
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -32,8 +31,8 @@ func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 	coinToSendToB := sdk.NewCoin(sdk.DefaultBondDenom, amount)
 
 	// send from cosmosChain to hubChain
-	msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSendToB, cosmosEndpoint.Chain.SenderAccount.GetAddress().String(), hubEndpoint.Chain.SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
-	res, err := cosmosEndpoint.Chain.SendMsgs(msg)
+	msg := types.NewMsgTransfer(cosmosEndpoint.ChannelConfig.PortID, cosmosEndpoint.ChannelID, coinToSendToB, s.cosmosChain().SenderAccount.GetAddress().String(), s.hubChain().SenderAccount.GetAddress().String(), timeoutHeight, 0, "")
+	res, err := s.cosmosChain().SendMsgs(msg)
 	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
@@ -78,7 +77,7 @@ func (s *bridgingFeeSuite) TestBridgingFee() {
 	s.Require().NoError(err) // message committed
 	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 	s.Require().NoError(err)
-	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(rollappEndpoint.Chain.GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
+	found := rollappIBCKeeper.ChannelKeeper.HasPacketCommitment(s.rollappChain().GetContext(), packet.GetSourcePort(), packet.GetSourceChannel(), packet.GetSequence())
 	s.Require().True(found)
 	err = path.RelayPacket(packet)
 	s.Require().Error(err) // expecting error as no AcknowledgePacket expected to return
