@@ -91,6 +91,18 @@ func (s *utilSuite) rollappApp() *app.App {
 	return convertToApp(s.rollappChain())
 }
 
+func (s *utilSuite) hubCtx() sdk.Context {
+	return s.hubChain().GetContext()
+}
+
+func (s *utilSuite) cosmosCtx() sdk.Context {
+	return s.cosmosChain().GetContext()
+}
+
+func (s *utilSuite) rollappCtx() sdk.Context {
+	return s.rollappChain().GetContext()
+}
+
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
 }
