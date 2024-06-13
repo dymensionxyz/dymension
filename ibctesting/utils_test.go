@@ -75,6 +75,8 @@ func (suite *IBCTestUtilSuite) SetupTest() {
 	suite.rollappMsgServer = rollappkeeper.NewMsgServerImpl(ConvertToApp(suite.hubChain).RollappKeeper)
 }
 
+// CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
+// that is, they have finished all genesis transfers and their bridge is enabled.
 func (suite *IBCTestUtilSuite) CreateRollappWithFinishedGenesis(canonicalChannelID string) {
 	suite.CreateRollapp(true, &canonicalChannelID)
 }
@@ -92,16 +94,11 @@ func (suite *IBCTestUtilSuite) CreateRollapp(transfersEnabled bool, channelID *s
 	_, err := suite.hubChain.SendMsgs(msgCreateRollapp)
 	suite.Require().NoError(err) // message committed
 	if channelID != nil {
-		suite.SetCanonicalRollappChannel(*channelID)
+		app := ConvertToApp(suite.hubChain)
+		ra := app.RollappKeeper.MustGetRollapp(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
+		ra.ChannelId = *channelID
+		app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), ra)
 	}
-}
-
-func (suite *IBCTestUtilSuite) SetCanonicalRollappChannel(channelID string) {
-	// TODO: should this have the canonical channel or the transfersEnabled, both, neither?
-	app := ConvertToApp(suite.hubChain)
-	ra := app.RollappKeeper.MustGetRollapp(suite.hubChain.GetContext(), suite.rollappChain.ChainID)
-	ra.ChannelId = channelID
-	app.RollappKeeper.SetRollapp(suite.hubChain.GetContext(), ra)
 }
 
 func (suite *IBCTestUtilSuite) RegisterSequencer() {

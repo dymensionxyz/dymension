@@ -35,12 +35,10 @@ func (suite *TransferGenesisTestSuite) TestHappyPath() {
 	suite.coordinator.Setup(path)
 
 	// register rollapp with metadata for stake denom
-	suite.CreateRollapp()
+	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
 
 	app := ConvertToApp(suite.hubChain)
-
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID) // TODO: could delete
 
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())

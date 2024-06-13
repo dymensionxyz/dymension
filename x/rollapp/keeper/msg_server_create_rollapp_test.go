@@ -43,10 +43,10 @@ func (suite *RollappTestSuite) createRollappAndVerify(numOfAddresses int, expect
 	queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
 		RollappId: rollapp.GetRollappId(),
 	})
+	suite.Require().Nil(err)
 	if queryResponse.Rollapp.PermissionedAddresses == nil {
 		queryResponse.Rollapp.PermissionedAddresses = []string{}
 	}
-	suite.Require().Nil(err)
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
 
 	rollappSummaryExpect := types.RollappSummary{

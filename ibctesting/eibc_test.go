@@ -50,15 +50,13 @@ func (suite *EIBCTestSuite) SetupTest() {
 }
 
 func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
-	// Create rollapp only once
-	suite.CreateRollapp()
-	// Register sequencer
-	suite.RegisterSequencer()
 	// Create path so we'll be using the same channel
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
-	// Trigger the genesis event to register the denoms
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
+	// Create rollapp only once
+	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	// Register sequencer
+	suite.RegisterSequencer()
 	// adding state for the rollapp
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 	// Setup globals for the test cases
@@ -173,15 +171,13 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 // TestEIBCDemandOrderFulfillment tests the creation of a demand order and its fulfillment logic.
 // It starts by transferring the fulfiller the relevant IBC tokens which it will use to possibly fulfill the demand order.
 func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
-	// Create rollapp only once
-	suite.CreateRollapp()
 	// Create the path once here so we'll be using the same channel all the time and hence same IBC denom
-	// Register sequencer
-	suite.RegisterSequencer()
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
-	// Trigger the genesis event to register the denoms
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
+	// Create rollapp only once
+	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	// Register sequencer
+	suite.RegisterSequencer()
 	// Setup globals for the test
 	totalDemandOrdersCreated := 0
 	eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
@@ -368,10 +364,8 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 	rollappEndpoint := path.EndpointB
 	hubIBCKeeper := suite.hubChain.App.GetIBCKeeper()
 	// Create rollapp and update its initial state
-	suite.CreateRollapp()
+	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
-	// Trigger the genesis event to register the denoms
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
 	suite.UpdateRollappState(uint64(suite.rollappChain.GetContext().BlockHeight()))
 
 	type TC struct {

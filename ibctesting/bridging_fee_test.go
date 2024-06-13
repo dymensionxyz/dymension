@@ -52,9 +52,8 @@ func (suite *BridgingFeeTestSuite) TestBridgingFee() {
 	rollappEndpoint := path.EndpointB
 	rollappIBCKeeper := suite.rollappChain.App.GetIBCKeeper()
 
-	suite.CreateRollapp()
+	suite.CreateRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	suite.RegisterSequencer()
-	suite.SetCanonicalRollappChannel(path.EndpointA.ChannelID)
 
 	// Update rollapp state
 	currentRollappBlockHeight := uint64(suite.rollappChain.GetContext().BlockHeight())
