@@ -43,10 +43,10 @@ func init() {
 }
 
 func convertToApp(chain *ibctesting.TestChain) *app.App {
-	app, ok := chain.App.(*app.App)
+	a, ok := chain.App.(*app.App)
 	require.True(chain.T, ok)
 
-	return app
+	return a
 }
 
 // utilSuite is a testing suite to test keeper functions.
@@ -132,10 +132,10 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
-		app := s.hubApp()
-		ra := app.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
+		a := s.hubApp()
+		ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
-		app.RollappKeeper.SetRollapp(s.hubCtx(), ra)
+		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
 }
 
