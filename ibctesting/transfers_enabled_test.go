@@ -1,33 +1,21 @@
-package ibctesting
-
-import (
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/stretchr/testify/suite"
-	"testing"
-)
-
 package ibctesting_test
 
 import (
-"testing"
+	"testing"
 
-"cosmossdk.io/math"
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
-banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"cosmossdk.io/math"
 
-sdk "github.com/cosmos/cosmos-sdk/types"
-"github.com/dymensionxyz/dymension/v3/app/apptesting"
-"github.com/stretchr/testify/suite"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/stretchr/testify/suite"
 
-"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v6/testing/simapp"
 )
 
 type transfersEnabledSuite struct {
@@ -50,10 +38,9 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.Require().False(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
 }
 
-
-// Regular (non genesis) transfers RA->Hub and Hub->RA should both be blocked when the bridge is not open
-func (s *transfersEnabledSuite) TestTransferRAtoHubIsDisabled() {
-
+// Regular (non genesis) transfers RA->Hub (and Hub->RA) should both be blocked when the bridge is not open
+// Note: we don't explicitly test the 'enabled' case, since this is tested in other tests in this package
+func (s *transfersEnabledSuite) TestRollappToHubDisabled() {
 	amt := math.NewIntFromUint64(10000000000000000000)
 	denom := "foo"
 	tokens := sdk.NewCoin(denom, amt)
@@ -84,6 +71,7 @@ func (s *transfersEnabledSuite) TestTransferRAtoHubIsDisabled() {
 	senderBalance := s.rollappApp().BankKeeper.GetBalance(s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), denom)
 	s.Require().True(senderBalance.Amount.IsZero())
 
+	// fails and returns err ack
 	err = s.path.RelayPacket(packet)
 	s.Require().NoError(err)
 
@@ -96,3 +84,39 @@ func (s *transfersEnabledSuite) TestTransferRAtoHubIsDisabled() {
 	s.Require().True(receiverBalance.Amount.IsZero())
 }
 
+// Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
+// Note: we don't explicitly test the 'enabled' case, since this is tested in other tests in this package
+func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
+	amt := math.NewIntFromUint64(10000000000000000000)
+	denom := "foo"
+	tokens := sdk.NewCoin(denom, amt)
+
+	timeoutHeight := clienttypes.NewHeight(100, 110)
+
+	msg := types.NewMsgTransfer(
+		s.path.EndpointA.ChannelConfig.PortID,
+		s.path.EndpointA.ChannelID,
+		tokens,
+		s.hubChain().SenderAccount.GetAddress().String(),
+		s.rollappChain().SenderAccount.GetAddress().String(),
+		timeoutHeight,
+		0,
+		"",
+	)
+
+	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
+	_, _, err := simapp.SignAndDeliver(
+		s.hubChain().T,
+		s.hubChain().TxConfig,
+		s.hubApp().GetBaseApp(),
+		s.hubCtx().BlockHeader(),
+		[]sdk.Msg{msg},
+		hubChainID(),
+		[]uint64{s.hubChain().SenderAccount.GetAccountNumber()},
+		[]uint64{s.hubChain().SenderAccount.GetSequence()},
+		true,
+		false, // should fail
+		s.hubChain().SenderPrivKey,
+	)
+	s.Require().True(errorsmod.IsOf(err, gerr.ErrFailedPrecondition))
+}
