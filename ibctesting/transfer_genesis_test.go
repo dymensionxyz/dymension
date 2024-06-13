@@ -25,20 +25,13 @@ func (s *transferGenesisSuite) SetupTest() {
 }
 
 // In the happy path, the new rollapp will send ibc transfers with a special
-// memo immediately when the channel opens. This will cause  all the denoms to get registered.
+// memo immediately when the channel opens. This will cause  all the denoms to get registered, and tokens
+// to go to the right addresses.
 func (s *transferGenesisSuite) TestHappyPath() {
-	/*
-		TODO: gonna come back to this one because it needs a rethink
-	*/
-
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
-
-	// register rollapp with metadata for stake denom
-	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
+	s.createRollapp(false, nil) // genesis protocol is not finished yet
 	s.registerSequencer()
-
-	app := s.hubApp()
 
 	// Finalize the rollapp 100 blocks later so all packets are received immediately
 	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
@@ -46,9 +39,9 @@ func (s *transferGenesisSuite) TestHappyPath() {
 	_, err := s.finalizeRollappState(1, currentRollappBlockHeight+100)
 	s.Require().NoError(err)
 
-	found := app.BankKeeper.HasDenomMetaData(s.hubCtx(), sdk.DefaultBondDenom)
+	found := s.hubApp().BankKeeper.HasDenomMetaData(s.hubCtx(), sdk.DefaultBondDenom)
 	s.Require().False(found)
-	found = app.BankKeeper.HasDenomMetaData(s.hubCtx(), "udym")
+	found = s.hubApp().BankKeeper.HasDenomMetaData(s.hubCtx(), "udym")
 	s.Require().False(found)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -81,13 +74,13 @@ func (s *transferGenesisSuite) TestHappyPath() {
 	udymVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), "udym"))
 	stakeVoucherDenom := types.ParseDenomTrace(types.GetPrefixedDenom(packet.GetDestPort(), packet.GetDestChannel(), sdk.DefaultBondDenom))
 
-	found = app.BankKeeper.HasDenomMetaData(s.hubCtx(), sdk.DefaultBondDenom)
+	found = s.hubApp().BankKeeper.HasDenomMetaData(s.hubCtx(), sdk.DefaultBondDenom)
 	s.Require().False(found)
-	found = app.BankKeeper.HasDenomMetaData(s.hubCtx(), "udym")
+	found = s.hubApp().BankKeeper.HasDenomMetaData(s.hubCtx(), "udym")
 	s.Require().False(found)
-	found = app.BankKeeper.HasDenomMetaData(s.hubCtx(), udymVoucherDenom.IBCDenom())
+	found = s.hubApp().BankKeeper.HasDenomMetaData(s.hubCtx(), udymVoucherDenom.IBCDenom())
 	s.Require().False(found)
-	metadata, found := app.BankKeeper.GetDenomMetaData(s.hubCtx(), stakeVoucherDenom.IBCDenom())
+	metadata, found := s.hubApp().BankKeeper.GetDenomMetaData(s.hubCtx(), stakeVoucherDenom.IBCDenom())
 	s.Require().True(found, "missing denom metadata for rollapps taking token")
 	s.Equal("bigstake", metadata.Display)
 	s.Equal("BIGSTAKE", metadata.Symbol)
