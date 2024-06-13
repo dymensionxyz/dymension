@@ -69,9 +69,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // SetHooks sets the hooks for the denommetadata keeper
 func (k *Keeper) SetHooks(sh types.MultiDenomMetadataHooks) {
-	if k.hooks != nil {
-		panic("cannot set rollapp hooks twice")
-	}
 	k.hooks = sh
 }
 

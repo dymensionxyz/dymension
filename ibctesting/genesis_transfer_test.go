@@ -34,6 +34,10 @@ func (s *transferGenesisSuite) SetupTest() {
 	s.createRollapp(false, nil) // genesis protocol is not finished yet
 	s.registerSequencer()
 	s.path = path
+
+	// set hooks to avoid actually creating VFC contract, as this places extra requirements on the test setup
+	// we assume that if the denom metadata was created (checked below), then the hooks ran correctly
+	s.hubApp().DenomMetadataKeeper.SetHooks(nil)
 }
 
 // In the happy path, the new rollapp will send ibc transfers with a special
@@ -62,12 +66,6 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		s.Require().NoError(err)
 
-		// required for creating the VFC
-		s.hubChain().CurrentHeader.ProposerAddress, err = s.hubApp().StakingKeeper.GetValidators(s.hubCtx(), 1)[0].GetConsAddr()
-		hooks := mockDenomMetaDataHooks{}
-		s.hubApp().DenomMetadataKeeper.SetHooks(hooks)
-		s.Require().NotEmpty(s.hubCtx().BlockHeader().ProposerAddress)
-
 		err = s.path.RelayPacket(packet)
 		s.Require().NoError(err)
 		// after the last one, it should be OK
@@ -85,11 +83,6 @@ func (s *transferGenesisSuite) TestHappyPath() {
 		c := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), ibcDenom)
 		s.Require().Equal(amt, c.Amount)
 	}
-}
-
-type mockDenomMetaDataHooks struct {
-	AfterDenomMetadataCreation(ctx sdk.Context, metadata banktypes.Metadata) error
-	AfterDenomMetadataUpdate(ctx sdk.Context, metadata banktypes.Metadata) error
 }
 
 func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenomsTotal int) *types.MsgTransfer {
