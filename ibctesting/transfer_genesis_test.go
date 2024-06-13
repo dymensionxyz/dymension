@@ -13,7 +13,7 @@ import (
 )
 
 type TransferGenesisTestSuite struct {
-	ibcTestUtilSuite
+	utilSuite
 }
 
 func TestTransferGenesisTestSuite(t *testing.T) {
@@ -21,7 +21,7 @@ func TestTransferGenesisTestSuite(t *testing.T) {
 }
 
 func (suite *TransferGenesisTestSuite) SetupTest() {
-	suite.ibcTestUtilSuite.SetupTest()
+	suite.utilSuite.SetupTest()
 }
 
 // In the happy path, the new rollapp will send ibc transfers with a special

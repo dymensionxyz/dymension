@@ -24,7 +24,7 @@ import (
 )
 
 type EIBCTestSuite struct {
-	ibcTestUtilSuite
+	utilSuite
 
 	msgServer eibctypes.MsgServer
 }
@@ -34,7 +34,7 @@ func TestEIBCTestSuite(t *testing.T) {
 }
 
 func (suite *EIBCTestSuite) SetupTest() {
-	suite.ibcTestUtilSuite.SetupTest()
+	suite.utilSuite.SetupTest()
 	suite.hubApp().BankKeeper.SetDenomMetaData(suite.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})

@@ -12,7 +12,7 @@ import (
 )
 
 type BridgingFeeTestSuite struct {
-	ibcTestUtilSuite
+	utilSuite
 }
 
 func TestBridgingFeeTestSuite(t *testing.T) {

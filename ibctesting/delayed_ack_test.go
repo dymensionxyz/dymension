@@ -17,7 +17,7 @@ const (
 )
 
 type DelayedAckTestSuite struct {
-	ibcTestUtilSuite
+	utilSuite
 }
 
 func TestDelayedAckTestSuite(t *testing.T) {
@@ -25,7 +25,7 @@ func TestDelayedAckTestSuite(t *testing.T) {
 }
 
 func (suite *DelayedAckTestSuite) SetupTest() {
-	suite.ibcTestUtilSuite.SetupTest()
+	suite.utilSuite.SetupTest()
 	suite.hubApp().BankKeeper.SetDenomMetaData(suite.hubChain().GetContext(), banktypes.Metadata{
 		Base: sdk.DefaultBondDenom,
 	})
