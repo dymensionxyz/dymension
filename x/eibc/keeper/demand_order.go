@@ -174,13 +174,9 @@ func (k Keeper) PrepareProtocolDemandOrder(ctx sdk.Context, fungibleTokenPacketD
 	}
 	demandOrderPrice := amt.Sub(fee)
 
-	// Get the denom for the demand order
-	var demandOrderDenom string
-	var demandOrderRecipient string
-
 	trace := transfertypes.ParseDenomTrace(fungibleTokenPacketData.Denom)
-	demandOrderDenom = trace.IBCDenom()
-	demandOrderRecipient = fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
+	demandOrderDenom := trace.IBCDenom()
+	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 
 	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	if err := order.Validate(); err != nil {
