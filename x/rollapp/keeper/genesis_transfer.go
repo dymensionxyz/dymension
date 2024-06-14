@@ -116,7 +116,6 @@ func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
 	}
 
 	return true
-
 }
 
 func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTransfers) {

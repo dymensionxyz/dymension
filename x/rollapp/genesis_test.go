@@ -56,14 +56,16 @@ func TestInitExportGenesis(t *testing.T) {
 		},
 		GenesisTransfers: []types.GenesisTransfers{
 			{
-				"0",
-				3, 3,
-				[]uint64{0, 2, 1},
+				RollappID:   "0",
+				NumTotal:    3,
+				NumReceived: 3,
+				Received:    []uint64{0, 2, 1},
 			},
 			{
-				"1",
-				3, 3,
-				[]uint64{0, 2, 1},
+				RollappID:   "1",
+				NumTotal:    3,
+				NumReceived: 3,
+				Received:    []uint64{0, 2, 1},
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
