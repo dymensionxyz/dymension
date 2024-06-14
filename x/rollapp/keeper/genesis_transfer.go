@@ -32,7 +32,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		We do all the verification first and only write at the end, to make it easier to reason about partial failures
 	*/
 
-	if !!store.Has(nTotalKey) {
+	if store.Has(nTotalKey) {
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
