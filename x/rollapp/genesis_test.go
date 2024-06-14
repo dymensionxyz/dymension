@@ -3,6 +3,8 @@ package rollapp_test
 import (
 	"testing"
 
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp"
@@ -75,6 +77,7 @@ func TestInitExportGenesis(t *testing.T) {
 	nullify.Fill(genesisState)
 	nullify.Fill(*got)
 
+	require.True(t, keeper.GenesisTransfersAreEquivalent(genesisState.GetGenesisTransfers(), got.GetGenesisTransfers()))
 	require.ElementsMatch(t, genesisState.GenesisTransfers, got.GenesisTransfers)
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
