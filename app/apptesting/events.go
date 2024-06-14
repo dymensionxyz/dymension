@@ -7,7 +7,7 @@ import (
 
 // AssertEventEmitted asserts that ctx's event manager has emitted the given number of events
 // of the given type.
-func (suite *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected string, numEventsExpected int) {
+func (s *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpected string, numEventsExpected int) {
 	allEvents := ctx.EventManager().Events()
 	// filter out other events
 	actualEvents := make([]sdk.Event, 0)
@@ -16,10 +16,10 @@ func (suite *KeeperTestHelper) AssertEventEmitted(ctx sdk.Context, eventTypeExpe
 			actualEvents = append(actualEvents, event)
 		}
 	}
-	suite.Require().Equal(numEventsExpected, len(actualEvents))
+	s.Require().Equal(numEventsExpected, len(actualEvents))
 }
 
-func (suite *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {
+func (s *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Event {
 	index := slices.IndexFunc(events, func(e sdk.Event) bool { return e.Type == name })
 	if index == -1 {
 		return sdk.Event{}
@@ -28,7 +28,7 @@ func (suite *KeeperTestHelper) FindEvent(events []sdk.Event, name string) sdk.Ev
 }
 
 // FindLastEventOfType returns the last event of the given type.
-func (suite *KeeperTestHelper) FindLastEventOfType(events []sdk.Event, eventType string) (sdk.Event, bool) {
+func (s *KeeperTestHelper) FindLastEventOfType(events []sdk.Event, eventType string) (sdk.Event, bool) {
 	for i := len(events) - 1; i >= 0; i-- {
 		if events[i].Type == eventType {
 			return events[i], true
@@ -37,7 +37,7 @@ func (suite *KeeperTestHelper) FindLastEventOfType(events []sdk.Event, eventType
 	return sdk.Event{}, false
 }
 
-func (suite *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]string {
+func (s *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]string {
 	attrs := make(map[string]string)
 	if event.Attributes == nil {
 		return attrs
@@ -48,9 +48,9 @@ func (suite *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]str
 	return attrs
 }
 
-func (suite *KeeperTestHelper) AssertAttributes(event sdk.Event, eventAttributes []sdk.Attribute) {
-	attrs := suite.ExtractAttributes(event)
+func (s *KeeperTestHelper) AssertAttributes(event sdk.Event, eventAttributes []sdk.Attribute) {
+	attrs := s.ExtractAttributes(event)
 	for _, attr := range eventAttributes {
-		suite.Equal(attr.Value, attrs[attr.Key])
+		s.Equal(attr.Value, attrs[attr.Key])
 	}
 }
