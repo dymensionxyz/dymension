@@ -29,9 +29,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.BlockHeightToFinalizationQueueList {
 		k.SetBlockHeightToFinalizationQueue(ctx, elem)
 	}
-	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
-	// TODO: fix
+	k.SetGenesisTransfers(ctx, genState.GenesisTransfers)
+	// this line is used by starport scaffolding # genesis/module/init
 }
 
 // ExportGenesis returns the capability module's exported genesis.

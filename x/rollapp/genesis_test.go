@@ -52,6 +52,18 @@ func TestInitGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
+		GenesisTransfers: []types.GenesisTransfers{
+			{
+				"0",
+				0, 0,
+				[]uint64{0, 0},
+			},
+			{
+				"1",
+				1, 1,
+				[]uint64{1, 1},
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -83,10 +95,22 @@ func TestExportGenesis(t *testing.T) {
 	}
 	latestStateInfoIndexList := []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "1"}}
 	blockHeightToFinalizationQueueList := []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 1}}
+	genesisTransfers := []types.GenesisTransfers{
+		{
+			"0",
+			0, 0,
+			[]uint64{0, 0},
+		},
+		{
+			"1",
+			1, 1,
+			[]uint64{1, 1},
+		},
+	}
 	// Set the items in the keeper
 	k, ctx := keepertest.RollappKeeper(t)
-	for _, rollapp := range rollappList {
-		k.SetRollapp(ctx, rollapp)
+	for _, ra := range rollappList {
+		k.SetRollapp(ctx, ra)
 	}
 	for _, stateInfo := range stateInfoList {
 		k.SetStateInfo(ctx, stateInfo)
@@ -97,6 +121,7 @@ func TestExportGenesis(t *testing.T) {
 	for _, blockHeightToFinalizationQueue := range blockHeightToFinalizationQueueList {
 		k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
 	}
+	k.SetGenesisTransfers(ctx, genesisTransfers)
 	k.SetParams(ctx, params)
 	// Verify the exported genesis state
 	got := rollapp.ExportGenesis(ctx, *k)
@@ -107,4 +132,5 @@ func TestExportGenesis(t *testing.T) {
 	require.ElementsMatch(t, stateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, latestStateInfoIndexList, got.LatestStateInfoIndexList)
 	require.ElementsMatch(t, blockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+	require.ElementsMatch(t, genesisTransfers, got.GenesisTransfers)
 }

@@ -68,8 +68,10 @@ func transfersEnabledEvent(raID string) sdk.Event {
 	)
 }
 
-// TODO: expensive? explain
-func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers { // TODO: needs to be public?
+func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTransfers) {
+}
+
+func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers {
 	var ret []types.GenesisTransfers
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
@@ -98,7 +100,6 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 		ret = append(ret, x)
 	}
 
-	// TODO: impl
 	return ret
 }
 
