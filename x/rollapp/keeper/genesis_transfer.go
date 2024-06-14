@@ -41,7 +41,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nBz := store.Get(nKey)
 		n = sdk.BigEndianToUint64(nBz)
 	}
-	if !(0 <= ix && ix < nTotal) {
+	if nTotal <= ix {
 		return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
 	}
 	if store.Has(ixKey) {

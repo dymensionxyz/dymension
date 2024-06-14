@@ -83,10 +83,6 @@ func (s *utilSuite) hubApp() *app.App {
 	return convertToApp(s.hubChain())
 }
 
-func (s *utilSuite) cosmosApp() *app.App {
-	return convertToApp(s.cosmosChain())
-}
-
 func (s *utilSuite) rollappApp() *app.App {
 	return convertToApp(s.rollappChain())
 }
