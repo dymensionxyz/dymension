@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"slices"
+	"strings"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -69,6 +72,25 @@ func transfersEnabledEvent(raID string) sdk.Event {
 }
 
 func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTransfers) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
+
+	// sorting not strictly necessary but it makes testing easier
+	slices.SortStableFunc(transfers, func(a, b types.GenesisTransfers) int {
+		return strings.Compare(a.GetRollappID(), b.GetRollappID())
+	})
+
+	for _, transfer := range transfers {
+
+		nKey := types.TransferGenesisNumKey(transfer.RollappID)
+		nTotalKey := types.TransferGenesisNumTotalKey(transfer.RollappID)
+		for _, i := range transfer.GetReceived() {
+			ixKey := types.TransferGenesisSetMembershipKey(transfer.RollappID, i)
+			store.Set(nTotalKey, sdk.Uint64ToBigEndian(transfer.NumTotal))
+			store.Set(nKey, sdk.Uint64ToBigEndian(transfer.NumReceived))
+			store.Set(ixKey, []byte{})
+		}
+
+	}
 }
 
 func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers {
@@ -76,7 +98,14 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
 
-	for _, ra := range k.GetAllRollapps(ctx) {
+	rollapps := k.GetAllRollapps(ctx)
+
+	// sorting not strictly necessary but it makes testing easier
+	slices.SortStableFunc(rollapps, func(a, b types.Rollapp) int {
+		return strings.Compare(a.RollappId, b.RollappId)
+	})
+
+	for _, ra := range rollapps {
 
 		raID := ra.RollappId
 		nTotalKey := types.TransferGenesisNumTotalKey(raID)
