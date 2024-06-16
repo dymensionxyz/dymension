@@ -9,8 +9,8 @@ import (
 )
 
 func (r RollappPacket) LogString() string {
-	return fmt.Sprintf("RollappPacket{%s, %s, %s, %s, %s, %d}",
-		r.RollappId, r.Type, r.Status, r.Packet.SourcePort, r.Packet.SourceChannel, r.Packet.Sequence)
+	return fmt.Sprintf("RollappPacket{%s, %s, %s, %s, %s, %d, %s, %d}",
+		r.RollappId, r.Type, r.Status, r.Packet.SourcePort, r.Packet.SourceChannel, r.Packet.Sequence, r.Error, r.ProofHeight)
 }
 
 func (r RollappPacket) GetEvents() []sdk.Attribute {
