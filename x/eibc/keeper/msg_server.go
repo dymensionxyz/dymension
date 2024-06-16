@@ -32,7 +32,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 
-	demandOrder, err := m.GetActiveOrder(ctx, msg.OrderId)
+	demandOrder, err := m.GetOutstandingOrder(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	// Check that the order exists in status PENDING
-	demandOrder, err := m.GetActiveOrder(ctx, msg.OrderId)
+	demandOrder, err := m.GetOutstandingOrder(ctx, msg.OrderId)
 	if err != nil {
 		return nil, err
 	}
@@ -118,12 +118,12 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateDemandOrderResponse{}, nil
 }
 
-func (m msgServer) GetActiveOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
+func (m msgServer) GetOutstandingOrder(ctx sdk.Context, orderId string) (*types.DemandOrder, error) {
 	// Check that the order exists in status PENDING
 	demandOrder, err := m.GetDemandOrder(ctx, commontypes.Status_PENDING, orderId)
 	if err != nil {
 		return nil, err
 	}
 
-	return demandOrder, demandOrder.IsActive()
+	return demandOrder, demandOrder.ValidateOrderIsOutstanding()
 }
