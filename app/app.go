@@ -777,6 +777,7 @@ func New(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
 		delayedAckMiddleware,
+		app.StreamerKeeper.Hooks(),
 	))
 
 	/****  Module Options ****/

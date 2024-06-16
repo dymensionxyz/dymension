@@ -22,3 +22,8 @@ func (im IBCMiddleware) AfterStateFinalized(ctx sdk.Context, rollappID string, s
 func (im IBCMiddleware) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
 	return im.HandleFraud(ctx, rollappID, im.IBCModule)
 }
+
+// RollappCreated implements types.RollappHooks.
+func (im IBCMiddleware) RollappCreated(ctx sdk.Context, rollappID string) error {
+	return nil
+}
