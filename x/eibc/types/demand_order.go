@@ -98,7 +98,7 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 	return recipientBech32
 }
 
-func (m *DemandOrder) IsActive() error {
+func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 	// Check that the order is not fulfilled yet
 	if m.IsFulfilled {
 		return ErrDemandAlreadyFulfilled

@@ -24,17 +24,20 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(NewFulfilOrderTxCmd())
+	cmd.AddCommand(NewFulfillOrderTxCmd())
 
 	return cmd
 }
 
-func NewFulfilOrderTxCmd() *cobra.Command {
+func NewFulfillOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order [order-id]",
 		Short:   "Fulfill a new eibc order",
 		Example: "dymd tx eibc fulfill-order <order-id> <expected-fee-amount>",
-		Args:    cobra.ExactArgs(2),
+		Long: `Fulfill a new eibc order by providing the order ID and the expected fee amount.
+		The expected fee amount is the amount of fee that the user expects to pay for fulfilling the order.
+		`,
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -65,7 +68,7 @@ func NewUpdateDemandOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "update-demand-order [order-id]",
 		Short:   "Update a demand order",
-		Example: "dymd tx eibc update-demand-order <order-id> <fee-amount>",
+		Example: "dymd tx eibc update-demand-order <order-id> <new-fee-amount>",
 		Args:    cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
