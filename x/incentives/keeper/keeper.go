@@ -6,8 +6,8 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	"github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"

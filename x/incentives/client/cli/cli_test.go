@@ -5,10 +5,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/query"
 
+	"github.com/dymensionxyz/dymension/v3/x/incentives/client/cli"
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
-	"github.com/osmosis-labs/osmosis/v15/x/incentives/client/cli"
-	"github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 )
 
 var testAddresses = apptesting.CreateRandomAccounts(3)

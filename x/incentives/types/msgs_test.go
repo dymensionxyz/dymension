@@ -9,8 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 

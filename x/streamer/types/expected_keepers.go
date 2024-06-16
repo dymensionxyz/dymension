@@ -3,8 +3,8 @@ package types
 import (
 	time "time"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
