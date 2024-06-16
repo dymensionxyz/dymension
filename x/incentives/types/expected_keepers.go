@@ -6,6 +6,9 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -43,4 +46,12 @@ type CommunityPoolKeeper interface {
 // TxFeesKeeper defines the expected interface needed to managing transaction fees.
 type TxFeesKeeper interface {
 	GetBaseDenom(ctx sdk.Context) (denom string, err error)
+}
+
+type RollappKeeper interface {
+	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, error)
+}
+
+type SequencerKeeper interface {
+	GetSequencersByRollapp(ctx sdk.Context, rollappId string) []seqtypes.Sequencer
 }

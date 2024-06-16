@@ -183,11 +183,11 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: true,
-		DistributeTo: lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
-		},
+		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 1,
 		FilledEpochs:      0,
@@ -230,11 +230,11 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: false,
-		DistributeTo: lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
-		},
+		}},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
 		FilledEpochs:      0,

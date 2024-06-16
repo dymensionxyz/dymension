@@ -71,8 +71,11 @@ func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gaug
 	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
-	if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
-		return err
+	assetGauge, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if ok {
+		if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, assetGauge.Asset.Denom); err != nil {
+			return err
+		}
 	}
 	k.hooks.AfterFinishDistribution(ctx, gauge.Id)
 	return nil
@@ -99,7 +102,11 @@ func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo l
 // It also applies an update for the gauge, handling the sending of the rewards.
 // (Note this update is in-memory, it does not change state.)
 func (k Keeper) FilteredLocksDistributionEst(ctx sdk.Context, gauge types.Gauge, filteredLocks []lockuptypes.PeriodLock) (types.Gauge, sdk.Coins, bool, error) {
-	TotalAmtLocked := k.lk.GetPeriodLocksAccumulation(ctx, gauge.DistributeTo)
+	disTo, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if !ok {
+		return types.Gauge{}, nil, false, fmt.Errorf("gauge %d is not an asset gauge", gauge.Id)
+	}
+	TotalAmtLocked := k.lk.GetPeriodLocksAccumulation(ctx, *disTo.Asset)
 	if TotalAmtLocked.IsZero() {
 		return types.Gauge{}, nil, false, nil
 	}
@@ -135,7 +142,7 @@ func (k Keeper) FilteredLocksDistributionEst(ctx sdk.Context, gauge types.Gauge,
 		filteredDistrCoins = remainCoinsPerEpoch
 	}
 	for _, lock := range filteredLocks {
-		denomLockAmt := lock.Coins.AmountOf(gauge.DistributeTo.Denom)
+		denomLockAmt := lock.Coins.AmountOf(disTo.Asset.Denom)
 
 		for _, coin := range remainCoinsPerEpoch {
 			// distribution amount = gauge_size * denom_lock_amount / (total_denom_lock_amount * remain_epochs)
@@ -229,11 +236,19 @@ func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *distributionInfo) e
 // distributeInternal runs the distribution logic for a gauge, and adds the sends to
 // the distrInfo struct. It also updates the gauge for the distribution.
 // Locks is expected to be the correct set of lock recipients for this gauge.
-func (k Keeper) distributeInternal(
-	ctx sdk.Context, gauge types.Gauge, locks []lockuptypes.PeriodLock, distrInfo *distributionInfo,
+func (k Keeper) distributeToAssetGauge(
+	ctx sdk.Context, gauge types.Gauge, distrInfo *distributionInfo,
 ) (sdk.Coins, error) {
 	totalDistrCoins := sdk.NewCoins()
-	denom := gauge.DistributeTo.Denom
+	distributeTo, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if !ok {
+		return totalDistrCoins, fmt.Errorf("gauge %d is not an asset gauge", gauge.Id)
+	}
+
+	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
+	locks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
+
+	denom := distributeTo.Asset.Denom
 	lockSum := lockuptypes.SumLocksByDenom(locks, denom)
 
 	if lockSum.IsZero() {
@@ -307,30 +322,43 @@ func (k Keeper) getDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	if gauge.Coins.Empty() {
 		return []lockuptypes.PeriodLock{}
 	}
+
+	distTo, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if !ok {
+		panic(fmt.Sprintf("gauge %d is not an asset gauge", gauge.Id))
+	}
 	// All gauges have a precondition of being ByDuration.
-	distributeBaseDenom := gauge.DistributeTo.Denom
+	distributeBaseDenom := distTo.Asset.Denom
 	if _, ok := cache[distributeBaseDenom]; !ok {
 		cache[distributeBaseDenom] = k.getLocksToDistributionWithMaxDuration(
-			ctx, gauge.DistributeTo, time.Millisecond)
+			ctx, *distTo.Asset, time.Millisecond)
 	}
 	// get this from memory instead of hitting iterators / underlying stores.
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
 	allLocks := cache[distributeBaseDenom]
-	return FilterLocksByMinDuration(allLocks, gauge.DistributeTo.Duration)
+	return FilterLocksByMinDuration(allLocks, distTo.Asset.Duration)
 }
 
 // Distribute distributes coins from an array of gauges to all eligible locks.
 func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, error) {
 	distrInfo := newDistributionInfo()
 
-	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
 	totalDistributedCoins := sdk.Coins{}
 	for _, gauge := range gauges {
-		filteredLocks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
-		gaugeDistributedCoins, err := k.distributeInternal(ctx, gauge, filteredLocks, &distrInfo)
+		gaugeDistributedCoins := sdk.Coins{}
+		var err error
+		switch gauge.DistributeTo.(type) {
+		case *types.Gauge_Asset:
+			gaugeDistributedCoins, err = k.distributeToAssetGauge(ctx, gauge, &distrInfo)
+		case *types.Gauge_Rollapp:
+			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
+		default:
+			return nil, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id)
+		}
 		if err != nil {
 			return nil, err
 		}
+
 		totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
 	}
 

@@ -29,6 +29,8 @@ func GetQueryCmd() *cobra.Command {
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdActiveGaugesPerDenom)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingGauges)
 	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdUpcomingGaugesPerDenom)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdRollappGauges)
+	osmocli.AddQueryCmd(cmd, qcGetter, GetCmdParams)
 	cmd.AddCommand(GetCmdRewardsEst())
 
 	return cmd
@@ -41,6 +43,24 @@ func GetCmdGauges() (*osmocli.QueryDescriptor, *types.GaugesRequest) {
 		Short: "Query all available gauges",
 		Long:  "{{.Short}}",
 	}, &types.GaugesRequest{}
+}
+
+// GetCmdRollappGauges returns all available rollapp gauges.
+func GetCmdRollappGauges() (*osmocli.QueryDescriptor, *types.GaugesRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "rollapp-gauges",
+		Short: "Query all available rollapp gauges",
+		Long:  "{{.Short}}",
+	}, &types.GaugesRequest{}
+}
+
+// GetCmdParams returns the current parameters of the module.
+func GetCmdParams() (*osmocli.QueryDescriptor, *types.ParamsRequest) {
+	return &osmocli.QueryDescriptor{
+		Use:   "params",
+		Short: "Query the current parameters of the module",
+		Long:  "{{.Short}}",
+	}, &types.ParamsRequest{}
 }
 
 // GetCmdToDistributeCoins returns coins that are going to be distributed.

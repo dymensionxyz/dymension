@@ -101,11 +101,11 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		expectedGauge := types.Gauge{
 			Id:          gaugeID,
 			IsPerpetual: tc.isPerpetual,
-			DistributeTo: lockuptypes.QueryCondition{
+			DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
 				LockQueryType: lockuptypes.ByDuration,
 				Denom:         "lptoken",
 				Duration:      time.Second,
-			},
+			}},
 			Coins:             coins,
 			NumEpochsPaidOver: uint64(expectedNumEpochsPaidOver),
 			FilledEpochs:      0,

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -57,8 +56,9 @@ func (k Keeper) CreateGaugeRefKeys(ctx sdk.Context, gauge *types.Gauge, combined
 	if err := k.addGaugeRefByKey(ctx, combinedKeys, gauge.Id); err != nil {
 		return err
 	}
-	if activeOrUpcomingGauge {
-		if err := k.addGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
+	assetGauge, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if activeOrUpcomingGauge && ok {
+		if err := k.addGaugeIDForDenom(ctx, gauge.Id, assetGauge.Asset.Denom); err != nil {
 			return err
 		}
 	}
@@ -108,14 +108,14 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 	}
 
 	// Ensure that the denom this gauge pays out to exists on-chain
-	if !k.bk.HasSupply(ctx, distrTo.Denom) && !strings.Contains(distrTo.Denom, "osmovaloper") {
+	if !k.bk.HasSupply(ctx, distrTo.Denom) {
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
 	gauge := types.Gauge{
 		Id:                k.GetLastGaugeID(ctx) + 1,
 		IsPerpetual:       isPerpetual,
-		DistributeTo:      distrTo,
+		DistributeTo:      &types.Gauge_Asset{Asset: &distrTo},
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,

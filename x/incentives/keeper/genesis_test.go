@@ -58,7 +58,7 @@ func TestIncentivesExportGenesis(t *testing.T) {
 	require.Equal(t, genesis.Gauges[0], types.Gauge{
 		Id:                gaugeID,
 		IsPerpetual:       true,
-		DistributeTo:      distrTo,
+		DistributeTo:      &types.Gauge_Asset{&distrTo},
 		Coins:             coins,
 		NumEpochsPaidOver: 1,
 		FilledEpochs:      0,
@@ -87,7 +87,7 @@ func TestIncentivesInitGenesis(t *testing.T) {
 	gauge := types.Gauge{
 		Id:                1,
 		IsPerpetual:       false,
-		DistributeTo:      distrTo,
+		DistributeTo:      &types.Gauge_Asset{&distrTo},
 		Coins:             coins,
 		NumEpochsPaidOver: 2,
 		FilledEpochs:      0,
