@@ -1,7 +1,7 @@
 package cli_test
 
 import (
-	gocontext "context"
+	"context"
 	"testing"
 	"time"
 
@@ -81,22 +81,22 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 			&types.GaugesResponse{},
 		},
 		{
+			"Query rollapp gauges",
+			"/dymensionxyz.dymension.incentives.Query/RollappGauges",
+			&types.GaugesRequest{},
+			&types.GaugesResponse{},
+		},
+		{
 			"Query lockable durations",
 			"/dymensionxyz.dymension.incentives.Query/LockableDurations",
 			&types.QueryLockableDurationsRequest{},
 			&types.QueryLockableDurationsResponse{},
 		},
 		{
-			"Query module to distibute coins",
+			"Query module to distribute coins",
 			"/dymensionxyz.dymension.incentives.Query/ModuleToDistributeCoins",
 			&types.ModuleToDistributeCoinsRequest{},
 			&types.ModuleToDistributeCoinsResponse{},
-		},
-		{
-			"Query reward estimate",
-			"/dymensionxyz.dymension.incentives.Query/RewardsEst",
-			&types.RewardsEstRequest{Owner: s.TestAccs[0].String()},
-			&types.RewardsEstResponse{},
 		},
 		{
 			"Query upcoming gauges",
@@ -117,7 +117,7 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 
 		s.Run(tc.name, func() {
 			s.SetupSuite()
-			err := s.QueryHelper.Invoke(gocontext.Background(), tc.query, tc.input, tc.output)
+			err := s.QueryHelper.Invoke(context.Background(), tc.query, tc.input, tc.output)
 			s.Require().NoError(err)
 			s.StateNotAltered()
 		})

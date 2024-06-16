@@ -8,6 +8,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,4 +77,25 @@ func (k Keeper) GetLockableDurations(ctx sdk.Context) []time.Duration {
 	info := types.LockableDurationsInfo{}
 	osmoutils.MustGet(store, types.LockableDurationsKey, &info)
 	return info.LockableDurations
+}
+
+// GetEpochInfo returns EpochInfo struct given context.
+func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
+	params := k.GetParams(ctx)
+	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
+}
+
+// GetModuleToDistributeCoins returns sum of coins yet to be distributed for all of the module.
+func (k Keeper) GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins {
+	activeGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
+	upcomingGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.UpcomingGaugesIterator(ctx)))
+	return activeGaugesDistr.Add(upcomingGaugesDistr...)
+}
+
+// GetModuleDistributedCoins returns sum of coins that have been distributed so far for all of the module.
+func (k Keeper) GetModuleDistributedCoins(ctx sdk.Context) sdk.Coins {
+	activeGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
+	finishedGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx)))
+
+	return activeGaugesDistr.Add(finishedGaugesDistr...)
 }

@@ -10,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: move to incentives module
+
 func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 	for _, duration := range k.ik.GetLockableDurations(ctx) {
 		_, err := k.ik.CreateGauge(

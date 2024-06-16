@@ -294,6 +294,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 	// ensure the query no longer returns a response
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime.Add(time.Second))
 	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	suite.Require().NoError(err)
 	res, err = suite.querier.UpcomingGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &upcomingGaugeRequest)
 	suite.Require().NoError(err)
 	suite.Require().Len(res.UpcomingGauges, 0)
@@ -312,41 +313,18 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 
 	// query upcoming gauges by lptoken denom with a page request of 5 should return 0 gauges
 	res, err = suite.querier.UpcomingGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesPerDenomRequest{Denom: "lptoken", Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.UpcomingGauges, 0)
 
 	// query upcoming gauges by pool denom with a page request of 5 should return 5 gauges
 	res, err = suite.querier.UpcomingGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesPerDenomRequest{Denom: "pool", Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.UpcomingGauges, 5)
 
 	// query upcoming gauges by pool denom with a page request of 15 should return 10 gauges
 	res, err = suite.querier.UpcomingGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesPerDenomRequest{Denom: "pool", Pagination: &query.PageRequest{Limit: 15}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.UpcomingGauges, 10)
-}
-
-// TestGRPCRewardsEst tests querying rewards estimation at a future specific time (by epoch) via gRPC returns the correct response.
-func (suite *KeeperTestSuite) TestGRPCRewardsEst() {
-	suite.SetupTest()
-
-	// create an address with no locks
-	// ensure rewards estimation returns a nil coins struct
-	lockOwner := sdk.AccAddress([]byte("addr1---------------"))
-	res, err := suite.querier.RewardsEst(sdk.WrapSDKContext(suite.Ctx), &types.RewardsEstRequest{
-		Owner: lockOwner.String(),
-	})
-	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, sdk.Coins{})
-
-	// setup a lock and gauge for a new address
-	lockOwner, _, coins, _ := suite.SetupLockAndGauge(false)
-
-	// query the rewards of the new address after 100 epochs
-	// since it is the only address the gauge is paying out to, the future rewards should equal the entirety of the gauge
-	res, err = suite.querier.RewardsEst(sdk.WrapSDKContext(suite.Ctx), &types.RewardsEstRequest{
-		Owner:    lockOwner.String(),
-		EndEpoch: 100,
-	})
-	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, coins)
 }
 
 // TestGRPCToDistributeCoins tests querying coins that are going to be distributed via gRPC returns the correct response.

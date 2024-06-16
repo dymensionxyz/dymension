@@ -3,15 +3,12 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 	db "github.com/tendermint/tm-db"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -215,99 +212,4 @@ func (k Keeper) GetUpcomingGauges(ctx sdk.Context) []types.Gauge {
 // GetFinishedGauges returns finished gauges.
 func (k Keeper) GetFinishedGauges(ctx sdk.Context) []types.Gauge {
 	return k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx))
-}
-
-// GetRewardsEst returns rewards estimation at a future specific time (by epoch)
-// If locks are nil, it returns the rewards between now and the end epoch associated with address.
-// If locks are not nil, it returns all the rewards for the given locks between now and end epoch.
-func (k Keeper) GetRewardsEst(ctx sdk.Context, addr sdk.AccAddress, locks []lockuptypes.PeriodLock, endEpoch int64) sdk.Coins {
-	// if locks are nil, populate with all locks associated with the address
-	if len(locks) == 0 {
-		locks = k.lk.GetAccountPeriodLocks(ctx, addr)
-	}
-	// get all gauges that reward to these locks
-	// first get all the denominations being locked up
-	denomSet := map[string]bool{}
-	for _, l := range locks {
-		for _, c := range l.Coins {
-			denomSet[c.Denom] = true
-		}
-	}
-	gauges := []types.Gauge{}
-	// initialize gauges to active and upcomings if not set
-	for s := range denomSet {
-		gaugeIDs := k.getAllGaugeIDsByDenom(ctx, s)
-		// each gauge only rewards locks to one denom, so no duplicates
-		for _, id := range gaugeIDs {
-			gauge, err := k.GetGaugeByID(ctx, id)
-			// shouldn't happen
-			if err != nil {
-				return sdk.Coins{}
-			}
-			gauges = append(gauges, *gauge)
-		}
-	}
-
-	// estimate rewards
-	estimatedRewards := sdk.Coins{}
-	epochInfo := k.GetEpochInfo(ctx)
-
-	// no need to change storage while doing estimation as we use cached context
-	cacheCtx, _ := ctx.CacheContext()
-	for _, gauge := range gauges {
-		distrBeginEpoch := epochInfo.CurrentEpoch
-		blockTime := ctx.BlockTime()
-		if gauge.StartTime.After(blockTime) {
-			distrBeginEpoch = epochInfo.CurrentEpoch + 1 + int64(gauge.StartTime.Sub(blockTime)/epochInfo.Duration)
-		}
-
-		for epoch := distrBeginEpoch; epoch <= endEpoch; epoch++ {
-			newGauge, distrCoins, isBuggedGauge, err := k.FilteredLocksDistributionEst(cacheCtx, gauge, locks)
-			if err != nil {
-				continue
-			}
-			if isBuggedGauge {
-				ctx.Logger().Error("Reward estimation does not include gauge " + strconv.Itoa(int(gauge.Id)) + " due to accumulation store bug")
-			}
-			estimatedRewards = estimatedRewards.Add(distrCoins...)
-			gauge = newGauge
-		}
-	}
-
-	return estimatedRewards
-}
-
-// GetEpochInfo returns EpochInfo struct given context.
-func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
-	params := k.GetParams(ctx)
-	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
-}
-
-// chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has
-// balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
-// gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
-// The fee is sent to the community pool.
-// Returns nil on success, error otherwise.
-func (k Keeper) chargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
-	var feeDenom string
-	if k.tk == nil {
-		feeDenom, err = sdk.GetBaseDenom()
-	} else {
-		feeDenom, err = k.tk.GetBaseDenom(ctx)
-	}
-	if err != nil {
-		return err
-	}
-
-	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
-
-	if accountBalance.LT(totalCost) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance of %s (%s) is less than the total cost of the message (%s)", feeDenom, accountBalance, totalCost)
-	}
-
-	if err := k.ck.FundCommunityPool(ctx, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)), address); err != nil {
-		return err
-	}
-	return nil
 }

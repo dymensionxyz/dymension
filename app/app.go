@@ -569,6 +569,27 @@ func New(
 		scopedIBCKeeper,
 	)
 
+	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		app.BankKeeper,
+	)
+
+	app.DenomMetadataKeeper.SetHooks(
+		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
+		),
+	)
+
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		keys[rollappmoduletypes.MemStoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+		app.IBCKeeper.ClientKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.BankKeeper,
+		app.DenomMetadataKeeper,
+	)
+
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
@@ -599,27 +620,6 @@ func New(
 		app.AccountKeeper,
 		app.BankKeeper,
 		nil,
-	)
-
-	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		app.BankKeeper,
-	)
-
-	app.DenomMetadataKeeper.SetHooks(
-		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
-		),
-	)
-
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ClientKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.BankKeeper,
-		app.DenomMetadataKeeper,
 	)
 
 	// Create Transfer Keepers
