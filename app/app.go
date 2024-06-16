@@ -577,6 +577,8 @@ func New(
 		app.EpochsKeeper,
 		app.DistrKeeper,
 		app.TxFeesKeeper,
+		app.RollappKeeper,
+		app.SequencerKeeper,
 	)
 
 	app.StreamerKeeper = *streamermodulekeeper.NewKeeper(

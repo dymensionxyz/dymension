@@ -49,7 +49,7 @@ type TxFeesKeeper interface {
 }
 
 type RollappKeeper interface {
-	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, error)
+	GetRollapp(ctx sdk.Context, rollappId string) (rollapptypes.Rollapp, bool)
 }
 
 type SequencerKeeper interface {

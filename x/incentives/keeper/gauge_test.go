@@ -101,7 +101,7 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		expectedGauge := types.Gauge{
 			Id:          gaugeID,
 			IsPerpetual: tc.isPerpetual,
-			DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
+			DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
 				LockQueryType: lockuptypes.ByDuration,
 				Denom:         "lptoken",
 				Duration:      time.Second,

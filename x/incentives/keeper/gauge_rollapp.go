@@ -11,9 +11,9 @@ import (
 // CreateRollappGauge creates a gauge and sends coins to the gauge.
 func (k Keeper) CreateRollappGauge(ctx sdk.Context, owner sdk.AccAddress, rollappId string) (uint64, error) {
 	// Ensure the rollapp exists
-	_, err := k.rk.GetRollapp(ctx, rollappId)
-	if err != nil {
-		return 0, err
+	_, found := k.rk.GetRollapp(ctx, rollappId)
+	if !found {
+		return 0, fmt.Errorf("rollapp %s not found", rollappId)
 	}
 
 	gauge := types.Gauge{
@@ -25,7 +25,7 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, owner sdk.AccAddress, rollap
 		NumEpochsPaidOver: 1,
 	}
 
-	err = k.setGauge(ctx, &gauge)
+	err := k.setGauge(ctx, &gauge)
 	if err != nil {
 		return 0, err
 	}
