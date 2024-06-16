@@ -58,14 +58,14 @@ func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
 
 func NewMsgUpdateDemandOrder(orderId, ownerAddr, newFee string) *MsgUpdateDemandOrder {
 	return &MsgUpdateDemandOrder{
-		OrderId: orderId,
-		Owner:   ownerAddr,
-		NewFee:  newFee,
+		OrderId:      orderId,
+		OwnerAddress: ownerAddr,
+		NewFee:       newFee,
 	}
 }
 
 func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(m.Owner)
+	creator, err := sdk.AccAddressFromBech32(m.OwnerAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +73,7 @@ func (m *MsgUpdateDemandOrder) GetSigners() []sdk.AccAddress {
 }
 
 func (m *MsgUpdateDemandOrder) ValidateBasic() error {
-	err := validateCommon(m.OrderId, m.Owner, m.NewFee)
+	err := validateCommon(m.OrderId, m.OwnerAddress, m.NewFee)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidRequest, err.Error())
 	}
@@ -81,8 +81,8 @@ func (m *MsgUpdateDemandOrder) ValidateBasic() error {
 	return nil
 }
 
-func (m *MsgUpdateDemandOrder) GetSubmitterAddr() sdk.AccAddress {
-	return sdk.MustAccAddressFromBech32(m.Owner)
+func (m *MsgUpdateDemandOrder) GetSignerAddr() sdk.AccAddress {
+	return sdk.MustAccAddressFromBech32(m.OwnerAddress)
 }
 
 func isValidOrderId(orderId string) bool {

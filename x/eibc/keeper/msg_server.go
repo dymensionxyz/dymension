@@ -45,10 +45,6 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		}
 	}
 
-	// Check for blocked address
-	if m.bk.BlockedAddr(demandOrder.GetRecipientBech32Address()) {
-		return nil, types.ErrBlockedAddress
-	}
 	// Check that the fulfiller has enough balance to fulfill the order
 	fulfillerAccount := m.ak.GetAccount(ctx, msg.GetFulfillerBech32Address())
 	if fulfillerAccount == nil {
@@ -85,9 +81,10 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
-	// Check that the submitter is the expected recipient of the order
-	submitter := msg.GetSubmitterAddr()
-	if !submitter.Equals(demandOrder.GetRecipientBech32Address()) {
+	// Check that the signer is the order owner
+	orderOwner := demandOrder.GetRecipientBech32Address()
+	msgSigner := msg.GetSignerAddr()
+	if !msgSigner.Equals(orderOwner) {
 		return nil, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "only the recipient can update the order")
 	}
 
@@ -104,12 +101,10 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 	// calculate the new price: transferTotal - newFee - bridgingFee
 	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
 	transferTotal, _ := sdk.NewIntFromString(data.Amount)
-	newPrice := transferTotal.Sub(newFeeInt)
-	if newPrice.IsNegative() {
-		return nil, types.ErrFeeTooHigh
+	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, m.dack.BridgingFee(ctx))
+	if err != nil {
+		return nil, err
 	}
-	bridgingFee := m.dack.BridgingFeeFromAmt(ctx, transferTotal)
-	newPrice = newPrice.Sub(bridgingFee)
 
 	denom := demandOrder.Price[0].Denom
 	demandOrder.Fee = sdk.NewCoins(sdk.NewCoin(denom, newFeeInt))

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
@@ -30,7 +29,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
 	if k.BlockedAddr(data.Receiver) {
-		return fmt.Errorf("not allowed to receive funds: receiver: %s", data.Receiver)
+		return types.ErrBlockedAddress
 	}
 
 	switch t := rollappPacket.Type; t {
@@ -79,22 +78,15 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	// Calculate the demand order price and validate it,
 	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 	fee, _ := eibcMetaData.FeeInt()                                // guaranteed ok by above validation
-	if amt.LT(fee) {
-		return nil, errorsmod.Wrapf(types.ErrFeeTooHigh, "fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
-	}
-
-	// Get the bridging fee from the amount
-	bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
-	demandOrderPrice := amt.Sub(fee).Sub(bridgingFee)
-	if !demandOrderPrice.IsPositive() {
-		return nil, fmt.Errorf("remaining price is not positive: price: %s, bridging fee: %s, fee: %s, amount: %s",
-			demandOrderPrice, bridgingFee, fee, amt)
+	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
+	if err != nil {
+		return nil, err
 	}
 
 	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 
-	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	return order, nil
 }
 
@@ -102,7 +94,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 // The fee multiplier is read from params and used to calculate the fee.
 func (k Keeper) CreateDemandOrderOnAck(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
-) (*eibctypes.DemandOrder, error) {
+) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
 	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
@@ -125,7 +117,7 @@ func (k Keeper) CreateDemandOrderOnAck(ctx sdk.Context, fungibleTokenPacketData 
 	demandOrderDenom := trace.IBCDenom()
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 
-	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	return order, nil
 }
 
