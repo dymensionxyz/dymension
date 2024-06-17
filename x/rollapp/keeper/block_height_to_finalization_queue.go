@@ -17,7 +17,7 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 
 	return osmoutils.ApplyFuncIfNoError(ctx,
 		// we trap at this granularity because we want to avoid iterating inside the
@@ -99,8 +99,8 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	))
 }
 
-// GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
-func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+// GetAllFinalizationQueueUntilHeightInclusive returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
+func (k Keeper) GetAllFinalizationQueueUntilHeightInclusive(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
 	height++
 	return k.getFinalizationQueue(ctx, &height)
 }

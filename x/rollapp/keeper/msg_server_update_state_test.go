@@ -157,7 +157,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		}
 
 		// check finalization status change
-		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeight(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
+		pendingQueues := suite.App.RollappKeeper.GetAllFinalizationQueueUntilHeightInclusive(suite.Ctx, uint64(suite.Ctx.BlockHeader().Height))
 
 		for _, finalizationQueue := range pendingQueues {
 
