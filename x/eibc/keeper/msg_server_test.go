@@ -10,67 +10,7 @@ import (
 	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
-func (suite *KeeperTestSuite) TestMsgFulfillOrderEvent() {
-	// Create and fund the account
-	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
-	eibcSupplyAddr := testAddresses[0]
-	eibcDemandAddr := testAddresses[1]
-	// Set the rollapp packet
-	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
-	// Create new demand order
-	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), sdk.DefaultBondDenom, eibcSupplyAddr.String())
-	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
-	suite.Require().NoError(err)
-
-	tests := []struct {
-		name                                    string
-		fulfillmentShouldFail                   bool
-		expectedPostFulfillmentEventsCount      int
-		expectedPostFulfillmentEventsType       string
-		expectedPostFulfillmentEventsAttributes []sdk.Attribute
-	}{
-		{
-			name:                               "Test demand order fulfillment - success",
-			expectedPostFulfillmentEventsType:  eibcEventType,
-			expectedPostFulfillmentEventsCount: 1,
-			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
-				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
-				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
-			},
-		},
-		{
-			name:                               "Failed fulfillment - ",
-			fulfillmentShouldFail:              true,
-			expectedPostFulfillmentEventsCount: 0,
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
-		expectedFee := "50"
-		if tc.fulfillmentShouldFail {
-			expectedFee = "30"
-		}
-		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, expectedFee)
-		_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
-		if tc.fulfillmentShouldFail {
-			suite.Require().Error(err)
-		} else {
-			suite.Require().NoError(err)
-		}
-		suite.AssertEventEmitted(suite.Ctx, tc.expectedPostFulfillmentEventsType, tc.expectedPostFulfillmentEventsCount)
-		if tc.expectedPostFulfillmentEventsCount > 0 {
-			lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), tc.expectedPostFulfillmentEventsType)
-			suite.Require().True(ok)
-			suite.AssertAttributes(lastEvent, tc.expectedPostFulfillmentEventsAttributes)
-		}
-	}
-}
-
-func (suite *KeeperTestSuite) TestMsgFulfillOrderWithoutEvents() {
+func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 	tests := []struct {
 		name                                 string
 		demandOrderPacketKey                 string
@@ -199,6 +139,66 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrderWithoutEvents() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
+	// Create and fund the account
+	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
+	eibcSupplyAddr := testAddresses[0]
+	eibcDemandAddr := testAddresses[1]
+	// Set the rollapp packet
+	suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
+	// Create new demand order
+	demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(200), math.NewIntFromUint64(50), sdk.DefaultBondDenom, eibcSupplyAddr.String())
+	err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
+	suite.Require().NoError(err)
+
+	tests := []struct {
+		name                                    string
+		fulfillmentShouldFail                   bool
+		expectedPostFulfillmentEventsCount      int
+		expectedPostFulfillmentEventsType       string
+		expectedPostFulfillmentEventsAttributes []sdk.Attribute
+	}{
+		{
+			name:                               "Test demand order fulfillment - success",
+			expectedPostFulfillmentEventsType:  eibcEventType,
+			expectedPostFulfillmentEventsCount: 1,
+			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{
+				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
+				sdk.NewAttribute(types.AttributeKeyPrice, "200"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyFee, "50"+sdk.DefaultBondDenom),
+				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "true"),
+				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
+			},
+		},
+		{
+			name:                               "Failed fulfillment - ",
+			fulfillmentShouldFail:              true,
+			expectedPostFulfillmentEventsCount: 0,
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
+		expectedFee := "50"
+		if tc.fulfillmentShouldFail {
+			expectedFee = "30"
+		}
+		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, expectedFee)
+		_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
+		if tc.fulfillmentShouldFail {
+			suite.Require().Error(err)
+		} else {
+			suite.Require().NoError(err)
+		}
+		suite.AssertEventEmitted(suite.Ctx, tc.expectedPostFulfillmentEventsType, tc.expectedPostFulfillmentEventsCount)
+		if tc.expectedPostFulfillmentEventsCount > 0 {
+			lastEvent, ok := suite.FindLastEventOfType(suite.Ctx.EventManager().Events(), tc.expectedPostFulfillmentEventsType)
+			suite.Require().True(ok)
+			suite.AssertAttributes(lastEvent, tc.expectedPostFulfillmentEventsAttributes)
+		}
+	}
+}
+
 func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	// Create and fund the account
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
@@ -216,34 +216,34 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 
 	testCases := []struct {
 		name          string
-		fee           sdk.Int
+		newFee        sdk.Int
 		submittedBy   string
 		expectError   bool
 		expectedPrice sdk.Int
 	}{
 		{
 			name:          "happy case",
-			fee:           sdk.NewInt(400),
+			newFee:        sdk.NewInt(400),
 			submittedBy:   eibcSupplyAddr.String(),
 			expectError:   false,
 			expectedPrice: sdk.NewInt(590),
 		},
 		{
 			name:          "happy case - zero eibc fee",
-			fee:           sdk.NewInt(0),
+			newFee:        sdk.NewInt(0),
 			submittedBy:   eibcSupplyAddr.String(),
 			expectError:   false,
 			expectedPrice: sdk.NewInt(990),
 		},
 		{
 			name:        "wrong owner",
-			fee:         sdk.NewInt(400),
+			newFee:      sdk.NewInt(400),
 			submittedBy: testAddresses[1].String(),
 			expectError: true,
 		},
 		{
 			name:        "too high fee",
-			fee:         sdk.NewInt(1001),
+			newFee:      sdk.NewInt(1001),
 			submittedBy: eibcSupplyAddr.String(),
 			expectError: true,
 		},
@@ -256,7 +256,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 		suite.Require().NoError(err)
 
 		// try to update the demand order
-		msg := types.NewMsgUpdateDemandOrder(demandOrder.Id, tc.submittedBy, tc.fee.String())
+		msg := types.NewMsgUpdateDemandOrder(demandOrder.Id, tc.submittedBy, tc.newFee.String())
 		_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
 		if tc.expectError {
 			suite.Require().Error(err, tc.name)
@@ -266,7 +266,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 		// check if the demand order is updated
 		updatedDemandOrder, err := suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, rollappPacket.Status, demandOrder.Id)
 		suite.Require().NoError(err, tc.name)
-		suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), tc.fee, tc.name)
+		suite.Assert().Equal(updatedDemandOrder.Fee.AmountOf(denom), tc.newFee, tc.name)
 		suite.Assert().Equal(updatedDemandOrder.Price.AmountOf(denom), tc.expectedPrice, tc.name)
 	}
 }
