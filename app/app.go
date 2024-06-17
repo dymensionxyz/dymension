@@ -614,7 +614,13 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], keys[rollappmoduletypes.MemStoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		keys[rollappmoduletypes.MemStoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+	)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -638,7 +644,16 @@ func New(
 		app.RollappKeeper,
 	)
 
-	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(appCodec, keys[delayedacktypes.StoreKey], app.GetSubspace(delayedacktypes.ModuleName), app.RollappKeeper, app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ChannelKeeper, app.EIBCKeeper, app.BankKeeper)
+	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
+		appCodec,
+		keys[delayedacktypes.StoreKey],
+		app.GetSubspace(delayedacktypes.ModuleName),
+		app.RollappKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ChannelKeeper,
+		app.EIBCKeeper,
+		app.BankKeeper,
+	)
 
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
 
