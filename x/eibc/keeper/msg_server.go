@@ -98,10 +98,18 @@ func (m msgServer) UpdateDemandOrder(goCtx context.Context, msg *types.MsgUpdate
 		return nil, err
 	}
 
+	// Get the bridging fee multiplier
+	// ErrAck or Timeout packets do not incur bridging fees
+	bridgingFeeMultiplier := m.dack.BridgingFee(ctx)
+	raPacketType := raPacket.GetType()
+	if raPacketType != commontypes.RollappPacket_ON_RECV {
+		bridgingFeeMultiplier = sdk.ZeroDec()
+	}
+
 	// calculate the new price: transferTotal - newFee - bridgingFee
 	newFeeInt, _ := sdk.NewIntFromString(msg.NewFee)
 	transferTotal, _ := sdk.NewIntFromString(data.Amount)
-	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, m.dack.BridgingFee(ctx))
+	newPrice, err := types.CalcPriceWithBridgingFee(transferTotal, newFeeInt, bridgingFeeMultiplier)
 	if err != nil {
 		return nil, err
 	}
