@@ -1,14 +1,11 @@
 package keeper
 
 import (
-	"strings"
-
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/utils/derr"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"golang.org/x/exp/slices"
 )
 
 // VerifyAndRecordGenesisTransfer takes a transfer 'index' from the rollapp sequencer and book keeps it
@@ -69,53 +66,6 @@ func transfersEnabledEvent(raID string) sdk.Event {
 	return sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
 		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
 	)
-}
-
-// GenesisTransfersAreEquivalent returns if a,b are the same, in terms of containing
-// the same semantic content. Intended for use in tests.
-func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
-	if len(x) != len(y) {
-		return false
-	}
-	sortOne := func(l []types.GenesisTransfers) {
-		slices.SortStableFunc(l, func(a, b types.GenesisTransfers) bool {
-			return strings.Compare(a.GetRollappID(), b.GetRollappID()) <= 0
-		})
-	}
-	sortTwo := func(l []types.GenesisTransfers) {
-		for _, transfer := range l {
-			slices.SortStableFunc(transfer.Received, func(a, b uint64) bool {
-				return a <= b
-			})
-		}
-	}
-	sortOne(x)
-	sortOne(y)
-	sortTwo(x)
-	sortTwo(y)
-	for i := range len(x) {
-		a := x[i]
-		b := y[i]
-		if a.NumTotal != b.NumTotal {
-			return false
-		}
-		if a.NumReceived != b.NumReceived {
-			return false
-		}
-		if a.RollappID != b.RollappID {
-			return false
-		}
-		if len(a.Received) != len(b.Received) {
-			return false
-		}
-		for j := range len(a.Received) {
-			if a.Received[j] != b.Received[j] {
-				return false
-			}
-		}
-	}
-
-	return true
 }
 
 func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTransfers) {
