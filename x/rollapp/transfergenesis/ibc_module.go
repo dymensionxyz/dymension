@@ -38,6 +38,10 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+const (
+	memoNamespaceKey = "genesis_transfer"
+)
+
 type DenomMetadataKeeper interface {
 	CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error
 	HasDenomMetadata(ctx sdk.Context, base string) bool
@@ -96,8 +100,6 @@ func (w IBCModule) OnRecvPacket(
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
-
-	l.Debug("Processing inbound packet.")
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		l.Debug("Rollapps are disabled.")
@@ -197,8 +199,6 @@ func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
 	}
 
-	key := "genesis_transfer"
-
 	// check if the key is there, because we want to differentiate between people not sending us the data, vs
 	// them sending it but it being malformed
 
@@ -209,7 +209,7 @@ func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 
-	if _, ok := keyMap[key]; !ok {
+	if _, ok := keyMap[memoNamespaceKey]; !ok {
 		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
 	}
 
