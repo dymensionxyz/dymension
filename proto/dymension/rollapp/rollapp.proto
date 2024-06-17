@@ -4,7 +4,6 @@ package dymensionxyz.dymension.rollapp;
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 import "gogoproto/gogo.proto";
 import "dymension/rollapp/state_info.proto";
-import "dymension/rollapp/bank.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
