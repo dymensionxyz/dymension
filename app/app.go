@@ -590,6 +590,15 @@ func New(
 		app.DenomMetadataKeeper,
 	)
 
+	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		keys[sequencermoduletypes.StoreKey],
+		keys[sequencermoduletypes.MemStoreKey],
+		app.GetSubspace(sequencermoduletypes.ModuleName),
+		app.BankKeeper,
+		app.RollappKeeper,
+	)
+
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
@@ -636,15 +645,6 @@ func New(
 	)
 
 	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
-
-	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
-		appCodec,
-		keys[sequencermoduletypes.StoreKey],
-		keys[sequencermoduletypes.MemStoreKey],
-		app.GetSubspace(sequencermoduletypes.ModuleName),
-		app.BankKeeper,
-		app.RollappKeeper,
-	)
 
 	app.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
 		appCodec,

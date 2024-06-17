@@ -213,3 +213,39 @@ func (k Keeper) GetUpcomingGauges(ctx sdk.Context) []types.Gauge {
 func (k Keeper) GetFinishedGauges(ctx sdk.Context) []types.Gauge {
 	return k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx))
 }
+
+// moveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
+func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
+	// validation for current time and distribution start time
+	if ctx.BlockTime().Before(gauge.StartTime) {
+		return fmt.Errorf("gauge is not able to start distribution yet: %s >= %s", ctx.BlockTime().String(), gauge.StartTime.String())
+	}
+
+	timeKey := getTimeKey(gauge.StartTime)
+	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	return nil
+}
+
+// moveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
+func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
+	timeKey := getTimeKey(gauge.StartTime)
+	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	assetGauge, ok := gauge.DistributeTo.(*types.Gauge_Asset)
+	if ok {
+		if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, assetGauge.Asset.Denom); err != nil {
+			return err
+		}
+	}
+	k.hooks.GaugeFinished(ctx, gauge.Id)
+	return nil
+}

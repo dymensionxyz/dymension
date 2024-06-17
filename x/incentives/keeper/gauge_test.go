@@ -5,6 +5,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	apptesting "github.com/dymensionxyz/dymension/v3/app/apptesting"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
@@ -290,8 +292,7 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
 			suite.Require().NoError(err)
 
-			testAccount := suite.TestAccs[0]
-
+			testAccount := apptesting.CreateRandomAccounts(1)[0]
 			ctx := suite.Ctx
 			incentivesKeepers := suite.App.IncentivesKeeper
 			bankKeeper := suite.App.BankKeeper

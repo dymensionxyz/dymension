@@ -39,10 +39,27 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 	if err != nil {
 		return nil, err
 	}
+
+	// call post distribution hooks
 	k.hooks.AfterEpochDistribution(ctx)
 
-	k.checkFinishDistribution(ctx, gauges)
+	k.checkFinishedGauges(ctx, gauges)
 	return totalDistributedCoins, nil
+}
+
+// GetModuleToDistributeCoins returns sum of coins yet to be distributed for all of the module.
+func (k Keeper) GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins {
+	activeGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
+	upcomingGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.UpcomingGaugesIterator(ctx)))
+	return activeGaugesDistr.Add(upcomingGaugesDistr...)
+}
+
+// GetModuleDistributedCoins returns sum of coins that have been distributed so far for all of the module.
+func (k Keeper) GetModuleDistributedCoins(ctx sdk.Context) sdk.Coins {
+	activeGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
+	finishedGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx)))
+
+	return activeGaugesDistr.Add(finishedGaugesDistr...)
 }
 
 // getDistributedCoinsFromGauges returns coins that have been distributed already from the provided gauges
@@ -66,42 +83,6 @@ func (k Keeper) getToDistributeCoinsFromGauges(gauges []types.Gauge) sdk.Coins {
 	return coins.Sub(distributed...)
 }
 
-// moveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
-func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
-	// validation for current time and distribution start time
-	if ctx.BlockTime().Before(gauge.StartTime) {
-		return fmt.Errorf("gauge is not able to start distribution yet: %s >= %s", ctx.BlockTime().String(), gauge.StartTime.String())
-	}
-
-	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	return nil
-}
-
-// moveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
-func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
-	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	assetGauge, ok := gauge.DistributeTo.(*types.Gauge_Asset)
-	if ok {
-		if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, assetGauge.Asset.Denom); err != nil {
-			return err
-		}
-	}
-	k.hooks.AfterFinishDistribution(ctx, gauge.Id)
-	return nil
-}
-
 // updateGaugePostDistribute increments the gauge's filled epochs field.
 // Also adds the coins that were just distributed to the gauge's distributed coins field.
 func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, newlyDistributedCoins sdk.Coins) error {
@@ -113,9 +94,9 @@ func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, ne
 	return nil
 }
 
-// checkFinishDistribution checks if all non perpetual gauges provided have completed their required distributions.
+// checkFinishedGauges checks if all non perpetual gauges provided have completed their required distributions.
 // If complete, move the gauge from an active to a finished status.
-func (k Keeper) checkFinishDistribution(ctx sdk.Context, gauges []types.Gauge) {
+func (k Keeper) checkFinishedGauges(ctx sdk.Context, gauges []types.Gauge) {
 	for _, gauge := range gauges {
 		// filled epoch is increased in this step and we compare with +1
 		if !gauge.IsPerpetual && gauge.NumEpochsPaidOver <= gauge.FilledEpochs+1 {

@@ -84,18 +84,3 @@ func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
 	params := k.GetParams(ctx)
 	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
 }
-
-// GetModuleToDistributeCoins returns sum of coins yet to be distributed for all of the module.
-func (k Keeper) GetModuleToDistributeCoins(ctx sdk.Context) sdk.Coins {
-	activeGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
-	upcomingGaugesDistr := k.getToDistributeCoinsFromGauges(k.getGaugesFromIterator(ctx, k.UpcomingGaugesIterator(ctx)))
-	return activeGaugesDistr.Add(upcomingGaugesDistr...)
-}
-
-// GetModuleDistributedCoins returns sum of coins that have been distributed so far for all of the module.
-func (k Keeper) GetModuleDistributedCoins(ctx sdk.Context) sdk.Coins {
-	activeGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.ActiveGaugesIterator(ctx)))
-	finishedGaugesDistr := k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx)))
-
-	return activeGaugesDistr.Add(finishedGaugesDistr...)
-}

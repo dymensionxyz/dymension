@@ -1,24 +1,27 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
-	defaultLPDenom           string        = "lptoken"
-	defaultLPSyntheticDenom  string        = "lptoken/superbonding"
-	defaultLPTokens          sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPDenom, 10)}
-	defaultLPSyntheticTokens sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPSyntheticDenom, 10)}
-	defaultLiquidTokens      sdk.Coins     = sdk.Coins{sdk.NewInt64Coin("foocoin", 10)}
-	defaultLockDuration      time.Duration = time.Second
-	oneLockupUser            userLocks     = userLocks{
+	defaultLPDenom      string        = "lptoken"
+	defaultLPTokens     sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPDenom, 10)}
+	defaultLiquidTokens sdk.Coins     = sdk.Coins{sdk.NewInt64Coin("foocoin", 10)}
+	defaultLockDuration time.Duration = time.Second
+	oneLockupUser       userLocks     = userLocks{
 		lockDurations: []time.Duration{time.Second},
 		lockAmounts:   []sdk.Coins{defaultLPTokens},
 	}
@@ -26,14 +29,7 @@ var (
 		lockDurations: []time.Duration{defaultLockDuration, 2 * defaultLockDuration},
 		lockAmounts:   []sdk.Coins{defaultLPTokens, defaultLPTokens},
 	}
-	oneSyntheticLockupUser userLocks = userLocks{
-		lockDurations: []time.Duration{time.Second},
-		lockAmounts:   []sdk.Coins{defaultLPSyntheticTokens},
-	}
-	twoSyntheticLockupUser userLocks = userLocks{
-		lockDurations: []time.Duration{defaultLockDuration, 2 * defaultLockDuration},
-		lockAmounts:   []sdk.Coins{defaultLPSyntheticTokens, defaultLPSyntheticTokens},
-	}
+
 	defaultRewardDenom string = "rewardDenom"
 )
 
@@ -206,4 +202,20 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
 
 	return lockOwner, gaugeID, gaugeCoins, startTime
+}
+
+// SetupLockAndGauge creates both a lock and a gauge.
+func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
+	alice := sdk.AccAddress([]byte("addr1---------------"))
+
+	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
+		Creator:       alice.String(),
+		RollappId:     tmrand.Str(8),
+		MaxSequencers: 1,
+	}
+
+	msgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
+	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
+	suite.Require().NoError(err)
+	return msgCreateRollapp.RollappId
 }
