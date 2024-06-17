@@ -33,7 +33,7 @@ func (k Keeper) GetValidTransfer(
 		return
 	}
 
-	ra, err := k.getRollapp(ctx, raPortOnHub, raChanOnHub)
+	ra, err := k.getRollappByPortChan(ctx, raPortOnHub, raChanOnHub)
 	if errorsmod.IsOf(err, errRollappNotFound) {
 		// no problem, it corresponds to a regular non-rollapp chain
 		err = nil
@@ -51,10 +51,10 @@ func (k Keeper) GetValidTransfer(
 
 var errRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
 
-// getRollapp returns the rollapp id that a packet came from, if we are certain
+// getRollappByPortChan returns the rollapp id that a packet came from, if we are certain
 // that the packet came from that rollapp. That means that the canonical channel
 // has already been set.
-func (k Keeper) getRollapp(ctx sdk.Context,
+func (k Keeper) getRollappByPortChan(ctx sdk.Context,
 	raPortOnHub, raChanOnHub string,
 ) (*types.Rollapp, error) {
 	/*
