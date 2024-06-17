@@ -83,19 +83,6 @@ func SimulateMsgUpdateState(
 			simulation.GlobalRollappList[rollappIndex].LastCreationHeight = uint64(ctx.BlockHeight())
 		}
 
-		// println("LastCreationHeight: ", simulation.GlobalRollappList[rollappIndex].LastCreationHeight)
-		// println("BlockHeight: ", uint64(ctx.BlockHeight()))
-		// println("  bExpectedError: ", bExpectedError)
-		// println("  bNotActive: ", bNotActive)
-		// println("  bWrongRollapp: ", bWrongRollapp)
-		// println("  bNoBds: ", bNoBds)
-		// println("  bWrongStartHeight: ", bWrongStartHeight)
-		// println("  startHeight: ", startHeight)
-		// println("  bStateWasUpdatedInThisHeight: ", bStateWasUpdatedInThisHeight)
-		// for _, item := range k.GetAllStateInfo(ctx) {
-		// 	println("CreationHeight: ", item.CreationHeight)
-		// }
-
 		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &sequencer.Account, bk, ak, nil, bExpectedError)
 	}
 }

@@ -17,7 +17,6 @@ type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
 		hooks      types.MultiRollappHooks
 		paramstore paramtypes.Subspace
 
@@ -26,7 +25,7 @@ type (
 	}
 )
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
@@ -35,7 +34,6 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey, memKey storetypes.StoreKey, ps p
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
-		memKey:        memKey,
 		paramstore:    ps,
 		hooks:         nil,
 		channelKeeper: channelKeeper,
