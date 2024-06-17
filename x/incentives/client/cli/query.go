@@ -48,9 +48,10 @@ func GetCmdGauges() (*osmocli.QueryDescriptor, *types.GaugesRequest) {
 // GetCmdRollappGauges returns all available rollapp gauges.
 func GetCmdRollappGauges() (*osmocli.QueryDescriptor, *types.GaugesRequest) {
 	return &osmocli.QueryDescriptor{
-		Use:   "rollapp-gauges",
-		Short: "Query all available rollapp gauges",
-		Long:  "{{.Short}}",
+		QueryFnName: "RollappGauges",
+		Use:         "rollapp-gauges",
+		Short:       "Query all available rollapp gauges",
+		Long:        "{{.Short}}",
 	}, &types.GaugesRequest{}
 }
 

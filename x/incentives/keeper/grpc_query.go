@@ -241,7 +241,7 @@ func (q Querier) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequ
 			for _, gauge := range newGauges {
 				_, ok := gauge.DistributeTo.(*types.Gauge_Rollapp)
 				if !ok {
-					return false, nil
+					continue
 				}
 				gauges = append(gauges, gauge)
 			}
