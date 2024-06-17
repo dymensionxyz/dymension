@@ -118,21 +118,3 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 
 	return ret
 }
-
-// DelGenesisTransfers deletes bookkeeping for one rollapp, it's not needed for correctness, but it's good to prune state
-// TODO: need to justify correct pruning property for this and the other state, in all possibilities (e.g. fraud recovery)
-func (k Keeper) DelGenesisTransfers(ctx sdk.Context, raID string) { // TODO: needs to be public?
-
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
-
-	nTotalKey := types.TransferGenesisNumTotalKey(raID)
-	nTotalBz := store.Get(nTotalKey)
-	nTotal := sdk.BigEndianToUint64(nTotalBz)
-	nKey := types.TransferGenesisNumKey(raID)
-	store.Delete(nTotalBz)
-	store.Delete(nKey)
-
-	for ix := range nTotal {
-		store.Delete(types.TransferGenesisSetMembershipKey(raID, ix))
-	}
-}
