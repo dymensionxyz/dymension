@@ -71,13 +71,3 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	}
 	return &metadata, nil
 }
-
-func IsMemoContainsPFM(input string) bool {
-	bz := []byte(input)
-	memo := make(map[string]any)
-	err := json.Unmarshal(bz, &memo)
-	if err != nil {
-		return false
-	}
-	return memo[memoObjectKeyPFM] != nil
-}

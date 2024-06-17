@@ -12,7 +12,7 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 		memo          string
 		expectedErr   bool
 		expectedFee   string
-		expectedPrice string //considering bridging fee of 1%
+		expectedPrice string // considering bridging fee of 1%
 	}{
 		{
 			name:          "fee by memo - create demand order",
