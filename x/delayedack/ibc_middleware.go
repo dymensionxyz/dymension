@@ -74,7 +74,7 @@ func (w IBCMiddleware) OnRecvPacket(
 	}
 
 	if skip(ctx) {
-		l.Info("Skipping because of skip delay ctx.")
+		l.Debug("Skipping because of skip delay ctx.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
