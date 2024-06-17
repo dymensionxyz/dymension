@@ -38,11 +38,10 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 	}
 
 	// Check that the fulfiller expected fee is equal to the demand order fee
-	for _, coin := range demandOrder.Fee {
-		expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
-		if !coin.Amount.Equal(expectedFee) {
-			return nil, types.ErrExpectedFeeNotMet
-		}
+	expectedFee, _ := sdk.NewIntFromString(msg.ExpectedFee)
+	orderFee := demandOrder.GetFeeAmount()
+	if !orderFee.Equal(expectedFee) {
+		return nil, types.ErrExpectedFeeNotMet
 	}
 
 	// Check that the fulfiller has enough balance to fulfill the order
