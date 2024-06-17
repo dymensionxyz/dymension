@@ -36,7 +36,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 	case commontypes.RollappPacket_ON_RECV:
 		eibcDemandOrder, err = k.CreateDemandOrderOnRecv(ctx, data, &rollappPacket)
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
-		eibcDemandOrder, err = k.CreateDemandOrderOnAck(ctx, data, &rollappPacket)
+		eibcDemandOrder, err = k.CreateDemandOrderOnErrAckOrTimeout(ctx, data, &rollappPacket)
 	}
 	if err != nil {
 		return fmt.Errorf("create eibc demand order: %w", err)
@@ -55,8 +55,8 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 }
 
 // CreateDemandOrderOnRecv creates a demand order from an IBC packet.
-// It validates the fungible token packet data, extracts the fee from the memo,
-// calculates the demand order price, and creates a new demand order.
+// It extracts the fee from the memo,calculates the demand order price, and creates a new demand order.
+// price calculated with the fee and the bridging fee. (price = amount - fee - bridging fee)
 // It returns the created demand order or an error if there is any.
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
@@ -90,9 +90,9 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	return order, nil
 }
 
-// CreateDemandOrderOnAck creates a demand order for a timeout or errack packet.
+// CreateDemandOrderOnErrAckOrTimeout creates a demand order for a timeout or errack packet.
 // The fee multiplier is read from params and used to calculate the fee.
-func (k Keeper) CreateDemandOrderOnAck(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
+func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
