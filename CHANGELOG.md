@@ -48,6 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (eibc) [#873](https://github.com/dymensionxyz/dymension/issues/873) Add `FulfillerAddress` to `DemandOrder` and its event
 - (denommetadata) [#907](https://github.com/dymensionxyz/dymension/issues/907) Add IBC middleware to migrate denom metadata to rollappp, remove `CreateDenomMetadata` and `UpdateDenomMetadata` tx handlers
 - (delayedack) [#849](https://github.com/dymensionxyz/dymension/issues/849) Add demand order filters: type, rollapp id and limit
 - (delayedack) [#850](https://github.com/dymensionxyz/dymension/issues/850) Add type filter for delayedack

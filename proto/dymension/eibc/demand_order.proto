@@ -30,4 +30,6 @@ message DemandOrder {
     dymensionxyz.dymension.common.Status tracking_packet_status = 8;
     string rollapp_id = 9;
     common.RollappPacket.Type type = 10;
+  // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
+    string fulfiller_address = 11;
 }

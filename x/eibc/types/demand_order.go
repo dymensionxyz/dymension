@@ -76,6 +76,11 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
 		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
 	}
+
+	if m.FulfillerAddress != "" {
+		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyFulfillerAddress, m.FulfillerAddress))
+	}
+
 	return eventAttributes
 }
 
