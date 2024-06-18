@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -108,6 +109,9 @@ func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, re
 				EventTypeBridgingFee,
 				sdk.NewAttribute(AttributeKeyFee, fee.String()),
 				sdk.NewAttribute(sdk.AttributeKeySender, transfer.Sender),
+				sdk.NewAttribute(transfertypes.AttributeKeyReceiver, transfer.Receiver),
+				sdk.NewAttribute(transfertypes.AttributeKeyDenom, transfer.Denom),
+				sdk.NewAttribute(transfertypes.AttributeKeyAmount, transfer.Amount),
 			),
 		)
 	}
