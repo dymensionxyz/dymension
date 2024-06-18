@@ -218,12 +218,7 @@ func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx 
 
 // getLatestSequencerPubKey returns the *hash* of the pub key of the latest validator
 func (k LCV) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
-	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappID)
-	if !found {
-		return "", nil, gerrc.ErrNotFound
-	}
-
-	state, found := k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
+	state, found := k.GetLatestStateInfo(ctx, rollappID)
 	if !found {
 		return "", nil, gerrc.ErrNotFound
 	}
