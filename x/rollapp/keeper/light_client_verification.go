@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	tendermint "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -75,17 +75,12 @@ type clientUpdateEvent struct {
 }
 
 func (v lcv) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
-	clientState, ok := v.ibckeeper.ClientKeeper.GetClientState(ctx, evt.clientID)
-	if !ok {
-		return gerrc.ErrNotFound
-	}
-	_ = clientState // TODO: remove
 	consState, ok := v.ibckeeper.ClientKeeper.GetClientConsensusState(ctx, evt.clientID, evt.consensusHeight)
 	if !ok {
 		return gerrc.ErrNotFound
 	}
 
-	tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
+	tmConsState, ok := consState.(*tendermint.ConsensusState)
 	if !ok {
 		return errorsmod.WithType(gerrc.ErrInvalidArgument, consState)
 	}
@@ -93,6 +88,14 @@ func (v lcv) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) 
 	_ = tmConsState
 
 	return nil
+}
+
+func (v lcv) sergisType(consState exported.ConsensusState) *tendermint.ConsensusState {
+	ret, ok := consState.(*tendermint.ConsensusState)
+	if !ok {
+		panic("oops")
+	}
+	return ret
 }
 
 func (v lcv) verifyNewStateUpdate(ctx sdk.Context) error {
@@ -107,6 +110,7 @@ func (v lcv) verify(
 	ctx sdk.Context,
 	height uint64,
 	lightClientState exported.ConsensusState,
+	lightClientStateTendermint *tendermint.ConsensusState,
 	rollappState *types.StateInfo,
 ) error {
 	// We check if it matches
