@@ -82,8 +82,8 @@ func TestStateInfoQuerySingle(t *testing.T) {
 	}
 }
 
-// go test -run=TestPropertyBased -rapid.checks=10000 -rapid.steps=50
-func TestPropertyBased(t *testing.T) {
+// go test ./x/rollapp/keeper/... -run=TestFindStateInfoByHeightBinary -rapid.checks=10000 -rapid.steps=50
+func TestFindStateInfoByHeightBinary(t *testing.T) {
 	/*
 	  -rapid.checks int
 	    	rapid: number of checks to perform (default 100)
@@ -122,11 +122,12 @@ func TestPropertyBased(t *testing.T) {
 				if height <= lastHeight {
 					return
 				}
+				ixKey := types.StateInfoIndex{
+					RollappId: rollapp,
+					Index:     ix,
+				}
 				keeper.SetStateInfo(ctx, types.StateInfo{
-					StateInfoIndex: types.StateInfoIndex{
-						RollappId: rollapp,
-						Index:     ix,
-					},
+					StateInfoIndex: ixKey,
 					Sequencer:      "",
 					StartHeight:    lastHeight + 1,
 					NumBlocks:      height - lastHeight,
@@ -136,6 +137,7 @@ func TestPropertyBased(t *testing.T) {
 					Status:         0,
 					BDs:            types.BlockDescriptors{},
 				})
+				keeper.SetLatestStateInfoIndex(ctx, ixKey)
 				lastHeight = height
 				ix++
 			},
@@ -153,7 +155,7 @@ func TestPropertyBased(t *testing.T) {
 					require.NoError(t, err)
 					require.True(t, state.ContainsHeight(height))
 				} else {
-					require.True(t, errorsmod.IsOf(err, gerrc.ErrNotFound))
+					require.Truef(t, errorsmod.IsOf(err, gerrc.ErrNotFound), err.Error())
 				}
 			},
 		}

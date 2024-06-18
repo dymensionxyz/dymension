@@ -57,10 +57,7 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 }
 
 func (k Keeper) FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
-	_, ok := k.GetRollapp(ctx, rollappId)
-	if !ok {
-		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get rollapp")
-	}
+	// TODO: check for rollapp?
 
 	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
 	if !ok {
