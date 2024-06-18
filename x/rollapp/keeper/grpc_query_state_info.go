@@ -66,8 +66,8 @@ func (k Keeper) FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, h
 
 	lowIx := uint64(1) // TODO: explain why 1
 	highIx := ix.GetIndex()
-	midIX := lowIx + ((highIx - lowIx) / 2)
-	for lowIx < highIx {
+	for lowIx <= highIx {
+		midIX := lowIx + ((highIx - lowIx) / 2)
 		state, ok := k.GetStateInfo(ctx, rollappId, midIX)
 		if !ok {
 			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "get state info: ix: %d", midIX)
@@ -76,9 +76,9 @@ func (k Keeper) FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, h
 			return &state, nil
 		}
 		if height < state.GetStartHeight() {
-			highIx = midIX
+			highIx = midIX - 1
 		} else {
-			lowIx = midIX
+			lowIx = midIX + 1
 		}
 	}
 	return nil, errorsmod.Wrap(gerrc.ErrNotFound, "exhausted binary search")
