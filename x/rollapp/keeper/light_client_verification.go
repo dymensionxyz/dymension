@@ -94,6 +94,8 @@ func (v lcv) verifyNewStateUpdate(ctx sdk.Context) error {
 	return nil
 }
 
-func (v lcv) verify(ctx sdk.Context) error {
+func (v lcv) getStateInfo(ctx sdk.Context, evt) error {}
+
+func (v lcv) verify(ctx sdk.Context, lightClientState exported.ConsensusState) error {
 	return nil
 }

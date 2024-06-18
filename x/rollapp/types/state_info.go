@@ -35,6 +35,10 @@ func (s *StateInfo) GetLatestHeight() uint64 {
 	return s.StartHeight + s.NumBlocks - 1
 }
 
+func (s *StateInfo) ContainsHeight(h uint64) bool {
+	return s.StartHeight <= h && h <= s.GetLatestHeight()
+}
+
 func (s *StateInfo) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, s.StateInfoIndex.RollappId),

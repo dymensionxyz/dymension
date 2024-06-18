@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -55,6 +56,38 @@ func (k Keeper) StateInfo(c context.Context, req *types.QueryGetStateInfoRequest
 	return &types.QueryGetStateInfoResponse{StateInfo: stateInfo}, nil
 }
 
+func (k Keeper) FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
+	_, ok := k.GetRollapp(ctx, rollappId)
+	if !ok {
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get rollapp")
+	}
+
+	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
+	if !ok {
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get latest state info index")
+	}
+
+	lowIx := uint64(1)
+	highIx := ix.GetIndex()
+	midIX := lowIx + ((highIx - lowIx) / 2)
+	for lowIx < highIx {
+		state, ok := k.GetStateInfo(ctx, rollappId, midIX)
+		if !ok {
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "get state info: ix: %d", midIX)
+		}
+		if state.ContainsHeight(height) {
+			return &state, nil
+		}
+		if height < state.GetStartHeight() {
+			highIx = midIX
+		} else {
+			lowIx = midIX
+		}
+	}
+	return nil, errorsmod.Wrap(gerrc.ErrNotFound, "exhausted binary search")
+}
+
+// FindStateInfoByHeight .. TODO: surely, binary search?
 func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
 	// check that height not zero
 	if height == 0 {
