@@ -36,7 +36,7 @@ var (
 	timeoutTimestamp   = uint64(100)
 	transferPacketData = transfertypes.NewFungibleTokenPacketData(
 		sdk.DefaultBondDenom,
-		"100",
+		"1000",
 		eibcSenderAddr.String(),
 		eibcReceiverAddr.String(),
 		"",

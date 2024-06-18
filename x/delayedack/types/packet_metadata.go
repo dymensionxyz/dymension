@@ -29,12 +29,10 @@ func (e EIBCMetadata) ValidateBasic() error {
 	return nil
 }
 
-var ErrEIBCFeeNotPositiveInt = fmt.Errorf("eibc fee is not a positive integer")
-
 func (e EIBCMetadata) FeeInt() (math.Int, error) {
 	i, ok := sdk.NewIntFromString(e.Fee)
-	if !ok || !i.IsPositive() {
-		return math.Int{}, ErrEIBCFeeNotPositiveInt
+	if !ok || i.IsNegative() {
+		return math.Int{}, ErrBadEIBCFee
 	}
 	return i, nil
 }
@@ -59,12 +57,12 @@ func ParsePacketMetadata(input string) (*PacketMetadata, error) {
 	if err != nil {
 		return nil, ErrMemoUnmarshal
 	}
-	if memo[memoObjectKeyEIBC] == nil {
-		return nil, ErrMemoEibcEmpty
-	}
 	if memo[memoObjectKeyPFM] != nil {
 		// Currently not supporting eibc with PFM: https://github.com/dymensionxyz/dymension/issues/599
 		return nil, ErrMemoHashPFMandEIBC
+	}
+	if memo[memoObjectKeyEIBC] == nil {
+		return nil, ErrMemoEibcEmpty
 	}
 	var metadata PacketMetadata
 	err = json.Unmarshal(bz, &metadata)
