@@ -175,7 +175,9 @@ func (w IBCModule) OnRecvPacket(
 	return w.IBCModule.OnRecvPacket(
 		bridgingfee.SkipContext(
 			transfersenabled.SkipContext(
-				delayedack.SkipContext(ctx),
+				delayedack.SkipContext(
+					ctx,
+				),
 			),
 		),
 		packet, relayer)
