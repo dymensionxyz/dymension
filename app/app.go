@@ -144,8 +144,6 @@ import (
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/transferinject"
-
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -625,7 +623,7 @@ func New(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		denommetadatamodule.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -762,8 +760,7 @@ func New(
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.TransferKeeper, *app.DenomMetadataKeeper)
-	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
+	transferStack = denommetadatamodule.NewIBCRecvMiddleware(transferStack, app.TransferKeeper, app.DenomMetadataKeeper, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

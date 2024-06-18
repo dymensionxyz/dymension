@@ -27,7 +27,7 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 
 // CreateDenomMetadata creates a new denommetadata
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
-	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	_, found := k.bankKeeper.GetDenomMetaData(ctx, metadata.Base)
 	if found {
 		return types.ErrDenomAlreadyExists
 	}
@@ -41,7 +41,7 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 
 // UpdateDenomMetadata returns the denommetadata of the specified denom
 func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
-	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	_, found := k.bankKeeper.GetDenomMetaData(ctx, metadata.Base)
 	if !found {
 		return types.ErrDenomDoesNotExist
 	}
@@ -53,7 +53,7 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	return nil
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
