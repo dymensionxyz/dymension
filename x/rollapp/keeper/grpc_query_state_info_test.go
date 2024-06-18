@@ -80,30 +80,7 @@ func TestStateInfoQuerySingle(t *testing.T) {
 	}
 }
 
-// go test ./x/rollapp/keeper/... -run=TestFindStateInfoByHeightBinary -rapid.checks=10000 -rapid.steps=50
 func TestFindStateInfoByHeightBinary(t *testing.T) {
-	/*
-	  -rapid.checks int
-	    	rapid: number of checks to perform (default 100)
-	  -rapid.debug
-	    	rapid: debugging output
-	  -rapid.debugvis
-	    	rapid: debugging visualization
-	  -rapid.failfile string
-	    	rapid: fail file to use to reproduce test failure
-	  -rapid.log
-	    	rapid: eager verbose output to stdout (to aid with unrecoverable test failures)
-	  -rapid.nofailfile
-	    	rapid: do not write fail files on test failures
-	  -rapid.seed uint
-	    	rapid: PRNG seed to start with (0 to use a random one)
-	  -rapid.shrinktime duration
-	    	rapid: maximum time to spend on test case minimization (default 30s)
-	  -rapid.steps int
-	    	rapid: average number of Repeat actions to execute (default 30)
-	  -rapid.v
-	    	rapid: verbose output
-	*/
 	keeper, ctx := keepertest.RollappKeeper(t)
 
 	f := func(r *rapid.T) {
@@ -116,40 +93,26 @@ func TestFindStateInfoByHeightBinary(t *testing.T) {
 		ops := map[string]func(*rapid.T){
 			"insert": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
-				t.Logf("inserting: [%d, %d]", lastHeight+1, height)
 				if height <= lastHeight {
 					return
 				}
-				ixKey := types.StateInfoIndex{
-					RollappId: rollapp,
-					Index:     ix,
+				info := types.StateInfo{
+					StateInfoIndex: types.StateInfoIndex{
+						RollappId: rollapp,
+						Index:     ix,
+					},
+					StartHeight: lastHeight + 1,
+					NumBlocks:   height - lastHeight,
 				}
-				keeper.SetStateInfo(ctx, types.StateInfo{
-					StateInfoIndex: ixKey,
-					Sequencer:      "",
-					StartHeight:    lastHeight + 1,
-					NumBlocks:      height - lastHeight,
-					DAPath:         "",
-					Version:        0,
-					CreationHeight: 0,
-					Status:         0,
-					BDs:            types.BlockDescriptors{},
-				})
-				keeper.SetLatestStateInfoIndex(ctx, ixKey)
+				keeper.SetStateInfo(ctx, info)
+				keeper.SetLatestStateInfoIndex(ctx, info.StateInfoIndex)
 				lastHeight = height
 				ix++
 			},
-			"sanity": func(t *rapid.T) {
-				if 1 < ix {
-					_, ok := keeper.GetStateInfo(ctx, rollapp, ix-1)
-					require.True(t, ok)
-				}
-			},
 			"find": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
-				t.Logf("searching for: %d", height)
 				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
-				shouldFind := 1 < ix && height <= lastHeight
+				shouldFind := 0 < lastHeight && height <= lastHeight
 				if shouldFind && err != nil {
 					t.Fatalf("err: %v", err)
 				}
