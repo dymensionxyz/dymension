@@ -113,6 +113,7 @@ func TestPropertyBased(t *testing.T) {
 
 		rollapp := "foo"
 		lastInsertedHeight := uint64(0)
+		lastIndex := uint64(0)
 
 		ops := map[string]func(*rapid.T){
 			"insert": func(t *rapid.T) {
@@ -121,7 +122,10 @@ func TestPropertyBased(t *testing.T) {
 					return
 				}
 				keeper.SetStateInfo(ctx, types.StateInfo{
-					StateInfoIndex: types.StateInfoIndex{},
+					StateInfoIndex: types.StateInfoIndex{
+						RollappId: rollapp,
+						Index:     lastIndex,
+					},
 					Sequencer:      "",
 					StartHeight:    lastInsertedHeight + 1,
 					NumBlocks:      height - lastInsertedHeight,
@@ -132,6 +136,12 @@ func TestPropertyBased(t *testing.T) {
 					BDs:            types.BlockDescriptors{},
 				})
 				lastInsertedHeight = height
+			},
+			"sanity": func(t *rapid.T) {
+				if 0 < lastInsertedHeight {
+					_, ok := keeper.GetStateInfo(ctx, rollapp, lastInsertedHeight)
+					require.True(t, ok)
+				}
 			},
 			"find": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
