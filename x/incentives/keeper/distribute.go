@@ -12,6 +12,31 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Distribute distributes coins from an array of gauges to all eligible locks.
+func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, error) {
+	distrInfo := newDistributionInfo()
+
+	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
+	totalDistributedCoins := sdk.Coins{}
+	for _, gauge := range gauges {
+		filteredLocks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
+		gaugeDistributedCoins, err := k.distributeInternal(ctx, gauge, filteredLocks, &distrInfo)
+		if err != nil {
+			return nil, err
+		}
+		totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
+	}
+
+	err := k.doDistributionSends(ctx, &distrInfo)
+	if err != nil {
+		return nil, err
+	}
+	k.hooks.AfterEpochDistribution(ctx)
+
+	k.checkFinishedGauges(ctx, gauges)
+	return totalDistributedCoins, nil
+}
+
 // getDistributedCoinsFromGauges returns coins that have been distributed already from the provided gauges
 func (k Keeper) getDistributedCoinsFromGauges(gauges []types.Gauge) sdk.Coins {
 	coins := sdk.Coins{}
@@ -43,39 +68,6 @@ func (k Keeper) getToDistributeCoinsFromIterator(ctx sdk.Context, iterator db.It
 // From these gauges, coins that have already been distributed are returned
 func (k Keeper) getDistributedCoinsFromIterator(ctx sdk.Context, iterator db.Iterator) sdk.Coins {
 	return k.getDistributedCoinsFromGauges(k.getGaugesFromIterator(ctx, iterator))
-}
-
-// moveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
-func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
-	// validation for current time and distribution start time
-	if ctx.BlockTime().Before(gauge.StartTime) {
-		return fmt.Errorf("gauge is not able to start distribution yet: %s >= %s", ctx.BlockTime().String(), gauge.StartTime.String())
-	}
-
-	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	return nil
-}
-
-// moveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
-func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
-	timeKey := getTimeKey(gauge.StartTime)
-	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
-		return err
-	}
-	if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
-		return err
-	}
-	k.hooks.GaugeFinished(ctx, gauge.Id)
-	return nil
 }
 
 // getLocksToDistributionWithMaxDuration returns locks that match the provided lockuptypes QueryCondition,
@@ -317,31 +309,6 @@ func (k Keeper) getDistributeToBaseLocks(ctx sdk.Context, gauge types.Gauge, cac
 	// due to many details of cacheKVStore, iteration will still cause expensive IAVL reads.
 	allLocks := cache[distributeBaseDenom]
 	return FilterLocksByMinDuration(allLocks, gauge.DistributeTo.Duration)
-}
-
-// Distribute distributes coins from an array of gauges to all eligible locks.
-func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, error) {
-	distrInfo := newDistributionInfo()
-
-	locksByDenomCache := make(map[string][]lockuptypes.PeriodLock)
-	totalDistributedCoins := sdk.Coins{}
-	for _, gauge := range gauges {
-		filteredLocks := k.getDistributeToBaseLocks(ctx, gauge, locksByDenomCache)
-		gaugeDistributedCoins, err := k.distributeInternal(ctx, gauge, filteredLocks, &distrInfo)
-		if err != nil {
-			return nil, err
-		}
-		totalDistributedCoins = totalDistributedCoins.Add(gaugeDistributedCoins...)
-	}
-
-	err := k.doDistributionSends(ctx, &distrInfo)
-	if err != nil {
-		return nil, err
-	}
-	k.hooks.AfterEpochDistribution(ctx)
-
-	k.checkFinishedGauges(ctx, gauges)
-	return totalDistributedCoins, nil
 }
 
 // checkFinishedGauges checks if all non perpetual gauges provided have completed their required distributions.

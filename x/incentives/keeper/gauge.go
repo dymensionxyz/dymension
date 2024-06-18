@@ -3,10 +3,8 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 	db "github.com/tendermint/tm-db"
 
@@ -106,7 +104,7 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 	}
 
 	// Ensure that the denom this gauge pays out to exists on-chain
-	if !k.bk.HasSupply(ctx, distrTo.Denom) && !strings.Contains(distrTo.Denom, "osmovaloper") {
+	if !k.bk.HasSupply(ctx, distrTo.Denom) {
 		return 0, fmt.Errorf("denom does not exist: %s", distrTo.Denom)
 	}
 
@@ -215,31 +213,35 @@ func (k Keeper) GetFinishedGauges(ctx sdk.Context) []types.Gauge {
 	return k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx))
 }
 
-// chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has
-// balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
-// gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
-// The fee is sent to the community pool.
-// Returns nil on success, error otherwise.
-func (k Keeper) chargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
-	var feeDenom string
-	if k.tk == nil {
-		feeDenom, err = sdk.GetBaseDenom()
-	} else {
-		feeDenom, err = k.tk.GetBaseDenom(ctx)
+// moveUpcomingGaugeToActiveGauge moves a gauge that has reached it's start time from an upcoming to an active status.
+func (k Keeper) moveUpcomingGaugeToActiveGauge(ctx sdk.Context, gauge types.Gauge) error {
+	// validation for current time and distribution start time
+	if ctx.BlockTime().Before(gauge.StartTime) {
+		return fmt.Errorf("gauge is not able to start distribution yet: %s >= %s", ctx.BlockTime().String(), gauge.StartTime.String())
 	}
-	if err != nil {
+
+	timeKey := getTimeKey(gauge.StartTime)
+	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixUpcomingGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
-
-	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
-	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
-
-	if accountBalance.LT(totalCost) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance of %s (%s) is less than the total cost of the message (%s)", feeDenom, accountBalance, totalCost)
-	}
-
-	if err := k.ck.FundCommunityPool(ctx, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)), address); err != nil {
+	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
+	return nil
+}
+
+// moveActiveGaugeToFinishedGauge moves a gauge that has completed its distribution from an active to a finished status.
+func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gauge) error {
+	timeKey := getTimeKey(gauge.StartTime)
+	if err := k.deleteGaugeRefByKey(ctx, combineKeys(types.KeyPrefixActiveGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
+		return err
+	}
+	if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
+		return err
+	}
+	k.hooks.GaugeFinished(ctx, gauge.Id)
 	return nil
 }
