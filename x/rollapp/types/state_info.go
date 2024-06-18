@@ -3,11 +3,23 @@ package types
 import (
 	"strconv"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-func NewStateInfo(rollappId string, newIndex uint64, creator string, startHeight uint64, numBlocks uint64, daPath string, version uint64, height uint64, BDs BlockDescriptors) *StateInfo {
+func NewStateInfo(
+	rollappId string,
+	newIndex uint64,
+	creator string,
+	startHeight uint64,
+	numBlocks uint64,
+	daPath string,
+	version uint64,
+	height uint64,
+	BDs BlockDescriptors,
+) *StateInfo {
 	stateInfoIndex := StateInfoIndex{RollappId: rollappId, Index: newIndex}
 	status := common.Status_PENDING
 	return &StateInfo{
@@ -37,6 +49,13 @@ func (s *StateInfo) GetLatestHeight() uint64 {
 
 func (s *StateInfo) ContainsHeight(h uint64) bool {
 	return s.StartHeight <= h && h <= s.GetLatestHeight()
+}
+
+func (s *StateInfo) BlockDescriptor(h uint64) (BlockDescriptor, error) {
+	if !s.ContainsHeight(h) {
+		return BlockDescriptor{}, errorsmod.Wrapf(gerrc.ErrOutOfRange, "height: %d", h)
+	}
+	return s.GetBDs().BD[h-s.GetStartHeight()], nil
 }
 
 func (s *StateInfo) GetEvents() []sdk.Attribute {

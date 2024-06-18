@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
@@ -98,6 +99,16 @@ func (v lcv) getStateInfo(ctx sdk.Context) error {
 	return nil
 }
 
-func (v lcv) verify(ctx sdk.Context, lightClientState exported.ConsensusState) error {
+func (v lcv) verify(ctx sdk.Context,
+	height uint64,
+	lightClientState exported.ConsensusState,
+	rollappState *types.StateInfo,
+) error {
+	raBD, err := rollappState.BlockDescriptor(height)
+	if err != nil {
+		return errorsmod.Wrap(err, "block descriptor")
+	}
+	rollappStateRoot := raBD.GetStateRoot()
+
 	return nil
 }
