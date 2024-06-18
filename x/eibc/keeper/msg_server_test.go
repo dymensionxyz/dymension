@@ -140,6 +140,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 	}
 }
 
+// TestFulfillOrderEvent tests the event upon fulfilling a demand order
 func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 	// Create and fund the account
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(1000))
@@ -172,7 +173,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 			},
 		},
 		{
-			name:                               "Failed fulfillment - ",
+			name:                               "Failed fulfillment - no event",
 			fulfillmentShouldFail:              true,
 			expectedPostFulfillmentEventsCount: 0,
 		},
@@ -182,7 +183,7 @@ func (suite *KeeperTestSuite) TestFulfillOrderEvent() {
 		suite.Ctx = suite.Ctx.WithEventManager(sdk.NewEventManager())
 		expectedFee := "50"
 		if tc.fulfillmentShouldFail {
-			expectedFee = "30"
+			expectedFee = "30" // wrong expected fee to fail the fulfillment msg
 		}
 		msg := types.NewMsgFulfillOrder(eibcDemandAddr.String(), demandOrder.Id, expectedFee)
 		_, err = suite.msgServer.FulfillOrder(suite.Ctx, msg)
