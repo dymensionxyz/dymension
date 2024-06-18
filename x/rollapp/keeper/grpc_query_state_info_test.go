@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"pgregory.net/rapid"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -77,4 +78,49 @@ func TestStateInfoQuerySingle(t *testing.T) {
 			}
 		})
 	}
+}
+
+// go test -run=TestPropertyBased -rapid.checks=10000 -rapid.steps=50
+func TestPropertyBased(t *testing.T) {
+	/*
+	  -rapid.checks int
+	    	rapid: number of checks to perform (default 100)
+	  -rapid.debug
+	    	rapid: debugging output
+	  -rapid.debugvis
+	    	rapid: debugging visualization
+	  -rapid.failfile string
+	    	rapid: fail file to use to reproduce test failure
+	  -rapid.log
+	    	rapid: eager verbose output to stdout (to aid with unrecoverable test failures)
+	  -rapid.nofailfile
+	    	rapid: do not write fail files on test failures
+	  -rapid.seed uint
+	    	rapid: PRNG seed to start with (0 to use a random one)
+	  -rapid.shrinktime duration
+	    	rapid: maximum time to spend on test case minimization (default 30s)
+	  -rapid.steps int
+	    	rapid: average number of Repeat actions to execute (default 30)
+	  -rapid.v
+	    	rapid: verbose output
+	*/
+	rapid.Check(t, testWithRapid)
+}
+
+func testWithRapid(t *rapid.T) {
+	key := rapid.IntRange(-12, 12)
+
+	set := map[int]struct{}{}
+
+	ops := map[string]func(*rapid.T){
+		"insert": func(t *rapid.T) {
+			k := key.Draw(t, "k")
+			set[k] = struct{}{}
+		},
+		"find": func(t *rapid.T) {
+			k := key.Draw(t, "k")
+			_, ok := set[k]
+		},
+	}
+	t.Repeat(ops)
 }
