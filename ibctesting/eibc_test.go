@@ -294,6 +294,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderFulfillment() {
 			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
 				FulfillerAddress: fulfiller.String(),
 				OrderId:          lastDemandOrder.Id,
+				ExpectedFee:      tc.EIBCTransferFee,
 			}
 			// Validate demand order status based on fulfillment success
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
@@ -477,10 +478,7 @@ func (suite *EIBCTestSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			suite.Require().Equal(expectedPrice, lastDemandOrder.Price[0].Amount)
 			suite.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order
-			msgFulfillDemandOrder := &eibctypes.MsgFulfillOrder{
-				FulfillerAddress: fulfillerAccount.String(),
-				OrderId:          lastDemandOrder.Id,
-			}
+			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfillerAccount.String(), lastDemandOrder.Id, lastDemandOrder.Fee[0].Amount.String())
 			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
 			suite.Require().NoError(err)
 			// Validate balances of fulfiller and sender are updated while the original recipient is not
