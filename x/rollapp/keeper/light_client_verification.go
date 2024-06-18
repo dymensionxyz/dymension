@@ -16,9 +16,9 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	"github.com/danwt/gerr/lib"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 /*
@@ -76,15 +76,26 @@ type clientUpdateEventRaw struct {
 // TODO: need to be careful with approach of using events, because they can still be emitted even if tx fails?
 type clientUpdateEvent struct {
 	clientID        string
-	clientState     exported.ClientState
+	clientType      string
 	consensusHeight exported.Height
 	header          exported.Header
 }
 
 func (v LCV2) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
-	clientState, found := v.ibckeeper.ClientKeeper.GetClientState(ctx, evt.clientID)
-	if !found {
-		return gerr.ErrNotFound
+	clientState, ok := v.ibckeeper.ClientKeeper.GetClientState(ctx, evt.clientID)
+	if !ok {
+		return gerrc.ErrNotFound
+	}
+	_ = clientState // TODO: remove
+	consState, ok := v.ibckeeper.ClientKeeper.GetClientConsensusState(ctx, evt.clientID, evt.consensusHeight)
+	if !ok {
+		return gerrc.ErrNotFound
+	}
+
+	tmConsensusState, ok := consState.(*ibctmtypes.ConsensusState)
+	if !ok {
+		return errorsmod.Wrap()
+		return nil, errorsmod.Wrapf(gerr.ErrInvalidArgument, "expected tendermint consensus state, got: %T", consensusState)
 	}
 }
 
@@ -195,7 +206,7 @@ func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx 
 
 	if !bytes.Equal(lightClientNextValidatorsHash, latestSequencerPubKeyHash) {
 		return errorsmod.Wrapf(
-			gerr.ErrUnauthenticated,
+			gerrc.ErrUnauthenticated,
 			"consensus state does not match: consensus state validators: %x, raID sequencer: %x", lightClientNextValidatorsHash, sequencerID)
 	}
 
@@ -206,18 +217,18 @@ func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx 
 func (k LCV) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
 	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappID)
 	if !found {
-		return "", nil, gerr.ErrNotFound
+		return "", nil, gerrc.ErrNotFound
 	}
 
 	state, found := k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
 	if !found {
-		return "", nil, gerr.ErrNotFound
+		return "", nil, gerrc.ErrNotFound
 	}
 
 	sequencerID := state.GetSequencer()
 	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
 	if !ok {
-		return "", nil, errorsmod.Wrapf(gerr.ErrNotFound, "sequencer: id: %s", sequencerID)
+		return "", nil, errorsmod.Wrapf(gerrc.ErrNotFound, "sequencer: id: %s", sequencerID)
 	}
 	seqPubKeyHash, err := sequencer.GetDymintPubKeyHash()
 	if err != nil {
@@ -240,11 +251,11 @@ func (k LCV) getNextValidatorsHash(ctx sdk.Context, portID string, channelID str
 	// TODO: see todos in ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer for discussion of latest height
 	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
 	if !ok {
-		return nil, errors.Join(gerr.ErrNotFound, clienttypes.ErrConsensusStateNotFound)
+		return nil, errors.Join(gerrc.ErrNotFound, clienttypes.ErrConsensusStateNotFound)
 	}
 	tmConsensusState, ok := consensusState.(*ibctmtypes.ConsensusState)
 	if !ok {
-		return nil, errorsmod.Wrapf(gerr.ErrInvalidArgument, "expected tendermint consensus state, got: %T", consensusState)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "expected tendermint consensus state, got: %T", consensusState)
 	}
 	return tmConsensusState.NextValidatorsHash, nil
 }
@@ -252,11 +263,11 @@ func (k LCV) getNextValidatorsHash(ctx sdk.Context, portID string, channelID str
 func (k LCV) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
 	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !ok {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
 	}
 	conn, ok := k.connectionKeeper.GetConnection(ctx, ch.ConnectionHops[0])
 	if !ok {
-		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
+		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, conntypes.ErrConnectionNotFound), ch.ConnectionHops[0])
 	}
 	return conn, nil
 }
