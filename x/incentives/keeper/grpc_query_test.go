@@ -88,6 +88,7 @@ func (suite *KeeperTestSuite) TestGRPCGauges() {
 	// check that setting page request limit to 10 will only return 10 out of the 11 gauges
 	filter := query.PageRequest{Limit: 10}
 	res, err = suite.querier.Gauges(sdk.WrapSDKContext(suite.Ctx), &types.GaugesRequest{Pagination: &filter})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 10)
 }
 
@@ -133,16 +134,19 @@ func (suite *KeeperTestSuite) TestGRPCActiveGauges() {
 
 		// move the first 9 gauges from upcoming to active (now 10 active gauges, 30 total gauges)
 		if i < 9 {
-			suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			err := suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			suite.Require().NoError(err)
 		}
 	}
 
 	// set page request limit to 5, expect only 5 active gauge responses
 	res, err = suite.querier.ActiveGauges(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesRequest{Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 5)
 
 	// set page request limit to 15, expect only 10 active gauge responses
 	res, err = suite.querier.ActiveGauges(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesRequest{Pagination: &query.PageRequest{Limit: 15}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 10)
 }
 
@@ -159,6 +163,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
 	gaugeID, gauge, coins, startTime := suite.SetupNewGauge(false, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime.Add(time.Second))
 	err = suite.App.IncentivesKeeper.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+	suite.Require().NoError(err)
 
 	// query gauges by denom again, but this time expect the gauge created earlier in the response
 	res, err = suite.querier.ActiveGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesPerDenomRequest{Denom: "lptoken", Pagination: nil})
@@ -187,20 +192,24 @@ func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
 
 		// move the first 10 of 20 gauges to an active status
 		if i < 10 {
-			suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			err := suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			suite.Require().NoError(err)
 		}
 	}
 
 	// query active gauges by lptoken denom with a page request of 5 should only return one gauge
 	res, err = suite.querier.ActiveGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesPerDenomRequest{Denom: "lptoken", Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 1)
 
 	// query active gauges by pool denom with a page request of 5 should return 5 gauges
 	res, err = suite.querier.ActiveGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesPerDenomRequest{Denom: "pool", Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 5)
 
 	// query active gauges by pool denom with a page request of 15 should return 10 gauges
 	res, err = suite.querier.ActiveGaugesPerDenom(sdk.WrapSDKContext(suite.Ctx), &types.ActiveGaugesPerDenomRequest{Denom: "pool", Pagination: &query.PageRequest{Limit: 15}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 10)
 }
 
@@ -244,16 +253,19 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGauges() {
 		// move the first 9 created gauges to an active status
 		// 1 + (20 -9) = 12 upcoming gauges
 		if i < 9 {
-			suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			err := suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			suite.Require().NoError(err)
 		}
 	}
 
 	// query upcoming gauges with a page request of 5 should return 5 gauges
 	res, err = suite.querier.UpcomingGauges(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesRequest{Pagination: &query.PageRequest{Limit: 5}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 5)
 
 	// query upcoming gauges with a page request of 15 should return 12 gauges
 	res, err = suite.querier.UpcomingGauges(sdk.WrapSDKContext(suite.Ctx), &types.UpcomingGaugesRequest{Pagination: &query.PageRequest{Limit: 15}})
+	suite.Require().NoError(err)
 	suite.Require().Len(res.Data, 12)
 }
 
@@ -307,7 +319,8 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 		// move the first 10 created gauges from upcoming to active
 		// this leaves 10 upcoming gauges
 		if i < 10 {
-			suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			err := suite.querier.MoveUpcomingGaugeToActiveGauge(suite.Ctx, *gauge)
+			suite.Require().NoError(err)
 		}
 	}
 

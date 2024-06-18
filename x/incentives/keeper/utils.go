@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// TOOD: move to utils package
+// TODO: move to common utils package
 
 // findIndex takes an array of IDs. Then return the index of a specific ID.
 func findIndex(IDs []uint64, ID uint64) int {

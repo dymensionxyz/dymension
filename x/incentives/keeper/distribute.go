@@ -199,7 +199,6 @@ func (k Keeper) doDistributionSends(ctx sdk.Context, distrs *distributionInfo) e
 			types.ModuleName,
 			distrs.idToDecodedAddr[id],
 			distrs.idToDistrCoins[id])
-
 		if err != nil {
 			return err
 		}

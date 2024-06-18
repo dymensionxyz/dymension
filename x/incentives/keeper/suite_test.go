@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"crypto/rand"
 	"fmt"
-
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
