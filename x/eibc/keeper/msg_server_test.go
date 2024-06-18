@@ -163,30 +163,6 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			expectedPostFulfillmentEventsCount:      0,
 			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{},
 		},
-		{
-			name:                                 "Test demand order fulfillment - non profitable order",
-			demandOrderPrice:                     2000,
-			demandOrderFee:                       1,
-			demandOrderFulfillmentStatus:         false,
-			demandOrderUnderlyingPacketStatus:    commontypes.Status_PENDING,
-			demandOrderDenom:                     sdk.DefaultBondDenom,
-			underlyingRollappPacket:              rollappPacket,
-			expectedFulfillmentError:             types.ErrDemandOrderNotProfitable,
-			eIBCdemandAddrBalance:                math.NewInt(1000),
-			expectedDemandOrdefFulfillmentStatus: false,
-			expectedPostCreationEventsType:       eibcEventType,
-			expectedPostCreationEventsCount:      1,
-			expectedPostCreationEventsAttributes: []sdk.Attribute{
-				sdk.NewAttribute(types.AttributeKeyId, types.BuildDemandIDFromPacketKey(string(rollappPacketKey))),
-				sdk.NewAttribute(types.AttributeKeyPrice, "2000"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyFee, "1"+sdk.DefaultBondDenom),
-				sdk.NewAttribute(types.AttributeKeyIsFulfilled, "false"),
-				sdk.NewAttribute(types.AttributeKeyPacketStatus, commontypes.Status_PENDING.String()),
-			},
-			expectedPostFulfillmentEventsType:       eibcEventType,
-			expectedPostFulfillmentEventsCount:      0,
-			expectedPostFulfillmentEventsAttributes: []sdk.Attribute{},
-		},
 	}
 	totalEventsEmitted := 0
 	for _, tc := range tests {

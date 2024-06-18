@@ -52,6 +52,14 @@ message QueryDemandOrdersByStatusRequest {
   string rollapp_id = 3;
   // optional limit
   int32 limit = 4;
+  // optional fulfillment state
+  FulfillmentState fulfillment_state = 5;
+}
+
+enum FulfillmentState {
+  UNDEFINED = 0;
+  FULFILLED = 1;
+  UNFULFILLED = 2;
 }
 
 // QueryGetDemandOrderResponse is the response type for the Query/GetDemandOrder RPC method.

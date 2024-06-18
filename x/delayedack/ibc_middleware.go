@@ -90,7 +90,7 @@ func (w IBCMiddleware) OnRecvPacket(
 
 	rollappPacket := w.getSavedPacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
-	err = w.eIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
+	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "delayed ack"))
 	}
