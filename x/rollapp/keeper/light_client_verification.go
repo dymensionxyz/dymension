@@ -49,7 +49,7 @@ How would the system work?
 	If there is, verify
 */
 
-type LCV2 struct {
+type lcv struct {
 	ibckeeper *ibckeeper.Keeper
 }
 
@@ -69,7 +69,7 @@ type clientUpdateEvent struct {
 	header          exported.Header
 }
 
-func (v LCV2) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
+func (v lcv) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
 	clientState, ok := v.ibckeeper.ClientKeeper.GetClientState(ctx, evt.clientID)
 	if !ok {
 		return gerrc.ErrNotFound
@@ -90,10 +90,10 @@ func (v LCV2) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent)
 	return nil
 }
 
-func (v LCV2) verifyNewStateUpdate(ctx sdk.Context) error {
+func (v lcv) verifyNewStateUpdate(ctx sdk.Context) error {
 	return nil
 }
 
-func (v LCV2) verify(ctx sdk.Context) error {
+func (v lcv) verify(ctx sdk.Context) error {
 	return nil
 }

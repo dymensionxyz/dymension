@@ -20,26 +20,26 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-type ClientKeeper interface {
+type lcvClientKeeper interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 }
 
-type ConnectionKeeper interface {
+type lcvConnKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 }
 
-type ChannelKeeper interface {
+type lcvChanKeeper interface {
 	GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool)
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
 
-type LCV struct {
+type LCVOld struct {
 	Keeper
 	delayedAckKeeper *delayedackkeeper.Keeper
 	sequencerKeeper  *sequencerkeeper.Keeper
-	channelKeeper    ChannelKeeper
-	connectionKeeper ConnectionKeeper
-	clientKeeper     ClientKeeper
+	channelKeeper    lcvChanKeeper
+	connectionKeeper lcvConnKeeper
+	clientKeeper     lcvClientKeeper
 }
 
 func NewLCV(
@@ -49,8 +49,8 @@ func NewLCV(
 	channelKeeper channelkeeper.Keeper,
 	connectionKeeper connectionkeeper.Keeper,
 	clientKeeper clientkeeper.Keeper,
-) *LCV {
-	return &LCV{
+) *LCVOld {
+	return &LCVOld{
 		Keeper:           k,
 		delayedAckKeeper: delayedAckKeeper,
 		sequencerKeeper:  sequencerKeeper,
@@ -60,7 +60,7 @@ func NewLCV(
 	}
 }
 
-func (k LCV) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+func (k LCVOld) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
 	_, state, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "get channel client state")
@@ -81,7 +81,7 @@ func (k LCV) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID st
 //
 //	sequencer is fixed, see todo 1
 //	sequencer is valid, see todo 2
-func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
+func (k LCVOld) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	/*
 		TODO: Support sequencer changes: we use the latest nextValidators hash, but really we should check the validator set at the light
 			client header corresponding to the last (finalized?) state info, because the sequencer may have changed after that.
@@ -127,7 +127,7 @@ func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx 
 }
 
 // getLatestSequencerPubKey returns the *hash* of the pub key of the latest validator
-func (k LCV) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
+func (k LCVOld) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
 	state, found := k.GetLatestStateInfo(ctx, rollappID)
 	if !found {
 		return "", nil, gerrc.ErrNotFound
@@ -146,7 +146,7 @@ func (k LCV) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string
 }
 
 // getNextValidatorsHash returns the tendermint consensus state next validators hash for the latest client height associated to the channel
-func (k LCV) getNextValidatorsHash(ctx sdk.Context, portID string, channelID string) ([]byte, error) {
+func (k LCVOld) getNextValidatorsHash(ctx sdk.Context, portID string, channelID string) ([]byte, error) {
 	conn, err := k.getConnectionEnd(ctx, portID, channelID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get connection end")
@@ -168,7 +168,7 @@ func (k LCV) getNextValidatorsHash(ctx sdk.Context, portID string, channelID str
 	return tmConsensusState.NextValidatorsHash, nil
 }
 
-func (k LCV) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
+func (k LCVOld) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
 	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !ok {
 		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerrc.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
