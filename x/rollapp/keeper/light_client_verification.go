@@ -14,6 +14,7 @@ import (
 	channelkeeper "github.com/cosmos/ibc-go/v6/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/danwt/gerr/lib"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -53,7 +54,47 @@ light.Verify does 2 cases. For h+1, or more than h+1:
 		Trust level is default 1/3
 		If (+)1/3 of trusted guys signed the new header AND 2/3 of new validators signed the new header
 
+
+How would the system work?
+	On receiving a new light client update, check if there is a state on the hub
+	On receiving a new state update, check if there is a corresponding light client state
+	If there is, verify
 */
+
+type LCV2 struct {
+	ibckeeper *ibckeeper.Keeper
+}
+
+type clientUpdateEventRaw struct {
+	misbehavior     bool
+	clientID        string
+	clientType      string //  exported.ClientState.ClientType()
+	consensusHeight string //  header.GetHeight().String()
+	headerStr       string //  hex.EncodeToString(types.MustMarshalHeader(k.cdc, header))
+}
+
+// TODO: need to be careful with approach of using events, because they can still be emitted even if tx fails?
+type clientUpdateEvent struct {
+	clientID        string
+	clientState     exported.ClientState
+	consensusHeight exported.Height
+	header          exported.Header
+}
+
+func (v LCV2) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
+	clientState, found := v.ibckeeper.ClientKeeper.GetClientState(ctx, evt.clientID)
+	if !found {
+		return gerr.ErrNotFound
+	}
+}
+
+func (v LCV2) verifyNewStateUpdate(ctx sdk.Context) error {
+	return nil
+}
+
+func (v LCV2) verify(ctx sdk.Context) error {
+	return nil
+}
 
 type ClientKeeper interface {
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
