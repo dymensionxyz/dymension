@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "dymension/incentives/gauge.proto";
-import "osmosis/lockup/lock.proto";
+import "dymension/lockup/lock.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 service Msg {
@@ -25,7 +25,7 @@ message MsgCreateGauge {
   string owner = 2 [ (gogoproto.moretags) = "yaml:\"owner\"" ];
   // distribute_to show which lock the gauge should distribute to by time
   // duration or by timestamp
-  dymensionxyz.dymension.lockup.QueryCondition distribute_to = 3
+  dymension.lockup.QueryCondition distribute_to = 3
       [ (gogoproto.nullable) = false ];
   // coins are coin(s) to be distributed by the gauge
   repeated cosmos.base.v1beta1.Coin coins = 4 [
