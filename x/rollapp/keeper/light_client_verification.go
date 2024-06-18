@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"bytes"
+	"errors"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -99,16 +102,23 @@ func (v lcv) getStateInfo(ctx sdk.Context) error {
 	return nil
 }
 
-func (v lcv) verify(ctx sdk.Context,
+func (v lcv) verify(
+	ctx sdk.Context,
 	height uint64,
 	lightClientState exported.ConsensusState,
 	rollappState *types.StateInfo,
 ) error {
+	// We check if it matches
 	raBD, err := rollappState.BlockDescriptor(height)
 	if err != nil {
 		return errorsmod.Wrap(err, "block descriptor")
 	}
 	rollappStateRoot := raBD.GetStateRoot()
+	lightClientStateRoot := lightClientState.GetRoot().GetHash()
+	if !bytes.Equal(rollappStateRoot, lightClientStateRoot) {
+		return errors.New("bad") // TODO:
+	}
+	// We also need to check if it was signed by the sequencer
 
 	return nil
 }
