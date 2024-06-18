@@ -26,6 +26,7 @@ The height on the header is the height of the rollapp
 
 
 Links
+update entry point https://github.com/cosmos/ibc-go/blob/edb6efaddf45053efb9cbd2ad1ceab64b22fb085/modules/core/02-client/keeper/client.go#L60
 ibc go header https://github.com/cosmos/ibc-go/blob/v6.2.2/modules/light-clients/07-tendermint/types/update.go
 tendermind header https://github.com/cosmos/ibc-go/blob/a89bb2f556f519a3bbc3c97e107e29f722d59155/modules/light-clients/07-tendermint/types/tendermint.pb.go#L185-L202
 what the validators actually sign https://github.com/cometbft/cometbft/blob/v0.34.33/types/canonical.go#L54-L65
