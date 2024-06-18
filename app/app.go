@@ -645,7 +645,7 @@ func New(
 		app.RollappKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.EIBCKeeper,
+		&app.EIBCKeeper,
 		app.BankKeeper,
 	)
 
