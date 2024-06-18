@@ -164,7 +164,7 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 			}
 
 			recipient := apptesting.CreateRandomAccounts(1)[0]
-			_ = suite.TransferRollappToHub(path, IBCSenderAccount, recipient.String(), tc.amount, memo, tc.expectAck)
+			_ = s.transferRollappToHub(s.path, IBCSenderAccount, recipient.String(), tc.amount, memo, tc.expectAck)
 			// Validate demand orders results
 			eibcKeeper := s.hubApp().EIBCKeeper
 			demandOrders, err := eibcKeeper.ListAllDemandOrders(s.hubCtx())
@@ -184,10 +184,10 @@ func (s *eibcSuite) TestEIBCDemandOrderCreation() {
 						break
 					}
 				}
-				suite.Require().NotNil(demandOrder)
-				suite.Require().Equal(recipient.String(), demandOrder.Recipient)
-				suite.Require().Equal(amountInt.Sub(feeInt), demandOrder.Price[0].Amount)
-				suite.Require().Equal(feeInt, demandOrder.Fee.AmountOf(demandOrder.Price[0].Denom))
+				s.Require().NotNil(demandOrder)
+				s.Require().Equal(recipient.String(), demandOrder.Recipient)
+				s.Require().Equal(amountInt.Sub(feeInt), demandOrder.Price[0].Amount)
+				s.Require().Equal(feeInt, demandOrder.Fee.AmountOf(demandOrder.Price[0].Denom))
 			}
 		})
 	}
@@ -486,8 +486,8 @@ func (s *eibcSuite) TestTimeoutEIBCDemandOrderFulfillment() {
 			s.Require().Equal(coinToSendToB.Denom, lastDemandOrder.Price[0].Denom)
 			// Fulfill the demand order
 			msgFulfillDemandOrder := eibctypes.NewMsgFulfillOrder(fulfillerAccount.String(), lastDemandOrder.Id, lastDemandOrder.Fee[0].Amount.String())
-			_, err = suite.msgServer.FulfillOrder(suite.hubChain.GetContext(), msgFulfillDemandOrder)
-			suite.Require().NoError(err)
+			_, err = s.msgServer().FulfillOrder(s.hubCtx(), msgFulfillDemandOrder)
+			s.Require().NoError(err)
 			// Validate balances of fulfiller and sender are updated while the original recipient is not
 			fulfillerAccountBalance := bankKeeper.GetBalance(s.hubCtx(), fulfillerAccount, sdk.DefaultBondDenom)
 			senderAccountBalance := bankKeeper.GetBalance(s.hubCtx(), senderAccount, sdk.DefaultBondDenom)
