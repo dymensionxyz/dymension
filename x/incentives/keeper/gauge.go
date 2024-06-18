@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -12,7 +11,6 @@ import (
 	db "github.com/tendermint/tm-db"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -215,72 +213,6 @@ func (k Keeper) GetUpcomingGauges(ctx sdk.Context) []types.Gauge {
 // GetFinishedGauges returns finished gauges.
 func (k Keeper) GetFinishedGauges(ctx sdk.Context) []types.Gauge {
 	return k.getGaugesFromIterator(ctx, k.FinishedGaugesIterator(ctx))
-}
-
-// GetRewardsEst returns rewards estimation at a future specific time (by epoch)
-// If locks are nil, it returns the rewards between now and the end epoch associated with address.
-// If locks are not nil, it returns all the rewards for the given locks between now and end epoch.
-func (k Keeper) GetRewardsEst(ctx sdk.Context, addr sdk.AccAddress, locks []lockuptypes.PeriodLock, endEpoch int64) sdk.Coins {
-	// if locks are nil, populate with all locks associated with the address
-	if len(locks) == 0 {
-		locks = k.lk.GetAccountPeriodLocks(ctx, addr)
-	}
-	// get all gauges that reward to these locks
-	// first get all the denominations being locked up
-	denomSet := map[string]bool{}
-	for _, l := range locks {
-		for _, c := range l.Coins {
-			denomSet[c.Denom] = true
-		}
-	}
-	gauges := []types.Gauge{}
-	// initialize gauges to active and upcomings if not set
-	for s := range denomSet {
-		gaugeIDs := k.getAllGaugeIDsByDenom(ctx, s)
-		// each gauge only rewards locks to one denom, so no duplicates
-		for _, id := range gaugeIDs {
-			gauge, err := k.GetGaugeByID(ctx, id)
-			// shouldn't happen
-			if err != nil {
-				return sdk.Coins{}
-			}
-			gauges = append(gauges, *gauge)
-		}
-	}
-
-	// estimate rewards
-	estimatedRewards := sdk.Coins{}
-	epochInfo := k.GetEpochInfo(ctx)
-
-	// no need to change storage while doing estimation as we use cached context
-	cacheCtx, _ := ctx.CacheContext()
-	for _, gauge := range gauges {
-		distrBeginEpoch := epochInfo.CurrentEpoch
-		blockTime := ctx.BlockTime()
-		if gauge.StartTime.After(blockTime) {
-			distrBeginEpoch = epochInfo.CurrentEpoch + 1 + int64(gauge.StartTime.Sub(blockTime)/epochInfo.Duration)
-		}
-
-		for epoch := distrBeginEpoch; epoch <= endEpoch; epoch++ {
-			newGauge, distrCoins, isBuggedGauge, err := k.FilteredLocksDistributionEst(cacheCtx, gauge, locks)
-			if err != nil {
-				continue
-			}
-			if isBuggedGauge {
-				ctx.Logger().Error("Reward estimation does not include gauge " + strconv.Itoa(int(gauge.Id)) + " due to accumulation store bug")
-			}
-			estimatedRewards = estimatedRewards.Add(distrCoins...)
-			gauge = newGauge
-		}
-	}
-
-	return estimatedRewards
-}
-
-// GetEpochInfo returns EpochInfo struct given context.
-func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
-	params := k.GetParams(ctx)
-	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
 }
 
 // chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has

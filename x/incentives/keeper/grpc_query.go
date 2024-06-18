@@ -3,17 +3,16 @@ package keeper
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 )
 
 var _ types.QueryServer = Querier{}
@@ -131,40 +130,9 @@ func (q Querier) UpcomingGaugesPerDenom(goCtx context.Context, req *types.Upcomi
 	return &types.UpcomingGaugesPerDenomResponse{UpcomingGauges: gauges, Pagination: pageRes}, nil
 }
 
-// RewardsEst returns rewards estimation at a future specific time (by epoch).
+// TODO: remove once proto-regenareted
 func (q Querier) RewardsEst(goCtx context.Context, req *types.RewardsEstRequest) (*types.RewardsEstResponse, error) {
-	var ownerAddress sdk.AccAddress
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "empty request")
-	}
-	if len(req.Owner) == 0 && len(req.LockIds) == 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty owner")
-	}
-
-	ctx := sdk.UnwrapSDKContext(goCtx)
-	diff := req.EndEpoch - q.Keeper.GetEpochInfo(ctx).CurrentEpoch
-	if diff > 365 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "end epoch out of ranges")
-	}
-
-	if len(req.Owner) != 0 {
-		owner, err := sdk.AccAddressFromBech32(req.Owner)
-		if err != nil {
-			return nil, err
-		}
-		ownerAddress = owner
-	}
-
-	locks := make([]lockuptypes.PeriodLock, 0, len(req.LockIds))
-	for _, lockId := range req.LockIds {
-		lock, err := q.Keeper.lk.GetLockByID(ctx, lockId)
-		if err != nil {
-			return nil, err
-		}
-		locks = append(locks, *lock)
-	}
-
-	return &types.RewardsEstResponse{Coins: q.Keeper.GetRewardsEst(ctx, ownerAddress, locks, req.EndEpoch)}, nil
+	return &types.RewardsEstResponse{}, fmt.Errorf("not supported")
 }
 
 // LockableDurations returns all of the allowed lockable durations on chain.

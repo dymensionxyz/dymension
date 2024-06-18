@@ -74,7 +74,7 @@ func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gaug
 	if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
 		return err
 	}
-	k.hooks.AfterFinishDistribution(ctx, gauge.Id)
+	k.hooks.GaugeFinished(ctx, gauge.Id)
 	return nil
 }
 
@@ -340,13 +340,13 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 	}
 	k.hooks.AfterEpochDistribution(ctx)
 
-	k.checkFinishDistribution(ctx, gauges)
+	k.checkFinishedGauges(ctx, gauges)
 	return totalDistributedCoins, nil
 }
 
-// checkFinishDistribution checks if all non perpetual gauges provided have completed their required distributions.
+// checkFinishedGauges checks if all non perpetual gauges provided have completed their required distributions.
 // If complete, move the gauge from an active to a finished status.
-func (k Keeper) checkFinishDistribution(ctx sdk.Context, gauges []types.Gauge) {
+func (k Keeper) checkFinishedGauges(ctx sdk.Context, gauges []types.Gauge) {
 	for _, gauge := range gauges {
 		// filled epoch is increased in this step and we compare with +1
 		if !gauge.IsPerpetual && gauge.NumEpochsPaidOver <= gauge.FilledEpochs+1 {
