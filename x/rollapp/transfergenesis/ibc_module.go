@@ -162,7 +162,7 @@ func (w IBCModule) OnRecvPacket(
 	)
 
 	if nTransfersDone == memo.TotalNumTransfers {
-		// The transfer window is finished! Queue up a finalization
+		// The transfer window is finished!
 		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(ra.RollappId, nTransfersDone))
 		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
 		l.Info("All genesis transfers received, bridge opened.",
