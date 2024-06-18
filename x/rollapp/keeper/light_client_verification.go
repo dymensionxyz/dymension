@@ -10,7 +10,7 @@ import (
 	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+	"github.com/danwt/gerr/lib"
 )
 
 func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
@@ -81,7 +81,7 @@ func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(c
 
 // getLatestSequencerPubKey returns the *hash* of the pub key of the latest validator
 func (k Keeper) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
-	state, ok := k.rollappKeeper.GetLatestStateInfo(ctx, rollappID)
+	state, ok := k.GetLatestStateInfo(ctx, rollappID)
 	if !ok {
 		return "", nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
 	}

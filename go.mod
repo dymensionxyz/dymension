@@ -1,6 +1,6 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.22.0
+go 1.22.4
 
 require (
 	cosmossdk.io/errors v1.0.1
@@ -78,6 +78,7 @@ require (
 	github.com/cosmos/ledger-cosmos-go v0.12.4 // indirect
 	github.com/creachadair/taskgroup v0.3.2 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
+	github.com/danwt/gerr v0.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
