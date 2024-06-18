@@ -92,11 +92,14 @@ func (v LCV2) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent)
 		return gerrc.ErrNotFound
 	}
 
-	tmConsensusState, ok := consState.(*ibctmtypes.ConsensusState)
+	tmConsState, ok := consState.(*ibctmtypes.ConsensusState)
 	if !ok {
-		return errorsmod.Wrap()
-		return nil, errorsmod.Wrapf(gerr.ErrInvalidArgument, "expected tendermint consensus state, got: %T", consensusState)
+		return errorsmod.WithType(gerrc.ErrInvalidArgument, consState)
 	}
+
+	_ = tmConsState
+
+	return nil
 }
 
 func (v LCV2) verifyNewStateUpdate(ctx sdk.Context) error {
