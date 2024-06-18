@@ -6,14 +6,44 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	"github.com/danwt/gerr/lib"
+	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 )
 
-func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
+type ClientKeeper interface {
+	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
+	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
+}
+
+type ConnectionKeeper interface {
+	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
+}
+
+// ChannelKeeper defines the expected IBC channel keeper
+type ChannelKeeper interface {
+	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
+	GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool)
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
+}
+
+type LCV struct {
+	Keeper
+	delayedAckKeeper *delayedackkeeper.Keeper
+	sequencerKeeper  *sequencerkeeper.Keeper
+	channelKeeper    ChannelKeeper
+	connectionKeeper ConnectionKeeper
+	clientKeeper     ClientKeeper
+}
+
+func (k LCV) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
 	_, state, err := k.channelKeeper.GetChannelClientState(ctx, portID, channelID)
 	if err != nil {
 		return "", errorsmod.Wrap(err, "get channel client state")
@@ -34,7 +64,7 @@ func (k Keeper) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID
 //
 //	sequencer is fixed, see todo 1
 //	sequencer is valid, see todo 2
-func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
+func (k LCV) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(ctx sdk.Context, raID, rollappPortOnHub string, rollappChannelOnHub string) error {
 	/*
 		TODO: Support sequencer changes: we use the latest nextValidators hash, but really we should check the validator set at the light
 			client header corresponding to the last (finalized?) state info, because the sequencer may have changed after that.
@@ -80,11 +110,17 @@ func (k Keeper) ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer(c
 }
 
 // getLatestSequencerPubKey returns the *hash* of the pub key of the latest validator
-func (k Keeper) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
-	state, ok := k.GetLatestStateInfo(ctx, rollappID)
-	if !ok {
-		return "", nil, errorsmod.Wrap(gerr.ErrNotFound, "latest state info")
+func (k LCV) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (string, []byte, error) {
+	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappID)
+	if !found {
+		return "", nil, gerr.ErrNotFound
 	}
+
+	state, found := k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
+	if !found {
+		return "", nil, gerr.ErrNotFound
+	}
+
 	sequencerID := state.GetSequencer()
 	sequencer, ok := k.sequencerKeeper.GetSequencer(ctx, sequencerID)
 	if !ok {
@@ -98,12 +134,12 @@ func (k Keeper) getLatestSequencerPubKey(ctx sdk.Context, rollappID string) (str
 }
 
 // getNextValidatorsHash returns the tendermint consensus state next validators hash for the latest client height associated to the channel
-func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID string) ([]byte, error) {
+func (k LCV) getNextValidatorsHash(ctx sdk.Context, portID string, channelID string) ([]byte, error) {
 	conn, err := k.getConnectionEnd(ctx, portID, channelID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get connection end")
 	}
-	client, err := k.GetClientState(ctx, portID, channelID)
+	client, err := k.delayedAckKeeper.GetClientState(ctx, portID, channelID)
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get client state")
 	}
@@ -120,7 +156,7 @@ func (k Keeper) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 	return tmConsensusState.NextValidatorsHash, nil
 }
 
-func (k Keeper) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
+func (k LCV) getConnectionEnd(ctx sdk.Context, portID string, channelID string) (conntypes.ConnectionEnd, error) {
 	ch, ok := k.channelKeeper.GetChannel(ctx, portID, channelID)
 	if !ok {
 		return conntypes.ConnectionEnd{}, errorsmod.Wrap(errors.Join(gerr.ErrNotFound, channeltypes.ErrChannelNotFound), channelID)
