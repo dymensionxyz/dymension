@@ -6,10 +6,12 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	connectionkeeper "github.com/cosmos/ibc-go/v6/modules/core/03-connection/keeper"
 	connectiontypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
 	conntypes "github.com/cosmos/ibc-go/v6/modules/core/03-connection/types"
+	channelkeeper "github.com/cosmos/ibc-go/v6/modules/core/04-channel/keeper"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
@@ -19,7 +21,6 @@ import (
 )
 
 type ClientKeeper interface {
-	GetClientState(ctx sdk.Context, clientID string) (exported.ClientState, bool)
 	GetClientConsensusState(ctx sdk.Context, clientID string, height exported.Height) (exported.ConsensusState, bool)
 }
 
@@ -27,9 +28,7 @@ type ConnectionKeeper interface {
 	GetConnection(ctx sdk.Context, connectionID string) (connectiontypes.ConnectionEnd, bool)
 }
 
-// ChannelKeeper defines the expected IBC channel keeper
 type ChannelKeeper interface {
-	LookupModuleByChannel(ctx sdk.Context, portID, channelID string) (string, *capabilitytypes.Capability, error)
 	GetChannel(ctx sdk.Context, portID, channelID string) (channeltypes.Channel, bool)
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
@@ -41,6 +40,24 @@ type LCV struct {
 	channelKeeper    ChannelKeeper
 	connectionKeeper ConnectionKeeper
 	clientKeeper     ClientKeeper
+}
+
+func NewLCV(
+	k Keeper,
+	delayedAckKeeper *delayedackkeeper.Keeper,
+	sequencerKeeper *sequencerkeeper.Keeper,
+	channelKeeper channelkeeper.Keeper,
+	connectionKeeper connectionkeeper.Keeper,
+	clientKeeper clientkeeper.Keeper,
+) *LCV {
+	return &LCV{
+		Keeper:           k,
+		delayedAckKeeper: delayedAckKeeper,
+		sequencerKeeper:  sequencerKeeper,
+		channelKeeper:    &channelKeeper,
+		connectionKeeper: connectionKeeper,
+		clientKeeper:     clientKeeper,
+	}
 }
 
 func (k LCV) chainIDFromPortChannel(ctx sdk.Context, portID string, channelID string) (string, error) {
