@@ -81,11 +81,26 @@ type clientUpdateEvent struct {
 	header          exported.Header
 }
 
+// TODO: maybe this can go before the ante handler?
+func (v lcv) verifyCreateClient(
+	ctx sdk.Context,
+	clientState exported.ClientState,
+	consensusState exported.ConsensusState,
+) error {
+}
+
 // if the ibc module accepts a new consensus state, then it must have been signed by 2/3 of the voting power
 // of the NEW validators, as well as 1/3 of the previously trusted validator set
 // therefore, as long as know that the first every consensus state was signed by the rollapp sequencer
 // then we know all future consensus states were signed by him too
 // so we just need to check the sequencer signed the first ever one
+// the first thing the relayer ever does is MsgCreateClient
+//
+//	https://github.com/dymensionxyz/go-relayer/blob/9ea09f3db32af59907c7fd598258f4ee53390e36/relayer/chains/cosmos/tx.go#L729-L731
+//
+// the data originates from the relayer querying the rpc node comet layer
+//
+//	https://github.com/cometbft/cometbft/blob/v0.34.33/light/provider/http/http.go#L69
 func (v lcv) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
 	consState, ok := v.ibckeeper.ClientKeeper.GetClientConsensusState(ctx, evt.clientID, evt.consensusHeight)
 	if !ok {
