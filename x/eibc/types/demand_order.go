@@ -98,6 +98,11 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 	return recipientBech32
 }
 
+// GetFeeAmount returns the fee amount of the demand order.
+func (m *DemandOrder) GetFeeAmount() math.Int {
+	return m.Fee.AmountOf(m.Price[0].Denom)
+}
+
 func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 	// Check that the order is not fulfilled yet
 	if m.IsFulfilled {

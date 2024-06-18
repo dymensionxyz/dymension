@@ -15,7 +15,7 @@ import (
 
 func CmdListDemandOrdersByStatus() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-demand-orders status [rollapp_id] [type] [limit]",
+		Use:   "list-demand-orders status [rollapp_id] [type] [fulfillment] [limit]",
 		Short: "List all demand orders with a specific status",
 		Long: `Query demand orders filtered by status. Examples of status include "pending", "finalized", and "reverted".
 				Optional arguments include rollapp_id, type (recv, timeout, ack), and limit.`,
@@ -50,6 +50,14 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 					return fmt.Errorf("limit must be an integer: %s", args[3])
 				}
 				request.Limit = int32(limit)
+			}
+
+			if len(args) > 4 {
+				fulfillmentState, ok := types.FulfillmentState_value[strings.ToUpper(args[4])]
+				if !ok {
+					return fmt.Errorf("invalid fulfillment state: %s", args[4])
+				}
+				request.FulfillmentState = types.FulfillmentState(fulfillmentState)
 			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)

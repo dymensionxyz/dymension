@@ -35,6 +35,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 			name:                                 "order with zero fee - success",
 			demandOrderPrice:                     150,
 			demandOrderFee:                       0,
+			fulfillmentExpectedFee:               "0",
 			eIBCdemandAddrBalance:                math.NewInt(1000),
 			expectedDemandOrdefFulfillmentStatus: true,
 		},
