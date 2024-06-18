@@ -138,14 +138,14 @@ func TestPropertyBased(t *testing.T) {
 				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
 				if height <= lastInsertedHeight {
 					if err != nil {
-						r.Fatal("not found")
+						r.Fatalf("not found: h: %d", height)
 					}
 					if !state.ContainsHeight(height) {
-						r.Fatal("found wrong one")
+						r.Fatalf("found wrong on: h: %d", height)
 					}
 				} else {
 					if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
-						r.Fatal("shouldn't be found")
+						r.Fatalf("shouldn't be foun: h: %d", height)
 					}
 				}
 			},
