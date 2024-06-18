@@ -227,7 +227,6 @@ require (
 )
 
 replace (
-
 	github.com/dymensionxyz/gerr-cosmos => /Users/danwt/Documents/dym/d-gerr-cosmos
 	// use dymension forks
 	github.com/evmos/ethermint => github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1

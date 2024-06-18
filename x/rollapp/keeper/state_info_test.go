@@ -15,6 +15,7 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
+// createNStateInfo
 func createNStateInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.StateInfo, []types.StateInfoSummary) {
 	items := make([]types.StateInfo, n)
 	for i := range items {

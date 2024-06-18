@@ -4,7 +4,9 @@ import (
 	"strconv"
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -104,23 +106,52 @@ func TestPropertyBased(t *testing.T) {
 	  -rapid.v
 	    	rapid: verbose output
 	*/
-	rapid.Check(t, testWithRapid)
-}
+	keeper, ctx := keepertest.RollappKeeper(t)
 
-func testWithRapid(t *rapid.T) {
-	key := rapid.IntRange(-12, 12)
+	f := func(r *rapid.T) {
+		heights := rapid.IntRange(0, 100)
 
-	set := map[int]struct{}{}
+		rollapp := "foo"
+		lastInsertedHeight := uint64(0)
 
-	ops := map[string]func(*rapid.T){
-		"insert": func(t *rapid.T) {
-			k := key.Draw(t, "k")
-			set[k] = struct{}{}
-		},
-		"find": func(t *rapid.T) {
-			k := key.Draw(t, "k")
-			_, ok := set[k]
-		},
+		ops := map[string]func(*rapid.T){
+			"insert": func(t *rapid.T) {
+				height := uint64(heights.Draw(t, "k"))
+				if height <= lastInsertedHeight {
+					return
+				}
+				keeper.SetStateInfo(ctx, types.StateInfo{
+					StateInfoIndex: types.StateInfoIndex{},
+					Sequencer:      "",
+					StartHeight:    lastInsertedHeight + 1,
+					NumBlocks:      height - lastInsertedHeight,
+					DAPath:         "",
+					Version:        0,
+					CreationHeight: 0,
+					Status:         0,
+					BDs:            types.BlockDescriptors{},
+				})
+				lastInsertedHeight = height
+			},
+			"find": func(t *rapid.T) {
+				height := uint64(heights.Draw(t, "k"))
+				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
+				if height <= lastInsertedHeight {
+					if err != nil {
+						r.Fatal("not found")
+					}
+					if !state.ContainsHeight(height) {
+						r.Fatal("found wrong one")
+					}
+				} else {
+					if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
+						r.Fatal("shouldn't be found")
+					}
+				}
+			},
+		}
+		r.Repeat(ops)
 	}
-	t.Repeat(ops)
+
+	rapid.Check(t, f)
 }
