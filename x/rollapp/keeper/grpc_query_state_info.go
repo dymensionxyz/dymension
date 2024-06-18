@@ -67,7 +67,7 @@ func (k Keeper) FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, h
 		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get latest state info index")
 	}
 
-	lowIx := uint64(1)
+	lowIx := uint64(1) // TODO: explain why 1
 	highIx := ix.GetIndex()
 	midIX := lowIx + ((highIx - lowIx) / 2)
 	for lowIx < highIx {

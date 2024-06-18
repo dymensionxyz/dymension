@@ -109,54 +109,51 @@ func TestPropertyBased(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 
 	f := func(r *rapid.T) {
-		heights := rapid.IntRange(0, 100)
+		heights := rapid.IntRange(1, 100)
 
 		rollapp := "foo"
-		lastInsertedHeight := uint64(0)
-		lastIndex := uint64(0)
+		lastHeight := uint64(0)
+		ix := uint64(1)
 
 		ops := map[string]func(*rapid.T){
 			"insert": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
-				if height <= lastInsertedHeight {
+				t.Logf("inserting: [%d, %d]", lastHeight+1, height)
+				if height <= lastHeight {
 					return
 				}
 				keeper.SetStateInfo(ctx, types.StateInfo{
 					StateInfoIndex: types.StateInfoIndex{
 						RollappId: rollapp,
-						Index:     lastIndex,
+						Index:     ix,
 					},
 					Sequencer:      "",
-					StartHeight:    lastInsertedHeight + 1,
-					NumBlocks:      height - lastInsertedHeight,
+					StartHeight:    lastHeight + 1,
+					NumBlocks:      height - lastHeight,
 					DAPath:         "",
 					Version:        0,
 					CreationHeight: 0,
 					Status:         0,
 					BDs:            types.BlockDescriptors{},
 				})
-				lastInsertedHeight = height
+				lastHeight = height
+				ix++
 			},
 			"sanity": func(t *rapid.T) {
-				if 0 < lastInsertedHeight {
-					_, ok := keeper.GetStateInfo(ctx, rollapp, lastInsertedHeight)
+				if 1 < ix {
+					_, ok := keeper.GetStateInfo(ctx, rollapp, ix-1)
 					require.True(t, ok)
 				}
 			},
 			"find": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
+				t.Logf("searching for: %d", height)
 				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
-				if height <= lastInsertedHeight {
-					if err != nil {
-						r.Fatalf("not found: h: %d", height)
-					}
-					if !state.ContainsHeight(height) {
-						r.Fatalf("found wrong on: h: %d", height)
-					}
+				if 1 < ix && height <= lastHeight {
+					require.NoError(t, err)
+					require.True(t, state.ContainsHeight(height))
 				} else {
-					if !errorsmod.IsOf(err, gerrc.ErrNotFound) {
-						r.Fatalf("shouldn't be foun: h: %d", height)
-					}
+					require.True(t, errorsmod.IsOf(err, gerrc.ErrNotFound))
 				}
 			},
 		}
