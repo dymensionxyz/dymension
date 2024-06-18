@@ -762,6 +762,7 @@ func New(
 		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
 	)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	transferStack = denommetadatamodule.NewIBCMiddleware(transferStack, app.TransferKeeper, *app.DenomMetadataKeeper)
 	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
