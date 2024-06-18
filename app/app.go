@@ -654,7 +654,7 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
-		app.EIBCKeeper,
+		&app.EIBCKeeper,
 		app.BankKeeper,
 	)
 

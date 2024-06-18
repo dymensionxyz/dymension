@@ -6,6 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
 	transferkeeper "github.com/cosmos/ibc-go/v6/modules/apps/transfer/keeper"
+	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -108,6 +109,9 @@ func (im *BridgingFeeMiddleware) OnRecvPacket(ctx sdk.Context, packet channeltyp
 				EventTypeBridgingFee,
 				sdk.NewAttribute(AttributeKeyFee, fee.String()),
 				sdk.NewAttribute(sdk.AttributeKeySender, transferPacketData.Sender),
+				sdk.NewAttribute(transfertypes.AttributeKeyReceiver, transferPacketData.Receiver),
+				sdk.NewAttribute(transfertypes.AttributeKeyDenom, transferPacketData.Denom),
+				sdk.NewAttribute(transfertypes.AttributeKeyAmount, transferPacketData.Amount),
 			),
 		)
 	}

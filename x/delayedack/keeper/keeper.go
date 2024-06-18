@@ -16,11 +16,10 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 type (
@@ -108,14 +107,6 @@ func (k Keeper) GetClientState(ctx sdk.Context, portID string, channelID string)
 	}
 
 	return clientState, nil
-}
-
-func (k Keeper) BlockedAddr(addr string) bool {
-	account, err := sdk.AccAddressFromBech32(addr)
-	if err != nil {
-		return false
-	}
-	return k.bankKeeper.BlockedAddr(account)
 }
 
 /* -------------------------------------------------------------------------- */
