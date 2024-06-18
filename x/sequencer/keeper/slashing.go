@@ -33,7 +33,6 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.Tokens = sdk.Coins{}
 
 	oldStatus := seq.Status
-	wasPropser := seq.Proposer
 	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
@@ -55,11 +54,6 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),
 	)
-
-	// rotate proposer if the slashed sequencer was the proposer
-	if wasPropser {
-		k.RotateProposer(ctx, seq.RollappId)
-	}
 
 	return nil
 }
