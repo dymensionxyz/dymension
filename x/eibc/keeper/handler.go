@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/pkg/errors"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -61,16 +61,17 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
 ) (*types.DemandOrder, error) {
-	packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
-	if errors.Is(err, dacktypes.ErrMemoUnmarshal) || errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
-		ctx.Logger().Debug("skipping demand order creation - no eibc memo provided")
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
+	// zero fee demand order by default
+	eibcMetaData := dacktypes.EIBCMetadata{Fee: "0"}
 
-	eibcMetaData := packetMetaData.EIBC
+	if fungibleTokenPacketData.Memo != "" {
+		packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
+		if err == nil {
+			eibcMetaData = *packetMetaData.EIBC
+		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
+			return nil, fmt.Errorf("parse packet metadata: %w", err)
+		}
+	}
 	if err := eibcMetaData.ValidateBasic(); err != nil {
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}

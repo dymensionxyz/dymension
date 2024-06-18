@@ -18,6 +18,7 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
@@ -68,61 +69,69 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 		name                string
 		amount              string
 		fee                 string
-		recipient           string
 		demandOrdersCreated int
 		expectAck           bool
 		extraMemoData       map[string]map[string]string
+		skipEIBCmemo        bool
 	}{
 		{
 			"valid demand order",
 			"1000000000",
 			"150",
-			suite.hubChain.SenderAccount.GetAddress().String(),
 			1,
 			false,
 			map[string]map[string]string{},
+			false,
+		},
+		{
+			"valid demand order - fee is 0",
+			"1000000000",
+			"0",
+			1,
+			false,
+			map[string]map[string]string{},
+			false,
+		},
+		{
+			"valid demand order - auto created",
+			"1000000000",
+			"0",
+			1,
+			false,
+			map[string]map[string]string{},
+			true,
 		},
 		{
 			"invalid demand order - negative fee",
 			"1000000000",
 			"-150",
-			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
 			map[string]map[string]string{},
+			false,
 		},
 		{
 			"invalid demand order - fee > amount",
 			"1000",
 			"1001",
-			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
 			map[string]map[string]string{},
-		},
-		{
-			"invalid demand order - fee is 0",
-			"1",
-			"0",
-			suite.hubChain.SenderAccount.GetAddress().String(),
-			0,
-			true,
-			map[string]map[string]string{},
+			false,
 		},
 		{
 			"invalid demand order - fee > max uint64",
 			"10000",
 			"100000000000000000000000000000",
-			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
 			map[string]map[string]string{},
+			false,
 		},
 		{
 			"invalid demand order - PFM and EIBC are not supported together",
 			"1000000000",
 			"150",
-			suite.hubChain.SenderAccount.GetAddress().String(),
 			0,
 			true,
 			map[string]map[string]string{"forward": {
@@ -130,6 +139,7 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 				"port":     "transfer",
 				"channel":  "channel-0",
 			}},
+			false,
 		},
 	}
 	totalDemandOrdersCreated := 0
@@ -148,23 +158,36 @@ func (suite *EIBCTestSuite) TestEIBCDemandOrderCreation() {
 			}
 			eibcJson, _ := json.Marshal(memoObj)
 			memo := string(eibcJson)
-			_ = suite.TransferRollappToHub(path, IBCSenderAccount, tc.recipient, tc.amount, memo, tc.expectAck)
+
+			if tc.skipEIBCmemo {
+				memo = ""
+			}
+
+			recipient := apptesting.CreateRandomAccounts(1)[0]
+			_ = suite.TransferRollappToHub(path, IBCSenderAccount, recipient.String(), tc.amount, memo, tc.expectAck)
 			// Validate demand orders results
 			eibcKeeper := ConvertToApp(suite.hubChain).EIBCKeeper
 			demandOrders, err := eibcKeeper.ListAllDemandOrders(suite.hubChain.GetContext())
 			suite.Require().NoError(err)
 			suite.Require().Equal(tc.demandOrdersCreated, len(demandOrders)-totalDemandOrdersCreated)
 			totalDemandOrdersCreated = len(demandOrders)
+
 			amountInt, ok := sdk.NewIntFromString(tc.amount)
 			suite.Require().True(ok)
 			feeInt, ok := sdk.NewIntFromString(tc.fee)
 			suite.Require().True(ok)
 			if tc.demandOrdersCreated > 0 {
-				lastDemandOrder := demandOrders[len(demandOrders)-1]
-				suite.Require().True(ok)
-				suite.Require().Equal(tc.recipient, lastDemandOrder.Recipient)
-				suite.Require().Equal(amountInt.Sub(feeInt), lastDemandOrder.Price[0].Amount)
-				suite.Require().Equal(feeInt, lastDemandOrder.Fee[0].Amount)
+				var demandOrder *eibctypes.DemandOrder
+				for _, order := range demandOrders {
+					if order.Recipient == recipient.String() {
+						demandOrder = order
+						break
+					}
+				}
+				suite.Require().NotNil(demandOrder)
+				suite.Require().Equal(recipient.String(), demandOrder.Recipient)
+				suite.Require().Equal(amountInt.Sub(feeInt), demandOrder.Price[0].Amount)
+				suite.Require().Equal(feeInt, demandOrder.Fee.AmountOf(demandOrder.Price[0].Denom))
 			}
 		})
 	}
