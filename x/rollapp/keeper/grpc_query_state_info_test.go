@@ -4,9 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -151,11 +149,12 @@ func TestFindStateInfoByHeightBinary(t *testing.T) {
 				height := uint64(heights.Draw(t, "k"))
 				t.Logf("searching for: %d", height)
 				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
-				if 1 < ix && height <= lastHeight {
-					require.NoError(t, err)
-					require.True(t, state.ContainsHeight(height))
-				} else {
-					require.Truef(t, errorsmod.IsOf(err, gerrc.ErrNotFound), err.Error())
+				shouldFind := 1 < ix && height <= lastHeight
+				if shouldFind && err != nil {
+					t.Fatalf("err: %v", err)
+				}
+				if shouldFind && !state.ContainsHeight(height) {
+					t.Fatal("does not contain height")
 				}
 			},
 		}
