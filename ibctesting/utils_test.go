@@ -38,6 +38,7 @@ var ChainIDPrefix = "evmos_9000-"
 
 func init() {
 	ibctesting.ChainIDPrefix = ChainIDPrefix
+	ibctesting.ChainIDSuffix = ""
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		return apptesting.SetupTestingApp()
 	}

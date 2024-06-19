@@ -193,6 +193,7 @@ import (
 
 	/* ---------------------------- upgrade handlers ---------------------------- */
 
+	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
 	v4upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 )
 
@@ -1305,6 +1306,37 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 
 // TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
+	app.setupV3upgrade()
+	app.setupV4upgrade()
+}
+
+func (app *App) setupV3upgrade() {
+	UpgradeName := "v3"
+
+	app.UpgradeKeeper.SetUpgradeHandler(
+		UpgradeName,
+		v3upgrade.CreateUpgradeHandler(
+			app.mm, app.configurator,
+			app.RollappKeeper, app.SequencerKeeper, app.DelayedAckKeeper,
+		),
+	)
+
+	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
+	}
+
+	switch upgradeInfo.Name {
+
+	}
+
+	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+	}
+}
+
+func (app *App) setupV4upgrade() {
 	UpgradeName := "v4"
 
 	app.UpgradeKeeper.SetUpgradeHandler(
@@ -1315,21 +1347,17 @@ func (app *App) setupUpgradeHandlers() {
 		),
 	)
 
-	// When a planned update height is reached, the old binary will panic
-	// writing on disk the height and name of the update that triggered it
-	// This will read that value, and execute the preparations for the upgrade.
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
 	}
 
-	// Pre upgrade handler
 	switch upgradeInfo.Name {
-	// do nothing
+
 	}
 
 	if upgradeInfo.Name == "v4" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		// configure store loader with the store upgrades
+
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v4upgrade.GetStoreUpgrades()))
 	}
 }

@@ -77,7 +77,7 @@ func SetupTestingApp() (*app.App, app.GenesisState) {
 	encCdc := app.MakeEncodingConfig()
 	params.SetAddressPrefixes()
 
-	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, EmptyAppOptions{})
+	newApp := app.New(log.NewNopLogger(), db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 5, encCdc, EmptyAppOptions{}, bam.SetChainID(TestChainID))
 
 	defaultGenesisState := app.NewDefaultGenesisState(encCdc.Codec)
 
@@ -196,7 +196,7 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	require.NoError(t, err)
 
 	// init chain will set the validator set and initialize the genesis accounts
-	app.InitChain(
+	_ = app.InitChain(
 		abci.RequestInitChain{
 			ChainId:         TestChainID,
 			Validators:      []abci.ValidatorUpdate{},
