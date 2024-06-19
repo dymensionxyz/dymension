@@ -67,7 +67,6 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 	ibcDenom := denomTrace.IBCDenom()
 
 	dm := types.ParsePacketMetadata(packetData.Memo)
-
 	if dm == nil {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
