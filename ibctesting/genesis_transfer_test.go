@@ -105,8 +105,7 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenom
 	}
 	s.Require().NoError(meta.Validate()) // sanity check the test is written correctly
 	memo := rollapptypes.GenesisTransferMemo{
-		Denom:             meta,
-		TotalNumTransfers: uint64(nDenomsTotal),
+		Denom: meta,
 	}.Namespaced().MustString()
 	tokens := sdk.NewCoin(meta.Base, amt)
 

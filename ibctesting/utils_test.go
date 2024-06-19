@@ -123,6 +123,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		a := s.hubApp()
 		ra := a.RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID())
 		ra.ChannelId = *channelID
+		ra.GenesisState.TransfersEnabled = transfersEnabled
 		a.RollappKeeper.SetRollapp(s.hubCtx(), ra)
 	}
 }
