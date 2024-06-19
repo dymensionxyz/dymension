@@ -102,7 +102,6 @@ func (w IBCModule) OnRecvPacket(
 	l := w.logger(ctx, packet)
 
 	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
-		l.Debug("Rollapps are disabled.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -217,6 +216,10 @@ func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 	err = json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
 		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+	}
+
+	if err := m.Data.Valid(); err != nil {
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, err), "validate data")
 	}
 	return m.Data, nil
 }

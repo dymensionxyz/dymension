@@ -12,6 +12,10 @@ type GenesisTransferMemo struct {
 	TotalNumTransfers uint64 `json:"total_num_transfers"`
 }
 
+func (g GenesisTransferMemo) Valid() error {
+	return g.Denom.Validate()
+}
+
 func (g GenesisTransferMemo) Namespaced() GenesisTransferMemoNamespaced {
 	return GenesisTransferMemoNamespaced{g}
 }
