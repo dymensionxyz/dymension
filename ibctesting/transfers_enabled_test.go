@@ -71,9 +71,8 @@ func (s *transfersEnabledSuite) TestRollappToHubDisabled() {
 	senderBalance := s.rollappApp().BankKeeper.GetBalance(s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), denom)
 	s.Require().True(senderBalance.Amount.IsZero())
 
-	// fails and returns err ack
 	err = s.path.RelayPacket(packet)
-	s.Require().NoError(err)
+	s.Require().Error(err) // error means ack was delayed, which means the transfer was accepted
 
 	// money is refunded
 	senderBalance = s.rollappApp().BankKeeper.GetBalance(s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), denom)
