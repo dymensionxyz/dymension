@@ -6,21 +6,24 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -42,7 +45,8 @@ type MsgCreateRollapp struct {
 	// In the case of an empty list, the rollapp is considered permissionless
 	PermissionedAddresses []string `protobuf:"bytes,7,rep,name=permissionedAddresses,proto3" json:"permissionedAddresses,omitempty"`
 	// enable ibc transfers initially? Must be set false if intending
-	// to send genesis transfers.
+	// to send genesis transfers. Should be true if not intending to send genesis transfers
+	// see https://github.com/dymensionxyz/dymension/issues/922 for more info
 	TransfersEnabled bool `protobuf:"varint,10,opt,name=transfersEnabled,proto3" json:"transfersEnabled,omitempty"`
 }
 
@@ -52,9 +56,11 @@ func (*MsgCreateRollapp) ProtoMessage()    {}
 func (*MsgCreateRollapp) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{0}
 }
+
 func (m *MsgCreateRollapp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollapp.Marshal(b, m, deterministic)
@@ -67,12 +73,15 @@ func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollapp) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollapp.Merge(m, src)
 }
+
 func (m *MsgCreateRollapp) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollapp) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollapp.DiscardUnknown(m)
 }
@@ -114,8 +123,7 @@ func (m *MsgCreateRollapp) GetTransfersEnabled() bool {
 	return false
 }
 
-type MsgCreateRollappResponse struct {
-}
+type MsgCreateRollappResponse struct{}
 
 func (m *MsgCreateRollappResponse) Reset()         { *m = MsgCreateRollappResponse{} }
 func (m *MsgCreateRollappResponse) String() string { return proto.CompactTextString(m) }
@@ -123,9 +131,11 @@ func (*MsgCreateRollappResponse) ProtoMessage()    {}
 func (*MsgCreateRollappResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{1}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollappResponse.Marshal(b, m, deterministic)
@@ -138,12 +148,15 @@ func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollappResponse.Merge(m, src)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollappResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollappResponse.DiscardUnknown(m)
 }
@@ -177,9 +190,11 @@ func (*MsgUpdateState) ProtoMessage()    {}
 func (*MsgUpdateState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{2}
 }
+
 func (m *MsgUpdateState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateState.Marshal(b, m, deterministic)
@@ -192,12 +207,15 @@ func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateState.Merge(m, src)
 }
+
 func (m *MsgUpdateState) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateState) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateState.DiscardUnknown(m)
 }
@@ -253,8 +271,7 @@ func (m *MsgUpdateState) GetBDs() BlockDescriptors {
 	return BlockDescriptors{}
 }
 
-type MsgUpdateStateResponse struct {
-}
+type MsgUpdateStateResponse struct{}
 
 func (m *MsgUpdateStateResponse) Reset()         { *m = MsgUpdateStateResponse{} }
 func (m *MsgUpdateStateResponse) String() string { return proto.CompactTextString(m) }
@@ -262,9 +279,11 @@ func (*MsgUpdateStateResponse) ProtoMessage()    {}
 func (*MsgUpdateStateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{3}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateStateResponse.Marshal(b, m, deterministic)
@@ -277,12 +296,15 @@ func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateStateResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateStateResponse.DiscardUnknown(m)
 }
@@ -334,8 +356,10 @@ var fileDescriptor_935cc363af28220c = []byte{
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConn
+var (
+	_ context.Context
+	_ grpc.ClientConn
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
@@ -382,12 +406,12 @@ type MsgServer interface {
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
-type UnimplementedMsgServer struct {
-}
+type UnimplementedMsgServer struct{}
 
 func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreateRollapp) (*MsgCreateRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRollapp not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
 }
@@ -636,6 +660,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *MsgCreateRollapp) Size() (n int) {
 	if m == nil {
 		return 0
@@ -718,9 +743,11 @@ func (m *MsgUpdateStateResponse) Size() (n int) {
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -906,6 +933,7 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -956,6 +984,7 @@ func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1192,6 +1221,7 @@ func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1242,6 +1272,7 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func skipTx(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0
