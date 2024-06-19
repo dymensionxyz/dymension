@@ -88,7 +88,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	rollappPacket := w.getSavedPacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
+	rollappPacket := w.savePacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_RECV, nil)
 
 	err = w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 	if err != nil {
@@ -136,7 +136,7 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 		return err
 	}
 
-	rollappPacket := w.getSavedPacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_ACK, acknowledgement)
+	rollappPacket := w.savePacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_ACK, acknowledgement)
 
 	switch ack.Response.(type) {
 	// Only if the acknowledgement is an error, we want to create an order
@@ -178,13 +178,13 @@ func (w IBCMiddleware) OnTimeoutPacket(
 		return err
 	}
 
-	rollappPacket := w.getSavedPacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_TIMEOUT, nil)
+	rollappPacket := w.savePacket(ctx, l, packet, transfer, relayer, commontypes.RollappPacket_ON_TIMEOUT, nil)
 
 	return w.EIBCDemandOrderHandler(ctx, rollappPacket, transfer.FungibleTokenPacketData)
 }
 
 // savePacket the packet to the store for later processing and returns it
-func (w IBCMiddleware) getSavedPacket(
+func (w IBCMiddleware) savePacket(
 	ctx sdk.Context,
 	l log.Logger,
 	packet channeltypes.Packet,
