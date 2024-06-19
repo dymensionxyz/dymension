@@ -66,14 +66,6 @@ func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint
 	return stateInfo.StartHeight + stateInfo.NumBlocks - 1, nil
 }
 
-func (k Keeper) BlockedAddr(addr string) bool {
-	account, err := sdk.AccAddressFromBech32(addr)
-	if err != nil {
-		return false
-	}
-	return k.bankKeeper.BlockedAddr(account)
-}
-
 /* -------------------------------------------------------------------------- */
 /*                               Hooks handling                               */
 /* -------------------------------------------------------------------------- */
