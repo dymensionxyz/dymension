@@ -7,9 +7,11 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/incentives/gauge.proto";
+import "dymension/incentives/params.proto";
 import "osmosis/lockup/lock.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
+
 // Query defines the gRPC querier service
 service Query {
   // ModuleToDistributeCoins returns coins that are going to be distributed
@@ -49,12 +51,6 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/incentives/v1beta1/upcoming_gauges_per_denom";
   }
 
-  // RewardsEst returns an estimate of the rewards from now until a specified
-  // time in the future The querier either provides an address or a set of locks
-  // for which they want to find the associated rewards
-  rpc RewardsEst(RewardsEstRequest) returns (RewardsEstResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/incentives/v1beta1/rewards_est/{owner}";
-  }
   // LockableDurations returns lockable durations that are valid to distribute
   // incentives for
   rpc LockableDurations(QueryLockableDurationsRequest) returns (QueryLockableDurationsResponse) {
@@ -140,22 +136,6 @@ message UpcomingGaugesPerDenomResponse {
   repeated Gauge upcoming_gauges = 1 [(gogoproto.nullable) = false];
   // Pagination defines pagination for the response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message RewardsEstRequest {
-  // Address that is being queried for future estimated rewards
-  string owner = 1 [(gogoproto.moretags) = "yaml:\"owner\""];
-  // Lock IDs included in future reward estimation
-  repeated uint64 lock_ids = 2;
-  // Upper time limit of reward estimation
-  // Lower limit is current epoch
-  int64 end_epoch = 3;
-}
-message RewardsEstResponse {
-  // Estimated coin rewards that will be recieved at provided address
-  // from specified locks between current time and end epoch
-  repeated cosmos.base.v1beta1.Coin coins = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 message QueryLockableDurationsRequest {}

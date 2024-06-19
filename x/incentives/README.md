@@ -12,7 +12,7 @@ There are two kinds of `gauges`, perpetual and non-perpetual ones.
 
 - Non perpetual ones get removed from active queue after the the distribution period finish but perpetual ones persist.
 - For non perpetual ones, they distribute the tokens equally per epoch during the `gauge` is in the active period.
-- For perpetual ones, it distribute all the tokens at a single time and somewhere else put the tokens regularly to distribute the tokens, it's mainly used to distribute minted OSMO tokens to LP token stakers.
+- For perpetual ones, it distribute all the tokens at a single time. Those gauges needs to be filled externally.
 
 ## Contents
 
@@ -30,17 +30,18 @@ There are two kinds of `gauges`, perpetual and non-perpetual ones.
 The purpose of `incentives` module is to provide incentives to the users
 who lock specific token for specific period of time.
 
-Locked tokens can be of any denomination, including LP tokens (gamm/pool/x), IBC tokens (tokens sent through IBC such as ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2), and native tokens (such as ATOM or LUNA).
+Locked tokens can be of any denomination, including LP tokens (gamm/pool/x), IBC tokens (tokens sent through IBC such as ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2), and native tokens (such as DYM).
 
 The incentive amount is entered by the gauge creator. Rewards for a given pool of locked up tokens are pooled into a gauge until the disbursement time. At the disbursement time, they are distributed pro-rata (proportionally) to members of the pool.
 
-Anyone can create a gauge and add rewards to the gauge. There is no way to withdraw gauge rewards other than distribution. Governance proposals can be raised to match the external incentive tokens with equivalent Osmo incentives (see for example: [proposal 47](https://www.mintscan.io/osmosis/proposals/47)).
+Anyone can create a gauge and add rewards to the gauge. There is no way to withdraw gauge rewards other than distribution.
+
 
 There are two kinds of gauges: **`perpetual`** and **`non-perpetual`**:
 
 - **`Non-perpetual`** gauges distribute their tokens equally per epoch while the gauge is in the active period. These gauges get removed from the active queue after the distribution period finishes
 
-- **`Perpetual gauges`** distribute all their tokens at a single time and only distribute their tokens again once the gauge is refilled (this is mainly used to distribute minted OSMO tokens to LP token stakers). Perpetual gauges persist and will re-disburse tokens when refilled (there is no "active" period)
+- **`Perpetual gauges`** distribute all their tokens at a single time and only distribute their tokens again once the gauge is refilled (this is mainly used to distribute `x/streamer` incentives). Perpetual gauges persist and will re-disburse tokens when refilled (there is no "active" period)
 
 ## State
 
@@ -309,10 +310,6 @@ service Query {
   rpc ActiveGauges(ActiveGaugesRequest) returns (ActiveGaugesResponse) {}
   // returns scheduled gauges
   rpc UpcomingGauges(UpcomingGaugesRequest) returns (UpcomingGaugesResponse) {}
-  // RewardsEst returns an estimate of the rewards at a future specific time.
-  // The querier either provides an address or a set of locks
-  // for which they want to find the associated rewards.
-  rpc RewardsEst(RewardsEstRequest) returns (RewardsEstResponse) {}
   // returns lockable durations that are valid to give incentives
   rpc LockableDurations(QueryLockableDurationsRequest) returns (QueryLockableDurationsResponse) {}
 }
@@ -561,11 +558,6 @@ pagination:
 
 :::
 
-### rewards-estimation
-
-Query rewards estimation
-
-// Error: strconv.ParseUint: parsing "": invalid syntax
 
 ### to-distribute-coins
 

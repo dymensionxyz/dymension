@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	apptesting "github.com/dymensionxyz/dymension/v3/app/apptesting"
-
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
