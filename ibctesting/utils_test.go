@@ -116,14 +116,7 @@ func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) 
 }
 
 func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
-		s.hubChain().SenderAccount.GetAddress().String(),
-		rollappChainID(),
-		10,
-		[]string{},
-
-		transfersEnabled,
-	)
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(s.hubChain().SenderAccount.GetAddress().String(), rollappChainID(), 10, []string{})
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {

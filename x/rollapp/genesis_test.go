@@ -1,10 +1,7 @@
 package rollapp_test
 
 import (
-	"strings"
 	"testing"
-
-	"golang.org/x/exp/slices"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -55,18 +52,6 @@ func TestInitExportGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
-		GenesisTransfers: []types.GenesisTransfers{
-			{
-				RollappID:   "0",
-				NumTotal:    3,
-				NumReceived: 3,
-			},
-			{
-				RollappID:   "1",
-				NumTotal:    3,
-				NumReceived: 3,
-			},
-		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -78,43 +63,9 @@ func TestInitExportGenesis(t *testing.T) {
 	nullify.Fill(genesisState)
 	nullify.Fill(*got)
 
-	require.True(t, GenesisTransfersAreEquivalent(genesisState.GetGenesisTransfers(), got.GetGenesisTransfers()))
-	require.ElementsMatch(t, genesisState.GenesisTransfers, got.GenesisTransfers)
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
 	require.ElementsMatch(t, genesisState.BlockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
 	// this line is used by starport scaffolding # genesis/test/assert
-}
-
-// GenesisTransfersAreEquivalent returns if a,b are the same, in terms of containing
-// the same semantic content. Intended for use in tests.
-func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
-	if len(x) != len(y) {
-		return false
-	}
-	sort := func(l []types.GenesisTransfers) {
-		slices.SortStableFunc(l, func(a, b types.GenesisTransfers) bool {
-			return strings.Compare(a.GetRollappID(), b.GetRollappID()) <= 0
-		})
-	}
-
-	sort(x)
-	sort(y)
-	for i := range len(x) {
-		a := x[i]
-		b := y[i]
-		if a.NumTotal != b.NumTotal {
-			return false
-		}
-		if a.NumReceived != b.NumReceived {
-			return false
-		}
-		if a.RollappID != b.RollappID {
-			return false
-		}
-
-	}
-
-	return true
 }
