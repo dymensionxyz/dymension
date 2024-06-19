@@ -39,13 +39,14 @@ func (w IBCModuleCanonicalChannelHack) OnRecvPacket(
 	l := ctx.Logger().With("module", "hack set canonical channel")
 
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, w.channelKeeper, packet.GetDestPort(), packet.GetDestChannel())
-	if err == nil {
-		ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
-		if ok && ra.ChannelId == "" {
-			ra.ChannelId = packet.GetDestChannel()
-			w.rollappKeeper.SetRollapp(ctx, ra)
-			l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
-		}
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+	ra, ok := w.rollappKeeper.GetRollapp(ctx, chainID)
+	if ok && ra.ChannelId == "" {
+		ra.ChannelId = packet.GetDestChannel()
+		w.rollappKeeper.SetRollapp(ctx, ra)
+		l.Info("Set the canonical channel.", "channel id", packet.GetDestChannel())
 	}
 	return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
