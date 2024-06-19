@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -55,10 +54,10 @@ func (s *transferGenesisSuite) TestHappyPath() {
 
 	denoms := []string{"foo", "bar", "baz"}
 
-	for i, denom := range denoms {
+	for _, denom := range denoms {
 		/* ------------------- move non-registered token from rollapp ------------------- */
 
-		msg := s.transferMsg(amt, denom)
+		msg := s.transferMsg(amt, denom, true)
 		apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 		res, err := s.rollappChain().SendMsgs(msg)
 		s.Require().NoError(err)
@@ -85,15 +84,8 @@ func (s *transferGenesisSuite) TestHappyPath() {
 }
 
 // In the fault path, a chain tries to do another genesis transfer (to skip eibc) after the genesis phase
-// is already complete
+// is already complete. It triggers a fraud.
 func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
-	/*
-		Send a bunch of transfer packets to the hub
-		Check the balances are created
-		Check the denoms are created
-		Check the bridge is enabled (or not)
-	*/
-
 	amt := math.NewIntFromUint64(10000000000000000000)
 
 	denoms := []string{"foo", "bar", "baz"}
@@ -111,6 +103,7 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 
 		_ = s.path.RelayPacket(packet)
 
+		s.Require().Equal(i < 2, s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Frozen)
 	}
 }
 
