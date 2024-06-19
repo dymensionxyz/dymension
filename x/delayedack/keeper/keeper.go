@@ -16,29 +16,27 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	tenderminttypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
-type (
-	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		hooks      types.MultiDelayedAckHooks
-		paramstore paramtypes.Subspace
+type Keeper struct {
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	hooks      types.MultiDelayedAckHooks
+	paramstore paramtypes.Subspace
 
-		rollappKeeper   types.RollappKeeper
-		sequencerKeeper types.SequencerKeeper
-		porttypes.ICS4Wrapper
-		channelKeeper    types.ChannelKeeper
-		connectionKeeper types.ConnectionKeeper
-		clientKeeper     types.ClientKeeper
-		types.EIBCKeeper
-		bankKeeper types.BankKeeper
-	}
-)
+	rollappKeeper   types.RollappKeeper
+	sequencerKeeper types.SequencerKeeper
+	porttypes.ICS4Wrapper
+	channelKeeper    types.ChannelKeeper
+	connectionKeeper types.ConnectionKeeper
+	clientKeeper     types.ClientKeeper
+	types.EIBCKeeper
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
@@ -51,7 +49,6 @@ func NewKeeper(
 	connectionKeeper types.ConnectionKeeper,
 	clientKeeper types.ClientKeeper,
 	eibcKeeper types.EIBCKeeper,
-	bankKeeper types.BankKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -67,7 +64,6 @@ func NewKeeper(
 		channelKeeper:    channelKeeper,
 		clientKeeper:     clientKeeper,
 		connectionKeeper: connectionKeeper,
-		bankKeeper:       bankKeeper,
 		EIBCKeeper:       eibcKeeper,
 	}
 }

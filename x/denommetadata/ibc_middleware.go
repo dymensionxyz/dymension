@@ -89,6 +89,23 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 		im.transferKeeper.SetDenomTrace(ctx, denomTrace)
 	}
 
+	rollapp, err := im.rollappKeeper.ExtractRollappFromChannel(ctx, packet.DestinationChannel, packet.DestinationChannel)
+	if err != nil {
+		return channeltypes.NewErrorAcknowledgement(err)
+	}
+
+	if rollapp == nil {
+		return channeltypes.NewErrorAcknowledgement(types.ErrRollappNotFound)
+	}
+
+	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
+		// add the new token denom base to the list of rollapp's registered denoms
+		// this is to prevent the same denom metadata from getting sent to the rollapp more than once
+		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
+
+		im.rollappKeeper.SetRollapp(ctx, *rollapp)
+	}
+
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
 
@@ -123,7 +140,7 @@ func (im IBCRecvMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
 	}
 	if rollapp == nil {
-		return errorsmod.Wrapf(errortypes.ErrNotFound, "rollapp not found")
+		return types.ErrRollappNotFound
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {

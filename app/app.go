@@ -653,7 +653,6 @@ func New(
 		app.IBCKeeper.ConnectionKeeper,
 		app.IBCKeeper.ClientKeeper,
 		&app.EIBCKeeper,
-		app.BankKeeper,
 	)
 
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
