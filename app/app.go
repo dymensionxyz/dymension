@@ -189,7 +189,7 @@ import (
 
 	/* ---------------------------- upgrade handlers ---------------------------- */
 
-	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
+	v4upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 )
 
 var (
@@ -1289,13 +1289,13 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 
 // TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
-	UpgradeName := "v3"
+	UpgradeName := "v4"
 
 	app.UpgradeKeeper.SetUpgradeHandler(
 		UpgradeName,
-		v3upgrade.CreateUpgradeHandler(
+		v4upgrade.CreateUpgradeHandler(
 			app.mm, app.configurator,
-			app.RollappKeeper, app.SequencerKeeper, app.DelayedAckKeeper,
+			app.ParamsKeeper, app.ConsensusParamsKeeper,
 		),
 	)
 
@@ -1312,8 +1312,8 @@ func (app *App) setupUpgradeHandlers() {
 	// do nothing
 	}
 
-	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == "v4" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		// configure store loader with the store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v4upgrade.GetStoreUpgrades()))
 	}
 }
