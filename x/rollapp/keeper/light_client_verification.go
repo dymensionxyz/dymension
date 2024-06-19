@@ -87,6 +87,8 @@ func (v lcv) verifyCreateClient(
 	clientState exported.ClientState,
 	consensusState exported.ConsensusState,
 ) error {
+	// TODO:
+	return nil
 }
 
 // if the ibc module accepts a new consensus state, then it must have been signed by 2/3 of the voting power
@@ -101,6 +103,11 @@ func (v lcv) verifyCreateClient(
 // the data originates from the relayer querying the rpc node comet layer
 //
 //	https://github.com/cometbft/cometbft/blob/v0.34.33/light/provider/http/http.go#L69
+//
+// getting my thoughts down:
+// need to verify the signature on the first client creation
+// thereafter, can rely on induction
+// at this time you can also set the canonical client
 func (v lcv) verifyNewLightClientHeader(ctx sdk.Context, evt clientUpdateEvent) error {
 	consState, ok := v.ibckeeper.ClientKeeper.GetClientConsensusState(ctx, evt.clientID, evt.consensusHeight)
 	if !ok {
