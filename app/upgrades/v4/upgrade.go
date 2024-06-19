@@ -5,20 +5,24 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	// Ethermint modules
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
 
 func GetStoreUpgrades() *storetypes.StoreUpgrades {
@@ -35,7 +39,7 @@ func GetStoreUpgrades() *storetypes.StoreUpgrades {
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-	paramsKeeper ParamsKeeper,
+	paramsKeeper paramskeeper.Keeper,
 	consensusKeeper consensusparamkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
@@ -62,6 +66,14 @@ func CreateUpgradeHandler(
 				keyTable = govv1.ParamKeyTable() //nolint:staticcheck
 			case crisistypes.ModuleName:
 				keyTable = crisistypes.ParamKeyTable() //nolint:staticcheck
+
+			// Ethermint  modules
+			case evmtypes.ModuleName:
+				keyTable = evmtypes.ParamKeyTable() //nolint:staticcheck
+			case feemarkettypes.ModuleName:
+				keyTable = feemarkettypes.ParamKeyTable() //nolint:staticcheck
+			default:
+				continue
 			}
 
 			if !subspace.HasKeyTable() {
