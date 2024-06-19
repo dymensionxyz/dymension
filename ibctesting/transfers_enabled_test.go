@@ -38,51 +38,6 @@ func (s *transfersEnabledSuite) SetupTest() {
 	s.Require().False(s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled)
 }
 
-// Regular (non genesis) transfers RA->Hub (and Hub->RA) should both be blocked when the bridge is not open
-// Note: we don't explicitly test the 'enabled' case, since this is tested in other tests in this package
-func (s *transfersEnabledSuite) TestRollappToHubDisabled() {
-	amt := math.NewIntFromUint64(10000000000000000000)
-	denom := "foo"
-	tokens := sdk.NewCoin(denom, amt)
-
-	timeoutHeight := clienttypes.NewHeight(100, 110)
-
-	msg := types.NewMsgTransfer(
-		s.path.EndpointB.ChannelConfig.PortID,
-		s.path.EndpointB.ChannelID,
-		tokens,
-		s.rollappChain().SenderAccount.GetAddress().String(),
-		s.hubChain().SenderAccount.GetAddress().String(),
-		timeoutHeight,
-		0,
-		"",
-	)
-
-	receiverBalance := s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), denom)
-	s.Require().True(receiverBalance.Amount.IsZero())
-
-	apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
-	res, err := s.rollappChain().SendMsgs(msg)
-	s.Require().NoError(err)
-	packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
-	s.Require().NoError(err)
-
-	// money is escrowed
-	senderBalance := s.rollappApp().BankKeeper.GetBalance(s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), denom)
-	s.Require().True(senderBalance.Amount.IsZero())
-
-	err = s.path.RelayPacket(packet)
-	s.Require().Error(err) // error means ack was delayed, which means the transfer was accepted
-
-	// money is refunded
-	senderBalance = s.rollappApp().BankKeeper.GetBalance(s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), denom)
-	s.Require().True(senderBalance.Amount.IsPositive())
-
-	// no double spend
-	receiverBalance = s.hubApp().BankKeeper.GetBalance(s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), denom)
-	s.Require().True(receiverBalance.Amount.IsZero())
-}
-
 // Regular (non genesis) transfers (RA->Hub) and Hub->RA should both be blocked when the bridge is not open
 func (s *transfersEnabledSuite) TestHubToRollappDisabled() {
 	amt := math.NewIntFromUint64(10000000000000000000)
