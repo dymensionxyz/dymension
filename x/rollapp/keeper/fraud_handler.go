@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/types"
+	tmtypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"

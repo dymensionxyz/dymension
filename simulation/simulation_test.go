@@ -7,12 +7,13 @@ import (
 	simapp "github.com/cosmos/cosmos-sdk/testutil/sims"
 	simulationtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+	simcli "github.com/cosmos/cosmos-sdk/x/simulation/client/cli"
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/stretchr/testify/require"
 )
 
 func init() {
-	simapp.GetSimulatorFlags()
+	simcli.GetSimulatorFlags()
 }
 
 // BenchmarkSimulation run the chain simulation
@@ -21,10 +22,12 @@ func init() {
 // Running as go benchmark test:
 // `go test -benchmem -run=^$ -bench ^BenchmarkSimulation ./app -NumBlocks=200 -BlockSize 50 -Commit=true -Verbose=true -Enabled=true`
 func BenchmarkSimulation(b *testing.B) {
-	simapp.FlagEnabledValue = true
-	simapp.FlagCommitValue = true
+	simcli.FlagEnabledValue = true
+	simcli.FlagCommitValue = true
+	config := simcli.NewConfigFromFlags()
+	config.ChainID = "simulation-app"
 
-	config, db, dir, logger, _, err := simapp.SetupSimulation("goleveldb-app-sim", "Simulation")
+	db, dir, logger, _, err := simapp.SetupSimulation(config, "goleveldb-app-sim", "Simulation", simcli.FlagEnabledValue, simcli.FlagEnabledValue)
 	require.NoError(b, err, "simulation setup failed")
 
 	b.Cleanup(func() {
@@ -36,7 +39,7 @@ func BenchmarkSimulation(b *testing.B) {
 
 	encoding := app.MakeEncodingConfig()
 
-	app := app.New(
+	dymdApp := app.New(
 		logger,
 		db,
 		nil,
@@ -52,17 +55,17 @@ func BenchmarkSimulation(b *testing.B) {
 	_, simParams, simErr := simulation.SimulateFromSeed(
 		b,
 		os.Stdout,
-		app.BaseApp,
-		simapp.AppStateFn(app.AppCodec(), app.SimulationManager()),
+		dymdApp.BaseApp,
+		simapp.AppStateFn(dymdApp.AppCodec(), dymdApp.SimulationManager(), app.NewDefaultGenesisState(dymdApp.AppCodec())),
 		simulationtypes.RandomAccounts,
-		simapp.SimulationOperations(app, app.AppCodec(), config),
-		app.ModuleAccountAddrs(),
+		simapp.SimulationOperations(dymdApp, dymdApp.AppCodec(), config),
+		dymdApp.ModuleAccountAddrs(),
 		config,
-		app.AppCodec(),
+		dymdApp.AppCodec(),
 	)
 
 	// export state and simParams before the simulation error is checked
-	err = simapp.CheckExportSimulation(app, config, simParams)
+	err = simapp.CheckExportSimulation(dymdApp, config, simParams)
 	require.NoError(b, err)
 	require.NoError(b, simErr)
 

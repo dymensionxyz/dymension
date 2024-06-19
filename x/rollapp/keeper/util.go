@@ -6,7 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
-	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/types"
+	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )

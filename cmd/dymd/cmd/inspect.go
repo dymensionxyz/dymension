@@ -67,7 +67,7 @@ func InspectCmd(appExporter types.AppExporter, appCreator types.AppCreator, defa
 			}
 
 			height, _ := cmd.Flags().GetInt64(FlagHeight)
-			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, false, []string{}, serverCtx.Viper)
+			exported, err := appExporter(serverCtx.Logger, db, traceWriter, height, false, []string{}, nil, []string{})
 			if err != nil {
 				return fmt.Errorf("exporting state: %w", err)
 			}

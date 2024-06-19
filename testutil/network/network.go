@@ -5,13 +5,13 @@ import (
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
-	servertypes "github.com/cosmos/cosmos-sdk/server/types"
-	simapp "github.com/cosmos/cosmos-sdk/testutil/sims"
-
+	"cosmossdk.io/simapp"
 	tmdb "github.com/cometbft/cometbft-db"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
@@ -44,18 +44,18 @@ func New(t *testing.T, configs ...network.Config) *network.Network {
 // DefaultConfig will initialize config for the network with custom application,
 // genesis and single validator. All other parameters are inherited from cosmos-sdk/testutil/network.DefaultConfig
 func DefaultConfig() network.Config {
-	cfg := network.DefaultConfig()
+	cfg := network.DefaultConfig(simapp.NewTestNetworkFixture)
 	encoding := app.MakeEncodingConfig()
 
 	// FIXME: add rand tmrand.Uint64() to chainID
 	cfg.ChainID = "dymension_1000-1"
-	cfg.AppConstructor = func(val network.Validator) servertypes.Application {
+	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
 		return app.New(
-			val.Ctx.Logger, tmdb.NewMemDB(), nil, true, map[int64]bool{}, val.Ctx.Config.RootDir, 0,
+			val.GetCtx().Logger, tmdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
 			encoding,
-			simapp.EmptyAppOptions{},
-			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.AppConfig.Pruning)),
-			baseapp.SetMinGasPrices(val.AppConfig.MinGasPrices),
+			sims.EmptyAppOptions{},
+			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
+			baseapp.SetMinGasPrices(val.GetAppConfig().MinGasPrices),
 		)
 	}
 
