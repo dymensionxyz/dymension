@@ -7,6 +7,7 @@ import "google/protobuf/duration.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "dymension/incentives/gauge.proto";
+import "osmosis/lockup/lock.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/incentives/types";
 // Query defines the gRPC querier service
