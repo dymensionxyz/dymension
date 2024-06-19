@@ -205,10 +205,5 @@ func (w IBCMiddleware) savePacket(
 
 	w.Keeper.SetRollappPacket(ctx, p)
 
-	l.Debug("Set rollapp packet.",
-		"rollappID", p.RollappId,
-		"proofHeight", p.ProofHeight,
-		"type", p.Type)
-
 	return p
 }
