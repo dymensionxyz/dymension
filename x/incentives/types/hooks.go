@@ -5,8 +5,7 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 type IncentiveHooks interface {
 	AfterCreateGauge(ctx sdk.Context, gaugeId uint64)
 	AfterAddToGauge(ctx sdk.Context, gaugeId uint64)
-	AfterStartDistribution(ctx sdk.Context, gaugeId uint64)
-	AfterFinishDistribution(ctx sdk.Context, gaugeId uint64)
+	GaugeFinished(ctx sdk.Context, gaugeId uint64)
 	AfterEpochDistribution(ctx sdk.Context)
 }
 
@@ -32,15 +31,9 @@ func (h MultiIncentiveHooks) AfterAddToGauge(ctx sdk.Context, gaugeId uint64) {
 	}
 }
 
-func (h MultiIncentiveHooks) AfterStartDistribution(ctx sdk.Context, gaugeId uint64) {
+func (h MultiIncentiveHooks) GaugeFinished(ctx sdk.Context, gaugeId uint64) {
 	for i := range h {
-		h[i].AfterStartDistribution(ctx, gaugeId)
-	}
-}
-
-func (h MultiIncentiveHooks) AfterFinishDistribution(ctx sdk.Context, gaugeId uint64) {
-	for i := range h {
-		h[i].AfterFinishDistribution(ctx, gaugeId)
+		h[i].GaugeFinished(ctx, gaugeId)
 	}
 }
 

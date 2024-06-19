@@ -178,13 +178,13 @@ func (suite *KeeperTestSuite) TestAddToGauge_Fee() {
 			name:                 "user tries to add to a non-perpetual gauge but does not have enough funds to pay for the create gauge fee",
 			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("adym", types.DYM.Mul(sdk.NewInt(20)))),
 			gaugeAddition:        sdk.NewCoins(sdk.NewCoin("adym", types.DYM.Mul(sdk.NewInt(20)))),
-			expectErr:            false, //no addition fee
+			expectErr:            false, // no addition fee
 		},
 		{
 			name:                 "user tries to add to a non-perpetual gauge but does not have the correct fee denom",
 			accountBalanceToFund: sdk.NewCoins(sdk.NewCoin("foo", types.DYM.Mul(sdk.NewInt(60)))),
 			gaugeAddition:        sdk.NewCoins(sdk.NewCoin("foo", types.DYM.Mul(sdk.NewInt(10)))),
-			expectErr:            false, //no addition fee
+			expectErr:            false, // no addition fee
 		},
 	}
 

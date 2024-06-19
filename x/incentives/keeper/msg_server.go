@@ -78,3 +78,32 @@ func (server msgServer) AddToGauge(goCtx context.Context, msg *types.MsgAddToGau
 
 	return &types.MsgAddToGaugeResponse{}, nil
 }
+
+// chargeFeeIfSufficientFeeDenomBalance charges fee in the base denom on the address if the address has
+// balance that is less than fee + amount of the coin from gaugeCoins that is of base denom.
+// gaugeCoins might not have a coin of tx base denom. In that case, fee is only compared to balance.
+// The fee is sent to the community pool.
+// Returns nil on success, error otherwise.
+func (k Keeper) chargeFeeIfSufficientFeeDenomBalance(ctx sdk.Context, address sdk.AccAddress, fee sdk.Int, gaugeCoins sdk.Coins) (err error) {
+	var feeDenom string
+	if k.tk == nil {
+		feeDenom, err = sdk.GetBaseDenom()
+	} else {
+		feeDenom, err = k.tk.GetBaseDenom(ctx)
+	}
+	if err != nil {
+		return err
+	}
+
+	totalCost := gaugeCoins.AmountOf(feeDenom).Add(fee)
+	accountBalance := k.bk.GetBalance(ctx, address, feeDenom).Amount
+
+	if accountBalance.LT(totalCost) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "account's balance of %s (%s) is less than the total cost of the message (%s)", feeDenom, accountBalance, totalCost)
+	}
+
+	if err := k.ck.FundCommunityPool(ctx, sdk.NewCoins(sdk.NewCoin(feeDenom, fee)), address); err != nil {
+		return err
+	}
+	return nil
+}

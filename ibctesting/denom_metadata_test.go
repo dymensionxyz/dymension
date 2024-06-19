@@ -24,7 +24,7 @@ func (suite *DenomMetaDataTestSuite) SetupTest() {
 	suite.IBCTestUtilSuite.SetupTest()
 }
 
-func (suite *DenomMetaDataTestSuite) TestDenomRegistationRollappToHub() {
+func (suite *DenomMetaDataTestSuite) TestDenomRegistrationRollappToHub() {
 	path := suite.NewTransferPath(suite.hubChain, suite.rollappChain)
 	suite.coordinator.Setup(path)
 

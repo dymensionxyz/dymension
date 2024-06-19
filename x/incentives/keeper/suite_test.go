@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
@@ -12,13 +12,11 @@ import (
 )
 
 var (
-	defaultLPDenom           string        = "lptoken"
-	defaultLPSyntheticDenom  string        = "lptoken/superbonding"
-	defaultLPTokens          sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPDenom, 10)}
-	defaultLPSyntheticTokens sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPSyntheticDenom, 10)}
-	defaultLiquidTokens      sdk.Coins     = sdk.Coins{sdk.NewInt64Coin("foocoin", 10)}
-	defaultLockDuration      time.Duration = time.Second
-	oneLockupUser            userLocks     = userLocks{
+	defaultLPDenom      string        = "lptoken"
+	defaultLPTokens     sdk.Coins     = sdk.Coins{sdk.NewInt64Coin(defaultLPDenom, 10)}
+	defaultLiquidTokens sdk.Coins     = sdk.Coins{sdk.NewInt64Coin("foocoin", 10)}
+	defaultLockDuration time.Duration = time.Second
+	oneLockupUser       userLocks     = userLocks{
 		lockDurations: []time.Duration{time.Second},
 		lockAmounts:   []sdk.Coins{defaultLPTokens},
 	}
@@ -26,14 +24,7 @@ var (
 		lockDurations: []time.Duration{defaultLockDuration, 2 * defaultLockDuration},
 		lockAmounts:   []sdk.Coins{defaultLPTokens, defaultLPTokens},
 	}
-	oneSyntheticLockupUser userLocks = userLocks{
-		lockDurations: []time.Duration{time.Second},
-		lockAmounts:   []sdk.Coins{defaultLPSyntheticTokens},
-	}
-	twoSyntheticLockupUser userLocks = userLocks{
-		lockDurations: []time.Duration{defaultLockDuration, 2 * defaultLockDuration},
-		lockAmounts:   []sdk.Coins{defaultLPSyntheticTokens, defaultLPSyntheticTokens},
-	}
+
 	defaultRewardDenom string = "rewardDenom"
 )
 
