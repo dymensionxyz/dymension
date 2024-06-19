@@ -7,6 +7,7 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/tendermint/tendermint/libs/log"
@@ -43,20 +44,6 @@ func (w IBCModule) logger(
 	)
 }
 
-type ctxKeySkip struct{}
-
-// SkipContext returns a context which can be used when this middleware
-// processes received packets in order to skip the transfer enabled check.
-func SkipContext(ctx sdk.Context) sdk.Context {
-	return ctx.WithValue(ctxKeySkip{}, true)
-}
-
-// skip returns if the context contains the skip directive
-func skip(ctx sdk.Context) bool {
-	val, ok := ctx.Value(ctxKeySkip{}).(bool)
-	return ok && val
-}
-
 // OnRecvPacket will block any packet from a rollapp for which transfers are not enabled
 // for that rollapp. Pass a skip context to skip the check.
 func (w IBCModule) OnRecvPacket(
@@ -66,7 +53,7 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
-	if skip(ctx) || !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

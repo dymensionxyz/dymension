@@ -8,6 +8,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/tendermint/tendermint/libs/log"
@@ -59,24 +60,10 @@ func (w IBCModule) logger(
 	)
 }
 
-type ctxKeySkip struct{}
-
-// SkipContext returns a context which can be used when this middleware
-// processes received packets in order to skip the check.
-func SkipContext(ctx sdk.Context) sdk.Context {
-	return ctx.WithValue(ctxKeySkip{}, true)
-}
-
-// skip returns if the context contains the skip directive
-func skip(ctx sdk.Context) bool {
-	val, ok := ctx.Value(ctxKeySkip{}).(bool)
-	return ok && val
-}
-
 func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if skip(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

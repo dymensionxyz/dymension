@@ -6,13 +6,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dymensionxyz/dymension/v3/x/delayedack"
-
-	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
-
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
-
 	"github.com/dymensionxyz/dymension/v3/utils/derr"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -101,7 +96,7 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
-	if !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedackKeeper.IsRollappsEnabled(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
@@ -169,15 +164,7 @@ func (w IBCModule) OnRecvPacket(
 
 	l.Debug("Passing on the transfer down the stack, but skipping delayedack, the transferEnabled blocker and bridging fee.")
 
-	return w.IBCModule.OnRecvPacket(
-		bridgingfee.SkipContext(
-			transfersenabled.SkipContext(
-				delayedack.SkipContext(
-					ctx,
-				),
-			),
-		),
-		packet, relayer)
+	return w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
 }
 
 // handleFraud : the rollapp has violated the DRS!

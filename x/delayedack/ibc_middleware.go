@@ -47,19 +47,6 @@ func (w IBCMiddleware) logger(
 	)
 }
 
-type ctxKeySkip struct{}
-
-func SkipContext(ctx sdk.Context) sdk.Context {
-	return ctx.WithValue(ctxKeySkip{}, true)
-}
-
-// skip returns if the context contains the skip directive
-// Not intended to be used outside of module
-func skip(ctx sdk.Context) bool {
-	val, ok := ctx.Value(ctxKeySkip{}).(bool)
-	return ok && val
-}
-
 // OnRecvPacket handles the receipt of a packet and puts it into a pending queue
 // until its state is finalized
 func (w IBCMiddleware) OnRecvPacket(
@@ -73,7 +60,7 @@ func (w IBCMiddleware) OnRecvPacket(
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	if skip(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) {
 		l.Debug("Skipping because of skip delay ctx.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
