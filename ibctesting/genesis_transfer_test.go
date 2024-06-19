@@ -101,9 +101,9 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		s.Require().NoError(err)
 
-		_ = s.path.RelayPacket(packet)
+		err = s.path.RelayPacket(packet)
 
-		s.Require().Equal(i < 2, s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Frozen)
+		s.Require().Equal(i == 2, s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Frozen, "i", i)
 	}
 }
 
