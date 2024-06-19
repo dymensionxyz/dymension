@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -128,11 +127,6 @@ func (q Querier) UpcomingGaugesPerDenom(goCtx context.Context, req *types.Upcomi
 	}
 
 	return &types.UpcomingGaugesPerDenomResponse{UpcomingGauges: gauges, Pagination: pageRes}, nil
-}
-
-// TODO: remove once proto-regenareted
-func (q Querier) RewardsEst(goCtx context.Context, req *types.RewardsEstRequest) (*types.RewardsEstResponse, error) {
-	return &types.RewardsEstResponse{}, fmt.Errorf("not supported")
 }
 
 // LockableDurations returns all of the allowed lockable durations on chain.
