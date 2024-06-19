@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -155,10 +154,6 @@ func (q Querier) Params(goCtx context.Context, req *types.ParamsRequest) (*types
 	params := q.Keeper.GetParams(ctx)
 
 	return &types.ParamsResponse{Params: &params}, nil
-}
-
-func (q Querier) RewardsEst(goCtx context.Context, req *types.RewardsEstRequest) (*types.RewardsEstResponse, error) {
-	return &types.RewardsEstResponse{}, fmt.Errorf("not supported")
 }
 
 // LockableDurations returns all of the allowed lockable durations on chain.
