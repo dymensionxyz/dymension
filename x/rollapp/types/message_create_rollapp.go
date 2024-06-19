@@ -10,16 +10,19 @@ var _ sdk.Msg = &MsgCreateRollapp{}
 
 const MaxAllowedSequencers = 100
 
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
-	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
+func NewMsgCreateRollapp(
+	creator string,
+	rollappId string,
+	maxSequencers uint64,
+	permissionedAddresses []string,
+	transfersEnabled bool,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
-		Metadatas:             metadatas,
-		GenesisAccounts:       genesisAccounts,
+		TransfersEnabled:      transfersEnabled,
 	}
 }
 
@@ -45,20 +48,7 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
-	// Build the genesis state from the genesis accounts
-	rollappGenesisState := RollappGenesisState{
-		IsGenesisEvent: false,
-	}
-	rollappGenesisState.GenesisAccounts = make([]*GenesisAccount, len(msg.GenesisAccounts))
-	for i := range msg.GenesisAccounts {
-		rollappGenesisState.GenesisAccounts[i] = &msg.GenesisAccounts[i]
-	}
-	metadata := make([]*TokenMetadata, len(msg.Metadatas))
-	for i := range msg.Metadatas {
-		metadata[i] = &msg.Metadatas[i]
-	}
-
-	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, msg.TransfersEnabled)
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {

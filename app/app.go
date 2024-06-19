@@ -9,7 +9,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/dymension/v3/x/bridging_fee"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -279,7 +284,7 @@ var (
 		govtypes.ModuleName:                                {authtypes.Burner},
 		ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		rollappmoduletypes.ModuleName:                      {authtypes.Minter},
+		rollappmoduletypes.ModuleName:                      {},
 		streamermoduletypes.ModuleName:                     nil,
 		evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 		evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
@@ -546,7 +551,7 @@ func New(
 		app.AccountKeeper,
 	)
 
-	txfeeskeeper := txfeeskeeper.NewKeeper(
+	txFeesKeeper := txfeeskeeper.NewKeeper(
 		app.keys[txfeestypes.StoreKey],
 		app.GetSubspace(txfeestypes.ModuleName),
 		app.AccountKeeper,
@@ -555,7 +560,7 @@ func New(
 		app.PoolManagerKeeper,
 		app.GAMMKeeper,
 	)
-	app.TxFeesKeeper = &txfeeskeeper
+	app.TxFeesKeeper = &txFeesKeeper
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 	app.GAMMKeeper.SetTxFees(app.TxFeesKeeper)
 
@@ -609,31 +614,20 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ClientKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.BankKeeper,
-		app.DenomMetadataKeeper,
-	)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		transferinject.NewICS4Wrapper(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
-
-	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -649,11 +643,8 @@ func New(
 		keys[delayedacktypes.StoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
-		app.SequencerKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ConnectionKeeper,
-		app.IBCKeeper.ClientKeeper,
 		&app.EIBCKeeper,
 		app.BankKeeper,
 	)
@@ -742,27 +733,18 @@ func New(
 	)
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
-	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridging_fee.NewIBCMiddleware(
-		transferMiddleware,
-		app.IBCKeeper.ChannelKeeper,
-		app.DelayedAckKeeper,
-		app.RollappKeeper,
-		app.TransferKeeper,
-		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-	)
+	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = bridgingfee.NewIBCModule(transferStack.(ibctransfer.IBCModule), app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
-	transferStack = packetforwardmiddleware.NewIBCMiddleware(
-		transferStack,
-		app.PacketForwardMiddlewareKeeper,
-		0,
-		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
-	)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
+	transferStack = delayedAckMiddleware
+	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
+	transferStack = transfersenabled.NewIBCModule(transferStack, app.RollappKeeper, app.DelayedAckKeeper)
+	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
+	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper.GetChannelClientState)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -976,6 +958,7 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
+		RollappKeeper:          app.RollappKeeper,
 	})
 	if err != nil {
 		panic(err)
