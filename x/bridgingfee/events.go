@@ -1,4 +1,4 @@
-package bridging_fee
+package bridgingfee
 
 const (
 	EventTypeBridgingFee = "bridging_fee"

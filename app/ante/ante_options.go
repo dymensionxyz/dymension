@@ -6,6 +6,7 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	ethante "github.com/evmos/ethermint/app/ante"
 
 	errorsmod "cosmossdk.io/errors"
@@ -24,6 +25,7 @@ type HandlerOptions struct {
 	SignModeHandler        authsigning.SignModeHandler
 	MaxTxGasWanted         uint64
 	ExtensionOptionChecker ante.ExtensionOptionChecker
+	RollappKeeper          rollappkeeper.Keeper
 }
 
 func (options HandlerOptions) validate() error {

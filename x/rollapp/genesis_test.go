@@ -1,7 +1,10 @@
 package rollapp_test
 
 import (
+	"strings"
 	"testing"
+
+	"golang.org/x/exp/slices"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
@@ -10,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestInitGenesis(t *testing.T) {
+func TestInitExportGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
@@ -52,6 +55,18 @@ func TestInitGenesis(t *testing.T) {
 				CreationHeight: 1,
 			},
 		},
+		GenesisTransfers: []types.GenesisTransfers{
+			{
+				RollappID:   "0",
+				NumTotal:    3,
+				NumReceived: 3,
+			},
+			{
+				RollappID:   "1",
+				NumTotal:    3,
+				NumReceived: 3,
+			},
+		},
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -60,9 +75,11 @@ func TestInitGenesis(t *testing.T) {
 	got := rollapp.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
 
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
+	nullify.Fill(genesisState)
+	nullify.Fill(*got)
 
+	require.True(t, GenesisTransfersAreEquivalent(genesisState.GetGenesisTransfers(), got.GetGenesisTransfers()))
+	require.ElementsMatch(t, genesisState.GenesisTransfers, got.GenesisTransfers)
 	require.ElementsMatch(t, genesisState.RollappList, got.RollappList)
 	require.ElementsMatch(t, genesisState.StateInfoList, got.StateInfoList)
 	require.ElementsMatch(t, genesisState.LatestStateInfoIndexList, got.LatestStateInfoIndexList)
@@ -70,41 +87,34 @@ func TestInitGenesis(t *testing.T) {
 	// this line is used by starport scaffolding # genesis/test/assert
 }
 
-func TestExportGenesis(t *testing.T) {
-	params := types.Params{
-		DisputePeriodInBlocks: 11,
-		DeployerWhitelist:     []types.DeployerParams{{Address: "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"}},
-		RollappsEnabled:       false,
+// GenesisTransfersAreEquivalent returns if a,b are the same, in terms of containing
+// the same semantic content. Intended for use in tests.
+func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
+	if len(x) != len(y) {
+		return false
 	}
-	rollappList := []types.Rollapp{{RollappId: "0"}, {RollappId: "1"}}
-	stateInfoList := []types.StateInfo{
-		{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}},
-		{StateInfoIndex: types.StateInfoIndex{RollappId: "1", Index: 1}},
+	sort := func(l []types.GenesisTransfers) {
+		slices.SortStableFunc(l, func(a, b types.GenesisTransfers) bool {
+			return strings.Compare(a.GetRollappID(), b.GetRollappID()) <= 0
+		})
 	}
-	latestStateInfoIndexList := []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "1"}}
-	blockHeightToFinalizationQueueList := []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 1}}
-	// Set the items in the keeper
-	k, ctx := keepertest.RollappKeeper(t)
-	for _, rollapp := range rollappList {
-		k.SetRollapp(ctx, rollapp)
+
+	sort(x)
+	sort(y)
+	for i := range len(x) {
+		a := x[i]
+		b := y[i]
+		if a.NumTotal != b.NumTotal {
+			return false
+		}
+		if a.NumReceived != b.NumReceived {
+			return false
+		}
+		if a.RollappID != b.RollappID {
+			return false
+		}
+
 	}
-	for _, stateInfo := range stateInfoList {
-		k.SetStateInfo(ctx, stateInfo)
-	}
-	for _, latestStateInfoIndex := range latestStateInfoIndexList {
-		k.SetLatestStateInfoIndex(ctx, latestStateInfoIndex)
-	}
-	for _, blockHeightToFinalizationQueue := range blockHeightToFinalizationQueueList {
-		k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
-	}
-	k.SetParams(ctx, params)
-	// Verify the exported genesis state
-	got := rollapp.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	// Validate the exported genesis state
-	require.Equal(t, params, got.Params)
-	require.ElementsMatch(t, rollappList, got.RollappList)
-	require.ElementsMatch(t, stateInfoList, got.StateInfoList)
-	require.ElementsMatch(t, latestStateInfoIndexList, got.LatestStateInfoIndexList)
-	require.ElementsMatch(t, blockHeightToFinalizationQueueList, got.BlockHeightToFinalizationQueueList)
+
+	return true
 }
