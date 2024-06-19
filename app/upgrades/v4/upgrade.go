@@ -38,39 +38,38 @@ func CreateUpgradeHandler(
 	paramsKeeper ParamsKeeper,
 	consensusKeeper consensusparamkeeper.Keeper,
 ) upgradetypes.UpgradeHandler {
-	// Set param key table for params module migration
-	for _, subspace := range paramsKeeper.GetSubspaces() {
-		subspace := subspace
-
-		var keyTable paramstypes.KeyTable
-		switch subspace.Name() {
-		case authtypes.ModuleName:
-			keyTable = authtypes.ParamKeyTable() //nolint:staticcheck
-		case banktypes.ModuleName:
-			keyTable = banktypes.ParamKeyTable() //nolint:staticcheck
-		case stakingtypes.ModuleName:
-			keyTable = stakingtypes.ParamKeyTable() //nolint:staticcheck
-		case minttypes.ModuleName:
-			keyTable = minttypes.ParamKeyTable() //nolint:staticcheck
-		case distrtypes.ModuleName:
-			keyTable = distrtypes.ParamKeyTable() //nolint:staticcheck
-		case slashingtypes.ModuleName:
-			keyTable = slashingtypes.ParamKeyTable() //nolint:staticcheck
-		case govtypes.ModuleName:
-			keyTable = govv1.ParamKeyTable() //nolint:staticcheck
-		case crisistypes.ModuleName:
-			keyTable = crisistypes.ParamKeyTable() //nolint:staticcheck
-		}
-
-		if !subspace.HasKeyTable() {
-			subspace.WithKeyTable(keyTable)
-		}
-	}
-
-	baseAppLegacySS := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
+		// Set param key table for params module migration
+		for _, subspace := range paramsKeeper.GetSubspaces() {
+			subspace := subspace
+
+			var keyTable paramstypes.KeyTable
+			switch subspace.Name() {
+			case authtypes.ModuleName:
+				keyTable = authtypes.ParamKeyTable() //nolint:staticcheck
+			case banktypes.ModuleName:
+				keyTable = banktypes.ParamKeyTable() //nolint:staticcheck
+			case stakingtypes.ModuleName:
+				keyTable = stakingtypes.ParamKeyTable() //nolint:staticcheck
+			case minttypes.ModuleName:
+				keyTable = minttypes.ParamKeyTable() //nolint:staticcheck
+			case distrtypes.ModuleName:
+				keyTable = distrtypes.ParamKeyTable() //nolint:staticcheck
+			case slashingtypes.ModuleName:
+				keyTable = slashingtypes.ParamKeyTable() //nolint:staticcheck
+			case govtypes.ModuleName:
+				keyTable = govv1.ParamKeyTable() //nolint:staticcheck
+			case crisistypes.ModuleName:
+				keyTable = crisistypes.ParamKeyTable() //nolint:staticcheck
+			}
+
+			if !subspace.HasKeyTable() {
+				subspace.WithKeyTable(keyTable)
+			}
+		}
 		// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
+		baseAppLegacySS := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
 		baseapp.MigrateParams(ctx, baseAppLegacySS, &consensusKeeper)
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
