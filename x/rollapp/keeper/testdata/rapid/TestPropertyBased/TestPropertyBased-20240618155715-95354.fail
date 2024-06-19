@@ -1,0 +1,55 @@
+# 2024/06/18 15:57:15.276168 [TestPropertyBased] [rapid] draw action: "insert"
+# 2024/06/18 15:57:15.276171 [TestPropertyBased] [rapid] draw k: 1
+# 2024/06/18 15:57:15.276177 [TestPropertyBased] [rapid] draw action: "find"
+# 2024/06/18 15:57:15.276178 [TestPropertyBased] [rapid] draw k: 0
+# 2024/06/18 15:57:15.276212 [TestPropertyBased] 
+# 	Error Trace:	/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:151
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:140
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:115
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:61
+# 	            				/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:158
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:368
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:377
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:203
+# 	            				/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:118
+# 	            				/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:161
+# 	Error:      	Received unexpected error:
+# 	            	
+# 	            	github.com/dymensionxyz/dymension/v3/x/rollapp/keeper.Keeper.FindStateInfoByHeightBinary
+# 	            		/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info.go:62
+# 	            	github.com/dymensionxyz/dymension/v3/x/rollapp/keeper_test.TestPropertyBased.func1.3
+# 	            		/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:149
+# 	            	pgregory.net/rapid.runAction
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:140
+# 	            	pgregory.net/rapid.(*stateMachine).executeAction
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:115
+# 	            	pgregory.net/rapid.(*T).Repeat
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/statemachine.go:61
+# 	            	github.com/dymensionxyz/dymension/v3/x/rollapp/keeper_test.TestPropertyBased.func1
+# 	            		/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:158
+# 	            	pgregory.net/rapid.checkOnce
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:368
+# 	            	pgregory.net/rapid.captureTestOutput
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:377
+# 	            	pgregory.net/rapid.checkTB
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:203
+# 	            	pgregory.net/rapid.Check
+# 	            		/Users/danwt/go/pkg/mod/pgregory.net/rapid@v1.1.0/engine.go:118
+# 	            	github.com/dymensionxyz/dymension/v3/x/rollapp/keeper_test.TestPropertyBased
+# 	            		/Users/danwt/Documents/dym/d-dymension/x/rollapp/keeper/grpc_query_state_info_test.go:161
+# 	            	get rollapp: 
+# 	Test:       	TestPropertyBased
+# 
+v0.4.8#12988917054075148749
+0x1084210842108
+0x0
+0x1
+0x0
+0x0
+0x1
+0x1084210842108
+0x0
+0x0
+0x0
+0x0
+0x0

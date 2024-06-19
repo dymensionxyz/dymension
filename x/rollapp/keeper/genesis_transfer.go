@@ -13,7 +13,7 @@ import (
 // If we have previously seen the same IX already, we reject it, as IBC guarantees exactly once delivery, then the sequencer must not be following protocol
 // Once we have recorded n indexes, this rollapp can proceed to the next step of the genesis transfer protocol
 // Returns the number of transfers recorded so far (including this one)
-func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, ix, nTotal uint64) (uint64, error) {
+func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string, nTotal uint64) (uint64, error) {
 	ra := k.MustGetRollapp(ctx, rollappID)
 	if ra.GenesisState.TransfersEnabled {
 		// Could plausibly occur if a chain sends too many genesis transfers (not matching their memo)
@@ -25,12 +25,8 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 
 	nKey := types.TransferGenesisNumKey(rollappID)
 	nTotalKey := types.TransferGenesisNumTotalKey(rollappID)
-	ixKey := types.TransferGenesisSetMembershipKey(rollappID, ix)
 
 	n := uint64(0)
-	/*
-		We do all the verification first and only write at the end, to make it easier to reason about partial failures
-	*/
 
 	if store.Has(nTotalKey) {
 		nTotalExistingBz := store.Get(nTotalKey)
@@ -41,17 +37,10 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nBz := store.Get(nKey)
 		n = sdk.BigEndianToUint64(nBz)
 	}
-	if nTotal <= ix {
-		return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "ix must be less than nTotal: ix: %d: nTotal: %d", ix, nTotal)
-	}
-	if store.Has(ixKey) {
-		return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "already received genesis transfer: ix: %d", ix)
-	}
 
 	n++
 	store.Set(nTotalKey, sdk.Uint64ToBigEndian(nTotal))
 	store.Set(nKey, sdk.Uint64ToBigEndian(n))
-	store.Set(ixKey, []byte{})
 	return n, nil
 }
 
@@ -59,13 +48,9 @@ func (k Keeper) EnableTransfers(ctx sdk.Context, rollappID string) {
 	ra := k.MustGetRollapp(ctx, rollappID)
 	ra.GenesisState.TransfersEnabled = true
 	k.SetRollapp(ctx, ra)
-	ctx.EventManager().EmitEvent(transfersEnabledEvent(rollappID))
-}
-
-func transfersEnabledEvent(raID string) sdk.Event {
-	return sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
-		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
-	)
+	ctx.EventManager().EmitEvent(sdk.NewEvent(types.EventTypeTransferGenesisTransfersEnabled,
+		sdk.NewAttribute(types.AttributeKeyRollappId, rollappID),
+	))
 }
 
 func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTransfers) {
@@ -75,13 +60,8 @@ func (k Keeper) SetGenesisTransfers(ctx sdk.Context, transfers []types.GenesisTr
 
 		nKey := types.TransferGenesisNumKey(transfer.RollappID)
 		nTotalKey := types.TransferGenesisNumTotalKey(transfer.RollappID)
-		for _, i := range transfer.GetReceived() {
-			ixKey := types.TransferGenesisSetMembershipKey(transfer.RollappID, i)
-			store.Set(nTotalKey, sdk.Uint64ToBigEndian(transfer.NumTotal))
-			store.Set(nKey, sdk.Uint64ToBigEndian(transfer.NumReceived))
-			store.Set(ixKey, []byte{})
-		}
-
+		store.Set(nTotalKey, sdk.Uint64ToBigEndian(transfer.NumTotal))
+		store.Set(nKey, sdk.Uint64ToBigEndian(transfer.NumReceived))
 	}
 }
 
@@ -106,13 +86,6 @@ func (k Keeper) GetAllGenesisTransfers(ctx sdk.Context) []types.GenesisTransfers
 			NumTotal:    nTotal,
 			NumReceived: n,
 		}
-		for ix := range nTotal {
-			ixKey := types.TransferGenesisSetMembershipKey(raID, ix)
-			if store.Has(ixKey) {
-				x.Received = append(x.Received, ix)
-			}
-		}
-
 		ret = append(ret, x)
 	}
 

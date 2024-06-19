@@ -10,7 +10,6 @@
       "name": "rax",
       "symbol": 42
     },
-    "total_num_transfers": 0,
-    "this_transfer_ix": 0
+    "total_num_transfers": 0
   }
 }

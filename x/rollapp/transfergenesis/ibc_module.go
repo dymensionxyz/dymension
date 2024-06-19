@@ -119,7 +119,6 @@ func (w IBCModule) OnRecvPacket(
 
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
-		l.Debug("Memo not found.")
 		// If someone tries to send a transfer without the memo before the bridge is open, they will
 		// be blocked at the transfersenabled middleware
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -131,7 +130,7 @@ func (w IBCModule) OnRecvPacket(
 
 	ra := transfer.Rollapp
 
-	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, memo.ThisTransferIx, memo.TotalNumTransfers)
+	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, memo.TotalNumTransfers)
 	if errorsmod.IsOf(err, derr.ErrViolatesDymensionRollappStandard) {
 		// The rollapp has deviated from the protocol!
 		handleFraudErr := w.handleFraud(ra.RollappId)
@@ -158,7 +157,6 @@ func (w IBCModule) OnRecvPacket(
 	l.Debug("Received valid genesis transfer. Registered denom data.",
 		"num total", memo.TotalNumTransfers,
 		"num received so far", nTransfersDone,
-		"this transfer ix", memo.ThisTransferIx,
 	)
 
 	if nTransfersDone == memo.TotalNumTransfers {
@@ -215,7 +213,7 @@ func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
 	}
 
-	var m rollapptypes.GenesisTransferMemoRaw
+	var m rollapptypes.GenesisTransferMemoNamespaced
 	err = json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
 		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")

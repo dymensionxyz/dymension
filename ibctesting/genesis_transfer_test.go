@@ -107,7 +107,6 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenom
 	memo := rollapptypes.GenesisTransferMemo{
 		Denom:             meta,
 		TotalNumTransfers: uint64(nDenomsTotal),
-		ThisTransferIx:    uint64(i),
 	}.Namespaced().MustString()
 	tokens := sdk.NewCoin(meta.Base, amt)
 

@@ -1,0 +1,11 @@
+# 2024/06/18 16:26:35.460792 [TestFindStateInfoByHeightBinary] [rapid] draw action: "find"
+# 2024/06/18 16:26:35.460800 [TestFindStateInfoByHeightBinary] [rapid] draw k: 1
+# 2024/06/18 16:26:35.460804 [TestFindStateInfoByHeightBinary] should have got not found err: <nil>
+# 
+v0.4.8#5437179419362147927
+0x1084210842108
+0x0
+0x0
+0x0
+0x0
+0x0

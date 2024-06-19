@@ -19,7 +19,4 @@ message GenesisTransfers {
   uint64 numTotal = 2;
   // The number of transfers already processed, when this number reaches numTotal the genesis transfer window closes.
   uint64 numReceived = 3;
-  // The indexes of genesis transfers received thus far during the genesis transfer period
-  // This cannot be implemented on the rollapp type, because we index into this like a map, but the rollapp is read/writ as a whole
-  repeated uint64 received = 4 [(gogoproto.nullable) = false];
 }

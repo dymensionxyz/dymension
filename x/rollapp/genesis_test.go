@@ -60,13 +60,11 @@ func TestInitExportGenesis(t *testing.T) {
 				RollappID:   "0",
 				NumTotal:    3,
 				NumReceived: 3,
-				Received:    []uint64{0, 2, 1},
 			},
 			{
 				RollappID:   "1",
 				NumTotal:    3,
 				NumReceived: 3,
-				Received:    []uint64{0, 2, 1},
 			},
 		},
 		// this line is used by starport scaffolding # genesis/test/state
@@ -95,22 +93,14 @@ func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
 	if len(x) != len(y) {
 		return false
 	}
-	sortOne := func(l []types.GenesisTransfers) {
+	sort := func(l []types.GenesisTransfers) {
 		slices.SortStableFunc(l, func(a, b types.GenesisTransfers) bool {
 			return strings.Compare(a.GetRollappID(), b.GetRollappID()) <= 0
 		})
 	}
-	sortTwo := func(l []types.GenesisTransfers) {
-		for _, transfer := range l {
-			slices.SortStableFunc(transfer.Received, func(a, b uint64) bool {
-				return a <= b
-			})
-		}
-	}
-	sortOne(x)
-	sortOne(y)
-	sortTwo(x)
-	sortTwo(y)
+
+	sort(x)
+	sort(y)
 	for i := range len(x) {
 		a := x[i]
 		b := y[i]
@@ -123,14 +113,7 @@ func GenesisTransfersAreEquivalent(x, y []types.GenesisTransfers) bool {
 		if a.RollappID != b.RollappID {
 			return false
 		}
-		if len(a.Received) != len(b.Received) {
-			return false
-		}
-		for j := range len(a.Received) {
-			if a.Received[j] != b.Received[j] {
-				return false
-			}
-		}
+
 	}
 
 	return true

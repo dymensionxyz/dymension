@@ -29,7 +29,6 @@ func Test_getExample(t *testing.T) {
 			Symbol:      "rax",
 		},
 		TotalNumTransfers: 42,
-		ThisTransferIx:    12,
 	}
 	m.Denom.DenomUnits[0] = &banktypes.DenomUnit{
 		Denom: "arax",
@@ -39,7 +38,6 @@ func Test_getExample(t *testing.T) {
 		Exponent: 18,
 	}
 	m.TotalNumTransfers = 42
-	m.ThisTransferIx = 12
 
 	t.Log(m.Namespaced().MustString())
 }
