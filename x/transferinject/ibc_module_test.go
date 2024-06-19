@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -134,7 +133,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 				ack: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     gerr.ErrNotFound,
+			wantErr:     gerrc.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
