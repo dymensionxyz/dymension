@@ -30,6 +30,8 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
+var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
+
 const (
 	memoNamespaceKey = "genesis_transfer"
 )
@@ -125,14 +127,13 @@ func (w IBCModule) OnRecvPacket(
 
 	if ra.GenesisState.TransfersEnabled {
 		// Genesis transfers are disabled once the bridge is already open
-		transfer.
-			err = w.handleFraud(ctx, ra.RollappId)
+		err = w.handleFraud(ctx, ra.RollappId)
 		if err != nil {
 			l.Error("Handling fraud.", "err", err)
 		} else {
 			l.Info("Handled fraud: verify and record genesis transfer.", "err", err)
 		}
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")) // TODO: gerr
+		return channeltypes.NewErrorAcknowledgement(ErrDisabled)
 	}
 	// it's a valid genesis transfer!
 
@@ -151,7 +152,7 @@ func (w IBCModule) OnRecvPacket(
 func (w IBCModule) handleFraud(ctx sdk.Context, rollappID string) error {
 	// handleFraud : the rollapp has violated the DRS!
 	// TODO: finish implementing this method,  see https://github.com/dymensionxyz/dymension/issues/930
-	return w.rollappKeeper.HandleFraud(ctx, rollappID, "", transfer.G, "")
+	return nil
 }
 
 func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {

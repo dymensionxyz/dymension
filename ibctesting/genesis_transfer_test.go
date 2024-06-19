@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -103,7 +105,12 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 
 		err = s.path.RelayPacket(packet)
 
-		s.Require().Equal(i == 2, s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).Frozen, "i", i)
+		if i == 2 {
+
+			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
+		}
 	}
 }
 
