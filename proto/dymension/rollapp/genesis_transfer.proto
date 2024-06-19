@@ -1,0 +1,22 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+import "dymension/rollapp/params.proto";
+import "dymension/rollapp/rollapp.proto";
+import "dymension/rollapp/state_info.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+// Not to get confused with 'genesis', genesis transfers refers to the specific protocol of bootstrapping ibc denominated tokens for the RA
+
+// Bookkeeping for the genesis transfer bridge protocol.
+// Each rollapp will have one of these items corresponding to it.
+message GenesisTransfers {
+  string rollappID = 1;
+  // The total number of incoming ibc transfers to be fast tracked in the genesis transfer period
+  uint64 numTotal = 2;
+  // The number of transfers already processed, when this number reaches numTotal the genesis transfer window closes.
+  uint64 numReceived = 3;
+}

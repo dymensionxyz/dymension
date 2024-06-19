@@ -49,6 +49,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (denommetadata) [#955](https://github.com/dymensionxyz/dymension/issues/955) Add IBC middleware to create denom metadata from rollapp, on IBC transfer.
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds ibc module and ante handler to stop transfers to/from rollapp that has an incomplete genesis bridge (transfersEnabled)
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a new temporary ibc module to set the canonical channel id, since we no longer do that using a whitelisted addr
+- (genesisbridge) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a new ibc module to handle incoming 'genesis transfers'. It validates the special memo and registers a denom. It will not allow any regular transfers if transfers are not enabled
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Renames is_genesis_event on the rollapp genesis state to 'transfers_enabled' this is backwards compatible
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Removes concept of passing genesis accounts and denoms in the create rollapp message
+- (rollapp) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a transfersenabled flag to createRollapp (might be changed in future)
+- (delayedack) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds the notion of skipctx, to skip it with a special sdk context value
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Adds a gerr (google error ) and derr (dymension error) packages for idiomatic error handling. (In future we will consolidate across dymint/rdk)
 - (denommetadata) [#907](https://github.com/dymensionxyz/dymension/issues/907) Add IBC middleware to migrate denom metadata to rollappp, remove `CreateDenomMetadata` and `UpdateDenomMetadata` tx handlers
 - (delayedack) [#849](https://github.com/dymensionxyz/dymension/issues/849) Add demand order filters: type, rollapp id and limit
 - (delayedack) [#850](https://github.com/dymensionxyz/dymension/issues/850) Add type filter for delayedack
@@ -80,6 +88,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Dry out existing middlewares to make use of new .GetValidTransfer* functions which take care of parsing and validating the fungible packet, and querying and validating any associated rollapp and finalizations
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Removes the obsolete ValidateRollappId func and sub routines
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Simplify GetAllBlockHeightToFinalizationQueue
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Fixes naming for our 'middlewares' to make them clearly one of ibc module / ics4 wrapper / middleware
+- (code standards) [#932](https://github.com/dymensionxyz/dymension/issues/932) Moves our various utils to properly namespaced packages under utils/
 - (rollapp) [#839](https://github.com/dymensionxyz/dymension/issues/839) Remove rollapp deprecated fields
 - (eibc) [#836](https://github.com/dymensionxyz/dymension/issues/836) Improve eibc memo error handling
 - (eibc) [#830](https://github.com/dymensionxyz/dymension/issues/830) Invalid tx should return ackErr

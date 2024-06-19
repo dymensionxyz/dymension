@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
 	"cosmossdk.io/math"
 
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -453,7 +455,7 @@ func NewPubKeyFromHex(pk string) (res cryptotypes.PubKey) {
 		panic(err)
 	}
 	if len(pkBytes) != ed25519.PubKeySize {
-		panic(errors.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
+		panic(errorsmod.Wrap(errors.ErrInvalidPubKey, "invalid pubkey size"))
 	}
 	return &ed25519.PubKey{Key: pkBytes}
 }

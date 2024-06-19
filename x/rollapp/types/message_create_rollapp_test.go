@@ -3,24 +3,11 @@ package types
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
-	defaultMetadata := TokenMetadata{
-		Description: "valid",
-		DenomUnits: []*DenomUnit{
-			{Denom: "uvalid", Exponent: 0},
-			{Denom: "valid", Exponent: 18},
-		},
-		Base:    "uvalid",
-		Display: "valid",
-		Name:    "valid",
-		Symbol:  "VALID",
-	}
-
 	seqDupAddr := sample.AccAddress()
 
 	var tooManyAddresses []string
@@ -43,13 +30,6 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				MaxSequencers:         2,
 				RollappId:             "dym_100-1",
 				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
-				Metadatas:             []TokenMetadata{defaultMetadata},
-				GenesisAccounts: []GenesisAccount{
-					{
-						Address: sample.AccAddress(),
-						Amount:  sdk.NewCoin("valid", sdk.NewInt(1000)),
-					},
-				},
 			},
 		},
 		{
@@ -114,51 +94,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidPermissionedAddress,
 		},
-		{
-			name: "valid token metadata",
-			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 1,
-				RollappId:     "dym_100-1",
-				Metadatas:     []TokenMetadata{defaultMetadata},
-			},
-			err: nil,
-		},
-		{
-			name: "invalid token metadata", // just trigger one case to see if validation is done or not
-			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 1,
-				RollappId:     "dym_100-1",
-				Metadatas: []TokenMetadata{{
-					Description: "valid",
-					DenomUnits: []*DenomUnit{
-						{Denom: "uvalid", Exponent: 0},
-						{Denom: "valid", Exponent: 18},
-					},
-					Base:    "uvalid",
-					Display: "valid",
-					Name:    "", // empty
-					Symbol:  "VALID",
-				}},
-			},
-			err: ErrInvalidTokenMetadata,
-		},
-		{
-			name: "invalid genesis account address",
-			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 1,
-				RollappId:     "dym_100-1",
-				GenesisAccounts: []GenesisAccount{
-					{
-						Address: "invalid_address",
-						Amount:  sdk.NewCoin("valid", sdk.NewInt(1000)),
-					},
-				},
-			},
-			err: ErrInvalidGenesisAccount,
-		},
+
 		{
 			name: "more addresses than sequencers", // just trigger one case to see if validation is done or not
 			msg: MsgCreateRollapp{

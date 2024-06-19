@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -63,6 +65,14 @@ func (k Keeper) GetRollapp(
 	return val, true
 }
 
+func (k Keeper) MustGetRollapp(ctx sdk.Context, rollappId string) types.Rollapp {
+	ret, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		panic(fmt.Sprintf("rollapp not found: id: %s", rollappId))
+	}
+	return ret
+}
+
 // RemoveRollapp removes a rollapp from the store using rollapp name
 func (k Keeper) RemoveRollapp(
 	ctx sdk.Context,
@@ -74,7 +84,7 @@ func (k Keeper) RemoveRollapp(
 	))
 }
 
-// GetAllRollapp returns all rollapp
+// GetAllRollapps returns all rollapp
 func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

@@ -10,14 +10,14 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// FinalizeQueue is called every block to finalize states when their dispute period over.
-func (k Keeper) FinalizeQueue(ctx sdk.Context) error {
+// FinalizeRollappStates is called every block to finalize states when their dispute period over.
+func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
 		return nil
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
-	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeight(ctx, finalizationHeight)
+	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 
 	return osmoutils.ApplyFuncIfNoError(ctx,
 		// we trap at this granularity because we want to avoid iterating inside the
@@ -99,34 +99,28 @@ func (k Keeper) RemoveBlockHeightToFinalizationQueue(
 	))
 }
 
-// GetAllFinalizationQueueUntilHeight returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
-func (k Keeper) GetAllFinalizationQueueUntilHeight(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.BlockHeightToFinalizationQueue
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if height < val.CreationHeight {
-			break
-		}
-		list = append(list, val)
-	}
-
-	return
+// GetAllFinalizationQueueUntilHeightInclusive returns all the blockHeightToFinalizationQueues with creation height equal or less to the input height
+func (k Keeper) GetAllFinalizationQueueUntilHeightInclusive(ctx sdk.Context, height uint64) (list []types.BlockHeightToFinalizationQueue) {
+	height++
+	return k.getFinalizationQueue(ctx, &height)
 }
 
 // GetAllBlockHeightToFinalizationQueue returns all blockHeightToFinalizationQueue
 func (k Keeper) GetAllBlockHeightToFinalizationQueue(ctx sdk.Context) (list []types.BlockHeightToFinalizationQueue) {
+	return k.getFinalizationQueue(ctx, nil)
+}
+
+func (k Keeper) getFinalizationQueue(ctx sdk.Context, endHeightNonInclusive *uint64) (list []types.BlockHeightToFinalizationQueue) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BlockHeightToFinalizationQueueKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
 	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.BlockHeightToFinalizationQueue
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if endHeightNonInclusive != nil && *endHeightNonInclusive <= val.CreationHeight {
+			break
+		}
 		list = append(list, val)
 	}
 
