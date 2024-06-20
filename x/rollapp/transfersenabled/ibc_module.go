@@ -6,10 +6,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -68,7 +68,7 @@ func (w IBCModule) OnRecvPacket(
 
 	if !transfer.Rollapp.GenesisState.TransfersEnabled {
 		// Someone on the RA tried to send a transfer before the bridge is open! Return an err ack and they will get refunded
-		err = errorsmod.Wrapf(gerr.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", transfer.Rollapp.RollappId)
+		err = errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "transfers are disabled: rollapp id: %s", transfer.Rollapp.RollappId)
 		l.Debug("Returning error ack.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
