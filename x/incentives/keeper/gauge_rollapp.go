@@ -72,7 +72,7 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 		return totalDistrCoins, nil
 	}
 
-	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.AccAddress(addr), totalDistrCoins)
+	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, totalDistrCoins)
 	if err != nil {
 		return totalDistrCoins, err
 	}

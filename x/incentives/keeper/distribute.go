@@ -35,7 +35,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 	}
 
 	// apply the distribution to asset gauges
-	err := k.doDistributionSends(ctx, &lockHolders)
+	err := k.sendRewardsToLocks(ctx, &lockHolders)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +98,12 @@ func (k Keeper) updateGaugePostDistribute(ctx sdk.Context, gauge types.Gauge, ne
 // If complete, move the gauge from an active to a finished status.
 func (k Keeper) checkFinishedGauges(ctx sdk.Context, gauges []types.Gauge) {
 	for _, gauge := range gauges {
+		if gauge.IsPerpetual {
+			continue
+		}
+
 		// filled epoch is increased in this step and we compare with +1
-		if !gauge.IsPerpetual && gauge.NumEpochsPaidOver <= gauge.FilledEpochs+1 {
+		if gauge.NumEpochsPaidOver <= gauge.FilledEpochs+1 {
 			if err := k.moveActiveGaugeToFinishedGauge(ctx, gauge); err != nil {
 				panic(err)
 			}

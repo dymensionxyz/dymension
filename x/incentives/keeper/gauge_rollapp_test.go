@@ -5,31 +5,9 @@ import (
 	types "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
-// TestDistribute tests that when the distribute command is executed on a provided gauge
-// that the correct amount of rewards is sent to the correct lock owners.
+// TestDistributeToRollappGauges tests distributing rewards to rollapp gauges.
 func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
-	// defaultGauge := perpGaugeDesc{
-	// 	lockDenom:    defaultLPDenom,
-	// 	lockDuration: defaultLockDuration,
-	// 	rewardAmount: sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 3000)},
-	// }
-	// noRewardGauge := perpGaugeDesc{
-	// 	lockDenom:    defaultLPDenom,
-	// 	lockDuration: defaultLockDuration,
-	// 	rewardAmount: sdk.Coins{},
-	// }
-	// testGauges := []perpGaugeDesc{defaultGauge, noRewardGauge}
-
 	oneKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 1000)}
-	// twoKRewardCoins := sdk.Coins{sdk.NewInt64Coin(defaultRewardDenom, 2000)}
-
-	// testUsers := []userLocks{oneLockupUser, twoLockupUser}
-	// expectedRewards := []sdk.Coins{oneKRewardCoins, twoKRewardCoins}
-
-	// // setup gauges and the locks defined in the above tests, then distribute to them
-	// gauges := suite.SetupGauges(testGauges, defaultLPDenom)
-	// addrs := suite.SetupUserLocks(testUsers)
-
 	testCases := []struct {
 		name        string
 		rewards     sdk.Coins
@@ -60,20 +38,25 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 			suite.Require().NoError(err)
 			suite.Require().Len(res.Data, 1)
 
-			var proposer string
+			gaugeId := res.Data[0].Id
+
+			var proposerAddr sdk.AccAddress
 			if !tc.noSequencer {
-				proposer = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+				addr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+				proposerAddr, _ = sdk.AccAddressFromBech32(addr)
 			}
 
 			if tc.rewards.Len() > 0 {
-				suite.AddToGauge(tc.rewards, res.Data[0].Id)
+				suite.AddToGauge(tc.rewards, gaugeId)
 			}
 
-			_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, res.Data)
+			gauge, err := suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeId)
+			suite.Require().NoError(err)
+			_, err = suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
 			suite.Require().NoError(err)
 			// check expected rewards against actual rewards received
-			if proposer != "" {
-				bal := suite.App.BankKeeper.GetAllBalances(suite.Ctx, sdk.AccAddress(proposer))
+			if !proposerAddr.Empty() {
+				bal := suite.App.BankKeeper.GetAllBalances(suite.Ctx, proposerAddr)
 				suite.Require().Equal(tc.rewards.String(), bal.String())
 			}
 		})

@@ -201,11 +201,11 @@ func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, deno
 		if accumulate {
 			if denom != "" {
 				for _, gauge := range newGauges {
-					assetGauge, ok := gauge.DistributeTo.(*types.Gauge_Asset)
-					if !ok {
-						return false, nil
+					assetGauge := gauge.GetAsset()
+					if assetGauge == nil {
+						continue
 					}
-					if assetGauge.Asset.Denom != denom {
+					if assetGauge.Denom != denom {
 						return false, nil
 					}
 					gauges = append(gauges, gauge)
@@ -234,8 +234,7 @@ func (q Querier) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequ
 		}
 		if accumulate {
 			for _, gauge := range newGauges {
-				_, ok := gauge.DistributeTo.(*types.Gauge_Rollapp)
-				if !ok {
+				if gauge.GetRollapp() == nil {
 					continue
 				}
 				gauges = append(gauges, gauge)
