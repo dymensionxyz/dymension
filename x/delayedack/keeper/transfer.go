@@ -17,24 +17,23 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	packet channeltypes.Packet,
 	packetType commontypes.RollappPacket_Type,
 ) (data types.TransferDataWithFinalization, err error) {
+	var port string
+	var channel string
+
 	switch packetType {
 	case commontypes.RollappPacket_ON_RECV:
-		data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetDestPort(), packet.GetDestChannel())
+		port, channel = packet.GetDestPort(), packet.GetDestChannel()
 	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
-		data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), packet.GetSourcePort(), packet.GetSourceChannel())
+		port, channel = packet.GetSourcePort(), packet.GetSourceChannel()
 	}
+
+	data.TransferData, err = k.rollappKeeper.GetValidTransfer(ctx, packet.GetData(), port, channel)
 	if err != nil {
 		err = errors.Wrap(err, "get valid transfer data")
 		return
 	}
 
-	var packetID commontypes.PacketUID
-	switch packetType {
-	case commontypes.RollappPacket_ON_RECV:
-		packetID = commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
-		packetID = commontypes.NewPacketUID(packetType, packet.SourcePort, packet.SourceChannel, packet.Sequence)
-	}
+	packetID := commontypes.NewPacketUID(packetType, port, channel, packet.Sequence)
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
 	if !ok {
 		// TODO: should probably be a panic
