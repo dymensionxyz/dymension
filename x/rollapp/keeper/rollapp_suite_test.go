@@ -52,8 +52,10 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
 
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
+	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	suite.Require().NoError(err)
 	app.RollappKeeper.SetParams(ctx, types.NewParams(true, 2, deployerWhitelist))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 

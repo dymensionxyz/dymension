@@ -211,7 +211,7 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 
 	govProposalHandlers = append(govProposalHandlers,
 		paramsclient.ProposalHandler,
-		//distrclient.ProposalHandler,
+		// distrclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
@@ -1053,7 +1053,7 @@ func New(
 		posthandler.HandlerOptions{},
 	)
 	if err != nil {
-		panic(fmt.Errorf("failed to create PostHandler: %s", err))
+		panic(fmt.Errorf("failed to create PostHandler: %w", err))
 	}
 
 	app.SetAnteHandler(anteHandler)
@@ -1327,11 +1327,9 @@ func (app *App) setupV3upgrade() {
 	}
 
 	switch upgradeInfo.Name {
-
 	}
 
 	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
 	}
 }
@@ -1353,11 +1351,9 @@ func (app *App) setupV4upgrade() {
 	}
 
 	switch upgradeInfo.Name {
-
 	}
 
 	if upgradeInfo.Name == "v4" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v4upgrade.GetStoreUpgrades()))
 	}
 }

@@ -133,8 +133,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 		// 	banktypes.GenesisBalancesIterator{},
 		// 	app.DefaultNodeHome,
 		// ),
-		//genutilcli.ValidateGenesisCmd(app.ModuleBasics),
-		//AddGenesisAccountCmd(app.DefaultNodeHome),
+		// genutilcli.ValidateGenesisCmd(app.ModuleBasics),
+		// AddGenesisAccountCmd(app.DefaultNodeHome),
 
 		genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, app.ModuleBasics, app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
