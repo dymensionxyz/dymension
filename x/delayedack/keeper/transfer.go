@@ -4,10 +4,10 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // GetValidTransferWithFinalizationInfo does GetValidTransferFromReceivedPacket, but additionally it gets the finalization status and proof height
@@ -32,7 +32,7 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
 	if !ok {
 		// TODO: should probably be a panic
-		err = errors.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		err = errors.Wrapf(gerrc.ErrNotFound, "get proof height from context: packetID: %s", packetId)
 		return
 	}
 	data.ProofHeight = height.RevisionHeight
