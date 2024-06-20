@@ -28,11 +28,17 @@ func (k Keeper) GetValidTransferWithFinalizationInfo(
 		return
 	}
 
-	packetId := commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
-	height, ok := types.PacketProofHeightFromCtx(ctx, packetId)
+	var packetID commontypes.PacketUID
+	switch packetType {
+	case commontypes.RollappPacket_ON_RECV:
+		packetID = commontypes.NewPacketUID(packetType, packet.DestinationPort, packet.DestinationChannel, packet.Sequence)
+	case commontypes.RollappPacket_ON_TIMEOUT, commontypes.RollappPacket_ON_ACK:
+		packetID = commontypes.NewPacketUID(packetType, packet.SourcePort, packet.SourceChannel, packet.Sequence)
+	}
+	height, ok := types.PacketProofHeightFromCtx(ctx, packetID)
 	if !ok {
 		// TODO: should probably be a panic
-		err = errors.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetId)
+		err = errors.Wrapf(gerr.ErrNotFound, "get proof height from context: packetID: %s", packetID)
 		return
 	}
 	data.ProofHeight = height.RevisionHeight
