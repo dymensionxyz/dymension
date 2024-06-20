@@ -4,9 +4,8 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
@@ -65,14 +64,14 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	suite.Require().NoError(err)
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
-	suite.Require().True(errorsmod.IsOf(err, gerr.ErrAlreadyExists))
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExist))
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 
 	err := keeper.UpdateDenomMetadata(suite.Ctx, suite.getDymUpdateMetadata())
-	suite.Require().True(errorsmod.IsOf(err, gerr.ErrNotFound))
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound))
 }
 
 func (suite *KeeperTestSuite) getDymMetadata() banktypes.Metadata {

@@ -4,8 +4,6 @@ import (
 	"errors"
 	. "slices"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -13,6 +11,7 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
@@ -84,7 +83,7 @@ func (m *ICS4Wrapper) SendPacket(
 	transfer.Memo, err = types.AddDenomMetadataToMemo(transfer.Memo, denomMetadata)
 	if err != nil {
 		if errors.Is(err, types.ErrMemoTransferInjectAlreadyExists) {
-			err = errors.Join(err, gerr.ErrPermissionDenied)
+			err = errors.Join(err, gerrc.ErrPermissionDenied)
 		}
 		return 0, errorsmod.Wrap(err, "transfer inject: add denom metadata to memo")
 	}

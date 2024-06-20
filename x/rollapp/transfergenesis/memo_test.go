@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	errorsmod "cosmossdk.io/errors"
-
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 
 	_ "embed"
 
@@ -54,19 +53,19 @@ var (
 func TestGetMemo(t *testing.T) {
 	t.Run("empty str: returns not found", func(t *testing.T) {
 		_, err := getMemo("")
-		require.True(t, errorsmod.IsOf(err, gerr.ErrNotFound))
+		require.True(t, errorsmod.IsOf(err, gerrc.ErrNotFound))
 	})
 	t.Run("empty json: returns not found", func(t *testing.T) {
 		_, err := getMemo("{}")
-		require.True(t, errorsmod.IsOf(err, gerr.ErrNotFound))
+		require.True(t, errorsmod.IsOf(err, gerrc.ErrNotFound))
 	})
 	t.Run("does not have namespace key: returns not found", func(t *testing.T) {
 		_, err := getMemo(memoNamespaceEmpty)
-		require.True(t, errorsmod.IsOf(err, gerr.ErrNotFound))
+		require.True(t, errorsmod.IsOf(err, gerrc.ErrNotFound))
 	})
 	t.Run("malformed: returns malformed", func(t *testing.T) {
 		_, err := getMemo(memoMalformedBz)
-		require.True(t, errorsmod.IsOf(err, gerr.ErrInvalidArgument))
+		require.True(t, errorsmod.IsOf(err, gerrc.ErrInvalidArgument))
 	})
 	t.Run("happy path: returns data", func(t *testing.T) {
 		m, err := getMemo(memoHappyPath)

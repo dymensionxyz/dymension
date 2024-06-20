@@ -12,8 +12,6 @@ import (
 
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	"github.com/tendermint/tendermint/libs/log"
 
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
@@ -115,7 +113,7 @@ func (w IBCModule) OnRecvPacket(
 	ra := transfer.Rollapp
 
 	memo, err := getMemo(transfer.GetMemo())
-	if errorsmod.IsOf(err, gerr.ErrNotFound) {
+	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
 		if !ra.GenesisState.TransfersEnabled {
 			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
@@ -159,7 +157,7 @@ func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
 
 func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 	if len(rawMemo) == 0 {
-		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
+		return rollapptypes.GenesisTransferMemo{}, gerrc.ErrNotFound
 	}
 
 	// check if the key is there, because we want to differentiate between people not sending us the data, vs
@@ -169,21 +167,21 @@ func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
 
 	err := json.Unmarshal([]byte(rawMemo), &keyMap)
 	if err != nil {
-		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 
 	if _, ok := keyMap[memoNamespaceKey]; !ok {
-		return rollapptypes.GenesisTransferMemo{}, gerr.ErrNotFound
+		return rollapptypes.GenesisTransferMemo{}, gerrc.ErrNotFound
 	}
 
 	var m rollapptypes.GenesisTransferMemoNamespaced
 	err = json.Unmarshal([]byte(rawMemo), &m)
 	if err != nil {
-		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, sdkerrors.ErrJSONUnmarshal), "rawMemo")
 	}
 
 	if err := m.Data.Valid(); err != nil {
-		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, err), "validate data")
+		return rollapptypes.GenesisTransferMemo{}, errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "validate data")
 	}
 	return m.Data, nil
 }
@@ -212,7 +210,7 @@ func (w IBCModule) registerDenomMetadata(ctx sdk.Context, rollappID, channelID s
 	}
 
 	if err := m.Validate(); err != nil {
-		return errorsmod.Wrap(errors.Join(gerr.ErrInvalidArgument, err), "metadata validate")
+		return errorsmod.Wrap(errors.Join(gerrc.ErrInvalidArgument, err), "metadata validate")
 	}
 
 	// We go by the denom keeper instead of calling bank directly, as something might happen in-between
