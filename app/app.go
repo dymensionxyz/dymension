@@ -560,10 +560,10 @@ func New(
 	app.FeeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
 		sdk.MustAccAddressFromBech32(authorityAddr),
+		app.ConsensusParamsKeeper,
 		keys[feemarkettypes.StoreKey],
 		tkeys[feemarkettypes.TransientKey],
 		app.GetSubspace(feemarkettypes.ModuleName),
-		app.ConsensusParamsKeeper,
 	)
 
 	// Create evmos keeper
