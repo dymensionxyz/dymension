@@ -30,4 +30,5 @@ var (
 	ErrInternal           = errorsmod.RegisterWithGRPCCode(GErrors, 10, 13, "internal")          // no obvious sdk mapping exists
 	ErrUnavailable        = errorsmod.RegisterWithGRPCCode(GErrors, 11, 14, "unavailable")       // no obvious sdk mapping exists
 	ErrDataLoss           = errorsmod.RegisterWithGRPCCode(GErrors, 12, 15, "data loss")         // no obvious sdk mapping exists
+	ErrUnknownRequest     = errorsmod.RegisterWithGRPCCode(GErrors, 13, 16, "unknown request")
 )

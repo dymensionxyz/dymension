@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -45,17 +46,21 @@ func NewIBCRecvMiddleware(
 // OnRecvPacket registers the denom metadata if it does not exist.
 // It will intercept an incoming packet and check if the denom metadata exists.
 // If it does not, it will register the denom metadata.
-// The handler will expect a 'transferinject' object in the memo field of the packet.
+// The handler will expect a 'denom_metadata' object in the memo field of the packet.
 // If the memo is not an object, or does not contain the metadata, it moves on to the next handler.
 func (im IBCRecvMiddleware) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
-	packetData := new(transfertypes.FungibleTokenPacketData)
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), packetData); err != nil {
-		err = errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data")
+	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
+	}
+
+	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
+	if rollapp == nil {
+		return channeltypes.NewErrorAcknowledgement(gerr.ErrNotFound)
 	}
 
 	if packetData.Memo == "" {
@@ -79,7 +84,7 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 	dm.DenomUnits[0].Denom = dm.Base
 
 	if err := im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
-		if errorsmod.IsOf(err, types.ErrDenomAlreadyExists) {
+		if errorsmod.IsOf(err, gerr.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -87,15 +92,6 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 
 	if !im.transferKeeper.HasDenomTrace(ctx, denomTrace.Hash()) {
 		im.transferKeeper.SetDenomTrace(ctx, denomTrace)
-	}
-
-	rollapp, err := im.rollappKeeper.ExtractRollappFromChannel(ctx, packet.DestinationChannel, packet.DestinationChannel)
-	if err != nil {
-		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	if rollapp == nil {
-		return channeltypes.NewErrorAcknowledgement(types.ErrRollappNotFound)
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
@@ -125,9 +121,14 @@ func (im IBCRecvMiddleware) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	var data transfertypes.FungibleTokenPacketData
-	if err := types.ModuleCdc.UnmarshalJSON(packet.GetData(), &data); err != nil {
-		return errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
+	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
+	if err != nil {
+		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
+	}
+
+	rollapp, data := transferData.Rollapp, transferData.FungibleTokenPacketData
+	if rollapp == nil {
+		return gerr.ErrNotFound
 	}
 
 	dm := types.ParsePacketMetadata(data.Memo)
@@ -135,12 +136,8 @@ func (im IBCRecvMiddleware) OnAcknowledgementPacket(
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	rollapp, err := im.rollappKeeper.ExtractRollappFromChannel(ctx, packet.SourcePort, packet.SourceChannel)
-	if err != nil {
-		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
-	}
-	if rollapp == nil {
-		return types.ErrRollappNotFound
+	if err = dm.Validate(); err != nil {
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
@@ -195,11 +192,12 @@ func (m *IBCSendMiddleware) SendPacket(
 		return 0, types.ErrMemoDenomMetadataAlreadyExists
 	}
 
-	rollapp, err := m.rollappKeeper.ExtractRollappFromChannel(ctx, destinationPort, destinationChannel)
+	transferData, err := m.rollappKeeper.GetValidTransfer(ctx, data, destinationPort, destinationChannel)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "extract rollapp from packet: %s", err.Error())
+		return 0, errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
 	}
 
+	rollapp := transferData.Rollapp
 	// TODO: currently we check if receiving chain is a rollapp, consider that other chains also might want this feature
 	// meaning, find a better way to check if the receiving chain supports this middleware
 	if rollapp == nil {

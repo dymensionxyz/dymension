@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -27,6 +28,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		name           string
 		keeper         *mockDenomMetadataKeeper
 		transferKeeper *mockTransferKeeper
+		rollappKeeper  *mockRollappKeeper
 
 		memoData         *memoData
 		wantAck          exported.Acknowledgement
@@ -34,57 +36,67 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 		wantCreated      bool
 	}{
 		{
-			name:             "valid packet data with packet metadata",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "valid packet data with packet metadata",
+			keeper:         &mockDenomMetadataKeeper{},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         validMemoData,
 			wantAck:          emptyResult,
 			wantSentMemoData: nil,
 			wantCreated:      true,
 		}, {
-			name:             "valid packet data with packet metadata and user memo",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "valid packet data with packet metadata and user memo",
+			keeper:         &mockDenomMetadataKeeper{},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         validMemoDataWithUserMemo,
 			wantAck:          emptyResult,
 			wantSentMemoData: validUserMemo,
 			wantCreated:      true,
 		}, {
-			name:             "no memo",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "no memo",
+			keeper:         &mockDenomMetadataKeeper{},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         nil,
 			wantAck:          emptyResult,
 			wantSentMemoData: nil,
 			wantCreated:      false,
 		}, {
-			name:             "custom memo",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "custom memo",
+			keeper:         &mockDenomMetadataKeeper{},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         validUserMemo,
 			wantAck:          emptyResult,
 			wantSentMemoData: validUserMemo,
 			wantCreated:      false,
 		}, {
-			name:             "memo has empty packet metadata",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
-			memoData:         invalidMemoDataNoTransferInject,
-			wantAck:          emptyResult,
-			wantSentMemoData: invalidMemoDataNoTransferInject,
-			wantCreated:      false,
-		}, {
-			name:             "memo has empty denom metadata",
-			keeper:           &mockDenomMetadataKeeper{},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "memo has empty denom metadata",
+			keeper:         &mockDenomMetadataKeeper{},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         invalidMemoDataNoDenomMetadata,
 			wantAck:          emptyResult,
 			wantSentMemoData: nil,
 			wantCreated:      false,
 		}, {
-			name:             "denom metadata already exists in keeper",
-			keeper:           &mockDenomMetadataKeeper{hasDenomMetaData: true},
-			transferKeeper:   &mockTransferKeeper{},
+			name:           "denom metadata already exists in keeper",
+			keeper:         &mockDenomMetadataKeeper{hasDenomMetaData: true},
+			transferKeeper: &mockTransferKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
 			memoData:         validMemoData,
 			wantAck:          emptyResult,
 			wantSentMemoData: nil,
@@ -94,13 +106,15 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := &mockIBCModule{}
-			im := denommetadata.NewIBCRecvMiddleware(app, tt.transferKeeper, tt.keeper, nil)
+			im := denommetadata.NewIBCRecvMiddleware(app, tt.transferKeeper, tt.keeper, tt.rollappKeeper)
 			var memo string
 			if tt.memoData != nil {
 				memo = mustMarshalJSON(tt.memoData)
 			}
 			packetData := packetDataWithMemo(memo)
-			packet := channeltypes.Packet{Data: packetData, SourcePort: "transfer", SourceChannel: "channel-0"}
+			tt.rollappKeeper.packetData = packetData
+			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
 			got := im.OnRecvPacket(sdk.Context{}, packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
 			if !tt.wantAck.Success() {
@@ -110,7 +124,9 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 			if tt.wantSentMemoData != nil {
 				wantMemo = mustMarshalJSON(tt.wantSentMemoData)
 			}
-			require.Equal(t, string(packetDataWithMemo(wantMemo)), string(app.sentData))
+			wantPacketData := packetDataWithMemo(wantMemo)
+			wantPacketDataBytes := types.ModuleCdc.MustMarshalJSON(&wantPacketData)
+			require.Equal(t, string(wantPacketDataBytes), string(app.sentData))
 			require.Equal(t, tt.wantCreated, tt.keeper.created)
 		})
 	}
@@ -319,7 +335,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		IBCModule     porttypes.IBCModule
-		rollappKeeper types.RollappKeeper
+		rollappKeeper *mockRollappKeeper
 	}
 	type args struct {
 		packetData      *transfertypes.FungibleTokenPacketData
@@ -381,8 +397,10 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "return early: no memo",
 			fields: fields{
-				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     &mockIBCModule{},
+				rollappKeeper: &mockRollappKeeper{
+					returnRollapp: &rollapptypes.Rollapp{},
+				},
+				IBCModule: &mockIBCModule{},
 			},
 			args: args{
 				packetData: &transfertypes.FungibleTokenPacketData{
@@ -390,7 +408,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
+			wantRollapp: &rollapptypes.Rollapp{},
 		}, {
 			name: "return early: no packet metadata in memo",
 			fields: fields{
@@ -404,6 +422,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
+			wantErr:     gerr.ErrNotFound,
 			wantRollapp: nil,
 		}, {
 			name: "return early: no denom metadata in memo",
@@ -414,10 +433,11 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 			args: args{
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  `{"transferinject":{}}`,
+					Memo:  `{"denom_metadata":{}}`,
 				},
 				acknowledgement: okAck(),
 			},
+			wantErr:     gerr.ErrNotFound,
 			wantRollapp: nil,
 		}, {
 			name: "error: extract rollapp from channel",
@@ -450,7 +470,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     errortypes.ErrNotFound,
+			wantErr:     gerr.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
@@ -480,6 +500,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 			packet := channeltypes.Packet{}
 
 			if tt.args.packetData != nil {
+				tt.fields.rollappKeeper.packetData = *tt.args.packetData
 				packet.Data = types.ModuleCdc.MustMarshalJSON(tt.args.packetData)
 			}
 
@@ -491,7 +512,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				require.ErrorIs(t, err, tt.wantErr)
 			}
 
-			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.(*mockRollappKeeper).returnRollapp)
+			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.returnRollapp)
 		})
 	}
 }
@@ -512,9 +533,6 @@ var (
 		},
 	}
 	invalidMemoDataNoDenomMetadata = &memoData{
-		MemoData: types.MemoData{},
-	}
-	invalidMemoDataNoTransferInject = &memoData{
 		MemoData: types.MemoData{},
 	}
 	validDenomMetadata = banktypes.Metadata{
@@ -544,15 +562,14 @@ type userData struct {
 	Data string `json:"data"`
 }
 
-func packetDataWithMemo(memo string) []byte {
-	byt, _ := types.ModuleCdc.MarshalJSON(&transfertypes.FungibleTokenPacketData{
+func packetDataWithMemo(memo string) transfertypes.FungibleTokenPacketData {
+	return transfertypes.FungibleTokenPacketData{
 		Denom:    "adym",
 		Amount:   "100",
 		Sender:   "sender",
 		Receiver: "receiver",
 		Memo:     memo,
-	})
-	return byt
+	}
 }
 
 func addDenomMetadataToPacketData(memo string, metadata banktypes.Metadata) string {
@@ -637,6 +654,7 @@ func (m *mockICS4Wrapper) SendPacket(
 
 type mockRollappKeeper struct {
 	returnRollapp *rollapptypes.Rollapp
+	packetData    transfertypes.FungibleTokenPacketData
 	err           error
 }
 
@@ -644,8 +662,11 @@ func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rolla
 	m.returnRollapp = &rollapp
 }
 
-func (m *mockRollappKeeper) ExtractRollappFromChannel(sdk.Context, string, string) (*rollapptypes.Rollapp, error) {
-	return m.returnRollapp, m.err
+func (m *mockRollappKeeper) GetValidTransfer(sdk.Context, []byte, string, string) (data rollapptypes.TransferData, err error) {
+	return rollapptypes.TransferData{
+		Rollapp:                 m.returnRollapp,
+		FungibleTokenPacketData: m.packetData,
+	}, m.err
 }
 
 type mockBankKeeper struct {

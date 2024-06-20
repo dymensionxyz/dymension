@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 )
 
 type KeeperTestSuite struct {

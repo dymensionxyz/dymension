@@ -27,9 +27,9 @@ type DenomMetadataKeeper interface {
 
 type RollappKeeper interface {
 	SetRollapp(ctx sdk.Context, rollapp rollapptypes.Rollapp)
-	ExtractRollappFromChannel(
+	GetValidTransfer(
 		ctx sdk.Context,
-		rollappPortOnHub string,
-		rollappChannelOnHub string,
-	) (*rollapptypes.Rollapp, error)
+		packetData []byte,
+		raPortOnHub, raChanOnHub string,
+	) (data rollapptypes.TransferData, err error)
 }
