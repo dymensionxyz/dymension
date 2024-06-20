@@ -103,7 +103,7 @@ func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
 		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
 		s.Require().NoError(err)
 
-		err = s.path.RelayPacket(packet)
+		_ = s.path.RelayPacket(packet)
 
 		if i == 2 {
 
