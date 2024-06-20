@@ -127,11 +127,11 @@ func (w IBCModule) OnRecvPacket(
 
 	if ra.GenesisState.TransfersEnabled {
 		// Genesis transfers are disabled once the bridge is already open
-		err = w.handleFraud(ctx, ra.RollappId)
+		err = w.handleDRSViolation(ctx, ra.RollappId)
 		if err != nil {
-			l.Error("Handling fraud.", "err", err)
+			l.Error("Handling drs violation.", "err", err)
 		} else {
-			l.Info("Handled fraud: verify and record genesis transfer.", "err", err)
+			l.Info("Handled drs violation: verify and record genesis transfer.", "err", err)
 		}
 		return channeltypes.NewErrorAcknowledgement(ErrDisabled)
 	}
@@ -149,7 +149,7 @@ func (w IBCModule) OnRecvPacket(
 	return w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
 }
 
-func (w IBCModule) handleFraud(ctx sdk.Context, rollappID string) error {
+func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
 	// handleFraud : the rollapp has violated the DRS!
 	// TODO: finish implementing this method,  see https://github.com/dymensionxyz/dymension/issues/930
 	return nil
