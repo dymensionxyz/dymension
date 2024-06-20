@@ -4,8 +4,8 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/utils/derr"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // VerifyAndRecordGenesisTransfer takes a transfer 'index' from the rollapp sequencer and book keeps it
@@ -18,7 +18,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 	if ra.GenesisState.TransfersEnabled {
 		// Could plausibly occur if a chain sends too many genesis transfers (not matching their memo)
 		// or if a chain which registered with the bridge enabled tries to send some genesis transfers
-		return 0, errorsmod.Wrap(derr.ErrViolatesDymensionRollappStandard, "received genesis transfer but all bridge transfers are already enabled")
+		return 0, errorsmod.Wrap(gerrc.ErrFault, "received genesis transfer but all bridge transfers are already enabled")
 	}
 
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.TransferGenesisMapKeyPrefix))
@@ -32,7 +32,7 @@ func (k Keeper) VerifyAndRecordGenesisTransfer(ctx sdk.Context, rollappID string
 		nTotalExistingBz := store.Get(nTotalKey)
 		nTotalExisting := sdk.BigEndianToUint64(nTotalExistingBz)
 		if nTotal != nTotalExisting {
-			return 0, errorsmod.Wrapf(derr.ErrViolatesDymensionRollappStandard, "different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
+			return 0, errorsmod.Wrapf(gerrc.ErrFault, "different num total transfers: got: %d: got previously: %d", nTotal, nTotalExisting)
 		}
 		nBz := store.Get(nKey)
 		n = sdk.BigEndianToUint64(nBz)

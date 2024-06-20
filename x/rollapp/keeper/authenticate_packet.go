@@ -4,9 +4,9 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 /*
@@ -49,7 +49,7 @@ func (k Keeper) GetValidTransfer(
 	return
 }
 
-var errRollappNotFound = errorsmod.Wrap(gerr.ErrNotFound, "rollapp")
+var errRollappNotFound = errorsmod.Wrap(gerrc.ErrNotFound, "rollapp")
 
 // getRollappByPortChan returns the rollapp id that a packet came from, if we are certain
 // that the packet came from that rollapp. That means that the canonical channel
@@ -78,12 +78,12 @@ func (k Keeper) getRollappByPortChan(ctx sdk.Context,
 		return nil, errorsmod.Wrapf(errRollappNotFound, "chain id: %s: port: %s: channel: %s", chainID, raPortOnHub, raChanOnHub)
 	}
 	if rollapp.ChannelId == "" {
-		return nil, errorsmod.Wrapf(gerr.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition, "rollapp canonical channel mapping has not been set: %s", chainID)
 	}
 
 	if rollapp.ChannelId != raChanOnHub {
 		return nil, errorsmod.Wrapf(
-			gerr.ErrInvalidArgument,
+			gerrc.ErrInvalidArgument,
 			"packet destination channel id mismatch: expect: %s: got: %s", rollapp.ChannelId, raChanOnHub,
 		)
 	}

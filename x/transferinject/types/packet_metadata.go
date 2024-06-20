@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
-
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // MemoData represents the structure of the memo with user and hub metadata
@@ -44,7 +43,7 @@ func ParsePacketMetadata(input string) (*TransferInject, error) {
 	}
 
 	if memo.TransferInject.DenomMetadata == nil {
-		return nil, errorsmod.Wrap(gerr.ErrNotFound, "denom metadata")
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "denom metadata")
 	}
 
 	return memo.TransferInject, nil
