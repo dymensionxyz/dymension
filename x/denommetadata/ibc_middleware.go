@@ -12,9 +12,9 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
+	utilsibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -59,16 +59,13 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 	}
 
 	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
-	if rollapp == nil {
-		return channeltypes.NewErrorAcknowledgement(gerr.ErrNotFound)
-	}
 
 	if packetData.Memo == "" {
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
 	// at this point it's safe to assume that we are not handling a native token of the rollapp
-	denomTrace := utils.GetForeignDenomTrace(packet.GetDestChannel(), packetData.Denom)
+	denomTrace := utilsibc.GetForeignDenomTrace(packet.GetDestChannel(), packetData.Denom)
 	ibcDenom := denomTrace.IBCDenom()
 
 	dm := types.ParsePacketMetadata(packetData.Memo)
@@ -76,15 +73,20 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
-	if err := dm.Validate(); err != nil {
+	if err = dm.Validate(); err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
+	}
+
+	// if denom metadata was found in the memo, it means we should have the rollapp record
+	if rollapp == nil {
+		return channeltypes.NewErrorAcknowledgement(gerrc.ErrNotFound)
 	}
 
 	dm.Base = ibcDenom
 	dm.DenomUnits[0].Denom = dm.Base
 
-	if err := im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
-		if errorsmod.IsOf(err, gerr.ErrAlreadyExists) {
+	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
+		if errorsmod.IsOf(err, gerrc.ErrAlreadyExist) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -126,18 +128,24 @@ func (im IBCRecvMiddleware) OnAcknowledgementPacket(
 		return errorsmod.Wrapf(errortypes.ErrInvalidRequest, "get valid transfer data: %s", err.Error())
 	}
 
-	rollapp, data := transferData.Rollapp, transferData.FungibleTokenPacketData
-	if rollapp == nil {
-		return gerr.ErrNotFound
+	rollapp, packetData := transferData.Rollapp, transferData.FungibleTokenPacketData
+
+	if packetData.Memo == "" {
+		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
-	dm := types.ParsePacketMetadata(data.Memo)
+	dm := types.ParsePacketMetadata(packetData.Memo)
 	if dm == nil {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 	}
 
 	if err = dm.Validate(); err != nil {
 		return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
+	}
+
+	// if denom metadata was found in the memo, it means we should have the rollapp record
+	if rollapp == nil {
+		return gerrc.ErrNotFound
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {

@@ -14,10 +14,10 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
-	"github.com/dymensionxyz/dymension/v3/utils/gerr"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -422,7 +422,6 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantErr:     gerr.ErrNotFound,
 			wantRollapp: nil,
 		}, {
 			name: "return early: no denom metadata in memo",
@@ -437,7 +436,6 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantErr:     gerr.ErrNotFound,
 			wantRollapp: nil,
 		}, {
 			name: "error: extract rollapp from channel",
@@ -470,7 +468,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     gerr.ErrNotFound,
+			wantErr:     gerrc.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
