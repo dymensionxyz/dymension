@@ -117,7 +117,9 @@ func (w IBCModule) OnRecvPacket(
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerr.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
-		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
+		if !ra.GenesisState.TransfersEnabled {
+			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
+		}
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 	if err != nil {
@@ -131,7 +133,7 @@ func (w IBCModule) OnRecvPacket(
 		if err != nil {
 			l.Error("Handling drs violation.", "err", err)
 		} else {
-			l.Info("Handled drs violation: verify and record genesis transfer.", "err", err)
+			l.Info("Handled drs violation: transfers are already enabled.", "err", err)
 		}
 		return channeltypes.NewErrorAcknowledgement(ErrDisabled)
 	}
