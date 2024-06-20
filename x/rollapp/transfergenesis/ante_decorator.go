@@ -1,4 +1,4 @@
-package transfersenabled
+package transfergenesis
 
 import (
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
