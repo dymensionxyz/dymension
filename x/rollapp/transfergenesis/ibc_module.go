@@ -133,7 +133,7 @@ func (w IBCModule) OnRecvPacket(
 		if err != nil {
 			l.Error("Handling drs violation.", "err", err)
 		} else {
-			l.Info("Handled drs violation: transfers are already enabled.", "err", err)
+			l.Info("Handled drs violation: transfers are already enabled.")
 		}
 		return channeltypes.NewErrorAcknowledgement(ErrDisabled)
 	}
