@@ -115,10 +115,11 @@ func (w IBCModule) OnRecvPacket(
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
 		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
-		if !ra.GenesisState.TransfersEnabled {
+		err := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		if err == nil && !ra.GenesisState.TransfersEnabled {
 			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
 		}
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		return err
 	}
 	if err != nil {
 		l.Error("Get memo.", "err", err)
