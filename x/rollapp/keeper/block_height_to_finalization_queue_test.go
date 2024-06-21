@@ -6,12 +6,13 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Prevent strconv unused error
@@ -80,6 +81,181 @@ func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 }
 
 // TODO: Test FinalizeQueue function with failed states
+func (suite *RollappTestSuite) TestFinalizeRollapps() {
+	type stateUpdate struct {
+		blockHeight int64
+		startHeight uint64
+		numBlocks   uint64
+	}
+	type queue struct {
+		rollappsLeft int
+	}
+	type blockEnd struct {
+		blockHeight      func() int64
+		wantNumFinalized int
+		wantQueue        []queue
+	}
+	type rollappStateUpdate struct {
+		rollappID               string
+		stateUpdate             stateUpdate
+		malleatePostStateUpdate func(rollappId string)
+	}
+	type fields struct {
+		rollappStateUpdates []rollappStateUpdate
+		blockEnd            blockEnd
+	}
+
+	const initialHeight int64 = 10
+
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "finalize two rollapps successfully",
+			fields: fields{
+				rollappStateUpdates: []rollappStateUpdate{
+					{
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					},
+				},
+				blockEnd: blockEnd{
+					blockHeight:      func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
+					wantQueue:        nil,
+					wantNumFinalized: 2,
+				},
+			},
+		}, {
+			name: "finalize two rollapps, one with failed state",
+			fields: fields{
+				rollappStateUpdates: []rollappStateUpdate{
+					{
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+						malleatePostStateUpdate: func(rollappId string) {
+							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
+						},
+					},
+				},
+				blockEnd: blockEnd{
+					blockHeight:      func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
+					wantQueue:        []queue{{rollappsLeft: 1}},
+					wantNumFinalized: 1,
+				},
+			},
+		}, {
+			name: "finalize fize rollapps, two with failed state",
+			fields: fields{
+				rollappStateUpdates: []rollappStateUpdate{
+					{
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+						malleatePostStateUpdate: func(rollappId string) {
+							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
+						},
+					}, {
+						stateUpdate: stateUpdate{
+							blockHeight: initialHeight,
+							startHeight: 1,
+							numBlocks:   10,
+						},
+						malleatePostStateUpdate: func(rollappId string) {
+							suite.App.RollappKeeper.RemoveStateInfo(suite.Ctx, rollappId, 1)
+						},
+					},
+				},
+				blockEnd: blockEnd{
+					blockHeight: func() int64 { return initialHeight + int64(suite.App.RollappKeeper.DisputePeriodInBlocks(suite.Ctx)) },
+					wantQueue: []queue{
+						{
+							rollappsLeft: 2,
+						},
+					},
+					wantNumFinalized: 3,
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.SetupTest()
+			ctx := &suite.Ctx
+
+			for _, rf := range tt.fields.rollappStateUpdates {
+				// Create a rollapp
+				rollapp := suite.CreateDefaultRollapp()
+				proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+
+				// Create state update
+				su := rf.stateUpdate
+				suite.Ctx = suite.Ctx.WithBlockHeight(su.blockHeight)
+				_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, su.startHeight, su.numBlocks)
+				suite.Require().Nil(err)
+
+				if rf.malleatePostStateUpdate != nil {
+					rf.malleatePostStateUpdate(rollapp)
+				}
+			}
+			// End block and check if finalized
+			be := tt.fields.blockEnd
+			suite.Ctx = suite.Ctx.WithBlockHeight(be.blockHeight())
+			response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
+
+			heightQueue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(*ctx)
+			suite.Require().Len(heightQueue, len(be.wantQueue))
+
+			for i, q := range be.wantQueue {
+				suite.Require().Len(heightQueue[i].FinalizationQueue, q.rollappsLeft)
+			}
+
+			numFinalized := countFinalized(response)
+			suite.Assert().Equal(be.wantNumFinalized, numFinalized)
+		})
+	}
+}
+
+// TODO: Test FinalizeQueue function with failed states
 func (suite *RollappTestSuite) TestFinalize() {
 	suite.SetupTest()
 
@@ -127,6 +303,16 @@ func createNBlockHeightToFinalizationQueue(keeper *keeper.Keeper, ctx sdk.Contex
 		keeper.SetBlockHeightToFinalizationQueue(ctx, items[i])
 	}
 	return items
+}
+
+func countFinalized(response abci.ResponseEndBlock) int {
+	count := 0
+	for _, event := range response.Events {
+		if event.Type == types.EventTypeStatusChange {
+			count++
+		}
+	}
+	return count
 }
 
 func findEvent(response abci.ResponseEndBlock, eventType string) bool {

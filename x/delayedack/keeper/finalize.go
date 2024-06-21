@@ -3,17 +3,15 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	"github.com/tendermint/tendermint/libs/log"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is
@@ -45,7 +43,7 @@ func (k Keeper) finalizeRollappPacket(
 	rollappID string,
 	logger log.Logger,
 	rollappPacket commontypes.RollappPacket,
-) (err error) {
+) error {
 	logContext := []interface{}{
 		"rollappID", rollappID,
 		"sequence", rollappPacket.Packet.Sequence,
@@ -54,6 +52,7 @@ func (k Keeper) finalizeRollappPacket(
 		"type", rollappPacket.Type,
 	}
 
+	var packetErr error
 	switch rollappPacket.Type {
 	case commontypes.RollappPacket_ON_RECV:
 		// TODO: makes more sense to modify the packet when calling the handler, instead storing in db "wrong" packet
@@ -70,21 +69,21 @@ func (k Keeper) finalizeRollappPacket(
 			            eibc: effective transfer from fulfiller to original target
 		*/
 		if ack != nil {
-			err = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
+			packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.writeRecvAck(rollappPacket, ack))
 		}
 	case commontypes.RollappPacket_ON_ACK:
-		err = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
+		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onAckPacket(rollappPacket, ibc))
 	case commontypes.RollappPacket_ON_TIMEOUT:
-		err = osmoutils.ApplyFuncIfNoError(ctx, k.onTimeoutPacket(rollappPacket, ibc))
+		packetErr = osmoutils.ApplyFuncIfNoError(ctx, k.onTimeoutPacket(rollappPacket, ibc))
 	default:
 		logger.Error("Unknown rollapp packet type", logContext...)
 	}
 	// Update the packet with the error
-	if err != nil {
-		rollappPacket.Error = err.Error()
+	if packetErr != nil {
+		rollappPacket.Error = packetErr.Error()
 	}
 	// Update status to finalized
-	_, err = k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
+	_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_FINALIZED)
 	if err != nil {
 		// If we failed finalizing the packet we return an error to abort the end blocker otherwise it's
 		// invariant breaking
@@ -92,7 +91,7 @@ func (k Keeper) finalizeRollappPacket(
 	}
 
 	logger.Debug("finalized IBC rollapp packet", logContext...)
-	return
+	return nil
 }
 
 func (k Keeper) writeRecvAck(rollappPacket commontypes.RollappPacket, ack exported.Acknowledgement) wrappedFunc {

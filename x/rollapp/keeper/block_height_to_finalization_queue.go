@@ -2,62 +2,82 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
-func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
+func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
-		return nil
+		return
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 
-	return osmoutils.ApplyFuncIfNoError(ctx,
-		// we trap at this granularity because we want to avoid iterating inside the
-		// wrapped function (above), and we want the function to be atomic, so
-		// we cannot trap inside finalizePending
-		func(ctx sdk.Context) error {
-			return k.finalizePending(ctx, pendingFinalizationQueue)
-		})
+	k.finalizePending(ctx, pendingFinalizationQueue)
+	return
 }
 
-func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) error {
+func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
 	// Iterate over all the pending finalization queue
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
 		// finalize pending states
+		rollappsToRemoveFromQueue := make([]string, 0, len(blockHeightToFinalizationQueue.FinalizationQueue))
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
-			stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if stateInfo.Status != common.Status_PENDING {
-				panic(fmt.Sprintf("invariant broken: stateInfo is not in pending state: rollapp: %s: status: %s", stateInfoIndex.RollappId, stateInfo.Status))
-			}
-			stateInfo.Finalize()
-			// update the status of the stateInfo
-			k.SetStateInfo(ctx, stateInfo)
-			// update the LatestStateInfoIndex of the rollapp
-			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-			// call the after-update-state hook
-			keeperHooks := k.GetHooks()
-			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+			err := osmoutils.ApplyFuncIfNoError(ctx,
+				func(ctx sdk.Context) error {
+					return k.finalizePendingState(ctx, stateInfoIndex)
+				})
 			if err != nil {
-				return fmt.Errorf("after state finalized: %w", err)
+				k.Logger(ctx).Error("failed to finalize state", "rollapp", stateInfoIndex.RollappId, "index", stateInfoIndex.Index, "error", err.Error())
+				continue
 			}
-
-			// emit event
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStatusChange,
-					stateInfo.GetEvents()...,
-				),
-			)
+			rollappsToRemoveFromQueue = append(rollappsToRemoveFromQueue, stateInfoIndex.RollappId)
 		}
-		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		// remove the blockHeightToFinalizationQueue if all the rollapps are finalized
+		if len(rollappsToRemoveFromQueue) == len(blockHeightToFinalizationQueue.FinalizationQueue) {
+			k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		} else {
+			// remove only the rollapps that were successfully finalized
+			blockHeightToFinalizationQueue.FinalizationQueue = slices.DeleteFunc(blockHeightToFinalizationQueue.FinalizationQueue,
+				func(si types.StateInfoIndex) bool {
+					return slices.Contains(rollappsToRemoveFromQueue, si.RollappId)
+				})
+			k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
+		}
 	}
+}
+
+func (k Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+	if stateInfo.Status != common.Status_PENDING {
+		panic(fmt.Sprintf("invariant broken: stateInfo is not in pending state: rollapp: %s: status: %s", stateInfoIndex.RollappId, stateInfo.Status))
+	}
+	stateInfo.Finalize()
+	// update the status of the stateInfo
+	k.SetStateInfo(ctx, stateInfo)
+	// update the LatestStateInfoIndex of the rollapp
+	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+	// call the after-update-state hook
+	keeperHooks := k.GetHooks()
+	err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+	if err != nil {
+		return fmt.Errorf("after state finalized: %w", err)
+	}
+
+	// emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeStatusChange,
+			stateInfo.GetEvents()...,
+		),
+	)
 	return nil
 }
 
