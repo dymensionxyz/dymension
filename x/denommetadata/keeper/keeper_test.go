@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	suite.Require().NoError(err)
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
-	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExist))
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExists))
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {

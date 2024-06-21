@@ -5,8 +5,8 @@ import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
-	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
 )
 
 /*
@@ -20,13 +20,13 @@ TODO: this whole file is temporary
 type IBCModuleCanonicalChannelHack struct {
 	porttypes.IBCModule // next one
 	rollappKeeper       rollappkeeper.Keeper
-	channelKeeper       uibc.GetChannelClientState
+	channelKeeper       uibc.ChainIDFromPortChannelKeeper
 }
 
 func NewIBCModuleCanonicalChannelHack(
 	next porttypes.IBCModule,
 	rollappKeeper rollappkeeper.Keeper,
-	channelKeeper uibc.GetChannelClientState,
+	channelKeeper uibc.ChainIDFromPortChannelKeeper,
 ) *IBCModuleCanonicalChannelHack {
 	return &IBCModuleCanonicalChannelHack{IBCModule: next, rollappKeeper: rollappKeeper, channelKeeper: channelKeeper}
 }

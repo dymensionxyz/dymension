@@ -1,8 +1,8 @@
 package transfersenabled
 
 import (
-	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -15,10 +15,10 @@ type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, foun
 
 type Decorator struct {
 	getRollapp            GetRollapp
-	getChannelClientState uibc.GetChannelClientState
+	getChannelClientState uibc.ChainIDFromPortChannelKeeper
 }
 
-func NewDecorator(getRollapp GetRollapp, getChannelClientState uibc.GetChannelClientState) *Decorator {
+func NewDecorator(getRollapp GetRollapp, getChannelClientState uibc.ChainIDFromPortChannelKeeper) *Decorator {
 	return &Decorator{
 		getRollapp:            getRollapp,
 		getChannelClientState: getChannelClientState,
