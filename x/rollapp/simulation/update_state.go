@@ -7,14 +7,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/dymensionxyz/dymension/v3/simulation"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func SimulateMsgUpdateState(
-	ak types.AccountKeeper,
-	bk types.BankKeeper,
-	k keeper.Keeper,
+	ak simulationtypes.AccountKeeper,
+	bk simulationtypes.BankKeeper,
 ) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -83,19 +82,6 @@ func SimulateMsgUpdateState(
 			simulation.GlobalRollappList[rollappIndex].LastHeight += numBlocks
 			simulation.GlobalRollappList[rollappIndex].LastCreationHeight = uint64(ctx.BlockHeight())
 		}
-
-		// println("LastCreationHeight: ", simulation.GlobalRollappList[rollappIndex].LastCreationHeight)
-		// println("BlockHeight: ", uint64(ctx.BlockHeight()))
-		// println("  bExpectedError: ", bExpectedError)
-		// println("  bNotActive: ", bNotActive)
-		// println("  bWrongRollapp: ", bWrongRollapp)
-		// println("  bNoBds: ", bNoBds)
-		// println("  bWrongStartHeight: ", bWrongStartHeight)
-		// println("  startHeight: ", startHeight)
-		// println("  bStateWasUpdatedInThisHeight: ", bStateWasUpdatedInThisHeight)
-		// for _, item := range k.GetAllStateInfo(ctx) {
-		// 	println("CreationHeight: ", item.CreationHeight)
-		// }
 
 		return simulation.GenAndDeliverMsgWithRandFees(msg, msg.Type(), types.ModuleName, r, app, &ctx, &sequencer.Account, bk, ak, nil, bExpectedError)
 	}

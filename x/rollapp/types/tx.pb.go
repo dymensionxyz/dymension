@@ -6,21 +6,24 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ = proto.Marshal
-var _ = fmt.Errorf
-var _ = math.Inf
+var (
+	_ = proto.Marshal
+	_ = fmt.Errorf
+	_ = math.Inf
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -41,10 +44,10 @@ type MsgCreateRollapp struct {
 	// sequencers that are allowed to serve this rollappId.
 	// In the case of an empty list, the rollapp is considered permissionless
 	PermissionedAddresses []string `protobuf:"bytes,7,rep,name=permissionedAddresses,proto3" json:"permissionedAddresses,omitempty"`
-	// metadata provides the client information for all the registered tokens.
-	Metadatas []TokenMetadata `protobuf:"bytes,8,rep,name=metadatas,proto3" json:"metadatas"`
-	// genesis_accounts for the rollapp on the hub
-	GenesisAccounts []GenesisAccount `protobuf:"bytes,9,rep,name=genesis_accounts,json=genesisAccounts,proto3" json:"genesis_accounts"`
+	// enable ibc transfers initially? Must be set false if intending
+	// to send genesis transfers. Should be true if not intending to send genesis transfers
+	// see https://github.com/dymensionxyz/dymension/issues/922 for more info
+	TransfersEnabled bool `protobuf:"varint,10,opt,name=transfersEnabled,proto3" json:"transfersEnabled,omitempty"`
 }
 
 func (m *MsgCreateRollapp) Reset()         { *m = MsgCreateRollapp{} }
@@ -53,9 +56,11 @@ func (*MsgCreateRollapp) ProtoMessage()    {}
 func (*MsgCreateRollapp) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{0}
 }
+
 func (m *MsgCreateRollapp) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollapp.Marshal(b, m, deterministic)
@@ -68,12 +73,15 @@ func (m *MsgCreateRollapp) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollapp) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollapp.Merge(m, src)
 }
+
 func (m *MsgCreateRollapp) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollapp) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollapp.DiscardUnknown(m)
 }
@@ -108,22 +116,14 @@ func (m *MsgCreateRollapp) GetPermissionedAddresses() []string {
 	return nil
 }
 
-func (m *MsgCreateRollapp) GetMetadatas() []TokenMetadata {
+func (m *MsgCreateRollapp) GetTransfersEnabled() bool {
 	if m != nil {
-		return m.Metadatas
+		return m.TransfersEnabled
 	}
-	return nil
+	return false
 }
 
-func (m *MsgCreateRollapp) GetGenesisAccounts() []GenesisAccount {
-	if m != nil {
-		return m.GenesisAccounts
-	}
-	return nil
-}
-
-type MsgCreateRollappResponse struct {
-}
+type MsgCreateRollappResponse struct{}
 
 func (m *MsgCreateRollappResponse) Reset()         { *m = MsgCreateRollappResponse{} }
 func (m *MsgCreateRollappResponse) String() string { return proto.CompactTextString(m) }
@@ -131,9 +131,11 @@ func (*MsgCreateRollappResponse) ProtoMessage()    {}
 func (*MsgCreateRollappResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{1}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgCreateRollappResponse.Marshal(b, m, deterministic)
@@ -146,12 +148,15 @@ func (m *MsgCreateRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
+
 func (m *MsgCreateRollappResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgCreateRollappResponse.Merge(m, src)
 }
+
 func (m *MsgCreateRollappResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgCreateRollappResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgCreateRollappResponse.DiscardUnknown(m)
 }
@@ -185,9 +190,11 @@ func (*MsgUpdateState) ProtoMessage()    {}
 func (*MsgUpdateState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{2}
 }
+
 func (m *MsgUpdateState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateState.Marshal(b, m, deterministic)
@@ -200,12 +207,15 @@ func (m *MsgUpdateState) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateState) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateState.Merge(m, src)
 }
+
 func (m *MsgUpdateState) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateState) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateState.DiscardUnknown(m)
 }
@@ -261,8 +271,7 @@ func (m *MsgUpdateState) GetBDs() BlockDescriptors {
 	return BlockDescriptors{}
 }
 
-type MsgUpdateStateResponse struct {
-}
+type MsgUpdateStateResponse struct{}
 
 func (m *MsgUpdateStateResponse) Reset()         { *m = MsgUpdateStateResponse{} }
 func (m *MsgUpdateStateResponse) String() string { return proto.CompactTextString(m) }
@@ -270,9 +279,11 @@ func (*MsgUpdateStateResponse) ProtoMessage()    {}
 func (*MsgUpdateStateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_935cc363af28220c, []int{3}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
 		return xxx_messageInfo_MsgUpdateStateResponse.Marshal(b, m, deterministic)
@@ -285,175 +296,70 @@ func (m *MsgUpdateStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
+
 func (m *MsgUpdateStateResponse) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_MsgUpdateStateResponse.Merge(m, src)
 }
+
 func (m *MsgUpdateStateResponse) XXX_Size() int {
 	return m.Size()
 }
+
 func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 	xxx_messageInfo_MsgUpdateStateResponse.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
-// MsgRollappGenesisEvent is the message type for triggering the genesis event of the rollapp
-type MsgRollappGenesisEvent struct {
-	// address is the bech32-encoded address of the sender
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// channel_id is the rollapp channel id on the hub
-	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	// rollapp_id is the rollapp id we want to mint tokens on the hub.
-	// Used for validation against channel_id to reduce error surface.
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-}
-
-func (m *MsgRollappGenesisEvent) Reset()         { *m = MsgRollappGenesisEvent{} }
-func (m *MsgRollappGenesisEvent) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEvent) ProtoMessage()    {}
-func (*MsgRollappGenesisEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_935cc363af28220c, []int{4}
-}
-func (m *MsgRollappGenesisEvent) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRollappGenesisEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEvent.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRollappGenesisEvent) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEvent.Merge(m, src)
-}
-func (m *MsgRollappGenesisEvent) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRollappGenesisEvent) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEvent.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRollappGenesisEvent proto.InternalMessageInfo
-
-func (m *MsgRollappGenesisEvent) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
-func (m *MsgRollappGenesisEvent) GetChannelId() string {
-	if m != nil {
-		return m.ChannelId
-	}
-	return ""
-}
-
-func (m *MsgRollappGenesisEvent) GetRollappId() string {
-	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-type MsgRollappGenesisEventResponse struct {
-}
-
-func (m *MsgRollappGenesisEventResponse) Reset()         { *m = MsgRollappGenesisEventResponse{} }
-func (m *MsgRollappGenesisEventResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEventResponse) ProtoMessage()    {}
-func (*MsgRollappGenesisEventResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_935cc363af28220c, []int{5}
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEventResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.Merge(m, src)
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRollappGenesisEventResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRollappGenesisEventResponse proto.InternalMessageInfo
-
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
 	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
 	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
-	proto.RegisterType((*MsgRollappGenesisEvent)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEvent")
-	proto.RegisterType((*MsgRollappGenesisEventResponse)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEventResponse")
 }
 
 func init() { proto.RegisterFile("dymension/rollapp/tx.proto", fileDescriptor_935cc363af28220c) }
 
 var fileDescriptor_935cc363af28220c = []byte{
-	// 596 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0x41, 0x6f, 0xd3, 0x4c,
-	0x10, 0x8d, 0xeb, 0x7e, 0xed, 0x97, 0x8d, 0x0a, 0xd5, 0x02, 0xd5, 0xca, 0x2a, 0x6e, 0x14, 0x71,
-	0xc8, 0x05, 0x1b, 0xb5, 0x15, 0xe2, 0x84, 0xd4, 0x50, 0x44, 0x7b, 0x08, 0x02, 0xb7, 0x5c, 0xb8,
-	0x44, 0x5b, 0x7b, 0xe4, 0x58, 0x8d, 0x77, 0xcd, 0xee, 0xa6, 0x4a, 0xe1, 0xca, 0x85, 0x03, 0x12,
-	0x3f, 0xab, 0xc7, 0x1e, 0x11, 0x07, 0x84, 0xda, 0x3f, 0x82, 0xd6, 0x5e, 0x3b, 0x49, 0x1b, 0x91,
-	0xb6, 0xa7, 0x78, 0xde, 0x9b, 0xf7, 0x76, 0xf2, 0x76, 0x6c, 0xe4, 0x44, 0xa7, 0x29, 0x30, 0x99,
-	0x70, 0xe6, 0x0b, 0x3e, 0x18, 0xd0, 0x2c, 0xf3, 0xd5, 0xc8, 0xcb, 0x04, 0x57, 0x1c, 0xbb, 0x15,
-	0x37, 0x3a, 0xfd, 0xec, 0x55, 0x85, 0x67, 0x1a, 0x9d, 0xf6, 0x75, 0xed, 0xd1, 0x80, 0x87, 0xc7,
-	0xbd, 0x08, 0x64, 0x28, 0x92, 0x4c, 0x71, 0x51, 0x38, 0x39, 0xeb, 0x33, 0x3a, 0x29, 0x3b, 0x36,
-	0xec, 0xc6, 0x75, 0xd6, 0xfc, 0x9a, 0x86, 0x87, 0x31, 0x8f, 0x79, 0xfe, 0xe8, 0xeb, 0xa7, 0x02,
-	0x6d, 0xfd, 0x5a, 0x40, 0xab, 0x5d, 0x19, 0xbf, 0x12, 0x40, 0x15, 0x04, 0x85, 0x00, 0x13, 0xb4,
-	0x1c, 0x6a, 0x80, 0x0b, 0x62, 0x35, 0xad, 0x76, 0x3d, 0x28, 0x4b, 0xbc, 0x8e, 0xea, 0xc6, 0x75,
-	0x3f, 0x22, 0x0b, 0x39, 0x37, 0x06, 0xf0, 0x13, 0xb4, 0x92, 0xd2, 0xd1, 0x01, 0x7c, 0x1a, 0x02,
-	0x0b, 0x41, 0x48, 0xb2, 0xd4, 0xb4, 0xda, 0x8b, 0xc1, 0x34, 0x88, 0xb7, 0xd1, 0xa3, 0x0c, 0x44,
-	0x9a, 0x48, 0x3d, 0x2c, 0x44, 0x3b, 0x51, 0x24, 0x40, 0x4a, 0x90, 0x64, 0xb9, 0x69, 0xb7, 0xeb,
-	0xc1, 0x6c, 0x12, 0xbf, 0x47, 0xf5, 0x14, 0x14, 0x8d, 0xa8, 0xa2, 0x92, 0xfc, 0xdf, 0xb4, 0xdb,
-	0x8d, 0xcd, 0xa7, 0xde, 0xbf, 0xb3, 0xf5, 0x0e, 0xf9, 0x31, 0xb0, 0xae, 0x51, 0x75, 0x16, 0xcf,
-	0x7e, 0x6f, 0xd4, 0x82, 0xb1, 0x0b, 0xee, 0xa1, 0xd5, 0x18, 0x18, 0xc8, 0x44, 0xf6, 0x68, 0x18,
-	0xf2, 0x21, 0x53, 0x92, 0xd4, 0x73, 0x67, 0x6f, 0x9e, 0xf3, 0x9b, 0x42, 0xb7, 0x53, 0xc8, 0x8c,
-	0xf5, 0xfd, 0x78, 0x0a, 0x95, 0x2d, 0x07, 0x91, 0xab, 0xd9, 0x06, 0x20, 0x33, 0xce, 0x24, 0xb4,
-	0xbe, 0x2e, 0xa0, 0x7b, 0x5d, 0x19, 0x7f, 0xc8, 0x22, 0xaa, 0xe0, 0x40, 0x51, 0x05, 0x77, 0x8e,
-	0xbd, 0x89, 0x1a, 0x52, 0x51, 0xa1, 0xf6, 0x20, 0x89, 0xfb, 0x8a, 0xd8, 0x79, 0xe8, 0x93, 0x90,
-	0xd6, 0xb3, 0x61, 0xda, 0xd1, 0x7b, 0x25, 0xc9, 0x62, 0xce, 0x8f, 0x01, 0xbc, 0x86, 0x96, 0x76,
-	0x77, 0xde, 0x51, 0xd5, 0x27, 0xff, 0xe5, 0xd6, 0xa6, 0xd2, 0xf3, 0x9c, 0x80, 0xd0, 0xff, 0xdb,
-	0x5c, 0x64, 0x59, 0xe2, 0x3d, 0x64, 0x77, 0x76, 0xf5, 0x85, 0x59, 0xed, 0xc6, 0xe6, 0xb3, 0x79,
-	0x61, 0xe5, 0xc7, 0xec, 0x56, 0xeb, 0x2c, 0x4d, 0x5c, 0xda, 0xa2, 0x45, 0xd0, 0xda, 0x74, 0x0a,
-	0x55, 0x40, 0x59, 0xce, 0x98, 0xd8, 0x4c, 0xde, 0xaf, 0x4f, 0x80, 0x29, 0x3d, 0x17, 0x2d, 0xf6,
-	0xa2, 0xcc, 0xc9, 0x94, 0xf8, 0x31, 0x42, 0x61, 0x9f, 0x32, 0x06, 0x83, 0x5e, 0x52, 0x05, 0x65,
-	0x90, 0xfd, 0x48, 0xd3, 0x66, 0x26, 0x4d, 0xdb, 0x57, 0x72, 0x6c, 0x35, 0x91, 0x3b, 0xfb, 0xc4,
-	0x72, 0xa6, 0xcd, 0x6f, 0x36, 0xb2, 0xbb, 0x32, 0xc6, 0x5f, 0xd0, 0xca, 0xf4, 0x1b, 0x33, 0x37,
-	0x83, 0xab, 0x7b, 0xe0, 0xbc, 0xb8, 0xad, 0xa2, 0x1c, 0x02, 0x0f, 0x51, 0x63, 0x72, 0x6b, 0xbc,
-	0x1b, 0x18, 0x4d, 0xf4, 0x3b, 0xcf, 0x6f, 0xd7, 0x5f, 0x1d, 0xfb, 0xdd, 0x42, 0x0f, 0x0e, 0x45,
-	0x12, 0xc7, 0x20, 0xa6, 0x6e, 0xe3, 0x26, 0x7e, 0x33, 0x32, 0x75, 0x5e, 0xde, 0x4d, 0x57, 0xce,
-	0xd3, 0x79, 0x7b, 0x76, 0xe1, 0x5a, 0xe7, 0x17, 0xae, 0xf5, 0xe7, 0xc2, 0xb5, 0x7e, 0x5c, 0xba,
-	0xb5, 0xf3, 0x4b, 0xb7, 0xf6, 0xf3, 0xd2, 0xad, 0x7d, 0xdc, 0x8e, 0x13, 0xd5, 0x1f, 0x1e, 0x79,
-	0x21, 0x4f, 0xfd, 0xc9, 0x33, 0xc6, 0x85, 0x7f, 0xb2, 0xe5, 0x8f, 0xc6, 0xdf, 0xea, 0xd3, 0x0c,
-	0xe4, 0xd1, 0x52, 0xfe, 0x41, 0xdc, 0xfa, 0x1b, 0x00, 0x00, 0xff, 0xff, 0x68, 0x10, 0x75, 0xf5,
-	0xcd, 0x05, 0x00, 0x00,
+	// 484 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xce, 0x36, 0x26, 0x8d, 0x37, 0x2a, 0x8a, 0x56, 0x50, 0xad, 0x2c, 0xe4, 0x5a, 0x11, 0x07,
+	0x8b, 0x83, 0x8d, 0xda, 0x0a, 0x71, 0x6d, 0x08, 0x52, 0xa9, 0x14, 0x84, 0x5c, 0x71, 0xe1, 0x82,
+	0x1c, 0x7b, 0x70, 0x2c, 0x62, 0xaf, 0xd9, 0xd9, 0x54, 0x09, 0x5c, 0x79, 0x00, 0x1e, 0xab, 0xc7,
+	0x1e, 0x39, 0x55, 0x28, 0x79, 0x0a, 0x6e, 0xc8, 0x8e, 0x9d, 0x9f, 0x06, 0x01, 0xe1, 0xb4, 0x3b,
+	0xdf, 0xcc, 0x7c, 0x33, 0xf3, 0xed, 0x2c, 0x35, 0xc2, 0x69, 0x02, 0x29, 0xc6, 0x22, 0x75, 0xa5,
+	0x18, 0x8d, 0xfc, 0x2c, 0x73, 0xd5, 0xc4, 0xc9, 0xa4, 0x50, 0x82, 0x99, 0x4b, 0xdf, 0x64, 0xfa,
+	0xd9, 0x59, 0x1a, 0x4e, 0x19, 0x68, 0xd8, 0xdb, 0xb9, 0x83, 0x91, 0x08, 0x3e, 0xbe, 0x0f, 0x01,
+	0x03, 0x19, 0x67, 0x4a, 0xc8, 0x05, 0x93, 0x71, 0xb4, 0x1d, 0x59, 0x9e, 0x65, 0xc0, 0x83, 0x48,
+	0x44, 0xa2, 0xb8, 0xba, 0xf9, 0x6d, 0x81, 0x76, 0x6e, 0x09, 0x6d, 0xf7, 0x31, 0x7a, 0x21, 0xc1,
+	0x57, 0xe0, 0x2d, 0x12, 0x18, 0xa7, 0xfb, 0x41, 0x0e, 0x08, 0xc9, 0x89, 0x45, 0x6c, 0xdd, 0xab,
+	0x4c, 0xf6, 0x88, 0xea, 0x25, 0xeb, 0xab, 0x90, 0xef, 0x15, 0xbe, 0x15, 0xc0, 0x1e, 0xd3, 0x83,
+	0xc4, 0x9f, 0x5c, 0xc2, 0xa7, 0x31, 0xa4, 0x01, 0x48, 0xe4, 0x0d, 0x8b, 0xd8, 0x9a, 0xb7, 0x09,
+	0xb2, 0x53, 0xfa, 0x30, 0x03, 0x99, 0xc4, 0x98, 0x37, 0x0b, 0xe1, 0x59, 0x18, 0x4a, 0x40, 0x04,
+	0xe4, 0xfb, 0x56, 0xdd, 0xd6, 0xbd, 0xdf, 0x3b, 0xd9, 0x13, 0xda, 0x56, 0xd2, 0x4f, 0xf1, 0x03,
+	0x48, 0x7c, 0x99, 0xfa, 0x83, 0x11, 0x84, 0x9c, 0x5a, 0xc4, 0x6e, 0x7a, 0x5b, 0xf8, 0x85, 0xd6,
+	0x6c, 0xb6, 0xf5, 0x0b, 0xad, 0xa9, 0xb7, 0x69, 0xc7, 0xa0, 0xfc, 0xee, 0x7c, 0x1e, 0x60, 0x26,
+	0x52, 0x84, 0xce, 0xd7, 0x3d, 0x7a, 0xbf, 0x8f, 0xd1, 0xdb, 0x2c, 0xf4, 0x15, 0x5c, 0x2a, 0x5f,
+	0xc1, 0x7f, 0x8f, 0x6e, 0xd1, 0x16, 0x2a, 0x5f, 0xaa, 0x73, 0x88, 0xa3, 0xa1, 0xe2, 0xf5, 0x62,
+	0xf0, 0x75, 0x28, 0xcf, 0x4f, 0xc7, 0x49, 0x37, 0x7f, 0x3d, 0xe4, 0x5a, 0xe1, 0x5f, 0x01, 0xec,
+	0x90, 0x36, 0x7a, 0x67, 0x6f, 0x7c, 0x35, 0xe4, 0xf7, 0x0a, 0xea, 0xd2, 0xca, 0xfb, 0xb9, 0x02,
+	0x99, 0x8b, 0x51, 0x8a, 0x59, 0x99, 0xec, 0x9c, 0xd6, 0xbb, 0xbd, 0x5c, 0x34, 0x62, 0xb7, 0x8e,
+	0x9f, 0x3a, 0x7f, 0x5e, 0x24, 0xa7, 0x28, 0xd3, 0x5b, 0x2e, 0x0d, 0x76, 0xb5, 0xeb, 0xdb, 0xa3,
+	0x9a, 0x97, 0x53, 0x74, 0x38, 0x3d, 0xdc, 0x54, 0xa1, 0x12, 0xe8, 0xf8, 0x27, 0xa1, 0xf5, 0x3e,
+	0x46, 0xec, 0x0b, 0x3d, 0xd8, 0xdc, 0x90, 0xbf, 0xd6, 0xbb, 0xab, 0xb9, 0xf1, 0x7c, 0xd7, 0x8c,
+	0xaa, 0x09, 0x36, 0xa6, 0xad, 0xf5, 0x17, 0x72, 0xfe, 0x81, 0x68, 0x2d, 0xde, 0x78, 0xb6, 0x5b,
+	0x7c, 0x55, 0xb6, 0xfb, 0xfa, 0x7a, 0x66, 0x92, 0x9b, 0x99, 0x49, 0x7e, 0xcc, 0x4c, 0xf2, 0x6d,
+	0x6e, 0xd6, 0x6e, 0xe6, 0x66, 0xed, 0xfb, 0xdc, 0xac, 0xbd, 0x3b, 0x8d, 0x62, 0x35, 0x1c, 0x0f,
+	0x9c, 0x40, 0x24, 0xee, 0x3a, 0xf7, 0xca, 0x70, 0xaf, 0x4e, 0xdc, 0xc9, 0xea, 0xb7, 0x4f, 0x33,
+	0xc0, 0x41, 0xa3, 0xf8, 0x70, 0x27, 0xbf, 0x02, 0x00, 0x00, 0xff, 0xff, 0xaa, 0x81, 0xc7, 0x8d,
+	0x0f, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConn
+var (
+	_ context.Context
+	_ grpc.ClientConn
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
@@ -465,7 +371,6 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error)
 	UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error)
 }
 
 type msgClient struct {
@@ -494,34 +399,21 @@ func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ..
 	return out, nil
 }
 
-func (c *msgClient) TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error) {
-	out := new(MsgRollappGenesisEventResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateRollapp(context.Context, *MsgCreateRollapp) (*MsgCreateRollappResponse, error)
 	UpdateState(context.Context, *MsgUpdateState) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(context.Context, *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
-type UnimplementedMsgServer struct {
-}
+type UnimplementedMsgServer struct{}
 
 func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreateRollapp) (*MsgCreateRollappResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRollapp not implemented")
 }
+
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
-}
-func (*UnimplementedMsgServer) TriggerGenesisEvent(ctx context.Context, req *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TriggerGenesisEvent not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -564,24 +456,6 @@ func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_TriggerGenesisEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRollappGenesisEvent)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, req.(*MsgRollappGenesisEvent))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.rollapp.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -593,10 +467,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateState",
 			Handler:    _Msg_UpdateState_Handler,
-		},
-		{
-			MethodName: "TriggerGenesisEvent",
-			Handler:    _Msg_TriggerGenesisEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -623,33 +493,15 @@ func (m *MsgCreateRollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.GenesisAccounts) > 0 {
-		for iNdEx := len(m.GenesisAccounts) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.GenesisAccounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x4a
+	if m.TransfersEnabled {
+		i--
+		if m.TransfersEnabled {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
 		}
-	}
-	if len(m.Metadatas) > 0 {
-		for iNdEx := len(m.Metadatas) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Metadatas[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x42
-		}
+		i--
+		dAtA[i] = 0x50
 	}
 	if len(m.PermissionedAddresses) > 0 {
 		for iNdEx := len(m.PermissionedAddresses) - 1; iNdEx >= 0; iNdEx-- {
@@ -797,73 +649,6 @@ func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRollappGenesisEvent) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRollappGenesisEvent) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRollappGenesisEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.ChannelId) > 0 {
-		i -= len(m.ChannelId)
-		copy(dAtA[i:], m.ChannelId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRollappGenesisEventResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRollappGenesisEventResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRollappGenesisEventResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -875,6 +660,7 @@ func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+
 func (m *MsgCreateRollapp) Size() (n int) {
 	if m == nil {
 		return 0
@@ -898,17 +684,8 @@ func (m *MsgCreateRollapp) Size() (n int) {
 			n += 1 + l + sovTx(uint64(l))
 		}
 	}
-	if len(m.Metadatas) > 0 {
-		for _, e := range m.Metadatas {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	if len(m.GenesisAccounts) > 0 {
-		for _, e := range m.GenesisAccounts {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
+	if m.TransfersEnabled {
+		n += 2
 	}
 	return n
 }
@@ -963,42 +740,14 @@ func (m *MsgUpdateStateResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRollappGenesisEvent) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.ChannelId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.RollappId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgRollappGenesisEventResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
 func sovTx(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
 func sozTx(x uint64) (n int) {
 	return sovTx(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+
 func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1143,11 +892,11 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 			}
 			m.PermissionedAddresses = append(m.PermissionedAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Metadatas", wireType)
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TransfersEnabled", wireType)
 			}
-			var msglen int
+			var v int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTx
@@ -1157,60 +906,12 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				v |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Metadatas = append(m.Metadatas, TokenMetadata{})
-			if err := m.Metadatas[len(m.Metadatas)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GenesisAccounts", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GenesisAccounts = append(m.GenesisAccounts, GenesisAccount{})
-			if err := m.GenesisAccounts[len(m.GenesisAccounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
+			m.TransfersEnabled = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -1232,6 +933,7 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1282,6 +984,7 @@ func (m *MsgCreateRollappResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1518,6 +1221,7 @@ func (m *MsgUpdateState) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+
 func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1568,202 +1272,7 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ChannelId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
 
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRollappGenesisEventResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func skipTx(dAtA []byte) (n int, err error) {
 	l := len(dAtA)
 	iNdEx := 0

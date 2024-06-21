@@ -40,17 +40,12 @@ func (k Keeper) GetStateInfo(
 func (k Keeper) GetLatestStateInfo(
 	ctx sdk.Context,
 	rollappID string,
-) (val types.StateInfo, found bool) {
-	stateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollappID)
-	if !found {
-		return val, false
+) (types.StateInfo, bool) {
+	stateInfoIndex, ok := k.GetLatestStateInfoIndex(ctx, rollappID)
+	if !ok {
+		return types.StateInfo{}, false
 	}
-
-	state, found := k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
-	if !found {
-		return val, false
-	}
-	return state, true
+	return k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
 }
 
 func (k Keeper) MustGetStateInfo(ctx sdk.Context,

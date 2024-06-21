@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "dymension/rollapp/params.proto";
 import "dymension/rollapp/rollapp.proto";
 import "dymension/rollapp/state_info.proto";
+import "dymension/rollapp/genesis_transfer.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
@@ -17,5 +18,6 @@ message GenesisState {
   repeated StateInfoIndex latestStateInfoIndexList = 4 [(gogoproto.nullable) = false];
   repeated StateInfoIndex latestFinalizedStateIndexList = 5 [(gogoproto.nullable) = false];
   repeated BlockHeightToFinalizationQueue blockHeightToFinalizationQueueList = 6 [(gogoproto.nullable) = false];
+  repeated GenesisTransfers genesisTransfers = 7 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

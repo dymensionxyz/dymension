@@ -1,17 +1,17 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+	"github.com/pkg/errors"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 // EIBCDemandOrderHandler handles the eibc packet by creating a demand order from the packet data and saving it in the store.
@@ -20,7 +20,7 @@ import (
 // If the rollapp packet is of type ON_TIMEOUT/ON_ACK, the function will calculate the fee and create a demand order from the packet data.
 func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error {
 	var (
-		eibcDemandOrder *eibctypes.DemandOrder
+		eibcDemandOrder *types.DemandOrder
 		err             error
 	)
 	// Validate the fungible token packet data as we're going to use it to create the demand order
@@ -29,7 +29,7 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 	}
 	// Verify the original recipient is not a blocked sender otherwise could potentially use eibc to bypass it
 	if k.BlockedAddr(data.Receiver) {
-		return fmt.Errorf("not allowed to receive funds: receiver: %s", data.Receiver)
+		return types.ErrBlockedAddress
 	}
 
 	switch t := rollappPacket.Type; t {
@@ -60,17 +60,18 @@ func (k Keeper) EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontype
 // It returns the created demand order or an error if there is any.
 func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
-) (*eibctypes.DemandOrder, error) {
-	packetMetaData, err := types.ParsePacketMetadata(fungibleTokenPacketData.Memo)
-	if errors.Is(err, types.ErrMemoUnmarshal) || errors.Is(err, types.ErrMemoEibcEmpty) {
-		ctx.Logger().Debug("skipping demand order creation - no eibc memo provided")
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
+) (*types.DemandOrder, error) {
+	// zero fee demand order by default
+	eibcMetaData := dacktypes.EIBCMetadata{Fee: "0"}
 
-	eibcMetaData := packetMetaData.EIBC
+	if fungibleTokenPacketData.Memo != "" {
+		packetMetaData, err := dacktypes.ParsePacketMetadata(fungibleTokenPacketData.Memo)
+		if err == nil {
+			eibcMetaData = *packetMetaData.EIBC
+		} else if !errors.Is(err, dacktypes.ErrMemoEibcEmpty) {
+			return nil, fmt.Errorf("parse packet metadata: %w", err)
+		}
+	}
 	if err := eibcMetaData.ValidateBasic(); err != nil {
 		return nil, fmt.Errorf("validate eibc metadata: %w", err)
 	}
@@ -78,22 +79,15 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 	// Calculate the demand order price and validate it,
 	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 	fee, _ := eibcMetaData.FeeInt()                                // guaranteed ok by above validation
-	if amt.LT(fee) {
-		return nil, fmt.Errorf("fee cannot be larger than amount: fee: %s: amt :%s", fee, fungibleTokenPacketData.Amount)
-	}
-
-	// Get the bridging fee from the amount
-	bridgingFee := k.dack.BridgingFeeFromAmt(ctx, amt)
-	demandOrderPrice := amt.Sub(fee).Sub(bridgingFee)
-	if !demandOrderPrice.IsPositive() {
-		return nil, fmt.Errorf("remaining price is not positive: price: %s, bridging fee: %s, fee: %s, amount: %s",
-			demandOrderPrice, bridgingFee, fee, amt)
+	demandOrderPrice, err := types.CalcPriceWithBridgingFee(amt, fee, k.dack.BridgingFee(ctx))
+	if err != nil {
+		return nil, err
 	}
 
 	demandOrderDenom := k.getEIBCTransferDenom(*rollappPacket.Packet, fungibleTokenPacketData)
 	demandOrderRecipient := fungibleTokenPacketData.Receiver // who we tried to send to
 
-	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	return order, nil
 }
 
@@ -101,7 +95,7 @@ func (k *Keeper) CreateDemandOrderOnRecv(ctx sdk.Context, fungibleTokenPacketDat
 // The fee multiplier is read from params and used to calculate the fee.
 func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleTokenPacketData transfertypes.FungibleTokenPacketData,
 	rollappPacket *commontypes.RollappPacket,
-) (*eibctypes.DemandOrder, error) {
+) (*types.DemandOrder, error) {
 	// Calculate the demand order price and validate it,
 	amt, _ := sdk.NewIntFromString(fungibleTokenPacketData.Amount) // guaranteed ok and positive by above validation
 
@@ -124,7 +118,7 @@ func (k Keeper) CreateDemandOrderOnErrAckOrTimeout(ctx sdk.Context, fungibleToke
 	demandOrderDenom := trace.IBCDenom()
 	demandOrderRecipient := fungibleTokenPacketData.Sender // and who tried to send it (refund because it failed)
 
-	order := eibctypes.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
+	order := types.NewDemandOrder(*rollappPacket, demandOrderPrice, fee, demandOrderDenom, demandOrderRecipient)
 	return order, nil
 }
 
@@ -146,7 +140,7 @@ func (k *Keeper) getEIBCTransferDenom(packet channeltypes.Packet, fungibleTokenP
 			denom = denomTrace.IBCDenom()
 		}
 	} else {
-		denom = utils.GetForeignIBCDenom(packet.GetDestChannel(), fungibleTokenPacketData.Denom)
+		denom = uibc.GetForeignDenomTrace(packet.GetDestChannel(), fungibleTokenPacketData.Denom).IBCDenom()
 	}
 	return denom
 }
