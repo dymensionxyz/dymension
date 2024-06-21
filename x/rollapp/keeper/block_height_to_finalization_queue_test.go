@@ -96,7 +96,6 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 		wantQueue        []queue
 	}
 	type rollappStateUpdate struct {
-		rollappID               string
 		stateUpdate             stateUpdate
 		malleatePostStateUpdate func(rollappId string)
 	}

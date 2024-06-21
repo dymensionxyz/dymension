@@ -22,7 +22,6 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 
 	k.finalizePending(ctx, pendingFinalizationQueue)
-	return
 }
 
 func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
