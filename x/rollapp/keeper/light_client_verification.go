@@ -59,6 +59,105 @@ How would the system work?
 	On receiving a new light client update, check if there is a state on the hub
 	On receiving a new state update, check if there is a corresponding light client state
 	If there is, verify
+
+TODO: ned to make sure pruning handled in case that the state update arrives much later after the LC update
+https://github.com/cosmos/ibc-go/blob/edb6efaddf45053efb9cbd2ad1ceab64b22fb085/modules/light-clients/07-tendermint/types/update.go#L112-L119
+*/
+
+/*
+Friday afternoon notes:
+I was thinking, that, the initial light client creation includes a next validators hash, but it does not check that it was signed by it
+This is immediately followed up by a light client update, where a 'signed header' is created, which uses the trusted cons state
+
+Let's walk through what happens
+You get a 'header' which is completely untrusted
+You read the previous trusted state from the 'trusted height' on the untrusted header
+
+Then you have 8 arguments
+
+these map to the following in verifyNonAdjacent
+func VerifyNonAdjacent(
+    trustedHeader *types.SignedHeader, = 'signed header =  the last trusted header (which was not actually signed if from MsgCreateClient)
+	trustedVals *types.ValidatorSet, = tm trusted validators = the set of validators that the new header says hashes to the trusted nextValidatorsHash
+	untrustedHeader *types.SignedHeader, = tm signed header = the new header
+	untrustedVals *types.ValidatorSet, = tm validator set = the new validator set
+	trustingPeriod time.Duration,
+	now time.Time,
+	maxClockDrift time.Duration,
+	trustLevel cmtmath.Fraction
+)
+
+first we check that the trustedVals is actually the trustedVals
+then we check that the next header is h+1, and the trusting period didnt expire
+then we check that the SIGNED untrusted header .ValidatorsHash matches the validator set on the header
+then we make sure that at least (1) of the trusted validators indeed 'committed' to the untrusted header
+then we make sure that at least (1) of the new untrusted validators indeed 'committed' to the untrusted header
+
+so, questions
+a) where do we check that the hash of the trustedVals actually hashes to trustedHeader.nextvalidatorshash?
+	yes, this is checked
+b) what do they actually sign?
+	they seem to sign the block id, which contains the hash of the block
+c) how can we know that LC header H was signed by some sequencer signature?
+	facts:
+		1) createClient only contains the nextValidatorsHash
+		2) a light client header H has an AppHash which is the stateinfo.root of H-1
+	logic:
+		a) if the light client accepted header h, then the supplied trusted validators indeed matched the stored nextvalidatorsHash from h-1 AND one of those trusted validators signed the new header
+		b) suppose someone creates a light client with nextValidatorsHash = the sequencer, then they cannot switch to another one without the sequencers signature
+		c) someone may create a light client with nextValidatorsHash = the seqeuencer without the sequencers signature, but then they will not be able to update it because they will need the signature
+
+   so we don't need to hook anything to explicity look at signatures! it is enough for us to just check the light client nextValidatorsHash
+
+basically for a state root h, we check the light client header root of h+1. The corresponding consensus state will have a 'next validators hash' and this is the
+
+so basically each incoming header has three things
+1. trusted validators = must hash to the trusted stored NextValidatorsHash. Note, it's a bad name, because it's really the current validators
+2. validators, they must have signed the header, must be equal to
+3. nextValidatorsHash, this is signed
+
+the stored cons state has
+1. app hash for height - 1
+2. nextValidatorsHash
+
+Let me walk through
+at first all you have is a stored nextValidatorsHash
+then the first update comes in
+	it must have a trusted val set which hashes to a stored nextValidatorsHash
+	this trusted val set must overlap with the signer of the update
+
+attack (charlie = bad):
+	create light client with nextValidatorsHash from Charlies private key
+	update light client with nextValidatorsHash = sequencer, but sign this with Charlies pk
+	thus: the stored nextValidatorsHash = sequencer, which is wrong
+
+	but, charlie will not be able to do it again
+	so you can mitigate by never checking the latest consensus state, but always the one before
+		if you have a consensus state for height H, then the app hash inside it was signed by
+
+	if you have a consensus state for H+1, the you have the
+
+
+Q1) How do we know the header came from the sequencer?
+	Given a header at height H, if the last header nextValidatorsHash is the sequencer
+Q2) Say we suddenly have a root mismatch. At header height H and state height H-1. How do we find out who to blame?
+	If we get the previous consensus state (via GetPreviousConsensusState), and we assume validator set is always size 1
+	then we know he signed it
+
+
+How does it look?
+	New header arrives (H):
+		We check that the state root = state root of stateInfo for H-1
+		If match: no problem, someone might be busting the light client, but it doesnt matter
+		If no match:
+			Punish the
+		Now we check that the PREVIOUS header nextValsetHash = sequencer
+
+Friday afternoon.
+
+TODO: need to think through protecting against larger valsets
+TODO: need to tthink about sequencer change
+TODO: need to think about non adjacency
 */
 
 type lcv struct {
