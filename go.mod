@@ -32,6 +32,7 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237
 	google.golang.org/grpc v1.64.0
 	gopkg.in/yaml.v2 v2.4.0
+	pgregory.net/rapid v1.1.0
 )
 
 require github.com/nxadm/tail v1.4.8 // indirect
