@@ -151,10 +151,8 @@ func (k LCVOld) getNextValidatorsHash(ctx sdk.Context, portID string, channelID 
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "get connection end")
 	}
-	client, err := k.delayedAckKeeper.GetClientState(ctx, portID, channelID)
-	if err != nil {
-		return nil, errorsmod.Wrap(err, "get client state")
-	}
+
+	var client exported.ClientState // TODO: how to get it?
 
 	// TODO: see todos in ensureIBCClientLatestNextValidatorsHashMatchesCurrentSequencer for discussion of latest height
 	consensusState, ok := k.clientKeeper.GetClientConsensusState(ctx, conn.GetClientID(), client.GetLatestHeight())
