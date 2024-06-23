@@ -83,7 +83,6 @@ func (k Keeper) sendRewardsToLocks(ctx sdk.Context, distrs *distributionInfo) er
 			types.ModuleName,
 			distrs.idToDecodedAddr[id],
 			distrs.idToDistrCoins[id])
-
 		if err != nil {
 			return err
 		}

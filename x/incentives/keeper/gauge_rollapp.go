@@ -78,5 +78,4 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 	}
 
 	return totalDistrCoins, err
-
 }

@@ -3,10 +3,9 @@ package keeper_test
 import (
 	"crypto/rand"
 	"fmt"
+	"time"
 
 	tmrand "github.com/tendermint/tendermint/libs/rand"
-
-	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"

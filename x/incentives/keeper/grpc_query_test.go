@@ -114,7 +114,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveGauges() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: false,
-		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestGRPCActiveGaugesPerDenom() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: false,
-		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
@@ -232,7 +232,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGauges() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: false,
-		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
@@ -289,7 +289,7 @@ func (suite *KeeperTestSuite) TestGRPCUpcomingGaugesPerDenom() {
 	expectedGauge := types.Gauge{
 		Id:          gaugeID,
 		IsPerpetual: false,
-		DistributeTo: &types.Gauge_Asset{&lockuptypes.QueryCondition{
+		DistributeTo: &types.Gauge_Asset{Asset: &lockuptypes.QueryCondition{
 			LockQueryType: lockuptypes.ByDuration,
 			Denom:         "lptoken",
 			Duration:      time.Second,
