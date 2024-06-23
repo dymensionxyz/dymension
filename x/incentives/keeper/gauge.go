@@ -53,8 +53,11 @@ func (k Keeper) CreateGaugeRefKeys(ctx sdk.Context, gauge *types.Gauge, combined
 	if err := k.addGaugeRefByKey(ctx, combinedKeys, gauge.Id); err != nil {
 		return err
 	}
-	if activeOrUpcomingGauge {
-		if err := k.addGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
+
+	// create denom reference for active or upcoming asset gauges
+	gaugeAsset := gauge.GetAsset()
+	if activeOrUpcomingGauge && gaugeAsset != nil {
+		if err := k.addGaugeIDForDenom(ctx, gauge.Id, gaugeAsset.Denom); err != nil {
 			return err
 		}
 	}
@@ -111,7 +114,7 @@ func (k Keeper) CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddr
 	gauge := types.Gauge{
 		Id:                k.GetLastGaugeID(ctx) + 1,
 		IsPerpetual:       isPerpetual,
-		DistributeTo:      distrTo,
+		DistributeTo:      &types.Gauge_Asset{Asset: &distrTo},
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
@@ -239,8 +242,13 @@ func (k Keeper) moveActiveGaugeToFinishedGauge(ctx sdk.Context, gauge types.Gaug
 	if err := k.addGaugeRefByKey(ctx, combineKeys(types.KeyPrefixFinishedGauges, timeKey), gauge.Id); err != nil {
 		return err
 	}
-	if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gauge.DistributeTo.Denom); err != nil {
-		return err
+
+	// delete denom reference for active or upcoming asset gauges
+	gaugeAsset := gauge.GetAsset()
+	if gaugeAsset != nil {
+		if err := k.deleteGaugeIDForDenom(ctx, gauge.Id, gaugeAsset.Denom); err != nil {
+			return err
+		}
 	}
 	k.hooks.GaugeFinished(ctx, gauge.Id)
 	return nil

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
@@ -14,8 +15,9 @@ type Hooks struct {
 }
 
 var (
-	_ epochstypes.EpochHooks = Hooks{}
-	_ gammtypes.GammHooks    = Hooks{}
+	_ epochstypes.EpochHooks    = Hooks{}
+	_ gammtypes.GammHooks       = Hooks{}
+	_ rollapptypes.RollappHooks = Hooks{}
 )
 
 // Hooks returns the hook wrapper struct.
@@ -100,4 +102,32 @@ func (h Hooks) AfterExitPool(ctx sdk.Context, sender sdk.AccAddress, poolId uint
 
 // AfterSwap hook is a noop.
 func (h Hooks) AfterSwap(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, input sdk.Coins, output sdk.Coins) {
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                rollapp hooks                               */
+/* -------------------------------------------------------------------------- */
+// AfterStateFinalized implements types.RollappHooks.
+func (h Hooks) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+	return nil
+}
+
+// BeforeUpdateState implements types.RollappHooks.
+func (h Hooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+	return nil
+}
+
+// FraudSubmitted implements types.RollappHooks.
+func (h Hooks) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+	return nil
+}
+
+// RollappCreated implements types.RollappHooks.
+func (h Hooks) RollappCreated(ctx sdk.Context, rollappID string) error {
+	err := h.k.CreateRollappGauge(ctx, rollappID)
+	if err != nil {
+		ctx.Logger().Error("Failed to create rollapp gauge", "error", err)
+		return err
+	}
+	return nil
 }

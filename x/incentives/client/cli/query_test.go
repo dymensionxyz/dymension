@@ -81,6 +81,12 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 			&types.GaugesResponse{},
 		},
 		{
+			"Query rollapp gauges",
+			"/dymensionxyz.dymension.incentives.Query/RollappGauges",
+			&types.GaugesRequest{},
+			&types.GaugesResponse{},
+		},
+		{
 			"Query lockable durations",
 			"/dymensionxyz.dymension.incentives.Query/LockableDurations",
 			&types.QueryLockableDurationsRequest{},
