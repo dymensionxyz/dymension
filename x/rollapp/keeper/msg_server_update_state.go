@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"math"
 	"slices"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,10 +13,6 @@ import (
 
 func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState) (*types.MsgUpdateStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if msg.NumBlocks > math.MaxUint64-msg.StartHeight {
-		return nil, errorsmod.Wrapf(types.ErrInvalidNumBlocks, "numBlocks(%d) + startHeight(%d) exceeds max uint64", msg.NumBlocks, msg.StartHeight)
-	}
 
 	if !k.RollappsEnabled(ctx) {
 		return nil, types.ErrRollappsDisabled
