@@ -93,6 +93,11 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				return fmt.Errorf("failed to fetch demand orders: %w", err)
 			}
 
+			out, err := cmd.Flags().GetString("output")
+			if err == nil && out == "json" {
+				return clientCtx.PrintProto(res)
+			}
+
 			count := 0
 
 			for _, o := range res.DemandOrders {
