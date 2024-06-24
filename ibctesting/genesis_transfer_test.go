@@ -4,8 +4,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -55,10 +56,10 @@ func (s *transferGenesisSuite) TestHappyPath() {
 
 	denoms := []string{"foo", "bar", "baz"}
 
-	for i, denom := range denoms {
+	for _, denom := range denoms {
 		/* ------------------- move non-registered token from rollapp ------------------- */
 
-		msg := s.transferMsg(amt, denom, i, len(denoms))
+		msg := s.transferMsg(amt, denom, true)
 		apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
 		res, err := s.rollappChain().SendMsgs(msg)
 		s.Require().NoError(err)
@@ -67,9 +68,9 @@ func (s *transferGenesisSuite) TestHappyPath() {
 
 		err = s.path.RelayPacket(packet)
 		s.Require().NoError(err)
-		// after the last one, it should be OK
+
 		transfersEnabled := s.hubApp().RollappKeeper.MustGetRollapp(s.hubCtx(), rollappChainID()).GenesisState.TransfersEnabled
-		s.Require().Equal(i == len(denoms)-1, transfersEnabled, "transfers enabled check", "i", i)
+		s.Require().False(transfersEnabled, "transfers enabled check")
 	}
 
 	for _, denom := range denoms {
@@ -84,7 +85,36 @@ func (s *transferGenesisSuite) TestHappyPath() {
 	}
 }
 
-func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenomsTotal int) *types.MsgTransfer {
+// In the fault path, a chain tries to do another genesis transfer (to skip eibc) after the genesis phase
+// is already complete. It triggers a fraud.
+func (s *transferGenesisSuite) TestCannotDoGenesisTransferAfterBridgeEnabled() {
+	amt := math.NewIntFromUint64(10000000000000000000)
+
+	denoms := []string{"foo", "bar", "baz"}
+
+	for i, denom := range denoms {
+		/* ------------------- move non-registered token from rollapp ------------------- */
+
+		genesis := i%2 == 0 // genesis then regular then genesis again, last one should fail
+		msg := s.transferMsg(amt, denom, genesis)
+		apptesting.FundAccount(s.rollappApp(), s.rollappCtx(), s.rollappChain().SenderAccount.GetAddress(), sdk.Coins{msg.Token})
+		res, err := s.rollappChain().SendMsgs(msg)
+		s.Require().NoError(err)
+		packet, err := ibctesting.ParsePacketFromEvents(res.GetEvents())
+		s.Require().NoError(err)
+
+		_ = s.path.RelayPacket(packet)
+
+		if i == 2 {
+
+			expect := channeltypes.NewErrorAcknowledgement(transfergenesis.ErrDisabled)
+			bz, _ := s.hubApp().IBCKeeper.ChannelKeeper.GetPacketAcknowledgement(s.hubCtx(), packet.GetDestPort(), packet.GetDestChannel(), packet.GetSequence())
+			s.Require().Equal(channeltypes.CommitAcknowledgement(expect.Acknowledgement()), bz)
+		}
+	}
+}
+
+func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, isGenesis bool) *types.MsgTransfer {
 	meta := banktypes.Metadata{
 		Description: "",
 		DenomUnits: []*banktypes.DenomUnit{
@@ -104,10 +134,7 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenom
 		URIHash: "",
 	}
 	s.Require().NoError(meta.Validate()) // sanity check the test is written correctly
-	memo := rollapptypes.GenesisTransferMemo{
-		Denom:             meta,
-		TotalNumTransfers: uint64(nDenomsTotal),
-	}.Namespaced().MustString()
+
 	tokens := sdk.NewCoin(meta.Base, amt)
 
 	timeoutHeight := clienttypes.NewHeight(100, 110)
@@ -120,8 +147,14 @@ func (s *transferGenesisSuite) transferMsg(amt math.Int, denom string, i, nDenom
 		s.hubChain().SenderAccount.GetAddress().String(),
 		timeoutHeight,
 		0,
-		memo,
+		"",
 	)
+
+	if isGenesis {
+		msg.Memo = rollapptypes.GenesisTransferMemo{
+			Denom: meta,
+		}.Namespaced().MustString()
+	}
 
 	return msg
 }
