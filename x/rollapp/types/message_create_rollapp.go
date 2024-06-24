@@ -10,19 +10,12 @@ var _ sdk.Msg = &MsgCreateRollapp{}
 
 const MaxAllowedSequencers = 100
 
-func NewMsgCreateRollapp(
-	creator string,
-	rollappId string,
-	maxSequencers uint64,
-	permissionedAddresses []string,
-	transfersEnabled bool,
-) *MsgCreateRollapp {
+func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
-		TransfersEnabled:      transfersEnabled,
 	}
 }
 
@@ -48,7 +41,7 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
-	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, msg.TransfersEnabled)
+	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, false)
 }
 
 func (msg *MsgCreateRollapp) ValidateBasic() error {

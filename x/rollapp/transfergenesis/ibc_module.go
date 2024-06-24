@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strconv"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -12,8 +11,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
-
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -30,6 +27,8 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+var ErrDisabled = errorsmod.Wrap(gerrc.ErrFault, "genesis transfers are disabled")
 
 const (
 	memoNamespaceKey = "genesis_transfer"
@@ -82,9 +81,12 @@ func (w IBCModule) logger(
 }
 
 // OnRecvPacket will, if the packet is a transfer packet:
-// if it's not a genesis transfer: pass on the packet only if transfers are enabled
-// else: check it's a valid genesis transfer. If it is, then register the denom, if
-// it's the last one, open the bridge.
+// if it's not a genesis transfer: enable transfers and pass on the packet. This marks the end of the genesis phase.
+// else:
+//
+//		 transfers must not have already been enabled.
+//	     check it's a valid genesis transfer. If it is, then register the denom
+//
 // NOTE: we assume that by this point the canonical channel ID has already been set
 // for the rollapp, in a secure way.
 func (w IBCModule) OnRecvPacket(
@@ -105,39 +107,35 @@ func (w IBCModule) OnRecvPacket(
 	}
 
 	if !transfer.IsRollapp() {
-		l.Debug("Transfer is not from a rollapp.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 
+	ra := transfer.Rollapp
+
 	memo, err := getMemo(transfer.GetMemo())
 	if errorsmod.IsOf(err, gerrc.ErrNotFound) {
-		// If someone tries to send a transfer without the memo before the bridge is open, they will
-		// be blocked at the transfersenabled middleware
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		// The first regular transfer marks the full opening of the bridge, more genesis transfers will not be allowed.
+		err := w.IBCModule.OnRecvPacket(ctx, packet, relayer)
+		if err == nil && !ra.GenesisState.TransfersEnabled {
+			w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
+		}
+		return err
 	}
 	if err != nil {
 		l.Error("Get memo.", "err", err)
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "get memo"))
 	}
 
-	ra := transfer.Rollapp
-
-	nTransfersDone, err := w.rollappKeeper.VerifyAndRecordGenesisTransfer(ctx, ra.RollappId, memo.TotalNumTransfers)
-	if errorsmod.IsOf(err, gerrc.ErrFault) {
-		// The rollapp has deviated from the protocol!
-		handleFraudErr := w.handleFraud(ra.RollappId)
+	if ra.GenesisState.TransfersEnabled {
+		// Genesis transfers are disabled once the bridge is already open
+		err = w.handleDRSViolation(ctx, ra.RollappId)
 		if err != nil {
-			l.Error("Handling fraud.", "err", handleFraudErr)
+			l.Error("Handling drs violation.", "err", err)
 		} else {
-			l.Info("Handled fraud: verify and record genesis transfer.", "err", err)
+			l.Info("Handled drs violation: transfers are already enabled.")
 		}
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis"))
+		return channeltypes.NewErrorAcknowledgement(ErrDisabled)
 	}
-	if err != nil {
-		l.Error("Verify and record transfer.", "err", err)
-		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: verify and record"))
-	}
-
 	// it's a valid genesis transfer!
 
 	err = w.registerDenomMetadata(ctx, ra.RollappId, ra.ChannelId, memo.Denom)
@@ -146,36 +144,16 @@ func (w IBCModule) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(errorsmod.Wrap(err, "transfer genesis: register denom metadata"))
 	}
 
-	l.Debug("Received valid genesis transfer. Registered denom data.",
-		"num total", memo.TotalNumTransfers,
-		"num received so far", nTransfersDone,
-	)
+	l.Debug("Received valid genesis transfer. Registered denom data.")
 
-	if nTransfersDone == memo.TotalNumTransfers {
-		// The transfer window is finished!
-		ctx.EventManager().EmitEvent(allTransfersReceivedEvent(ra.RollappId, nTransfersDone))
-		w.rollappKeeper.EnableTransfers(ctx, ra.RollappId)
-		l.Info("All genesis transfers received, bridge opened.",
-			"rollapp", ra.RollappId,
-			"n transfers", nTransfersDone)
-	}
-
-	l.Debug("Passing on the transfer down the stack, but skipping delayedack, the transferEnabled blocker and bridging fee.")
-
+	// we want to skip delayedack etc because we want the transfer to happen immediately
 	return w.IBCModule.OnRecvPacket(commontypes.SkipRollappMiddlewareContext(ctx), packet, relayer)
 }
 
-// handleFraud : the rollapp has violated the DRS!
-func (w IBCModule) handleFraud(raID string) error {
-	// TODO: see https://github.com/dymensionxyz/dymension/issues/930
+func (w IBCModule) handleDRSViolation(ctx sdk.Context, rollappID string) error {
+	// handleFraud : the rollapp has violated the DRS!
+	// TODO: finish implementing this method,  see https://github.com/dymensionxyz/dymension/issues/930
 	return nil
-}
-
-func allTransfersReceivedEvent(raID string, nReceived uint64) sdk.Event {
-	return sdk.NewEvent(types.EventTypeTransferGenesisAllReceived,
-		sdk.NewAttribute(types.AttributeKeyRollappId, raID),
-		sdk.NewAttribute(types.AttributeKeyTransferGenesisNReceived, strconv.FormatUint(nReceived, 10)),
-	)
 }
 
 func getMemo(rawMemo string) (rollapptypes.GenesisTransferMemo, error) {
