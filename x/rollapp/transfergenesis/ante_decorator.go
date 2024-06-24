@@ -13,19 +13,21 @@ import (
 
 type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, found bool)
 
-type Decorator struct {
+// TransferEnabledDecorator only allows ibc transfers to a rollapp if that rollapp has finished
+// the transfer genesis protocol.
+type TransferEnabledDecorator struct {
 	getRollapp            GetRollapp
 	getChannelClientState uibc.GetChannelClientState
 }
 
-func NewDecorator(getRollapp GetRollapp, getChannelClientState uibc.GetChannelClientState) *Decorator {
-	return &Decorator{
+func NewTransferEnabledDecorator(getRollapp GetRollapp, getChannelClientState uibc.GetChannelClientState) *TransferEnabledDecorator {
+	return &TransferEnabledDecorator{
 		getRollapp:            getRollapp,
 		getChannelClientState: getChannelClientState,
 	}
 }
 
-func (h Decorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
+func (h TransferEnabledDecorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.MsgTransfer) (bool, error) {
 	chainID, err := uibc.ChainIDFromPortChannel(ctx, h.getChannelClientState, transfer.SourcePort, transfer.SourceChannel)
 	if err != nil {
 		return false, errorsmod.Wrap(err, "chain id from port channel")
@@ -37,7 +39,8 @@ func (h Decorator) transfersEnabled(ctx sdk.Context, transfer *transferTypes.Msg
 	return ra.GenesisState.TransfersEnabled, nil
 }
 
-func (h Decorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+// AnteHandle will return an error if the tx contains an ibc transfer message to a rollapp that has not finished the transfer genesis protocol.
+func (h TransferEnabledDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
 		typeURL := sdk.MsgTypeURL(msg)
 		if typeURL == sdk.MsgTypeURL(&transferTypes.MsgTransfer{}) {

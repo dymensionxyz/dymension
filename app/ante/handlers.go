@@ -57,7 +57,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 
-		// Use Mempool Fee Decorator from our txfees module instead of default one from auth
+		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		mempoolFeeDecorator,
 		deductFeeDecorator,
 
@@ -74,7 +74,7 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 
-		transfergenesis.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
+		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
 
@@ -94,7 +94,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		),
 		ante.NewSetUpContextDecorator(),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		// Use Mempool Fee Decorator from our txfees module instead of default one from auth
+		// Use Mempool Fee TransferEnabledDecorator from our txfees module instead of default one from auth
 		mempoolFeeDecorator,
 		deductFeeDecorator,
 		ante.NewValidateBasicDecorator(),
@@ -110,6 +110,6 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
 
-		transfergenesis.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
+		transfergenesis.NewTransferEnabledDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
