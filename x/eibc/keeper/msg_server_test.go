@@ -4,9 +4,10 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	types "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
 
 func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
@@ -201,7 +202,9 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		suite.App.DelayedAckKeeper.SetRollappPacket(suite.Ctx, *rollappPacket)
 		// Create new demand order
 		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(tc.demandOrderPrice), math.NewIntFromUint64(tc.demandOrderFee), tc.demandOrderDenom, eibcSupplyAddr.String())
-		demandOrder.IsFulfilled = tc.demandOrderFulfillmentStatus
+		if tc.demandOrderFulfillmentStatus {
+			demandOrder.FulfillerAddress = eibcDemandAddr.String() // simulate fulfillment
+		}
 		err := suite.App.EIBCKeeper.SetDemandOrder(suite.Ctx, demandOrder)
 		suite.Require().NoError(err)
 		// Update rollapp status if needed
@@ -230,7 +233,7 @@ func (suite *KeeperTestSuite) TestMsgFulfillOrder() {
 		// Check that the demand fulfillment
 		demandOrder, err = suite.App.EIBCKeeper.GetDemandOrder(suite.Ctx, tc.demandOrderUnderlyingPacketStatus, demandOrder.Id)
 		suite.Require().NoError(err)
-		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled, tc.name)
+		suite.Assert().Equal(tc.expectedDemandOrdefFulfillmentStatus, demandOrder.IsFulfilled(), tc.name)
 		// Check balances updates in case of success
 		if tc.expectedFulfillmentError == nil {
 			afterFulfillmentSupplyAddrBalance := suite.App.BankKeeper.GetBalance(suite.Ctx, eibcSupplyAddr, sdk.DefaultBondDenom)

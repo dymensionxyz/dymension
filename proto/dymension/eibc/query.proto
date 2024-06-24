@@ -54,6 +54,8 @@ message QueryDemandOrdersByStatusRequest {
   int32 limit = 4;
   // optional fulfillment state
   FulfillmentState fulfillment_state = 5;
+  // optional fulfiller address
+  string fulfiller = 6;
 }
 
 enum FulfillmentState {

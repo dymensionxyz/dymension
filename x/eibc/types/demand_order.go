@@ -24,7 +24,6 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
 		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
-		IsFulfilled:          false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
@@ -70,7 +69,7 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyId, m.Id),
 		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
-		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled)),
+		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled())),
 		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
 		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
 		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
@@ -92,6 +91,10 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 		panic(ErrInvalidRecipientAddress)
 	}
 	return recipientBech32
+}
+
+func (m *DemandOrder) IsFulfilled() bool {
+	return m.FulfillerAddress != ""
 }
 
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.

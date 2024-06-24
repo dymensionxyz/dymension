@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 )
@@ -34,7 +35,7 @@ func (m msgServer) FulfillOrder(goCtx context.Context, msg *types.MsgFulfillOrde
 		return nil, err
 	}
 	// Check that the order is not fulfilled yet
-	if demandOrder.IsFulfilled {
+	if demandOrder.IsFulfilled() {
 		return nil, types.ErrDemandAlreadyFulfilled
 	}
 
