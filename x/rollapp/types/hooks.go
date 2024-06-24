@@ -19,9 +19,9 @@ type RollappHooks interface {
 var _ RollappHooks = MultiRollappHooks{}
 
 // combine multiple rollapp hooks, all hook functions are run in array sequence
+
 type MultiRollappHooks []RollappHooks
 
-// Creates hooks for the Rollapp Module.
 func NewMultiRollappHooks(hooks ...RollappHooks) MultiRollappHooks {
 	return hooks
 }

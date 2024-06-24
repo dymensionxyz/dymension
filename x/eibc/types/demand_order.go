@@ -31,6 +31,25 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 }
 
 func (m *DemandOrder) ValidateBasic() error {
+	if len(m.Price) > 1 || len(m.Fee) > 1 {
+		return ErrMultipleDenoms
+	}
+
+	if len(m.Price) == 0 {
+		return ErrEmptyPrice
+	}
+
+	denom := m.Price[0].Denom
+
+	// fee is optional, as it can be zero
+	if len(m.Fee) != 0 && m.Fee[0].Denom != denom {
+		return ErrMultipleDenoms
+	}
+	// Validate tokens has a valid ibc denom
+	if err := ibctransfertypes.ValidatePrefixedDenom(denom); err != nil {
+		return err
+	}
+
 	if err := m.Price.Validate(); err != nil {
 		return err
 	}
@@ -41,17 +60,7 @@ func (m *DemandOrder) ValidateBasic() error {
 	if err != nil {
 		return ErrInvalidRecipientAddress
 	}
-	// Validate all tokens has a valid ibc denom
-	for _, coin := range m.Price {
-		if err := ibctransfertypes.ValidatePrefixedDenom(coin.Denom); err != nil {
-			return err
-		}
-	}
-	for _, coin := range m.Fee {
-		if err := ibctransfertypes.ValidatePrefixedDenom(coin.Denom); err != nil {
-			return err
-		}
-	}
+
 	// Validate the tracking packet key
 
 	return nil
@@ -91,6 +100,23 @@ func (m *DemandOrder) GetRecipientBech32Address() sdk.AccAddress {
 		panic(ErrInvalidRecipientAddress)
 	}
 	return recipientBech32
+}
+
+// GetFeeAmount returns the fee amount of the demand order.
+func (m *DemandOrder) GetFeeAmount() math.Int {
+	return m.Fee.AmountOf(m.Price[0].Denom)
+}
+
+func (m *DemandOrder) ValidateOrderIsOutstanding() error {
+	// Check that the order is not fulfilled yet
+	if m.IsFulfilled() {
+		return ErrDemandAlreadyFulfilled
+	}
+	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
+	if m.TrackingPacketStatus != commontypes.Status_PENDING {
+		return ErrDemandOrderInactive
+	}
+	return nil
 }
 
 func (m *DemandOrder) IsFulfilled() bool {

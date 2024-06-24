@@ -14,11 +14,10 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	// KeyRollappsEnabled is store's key for RollappsEnabled Params
 	KeyRollappsEnabled = []byte("RollappsEnabled")
-	// DeployerWhitelist is store's key for DeployerWhitelist Params
+	// KeyDeployerWhitelist is store's key for DeployerWhitelist Params
 	KeyDeployerWhitelist = []byte("DeployerWhitelist")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
-	// default value
+	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1

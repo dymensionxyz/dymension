@@ -53,7 +53,7 @@ func (rrd IBCProofHeightDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			continue
 		}
 
-		ctx = delayedacktypes.NewIBCProofContext(ctx, packetId, height)
+		ctx = delayedacktypes.CtxWithPacketProofHeight(ctx, packetId, height)
 	}
 	return next(ctx, tx, simulate)
 }

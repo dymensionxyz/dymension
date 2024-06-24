@@ -6,21 +6,21 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-var _ rollapptypes.RollappHooks = rollapphook{}
+var _ rollapptypes.RollappHooks = rollappHook{}
 
 // Hooks wrapper struct for rollapp keeper.
-type rollapphook struct {
+type rollappHook struct {
 	k Keeper
 }
 
-// Return the wrapper struct.
+// RollappHooks returns the wrapper struct.
 func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
-	return rollapphook{
+	return rollappHook{
 		k,
 	}
 }
 
-func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -43,13 +43,13 @@ func (hook rollapphook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	return nil
 }
 
-func (hook rollapphook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
+func (hook rollappHook) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *rollapptypes.StateInfo) error {
 	return nil
 }
 
 // FraudSubmitted implements the RollappHooks interface
 // It slashes the sequencer and unbonds all other bonded sequencers
-func (hook rollapphook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
+func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error {
 	err := hook.k.Slashing(ctx, seqAddr)
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"
 
@@ -72,6 +73,8 @@ func newLegacyCosmosAnteHandlerEip712(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+
+		transfersenabled.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
 
@@ -80,6 +83,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	deductFeeDecorator := txfeesante.NewDeductFeeDecorator(*options.TxFeesKeeper, options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper)
 
 	return sdk.ChainAnteDecorators(
+
 		NewRejectMessagesDecorator(), // reject MsgEthereumTxs and vesting msgs
 		ethante.NewAuthzLimiterDecorator([]string{ // disable the Msg types that cannot be included on an authz.MsgExec msgs field
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
@@ -105,5 +109,7 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		delayedack.NewIBCProofHeightDecorator(),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 		ethante.NewGasWantedDecorator(options.EvmKeeper, options.FeeMarketKeeper),
+
+		transfersenabled.NewDecorator(options.RollappKeeper.GetRollapp, options.IBCKeeper.ChannelKeeper.GetChannelClientState),
 	)
 }
