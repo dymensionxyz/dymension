@@ -27,10 +27,10 @@ A note on headers:
 		- The AppHash is for height H-1
 		- The ValidatorsHash is for height H
 		- The NextValidatorsHash is for height H+1
-	Crucially, that means when the APP returns the 'next validator set' X to ABCI at height H:
+	Crucially, that means when the APP returns the 'next validator set' S to ABCI at height H:
 		- Header H+1 contains the Root of H
-		- Header H+1 contains the NextValidatorsHash (hash of X)
-		- Header H+2 contains ValidatorsHash (hash of X)
+		- Header H+1 contains the NextValidatorsHash (hash of S)
+		- Header H+2 contains ValidatorsHash (hash of S)
 	That means,
 	See
 		- https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header
@@ -65,10 +65,45 @@ Walkthrough:
 What do we need to do?
 	Make sure the sequencer sent the right header / state root
 	Make sure the light client is actually from the sequencer
+		(Actually: just need someone to blame if the light client diverges from the state root.
+		 That means we need to be sure, that, for a given light client consensus state, if it's wrong, then
+         we want to be sure that it was actually the seqeuencer who produced it)
 
+How to compare state root with light client?
+	On update client:
+		Data:
+			height H
+			nextValidatorsHash X
+			root R
+		Steps:
+			Find the block descriptor (app hash) of height H-1 using binary search
+			If it exists:
+				compare root with app hash
+	On update rollapp:
+		For each block descriptor (app hash and height):
+			find cons state for height h+1. It contains the sequencer bech32 addr.
+			If it exists:
+				compare app hash with root
 
-How could it look?
-	On update client
+How to make sure the light client is updated by the sequencer only?
+	First, note that for consensus states
+			#1: (Height h1, Root h1-1, NextValidatorsHash A)
+			#2: (Height h2, Root h2-1, NextValidatorsHash B)
+		then we know at least one of the validators in A signed #2, but we don't yet know that anyone in B is guilty of anything at all
+		This only holds if #1 is not the original unvalidated consensus state from MsgCreateClient
+
+How do we know who to blame, if we get a state root mismatch?
+	Suppose we get  a block descriptor app hash H that doesn't equal (!=) light client app hash H+1
+	Then, we know that the sequencer in the predecessor consensus state to H+1 signed block H
+
+Sequencer rotation trust
+	If the sequencer changes, we assume he's trustworthy for T time
+	If the sequencer ch
+
+Suppose
+	cons state #1 sequencer A
+	cons state #2 sequencer B
+	cons state #3 sequencer B, wrong app hash, accepted because of lingering trust on A, but B didn't sign it
 
 
 
