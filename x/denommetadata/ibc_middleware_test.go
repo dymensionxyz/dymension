@@ -17,6 +17,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -25,10 +26,9 @@ import (
 
 func TestIBCModule_OnRecvPacket(t *testing.T) {
 	tests := []struct {
-		name           string
-		keeper         *mockDenomMetadataKeeper
-		transferKeeper *mockTransferKeeper
-		rollappKeeper  *mockRollappKeeper
+		name          string
+		keeper        *mockDenomMetadataKeeper
+		rollappKeeper *mockRollappKeeper
 
 		memoData         *memoData
 		wantAck          exported.Acknowledgement
@@ -36,9 +36,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 		wantCreated      bool
 	}{
 		{
-			name:           "valid packet data with packet metadata",
-			keeper:         &mockDenomMetadataKeeper{},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "valid packet data with packet metadata",
+			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -47,9 +46,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			wantSentMemoData: nil,
 			wantCreated:      true,
 		}, {
-			name:           "valid packet data with packet metadata and user memo",
-			keeper:         &mockDenomMetadataKeeper{},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "valid packet data with packet metadata and user memo",
+			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -58,9 +56,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			wantSentMemoData: validUserMemo,
 			wantCreated:      true,
 		}, {
-			name:           "no memo",
-			keeper:         &mockDenomMetadataKeeper{},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "no memo",
+			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -69,9 +66,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			wantSentMemoData: nil,
 			wantCreated:      false,
 		}, {
-			name:           "custom memo",
-			keeper:         &mockDenomMetadataKeeper{},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "custom memo",
+			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -80,9 +76,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			wantSentMemoData: validUserMemo,
 			wantCreated:      false,
 		}, {
-			name:           "memo has empty denom metadata",
-			keeper:         &mockDenomMetadataKeeper{},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "memo has empty denom metadata",
+			keeper: &mockDenomMetadataKeeper{},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -91,9 +86,8 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			wantSentMemoData: nil,
 			wantCreated:      false,
 		}, {
-			name:           "denom metadata already exists in keeper",
-			keeper:         &mockDenomMetadataKeeper{hasDenomMetaData: true},
-			transferKeeper: &mockTransferKeeper{},
+			name:   "denom metadata already exists in keeper",
+			keeper: &mockDenomMetadataKeeper{hasDenomMetaData: true},
 			rollappKeeper: &mockRollappKeeper{
 				returnRollapp: &rollapptypes.Rollapp{},
 			},
@@ -106,7 +100,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := &mockIBCModule{}
-			im := denommetadata.NewIBCModule(app, tt.transferKeeper, tt.keeper, tt.rollappKeeper)
+			im := denommetadata.NewIBCModule(app, tt.keeper, tt.rollappKeeper)
 			var memo string
 			if tt.memoData != nil {
 				memo = mustMarshalJSON(tt.memoData)
@@ -115,7 +109,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			tt.rollappKeeper.packetData = packetData
 			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
 			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
-			got := im.OnRecvPacket(sdk.Context{}, packet, sdk.AccAddress{})
+			got := im.OnRecvPacket(sdk.NewContext(nil, tmproto.Header{}, false, nil), packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
 			if !tt.wantAck.Success() {
 				return
@@ -493,7 +487,7 @@ func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, nil, tt.fields.rollappKeeper)
+			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 

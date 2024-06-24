@@ -15,6 +15,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	utilsibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
@@ -23,23 +24,20 @@ var _ porttypes.IBCModule = &IBCModule{}
 // IBCModule implements the ICS26 callbacks for the transfer middleware
 type IBCModule struct {
 	porttypes.IBCModule
-	transferKeeper types.TransferKeeper
-	keeper         types.DenomMetadataKeeper
-	rollappKeeper  types.RollappKeeper
+	keeper        types.DenomMetadataKeeper
+	rollappKeeper types.RollappKeeper
 }
 
 // NewIBCModule creates a new IBCModule given the keepers and underlying application
 func NewIBCModule(
 	app porttypes.IBCModule,
-	transferKeeper types.TransferKeeper,
 	keeper types.DenomMetadataKeeper,
 	rollappKeeper types.RollappKeeper,
 ) IBCModule {
 	return IBCModule{
-		IBCModule:      app,
-		transferKeeper: transferKeeper,
-		keeper:         keeper,
-		rollappKeeper:  rollappKeeper,
+		IBCModule:     app,
+		keeper:        keeper,
+		rollappKeeper: rollappKeeper,
 	}
 }
 
@@ -53,6 +51,10 @@ func (im IBCModule) OnRecvPacket(
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
 ) exported.Acknowledgement {
+	if commontypes.SkipRollappMiddleware(ctx) {
+		return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
+	}
+
 	transferData, err := im.rollappKeeper.GetValidTransfer(ctx, packet.Data, packet.DestinationPort, packet.DestinationChannel)
 	if err != nil {
 		return channeltypes.NewErrorAcknowledgement(err)
@@ -77,6 +79,10 @@ func (im IBCModule) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
+	if dm.Base != packetData.Denom {
+		return channeltypes.NewErrorAcknowledgement(gerrc.ErrInvalidArgument)
+	}
+
 	// if denom metadata was found in the memo, it means we should have the rollapp record
 	if rollapp == nil {
 		return channeltypes.NewErrorAcknowledgement(gerrc.ErrNotFound)
@@ -90,10 +96,6 @@ func (im IBCModule) OnRecvPacket(
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
 		return channeltypes.NewErrorAcknowledgement(err)
-	}
-
-	if !im.transferKeeper.HasDenomTrace(ctx, denomTrace.Hash()) {
-		im.transferKeeper.SetDenomTrace(ctx, denomTrace)
 	}
 
 	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
