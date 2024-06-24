@@ -98,11 +98,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				return clientCtx.PrintProto(res)
 			}
 
-			count := 0
-
 			for _, o := range res.DemandOrders {
-				count++
-
 				fmt.Printf(`
 -id:		%s
   recipient:	%s
@@ -117,7 +113,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 					o.TrackingPacketStatus.String(), strings.TrimSpace(o.TrackingPacketKey), o.FulfillerAddress)
 			}
 
-			fmt.Printf("\ncount: %d; ts: %s\n", count, time.Now().String())
+			fmt.Printf("\ncount: %d; ts: %s\n", len(res.DemandOrders), time.Now().String())
 
 			return nil
 		},

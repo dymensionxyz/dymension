@@ -26,6 +26,7 @@ message DemandOrder {
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
     string recipient = 5;
+    reserved 6;
     dymensionxyz.dymension.common.Status tracking_packet_status = 8;
     string rollapp_id = 9;
     common.RollappPacket.Type type = 10;
