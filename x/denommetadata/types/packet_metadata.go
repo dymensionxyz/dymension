@@ -28,7 +28,7 @@ func ParsePacketMetadata(input string) *types.Metadata {
 	return memo.DenomMetadata
 }
 
-func MemoAlreadyHasPacketMetadata(memo string) bool {
+func MemoHasPacketMetadata(memo string) bool {
 	memoMap := make(map[string]any)
 	err := json.Unmarshal([]byte(memo), &memoMap)
 	if err != nil {

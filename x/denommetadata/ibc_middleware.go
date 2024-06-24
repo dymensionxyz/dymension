@@ -196,7 +196,7 @@ func (m *ICS4Wrapper) SendPacket(
 		return 0, errorsmod.Wrapf(errortypes.ErrJSONUnmarshal, "unmarshal ICS-20 transfer packet data: %s", err.Error())
 	}
 
-	if types.MemoAlreadyHasPacketMetadata(packet.Memo) {
+	if types.MemoHasPacketMetadata(packet.Memo) {
 		return 0, types.ErrMemoDenomMetadataAlreadyExists
 	}
 
