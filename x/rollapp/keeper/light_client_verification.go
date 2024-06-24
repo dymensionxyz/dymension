@@ -22,36 +22,53 @@ Need to think about
 - pruning
 	cons states will be pruned when an old header no longer falls under trusting period, based on timestamp
 
+A note on headers:
+	In a header with height H:
+		- The AppHash is for height H-1
+		- The ValidatorsHash is for height H
+		- The NextValidatorsHash is for height H+1
+	Crucially, that means when the APP returns the 'next validator set' X to ABCI at height H:
+		- Header H+1 contains the Root of H
+		- Header H+1 contains the NextValidatorsHash (hash of X)
+		- Header H+2 contains ValidatorsHash (hash of X)
+	That means,
+	See
+		- https://github.com/tendermint/tendermint/blob/v0.34.x/spec/core/data_structures.md#header
+		- https://github.com/cometbft/cometbft/blob/main/spec/abci/abci%2B%2B_methods.md#finalizeblock
 
 Walkthrough:
+	MsgCreateClient
+		It just contains the client and cons state.
+		In the TM case the relevant parts are
+			- ChainID
+			- TrustLevel(?)
+			- Height
+			- NextValidatorsHash
+			- AppHash
+	Update Client
+		Contains:
+			- A header
+			- The set of validators who signed the header
+			- A full set of trusted validators and a trusted height
+		Steps
+			Make sure the trusted NextValidatorsHash = the hash of the so-called trusted validators
+			Make sure height is strictly increasing
+			Make sure the hash of the validator set = the validatorsHash in the signed header
+			Adjacent:
+				Make sure the validatorsHash in the signed header = trusted NextValidatorsHash
+			Non adjacent:
+				Make sure +1/3 of the validator set in the trusted set signed the signed header
+				In this way, at least one correct validator signed it
+			Make sure +2/3 of the validator set signed the signed header
+			Assuming above all OK, we store the timestamp, appHash and NextValidatorsHash
 
-MsgCreateClient
-	It just contains the client and cons state.
-	In the TM case the relevant parts are
-		- ChainID
-		- TrustLevel(?)
-		- Height
-		- NextValidatorsHash
-		- AppHash
-Update Client
-	Contains:
-		- A header
-		- The set of validators who signed the header
-		- A full set of trusted validators and a trusted height
-	Steps
-		Make sure the trusted NextValidatorsHash = the hash of the so-called trusted validators
-		Make sure height is strictly increasing
-		Make sure the hash of the validator set = the validatorsHash in the signed header
-		Adjacent:
-			Make sure the validatorsHash in the signed header = trusted NextValidatorsHash
-		Non adjacent:
-			Make sure +1/3 of the validator set in the trusted set signed the signed header
-			In this way, at least one correct validator signed it
-		Make sure +2/3 of the validator set signed the signed header
-		Assuming above all OK, we store the timestamp, appHash and NextValidatorsHash
+What do we need to do?
+	Make sure the sequencer sent the right header / state root
+	Make sure the light client is actually from the sequencer
 
 
-
+How could it look?
+	On update client
 
 
 
