@@ -17,10 +17,14 @@ TODO: this whole file is temporary
 	See https://github.com/dymensionxyz/research/issues/242
 */
 
+type ChannelKeeper interface {
+	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error) // implemented by ibc channel keeper
+}
+
 type IBCModuleCanonicalChannelHack struct {
 	porttypes.IBCModule // next one
 	rollappKeeper       rollappkeeper.Keeper
-	channelKeeper       uibc.ChainIDFromPortChannelKeeper
+	channelKeeper       ChannelKeeper
 }
 
 func NewIBCModuleCanonicalChannelHack(
