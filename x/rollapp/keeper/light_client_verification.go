@@ -156,8 +156,15 @@ How does it look?
 Friday afternoon.
 
 TODO: need to think through protecting against larger valsets
-TODO: need to tthink about sequencer change
+TODO: need to tthink about sequencer chang
 TODO: need to think about non adjacency
+
+
+
+Let's try to recall:
+The first msg create client simply contains the NextValsetHash
+MsgCreateUpdate:
+	Contains a trusted valset which must hash to the nextValsetHash which is already
 */
 
 type lcv struct {
