@@ -78,6 +78,12 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	if req.Fulfiller != "" {
 		opts = append(opts, isFulfiller(req.Fulfiller))
 	}
+	if req.Recipient != "" {
+		opts = append(opts, isRecipient(req.Recipient))
+	}
+	if req.Denom != "" {
+		opts = append(opts, isDenom(req.Denom))
+	}
 	return opts
 }
 
@@ -109,5 +115,17 @@ func isFulfiller(fulfiller string) filterOption {
 func isFulfillmentState(fulfillmentState types.FulfillmentState) filterOption {
 	return func(order types.DemandOrder) bool {
 		return order.IsFulfilled() == (types.FulfillmentState_FULFILLED == fulfillmentState)
+	}
+}
+
+func isDenom(denom string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.Price.AmountOf(denom).IsPositive()
+	}
+}
+
+func isRecipient(recipient string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.Recipient == recipient
 	}
 }
