@@ -18,24 +18,24 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
-var _ porttypes.IBCModule = &IBCRecvMiddleware{}
+var _ porttypes.IBCModule = &IBCModule{}
 
-// IBCRecvMiddleware implements the ICS26 callbacks for the transfer middleware
-type IBCRecvMiddleware struct {
+// IBCModule implements the ICS26 callbacks for the transfer middleware
+type IBCModule struct {
 	porttypes.IBCModule
 	transferKeeper types.TransferKeeper
 	keeper         types.DenomMetadataKeeper
 	rollappKeeper  types.RollappKeeper
 }
 
-// NewIBCRecvMiddleware creates a new IBCMiddleware given the keeper and underlying application
-func NewIBCRecvMiddleware(
+// NewIBCModule creates a new IBCModule given the keepers and underlying application
+func NewIBCModule(
 	app porttypes.IBCModule,
 	transferKeeper types.TransferKeeper,
 	keeper types.DenomMetadataKeeper,
 	rollappKeeper types.RollappKeeper,
-) IBCRecvMiddleware {
-	return IBCRecvMiddleware{
+) IBCModule {
+	return IBCModule{
 		IBCModule:      app,
 		transferKeeper: transferKeeper,
 		keeper:         keeper,
@@ -48,7 +48,7 @@ func NewIBCRecvMiddleware(
 // If it does not, it will register the denom metadata.
 // The handler will expect a 'denom_metadata' object in the memo field of the packet.
 // If the memo is not an object, or does not contain the metadata, it moves on to the next handler.
-func (im IBCRecvMiddleware) OnRecvPacket(
+func (im IBCModule) OnRecvPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	relayer sdk.AccAddress,
@@ -108,7 +108,7 @@ func (im IBCRecvMiddleware) OnRecvPacket(
 }
 
 // OnAcknowledgementPacket adds the token metadata to the rollapp if it doesn't exist
-func (im IBCRecvMiddleware) OnAcknowledgementPacket(
+func (im IBCModule) OnAcknowledgementPacket(
 	ctx sdk.Context,
 	packet channeltypes.Packet,
 	acknowledgement []byte,
@@ -158,24 +158,24 @@ func (im IBCRecvMiddleware) OnAcknowledgementPacket(
 	return im.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
 }
 
-type IBCSendMiddleware struct {
+// ICS4Wrapper intercepts outgoing IBC packets and adds token metadata to the memo if the rollapp doesn't have it.
+// This is a solution for adding token metadata to fungible tokens transferred over IBC,
+// targeted at rollapps that don't have the token metadata for the token being transferred.
+// More info here: https://www.notion.so/dymension/ADR-x-IBC-Denom-Metadata-Transfer-From-Hub-to-Rollapp-d3791f524ac849a9a3eb44d17968a30b
+type ICS4Wrapper struct {
 	porttypes.ICS4Wrapper
 
 	rollappKeeper types.RollappKeeper
 	bankKeeper    types.BankKeeper
 }
 
-// NewIBCSendMiddleware creates a new ICS4Wrapper.
-// It intercepts outgoing IBC packets and adds token metadata to the memo if the rollapp doesn't have it.
-// This is a solution for adding token metadata to fungible tokens transferred over IBC,
-// targeted at rollapps that don't have the token metadata for the token being transferred.
-// More info here: https://www.notion.so/dymension/ADR-x-IBC-Denom-Metadata-Transfer-From-Hub-to-Rollapp-d3791f524ac849a9a3eb44d17968a30b
-func NewIBCSendMiddleware(
+// NewICS4Wrapper creates a new ICS4Wrapper
+func NewICS4Wrapper(
 	ics porttypes.ICS4Wrapper,
 	rollappKeeper types.RollappKeeper,
 	bankKeeper types.BankKeeper,
-) *IBCSendMiddleware {
-	return &IBCSendMiddleware{
+) *ICS4Wrapper {
+	return &ICS4Wrapper{
 		ICS4Wrapper:   ics,
 		rollappKeeper: rollappKeeper,
 		bankKeeper:    bankKeeper,
@@ -183,7 +183,7 @@ func NewIBCSendMiddleware(
 }
 
 // SendPacket wraps IBC ChannelKeeper's SendPacket function
-func (m *IBCSendMiddleware) SendPacket(
+func (m *ICS4Wrapper) SendPacket(
 	ctx sdk.Context,
 	chanCap *capabilitytypes.Capability,
 	destinationPort string, destinationChannel string,
@@ -232,7 +232,7 @@ func (m *IBCSendMiddleware) SendPacket(
 
 	packet.Memo, err = types.AddDenomMetadataToMemo(packet.Memo, denomMetadata)
 	if err != nil {
-		return 0, errorsmod.Wrapf(errortypes.ErrUnauthorized, "add denom metadata to memo: %s", err.Error())
+		return 0, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "add denom metadata to memo: %s", err.Error())
 	}
 
 	data, err = types.ModuleCdc.MarshalJSON(packet)

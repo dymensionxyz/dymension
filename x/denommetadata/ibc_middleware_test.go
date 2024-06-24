@@ -23,7 +23,7 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
+func TestIBCModule_OnRecvPacket(t *testing.T) {
 	tests := []struct {
 		name           string
 		keeper         *mockDenomMetadataKeeper
@@ -106,7 +106,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			app := &mockIBCModule{}
-			im := denommetadata.NewIBCRecvMiddleware(app, tt.transferKeeper, tt.keeper, tt.rollappKeeper)
+			im := denommetadata.NewIBCModule(app, tt.transferKeeper, tt.keeper, tt.rollappKeeper)
 			var memo string
 			if tt.memoData != nil {
 				memo = mustMarshalJSON(tt.memoData)
@@ -132,7 +132,7 @@ func TestIBCMiddleware_OnRecvPacket(t *testing.T) {
 	}
 }
 
-func TestIBCMiddleware_SendPacket(t *testing.T) {
+func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
 		ICS4Wrapper   porttypes.ICS4Wrapper
 		rollappKeeper types.RollappKeeper
@@ -309,7 +309,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := denommetadata.NewIBCSendMiddleware(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
+			m := denommetadata.NewICS4Wrapper(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
 			data := types.ModuleCdc.MustMarshalJSON(tt.args.data)
 
@@ -332,7 +332,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 }
 
-func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
+func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		IBCModule     porttypes.IBCModule
 		rollappKeeper *mockRollappKeeper
@@ -493,7 +493,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := denommetadata.NewIBCRecvMiddleware(tt.fields.IBCModule, nil, nil, tt.fields.rollappKeeper)
+			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, nil, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 

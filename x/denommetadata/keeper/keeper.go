@@ -3,13 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store
@@ -47,7 +47,7 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 
 // UpdateDenomMetadata returns the denommetadata of the specified denom
 func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
-	_, found := k.bankKeeper.GetDenomMetaData(ctx, metadata.Base)
+	found := k.HasDenomMetadata(ctx, metadata.Base)
 	if !found {
 		return gerrc.ErrNotFound
 	}

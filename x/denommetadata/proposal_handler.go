@@ -18,7 +18,7 @@ func NewDenomMetadataProposalHandler(k *keeper.Keeper) govtypes.Handler {
 		case *types.UpdateDenomMetadataProposal:
 			return HandleUpdateDenomMetadataProposal(ctx, k, c)
 		default:
-			return errorsmod.Wrapf(gerrc.ErrUnknown, "unrecognized denommetadata proposal content type: %T", c)
+			return errorsmod.WithType(gerrc.ErrInvalidArgument, c)
 		}
 	}
 }
