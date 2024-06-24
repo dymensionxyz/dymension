@@ -3,8 +3,9 @@ package types
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
 var hash32 = []byte("12345678901234567890123456789012")
@@ -124,6 +125,14 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 				}},
 			},
 			err: ErrInvalidBlockSequence,
+		}, {
+			name: "num blocks overflow",
+			msg: MsgUpdateState{
+				Creator:     sample.AccAddress(),
+				StartHeight: 1,
+				NumBlocks:   ^uint64(0),
+			},
+			err: ErrInvalidNumBlocks,
 		}, {
 			name: "initial state error",
 			msg: MsgUpdateState{
