@@ -1,8 +1,5 @@
 package types
 
-// DefaultIndex is the default global index
-const DefaultIndex uint64 = 1
-
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
@@ -13,5 +10,15 @@ func DefaultGenesis() *GenesisState {
 // Validate performs basic genesis state validation returning an error upon any
 // failure.
 func (gs GenesisState) Validate() error {
+	rollappPacketMap := make(map[string]struct{})
+	for _, rollappPacket := range gs.GetRollappPackets() {
+		if err := rollappPacket.ValidateBasic(); err != nil {
+			return err
+		}
+		if _, ok := rollappPacketMap[rollappPacket.RollappId]; ok {
+			return ErrRollappPacketAlreadyExists
+		}
+		rollappPacketMap[rollappPacket.RollappId] = struct{}{}
+	}
 	return gs.Params.Validate()
 }
