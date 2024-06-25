@@ -102,10 +102,9 @@ Sequencer rotation trust
 	If the sequencer ch
 
 Attack idea
-	cons state #1 sequencer A (bad guy)
-	cons state #2 sequencer B (good guy)
-	cons state #3 sequencer B, wrong app hash, accepted because of lingering trust on A, but B didn't sign it
-
+	h :     cons state #1 sequencer A (bad guy)
+	h + k1: cons state #2 sequencer B (good guy)
+    h + k2: sequencer A creates a wrong header with himself as the trusted val set. It's accepted because of trust period from h.
 
 Pseudocode for root matching:
 	EndBlock:
@@ -115,14 +114,43 @@ Pseudocode for root matching:
 			consState = ibc.GetNextConsensusState(h)
 
 
-Assume that we only care about the case where the UpdateClient arrives before the batch (probably the normal case):
-We accept it optimistically
-At some point the state root arrives
-Let's say it disagrees on the root
+Design:
+	There are two cases when a light client update arrives
+	1. The state update already exists
+	2. The state update does not exist
+	Case 1 is trivial: only allow the client update if the root agrees with the state update.
+	Case 2:
+		We accept the light client updates optimistically.
+		When the state update arrives, we compare the roots.
+		If there is a mismatch, we cannot immediately blame the sequencer of the height, due to Attack (see below).
+		Solution:
+			- Ensure all sequencers are still slashable while they are within the light client trusting period. (We should already have this).
+			- For each light client update, we save the 'trustedHeight' argument. When there is a root dispute, we can know which sequencer created
+              the light client update by looking at the sequencer at the trustedHeight.
 
-If we can check the sequencer is the same before we accept the LC update
-	the we can rollack to the previous state info and slasho
-Then we CAN rollback to the previous state info
+Attack:
+	To submit a light client update, you just need to provide a trusted height and 'trusted' validator set.
+	The ibc module on chain will check that the nextValidatorsHash at the trustedHeight hashes to the trusted validator set. This validates the trusted validator set.
+	Then it will check that +1/3 of the trusted validator actually signed the header, and that the trusted validator set is still within the trusting period.
+	In this way, it is guaranteed that only the current and recent sequencers can create light client updates.
+	That means, in a rotating sequencer system, we cannot (without more work) blame the seqeuencer at height H for a wrong light client root at height H, because
+	it may have been created by a different (but recent) sequencer.
+
+
+	If the state root already exists, we only allow the UpdateClient if it agrees.
+	So suppose that it does not yet exist. Then we accept optimistically. At some point the state root will arrive.
+	We will compare the roots in ascending order.
+	Take the first mismatch.
+	How do we know it came from the sequencer?
+	What if we stored the trusted height from every header?
+	Then, know it was signed by the sequencer from that height, so we can slash them.
+
+
+
+
+	If we can check the sequencer is the same before we accept the LC update
+		then we can rollack to the previous state info and slash
+	Then we CAN rollback to the previous state info
 
 
 
