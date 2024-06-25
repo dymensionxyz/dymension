@@ -109,7 +109,7 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
   packet_key:	%s
   fulfiller:	%s
 `,
-					o.Id, o.Recipient, parseAndFormat(o.Price.String()), parseAndFormat(o.Fee.String()), o.RollappId,
+					o.Id, o.Recipient, parseAndFormat(o.Price), parseAndFormat(o.Fee), o.RollappId,
 					o.TrackingPacketStatus.String(), strings.TrimSpace(o.TrackingPacketKey), o.FulfillerAddress)
 			}
 
@@ -131,20 +131,9 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 	return cmd
 }
 
-func parseAndFormat(amountStr string) string {
-	coin, err := sdk.ParseCoinNormalized(amountStr)
-	if err != nil {
-		panic(err)
+func parseAndFormat(amount sdk.Coins) string {
+	if len(amount) == 0 {
+		return "0"
 	}
-	if coin.Denom != "adym" {
-		return coin.String()
-	}
-	return formatAmount(coin.Amount.String()) + coin.Denom
-}
-
-func formatAmount(numStr string) string {
-	if len(numStr) <= 18 {
-		return "0," + strings.Repeat("0", 18-len(numStr)) + numStr
-	}
-	return numStr[:len(numStr)-18] + "," + numStr[len(numStr)-18:]
+	return fmt.Sprintf("%s %s", amount[0].Amount.String(), amount[0].Denom)
 }
