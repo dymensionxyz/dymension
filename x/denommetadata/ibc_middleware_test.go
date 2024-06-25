@@ -16,7 +16,6 @@ import (
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
@@ -608,23 +607,6 @@ type mockDenomMetadataKeeper struct {
 func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	m.created = true
 	return nil
-}
-
-type mockTransferKeeper struct {
-	hasDT   bool
-	created bool
-}
-
-func (m *mockTransferKeeper) HasDenomTrace(sdk.Context, tmbytes.HexBytes) bool {
-	return m.hasDT
-}
-
-func (m *mockTransferKeeper) SetDenomTrace(sdk.Context, transfertypes.DenomTrace) {
-	m.created = true
-}
-
-func (m *mockTransferKeeper) OnRecvPacket(sdk.Context, channeltypes.Packet, sdk.AccAddress) exported.Acknowledgement {
-	return emptyResult
 }
 
 type mockICS4Wrapper struct {

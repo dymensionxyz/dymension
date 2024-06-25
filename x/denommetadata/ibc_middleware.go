@@ -98,14 +98,6 @@ func (im IBCModule) OnRecvPacket(
 		return channeltypes.NewErrorAcknowledgement(err)
 	}
 
-	if !Contains(rollapp.RegisteredDenoms, dm.Base) {
-		// add the new token denom base to the list of rollapp's registered denoms
-		// this is to prevent the same denom metadata from getting sent to the rollapp more than once
-		rollapp.RegisteredDenoms = append(rollapp.RegisteredDenoms, dm.Base)
-
-		im.rollappKeeper.SetRollapp(ctx, *rollapp)
-	}
-
 	return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 }
 
