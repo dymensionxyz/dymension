@@ -8,8 +8,6 @@ import (
 
 type GenesisTransferMemo struct {
 	Denom banktypes.Metadata `json:"denom"`
-	// How many transfers in total will be sent in the transfer genesis period
-	TotalNumTransfers uint64 `json:"total_num_transfers"`
 }
 
 func (g GenesisTransferMemo) Valid() error {
