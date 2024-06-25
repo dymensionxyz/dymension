@@ -68,8 +68,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// progress finalization queue
-	err := suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
-	suite.Require().NoError(err)
+	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 
 	// test fraud
 	for rollapp := range seqPerRollapp {
