@@ -13,17 +13,15 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-type (
-	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		hooks      types.MultiRollappHooks
-		paramstore paramtypes.Subspace
+type Keeper struct {
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	hooks      types.MultiRollappHooks
+	paramstore paramtypes.Subspace
 
-		ibcClientKeeper types.IBCClientKeeper
-		channelKeeper   types.ChannelKeeper
-	}
-)
+	ibcClientKeeper types.IBCClientKeeper
+	channelKeeper   types.ChannelKeeper
+}
 
 func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
 	// set KeyTable if it has not already been set
