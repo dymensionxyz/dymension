@@ -70,50 +70,6 @@ What do we need to do?
 		 That means we need to be sure, that, for a given light client consensus state, if it's wrong, then
          we want to be sure that it was actually the seqeuencer who produced it)
 
-How to compare state root with light client?
-	On update client:
-		Data:
-			height H
-			nextValidatorsHash X
-			root R
-		Steps:
-			Find the block descriptor (app hash) of height H-1 using binary search
-			If it exists:
-				compare root with app hash
-	On update rollapp:
-		For each block descriptor (app hash and height):
-			find cons state for height h+1. It contains the sequencer bech32 addr.
-			If it exists:
-				compare app hash with root
-
-How to make sure the light client is updated by the sequencer only?
-	First, note that for consensus states
-			#1: (Height h1, Root h1-1, NextValidatorsHash A)
-			#2: (Height h2, Root h2-1, NextValidatorsHash B)
-		then we know at least one of the validators in A signed #2, but we don't yet know that anyone in B is guilty of anything at all
-		This only holds if #1 is not the original unvalidated consensus state from MsgCreateClient
-
-How do we know who to blame, if we get a state root mismatch?
-	Suppose we get  a block descriptor app hash H that doesn't equal (!=) light client app hash H+1
-	Then, we know that the sequencer in the predecessor consensus state to H+1 signed block H
-
-Sequencer rotation trust
-	If the sequencer changes, we assume he's trustworthy for T time
-	If the sequencer ch
-
-Attack idea
-	h :     cons state #1 sequencer A (bad guy)
-	h + k1: cons state #2 sequencer B (good guy)
-    h + k2: sequencer A creates a wrong header with himself as the trusted val set. It's accepted because of trust period from h.
-
-Pseudocode for root matching:
-	EndBlock:
-		highestChecked
-		for blockDescriptor in uncheckedBlockDescriptors ascending by height:
-			h = block_descriptor.height - 1
-			consState = ibc.GetNextConsensusState(h)
-
-
 Design:
 	There are two cases when a light client update arrives
 	1. The state update already exists
@@ -133,24 +89,14 @@ Attack:
 	The ibc module on chain will check that the nextValidatorsHash at the trustedHeight hashes to the trusted validator set. This validates the trusted validator set.
 	Then it will check that +1/3 of the trusted validator actually signed the header, and that the trusted validator set is still within the trusting period.
 	In this way, it is guaranteed that only the current and recent sequencers can create light client updates.
-	That means, in a rotating sequencer system, we cannot (without more work) blame the seqeuencer at height H for a wrong light client root at height H, because
+	That means, in a rotating sequencer system, we cannot (without more work) blame the sequencer at height H for a wrong light client root at height H, because
 	it may have been created by a different (but recent) sequencer.
 
-
-	If the state root already exists, we only allow the UpdateClient if it agrees.
-	So suppose that it does not yet exist. Then we accept optimistically. At some point the state root will arrive.
-	We will compare the roots in ascending order.
-	Take the first mismatch.
-	How do we know it came from the sequencer?
-	What if we stored the trusted height from every header?
-	Then, know it was signed by the sequencer from that height, so we can slash them.
+Rollback and interactions with rollapp rollback
 
 
-
-
-	If we can check the sequencer is the same before we accept the LC update
-		then we can rollack to the previous state info and slash
-	Then we CAN rollback to the previous state info
+Implementation:
+Inte
 
 
 
