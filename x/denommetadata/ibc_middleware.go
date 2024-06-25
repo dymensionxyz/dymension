@@ -13,8 +13,8 @@ import (
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
-	utilsibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
@@ -67,7 +67,7 @@ func (im IBCModule) OnRecvPacket(
 	}
 
 	// at this point it's safe to assume that we are not handling a native token of the rollapp
-	denomTrace := utilsibc.GetForeignDenomTrace(packet.GetDestChannel(), packetData.Denom)
+	denomTrace := uibc.GetForeignDenomTrace(packet.GetDestChannel(), packetData.Denom)
 	ibcDenom := denomTrace.IBCDenom()
 
 	dm := types.ParsePacketMetadata(packetData.Memo)
@@ -92,7 +92,7 @@ func (im IBCModule) OnRecvPacket(
 	dm.DenomUnits[0].Denom = dm.Base
 
 	if err = im.keeper.CreateDenomMetadata(ctx, *dm); err != nil {
-		if errorsmod.IsOf(err, gerrc.ErrAlreadyExist) {
+		if errorsmod.IsOf(err, gerrc.ErrAlreadyExists) {
 			return im.IBCModule.OnRecvPacket(ctx, packet, relayer)
 		}
 		return channeltypes.NewErrorAcknowledgement(err)
