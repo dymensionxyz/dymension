@@ -9,6 +9,7 @@ import (
 // x/eibc module sentinel errors
 var (
 	ErrInvalidOrderID               = errorsmod.Register(ModuleName, 3, "Invalid order ID")
+	ErrDemandOrderAlreadyExist      = errorsmod.Register(ModuleName, 4, "Demand order already exists")
 	ErrDemandOrderDoesNotExist      = errorsmod.Register(ModuleName, 5, "Demand order does not exist")
 	ErrDemandOrderInactive          = errorsmod.Register(ModuleName, 6, "Demand order inactive")
 	ErrFulfillerAddressDoesNotExist = errorsmod.Register(ModuleName, 7, "Fulfiller address does not exist")
