@@ -21,6 +21,7 @@ Need to think about
 - chain id / client id
 - pruning
 	cons states will be pruned when an old header no longer falls under trusting period, based on timestamp
+- avoid requiring a consensus state for every height
 
 A note on headers:
 	In a header with height H:
@@ -100,10 +101,28 @@ Sequencer rotation trust
 	If the sequencer changes, we assume he's trustworthy for T time
 	If the sequencer ch
 
-Suppose
-	cons state #1 sequencer A
-	cons state #2 sequencer B
+Attack idea
+	cons state #1 sequencer A (bad guy)
+	cons state #2 sequencer B (good guy)
 	cons state #3 sequencer B, wrong app hash, accepted because of lingering trust on A, but B didn't sign it
+
+
+Pseudocode for root matching:
+	EndBlock:
+		highestChecked
+		for blockDescriptor in uncheckedBlockDescriptors ascending by height:
+			h = block_descriptor.height - 1
+			consState = ibc.GetNextConsensusState(h)
+
+
+Assume that we only care about the case where the UpdateClient arrives before the batch (probably the normal case):
+We accept it optimistically
+At some point the state root arrives
+Let's say it disagrees on the root
+
+If we can check the sequencer is the same before we accept the LC update
+	the we can rollack to the previous state info and slasho
+Then we CAN rollback to the previous state info
 
 
 
