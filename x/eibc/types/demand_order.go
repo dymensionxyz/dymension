@@ -24,7 +24,6 @@ func NewDemandOrder(rollappPacket commontypes.RollappPacket, price, fee math.Int
 		Price:                sdk.NewCoins(sdk.NewCoin(denom, price)),
 		Fee:                  sdk.NewCoins(sdk.NewCoin(denom, fee)),
 		Recipient:            recipient,
-		IsFulfilled:          false,
 		TrackingPacketStatus: commontypes.Status_PENDING,
 		RollappId:            rollappPacket.RollappId,
 		Type:                 rollappPacket.Type,
@@ -79,12 +78,17 @@ func (m *DemandOrder) GetEvents() []sdk.Attribute {
 		sdk.NewAttribute(AttributeKeyId, m.Id),
 		sdk.NewAttribute(AttributeKeyPrice, m.Price.String()),
 		sdk.NewAttribute(AttributeKeyFee, m.Fee.String()),
-		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled)),
+		sdk.NewAttribute(AttributeKeyIsFulfilled, strconv.FormatBool(m.IsFulfilled())),
 		sdk.NewAttribute(AttributeKeyPacketStatus, m.TrackingPacketStatus.String()),
 		sdk.NewAttribute(AttributeKeyPacketKey, m.TrackingPacketKey),
 		sdk.NewAttribute(AttributeKeyRollappId, m.RollappId),
 		sdk.NewAttribute(AttributeKeyRecipient, m.Recipient),
 	}
+
+	if m.FulfillerAddress != "" {
+		eventAttributes = append(eventAttributes, sdk.NewAttribute(AttributeKeyFulfillerAddress, m.FulfillerAddress))
+	}
+
 	return eventAttributes
 }
 
@@ -105,7 +109,7 @@ func (m *DemandOrder) GetFeeAmount() math.Int {
 
 func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 	// Check that the order is not fulfilled yet
-	if m.IsFulfilled {
+	if m.IsFulfilled() {
 		return ErrDemandAlreadyFulfilled
 	}
 	// Check the underlying packet is still relevant (i.e not expired, rejected, reverted)
@@ -113,6 +117,10 @@ func (m *DemandOrder) ValidateOrderIsOutstanding() error {
 		return ErrDemandOrderInactive
 	}
 	return nil
+}
+
+func (m *DemandOrder) IsFulfilled() bool {
+	return m.FulfillerAddress != ""
 }
 
 // BuildDemandIDFromPacketKey returns a unique demand order id from the packet key.
