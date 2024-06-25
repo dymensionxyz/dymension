@@ -10,7 +10,7 @@ import (
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
+	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	"github.com/tendermint/tendermint/libs/log"
 
