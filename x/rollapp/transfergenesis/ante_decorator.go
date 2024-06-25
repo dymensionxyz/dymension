@@ -1,12 +1,11 @@
 package transfergenesis
 
 import (
-	uibc "github.com/dymensionxyz/dymension/v3/utils/ibc"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	errorsmod "cosmossdk.io/errors"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
+
 	transferTypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -17,10 +16,10 @@ type GetRollapp func(ctx sdk.Context, rollappId string) (val types.Rollapp, foun
 // the transfer genesis protocol.
 type TransferEnabledDecorator struct {
 	getRollapp            GetRollapp
-	getChannelClientState uibc.GetChannelClientState
+	getChannelClientState ChannelKeeper
 }
 
-func NewTransferEnabledDecorator(getRollapp GetRollapp, getChannelClientState uibc.GetChannelClientState) *TransferEnabledDecorator {
+func NewTransferEnabledDecorator(getRollapp GetRollapp, getChannelClientState ChannelKeeper) *TransferEnabledDecorator {
 	return &TransferEnabledDecorator{
 		getRollapp:            getRollapp,
 		getChannelClientState: getChannelClientState,

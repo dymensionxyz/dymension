@@ -75,6 +75,15 @@ func filterOpts(req *types.QueryDemandOrdersByStatusRequest) []filterOption {
 	if req.FulfillmentState != types.FulfillmentState_UNDEFINED {
 		opts = append(opts, isFulfillmentState(req.FulfillmentState))
 	}
+	if req.Fulfiller != "" {
+		opts = append(opts, isFulfiller(req.Fulfiller))
+	}
+	if req.Recipient != "" {
+		opts = append(opts, isRecipient(req.Recipient))
+	}
+	if req.Denom != "" {
+		opts = append(opts, isDenom(req.Denom))
+	}
 	return opts
 }
 
@@ -97,8 +106,26 @@ func isOrderType(orderType ...commontypes.RollappPacket_Type) filterOption {
 	}
 }
 
+func isFulfiller(fulfiller string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.Recipient == fulfiller
+	}
+}
+
 func isFulfillmentState(fulfillmentState types.FulfillmentState) filterOption {
 	return func(order types.DemandOrder) bool {
-		return order.IsFulfilled == (types.FulfillmentState_FULFILLED == fulfillmentState)
+		return order.IsFulfilled() == (types.FulfillmentState_FULFILLED == fulfillmentState)
+	}
+}
+
+func isDenom(denom string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.Price.AmountOf(denom).IsPositive()
+	}
+}
+
+func isRecipient(recipient string) filterOption {
+	return func(order types.DemandOrder) bool {
+		return order.Recipient == recipient
 	}
 }
