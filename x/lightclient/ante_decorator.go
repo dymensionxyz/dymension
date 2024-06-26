@@ -5,6 +5,7 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
@@ -19,10 +20,15 @@ type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (types.Rollapp, bool)
 }
 
+type SequencerKeeper interface {
+	GetSequencer(ctx sdk.Context, addr sdk.ValAddress) (sequencer stakingtypes.Validator, found bool)
+}
+
 // UpdateBlockerDecorator intercepts incoming ibc CreateClient and UpdateClient messages and only allow them to proceed
 // under conditions of the canonical light client ADR https://www.notion.so/dymension/ADR-x-Canonical-Light-Client-ccecd0907a8c40289f0c3339c8655dbd
 type UpdateBlockerDecorator struct {
-	rk RollappKeeper
+	raK RollappKeeper
+	seqK SequencerKeeper
 }
 
 func NewUpdateBlockerDecorator() *UpdateBlockerDecorator {
@@ -30,29 +36,29 @@ func NewUpdateBlockerDecorator() *UpdateBlockerDecorator {
 }
 
 // TODO: need to check timestamp to? probably not because it would just mean the sequencer is wrong
-func (d UpdateBlockerDecorator) allowCreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient) (bool, error) {
+func (d UpdateBlockerDecorator) verifyCreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient)  error {
 	clientStateI, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
 		// the ibc stack will take care of this
-		return true, nil
+		return nil
 	}
 
 	consStateI, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
 	if err != nil {
 		// the ibc stack will take care of this
-		return true, nil
+		return nil
 	}
 
 	clientState, ok := clientStateI.(*ibctmtypes.ClientState)
 	if !ok {
 		// the ibc stack will take care of this, and we only care about tendermint
-		return true, nil
+		return nil
 	}
 
 	consState, ok := consStateI.(*ibctmtypes.ConsensusState)
 	if !ok {
 		// the ibc stack will take care of this, and we only care about tendermint
-		return true, nil
+		return nil
 	}
 
 	chainID := clientState.GetChainID()
@@ -60,25 +66,29 @@ func (d UpdateBlockerDecorator) allowCreateClient(ctx sdk.Context, msg *clientty
 	rootHeight := clientState.GetLatestHeight().GetRevisionHeight() // TODO: check revision number?
 	nextValidatorsHash := consState.NextValidatorsHash
 
-	ra, ok := d.rk.GetRollapp(ctx, chainID)
+	ra, ok := d.raK.GetRollapp(ctx, chainID)
 	if !ok {
 		// not relevant
-		return true, nil
+		return  nil
 	}
 
-	bd, err := d.rk.FindBlockDescriptorByHeight(ctx, ra.RollappId, rootHeight)
+	bd, err := d.raK.FindBlockDescriptorByHeight(ctx, ra.RollappId, rootHeight)
 	if err != nil  {
-		return false, errorsmod.Wrap(err, "find block descriptor by height")
+		return errorsmod.Wrapf(err, "find block descriptor by height: %d", rootHeight)
 	}
 	if !bytes.Equal(bd.GetStateRoot(), root.GetHash()){
-		return false, nil
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "supplied root hash does not match block descriptor root hash")
 	}
-	nextBD, err := d.rk.FindStateInfoByHeight(ctx, ra.RollappId, rootHeight+1)
+	nextState, err := d.raK.FindStateInfoByHeight(ctx, ra.RollappId, rootHeight+1)
 	if err != nil {
-		return false, errorsmod.Wrap(err, "find state info by height")
+		return errorsmod.Wrapf(err, "find state info by height: %d", rootHeight+1)
+	}
+	sequencer, ok := d.seqK.GetSequencer(ctx, nextState.GetSequencer())
+	if !ok {
+		return errorsmod.Wrapf(err, "get sequencer: %s", nextState.GetSequencer())
 	}
 
-	if bd.GetStateRoot().eq
+	if nextValidatorsHash!=sequencer.GetD
 
 }
 
@@ -113,12 +123,9 @@ func (d UpdateBlockerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			if !ok {
 				return ctx, errorsmod.WithType(gerrc.ErrUnknown, msg)
 			}
-			ok, err := d.allowCreateClient(ctx, m)
+			err := d.verifyCreateClient(ctx, m)
 			if err != nil {
 				return ctx, errorsmod.Wrap(err, "light client: allow create client")
-			}
-			if !ok {
-				return ctx, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "create client disabled")
 			}
 		}
 		if typeURL == sdk.MsgTypeURL(&clienttypes.MsgUpdateClient{}) {
