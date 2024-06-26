@@ -9,8 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfersenabled"
-
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -148,8 +146,6 @@ import (
 	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
-
-	"github.com/dymensionxyz/dymension/v3/x/transferinject"
 
 	/* ------------------------------ ethermint imports ----------------------------- */
 
@@ -621,7 +617,7 @@ func New(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		transferinject.NewICS4Wrapper(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		denommetadatamodule.NewICS4Wrapper(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
@@ -646,7 +642,6 @@ func New(
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		&app.EIBCKeeper,
-		app.BankKeeper,
 	)
 
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
@@ -739,12 +734,11 @@ func New(
 	transferStack = bridgingfee.NewIBCModule(transferStack.(ibctransfer.IBCModule), app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
+	transferStack = denommetadatamodule.NewIBCModule(transferStack, app.DenomMetadataKeeper, app.RollappKeeper)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
 	transferStack = delayedAckMiddleware
-	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
-	transferStack = transfersenabled.NewIBCModule(transferStack, app.RollappKeeper, app.DelayedAckKeeper)
 	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
-	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper.GetChannelClientState)
+	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()

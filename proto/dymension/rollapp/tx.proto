@@ -30,9 +30,7 @@ message MsgCreateRollapp {
   repeated string permissionedAddresses = 7;
   reserved 8;
   reserved 9;
-  // enable ibc transfers initially? Must be set false if intending
-  // to send genesis transfers.
-  bool transfersEnabled = 10;
+  reserved 10;
 }
 
 message MsgCreateRollappResponse {

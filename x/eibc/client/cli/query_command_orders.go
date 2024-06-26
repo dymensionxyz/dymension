@@ -2,11 +2,12 @@ package cli
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
@@ -15,7 +16,7 @@ import (
 
 func CmdListDemandOrdersByStatus() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-demand-orders status [rollapp_id] [type] [fulfillment] [limit]",
+		Use:   "list-demand-orders status [rollapp] [recipient] [type] [denom] [fulfilled] [fulfiller] [limit]",
 		Short: "List all demand orders with a specific status",
 		Long: `Query demand orders filtered by status. Examples of status include "pending", "finalized", and "reverted".
 				Optional arguments include rollapp_id, type (recv, timeout, ack), and limit.`,
@@ -30,34 +31,58 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				Type:   commontypes.RollappPacket_UNDEFINED, // default to undefined, as '0' is a valid type
 			}
 
-			if len(args) > 1 {
-				request.RollappId = args[1]
+			var err error
+			request.RollappId, err = cmd.Flags().GetString("rollapp")
+			if err != nil {
+				return err
 			}
-			if len(args) > 2 {
-				packetType := strings.ToUpper(args[2])
+
+			request.Recipient, err = cmd.Flags().GetString("recipient")
+			if err != nil {
+				return err
+			}
+
+			packetType, err := cmd.Flags().GetString("type")
+			if err != nil {
+				return err
+			}
+			if packetType != "" {
+				packetType = strings.ToUpper(packetType)
 				if !strings.HasPrefix(packetType, "ON_") {
 					packetType = "ON_" + packetType
 				}
 				ptype, ok := commontypes.RollappPacket_Type_value[packetType]
 				if !ok {
-					return fmt.Errorf("invalid packet type: %s", args[2])
+					return fmt.Errorf("invalid packet type: %s", packetType)
 				}
 				request.Type = commontypes.RollappPacket_Type(ptype)
 			}
-			if len(args) > 3 {
-				limit, err := strconv.ParseInt(args[3], 10, 32)
-				if err != nil {
-					return fmt.Errorf("limit must be an integer: %s", args[3])
-				}
-				request.Limit = int32(limit)
+
+			request.Denom, err = cmd.Flags().GetString("denom")
+			if err != nil {
+				return err
 			}
 
-			if len(args) > 4 {
-				fulfillmentState, ok := types.FulfillmentState_value[strings.ToUpper(args[4])]
+			fulfilled, err := cmd.Flags().GetString("fulfilled")
+			if err != nil {
+				return err
+			}
+			if fulfilled != "" {
+				fulfillmentState, ok := types.FulfillmentState_value[strings.ToUpper(fulfilled)]
 				if !ok {
-					return fmt.Errorf("invalid fulfillment state: %s", args[4])
+					return fmt.Errorf("invalid fulfillment state: %s", fulfilled)
 				}
 				request.FulfillmentState = types.FulfillmentState(fulfillmentState)
+			}
+
+			request.Fulfiller, err = cmd.Flags().GetString("fulfiller")
+			if err != nil {
+				return err
+			}
+
+			request.Limit, err = cmd.Flags().GetInt32("limit")
+			if err != nil {
+				return err
 			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -68,11 +93,47 @@ func CmdListDemandOrdersByStatus() *cobra.Command {
 				return fmt.Errorf("failed to fetch demand orders: %w", err)
 			}
 
-			return clientCtx.PrintProto(res)
+			out, err := cmd.Flags().GetString("output")
+			if err == nil && out == "json" {
+				return clientCtx.PrintProto(res)
+			}
+
+			for _, o := range res.DemandOrders {
+				fmt.Printf(`
+-id:		%s
+  recipient:	%s
+  price:	%s
+  fee:		%s
+  rollapp_id:	%s
+  status:	%s
+  packet_key:	%s
+  fulfiller:	%s
+`,
+					o.Id, o.Recipient, parseAndFormat(o.Price), parseAndFormat(o.Fee), o.RollappId,
+					o.TrackingPacketStatus, strings.TrimSpace(o.TrackingPacketKey), o.FulfillerAddress)
+			}
+
+			fmt.Printf("\ncount: %d; ts: %s\n", len(res.DemandOrders), time.Now().Format(time.RFC3339))
+
+			return nil
 		},
 	}
 
+	cmd.Flags().StringP("rollapp", "r", "", "Rollapp ID")
+	cmd.Flags().StringP("recipient", "c", "", "Recipient address")
+	cmd.Flags().StringP("type", "t", "", "Packet type")
+	cmd.Flags().StringP("denom", "d", "", "Denom")
+	cmd.Flags().StringP("fulfilled", "f", "", "Filter by fulfillment status")
+	cmd.Flags().StringP("fulfiller", "a", "", "Filter by fulfiller address")
+	cmd.Flags().Int32P("limit", "l", 0, "Limit orders to display")
 	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
+}
+
+func parseAndFormat(amount sdk.Coins) string {
+	if len(amount) == 0 {
+		return "0"
+	}
+	return fmt.Sprintf("%s %s", amount[0].Amount, amount[0].Denom)
 }

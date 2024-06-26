@@ -15,22 +15,27 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-type (
-	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		hooks      types.MultiDelayedAckHooks
-		paramstore paramtypes.Subspace
+type Keeper struct {
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	hooks      types.MultiDelayedAckHooks
+	paramstore paramtypes.Subspace
 
-		rollappKeeper types.RollappKeeper
-		porttypes.ICS4Wrapper
-		channelKeeper types.ChannelKeeper
-		types.EIBCKeeper
-		bankKeeper types.BankKeeper
-	}
-)
+	rollappKeeper types.RollappKeeper
+	porttypes.ICS4Wrapper
+	channelKeeper types.ChannelKeeper
+	types.EIBCKeeper
+}
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, rollappKeeper types.RollappKeeper, ics4Wrapper porttypes.ICS4Wrapper, channelKeeper types.ChannelKeeper, eibcKeeper types.EIBCKeeper, bankKeeper types.BankKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeKey storetypes.StoreKey,
+	ps paramtypes.Subspace,
+	rollappKeeper types.RollappKeeper,
+	ics4Wrapper porttypes.ICS4Wrapper,
+	channelKeeper types.ChannelKeeper,
+	eibcKeeper types.EIBCKeeper,
+) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
@@ -42,7 +47,6 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtype
 		rollappKeeper: rollappKeeper,
 		ICS4Wrapper:   ics4Wrapper,
 		channelKeeper: channelKeeper,
-		bankKeeper:    bankKeeper,
 		EIBCKeeper:    eibcKeeper,
 	}
 }

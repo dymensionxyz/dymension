@@ -3,13 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store
@@ -27,14 +27,15 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 }
 
 func (k *Keeper) HasDenomMetadata(ctx sdk.Context, base string) bool {
-	return k.bankKeeper.HasDenomMetaData(ctx, base)
+	_, found := k.bankKeeper.GetDenomMetaData(ctx, base)
+	return found
 }
 
 // CreateDenomMetadata creates a new denommetadata
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
 	found := k.HasDenomMetadata(ctx, metadata.Base)
 	if found {
-		return gerrc.ErrAlreadyExist
+		return gerrc.ErrAlreadyExists
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataCreation(ctx, metadata)
@@ -58,7 +59,7 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	return nil
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 

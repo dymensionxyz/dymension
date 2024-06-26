@@ -4,8 +4,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
-	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -29,12 +29,5 @@ type RollappKeeper interface {
 }
 
 type EIBCKeeper interface {
-	SetDemandOrder(ctx sdk.Context, order *eibctypes.DemandOrder) error
-	TimeoutFee(ctx sdk.Context) sdk.Dec
-	ErrAckFee(ctx sdk.Context) sdk.Dec
 	EIBCDemandOrderHandler(ctx sdk.Context, rollappPacket commontypes.RollappPacket, data transfertypes.FungibleTokenPacketData) error
-}
-
-type BankKeeper interface {
-	BlockedAddr(addr sdk.AccAddress) bool
 }

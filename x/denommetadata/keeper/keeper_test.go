@@ -6,10 +6,10 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
 
 type KeeperTestSuite struct {
@@ -64,7 +64,7 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	suite.Require().NoError(err)
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
-	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExist))
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExists))
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {

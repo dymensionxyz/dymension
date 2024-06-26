@@ -427,8 +427,8 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/cyberdelia/templates v0.0.0-20141128023046-ca7fffd4298c/go.mod h1:GyV+0YP4qX0UQ7r2MoYZ+AvYDp12OF5yg4q8rGnyNh4=
 github.com/danieljoos/wincred v1.1.2 h1:QLdCxFs1/Yl4zduvBdcHB8goaYk9RARS2SgLLRuAyr0=
 github.com/danieljoos/wincred v1.1.2/go.mod h1:GijpziifJoIBfYh+S7BbkdUTU4LfM+QnGqR5Vl2tAx0=
-github.com/danwt/gerr v0.1.5 h1:5s3G3cnftZG7Rq0+k+taMVteTmwKU66/g47kH6hY1js=
-github.com/danwt/gerr v0.1.5/go.mod h1:tIj6P8ZPBLAbr64HdWqKHGUXbWJT6HenD08Fn98oAnE=
+github.com/danwt/gerr v1.0.0 h1:v3Do0h1r+uctQQVYJfOTCo8uigp8oIaY4OL/wUU8LzI=
+github.com/danwt/gerr v1.0.0/go.mod h1:tIj6P8ZPBLAbr64HdWqKHGUXbWJT6HenD08Fn98oAnE=
 github.com/dave/jennifer v1.2.0/go.mod h1:fIb+770HOpJ2fmN9EPPKOqm1vMGhB+TwXKMZhrIygKg=
 github.com/davecgh/go-spew v0.0.0-20171005155431-ecdeabc65495/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -483,12 +483,14 @@ github.com/dvsekhvalnov/jose2go v1.5.0 h1:3j8ya4Z4kMCwT5nXIKFSV84YS+HdqSSO0VsTQx
 github.com/dvsekhvalnov/jose2go v1.5.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1 h1:J31ASxmDVm7ytjmk9ToVZeJA4WyAZKO0r2ErwbhEf98=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1/go.mod h1:O2J61ZwM0Vdms6pRa1fb43pwmCuNRctro3AB90WlOc0=
-github.com/dymensionxyz/gerr-cosmos v0.1.2 h1:4NiB9psF6swnWTCDYnHgHKtVEaRHuuNRuqvPGDw1BI8=
-github.com/dymensionxyz/gerr-cosmos v0.1.2/go.mod h1:tXIhx3WdryAnYRISC3Weh+2xeXwaf1l4Yb1zjDUsT7k=
+github.com/dymensionxyz/gerr-cosmos v1.0.0 h1:oi91rgOkpJWr41oX9JOyjvvBnhGY54tj513x8VlDAEc=
+github.com/dymensionxyz/gerr-cosmos v1.0.0/go.mod h1:n+0olxPogzWqFKba45mCpvrHLGmeS8W9UZjggHnWk6c=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1 h1:59ZE3Ocrn04MUpb5VJgfi24eDcnQ9VBfCSw0Mx1n7OI=
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1/go.mod h1:2idySYJxP5YfMAEeSeqD8e7fSchfsI4jn7XFHJgNUsM=
 github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.1.3 h1:8L0sMJfGjIgDmA373Qokoix4kdCrzG1j1lYe//B5kkQ=
 github.com/dymensionxyz/osmosis/v15 v15.2.0-dymension-v1.1.3/go.mod h1:BHHGzl86byC0sov3EUfTzyDuIsGY//rcrek6gCOa+fw=
+github.com/dymensionxyz/sdk-utils v0.1.1 h1:QX/4S0t+wUhbRlAw34fz2kEF+RP1D+tEVQ/S5QRa5X0=
+github.com/dymensionxyz/sdk-utils v0.1.1/go.mod h1:5fmenxP75quS5D1gPynbmh5qE6vla64Kks2O/hM+gi4=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
