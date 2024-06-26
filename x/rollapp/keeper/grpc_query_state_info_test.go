@@ -111,7 +111,7 @@ func TestFindStateInfoByHeightBinary(t *testing.T) {
 			},
 			"find": func(t *rapid.T) {
 				height := uint64(heights.Draw(t, "k"))
-				state, err := keeper.FindStateInfoByHeightBinary(ctx, rollapp, height)
+				state, err := keeper.FindStateInfoByHeight(ctx, rollapp, height)
 				shouldFind := 0 < lastHeight && height <= lastHeight
 				if shouldFind && err != nil {
 					t.Fatalf("err: %v", err)

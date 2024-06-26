@@ -7,11 +7,12 @@ import (
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/x/rollapp/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 type RollappKeeper interface {
-	FindStateInfoByHeightBinary(ctx sdk.Context, rollappId string, height uint64) (*rollapptypes.StateInfo, error)
+	FindBlockDescriptorByHeight(ctx sdk.Context, rollappId string, height uint64) (rollapptypes.BlockDescriptor, error) {
 }
 
 type UpdateBlockerDecorator struct{}
