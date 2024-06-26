@@ -88,3 +88,17 @@ func (suite *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAd
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }
+
+// FundModuleAcc funds target modules with specified amount.
+func (suite *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
+	err := bankutil.FundModuleAccount(suite.App.BankKeeper, suite.Ctx, moduleName, amounts)
+	suite.Require().NoError(err)
+}
+
+// StateNotAltered validates that app state is not altered. Fails if it is.
+func (suite *KeeperTestHelper) StateNotAltered() {
+	oldState := suite.App.ExportState(suite.Ctx)
+	suite.App.Commit()
+	newState := suite.App.ExportState(suite.Ctx)
+	suite.Require().Equal(oldState, newState)
+}
