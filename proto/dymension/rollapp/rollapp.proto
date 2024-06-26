@@ -36,13 +36,12 @@ message Rollapp {
   reserved 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
-  reserved 8;
+  // channel_id will be set to the canonical IBC channel of the rollapp.
+  string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
   bool frozen = 9;
   // registeredDenoms is a list of registered denom bases on this rollapp
   repeated string registeredDenoms = 10;
-  // the canonical light client id, this may change if light clients get frozen etc
-  string light_client_id = 11;
 }
 
 // Rollapp summary is a compact representation of Rollapp

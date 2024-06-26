@@ -12,6 +12,7 @@ require (
 	github.com/cosmos/ibc-go/v6 v6.2.1
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
 	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac
+	github.com/dymensionxyz/dymension v1.0.0-rc1.0.20231219114210-d548bc8ea087
 	github.com/dymensionxyz/gerr-cosmos v1.0.0
 	github.com/dymensionxyz/sdk-utils v0.1.1
 	github.com/ethereum/go-ethereum v1.10.26
@@ -35,8 +36,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	pgregory.net/rapid v1.1.0
 )
-
-require github.com/nxadm/tail v1.4.8 // indirect
 
 require (
 	cloud.google.com/go v0.112.1 // indirect
