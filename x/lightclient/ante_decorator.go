@@ -1,6 +1,8 @@
 package lightclient
 
 import (
+	"bytes"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
@@ -12,41 +14,98 @@ import (
 )
 
 type RollappKeeper interface {
-	FindBlockDescriptorByHeight(ctx sdk.Context, rollappId string, height uint64) (rollapptypes.BlockDescriptor, error) {
+	FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error)
+	FindBlockDescriptorByHeight(ctx sdk.Context, rollappId string, height uint64) (rollapptypes.BlockDescriptor, error)
+	GetRollapp(ctx sdk.Context, rollappId string) (types.Rollapp, bool)
 }
 
-type UpdateBlockerDecorator struct{}
+// UpdateBlockerDecorator intercepts incoming ibc CreateClient and UpdateClient messages and only allow them to proceed
+// under conditions of the canonical light client ADR https://www.notion.so/dymension/ADR-x-Canonical-Light-Client-ccecd0907a8c40289f0c3339c8655dbd
+type UpdateBlockerDecorator struct {
+	rk RollappKeeper
+}
 
 func NewUpdateBlockerDecorator() *UpdateBlockerDecorator {
 	return &UpdateBlockerDecorator{}
 }
 
-func (h UpdateBlockerDecorator) allowCreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient) (bool, error) {
-	consensusState, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
-	if err != nil {
-		return nil, err
-	}
-}
-
-// allowUpdateClient only returns true if the rollapp has not yet submitted a height to the rollapp keeper, or
-// they have and the root matches
-func (h UpdateBlockerDecorator) allowUpdateClient(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) (bool, error) {
-	header, err := clienttypes.UnpackHeader(msg.Header)
+// TODO: need to check timestamp to? probably not because it would just mean the sequencer is wrong
+func (d UpdateBlockerDecorator) allowCreateClient(ctx sdk.Context, msg *clienttypes.MsgCreateClient) (bool, error) {
+	clientStateI, err := clienttypes.UnpackClientState(msg.ClientState)
 	if err != nil {
 		// the ibc stack will take care of this
 		return true, nil
 	}
-	tmHeader, ok := header.(*ibctmtypes.Header)
-	if !ok {
-		// we only care about tendermint
+
+	consStateI, err := clienttypes.UnpackConsensusState(msg.ConsensusState)
+	if err != nil {
+		// the ibc stack will take care of this
 		return true, nil
 	}
-	height := tmHeader.GetHeight()
-	root := commitmenttypes.NewMerkleRoot(tmHeader.GetHeader().GetAppHash())
+
+	clientState, ok := clientStateI.(*ibctmtypes.ClientState)
+	if !ok {
+		// the ibc stack will take care of this, and we only care about tendermint
+		return true, nil
+	}
+
+	consState, ok := consStateI.(*ibctmtypes.ConsensusState)
+	if !ok {
+		// the ibc stack will take care of this, and we only care about tendermint
+		return true, nil
+	}
+
+	chainID := clientState.GetChainID()
+	root := consState.GetRoot()
+	rootHeight := clientState.GetLatestHeight().GetRevisionHeight() // TODO: check revision number?
+	nextValidatorsHash := consState.NextValidatorsHash
+
+	ra, ok := d.rk.GetRollapp(ctx, chainID)
+	if !ok {
+		// not relevant
+		return true, nil
+	}
+
+	bd, err := d.rk.FindBlockDescriptorByHeight(ctx, ra.RollappId, rootHeight)
+	if err != nil  {
+		return false, errorsmod.Wrap(err, "find block descriptor by height")
+	}
+	if !bytes.Equal(bd.GetStateRoot(), root.GetHash()){
+		return false, nil
+	}
+	nextBD, err := d.rk.FindStateInfoByHeight(ctx, ra.RollappId, rootHeight+1)
+	if err != nil {
+		return false, errorsmod.Wrap(err, "find state info by height")
+	}
+
+	if bd.GetStateRoot().eq
+
+}
+
+func (d UpdateBlockerDecorator) allowClientStateParams(ctx sdk.Context, rollappID string, cs *ibctmtypes.ClientState) (bool, error) {
+	// TODO: check trust level etc
+	return true, nil
+}
+
+// allowUpdateClient only returns true if the rollapp has not yet submitted a height to the rollapp keeper, or
+// they have and the root matches
+func (d UpdateBlockerDecorator) allowUpdateClient(ctx sdk.Context, msg *clienttypes.MsgUpdateClient) (bool, error) {
+	headerI, err := clienttypes.UnpackHeader(msg.Header)
+	if err != nil {
+		// the ibc stack will take care of this
+		return true, nil
+	}
+	header, ok := headerI.(*ibctmtypes.Header)
+	if !ok {
+		// the ibc stack will take care of this, and we only care about tendermint
+		return true, nil
+	}
+	height := header.GetHeight()
+	root := commitmenttypes.NewMerkleRoot(header.GetHeader().GetAppHash())
 }
 
 // AnteHandle will return an error if the tx contains an ibc transfer message to a rollapp that has not finished the transfer genesis protocol.
-func (h UpdateBlockerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+func (d UpdateBlockerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	for _, msg := range tx.GetMsgs() {
 		typeURL := sdk.MsgTypeURL(msg)
 		if typeURL == sdk.MsgTypeURL(&clienttypes.MsgCreateClient{}) {
@@ -54,7 +113,7 @@ func (h UpdateBlockerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			if !ok {
 				return ctx, errorsmod.WithType(gerrc.ErrUnknown, msg)
 			}
-			ok, err := h.allowCreateClient(ctx, m)
+			ok, err := d.allowCreateClient(ctx, m)
 			if err != nil {
 				return ctx, errorsmod.Wrap(err, "light client: allow create client")
 			}
@@ -67,7 +126,7 @@ func (h UpdateBlockerDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			if !ok {
 				return ctx, errorsmod.WithType(gerrc.ErrUnknown, msg)
 			}
-			ok, err := h.allowUpdateClient(ctx, m)
+			ok, err := d.allowUpdateClient(ctx, m)
 			if err != nil {
 				return ctx, errorsmod.Wrap(err, "light client: allow update client")
 			}
