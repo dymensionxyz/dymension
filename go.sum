@@ -497,6 +497,10 @@ github.com/dvsekhvalnov/jose2go v1.6.0 h1:Y9gnSnP4qEI0+/uQkHvFXeD2PLPJeXEL+ySMEA
 github.com/dvsekhvalnov/jose2go v1.6.0/go.mod h1:QsHjhyTlD/lAVqn/NSbVZmSCGeDehTB/mPZadG+mhXU=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050 h1:1mtlo6bDOdBihHWbDpOaai0NMC/4xHCkCHGCqdLT8WM=
 github.com/dymensionxyz/ethermint v0.22.0-dymension-v0.4.1.0.20240625101522-b1506ae83050/go.mod h1:aokD0im7cUMMtR/khzNsmcGtINtxCpBfcgRvJdmLymA=
+github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1 h1:59ZE3Ocrn04MUpb5VJgfi24eDcnQ9VBfCSw0Mx1n7OI=
+github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1/go.mod h1:2idySYJxP5YfMAEeSeqD8e7fSchfsI4jn7XFHJgNUsM=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3 h1:4VD23Jv5d8hqXEhLNNcLXlpSDJCWAGYJLF0kisJtkIk=
+github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3/go.mod h1:2rsnXAdjYfXtyEw0mNwAdOiAccALYjAPvINGUf9Qg7Y=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
