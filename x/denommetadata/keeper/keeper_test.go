@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
