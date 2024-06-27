@@ -16,7 +16,7 @@ var _ DenomMetadataHooks = MultiDenomMetadataHooks{}
 // combine multiple DenomMetadata hooks, all hook functions are run in array sequence
 type MultiDenomMetadataHooks []DenomMetadataHooks
 
-// Creates hooks for the DenomMetadata Module.
+// NewMultiDenomMetadataHooks creates hooks for the DenomMetadata Module.
 func NewMultiDenomMetadataHooks(hooks ...DenomMetadataHooks) MultiDenomMetadataHooks {
 	return hooks
 }

@@ -42,10 +42,6 @@ type MsgCreateRollapp struct {
 	// sequencers that are allowed to serve this rollappId.
 	// In the case of an empty list, the rollapp is considered permissionless
 	PermissionedAddresses []string `protobuf:"bytes,7,rep,name=permissionedAddresses,proto3" json:"permissionedAddresses,omitempty"`
-	// metadata provides the client information for all the registered tokens.
-	Metadatas []TokenMetadata `protobuf:"bytes,8,rep,name=metadatas,proto3" json:"metadatas"`
-	// genesis_accounts for the rollapp on the hub
-	GenesisAccounts []GenesisAccount `protobuf:"bytes,9,rep,name=genesis_accounts,json=genesisAccounts,proto3" json:"genesis_accounts"`
 }
 
 func (m *MsgCreateRollapp) Reset()         { *m = MsgCreateRollapp{} }
@@ -105,20 +101,6 @@ func (m *MsgCreateRollapp) GetMaxSequencers() uint64 {
 func (m *MsgCreateRollapp) GetPermissionedAddresses() []string {
 	if m != nil {
 		return m.PermissionedAddresses
-	}
-	return nil
-}
-
-func (m *MsgCreateRollapp) GetMetadatas() []TokenMetadata {
-	if m != nil {
-		return m.Metadatas
-	}
-	return nil
-}
-
-func (m *MsgCreateRollapp) GetGenesisAccounts() []GenesisAccount {
-	if m != nil {
-		return m.GenesisAccounts
 	}
 	return nil
 }
@@ -298,162 +280,49 @@ func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
-// MsgRollappGenesisEvent is the message type for triggering the genesis event of the rollapp
-type MsgRollappGenesisEvent struct {
-	// address is the bech32-encoded address of the sender
-	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// channel_id is the rollapp channel id on the hub
-	ChannelId string `protobuf:"bytes,2,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	// rollapp_id is the rollapp id we want to mint tokens on the hub.
-	// Used for validation against channel_id to reduce error surface.
-	RollappId string `protobuf:"bytes,3,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
-}
-
-func (m *MsgRollappGenesisEvent) Reset()         { *m = MsgRollappGenesisEvent{} }
-func (m *MsgRollappGenesisEvent) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEvent) ProtoMessage()    {}
-func (*MsgRollappGenesisEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1a86300fb8647ecb, []int{4}
-}
-func (m *MsgRollappGenesisEvent) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRollappGenesisEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEvent.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRollappGenesisEvent) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEvent.Merge(m, src)
-}
-func (m *MsgRollappGenesisEvent) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRollappGenesisEvent) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEvent.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRollappGenesisEvent proto.InternalMessageInfo
-
-func (m *MsgRollappGenesisEvent) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
-}
-
-func (m *MsgRollappGenesisEvent) GetChannelId() string {
-	if m != nil {
-		return m.ChannelId
-	}
-	return ""
-}
-
-func (m *MsgRollappGenesisEvent) GetRollappId() string {
-	if m != nil {
-		return m.RollappId
-	}
-	return ""
-}
-
-type MsgRollappGenesisEventResponse struct {
-}
-
-func (m *MsgRollappGenesisEventResponse) Reset()         { *m = MsgRollappGenesisEventResponse{} }
-func (m *MsgRollappGenesisEventResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRollappGenesisEventResponse) ProtoMessage()    {}
-func (*MsgRollappGenesisEventResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1a86300fb8647ecb, []int{5}
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MsgRollappGenesisEventResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.Merge(m, src)
-}
-func (m *MsgRollappGenesisEventResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *MsgRollappGenesisEventResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRollappGenesisEventResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MsgRollappGenesisEventResponse proto.InternalMessageInfo
-
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
 	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
 	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
-	proto.RegisterType((*MsgRollappGenesisEvent)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEvent")
-	proto.RegisterType((*MsgRollappGenesisEventResponse)(nil), "dymensionxyz.dymension.rollapp.MsgRollappGenesisEventResponse")
 }
 
 func init() {
 	proto.RegisterFile("dymensionxyz/dymension/rollapp/tx.proto", fileDescriptor_1a86300fb8647ecb)
 }
 
-var fileDescriptor_1a86300fb8647ecb = []byte{
-	// 633 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x55, 0xcd, 0x6e, 0xd3, 0x4c,
-	0x14, 0x8d, 0xeb, 0x7e, 0xed, 0x97, 0x09, 0x85, 0xca, 0x40, 0xb1, 0x22, 0x30, 0x51, 0x84, 0x44,
-	0x40, 0x60, 0x43, 0x5b, 0x10, 0x62, 0x81, 0xd4, 0x50, 0x44, 0xbb, 0x08, 0x82, 0xb4, 0x6c, 0xd8,
-	0x44, 0x53, 0xfb, 0xca, 0xb1, 0x1a, 0xcf, 0x98, 0xb9, 0x93, 0x28, 0x05, 0x89, 0x05, 0x3b, 0x16,
-	0x48, 0x88, 0x27, 0xe1, 0x31, 0xba, 0xec, 0x92, 0x15, 0x42, 0xed, 0x02, 0x1e, 0x03, 0x8d, 0x33,
-	0xce, 0x9f, 0x0a, 0x6e, 0xbb, 0xb2, 0xef, 0xcf, 0x39, 0xf7, 0xe8, 0xdc, 0x1b, 0x87, 0xdc, 0x0c,
-	0xf6, 0x62, 0x60, 0x18, 0x71, 0xd6, 0xdf, 0x7b, 0xe7, 0x0d, 0x03, 0x4f, 0xf0, 0x4e, 0x87, 0x26,
-	0x89, 0x27, 0xfb, 0x6e, 0x22, 0xb8, 0xe4, 0x96, 0x33, 0xde, 0xe8, 0x0e, 0x03, 0x57, 0x37, 0x96,
-	0xaf, 0xf8, 0x1c, 0x63, 0x8e, 0x5e, 0x8c, 0xa1, 0xd7, 0xbb, 0xaf, 0x1e, 0x03, 0x60, 0xf9, 0x41,
-	0xce, 0x84, 0x9d, 0x0e, 0xf7, 0x77, 0x5b, 0x01, 0xa0, 0x2f, 0xa2, 0x44, 0x72, 0xa1, 0x61, 0xb7,
-	0xf2, 0x60, 0x94, 0xed, 0xea, 0xd6, 0x3b, 0x39, 0xad, 0xfa, 0xa9, 0xbb, 0x2f, 0x85, 0x3c, 0xe4,
-	0xe9, 0xab, 0xa7, 0xde, 0x06, 0xd9, 0xea, 0xef, 0x19, 0xb2, 0xd8, 0xc0, 0xf0, 0xa9, 0x00, 0x2a,
-	0xa1, 0x39, 0x00, 0x58, 0x36, 0x99, 0xf7, 0x55, 0x82, 0x0b, 0xdb, 0xa8, 0x18, 0xb5, 0x62, 0x33,
-	0x0b, 0xad, 0xab, 0xa4, 0xa8, 0x59, 0x37, 0x03, 0x7b, 0x26, 0xad, 0x8d, 0x12, 0xd6, 0x0d, 0xb2,
-	0x10, 0xd3, 0xfe, 0x16, 0xbc, 0xed, 0x02, 0xf3, 0x41, 0xa0, 0x3d, 0x57, 0x31, 0x6a, 0xb3, 0xcd,
-	0xc9, 0xa4, 0xb5, 0x4a, 0x2e, 0x27, 0x20, 0xe2, 0x08, 0x95, 0x58, 0x08, 0xd6, 0x82, 0x40, 0x00,
-	0x22, 0xa0, 0x3d, 0x5f, 0x31, 0x6b, 0xc5, 0xe6, 0xf1, 0x45, 0xeb, 0x15, 0x29, 0xc6, 0x20, 0x69,
-	0x40, 0x25, 0x45, 0xfb, 0xff, 0x8a, 0x59, 0x2b, 0x2d, 0xdf, 0x75, 0xff, 0xbd, 0x1b, 0x77, 0x9b,
-	0xef, 0x02, 0x6b, 0x68, 0x54, 0x7d, 0x76, 0xff, 0xc7, 0xf5, 0x42, 0x73, 0xc4, 0x62, 0xb5, 0xc8,
-	0x62, 0x08, 0x0c, 0x30, 0xc2, 0x16, 0xf5, 0x7d, 0xde, 0x65, 0x12, 0xed, 0x62, 0xca, 0xec, 0xe6,
-	0x31, 0x3f, 0x1f, 0xe0, 0xd6, 0x06, 0x30, 0x4d, 0x7d, 0x21, 0x9c, 0xc8, 0xe2, 0xe3, 0x73, 0x1f,
-	0x7f, 0x7d, 0xbb, 0x9d, 0x79, 0x57, 0x2d, 0x13, 0x7b, 0xda, 0xe9, 0x26, 0x60, 0xc2, 0x19, 0x42,
-	0xf5, 0xeb, 0x0c, 0x39, 0xdf, 0xc0, 0xf0, 0x75, 0x12, 0x50, 0x09, 0x5b, 0x92, 0x4a, 0x38, 0xf3,
-	0x12, 0x2a, 0xa4, 0x84, 0x92, 0x0a, 0xb9, 0x01, 0x51, 0xd8, 0x96, 0xb6, 0x99, 0xae, 0x60, 0x3c,
-	0xa5, 0xf0, 0xac, 0x1b, 0xd7, 0xd5, 0xfd, 0xa1, 0x3d, 0x9b, 0xd6, 0x47, 0x09, 0x6b, 0x89, 0xcc,
-	0xad, 0xaf, 0xbd, 0xa4, 0xb2, 0x6d, 0xff, 0x97, 0x52, 0xeb, 0x48, 0xe9, 0xe9, 0x81, 0x50, 0x2e,
-	0xe8, 0xb5, 0x66, 0xa1, 0xb5, 0x41, 0xcc, 0xfa, 0xba, 0x5a, 0x9f, 0x51, 0x2b, 0x2d, 0xdf, 0xcb,
-	0xb3, 0x2e, 0x1d, 0xb3, 0x3e, 0x3c, 0x7b, 0xd4, 0xe6, 0x29, 0x8a, 0x29, 0xc3, 0x6c, 0xb2, 0x34,
-	0xe9, 0xc9, 0xd0, 0xae, 0x0f, 0x69, 0x45, 0x9b, 0xa8, 0x77, 0xf1, 0xac, 0x07, 0x4c, 0x2a, 0x95,
-	0x74, 0x70, 0x33, 0x99, 0x6b, 0x3a, 0xb4, 0xae, 0x11, 0xe2, 0xb7, 0x29, 0x63, 0xd0, 0x69, 0x45,
-	0x43, 0xdb, 0x74, 0x66, 0x33, 0x50, 0x65, 0xad, 0x50, 0x95, 0xcd, 0x29, 0x57, 0xb5, 0x32, 0xcd,
-	0x55, 0xad, 0x10, 0xe7, 0xf8, 0xf9, 0x99, 0xc2, 0xe5, 0x4f, 0x26, 0x31, 0x1b, 0x18, 0x5a, 0xef,
-	0xc9, 0xc2, 0xe4, 0x6f, 0x2b, 0xd7, 0x9f, 0xe9, 0x1b, 0x29, 0x3f, 0x3a, 0x2d, 0x22, 0x13, 0x61,
-	0x75, 0x49, 0x69, 0xfc, 0xa2, 0xdc, 0x13, 0x10, 0x8d, 0xf5, 0x97, 0x1f, 0x9e, 0xae, 0x7f, 0x38,
-	0xf6, 0xb3, 0x41, 0x2e, 0x6e, 0x8b, 0x28, 0x0c, 0x41, 0x4c, 0xec, 0xe6, 0x24, 0x7c, 0xc7, 0x78,
-	0x5a, 0x7e, 0x72, 0x36, 0x5c, 0xa6, 0xa7, 0xfe, 0x62, 0xff, 0xd0, 0x31, 0x0e, 0x0e, 0x1d, 0xe3,
-	0xe7, 0xa1, 0x63, 0x7c, 0x39, 0x72, 0x0a, 0x07, 0x47, 0x4e, 0xe1, 0xfb, 0x91, 0x53, 0x78, 0xb3,
-	0x1a, 0x46, 0xb2, 0xdd, 0xdd, 0x71, 0x7d, 0x1e, 0x7b, 0x7f, 0xf9, 0x98, 0xf6, 0x56, 0xbc, 0xfe,
-	0xe8, 0x5f, 0x61, 0x2f, 0x01, 0xdc, 0x99, 0x4b, 0x3f, 0x9d, 0x2b, 0x7f, 0x02, 0x00, 0x00, 0xff,
-	0xff, 0xb5, 0x8a, 0x70, 0xc8, 0x44, 0x06, 0x00, 0x00,
+var fileDescriptor_935cc363af28220c = []byte{
+	// 468 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xce, 0x36, 0x26, 0x8d, 0x27, 0x2a, 0x8a, 0x56, 0x50, 0xad, 0x2c, 0xe4, 0x46, 0x11, 0x07,
+	0x9f, 0x6c, 0xd4, 0x56, 0x88, 0x6b, 0x43, 0x0e, 0x25, 0x52, 0x10, 0x72, 0xc5, 0x85, 0x0b, 0x72,
+	0xec, 0x91, 0x63, 0x11, 0x7b, 0xcd, 0xee, 0xa6, 0x4a, 0xe0, 0xca, 0x03, 0xf0, 0x38, 0x3c, 0x42,
+	0x8f, 0x3d, 0x72, 0x42, 0x28, 0x79, 0x0a, 0x6e, 0x68, 0x1d, 0x3b, 0x3f, 0x2d, 0x02, 0xda, 0xd3,
+	0xee, 0x7c, 0x33, 0xf3, 0xcd, 0xcc, 0x37, 0xbb, 0x60, 0x45, 0xf3, 0x14, 0x33, 0x99, 0xf0, 0xcc,
+	0x13, 0x7c, 0x32, 0x09, 0xf2, 0xdc, 0x53, 0x33, 0x37, 0x17, 0x5c, 0x71, 0x6a, 0xaf, 0x7d, 0xb3,
+	0xf9, 0x27, 0x77, 0x6d, 0xb8, 0x65, 0xa0, 0xe5, 0xdc, 0xce, 0x1d, 0x4d, 0x78, 0xf8, 0xe1, 0x7d,
+	0x84, 0x32, 0x14, 0x49, 0xae, 0xb8, 0x58, 0x31, 0x59, 0x47, 0xb7, 0x23, 0xcb, 0xb3, 0x0c, 0x78,
+	0x14, 0xf3, 0x98, 0x17, 0x57, 0x4f, 0xdf, 0x56, 0x68, 0xf7, 0x1b, 0x81, 0xf6, 0x50, 0xc6, 0x2f,
+	0x05, 0x06, 0x0a, 0xfd, 0x55, 0x02, 0x65, 0xb0, 0x1f, 0x6a, 0x80, 0x0b, 0x46, 0x3a, 0xc4, 0x31,
+	0xfd, 0xca, 0xa4, 0x4f, 0xc0, 0x2c, 0x59, 0x5f, 0x45, 0x6c, 0xaf, 0xf0, 0x6d, 0x00, 0xfa, 0x14,
+	0x0e, 0xd2, 0x60, 0x76, 0x81, 0x1f, 0xa7, 0x98, 0x85, 0x28, 0x24, 0x6b, 0x74, 0x88, 0x63, 0xf8,
+	0xbb, 0x20, 0x3d, 0x85, 0xc7, 0x39, 0x8a, 0x34, 0x91, 0xba, 0x59, 0x8c, 0xce, 0xa2, 0x48, 0xa0,
+	0x94, 0x28, 0xd9, 0x7e, 0xa7, 0xee, 0x98, 0xfe, 0x9f, 0x9d, 0x03, 0xa3, 0xd9, 0x6c, 0x9b, 0x03,
+	0xa3, 0x69, 0xb6, 0x61, 0x60, 0x34, 0xa1, 0xdd, 0xea, 0x5a, 0xc0, 0x6e, 0x76, 0xee, 0xa3, 0xcc,
+	0x79, 0x26, 0xb1, 0xfb, 0x65, 0x0f, 0x1e, 0x0e, 0x65, 0xfc, 0x36, 0x8f, 0x02, 0x85, 0x17, 0x2a,
+	0x50, 0x78, 0xef, 0xa1, 0x3a, 0xd0, 0x92, 0x2a, 0x10, 0xea, 0x1c, 0x93, 0x78, 0xac, 0x58, 0xbd,
+	0x18, 0x69, 0x1b, 0xd2, 0xf9, 0xd9, 0x34, 0xed, 0xe9, 0xbd, 0x48, 0x66, 0x14, 0xfe, 0x0d, 0x40,
+	0x0f, 0xa1, 0xd1, 0x3f, 0x7b, 0x13, 0xa8, 0x31, 0x7b, 0x50, 0x50, 0x97, 0x96, 0xee, 0xe7, 0x12,
+	0x85, 0x1e, 0xb3, 0x94, 0xa9, 0x32, 0xe9, 0x39, 0xd4, 0x7b, 0x7d, 0x2d, 0x07, 0x71, 0x5a, 0xc7,
+	0xcf, 0xdc, 0xbf, 0x3f, 0x11, 0xb7, 0x28, 0xd3, 0x5f, 0x3f, 0x07, 0xd9, 0x33, 0xae, 0x7e, 0x1c,
+	0xd5, 0x7c, 0x4d, 0xd1, 0x65, 0x70, 0xb8, 0xab, 0x42, 0x25, 0xd0, 0xf1, 0x2f, 0x02, 0xf5, 0xa1,
+	0x8c, 0xe9, 0x67, 0x38, 0xd8, 0xdd, 0xfd, 0x3f, 0xeb, 0xdd, 0xd4, 0xdc, 0x7a, 0x71, 0xd7, 0x8c,
+	0xaa, 0x09, 0x3a, 0x85, 0xd6, 0xf6, 0x86, 0xdc, 0xff, 0x20, 0xda, 0x8a, 0xb7, 0x9e, 0xdf, 0x2d,
+	0xbe, 0x2a, 0xdb, 0x7b, 0x7d, 0xb5, 0xb0, 0xc9, 0xf5, 0xc2, 0x26, 0x3f, 0x17, 0x36, 0xf9, 0xba,
+	0xb4, 0x6b, 0xd7, 0x4b, 0xbb, 0xf6, 0x7d, 0x69, 0xd7, 0xde, 0x9d, 0xc6, 0x89, 0x1a, 0x4f, 0x47,
+	0x6e, 0xc8, 0x53, 0x6f, 0x9b, 0x7b, 0x63, 0x78, 0x97, 0x27, 0xde, 0x6c, 0xf3, 0x8f, 0xe7, 0x39,
+	0xca, 0x51, 0xa3, 0xf8, 0x4a, 0x27, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x48, 0xe5, 0xab, 0xac,
+	0xe9, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -470,7 +339,6 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error)
 	UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error)
 }
 
 type msgClient struct {
@@ -499,20 +367,10 @@ func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ..
 	return out, nil
 }
 
-func (c *msgClient) TriggerGenesisEvent(ctx context.Context, in *MsgRollappGenesisEvent, opts ...grpc.CallOption) (*MsgRollappGenesisEventResponse, error) {
-	out := new(MsgRollappGenesisEventResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateRollapp(context.Context, *MsgCreateRollapp) (*MsgCreateRollappResponse, error)
 	UpdateState(context.Context, *MsgUpdateState) (*MsgUpdateStateResponse, error)
-	TriggerGenesisEvent(context.Context, *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -524,9 +382,6 @@ func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreate
 }
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
-}
-func (*UnimplementedMsgServer) TriggerGenesisEvent(ctx context.Context, req *MsgRollappGenesisEvent) (*MsgRollappGenesisEventResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TriggerGenesisEvent not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -569,24 +424,6 @@ func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_TriggerGenesisEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRollappGenesisEvent)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/TriggerGenesisEvent",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).TriggerGenesisEvent(ctx, req.(*MsgRollappGenesisEvent))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.rollapp.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -598,10 +435,6 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateState",
 			Handler:    _Msg_UpdateState_Handler,
-		},
-		{
-			MethodName: "TriggerGenesisEvent",
-			Handler:    _Msg_TriggerGenesisEvent_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -628,34 +461,6 @@ func (m *MsgCreateRollapp) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.GenesisAccounts) > 0 {
-		for iNdEx := len(m.GenesisAccounts) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.GenesisAccounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x4a
-		}
-	}
-	if len(m.Metadatas) > 0 {
-		for iNdEx := len(m.Metadatas) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Metadatas[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTx(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x42
-		}
-	}
 	if len(m.PermissionedAddresses) > 0 {
 		for iNdEx := len(m.PermissionedAddresses) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.PermissionedAddresses[iNdEx])
@@ -802,73 +607,6 @@ func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRollappGenesisEvent) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRollappGenesisEvent) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRollappGenesisEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.RollappId) > 0 {
-		i -= len(m.RollappId)
-		copy(dAtA[i:], m.RollappId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.ChannelId) > 0 {
-		i -= len(m.ChannelId)
-		copy(dAtA[i:], m.ChannelId)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.ChannelId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Address) > 0 {
-		i -= len(m.Address)
-		copy(dAtA[i:], m.Address)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Address)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MsgRollappGenesisEventResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MsgRollappGenesisEventResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MsgRollappGenesisEventResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -900,18 +638,6 @@ func (m *MsgCreateRollapp) Size() (n int) {
 	if len(m.PermissionedAddresses) > 0 {
 		for _, s := range m.PermissionedAddresses {
 			l = len(s)
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	if len(m.Metadatas) > 0 {
-		for _, e := range m.Metadatas {
-			l = e.Size()
-			n += 1 + l + sovTx(uint64(l))
-		}
-	}
-	if len(m.GenesisAccounts) > 0 {
-		for _, e := range m.GenesisAccounts {
-			l = e.Size()
 			n += 1 + l + sovTx(uint64(l))
 		}
 	}
@@ -960,36 +686,6 @@ func (m *MsgUpdateState) Size() (n int) {
 }
 
 func (m *MsgUpdateStateResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	return n
-}
-
-func (m *MsgRollappGenesisEvent) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Address)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.ChannelId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	l = len(m.RollappId)
-	if l > 0 {
-		n += 1 + l + sovTx(uint64(l))
-	}
-	return n
-}
-
-func (m *MsgRollappGenesisEventResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1147,74 +843,6 @@ func (m *MsgCreateRollapp) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.PermissionedAddresses = append(m.PermissionedAddresses, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Metadatas", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Metadatas = append(m.Metadatas, TokenMetadata{})
-			if err := m.Metadatas[len(m.Metadatas)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GenesisAccounts", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GenesisAccounts = append(m.GenesisAccounts, GenesisAccount{})
-			if err := m.GenesisAccounts[len(m.GenesisAccounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1550,202 +1178,6 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRollappGenesisEvent) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEvent: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Address = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChannelId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ChannelId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTx
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTx
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.RollappId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTx(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTx
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MsgRollappGenesisEventResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTx
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRollappGenesisEventResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -1,6 +1,6 @@
 module github.com/dymensionxyz/dymension/v3
 
-go 1.22.0
+go 1.22.4
 
 require (
 	cosmossdk.io/api v0.3.1
@@ -15,9 +15,12 @@ require (
 	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3
 	github.com/cosmos/ibc-go/v7 v7.5.1
 	github.com/decred/dcrd/dcrec/edwards v1.0.0
-	github.com/dustin/go-humanize v1.0.1
+	github.com/dustin/go-humanize v1.0.1-0.20200219035652-afde56e7acac
+	github.com/dymensionxyz/gerr-cosmos v1.0.0
+	github.com/dymensionxyz/sdk-utils v0.1.1
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.22.0
+	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/mux v1.8.1
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -117,7 +120,7 @@ require (
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
-	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
+	github.com/googleapis/gax-go/v2 v2.12.2 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect

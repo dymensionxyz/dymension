@@ -27,32 +27,32 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
-func (suite *KeeperTestHelper) CreateDefaultRollapp() string {
-	return suite.CreateRollappWithName(rand.Str(8))
+func (s *KeeperTestHelper) CreateDefaultRollapp() string {
+	return s.CreateRollappWithName(rand.Str(8))
 }
 
-func (suite *KeeperTestHelper) CreateRollappWithName(name string) string {
+func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:       alice,
 		RollappId:     name,
 		MaxSequencers: 5,
 	}
 
-	msgServer := rollappkeeper.NewMsgServerImpl(suite.App.RollappKeeper)
-	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
-	suite.Require().NoError(err)
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
+	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
+	s.Require().NoError(err)
 	return name
 }
 
-func (suite *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
+func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
 	pubkey1 := secp256k1.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 
 	// fund account
-	err = bankutil.FundAccount(suite.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
-	suite.Require().Nil(err)
+	err = bankutil.FundAccount(s.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	s.Require().Nil(err)
 
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
 		Creator:      addr1.String(),
@@ -62,13 +62,13 @@ func (suite *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId
 		Description:  sequencertypes.Description{},
 	}
 
-	msgServer := sequencerkeeper.NewMsgServerImpl(suite.App.SequencerKeeper)
+	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)
 	_, err = msgServer.CreateSequencer(ctx, &sequencerMsg1)
-	suite.Require().Nil(err)
+	s.Require().Nil(err)
 	return addr1.String()
 }
 
-func (suite *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
+func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
 	var bds rollapptypes.BlockDescriptors
 	bds.BD = make([]rollapptypes.BlockDescriptor, numOfBlocks)
 	for k := 0; k < int(numOfBlocks); k++ {
@@ -84,7 +84,7 @@ func (suite *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAd
 		Version:     0,
 		BDs:         bds,
 	}
-	msgServer := rollappkeeper.NewMsgServerImpl(suite.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }

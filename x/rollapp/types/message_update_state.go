@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -48,9 +50,13 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	// an update cann't be with no BDs
+	// an update can't be with no BDs
 	if msg.NumBlocks == uint64(0) {
 		return errorsmod.Wrap(ErrInvalidNumBlocks, "number of blocks can not be zero")
+	}
+
+	if msg.NumBlocks > math.MaxUint64-msg.StartHeight {
+		return errorsmod.Wrapf(ErrInvalidNumBlocks, "numBlocks(%d) + startHeight(%d) exceeds max uint64", msg.NumBlocks, msg.StartHeight)
 	}
 
 	// check to see that update contains all BDs

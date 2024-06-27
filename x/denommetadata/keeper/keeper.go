@@ -6,9 +6,12 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 
 	"github.com/cometbft/cometbft/libs/log"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 )
 
 // Keeper of the denommetadata store
@@ -25,11 +28,16 @@ func NewKeeper(bankKeeper types.BankKeeper) *Keeper {
 	}
 }
 
+func (k *Keeper) HasDenomMetadata(ctx sdk.Context, base string) bool {
+	_, found := k.bankKeeper.GetDenomMetaData(ctx, base)
+	return found
+}
+
 // CreateDenomMetadata creates a new denommetadata
 func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
-	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	found := k.HasDenomMetadata(ctx, metadata.Base)
 	if found {
-		return types.ErrDenomAlreadyExists
+		return gerrc.ErrAlreadyExists
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataCreation(ctx, metadata)
@@ -41,9 +49,9 @@ func (k *Keeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 
 // UpdateDenomMetadata returns the denommetadata of the specified denom
 func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
-	found := k.bankKeeper.HasDenomMetaData(ctx, metadata.Base)
+	found := k.HasDenomMetadata(ctx, metadata.Base)
 	if !found {
-		return types.ErrDenomDoesNotExist
+		return gerrc.ErrNotFound
 	}
 	k.bankKeeper.SetDenomMetaData(ctx, metadata)
 	err := k.hooks.AfterDenomMetadataUpdate(ctx, metadata)
@@ -53,7 +61,7 @@ func (k *Keeper) UpdateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadat
 	return nil
 }
 
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
@@ -63,9 +71,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // SetHooks sets the hooks for the denommetadata keeper
 func (k *Keeper) SetHooks(sh types.MultiDenomMetadataHooks) {
-	if k.hooks != nil {
-		panic("cannot set rollapp hooks twice")
-	}
 	k.hooks = sh
 }
 

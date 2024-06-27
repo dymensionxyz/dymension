@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -100,15 +102,15 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper        *keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	accountKeeper simulationtypes.AccountKeeper
+	bankKeeper    simulationtypes.BankKeeper
 }
 
 func NewAppModule(
 	cdc codec.Codec,
 	keeper *keeper.Keeper,
-	accountKeeper types.AccountKeeper,
-	bankKeeper types.BankKeeper,
+	accountKeeper simulationtypes.AccountKeeper,
+	bankKeeper simulationtypes.BankKeeper,
 ) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
@@ -166,7 +168,7 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 // EndBlock executes all ABCI EndBlock logic respective to the capability module. It
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	err := am.keeper.FinalizeQueue(ctx)
+	err := am.keeper.FinalizeRollappStates(ctx)
 	if err != nil {
 		// we failed finalizing the queue for one or more rollapps.
 		// we choose not to panic as it's not invariant breaking and the consequences are

@@ -7,20 +7,15 @@ import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "dymensionxyz/dymension/rollapp/bank.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-// GenesisAccount is a struct for the genesis account for the rollapp
-message GenesisAccount {
-  // amount of coins to be sent to the genesis address
-  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
-  // address is a bech-32 address of the genesis account
-  string address = 2;
-}
-
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 message RollappGenesisState {
-  // genesis_accounts is a list of token allocations
-  repeated GenesisAccount genesis_accounts = 1;
-  // is_genesis_event is a boolean that indicates if the genesis event has occured
-  bool is_genesis_event = 2;
+  reserved 1;
+  // If true, then full usage of the canonical ibc transfer channel is enabled.
+  // Note: in v3.1.0 and prior this field marked the completion of the 'genesis event'
+  // Keeping and renaming the field enables a seamless upgrade https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+  // to the new genesis transfer protocol
+  // Note: if this field is false, ibc transfers may still be allowed in one or either direction.
+  bool transfers_enabled = 2;
 }
 
 // Rollapp defines a rollapp object. First the RollApp is created and then
@@ -39,8 +34,7 @@ message Rollapp {
   // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless.
   repeated string permissionedAddresses = 5;
-  // tokenMetadata is a list of TokenMetadata that are registered on this rollapp
-  repeated TokenMetadata tokenMetadata = 6;
+  reserved 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.

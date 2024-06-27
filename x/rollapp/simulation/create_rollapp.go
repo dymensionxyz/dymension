@@ -9,15 +9,10 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func SimulateMsgCreateRollapp(
-	ak types.AccountKeeper,
-	bk types.BankKeeper,
-	k keeper.Keeper,
-) simtypes.Operation {
+func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtypes.BankKeeper) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		// choose creator and rollappId
@@ -61,8 +56,6 @@ func SimulateMsgCreateRollapp(
 			PermissionedAddresses: permissionedAddresses,
 		}
 
-		// fmt.Printf("SimulateMsgCreateRollapp: RollappId(%s) bFailMaxSequencers(%t) bFailMaxWithholdingBlocks(%t) bFailDuplicateSequencer(%t)\n",
-		// 	msg.RollappId, bFailMaxSequencers, bFailMaxWithholdingBlocks, bFailDuplicateSequencer)
 		bExpectedError := bFailMaxSequencers || bFailDuplicateSequencer || bAlreadyExists
 
 		if !bExpectedError {

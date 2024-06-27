@@ -16,4 +16,7 @@ const (
 	AttributeKeyFraudHeight    = "fraud_height"
 	AttributeKeyFraudSequencer = "fraud_sequencer"
 	AttributeKeyClientID       = "client_id"
+
+	// EventTypeTransferGenesisTransfersEnabled is when the bridge is enabled
+	EventTypeTransferGenesisTransfersEnabled = "transfer_genesis_transfers_enabled"
 )

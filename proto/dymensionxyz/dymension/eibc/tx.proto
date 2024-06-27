@@ -8,6 +8,7 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/eibc/types";
 // Msg defines the Msg service.
 service Msg {
     rpc FulfillOrder(MsgFulfillOrder) returns (MsgFulfillOrderResponse) {}
+    rpc UpdateDemandOrder(MsgUpdateDemandOrder) returns (MsgUpdateDemandOrderResponse) {}
 }
 
 // MsgFulfillOrder defines the FulfillOrder request type.
@@ -15,8 +16,24 @@ message MsgFulfillOrder {
     option (cosmos.msg.v1.signer) = "fulfiller_address";
     // fulfiller_address is the bech32-encoded address of the account which the message was sent from.
     string fulfiller_address = 1;
+    // order_id is the unique identifier of the order to be fulfilled.
     string order_id = 2;
+    // expected_fee is the nominal fee set in the order. 
+    string expected_fee = 3;
 }
 
 // MsgFulfillOrderResponse defines the FulfillOrder response type.
 message MsgFulfillOrderResponse {}
+
+message MsgUpdateDemandOrder {
+    option (cosmos.msg.v1.signer) = "owner_address";
+    // owner_address is the bech32-encoded address of the account owns the order.
+    // This is expected to be the address of the order recipient.
+    string owner_address = 1;
+    // order_id is the unique identifier of the order to be updated.
+    string order_id = 2;
+    // new_fee is the new fee amount to be set in the order.
+    string new_fee = 3;
+}
+
+message MsgUpdateDemandOrderResponse {}

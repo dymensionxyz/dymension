@@ -8,6 +8,35 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 )
 
+func (r RollappPacket) LogString() string {
+	return fmt.Sprintf("RollappPacket{%s, %s, %s, %s, %s, %d, %s, %d}",
+		r.RollappId, r.Type, r.Status, r.Packet.SourcePort, r.Packet.SourceChannel, r.Packet.Sequence, r.Error, r.ProofHeight)
+}
+
+func (r RollappPacket) ValidateBasic() error {
+	if r.RollappId == "" {
+		return fmt.Errorf("rollapp id cannot be empty")
+	}
+	if len(r.Relayer) == 0 {
+		return fmt.Errorf("status cannot be empty")
+	}
+	if r.OriginalTransferTarget != "" {
+		if _, err := sdk.AccAddressFromBech32(r.OriginalTransferTarget); err != nil {
+			return fmt.Errorf("original transfer target: %w", err)
+		}
+	}
+	if r.ProofHeight == 0 {
+		return fmt.Errorf("proof height revision height cannot be zero")
+	}
+	if r.Packet == nil {
+		return fmt.Errorf("packet cannot be nil")
+	}
+	if err := r.Packet.ValidateBasic(); err != nil {
+		return fmt.Errorf("packet: %w", err)
+	}
+	return nil
+}
+
 func (r RollappPacket) GetEvents() []sdk.Attribute {
 	eventAttributes := []sdk.Attribute{
 		sdk.NewAttribute(AttributeKeyRollappId, r.RollappId),

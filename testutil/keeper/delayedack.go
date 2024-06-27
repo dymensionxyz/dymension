@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	"testing"
 
 	tmdb "github.com/cometbft/cometbft-db"
@@ -14,12 +13,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
-	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	connectiontypes "github.com/cosmos/ibc-go/v7/modules/core/03-connection/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
-	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	ibctypes "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -82,29 +80,17 @@ func (ConnectionKeeperStub) GetConnection(ctx sdk.Context, connectionID string) 
 
 type RollappKeeperStub struct{}
 
-// MustGetStateInfo implements types.RollappKeeper.
-func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
-	return rollapptypes.StateInfo{}
-}
-
 func (RollappKeeperStub) GetParams(ctx sdk.Context) rollapptypes.Params {
 	return rollapptypes.Params{}
-}
-
-func (RollappKeeperStub) GetRollapp(ctx sdk.Context, chainID string) (rollapptypes.Rollapp, bool) {
-	return rollapptypes.Rollapp{}, false
-}
-
-func (RollappKeeperStub) StateInfo(c context.Context, req *rollapptypes.QueryGetStateInfoRequest) (*rollapptypes.QueryGetStateInfoResponse, error) {
-	return nil, nil
 }
 
 func (RollappKeeperStub) GetStateInfo(ctx sdk.Context, rollappId string, index uint64) (val rollapptypes.StateInfo, found bool) {
 	return rollapptypes.StateInfo{}, false
 }
 
-func (RollappKeeperStub) GetLatestStateInfoIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
-	return rollapptypes.StateInfoIndex{}, false
+// MustGetStateInfo implements types.RollappKeeper.
+func (r RollappKeeperStub) MustGetStateInfo(ctx sdk.Context, rollappId string, index uint64) rollapptypes.StateInfo {
+	return rollapptypes.StateInfo{}
 }
 
 func (RollappKeeperStub) GetLatestFinalizedStateIndex(ctx sdk.Context, rollappId string) (val rollapptypes.StateInfoIndex, found bool) {
@@ -115,8 +101,8 @@ func (RollappKeeperStub) GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Ro
 	return []rollapptypes.Rollapp{}
 }
 
-func (r RollappKeeperStub) ExtractRollappIDAndTransferPacketFromData(sdk.Context, []byte, string, string) (string, *transfertypes.FungibleTokenPacketData, error) {
-	return "rollappID", &transfertypes.FungibleTokenPacketData{}, nil
+func (r RollappKeeperStub) GetValidTransfer(ctx sdk.Context, packetData []byte, raPortOnHub, raChanOnHub string) (data rollapptypes.TransferData, err error) {
+	return rollapptypes.TransferData{}, nil
 }
 
 type SequencerKeeperStub struct{}
@@ -145,17 +131,12 @@ func DelayedackKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		"DelayedackParams",
 	)
 
-	k := keeper.NewKeeper(
-		cdc,
+	k := keeper.NewKeeper(cdc,
 		storeKey,
 		paramsSubspace,
 		RollappKeeperStub{},
-		SequencerKeeperStub{},
 		ICS4WrapperStub{},
 		ChannelKeeperStub{},
-		ClientKeeperStub{},
-		ConnectionKeeperStub{},
-		nil,
 		nil,
 	)
 
