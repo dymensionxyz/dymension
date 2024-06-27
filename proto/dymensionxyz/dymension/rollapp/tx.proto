@@ -4,7 +4,6 @@ package dymensionxyz.dymension.rollapp;
 // this line is used by starport scaffolding # proto/tx/import
 import "cosmos/msg/v1/msg.proto";
 import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
-import "dymensionxyz/dymension/rollapp/bank.proto";
 import "dymensionxyz/dymension/rollapp/rollapp.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";

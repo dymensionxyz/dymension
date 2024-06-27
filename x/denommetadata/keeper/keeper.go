@@ -3,8 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-
 	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
