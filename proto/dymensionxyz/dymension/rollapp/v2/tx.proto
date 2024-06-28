@@ -1,0 +1,42 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp.v2;
+
+// this line is used by starport scaffolding # proto/tx/import
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types/v2";
+
+import "gogoproto/gogo.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+}
+
+
+// MsgUpdateState updates a rollapp state with a block batch.
+// a block batch is a list of ordered blocks (by height)
+message MsgUpdateState {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+  // startHeight is the block height of the first block in the batch
+  uint64 startHeight = 3;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 4;
+  // DAPath is the description of the location on the DA layer
+  DAPath DAPath = 5;
+  // version is the version of the rollapp
+  uint64 version = 6;
+  // BDs is a list of block description objects (one per block)
+  // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateStateResponse {
+}

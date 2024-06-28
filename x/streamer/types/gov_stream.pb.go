@@ -10,7 +10,7 @@ import (
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
-	_ "github.com/cosmos/gogoproto/types"
+	_ "github.com/gogo/protobuf/types"
 	io "io"
 	math "math"
 	math_bits "math/bits"
