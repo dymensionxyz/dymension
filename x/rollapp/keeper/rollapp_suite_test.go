@@ -8,6 +8,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	v2types "github.com/dymensionxyz/dymension/v3/x/rollapp/types/v2"
 	"github.com/stretchr/testify/suite"
 
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -45,6 +46,7 @@ var rollappModuleAddress string
 type RollappTestSuite struct {
 	apptesting.KeeperTestHelper
 	msgServer   types.MsgServer
+	msgServerV2 v2types.MsgServer
 	queryClient types.QueryClient
 }
 
@@ -65,6 +67,7 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 
 	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
+	suite.msgServerV2 = keeper.NewMsgServerV2Impl(app.RollappKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }
