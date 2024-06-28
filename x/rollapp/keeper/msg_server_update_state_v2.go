@@ -12,6 +12,7 @@ import (
 	v2types "github.com/dymensionxyz/dymension/v3/x/rollapp/types/v2"
 )
 
+// UpdateState updates the state of a rollapp
 func (k msgServerV2) UpdateState(goCtx context.Context, msg *v2types.MsgUpdateState) (*v2types.MsgUpdateStateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
