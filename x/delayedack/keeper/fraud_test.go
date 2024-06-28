@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"

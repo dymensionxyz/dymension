@@ -3,8 +3,8 @@ package dymensionxyz.dymension.streamer;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/duration.proto";
-import "dymension/streamer/params.proto";
-import "dymension/streamer/stream.proto";
+import "dymensionxyz/dymension/streamer/params.proto";
+import "dymensionxyz/dymension/streamer/stream.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 

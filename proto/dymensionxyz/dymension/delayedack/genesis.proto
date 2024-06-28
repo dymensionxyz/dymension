@@ -2,8 +2,8 @@ syntax = "proto3";
 package dymensionxyz.dymension.delayedack;
 
 import "gogoproto/gogo.proto";
-import "dymension/delayedack/params.proto";
-import "dymension/common/rollapp_packet.proto";
+import "dymensionxyz/dymension/delayedack/params.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
 
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";

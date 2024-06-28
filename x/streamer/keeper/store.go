@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-	"github.com/gogo/protobuf/proto"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

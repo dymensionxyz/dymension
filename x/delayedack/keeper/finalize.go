@@ -3,17 +3,17 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // FinalizeRollappPackets finalizes the packets for the given rollapp until the given height which is

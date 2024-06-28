@@ -3,7 +3,7 @@ package ante
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	ibcante "github.com/cosmos/ibc-go/v6/modules/core/ante"
+	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	ethante "github.com/evmos/ethermint/app/ante"
 	txfeesante "github.com/osmosis-labs/osmosis/v15/x/txfees/ante"

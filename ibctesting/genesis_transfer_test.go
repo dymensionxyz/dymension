@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/math"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
@@ -13,9 +13,9 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 type transferGenesisSuite struct {

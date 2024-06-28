@@ -3,9 +3,9 @@ package hooks_test
 import (
 	"testing"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type HooksTestSuite struct {

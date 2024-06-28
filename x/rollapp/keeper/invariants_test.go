@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
+	"github.com/cometbft/cometbft/libs/rand"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/tendermint/tendermint/libs/rand"
 )
 
 func (suite *RollappTestSuite) TestInvariants() {

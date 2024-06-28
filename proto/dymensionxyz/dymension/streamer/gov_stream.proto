@@ -5,7 +5,7 @@ package dymensionxyz.dymension.streamer;
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
-import "dymension/streamer/distr_info.proto";
+import "dymensionxyz/dymension/streamer/distr_info.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
 

@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/streamer/types"
-	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,10 +47,14 @@ func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *type
 }
 
 func (suite *QueryTestSuite) SetupSuite() {
-	suite.Setup()
+	suite.App = apptesting.Setup(suite.T(), false)
+	suite.Ctx = suite.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
-	suite.queryClient = types.NewQueryClient(suite.QueryHelper)
+	suite.queryClient = types.NewQueryClient(&baseapp.QueryServiceTestHelper{
+		GRPCQueryRouter: suite.App.GRPCQueryRouter(),
+		Ctx:             suite.Ctx,
+	})
 
 	err := suite.CreateGauge()
 	suite.Require().NoError(err)
@@ -101,7 +107,11 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 		s.Run(tc.name, func() {
 			s.SetupSuite()
 			s.CreateDefaultStream(sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500))))
-			err := s.QueryHelper.Invoke(gocontext.Background(), tc.query, tc.input, tc.output)
+			queryHelper := &baseapp.QueryServiceTestHelper{
+				GRPCQueryRouter: s.App.GRPCQueryRouter(),
+				Ctx:             s.Ctx,
+			}
+			err := queryHelper.Invoke(gocontext.Background(), tc.query, tc.input, tc.output)
 			s.Require().NoError(err)
 			s.StateNotAltered()
 		})

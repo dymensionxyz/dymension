@@ -1,11 +1,11 @@
 version: v1
 name: buf.build/dymensionxyz/dymension
 deps:
-  - buf.build/cosmos/cosmos-sdk
-  - buf.build/cosmos/cosmos-proto
+  - buf.build/cosmos/cosmos-sdk:v0.47.0
+  - buf.build/cosmos/cosmos-proto:1935555c206d4afb9e94615dfd0fad31
   - buf.build/cosmos/gogo-proto
-  - buf.build/cosmos/ibc:48efd8e99666d9206e61167c248fb384a7a21989
-  - buf.build/googleapis/googleapis
+  - buf.build/cosmos/ibc:fbb44f5ad3194450af479a615fa715d9
+  - buf.build/googleapis/googleapis:8d7204855ec14631a499bd7393ce1970
 breaking:
   use:
     - FILE

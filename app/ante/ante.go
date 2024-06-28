@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	tmlog "github.com/tendermint/tendermint/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"

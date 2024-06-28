@@ -4,9 +4,9 @@ package dymensionxyz.dymension.delayedack;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "dymension/delayedack/params.proto";
-import "dymension/common/status.proto";
-import "dymension/common/rollapp_packet.proto";
+import "dymensionxyz/dymension/delayedack/params.proto";
+import "dymensionxyz/dymension/common/status.proto";
+import "dymensionxyz/dymension/common/rollapp_packet.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
 

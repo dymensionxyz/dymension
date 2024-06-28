@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### State Machine Breaking
+
+- (dependencies) [#970](https://github.com/dymensionxyz/dymension/pull/970) Bump dependencies cosmos-sdk to v0.47.12 
+
 ### Features
 
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`

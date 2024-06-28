@@ -183,7 +183,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// ensure initially querying to distribute coins returns no coins
 	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, sdk.Coins(nil))
+	suite.Require().Equal(res.Coins, sdk.Coins{})
 
 	// setup a non perpetual stream
 	coins := sdk.Coins{sdk.NewInt64Coin("stake", 300000)}
