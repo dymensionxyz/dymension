@@ -304,7 +304,7 @@ func TestMsgUpdateState_ValidateBasic(t *testing.T) {
 					{Height: 1, StateRoot: hash32},
 				}},
 			},
-			err: types.ErrInvalidDaClientType,
+			err: types.ErrInvalidDAClientType,
 		},
 	}
 	for _, tt := range tests {

@@ -76,6 +76,14 @@ func (k msgServerV2) UpdateState(goCtx context.Context, msg *v2types.MsgUpdateSt
 	}
 	newIndex = lastIndex + 1
 
+	daLayer, exists := k.daLayers[msg.DAPath.DaType]
+	if !exists {
+		return nil, errorsmod.Wrapf(types.ErrInvalidDAClientType, "unknown da layer: %s", msg.DAPath.DaType)
+	}
+	if err = daLayer.OnRollappStateUpdate(ctx, msg.DAPath.Commitment); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrDAClientValidationFailed, "da layer commitment validation failed: %s", err)
+	}
+
 	// Write new index information to the store
 	k.SetLatestStateInfoIndex(ctx, types.StateInfoIndex{
 		RollappId: msg.RollappId,
@@ -85,7 +93,7 @@ func (k msgServerV2) UpdateState(goCtx context.Context, msg *v2types.MsgUpdateSt
 	creationHeight := uint64(ctx.BlockHeight())
 	daPath, err := msg.DAPath.Marshal()
 	if err != nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidDaClientType, "failed to marshal DAPath: %s", err)
+		return nil, errorsmod.Wrapf(types.ErrInvalidDAClientType, "failed to marshal DAPath: %s", err)
 	}
 	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, string(daPath), msg.Version, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>

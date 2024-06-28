@@ -43,7 +43,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 1}, {Height: 2}}},
 	}
@@ -88,7 +88,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -134,7 +134,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2() {
 			RollappId:   rollapp.GetRollappId(),
 			StartHeight: expectedStateInfo.StartHeight + expectedStateInfo.NumBlocks,
 			NumBlocks:   2,
-			DAPath:      &types.DAPath{DaType: "interchainda"},
+			DAPath:      &types.DAPath{DaType: "interchain"},
 			Version:     3,
 			BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: expectedStateInfo.StartHeight}, {Height: expectedStateInfo.StartHeight + 1}}},
 		}
@@ -181,7 +181,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_UnknownRollappId() {
 		RollappId:   "rollapp1",
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     0,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -210,7 +210,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_VersionMismatch() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     0,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -239,7 +239,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_UnknownSequencer() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -276,7 +276,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_SequencerRollappMismatch() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -314,7 +314,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrLogicUnpermissioned() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -352,7 +352,7 @@ func (suite *RollappTestSuite) TestFirstUpdateStateV2_GensisHightGreaterThanZero
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 2,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}}},
 	}
@@ -413,7 +413,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrWrongBlockHeight() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 2,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}, {Height: 4}}},
 	}
@@ -458,7 +458,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrLogicMissingStateInfo() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
@@ -496,7 +496,7 @@ func (suite *RollappTestSuite) TestUpdateStateV2_ErrNotActiveSequencer() {
 		RollappId:   rollapp.GetRollappId(),
 		StartHeight: 1,
 		NumBlocks:   3,
-		DAPath:      &types.DAPath{DaType: "interchainda"},
+		DAPath:      &types.DAPath{DaType: "interchain"},
 		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}

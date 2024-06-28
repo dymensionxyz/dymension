@@ -32,7 +32,8 @@ var (
 	ErrNotFound                       = errorsmod.Register(ModuleName, 1037, "not found")
 	ErrLogic                          = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                 = errorsmod.Register(ModuleName, 1040, "invalid address")
-	ErrInvalidDaClientType            = errorsmod.Register(ModuleName, 1041, "invalid data availability client")
+	ErrInvalidDAClientType            = errorsmod.Register(ModuleName, 1041, "invalid data availability client")
+	ErrDAClientValidationFailed       = errorsmod.Register(ModuleName, 1042, "data availability client validation failed")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

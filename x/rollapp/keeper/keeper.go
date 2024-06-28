@@ -21,6 +21,8 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+
+	daLayers map[string]types.DALayer
 }
 
 func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
@@ -29,12 +31,16 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtype
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
+	daLayers := make(map[string]types.DALayer)
+	daLayers[types.InterchainDALayerName] = types.NewInterchainDALayer()
+
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
 		paramstore:    ps,
 		hooks:         nil,
 		channelKeeper: channelKeeper,
+		daLayers:      daLayers,
 	}
 }
 
