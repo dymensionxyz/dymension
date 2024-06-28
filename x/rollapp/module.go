@@ -133,8 +133,8 @@ func (am AppModule) Name() string {
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.keeper))
+	v2types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerV2Impl(*am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
-	//v2types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(*am.keeper))
 }
 
 // RegisterInvariants registers the module's invariants.
