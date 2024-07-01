@@ -13,8 +13,10 @@ type msgServerV2 struct {
 	Keeper
 }
 
-var _ types.MsgServer = msgServer{}
-var _ v2types.MsgServer = msgServerV2{}
+var (
+	_ types.MsgServer   = msgServer{}
+	_ v2types.MsgServer = msgServerV2{}
+)
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.

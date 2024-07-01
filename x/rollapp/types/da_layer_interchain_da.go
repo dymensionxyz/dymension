@@ -9,8 +9,7 @@ const InterchainDALayerName = "interchain"
 
 var _ DALayer = InterchainDALayer{}
 
-type InterchainDALayer struct {
-}
+type InterchainDALayer struct{}
 
 func NewInterchainDALayer() InterchainDALayer {
 	return InterchainDALayer{}

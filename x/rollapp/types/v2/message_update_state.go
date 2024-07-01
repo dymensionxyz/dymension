@@ -72,7 +72,6 @@ func (msg *MsgUpdateState) ValidateBasic() error {
 
 	if msg.DAPath.DaType == "" {
 		return errorsmod.Wrap(types.ErrInvalidDAClientType, "DAPath.DaType can't be empty")
-
 	}
 
 	// check that the blocks are sequential by height
