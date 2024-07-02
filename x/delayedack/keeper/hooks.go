@@ -4,10 +4,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
-	osmoutils "github.com/osmosis-labs/osmosis/v15/osmoutils"
-	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
 
 /* -------------------------------------------------------------------------- */
@@ -61,17 +62,24 @@ func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, ep
 // AfterEpochEnd is the epoch end hook.
 // We want to clean up the demand orders that are with underlying packet status which are finalized.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
-	if epochIdentifier != e.GetParams(ctx).EpochIdentifier {
+	params := e.GetParams(ctx)
+
+	if epochIdentifier != params.EpochIdentifier {
 		return nil
 	}
-	// Get all rollapp packets with status != PENDING and delete them
-	// tech debt: this slice can potentially take up a lot of memory
-	toDeletePackets := e.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED))
-	for _, packet := range toDeletePackets {
-		packetCopy := packet
-		_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-			return e.deleteRollappPacket(ctx, &packetCopy)
-		})
+
+	listFilter := types.ByStatus(commontypes.Status_FINALIZED, commontypes.Status_REVERTED).Take(int(params.DeletePacketBatchSize))
+
+	// Get batch of rollapp packets with status != PENDING and delete them
+	for toDeletePackets := e.ListRollappPackets(ctx, listFilter); len(toDeletePackets) > 0; toDeletePackets = e.ListRollappPackets(ctx, listFilter) {
+		e.Logger(ctx).Debug("deleting rollapp packets", "num_packets", len(toDeletePackets))
+
+		for _, packet := range toDeletePackets {
+			// copy 'packet' not needed since Go 1.22
+			_ = osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+				return e.deleteRollappPacket(ctx, &packet)
+			})
+		}
 	}
 	return nil
 }
