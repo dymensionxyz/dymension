@@ -1,14 +1,12 @@
-package v3_test
+package v3_2_test
 
 import (
 	"fmt"
-	"math/big"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -36,22 +34,10 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 var (
-	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-
-	// CreateGaugeFee is the fee required to create a new gauge.
-	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
-	// AddToGagugeFee is the fee required to add to gauge.
-	expectAddToGaugeFee = sdk.ZeroInt()
-
-	expectDelayedackEpochIdentifier = "hour"
-	expectDelayedackBridgingFee     = sdk.NewDecWithPrec(1, 3)
-)
-
-const (
-	dummyUpgradeHeight          = 5
-	expectRollappsEnabled       = false
-	expectDisputePeriodInBlocks = 120960
-	expectMinBond               = "1000000000000000000000"
+	dummyUpgradeHeight                    int64 = 5
+	expectDelayedackDeletePacketBatchSize int32 = 1000
+	expectDelayedackEpochIdentifier             = "hour"
+	expectDelayedackBridgingFee                 = sdk.NewDecWithPrec(1, 3)
 )
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
@@ -68,7 +54,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			func() {
 				// Run upgrade
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-				plan := upgradetypes.Plan{Name: "v3", Height: dummyUpgradeHeight}
+				plan := upgradetypes.Plan{Name: "v3.2", Height: dummyUpgradeHeight}
 				err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
 				_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
@@ -77,6 +63,11 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight)
 				// simulate the upgrade process not panic.
 				s.Require().NotPanics(func() {
+					defer func() {
+						if r := recover(); r != nil {
+							s.Fail("Upgrade panicked", r)
+						}
+					}()
 					// simulate the upgrade process.
 					s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{})
 				})
@@ -86,26 +77,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Delayedack parameters
 				delayedackParams := s.App.DelayedAckKeeper.GetParams(s.Ctx)
-				if delayedackParams.EpochIdentifier != expectDelayedackEpochIdentifier ||
+				if delayedackParams.DeletePacketBatchSize != expectDelayedackDeletePacketBatchSize ||
+					delayedackParams.EpochIdentifier != expectDelayedackEpochIdentifier ||
 					!delayedackParams.BridgingFee.Equal(expectDelayedackBridgingFee) {
 					return fmt.Errorf("delayedack parameters not set correctly")
-				}
-
-				// Check Rollapp parameters
-				rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)
-				if rollappParams.RollappsEnabled != expectRollappsEnabled || rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
-					return fmt.Errorf("rollapp parameters not set correctly")
-				}
-
-				// Check Sequencer parameters
-				seqParams := s.App.SequencerKeeper.GetParams(s.Ctx)
-				if seqParams.MinBond.Amount.String() != expectMinBond {
-					return fmt.Errorf("sequencer parameters not set correctly")
-				}
-
-				// Check Incentives parameters
-				if !incentivestypes.CreateGaugeFee.Equal(expectCreateGaugeFee) || !incentivestypes.AddToGaugeFee.Equal(expectAddToGaugeFee) {
-					return fmt.Errorf("incentives parameters not set correctly")
 				}
 
 				return nil

@@ -9,6 +9,10 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
+	v3_2 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3.2"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -184,11 +188,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-
-	/* ---------------------------- upgrade handlers ---------------------------- */
-
-	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
-)
+	/* ---------------------------- upgrade handlers ---------------------------- */)
 
 var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
@@ -225,6 +225,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
+
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v3_2.Upgrade}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -326,48 +328,7 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper                 authkeeper.AccountKeeper
-	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
-	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 stakingkeeper.Keeper
-	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
-	GovKeeper                     govkeeper.Keeper
-	CrisisKeeper                  crisiskeeper.Keeper
-	UpgradeKeeper                 upgradekeeper.Keeper
-	ParamsKeeper                  paramskeeper.Keeper
-	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper                evidencekeeper.Keeper
-	TransferKeeper                ibctransferkeeper.Keeper
-	FeeGrantKeeper                feegrantkeeper.Keeper
-	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
-
-	// Ethermint keepers
-	EvmKeeper       *evmkeeper.Keeper
-	FeeMarketKeeper feemarketkeeper.Keeper
-
-	// Osmosis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
-	TxFeesKeeper      *txfeeskeeper.Keeper
-
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-
-	RollappKeeper   rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
-
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper    delayedackkeeper.Keeper
-	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+	keepers.AppKeepers
 	// the module manager
 	mm *module.Manager
 
@@ -1197,15 +1158,20 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
-// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
-	UpgradeName := "v3"
+	for _, u := range Upgrades {
+		app.setupUpgradeHandler(u)
+	}
+}
 
+func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		v3upgrade.CreateUpgradeHandler(
-			app.mm, app.configurator,
-			app.RollappKeeper, app.SequencerKeeper, app.DelayedAckKeeper,
+		upgrade.UpgradeName,
+		upgrade.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.BaseApp,
+			&app.AppKeepers,
 		),
 	)
 
@@ -1222,8 +1188,8 @@ func (app *App) setupUpgradeHandlers() {
 	// do nothing
 	}
 
-	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrade.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		// configure store loader with the store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
 }
