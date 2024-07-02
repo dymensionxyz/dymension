@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 
@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
