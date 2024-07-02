@@ -16,7 +16,7 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 		return nil
 	}
 	logger := ctx.Logger().With("module", "DelayedAckMiddleware")
-	logger.Info("reverting IBC rollapp packets", "rollappID", rollappID)
+	logger.Info("Reverting IBC rollapp packets.", "rollappID", rollappID)
 
 	// Iterate over all the pending packets and revert them
 	for _, rollappPacket := range rollappPendingPackets {
@@ -28,18 +28,19 @@ func (k Keeper) HandleFraud(ctx sdk.Context, rollappID string, ibc porttypes.IBC
 			"sequence", rollappPacket.Packet.Sequence,
 		}
 
+		// these are outgoing transfers Hub->RA
 		if rollappPacket.Type == commontypes.RollappPacket_ON_ACK || rollappPacket.Type == commontypes.RollappPacket_ON_TIMEOUT {
 			// refund all pending outgoing packets
 			// we don't have access directly to `refundPacketToken` function, so we'll use the `OnTimeoutPacket` function
 			err := ibc.OnTimeoutPacket(ctx, *rollappPacket.Packet, rollappPacket.Relayer)
 			if err != nil {
-				logger.Error("failed to refund reverted packet", append(logContext, "error", err.Error())...)
+				logger.Error("Refund reverted packet.", append(logContext, "error", err.Error())...)
 			}
 		}
 		// Update status to reverted
 		_, err := k.UpdateRollappPacketWithStatus(ctx, rollappPacket, commontypes.Status_REVERTED)
 		if err != nil {
-			logger.Error("error reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
+			logger.Error("Reverting IBC rollapp packet", append(logContext, "error", err.Error())...)
 			return err
 		}
 
