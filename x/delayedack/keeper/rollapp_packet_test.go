@@ -135,6 +135,10 @@ func (suite *DelayedAckTestSuite) TestListRollappPackets() {
 	revertedPackets := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_REVERTED))
 	suite.Require().Equal(expectRevertedLength, len(revertedPackets))
 
+	expectRevertedLengthLimit := 4
+	revertedPacketsLimit := keeper.ListRollappPackets(ctx, types.ByStatus(commontypes.Status_REVERTED).Take(4))
+	suite.Require().Equal(expectRevertedLengthLimit, len(revertedPacketsLimit))
+
 	suite.Require().Equal(totalLength, len(pendingPackets)+len(finalizedPackets)+len(revertedPackets))
 
 	rollappPacket1Finalized := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappIDs[0], commontypes.Status_FINALIZED))

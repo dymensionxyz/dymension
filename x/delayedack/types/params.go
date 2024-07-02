@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -16,10 +16,13 @@ var (
 
 	// KeyBridgeFee is the key for the bridge fee
 	KeyBridgeFee = []byte("BridgeFee")
+
+	KeyDeletePacketBatchSize = []byte("DeletePacketBatchSize")
 )
 
 const (
-	defaultEpochIdentifier = "hour"
+	defaultEpochIdentifier       = "hour"
+	defaultDeletePacketBatchSize = 1000
 )
 
 // ParamKeyTable the param key table for launch module
@@ -28,10 +31,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketBatchSize int) Params {
 	return Params{
-		EpochIdentifier: epochIdentifier,
-		BridgingFee:     bridgingFee,
+		EpochIdentifier:       epochIdentifier,
+		BridgingFee:           bridgingFee,
+		DeletePacketBatchSize: int32(deletePacketBatchSize),
 	}
 }
 
@@ -40,6 +44,7 @@ func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
 		sdk.NewDecWithPrec(1, 3), // 0.1%
+		defaultDeletePacketBatchSize,
 	)
 }
 
@@ -48,6 +53,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, validateEpochIdentifier),
 		paramtypes.NewParamSetPair(KeyBridgeFee, &p.BridgingFee, validateBridgingFee),
+		paramtypes.NewParamSetPair(KeyDeletePacketBatchSize, &p.DeletePacketBatchSize, validateDeletePacketBatchSize),
 	}
 }
 
@@ -81,12 +87,26 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
+func validateDeletePacketBatchSize(i interface{}) error {
+	v, ok := i.(int32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v < 0 {
+		return fmt.Errorf("delete packet batch size must not be negative: %d", v)
+	}
+	return nil
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateBridgingFee(p.BridgingFee); err != nil {
 		return err
 	}
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
+		return err
+	}
+	if err := validateDeletePacketBatchSize(p.DeletePacketBatchSize); err != nil {
 		return err
 	}
 	return nil

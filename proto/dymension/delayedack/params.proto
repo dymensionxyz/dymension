@@ -16,4 +16,6 @@ message Params {
     (gogoproto.moretags) = "yaml:\"bridging_fee\"",
     (gogoproto.nullable) = false
   ];
+  int32 delete_packet_batch_size = 3
+      [ (gogoproto.moretags) = "yaml:\"delete_packet_batch_size\"" ];
 }

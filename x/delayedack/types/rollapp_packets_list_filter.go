@@ -7,6 +7,7 @@ import (
 type RollappPacketListFilter struct {
 	Prefixes   []Prefix
 	FilterFunc func(packet commontypes.RollappPacket) bool
+	Limit      int
 }
 
 type Prefix struct {
@@ -80,4 +81,9 @@ func ByTypeByStatus(packetType commontypes.RollappPacket_Type, status ...commont
 		}
 	}
 	return filter
+}
+
+func (f RollappPacketListFilter) Take(limit int) RollappPacketListFilter {
+	f.Limit = limit
+	return f
 }

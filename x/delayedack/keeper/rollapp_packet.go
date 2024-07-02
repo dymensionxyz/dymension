@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -116,8 +117,10 @@ func (k *Keeper) UpdateRollappPacketWithStatus(ctx sdk.Context, rollappPacket co
 // ListRollappPackets retrieves a list rollapp packets from the KVStore by applying the given filter
 func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPacketListFilter) (list []commontypes.RollappPacket) {
 	store := ctx.KVStore(k.storeKey)
+	withLimit := listFilter.Limit > 0
 	// Iterate over the range of filters and get all the rollapp packets
 	// that meet the filter criteria
+outer:
 	for _, pref := range listFilter.Prefixes {
 		if len(pref.Start) == 0 {
 			pref.Start = commontypes.AllRollappPacketKeyPrefix
@@ -134,6 +137,10 @@ func (k Keeper) ListRollappPackets(ctx sdk.Context, listFilter types.RollappPack
 				continue
 			}
 			list = append(list, val)
+
+			if withLimit && len(list) >= listFilter.Limit {
+				break outer
+			}
 		}
 		_ = iterator.Close()
 	}
