@@ -93,6 +93,9 @@ import (
 	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
+// ModuleBasics defines the module BasicManager is in charge of setting up basic,
+// non-dependant module elements, such as codec registration
+// and genesis verification.
 var ModuleBasics = module.NewBasicManager(
 	auth.AppModuleBasic{},
 	authzmodule.AppModuleBasic{},
@@ -148,7 +151,7 @@ var ModuleBasics = module.NewBasicManager(
 	txfees.AppModuleBasic{},
 )
 
-func (a *AppKeepers) GetModules(
+func (a *AppKeepers) SetupModules(
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,
 	encodingConfig appparams.EncodingConfig,

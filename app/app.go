@@ -68,23 +68,16 @@ var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
 	_ = packetforwardmiddleware.AppModule{}
 	_ = packetforwardtypes.ErrIntOverflowGenesis
-)
 
-var (
-	// DefaultNodeHome default home directories for the application daemon
-	DefaultNodeHome string
-
-	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
-
-	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
-	// non-dependant module elements, such as codec registration
-	// and genesis verification.
-)
-
-var (
 	_ servertypes.Application = (*App)(nil)
 	_ simapp.App              = (*App)(nil)
 	_ ibctesting.TestingApp   = (*App)(nil)
+
+	// DefaultNodeHome default home directories for the application daemon
+	DefaultNodeHome string
+
+	// Upgrades contains the upgrade handlers for the application
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
 )
 
 func init() {
@@ -107,14 +100,12 @@ type App struct {
 	cdc               *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
-
-	invCheckPeriod uint
+	invCheckPeriod    uint
 
 	// keepers
 	keepers.AppKeepers
 	// the module manager
 	mm *module.Manager
-
 	// module configurator
 	configurator module.Configurator
 }
@@ -179,7 +170,7 @@ func New(
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
-	app.mm = module.NewManager(app.GetModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
+	app.mm = module.NewManager(app.SetupModules(appCodec, bApp, encodingConfig, skipGenesisInvariants)...)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -195,7 +186,6 @@ func New(
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
-
 	app.mm.RegisterInvariants(app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
