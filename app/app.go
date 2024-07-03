@@ -202,7 +202,7 @@ func New(
 
 	maxGasWanted := cast.ToUint64(appOpts.Get(flags.EVMMaxTxGasWanted))
 	anteHandler, err := ante.NewAnteHandler(ante.HandlerOptions{
-		AccountKeeper:          app.AccountKeeper,
+		AccountKeeper:          &app.AccountKeeper,
 		BankKeeper:             app.BankKeeper,
 		IBCKeeper:              app.IBCKeeper,
 		FeeMarketKeeper:        app.FeeMarketKeeper,
@@ -212,7 +212,7 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
-		RollappKeeper:          *app.RollappKeeper,
+		RollappKeeper:          app.RollappKeeper,
 	})
 	if err != nil {
 		panic(err)
