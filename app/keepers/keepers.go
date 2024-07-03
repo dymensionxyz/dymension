@@ -101,13 +101,13 @@ type AppKeepers struct {
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
 	GovKeeper                     govkeeper.Keeper
-	CrisisKeeper                  *crisiskeeper.Keeper
-	UpgradeKeeper                 *upgradekeeper.Keeper
+	CrisisKeeper                  crisiskeeper.Keeper
+	UpgradeKeeper                 upgradekeeper.Keeper
 	ParamsKeeper                  paramskeeper.Keeper
 	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	TransferStack                 ibcporttypes.IBCModule
 	ICS4Wrapper                   ibcporttypes.ICS4Wrapper
-	delayedAckMiddleware          delayedackmodule.IBCMiddleware
+	delayedAckMiddleware          *delayedackmodule.IBCMiddleware
 	EvidenceKeeper                evidencekeeper.Keeper
 	TransferKeeper                ibctransferkeeper.Keeper
 	FeeGrantKeeper                feegrantkeeper.Keeper
@@ -234,7 +234,7 @@ func (a *AppKeepers) InitNormalKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.StakingKeeper,
+		&a.StakingKeeper,
 		a.FeeMarketKeeper,
 		nil,
 		geth.NewEVM,
@@ -251,13 +251,16 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.BankKeeper,
 	)
 
-	a.EpochsKeeper = epochskeeper.NewKeeper(a.keys[epochstypes.StoreKey])
+	a.EpochsKeeper = epochskeeper.NewKeeper(
+		a.keys[epochstypes.StoreKey],
+	)
 
 	gammKeeper := gammkeeper.NewKeeper(
 		appCodec, a.keys[gammtypes.StoreKey],
 		a.GetSubspace(gammtypes.ModuleName),
 		a.AccountKeeper,
-		a.BankKeeper, a.DistrKeeper)
+		a.BankKeeper, a.DistrKeeper,
+	)
 	a.GAMMKeeper = &gammKeeper
 
 	a.PoolManagerKeeper = poolmanagerkeeper.NewKeeper(
@@ -373,7 +376,7 @@ func (a *AppKeepers) InitNormalKeepers(
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(a.ParamsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(a.DistrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(*a.UpgradeKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
 		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&a.RollappKeeper)).
@@ -422,19 +425,16 @@ func (a *AppKeepers) InitSpecialKeepers(
 	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
 
 	// grant capabilities for the ibc and ibc-transfer modules
-	scopedIBCKeeper := a.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
-	a.ScopedIBCKeeper = scopedIBCKeeper
-	scopedTransferKeeper := a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	a.ScopedTransferKeeper = scopedTransferKeeper
+	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 
 	a.CapabilityKeeper.Seal()
 
-	crisisKeeper := crisiskeeper.NewKeeper(
+	a.CrisisKeeper = crisiskeeper.NewKeeper(
 		a.GetSubspace(crisistypes.ModuleName), invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName,
 	)
-	a.CrisisKeeper = &crisisKeeper
 
-	updateKeeper := upgradekeeper.NewKeeper(
+	a.UpgradeKeeper = upgradekeeper.NewKeeper(
 		skipUpgradeHeights,
 		a.keys[upgradetypes.StoreKey],
 		appCodec,
@@ -442,7 +442,6 @@ func (a *AppKeepers) InitSpecialKeepers(
 		bApp,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
-	a.UpgradeKeeper = &updateKeeper
 }
 
 func (a *AppKeepers) InitTransferStack() {
@@ -463,7 +462,12 @@ func (a *AppKeepers) InitTransferStack() {
 	)
 
 	a.TransferStack = denommetadatamodule.NewIBCModule(a.TransferStack, a.DenomMetadataKeeper, a.RollappKeeper)
-	a.delayedAckMiddleware = delayedackmodule.NewIBCMiddleware(a.TransferStack, a.DelayedAckKeeper, a.RollappKeeper)
+	// already instantiated in SetupHooks()
+	a.delayedAckMiddleware.Setup(
+		delayedackmodule.WithIBCModule(a.TransferStack),
+		delayedackmodule.WithKeeper(a.DelayedAckKeeper),
+		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
+	)
 	a.TransferStack = a.delayedAckMiddleware
 	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
 	a.TransferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(a.TransferStack, a.RollappKeeper, a.IBCKeeper.ChannelKeeper)
@@ -527,6 +531,8 @@ func (a *AppKeepers) SetupHooks() {
 		a.DelayedAckKeeper.GetEIBCHooks(),
 	))
 
+	// dependencies injected in InitTransferStack()
+	a.delayedAckMiddleware = delayedackmodule.NewIBCMiddleware()
 	// register the rollapp hooks
 	a.RollappKeeper.SetHooks(rollappmoduletypes.NewMultiRollappHooks(
 		// insert rollapp hooks receivers here

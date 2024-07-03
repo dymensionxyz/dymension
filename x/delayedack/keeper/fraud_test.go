@@ -10,9 +10,12 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
-	transferKeeper, keeper, ctx, rollappKeeper :=
-		suite.App.TransferKeeper, suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(transferKeeper), keeper, rollappKeeper)
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(keeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 5)
@@ -48,9 +51,12 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 }
 
 func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
-	transferKeeper, keeper, ctx, rollappKeeper :=
-		suite.App.TransferKeeper, suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(transferKeeper), keeper, rollappKeeper)
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(keeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 5)

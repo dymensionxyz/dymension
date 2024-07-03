@@ -100,7 +100,6 @@ type App struct {
 	cdc               *codec.LegacyAmino
 	appCodec          codec.Codec
 	interfaceRegistry types.InterfaceRegistry
-	invCheckPeriod    uint
 
 	// keepers
 	keepers.AppKeepers
@@ -144,7 +143,6 @@ func New(
 		cdc:               cdc,
 		appCodec:          appCodec,
 		interfaceRegistry: interfaceRegistry,
-		invCheckPeriod:    invCheckPeriod,
 		AppKeepers:        keepers.AppKeepers{},
 	}
 
@@ -159,8 +157,8 @@ func New(
 
 	app.AppKeepers.InitSpecialKeepers(appCodec, bApp, cdc, invCheckPeriod, skipUpgradeHeights, homePath)
 	app.AppKeepers.InitNormalKeepers(appCodec, bApp, app.ModuleAccountAddrs(), tracer)
-	app.AppKeepers.InitTransferStack()
 	app.AppKeepers.SetupHooks()
+	app.AppKeepers.InitTransferStack()
 
 	/****  Module Options ****/
 
@@ -186,7 +184,7 @@ func New(
 	// so that other modules that want to create or claim capabilities afterwards in InitChain
 	// can do so safely.
 	app.mm.SetOrderInitGenesis(keepers.InitGenesis...)
-	app.mm.RegisterInvariants(app.CrisisKeeper)
+	app.mm.RegisterInvariants(&app.CrisisKeeper)
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
