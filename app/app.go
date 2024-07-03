@@ -27,9 +27,9 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmjson "github.com/cometbft/cometbft/libs/json"
+	cometbftjson "github.com/cometbft/cometbft/libs/json"
 	"github.com/cometbft/cometbft/libs/log"
-	tmos "github.com/cometbft/cometbft/libs/os"
+	cometbftos "github.com/cometbft/cometbft/libs/os"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cast"
 
@@ -1047,7 +1047,7 @@ func New(
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
-			tmos.Exit(err.Error())
+			cometbftos.Exit(err.Error())
 		}
 	}
 
@@ -1077,7 +1077,7 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 // InitChainer application update at chain initialization
 func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState GenesisState
-	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+	if err := cometbftjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
 	}
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())

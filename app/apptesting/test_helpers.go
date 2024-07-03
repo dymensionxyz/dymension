@@ -17,8 +17,8 @@ import (
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 
@@ -44,19 +44,19 @@ import (
 
 // DefaultConsensusParams defines the default Tendermint consensus params used in
 // SimApp testing.
-var DefaultConsensusParams = &tmproto.ConsensusParams{
-	Block: &tmproto.BlockParams{
+var DefaultConsensusParams = &cometbftproto.ConsensusParams{
+	Block: &cometbftproto.BlockParams{
 		MaxBytes: 200000,
 		MaxGas:   -1,
 	},
-	Evidence: &tmproto.EvidenceParams{
+	Evidence: &cometbftproto.EvidenceParams{
 		MaxAgeNumBlocks: 302400,
 		MaxAgeDuration:  504 * time.Hour, // 3 weeks is the max duration
 		MaxBytes:        10000,
 	},
-	Validator: &tmproto.ValidatorParams{
+	Validator: &cometbftproto.ValidatorParams{
 		PubKeyTypes: []string{
-			tmtypes.ABCIPubKeyTypeEd25519,
+			cometbfttypes.ABCIPubKeyTypeEd25519,
 		},
 	},
 }
@@ -104,8 +104,8 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 	require.NoError(t, err)
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cometbfttypes.NewValidator(pubKey, 1)
+	valSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{validator})
 
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
@@ -122,7 +122,7 @@ func Setup(t *testing.T, isCheckTx bool) *app.App {
 
 func genesisStateWithValSet(t *testing.T,
 	app *app.App, genesisState app.GenesisState,
-	valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
+	valSet *cometbfttypes.ValidatorSet, genAccs []authtypes.GenesisAccount,
 	balances ...banktypes.Balance,
 ) app.GenesisState {
 	// set genesis accounts
@@ -188,7 +188,7 @@ func genesisStateWithValSet(t *testing.T,
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
-func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
+func SetupWithGenesisValSet(t *testing.T, valSet *cometbfttypes.ValidatorSet, genAccs []authtypes.GenesisAccount, balances ...banktypes.Balance) *app.App {
 	t.Helper()
 
 	app, genesisState := SetupTestingApp()
@@ -220,8 +220,8 @@ func SetupWithGenesisAccounts(t *testing.T, genAccs []authtypes.GenesisAccount, 
 	require.NoError(t, err)
 
 	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+	validator := cometbfttypes.NewValidator(pubKey, 1)
+	valSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{validator})
 
 	return SetupWithGenesisValSet(t, valSet, genAccs, balances...)
 }
@@ -340,7 +340,7 @@ func TestAddr(addr string, bech string) (sdk.AccAddress, error) {
 
 // CheckBalance checks the balance of an account.
 func CheckBalance(t *testing.T, app *app.App, addr sdk.AccAddress, balances sdk.Coins) {
-	ctxCheck := app.BaseApp.NewContext(true, tmproto.Header{})
+	ctxCheck := app.BaseApp.NewContext(true, cometbftproto.Header{})
 	require.True(t, balances.IsEqual(app.BankKeeper.GetAllBalances(ctxCheck, addr)))
 }
 
@@ -349,7 +349,7 @@ func CheckBalance(t *testing.T, app *app.App, addr sdk.AccAddress, balances sdk.
 // the parameter 'expPass' against the result. A corresponding result is
 // returned.
 func SignCheckDeliver(
-	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
+	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header cometbftproto.Header, msgs []sdk.Msg,
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 	tx, err := simapp.GenSignedMockTx(

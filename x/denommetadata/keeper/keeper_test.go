@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	errorsmod "cosmossdk.io/errors"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
@@ -22,7 +22,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	suite.App = app
 	suite.Ctx = ctx

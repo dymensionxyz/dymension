@@ -7,7 +7,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/eibc/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -64,7 +64,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(app.EIBCKeeper))
 	queryClient := types.NewQueryClient(queryHelper)

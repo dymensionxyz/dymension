@@ -15,8 +15,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 
 	dbm "github.com/cometbft/cometbft-db"
-	tmcfg "github.com/cometbft/cometbft/config"
-	tmcli "github.com/cometbft/cometbft/libs/cli"
+	cometbftcfg "github.com/cometbft/cometbft/config"
+	cometbftcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cometbft/cometbft/libs/log"
 	sdkserver "github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -95,8 +95,8 @@ ______   __   __  __   __  _______  __    _  _______  ___   _______  __    _    
 
 // initTendermintConfig helps to override default Tendermint Config values.
 // return tmcfg.DefaultConfig if no custom configuration is required for the application.
-func initTendermintConfig() *tmcfg.Config {
-	cfg := tmcfg.DefaultConfig()
+func initTendermintConfig() *cometbftcfg.Config {
+	cfg := cometbftcfg.DefaultConfig()
 
 	// these values put a higher strain on node memory
 	// cfg.P2P.MaxNumInboundPeers = 100
@@ -126,7 +126,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig appparams.EncodingConfig
 			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		),
 		genutilcli.GenesisCoreCommand(encodingConfig.TxConfig, app.ModuleBasics, app.DefaultNodeHome),
-		tmcli.NewCompletionCmd(rootCmd, true),
+		cometbftcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
 		config.Cmd(),
 		pruning.PruningCmd(a.newApp),

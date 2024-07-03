@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -50,7 +50,7 @@ type RollappTestSuite struct {
 
 func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	suite.Require().NoError(err)

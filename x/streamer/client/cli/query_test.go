@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/stretchr/testify/suite"
 
@@ -48,7 +48,7 @@ func (suite *QueryTestSuite) CreateDefaultStream(coins sdk.Coins) (uint64, *type
 
 func (suite *QueryTestSuite) SetupSuite() {
 	suite.App = apptesting.Setup(suite.T(), false)
-	suite.Ctx = suite.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 	streamerCoins := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(2500)), sdk.NewCoin("udym", sdk.NewInt(2500)))
 	suite.FundModuleAcc(types.ModuleName, streamerCoins)
 	suite.queryClient = types.NewQueryClient(&baseapp.QueryServiceTestHelper{

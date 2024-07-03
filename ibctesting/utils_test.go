@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"testing"
 
-	tmtypes "github.com/cometbft/cometbft/types"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -268,18 +268,18 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 
 	senderAccs = append(senderAccs, senderAcc)
 
-	var validators []*tmtypes.Validator
-	signersByAddress := make(map[string]tmtypes.PrivValidator, 1)
+	var validators []*cometbfttypes.Validator
+	signersByAddress := make(map[string]cometbfttypes.PrivValidator, 1)
 
-	validators = append(validators, tmtypes.NewValidator(valPubKey, 1))
+	validators = append(validators, cometbfttypes.NewValidator(valPubKey, 1))
 
 	signersByAddress[valPubKey.Address().String()] = valPrivKey
-	valSet := tmtypes.NewValidatorSet(validators)
+	valSet := cometbfttypes.NewValidatorSet(validators)
 
 	app := ibctesting.SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
-	header := tmproto.Header{
+	header := cometbftproto.Header{
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),
