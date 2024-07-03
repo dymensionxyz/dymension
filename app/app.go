@@ -159,8 +159,8 @@ func New(
 
 	app.AppKeepers.InitSpecialKeepers(appCodec, bApp, cdc, invCheckPeriod, skipUpgradeHeights, homePath)
 	app.AppKeepers.InitNormalKeepers(appCodec, bApp, app.ModuleAccountAddrs(), tracer)
-	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
+	app.AppKeepers.SetupHooks()
 
 	/****  Module Options ****/
 

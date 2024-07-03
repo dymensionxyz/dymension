@@ -328,6 +328,7 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.keys[rollappmoduletypes.StoreKey],
 		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
+		a.IBCKeeper.ClientKeeper,
 	)
 
 	// Create Transfer Keepers
@@ -359,7 +360,7 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.RollappKeeper,
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ChannelKeeper,
-		a.EIBCKeeper,
+		&a.EIBCKeeper,
 	)
 
 	a.EIBCKeeper.SetDelayedAckKeeper(a.DelayedAckKeeper)
