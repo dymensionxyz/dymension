@@ -1,4 +1,4 @@
-package v3_2
+package v4
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,7 +10,7 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
-// CreateUpgradeHandler creates an SDK upgrade handler for v3.2
+// CreateUpgradeHandler creates an SDK upgrade handler for v4
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,

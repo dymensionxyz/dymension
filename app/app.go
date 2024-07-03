@@ -12,7 +12,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
-	v3_2 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3.2"
+	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -226,7 +226,7 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
-	Upgrades = []upgrades.Upgrade{v3.Upgrade, v3_2.Upgrade}
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
