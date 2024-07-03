@@ -3,10 +3,36 @@ package keepers
 import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
+	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+	poolmanagertypes "github.com/osmosis-labs/osmosis/v15/x/poolmanager/types"
+	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
+
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
+	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencermoduletypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	streamermoduletypes "github.com/dymensionxyz/dymension/v3/x/streamer/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -62,4 +88,71 @@ func (a *AppKeepers) GetTKey(storeKey string) *storetypes.TransientStoreKey {
 // NOTE: This is solely used for testing purposes.
 func (a *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return a.memKeys[storeKey]
+}
+
+// ModuleAccountAddrs returns all the app's module account addresses.
+func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
+	modAccAddrs := make(map[string]bool)
+	for acc := range maccPerms {
+		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
+	}
+
+	// exclude the streamer as we want him to be able to get external incentives
+	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
+	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
+	return modAccAddrs
+}
+
+var KVStoreKeys = sdk.NewKVStoreKeys(
+	authtypes.StoreKey,
+	authzkeeper.StoreKey,
+	banktypes.StoreKey,
+	stakingtypes.StoreKey,
+	minttypes.StoreKey,
+	distrtypes.StoreKey,
+	slashingtypes.StoreKey,
+	govtypes.StoreKey,
+	paramstypes.StoreKey,
+	ibchost.StoreKey,
+	upgradetypes.StoreKey,
+	feegrant.StoreKey,
+	evidencetypes.StoreKey,
+	ibctransfertypes.StoreKey,
+	capabilitytypes.StoreKey,
+	rollappmoduletypes.StoreKey,
+	sequencermoduletypes.StoreKey,
+	streamermoduletypes.StoreKey,
+	packetforwardtypes.StoreKey,
+	delayedacktypes.StoreKey,
+	eibcmoduletypes.StoreKey,
+	// ethermint keys
+	evmtypes.StoreKey,
+	feemarkettypes.StoreKey,
+	// osmosis keys
+	lockuptypes.StoreKey,
+	epochstypes.StoreKey,
+	gammtypes.StoreKey,
+	poolmanagertypes.StoreKey,
+	incentivestypes.StoreKey,
+	txfeestypes.StoreKey,
+)
+
+// module account permissions
+var maccPerms = map[string][]string{
+	authtypes.FeeCollectorName:                         nil,
+	distrtypes.ModuleName:                              nil,
+	minttypes.ModuleName:                               {authtypes.Minter},
+	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
+	govtypes.ModuleName:                                {authtypes.Burner},
+	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
+	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+	rollappmoduletypes.ModuleName:                      {},
+	streamermoduletypes.ModuleName:                     nil,
+	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
+	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
+	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
+	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
+	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
+	txfeestypes.ModuleName:                             {authtypes.Burner},
 }

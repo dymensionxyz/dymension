@@ -147,7 +147,6 @@ type AppKeepers struct {
 func (a *AppKeepers) InitNormalKeepers(
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,
-	maccPerms map[string][]string,
 	moduleAccountAddrs map[string]bool,
 	tracer string,
 ) {
@@ -398,7 +397,6 @@ func (a *AppKeepers) InitSpecialKeepers(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 ) {
-
 	paramsKeeper := initParamsKeeper(appCodec, cdc, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
 	a.ParamsKeeper = &paramsKeeper
 	// set the BaseApp's parameter store
@@ -459,7 +457,6 @@ func (a *AppKeepers) InitTransferStack() {
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, a.TransferStack)
 	// this line is used by starport scaffolding # ibc/app/router
 	a.IBCKeeper.SetRouter(ibcRouter)
-
 }
 
 func (a *AppKeepers) SetupHooks() {
@@ -543,7 +540,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
@@ -558,37 +554,3 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 
 	return paramsKeeper
 }
-
-var KVStoreKeys = sdk.NewKVStoreKeys(
-	authtypes.StoreKey,
-	authzkeeper.StoreKey,
-	banktypes.StoreKey,
-	stakingtypes.StoreKey,
-	minttypes.StoreKey,
-	distrtypes.StoreKey,
-	slashingtypes.StoreKey,
-	govtypes.StoreKey,
-	paramstypes.StoreKey,
-	ibchost.StoreKey,
-	upgradetypes.StoreKey,
-	feegrant.StoreKey,
-	evidencetypes.StoreKey,
-	ibctransfertypes.StoreKey,
-	capabilitytypes.StoreKey,
-	rollappmoduletypes.StoreKey,
-	sequencermoduletypes.StoreKey,
-	streamermoduletypes.StoreKey,
-	packetforwardtypes.StoreKey,
-	delayedacktypes.StoreKey,
-	eibcmoduletypes.StoreKey,
-	// ethermint keys
-	evmtypes.StoreKey,
-	feemarkettypes.StoreKey,
-	// osmosis keys
-	lockuptypes.StoreKey,
-	epochstypes.StoreKey,
-	gammtypes.StoreKey,
-	poolmanagertypes.StoreKey,
-	incentivestypes.StoreKey,
-	txfeestypes.StoreKey,
-)

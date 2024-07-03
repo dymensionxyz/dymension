@@ -31,11 +31,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketBatchSize int) Params {
+func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketBatchSize int32) Params {
 	return Params{
 		EpochIdentifier:       epochIdentifier,
 		BridgingFee:           bridgingFee,
-		DeletePacketBatchSize: int32(deletePacketBatchSize),
+		DeletePacketBatchSize: deletePacketBatchSize,
 	}
 }
 
