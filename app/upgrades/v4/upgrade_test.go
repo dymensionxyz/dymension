@@ -1,4 +1,4 @@
-package v3_2_test
+package v4_test
 
 import (
 	"fmt"
@@ -54,7 +54,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			func() {
 				// Run upgrade
 				s.Ctx = s.Ctx.WithBlockHeight(dummyUpgradeHeight - 1)
-				plan := upgradetypes.Plan{Name: "v3.2", Height: dummyUpgradeHeight}
+				plan := upgradetypes.Plan{Name: "v4", Height: dummyUpgradeHeight}
 				err := s.App.UpgradeKeeper.ScheduleUpgrade(s.Ctx, plan)
 				s.Require().NoError(err)
 				_, exists := s.App.UpgradeKeeper.GetUpgradePlan(s.Ctx)
