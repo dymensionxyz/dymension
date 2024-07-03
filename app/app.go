@@ -610,7 +610,7 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
