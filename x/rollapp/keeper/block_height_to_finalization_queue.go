@@ -30,11 +30,14 @@ func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 		// finalize pending states
 		rollappsToRemoveFromQueue := make([]string, 0, len(blockHeightToFinalizationQueue.FinalizationQueue))
 		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
+			// if this fails, no state change will happen
 			err := osmoutils.ApplyFuncIfNoError(ctx,
 				func(ctx sdk.Context) error {
 					return k.finalizePendingState(ctx, stateInfoIndex)
 				})
 			if err != nil {
+				// if a rollapp's state fails to finalize, move on (state index will stay in the queue)
+				// TODO: think about (non)recoverable errors and how to handle them accordingly
 				k.Logger(ctx).Error("failed to finalize state", "rollapp", stateInfoIndex.RollappId, "index", stateInfoIndex.Index, "error", err.Error())
 				continue
 			}
