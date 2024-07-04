@@ -72,7 +72,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 
 	// Get batch of rollapp packets with status != PENDING and delete them
 	for toDeletePackets := e.ListRollappPackets(ctx, listFilter); len(toDeletePackets) > 0; toDeletePackets = e.ListRollappPackets(ctx, listFilter) {
-		e.Logger(ctx).Debug("deleting rollapp packets", "num_packets", len(toDeletePackets))
+		e.Logger(ctx).Debug("Deleting rollapp packets", "num_packets", len(toDeletePackets))
 
 		for _, packet := range toDeletePackets {
 			// copy 'packet' not needed since Go 1.22
