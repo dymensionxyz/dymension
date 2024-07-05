@@ -4,30 +4,22 @@ import (
 	"testing"
 	"time"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
 	ibctmtypes "github.com/cosmos/ibc-go/v6/modules/light-clients/07-tendermint/types"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmprotoversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/types"
+	tmversion "github.com/tendermint/tendermint/version"
 	"pgregory.net/rapid"
 )
-
-func getTMHeader() *ibctmtypes.Header {
-	valset := types.ValidatorSet{
-		Validators: nil,
-		Proposer:   nil,
-	}
-	return &ibctmtypes.Header{}
-}
-
-type CreateClient struct {
-	clientState    exported.ClientState
-	consensusState exported.ConsensusState
-}
 
 const (
 	chainID                      = "chainid"
@@ -39,7 +31,12 @@ const (
 
 var upgradePath = []string{"upgrade", "upgradedIBCState"}
 
-func getCreateClient() CreateClient {
+type CreateClient struct {
+	clientState    exported.ClientState
+	consensusState exported.ConsensusState
+}
+
+func makeCreateClient() CreateClient {
 	t := time.Now()
 	root := commitmenttypes.NewMerkleRoot([]byte("hash"))
 	valset := types.ValidatorSet{
@@ -66,7 +63,77 @@ type UpdateClient struct {
 	header   exported.Header
 }
 
-func getUpdateClient() UpdateClient {
+func getTMHeader() *ibctmtypes.Header {
+	var blockHeight int64
+	var timestamp time.Time
+	var commitID storetypes.CommitID
+	var signers map[string]types.PrivValidator
+	var tmValSet *types.ValidatorSet
+	var nextVals *types.ValidatorSet
+	var tmTrustedVals *types.ValidatorSet
+	var appHeader tmproto.Header
+
+	vsetHash := tmValSet.Hash()
+	nextValHash := nextVals.Hash()
+
+	tmHeader := types.Header{
+		Version:            tmprotoversion.Consensus{Block: tmversion.BlockProtocol, App: 2},
+		ChainID:            chainID,
+		Height:             blockHeight,
+		Time:               timestamp,
+		LastBlockID:        ibctesting.MakeBlockID(make([]byte, tmhash.Size), 10_000, make([]byte, tmhash.Size)),
+		LastCommitHash:     commitID.Hash,
+		DataHash:           tmhash.Sum([]byte("data_hash")),
+		ValidatorsHash:     vsetHash,
+		NextValidatorsHash: nextValHash,
+		ConsensusHash:      tmhash.Sum([]byte("consensus_hash")),
+		AppHash:            appHeader.AppHash,
+		LastResultsHash:    tmhash.Sum([]byte("last_results_hash")),
+		EvidenceHash:       tmhash.Sum([]byte("evidence_hash")),
+		ProposerAddress:    tmValSet.Proposer.Address, //nolint:staticcheck
+	}
+
+	hhash := tmHeader.Hash()
+	blockID := ibctesting.MakeBlockID(hhash, 3, tmhash.Sum([]byte("part_set")))
+	voteSet := types.NewVoteSet(chainID, blockHeight, 1, tmproto.PrecommitType, tmValSet)
+
+	// MakeCommit expects a signer array in the same order as the validator array.
+	// Thus we iterate over the ordered validator set and construct a signer array
+	// from the signer map in the same order.
+	var signerArr []types.PrivValidator     //nolint:prealloc // using prealloc here would be needlessly complex
+	for _, v := range tmValSet.Validators { //nolint:staticcheck // need to check for nil validator set
+		signerArr = append(signerArr, signers[v.Address.String()])
+	}
+	commit, err := types.MakeCommit(blockID, blockHeight, 1, voteSet, signerArr, timestamp)
+
+	signedHeader := &tmproto.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: commit.ToProto(),
+	}
+	valset := types.ValidatorSet{
+		Validators: nil,
+		Proposer:   nil,
+	}
+	trustedHeight := clienttypes.Height{
+		RevisionNumber: 0,
+		RevisionHeight: 0,
+	}
+	trustedValidator := types.ValidatorSet{
+		Validators: nil,
+		Proposer:   nil,
+	}
+
+	valsetProto, _ := valset.ToProto()
+	trustedValidatorProto, _ := trustedValidator.ToProto()
+	return &ibctmtypes.Header{
+		ValidatorSet:      valsetProto,
+		SignedHeader:      signedHeader,
+		TrustedHeight:     trustedHeight,
+		TrustedValidators: trustedValidatorProto,
+	}
+}
+
+func makeUpdateClient() UpdateClient {
 	header := getTMHeader()
 	return UpdateClient{clientID: clientID, header: header}
 }
