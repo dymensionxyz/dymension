@@ -48,6 +48,10 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
 	}
 
+	/*
+		TODO: need to test client freezing
+	*/
+
 	// finalize some of the states
 	err = suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx.WithBlockHeight(20))
 	suite.Require().Nil(err)

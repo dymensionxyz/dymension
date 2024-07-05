@@ -3,9 +3,11 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // SetStateInfo set a specific stateInfo in the store from its index
@@ -36,15 +38,16 @@ func (k Keeper) GetStateInfo(
 	return val, true
 }
 
-// GetLatestStateInfo is utility
-func (k Keeper) GetLatestStateInfo(ctx sdk.Context,
-	rollappId string,
+// GetLatestStateInfo returns a stateInfo from the latest index
+func (k Keeper) GetLatestStateInfo(
+	ctx sdk.Context,
+	rollappID string,
 ) (types.StateInfo, bool) {
-	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
+	stateInfoIndex, ok := k.GetLatestStateInfoIndex(ctx, rollappID)
 	if !ok {
 		return types.StateInfo{}, false
 	}
-	return k.GetStateInfo(ctx, rollappId, ix.GetIndex())
+	return k.GetStateInfo(ctx, rollappID, stateInfoIndex.Index)
 }
 
 func (k Keeper) MustGetStateInfo(ctx sdk.Context,
@@ -84,4 +87,40 @@ func (k Keeper) GetAllStateInfo(ctx sdk.Context) (list []types.StateInfo) {
 	}
 
 	return
+}
+
+func (k Keeper) FindStateInfoByHeight(ctx sdk.Context, rollappId string, height uint64) (*types.StateInfo, error) {
+	// TODO: check for height = 0?
+
+	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
+	if !ok {
+		return nil, errorsmod.Wrap(gerrc.ErrNotFound, "get latest state info index")
+	}
+
+	lowIx := uint64(1) // TODO: explain why 1
+	highIx := ix.GetIndex()
+	for lowIx <= highIx {
+		midIX := lowIx + ((highIx - lowIx) / 2)
+		state, ok := k.GetStateInfo(ctx, rollappId, midIX)
+		if !ok {
+			return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "get state info: ix: %d", midIX)
+		}
+		if state.ContainsHeight(height) {
+			return &state, nil
+		}
+		if height < state.GetStartHeight() {
+			highIx = midIX - 1
+		} else {
+			lowIx = midIX + 1
+		}
+	}
+	return nil, errorsmod.Wrap(gerrc.ErrNotFound, "exhausted binary search")
+}
+
+func (k Keeper) FindBlockDescriptorByHeight(ctx sdk.Context, rollappId string, height uint64) (types.BlockDescriptor, error) {
+	s, err := k.FindStateInfoByHeight(ctx, rollappId, height)
+	if err != nil {
+		return types.BlockDescriptor{}, errorsmod.Wrap(err, "find state info by height")
+	}
+	return s.BlockDescriptor(height)
 }
