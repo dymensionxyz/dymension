@@ -22,11 +22,11 @@ import (
 )
 
 const (
-	chainID                      = "chainid"
-	clientID                     = "clientid"
-	trustingPeriod time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod      time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift  time.Duration = time.Second * 10
+	chainID        = "chainid"
+	clientID       = "clientid"
+	trustingPeriod = time.Hour * 24 * 7 * 2
+	ubdPeriod      = time.Hour * 24 * 7 * 3
+	maxClockDrift  = time.Second * 10
 )
 
 var upgradePath = []string{"upgrade", "upgradedIBCState"}
@@ -64,6 +64,14 @@ type UpdateClient struct {
 }
 
 func getTMHeader() *ibctmtypes.Header {
+	/*
+			TODO: correspond with https://github.com/cosmos/ibc-go/blob/370b533d6d08f40036faddba29088df5c0e83790/testing/chain.go#L448
+
+		Where was I at?
+		I'd done quite a bit of research, I was trying to rapid test this
+		First I should get a good idea of what I'm testing, then adapt the methods to help
+	*/
+
 	var blockHeight int64
 	var timestamp time.Time
 	var commitID storetypes.CommitID
