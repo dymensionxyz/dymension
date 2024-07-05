@@ -371,8 +371,8 @@ func (app *App) setupUpgradeHandlers() {
 
 func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		upgrade.UpgradeName,
-		upgrade.CreateUpgradeHandler(
+		upgrade.Name,
+		upgrade.CreateHandler(
 			app.mm,
 			app.configurator,
 			app.BaseApp,
@@ -393,7 +393,7 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	// do nothing
 	}
 
-	if upgradeInfo.Name == upgrade.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrade.Name && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		// configure store loader with the store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
