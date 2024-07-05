@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	clientkeeper "github.com/cosmos/ibc-go/v6/modules/core/02-client/keeper"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	commitmenttypes "github.com/cosmos/ibc-go/v6/modules/core/23-commitment/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
@@ -28,13 +30,11 @@ type CreateClient struct {
 }
 
 const (
-	chainID                        = "gaia"
-	chainIDRevision0               = "gaia-revision-0"
-	chainIDRevision1               = "gaia-revision-1"
-	clientID                       = "gaiamainnet"
-	trustingPeriod   time.Duration = time.Hour * 24 * 7 * 2
-	ubdPeriod        time.Duration = time.Hour * 24 * 7 * 3
-	maxClockDrift    time.Duration = time.Second * 10
+	chainID                      = "chainid"
+	clientID                     = "clientid"
+	trustingPeriod time.Duration = time.Hour * 24 * 7 * 2
+	ubdPeriod      time.Duration = time.Hour * 24 * 7 * 3
+	maxClockDrift  time.Duration = time.Second * 10
 )
 
 var upgradePath = []string{"upgrade", "upgradedIBCState"}
@@ -49,7 +49,7 @@ func getCreateClient() CreateClient {
 	valHash := valset.Hash()
 	consState := ibctmtypes.NewConsensusState(t, root, valHash)
 	clientState := ibctmtypes.NewClientState(
-		"chainid",
+		chainID,
 		ibctmtypes.DefaultTrustLevel,
 		trustingPeriod,
 		ubdPeriod,
@@ -67,26 +67,40 @@ type UpdateClient struct {
 }
 
 func getUpdateClient() UpdateClient {
-	clientID := "clientid"
 	header := getTMHeader()
 	return UpdateClient{clientID: clientID, header: header}
-}
-
-func TestFoo(t *testing.T) {
-	app := simapp.Setup(false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "chainid", Time: time.Now()})
-	k := app.IBCKeeper.ClientKeeper
-
-	k.CreateClient(ctx)
-
-	k.UpdateClient()
 }
 
 /*
 TODO: what am I testing?
 I just want to see if the whole thing basically works?
 */
-type Model struct{}
+type Model struct {
+	app *simapp.SimApp
+}
+
+func (m *Model) ctx() sdk.Context {
+	ctx := m.app.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: chainID, Time: time.Now()})
+	return ctx
+}
+
+func (m *Model) createClient(x CreateClient) {
+	m.clientKeeper().CreateClient(m.ctx(), x.clientState, x.consensusState)
+}
+
+func (m *Model) updateClient(x UpdateClient) {
+	m.clientKeeper().UpdateClient(m.ctx(), x.clientID, x.header)
+}
+
+func (m *Model) clientKeeper() clientkeeper.Keeper {
+	return m.app.IBCKeeper.ClientKeeper
+}
+
+func TestFoo(t *testing.T) {
+	app := simapp.Setup(false)
+	m := &Model{app: app}
+	_ = m
+}
 
 // go test ./x/lightclient/... -v -run=TestRapid -rapid.checks=10000 -rapid.steps=50
 func TestRapid(t *testing.T) {
