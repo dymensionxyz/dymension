@@ -17,31 +17,39 @@ message RollappGenesisState {
   bool transfers_enabled = 2;
 }
 
-// Rollapp defines a rollapp object. First the RollApp is created and then
+// Rollapp defines a rollapp object. First, the RollApp is created and then
 // sequencers can be created and attached. The RollApp is identified by rollappId
 message Rollapp {
   // The unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id.
-  string rollappId = 1;
+  // The rollapp_id follows the same standard as cosmos chain_id.
+  string rollapp_id = 1;
   // creator is the bech32-encoded address of the rollapp creator.
   string creator = 2;
+  // initial_sequencer_address is a bech32-encoded address of the
+  // sequencer that is allowed to initially serve this rollappId.
+  string initial_sequencer_address = 3;
+  // genesis doc identifier
+  GenesisInfo genesis_info = 4;
+  // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
+  RollappGenesisState genesis_state = 5 [(gogoproto.nullable) = false];
+  // channel_id will be set to the canonical IBC channel of the rollapp.
+  string channel_id = 6;
+  // frozen is a boolean that indicates if the rollapp is frozen.
+  bool frozen = 7;
+  // unique bech32 prefix
+  string bech32_prefix = 8;
+  // registered_denoms is a list of registered denom bases on this rollapp
+  repeated string registered_denoms = 9;
   // version is the software and configuration version.
   // starts from 1 and increases by one on every MsgUpdateState
-  uint64 version = 3;
-  // maxSequencers is the maximum number of sequencers.
-  uint64 maxSequencers = 4;
-  // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
-  // In the case of an empty list, the rollapp is considered permissionless.
-  repeated string permissionedAddresses = 5;
-  reserved 6;
-  // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
-  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
-  // channel_id will be set to the canonical IBC channel of the rollapp.
-  string channel_id = 8;
-  // frozen is a boolean that indicates if the rollapp is frozen.
-  bool frozen = 9;
-  // registeredDenoms is a list of registered denom bases on this rollapp
-  repeated string registeredDenoms = 10;
+  uint64 version = 10;
+}
+
+message GenesisInfo {
+  // one or more urls where the genesis file can be obtained
+  repeated string genesis_urls = 1;
+  // checksum used to verify integrity
+  string genesis_checksum  = 2;
 }
 
 // Rollapp summary is a compact representation of Rollapp

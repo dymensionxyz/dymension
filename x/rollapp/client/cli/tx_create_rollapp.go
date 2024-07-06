@@ -7,9 +7,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -21,29 +21,33 @@ type PermissionedAddresses struct {
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [max-sequencers] [permissioned-addresses] [metadata.json]",
+		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [metadata.json]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID 10 '{\"Addresses\":[]}' metadata.json",
-		Args:    cobra.ExactArgs(3),
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm metadata.json",
+		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
-			argMaxSequencers, err := cast.ToUint64E(args[1])
-			if err != nil {
-				return err
-			}
-			var argPermissionedAddresses PermissionedAddresses
-			err = json.Unmarshal([]byte(args[2]), &argPermissionedAddresses)
-			if err != nil {
-				return err
-			}
+			argInitSequencerAddress := args[1]
+			argBech32Prefix := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgCreateRollapp(clientCtx.GetFromAddress().String(), argRollappId, argMaxSequencers, argPermissionedAddresses.Addresses)
+			genesisInfo := new(types.GenesisInfo)
+			if err := json.Unmarshal([]byte(args[3]), genesisInfo); err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateRollapp(
+				clientCtx.GetFromAddress().String(),
+				argRollappId,
+				argInitSequencerAddress,
+				argBech32Prefix,
+				genesisInfo,
+			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},

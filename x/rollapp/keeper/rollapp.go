@@ -3,10 +3,88 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
+
+func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
+	if !k.RollappsEnabled(ctx) {
+		return types.ErrRollappsDisabled
+	}
+
+	if err := rollapp.ValidateBasic(); err != nil {
+		return fmt.Errorf("validate rollapp: %w", err)
+	}
+
+	err := k.checkIfRollappExists(ctx, rollapp.RollappId)
+	if err != nil {
+		return fmt.Errorf("check if rollapp exists: %w", err)
+	}
+
+	err = k.checkIfInitialSequencerAddressTaken(ctx, rollapp.InitialSequencerAddress)
+	if err != nil {
+		return fmt.Errorf("check if initial sequencer address taken: %w", err)
+	}
+
+	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
+	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
+
+	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
+		return fmt.Errorf("send coins from account to module: %w", err)
+	}
+
+	if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {
+		return fmt.Errorf("burn coins: %w", err)
+	}
+
+	k.SetRollapp(ctx, rollapp)
+
+	return nil
+}
+
+func (k Keeper) checkIfRollappExists(ctx sdk.Context, id string) error {
+	rollappId, err := types.NewChainID(id)
+	if err != nil {
+		return err
+	}
+	// check to see if the RollappId has been registered before
+	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
+		return types.ErrRollappExists
+	}
+	if !rollappId.IsEIP155() {
+		return nil
+	}
+	// check to see if the RollappId has been registered before with same key
+	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
+	// allow replacing EIP155 only when forking (previous rollapp is frozen)
+	if !isFound {
+		return nil
+	}
+	if !existingRollapp.Frozen {
+		return types.ErrRollappExists
+	}
+	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
+
+	if rollappId.GetName() != existingRollappChainId.GetName() {
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
+	}
+
+	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
+	if rollappId.GetRevisionNumber() != nextRevisionNumber {
+		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
+	}
+	return nil
+}
+
+func (k Keeper) checkIfInitialSequencerAddressTaken(ctx sdk.Context, address string) error {
+	if _, isFound := k.GetRollappByInitialSequencerAddress(ctx, address); isFound {
+		return types.ErrInitialSequencerAddressTaken
+	}
+	return nil
+}
 
 // SetRollapp set a specific rollapp in the store from its index
 func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
@@ -45,6 +123,21 @@ func (k Keeper) GetRollappByEIP155(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+func (k Keeper) GetRollappByInitialSequencerAddress(ctx sdk.Context, address string) (types.Rollapp, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Rollapp
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.InitialSequencerAddress == address {
+			return val, true
+		}
+	}
+	return types.Rollapp{}, false
 }
 
 // GetRollapp returns a rollapp from its chain name

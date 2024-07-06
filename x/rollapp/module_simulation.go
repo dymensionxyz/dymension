@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollappsimulation "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -65,9 +66,9 @@ func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
 				return string(types.Amino.MustMarshalJSON(rollappParams.DisputePeriodInBlocks))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDeployerWhitelist),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRegistrationFee),
 			func(r *rand.Rand) string {
-				return fmt.Sprintf("%v", []string{})
+				return fmt.Sprintf("%v", "100DYM")
 			},
 		),
 	}

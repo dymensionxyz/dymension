@@ -20,22 +20,19 @@ message MsgCreateRollapp {
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id
-  string rollappId = 2;// [(gogoproto.customname) = "ChainID"];
-  // maxSequencers is the maximum number of sequencers
-  uint64 maxSequencers = 6;
-  // permissionedAddresses is a bech32-encoded address list of the 
-  // sequencers that are allowed to serve this rollappId.
-  // In the case of an empty list, the rollapp is considered permissionless
-  repeated string permissionedAddresses = 7;
-  reserved 8;
-  reserved 9;
-  reserved 10;
+  // The rollapp_id follows the same standard as cosmos chain_id
+  string rollapp_id = 2;
+  // initial_sequencer_address is a bech32-encoded address of the
+  // sequencer that is allowed to initially serve this rollappId.
+  string initial_sequencer_address = 3;
+  // the unique rollapp address bech32 prefix.
+  string bech32_prefix = 4;
+  // genesis doc identifier
+  GenesisInfo genesis_info = 5;
 }
 
 message MsgCreateRollappResponse {
 }
-
 
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)

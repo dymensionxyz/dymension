@@ -2,14 +2,9 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
-
-message DeployerParams {
-  // address is a bech32-encoded address of the 
-  // accounts that are allowed to create a rollapp.  
-  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
-}
 
 // Params defines the parameters for the module.
 message Params {
@@ -21,12 +16,10 @@ message Params {
   uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
-  // deployer_whitelist is a list of the
-  // accounts that are allowed to create a rollapp and maximum number of rollapps.
-  // In the case of an empty list, there are no restrictions
-  repeated DeployerParams deployer_whitelist = 2
-      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" , (gogoproto.nullable) = false];
-
-  bool rollapps_enabled = 3
+  bool rollapps_enabled = 2
       [ (gogoproto.moretags) = "yaml:\"rollapps_enabled\"" ];
+
+  // registration_fee is the fee that is required to register a rollapp
+  cosmos.base.v1beta1.Coin registration_fee = 3
+      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"registration_fee\"" ];
 }

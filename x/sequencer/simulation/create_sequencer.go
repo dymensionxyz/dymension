@@ -46,19 +46,7 @@ func SimulateMsgCreateSequencer(
 			Description:  types.Description{},
 		}
 
-		bNotPermissioned := false
-		if !bFailNoRollapp && len(rollapp.PermissionedAddresses) > 0 {
-			// check whether or not to fail the transaction because of permissioned sequencer
-			bNotPermissioned = true
-			for _, item := range rollapp.PermissionedAddresses {
-				if item == seqAddress {
-					bNotPermissioned = false
-					break
-				}
-			}
-		}
-
-		bExpectedError := bFailNoRollapp || bNotPermissioned
+		bExpectedError := bFailNoRollapp
 
 		// count how many sequencers already attached to this rollapp
 		rollappSeqNum := uint64(0)
@@ -76,9 +64,7 @@ func SimulateMsgCreateSequencer(
 			}
 		}
 
-		bMaxSequencersFailure := rollapp.MaxSequencers <= rollappSeqNum
-
-		bExpectedError = bExpectedError || bAlreadyExists || bMaxSequencersFailure
+		bExpectedError = bExpectedError || bAlreadyExists
 
 		if !bExpectedError {
 			sequencer := simulationtypes.SimSequencer{

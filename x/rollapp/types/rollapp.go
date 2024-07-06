@@ -1,16 +1,26 @@
 package types
 
 import (
+	"net/url"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
+func NewRollapp(
+	creator,
+	rollappId,
+	initSequencerAddress,
+	bech32Prefix string,
+	genesisInfo *GenesisInfo,
+	transfersEnabled bool,
+) Rollapp {
 	ret := Rollapp{
-		RollappId:             rollappId,
-		Creator:               creator,
-		MaxSequencers:         maxSequencers,
-		PermissionedAddresses: permissionedAddresses,
+		RollappId:               rollappId,
+		Creator:                 creator,
+		InitialSequencerAddress: initSequencerAddress,
+		GenesisInfo:             genesisInfo,
+		Bech32Prefix:            bech32Prefix,
 	}
 	ret.GenesisState.TransfersEnabled = transfersEnabled
 	return ret
@@ -28,30 +38,49 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
-	if r.MaxSequencers > MaxAllowedSequencers {
-		return errorsmod.Wrapf(ErrInvalidMaxSequencers, "max sequencers: %d, max sequencers allowed: %d", r.GetMaxSequencers(), MaxAllowedSequencers)
-	}
-	if uint64(len(r.PermissionedAddresses)) > r.GetMaxSequencers() {
-		return errorsmod.Wrapf(ErrTooManyPermissionedAddresses, "permissioned addresses: %d, max sequencers: %d", len(r.PermissionedAddresses), r.GetMaxSequencers())
+	if r.InitialSequencerAddress == "" {
+		return errorsmod.Wrap(ErrEmptyInitialSequencerAddress, "InitialSequencerAddress")
 	}
 
-	// verifies that there's no duplicate address in PermissionedAddresses
-	// and addresses are in Bech32 format
-	permissionedAddresses := r.GetPermissionedAddresses()
-	if len(permissionedAddresses) > 0 {
-		duplicateAddresses := make(map[string]bool)
-		for _, item := range permissionedAddresses {
-			// check if the item/element exist in the duplicateAddresses map
-			_, exist := duplicateAddresses[item]
-			if exist {
-				return errorsmod.Wrapf(ErrPermissionedAddressesDuplicate, "address: %s", item)
-			}
-			// check Bech32 format
-			if _, err := sdk.AccAddressFromBech32(item); err != nil {
-				return errorsmod.Wrapf(ErrInvalidPermissionedAddress, "%s", err)
-			}
-			// mark as exist
-			duplicateAddresses[item] = true
+	// validate Bech32Prefix
+	if _, err := sdk.AccAddressFromBech32(r.Bech32Prefix); err != nil {
+		return errorsmod.Wrap(err, ErrInvalidBech32Prefix.Error())
+	}
+
+	// validate GenesisInfo
+	if r.GenesisInfo == nil {
+		return errorsmod.Wrap(ErrNilGenesisInfo, "GenesisInfo")
+	}
+
+	// validate GenesisChecksum
+	if r.GenesisInfo.GenesisChecksum == "" {
+		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
+	}
+
+	// validate GenesisURLs
+	if len(r.GenesisInfo.GenesisUrls) == 0 {
+		return errorsmod.Wrap(ErrEmptyGenesisURLs, "GenesisURLs")
+	}
+
+	return nil
+}
+
+func (r Rollapp) ValidateGenesisInfo() error {
+	// validate GenesisChecksum
+	if r.GenesisInfo.GenesisChecksum == "" {
+		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
+	}
+
+	// validate GenesisURLs
+	if len(r.GenesisInfo.GenesisUrls) == 0 {
+		return errorsmod.Wrap(ErrEmptyGenesisURLs, "GenesisURLs")
+	}
+
+	for _, u := range r.GenesisInfo.GenesisUrls {
+		// validate url
+		_, err := url.Parse(u)
+		if err != nil {
+			return errorsmod.Wrap(err, "GenesisURL")
 		}
 	}
 

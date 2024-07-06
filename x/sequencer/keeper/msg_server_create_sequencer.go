@@ -2,13 +2,12 @@ package keeper
 
 import (
 	"context"
-	"slices"
 	"strconv"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
@@ -31,13 +30,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 	if rollapp.Frozen {
 		return nil, types.ErrRollappJailed
-	}
-
-	// check if there are permissionedAddresses.
-	// if the list is not empty, it means that only permissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses
-	if 0 < len(permissionedAddresses) && !slices.Contains(permissionedAddresses, msg.Creator) {
-		return nil, types.ErrSequencerNotPermissioned
 	}
 
 	// check to see if the sequencer has enough balance and deduct the bond
@@ -79,12 +71,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
-	// check to see if we reached the maximum number of sequencers for this rollapp
-	currentNumOfSequencers := len(bondedSequencers) + len(unbondingSequencers)
-	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
-		return nil, types.ErrMaxSequencersLimit
-	}
+
 	// this is the first sequencer, make it a PROPOSER
 	if len(bondedSequencers) == 0 {
 		sequencer.Proposer = true

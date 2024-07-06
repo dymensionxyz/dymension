@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -10,7 +11,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.RollappsEnabled(ctx),
 		k.DisputePeriodInBlocks(ctx),
-		k.DeployerWhitelist(ctx),
+		k.RegistrationFee(ctx),
 	)
 }
 
@@ -25,23 +26,12 @@ func (k Keeper) DisputePeriodInBlocks(ctx sdk.Context) (res uint64) {
 	return
 }
 
-// DeployerWhitelist returns the DeployerWhitelist param
-func (k Keeper) DeployerWhitelist(ctx sdk.Context) (res []types.DeployerParams) {
-	k.paramstore.Get(ctx, types.KeyDeployerWhitelist, &res)
-	return
-}
-
 func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
 	return
 }
 
-func (k Keeper) IsAddressInDeployerWhiteList(ctx sdk.Context, address string) bool {
-	whitelist := k.DeployerWhitelist(ctx)
-	for _, item := range whitelist {
-		if item.Address == address {
-			return true
-		}
-	}
-	return false
+func (k Keeper) RegistrationFee(ctx sdk.Context) (res sdk.Coin) {
+	k.paramstore.Get(ctx, types.KeyRegistrationFee, &res)
+	return
 }

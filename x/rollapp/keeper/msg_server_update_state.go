@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 
@@ -33,18 +32,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	err := k.hooks.BeforeUpdateState(ctx, msg.Creator, msg.RollappId)
 	if err != nil {
 		return nil, err
-	}
-
-	// Logic Error check - must be done after BeforeUpdateStateRecoverable
-	// check if there are permissionedAddresses.
-	// if the list is not empty, it means that only premissioned sequencers can be added
-	if 0 < len(rollapp.PermissionedAddresses) && !slices.Contains(rollapp.PermissionedAddresses, msg.Creator) {
-		// this is a logic error, as the sequencer modules' BeforeUpdateState hook
-		// should check that the sequencer exists and register for serving this rollapp
-		// so if this check passed, an unpermissioned sequencer is registered
-		return nil, errorsmod.Wrapf(types.ErrLogic,
-			"unpermissioned sequencer (%s) is registered for rollappId(%s)",
-			msg.Creator, msg.RollappId)
 	}
 
 	// retrieve last updating index

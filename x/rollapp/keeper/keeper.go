@@ -21,6 +21,7 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+	bankKeeper      types.BankKeeper
 }
 
 func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper, ibcclientKeeper types.IBCClientKeeper) *Keeper {
