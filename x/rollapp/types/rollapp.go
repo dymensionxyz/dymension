@@ -5,6 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
 func NewRollapp(
@@ -29,7 +31,7 @@ func NewRollapp(
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Creator)
 	if err != nil {
-		return errorsmod.Wrap(err, ErrInvalidCreatorAddress.Error())
+		return errorsmod.Wrap(ErrInvalidCreatorAddress, err.Error())
 	}
 
 	// validate rollappId
@@ -38,13 +40,13 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
-	if r.InitialSequencerAddress == "" {
-		return errorsmod.Wrap(ErrEmptyInitialSequencerAddress, "InitialSequencerAddress")
+	_, err = sdk.AccAddressFromBech32(r.InitialSequencerAddress)
+	if err != nil {
+		return errorsmod.Wrap(ErrInvalidInitialSequencerAddress, err.Error())
 	}
 
-	// validate Bech32Prefix
-	if _, err := sdk.AccAddressFromBech32(r.Bech32Prefix); err != nil {
-		return errorsmod.Wrap(err, ErrInvalidBech32Prefix.Error())
+	if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
+		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
 	}
 
 	// validate GenesisInfo
@@ -62,6 +64,23 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrEmptyGenesisURLs, "GenesisURLs")
 	}
 
+	return nil
+}
+
+func validateBech32Prefix(prefix string) error {
+	bechAddr, err := sdk.Bech32ifyAddressBytes(prefix, sample.Acc())
+	if err != nil {
+		return err
+	}
+
+	bAddr, err := sdk.GetFromBech32(bechAddr, prefix)
+	if err != nil {
+		return err
+	}
+
+	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
+		return err
+	}
 	return nil
 }
 

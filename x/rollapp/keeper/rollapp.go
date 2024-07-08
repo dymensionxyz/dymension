@@ -21,7 +21,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 
 	err := k.checkIfRollappExists(ctx, rollapp.RollappId)
 	if err != nil {
-		return fmt.Errorf("check if rollapp exists: %w", err)
+		return err
 	}
 
 	err = k.checkIfInitialSequencerAddressTaken(ctx, rollapp.InitialSequencerAddress)
@@ -33,7 +33,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
 	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
-		return fmt.Errorf("send coins from account to module: %w", err)
+		return errorsmod.Wrap(types.ErrFeePayment, err.Error())
 	}
 
 	if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {

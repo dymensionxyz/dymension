@@ -3,13 +3,19 @@ package types
 import (
 	"testing"
 
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
-func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
-	seqDupAddr := sample.AccAddress()
+const bech32Prefix = "eth"
 
+var genesisInfo = &GenesisInfo{
+	GenesisUrls:     []string{"https://example.com/genesis"},
+	GenesisChecksum: "1234abcdef",
+}
+
+func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 	var tooManyAddresses []string
 	for i := 0; i < 200; i++ {
 		tooManyAddresses = append(tooManyAddresses, sample.AccAddress())
@@ -26,108 +32,84 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 		{
 			name: "valid - full features",
 			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				MaxSequencers:         2,
-				RollappId:             "dym_100-1",
-				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
+				Creator:                 sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				GenesisInfo:             genesisInfo,
 			},
 		},
 		{
 			name: "invalid rollappID",
 			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 1,
-				RollappId:     " ",
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               " ",
+				GenesisInfo:             genesisInfo,
 			},
 			err: ErrInvalidRollappID,
 		},
 		{
-			name: "invalid address",
+			name: "invalid creator address",
 			msg: MsgCreateRollapp{
-				Creator:       "invalid_address",
-				MaxSequencers: 1,
-				RollappId:     "dym_100-1",
+				Creator:                 "invalid_address",
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				GenesisInfo:             genesisInfo,
 			},
 			err: ErrInvalidCreatorAddress,
 		},
 		{
 			name: "valid address",
 			msg: MsgCreateRollapp{
-				Creator:       sample.AccAddress(),
-				MaxSequencers: 1,
-				RollappId:     "dym_100-1",
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				GenesisInfo:             genesisInfo,
 			},
 		},
 		{
-			name: "no max sequencers set",
+			name: "invalid initial sequencer address",
 			msg: MsgCreateRollapp{
-				Creator:   sample.AccAddress(),
-				RollappId: "dym_100-1",
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: "invalid_address",
+				RollappId:               "dym_100-1",
+				GenesisInfo:             genesisInfo,
 			},
+			err: ErrInvalidInitialSequencerAddress,
 		},
 		{
-			name: "valid permissioned addresses",
+			name: "invalid bech32 prefix",
 			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				MaxSequencers:         2,
-				RollappId:             "dym_100-1",
-				PermissionedAddresses: []string{sample.AccAddress(), sample.AccAddress()},
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            "DYM",
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				GenesisInfo:             genesisInfo,
 			},
+			err: ErrInvalidBech32Prefix,
 		},
 		{
-			name: "duplicate permissioned addresses",
+			name: "nil genesis info",
 			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				MaxSequencers:         2,
-				RollappId:             "dym_100-1",
-				PermissionedAddresses: []string{seqDupAddr, seqDupAddr},
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				GenesisInfo:             nil,
 			},
-			err: ErrPermissionedAddressesDuplicate,
-		},
-		{
-			name: "invalid permissioned addresses",
-			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				MaxSequencers:         2,
-				RollappId:             "dym_100-1",
-				PermissionedAddresses: []string{seqDupAddr, "invalid permissioned address"},
-			},
-			err: ErrInvalidPermissionedAddress,
-		},
-
-		{
-			name: "more addresses than sequencers", // just trigger one case to see if validation is done or not
-			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				RollappId:             "dym_100-1",
-				MaxSequencers:         1,
-				PermissionedAddresses: validNumberAddresses,
-			},
-			err: ErrTooManyPermissionedAddresses,
-		},
-		{
-			name: "too many sequencers", // just trigger one case to see if validation is done or not
-			msg: MsgCreateRollapp{
-				Creator:               sample.AccAddress(),
-				RollappId:             "dym_100-1",
-				MaxSequencers:         200,
-				PermissionedAddresses: tooManyAddresses,
-			},
-			err: ErrInvalidMaxSequencers,
-		},
-		{
-			name: "max sequencer not set",
-			msg: MsgCreateRollapp{
-				Creator:   sample.AccAddress(),
-				RollappId: "dym_100-1",
-			},
+			err: ErrNilGenesisInfo,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorContains(t, err, tt.err.Error(), "test %s failed", tt.name)
+				require.ErrorIs(t, tt.err, err, "test %s failed", tt.name)
 				return
 			}
 			require.NoError(t, err)

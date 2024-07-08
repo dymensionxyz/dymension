@@ -280,7 +280,7 @@ var (
 		govtypes.ModuleName:                                {authtypes.Burner},
 		ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		rollappmoduletypes.ModuleName:                      {},
+		rollappmoduletypes.ModuleName:                      {authtypes.Burner},
 		streamermoduletypes.ModuleName:                     nil,
 		evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 		evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
@@ -610,7 +610,14 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+		appCodec,
+		keys[rollappmoduletypes.StoreKey],
+		app.GetSubspace(rollappmoduletypes.ModuleName),
+		app.IBCKeeper.ChannelKeeper,
+		app.IBCKeeper.ClientKeeper,
+		app.BankKeeper,
+	)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(

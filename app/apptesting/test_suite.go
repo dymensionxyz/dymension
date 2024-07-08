@@ -4,11 +4,14 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/rand"
 
+	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -33,10 +36,18 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 
 func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:       alice,
-		RollappId:     name,
-		MaxSequencers: 5,
+		Creator:                 alice,
+		RollappId:               name,
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "eth",
+		GenesisInfo: &rollapptypes.GenesisInfo{
+			GenesisUrls:     []string{"http://localhost:8080/genesis.json"},
+			GenesisChecksum: "1234567890abcdefg",
+		},
 	}
+
+	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)
+	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)

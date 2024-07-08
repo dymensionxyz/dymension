@@ -11,12 +11,7 @@ import (
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if !k.RollappsEnabled(ctx) {
-		return nil, types.ErrRollappsDisabled
-	}
-
-	err := k.RegisterRollapp(ctx, msg.GetRollapp())
-	if err != nil {
+	if err := k.RegisterRollapp(ctx, msg.GetRollapp()); err != nil {
 		return nil, err
 	}
 

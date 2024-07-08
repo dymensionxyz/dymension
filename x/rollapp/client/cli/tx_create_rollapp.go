@@ -2,7 +2,6 @@ package cli
 
 import (
 	"encoding/json"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -12,18 +11,11 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-var _ = strconv.Itoa(0)
-
-// PermissionedAddresses .. TODO: refactor to be flag of []string
-type PermissionedAddresses struct {
-	Addresses []string `json:"addresses"`
-}
-
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [metadata.json]",
+		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [genesis_info.json]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm metadata.json",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm genesis_info.json",
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
@@ -37,7 +29,7 @@ func CmdCreateRollapp() *cobra.Command {
 			}
 
 			genesisInfo := new(types.GenesisInfo)
-			if err := json.Unmarshal([]byte(args[3]), genesisInfo); err != nil {
+			if err = json.Unmarshal([]byte(args[3]), genesisInfo); err != nil {
 				return err
 			}
 

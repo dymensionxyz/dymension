@@ -22,7 +22,7 @@ var (
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee = sdk.NewCoin("DYM", sdk.NewInt(100)) // TODO: DYM const?
+	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("10000000000000000000adym")
 )
 
 // ParamKeyTable the param key table for launch module
@@ -98,5 +98,10 @@ func validateRegistrationFee(v interface{}) error {
 	if !registrationFee.IsValid() {
 		return fmt.Errorf("invalid registration fee: %s", registrationFee)
 	}
+
+	if registrationFee.Denom != "adym" {
+		return fmt.Errorf("invalid registration fee denom: %s", registrationFee.Denom)
+	}
+
 	return nil
 }

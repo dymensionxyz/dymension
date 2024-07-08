@@ -15,12 +15,3 @@ func Acc() sdk.AccAddress {
 	addr := pk.Address()
 	return sdk.AccAddress(addr)
 }
-
-// GenerateAddresses generates numOfAddresses bech32 address
-func GenerateAddresses(numOfAddresses int) []string {
-	addresses := []string{}
-	for i := 0; i < numOfAddresses; i++ {
-		addresses = append(addresses, AccAddress())
-	}
-	return addresses
-}
