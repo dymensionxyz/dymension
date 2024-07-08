@@ -69,9 +69,9 @@ set_epochs_params
 set_incentives_params
 
 dymd keys add "$KEY_NAME" --keyring-backend test
-dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+dymd genesis add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd collect-gentxs
+dymd genesis gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+dymd genesis collect-gentxs
 dymd start
 
