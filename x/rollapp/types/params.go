@@ -22,7 +22,7 @@ var (
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("10000000000000000000adym")
+	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("1000000000000000000adym")
 )
 
 // ParamKeyTable the param key table for launch module
