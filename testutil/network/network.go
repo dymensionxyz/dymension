@@ -3,6 +3,8 @@ package network
 import (
 	"testing"
 
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -45,7 +47,7 @@ func DefaultConfig() network.Config {
 	cfg := network.DefaultConfig()
 	encoding := app.MakeEncodingConfig()
 
-	//TODO: add rand tmrand.Uint64() to chainID
+	// FIXME: add rand tmrand.Uint64() to chainID
 	cfg.ChainID = "dymension_1000-1"
 	cfg.AppConstructor = func(val network.Validator) servertypes.Application {
 		return app.New(
@@ -58,6 +60,14 @@ func DefaultConfig() network.Config {
 	}
 
 	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
+	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
+		// force disable Enable Create of x/evm
+		var evmGenesisState evmtypes.GenesisState
+		encoding.Codec.MustUnmarshalJSON(evmGenesisStateJson, &evmGenesisState)
+		evmGenesisState.Params.EnableCreate = false
+		cfg.GenesisState[evmtypes.ModuleName] = encoding.Codec.MustMarshalJSON(&evmGenesisState)
+	}
+
 	cfg.NumValidators = 1
 
 	return cfg

@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	ethcmd "github.com/evmos/evmos/v12/cmd/config"
 )
 
 const (
@@ -24,8 +23,6 @@ const (
 func init() {
 	SetAddressPrefixes()
 	RegisterDenoms()
-	ethcmd.SetBip44CoinType(sdk.GetConfig())
-	sdk.GetConfig().Seal()
 }
 
 // RegisterDenoms registers the base and display denominations to the SDK.
@@ -62,7 +59,6 @@ func SetAddressPrefixes() {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "address max length is %d, got %d", address.MaxAddrLen, len(bytes))
 		}
 
-		// TODO: Do we want to allow addresses of lengths other than 20 and 32 bytes?
 		if len(bytes) != 20 && len(bytes) != 32 {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "address length must be 20 or 32 bytes, got %d", len(bytes))
 		}

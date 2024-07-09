@@ -63,10 +63,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 					{
-						FinalizationHeight: 0,
+						CreationHeight: 0,
 					},
 					{
-						FinalizationHeight: 1,
+						CreationHeight: 1,
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr2, 0}},
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr2}},
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -112,10 +112,10 @@ func TestGenesisState_Validate(t *testing.T) {
 				},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{
 					{
-						FinalizationHeight: 0,
+						CreationHeight: 0,
 					},
 					{
-						FinalizationHeight: 1,
+						CreationHeight: 1,
 					},
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
@@ -127,7 +127,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1, 10}, {deployerAddr1, 0}},
+					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr1}},
 				},
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
@@ -169,7 +169,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{"asdad", 0}},
+					DeployerWhitelist:     []types.DeployerParams{{"asdad"}},
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -207,7 +207,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{FinalizationHeight: 0}, {FinalizationHeight: 0}},
+				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
 			},
 			valid: false,
 		},

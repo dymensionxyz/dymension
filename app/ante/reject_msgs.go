@@ -4,9 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	evmtypes "github.com/evmos/evmos/v12/x/evm/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 // RejectMessagesDecorator prevents invalid msg types from being executed
@@ -19,11 +17,7 @@ var _ sdk.AnteDecorator = RejectMessagesDecorator{}
 // NewRejectMessagesDecorator creates a decorator to block vesting messages from reaching the mempool
 func NewRejectMessagesDecorator() RejectMessagesDecorator {
 	return RejectMessagesDecorator{
-		disabledMsgTypeURLs: []string{
-			sdk.MsgTypeURL(&vesting.MsgCreateVestingAccount{}),
-			sdk.MsgTypeURL(&vesting.MsgCreatePermanentLockedAccount{}),
-			sdk.MsgTypeURL(&vesting.MsgCreatePeriodicVestingAccount{}),
-		},
+		disabledMsgTypeURLs: []string{},
 	}
 }
 

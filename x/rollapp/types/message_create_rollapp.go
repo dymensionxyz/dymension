@@ -2,20 +2,24 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const TypeMsgCreateRollapp = "create_rollapp"
 
 var _ sdk.Msg = &MsgCreateRollapp{}
 
-func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, metadatas []TokenMetadata) *MsgCreateRollapp {
+const MaxAllowedSequencers = 100
+
+func NewMsgCreateRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
+	metadatas []TokenMetadata, genesisAccounts []GenesisAccount,
+) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:               creator,
 		RollappId:             rollappId,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
 		Metadatas:             metadatas,
+		GenesisAccounts:       genesisAccounts,
 	}
 }
 
@@ -40,33 +44,27 @@ func (msg *MsgCreateRollapp) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg *MsgCreateRollapp) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+func (msg *MsgCreateRollapp) GetRollapp() Rollapp {
+	// Build the genesis state from the genesis accounts
+	rollappGenesisState := RollappGenesisState{
+		IsGenesisEvent: false,
 	}
-	if msg.GetMaxSequencers() == 0 {
-		return sdkerrors.Wrap(ErrInvalidMaxSequencers, "max-sequencers must be greater than 0")
+	rollappGenesisState.GenesisAccounts = make([]*GenesisAccount, len(msg.GenesisAccounts))
+	for i := range msg.GenesisAccounts {
+		rollappGenesisState.GenesisAccounts[i] = &msg.GenesisAccounts[i]
+	}
+	metadata := make([]*TokenMetadata, len(msg.Metadatas))
+	for i := range msg.Metadatas {
+		metadata[i] = &msg.Metadatas[i]
 	}
 
-	// verifies that there's no duplicate address in PermissionedAddresses
-	// and addresses are in Bech32 format
-	permissionedAddresses := msg.GetPermissionedAddresses()
-	if len(permissionedAddresses) > 0 {
-		duplicateAddresses := make(map[string]bool)
-		for _, item := range permissionedAddresses {
-			// check if the item/element exist in the duplicateAddresses map
-			_, exist := duplicateAddresses[item]
-			if exist {
-				return sdkerrors.Wrapf(ErrPermissionedAddressesDuplicate, "address: %s", item)
-			}
-			// check Bech32 format
-			if _, err := sdk.AccAddressFromBech32(item); err != nil {
-				return sdkerrors.Wrapf(ErrInvalidPermissionedAddress, "invalid permissioned address: %s", err)
-			}
-			// mark as exist
-			duplicateAddresses[item] = true
-		}
+	return NewRollapp(msg.Creator, msg.RollappId, msg.MaxSequencers, msg.PermissionedAddresses, metadata, rollappGenesisState)
+}
+
+func (msg *MsgCreateRollapp) ValidateBasic() error {
+	rollapp := msg.GetRollapp()
+	if err := rollapp.ValidateBasic(); err != nil {
+		return err
 	}
 
 	return nil

@@ -14,20 +14,20 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.RollappId,
 	), b)
 
-	// check if chain-id is EVM compatible
-	eip155, err := types.ParseChainID(rollapp.RollappId)
-	if err != nil || eip155 == nil {
+	// check if chain-id is EVM compatible. no err check as rollapp is already validated
+	rollappID, _ := types.NewChainID(rollapp.RollappId)
+	if !rollappID.IsEIP155() {
 		return
 	}
 
+	// In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
-	b = k.cdc.MustMarshal(&rollapp)
 	store.Set(types.RollappByEIP155Key(
-		eip155.Uint64(),
+		rollappID.GetEIP155ID(),
 	), b)
 }
 
-// GetRollappByEIP155 returns a rollapp from its index
+// GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
 func (k Keeper) GetRollappByEIP155(
 	ctx sdk.Context,
 	eip155 uint64,
@@ -45,7 +45,7 @@ func (k Keeper) GetRollappByEIP155(
 	return val, true
 }
 
-// GetRollapp returns a rollapp from its index
+// GetRollapp returns a rollapp from its chain name
 func (k Keeper) GetRollapp(
 	ctx sdk.Context,
 	rollappId string,
@@ -63,11 +63,10 @@ func (k Keeper) GetRollapp(
 	return val, true
 }
 
-// RemoveRollapp removes a rollapp from the store
+// RemoveRollapp removes a rollapp from the store using rollapp name
 func (k Keeper) RemoveRollapp(
 	ctx sdk.Context,
 	rollappId string,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	store.Delete(types.RollappKey(
@@ -76,7 +75,7 @@ func (k Keeper) RemoveRollapp(
 }
 
 // GetAllRollapp returns all rollapp
-func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
+func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -89,4 +88,10 @@ func (k Keeper) GetAllRollapp(ctx sdk.Context) (list []types.Rollapp) {
 	}
 
 	return
+}
+
+// IsRollappStarted returns true if the rollapp is started
+func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
+	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
+	return found
 }

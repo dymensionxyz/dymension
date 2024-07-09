@@ -28,9 +28,12 @@ set_hub_params() {
 }
 
 set_consenus_params() {
+    # cometbft's updated values
+	# 	MaxBytes: 4194304,  // four megabytes
+	# 	MaxGas:   10000000, // ten million
     echo "setting consensus params"
     jq '.consensus_params["block"]["max_bytes"] = "4194304"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
-    jq '.consensus_params["block"]["max_gas"] = "-1"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+    jq '.consensus_params["block"]["max_gas"] = "10000000"' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 set_EVM_params() {
@@ -95,6 +98,10 @@ set_bank_denom_metadata() {
             "symbol": "DYM"
         }
     ]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
+}
+
+set_authorised_deployer_account() {
+  jq --arg address $1 '.app_state.rollapp.params.deployer_whitelist += [{ "address": $address }]' "$GENESIS_FILE" > "$tmp" && mv "$tmp" "$GENESIS_FILE"
 }
 
 enable_monitoring() {

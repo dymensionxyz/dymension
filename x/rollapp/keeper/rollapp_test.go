@@ -4,39 +4,19 @@ import (
 	"strconv"
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNRollapp(keeper *keeper.Keeper, ctx sdk.Context, n int) ([]types.Rollapp, []types.RollappSummary) {
-	items := make([]types.Rollapp, n)
-	for i := range items {
-		items[i].RollappId = strconv.Itoa(i)
-		keeper.SetRollapp(ctx, items[i])
-	}
-
-	rollappSummaries := []types.RollappSummary{}
-	for _, item := range items {
-		rollappSummary := types.RollappSummary{
-			RollappId: item.RollappId,
-		}
-		rollappSummaries = append(rollappSummaries, rollappSummary)
-	}
-
-	return items, rollappSummaries
-}
-
 func TestRollappGet(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNRollapp(keeper, ctx, 10)
 	for _, item := range items {
+		item := item
 		rst, found := keeper.GetRollapp(ctx,
 			item.RollappId,
 		)
@@ -47,6 +27,7 @@ func TestRollappGet(t *testing.T) {
 		)
 	}
 }
+
 func TestRollappRemove(t *testing.T) {
 	keeper, ctx := keepertest.RollappKeeper(t)
 	items, _ := createNRollapp(keeper, ctx, 10)
@@ -66,6 +47,6 @@ func TestRollappGetAll(t *testing.T) {
 	items, _ := createNRollapp(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllRollapp(ctx)),
+		nullify.Fill(keeper.GetAllRollapps(ctx)),
 	)
 }
