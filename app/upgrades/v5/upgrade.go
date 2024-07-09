@@ -30,45 +30,52 @@ func CreateHandler(
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		// overwrite params for rollapp module due to proto change
-		rollappParams := rollappkeeper.GetParams(ctx)
-		rollappParams.DisputePeriodInBlocks = rollapptypes.DefaultDisputePeriodInBlocks
-		rollappkeeper.SetParams(ctx, rollappParams)
-
-		oldRollapps := getAllOldRollapps(ctx, storeKey, appCodec)
-		newRollapps := make([]rollapptypes.Rollapp, len(oldRollapps))
-
-		for i, oldRollapp := range oldRollapps {
-			newRollapp := rollapptypes.Rollapp{
-				RollappId:               oldRollapp.RollappId,
-				Creator:                 oldRollapp.Creator,
-				InitialSequencerAddress: "",
-				GenesisInfo:             nil,
-				GenesisState: rollapptypes.RollappGenesisState{
-					TransfersEnabled: oldRollapp.GenesisState.TransfersEnabled,
-				},
-				ChannelId: oldRollapp.ChannelId,
-				Frozen:    oldRollapp.Frozen,
-				// Bech32Prefix:            oldRollapp.Bech32Prefix,
-				RegisteredDenoms: oldRollapp.RegisteredDenoms,
-				Version:          oldRollapp.Version,
-			}
-			newRollapps[i] = newRollapp
-		}
-
-		// delete old rollapps
-		for _, oldRollapp := range oldRollapps {
-			rollappkeeper.RemoveRollapp(ctx, oldRollapp.RollappId)
-		}
-
-		// add new rollapps
-		for _, newRollapp := range newRollapps {
-			rollappkeeper.SetRollapp(ctx, newRollapp)
-		}
+		migrateRollappParams(ctx, rollappkeeper)
+		migrateRollapps(ctx, storeKey, appCodec, rollappkeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)
+	}
+}
+
+func migrateRollappParams(ctx sdk.Context, rollappkeeper RollappKeeper) {
+	// overwrite params for rollapp module due to proto change
+	rollappParams := rollappkeeper.GetParams(ctx)
+	rollappParams.DisputePeriodInBlocks = rollapptypes.DefaultDisputePeriodInBlocks
+	rollappkeeper.SetParams(ctx, rollappParams)
+}
+
+func migrateRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper RollappKeeper) {
+	oldRollapps := getAllOldRollapps(ctx, storeKey, appCodec)
+	newRollapps := make([]rollapptypes.Rollapp, len(oldRollapps))
+
+	for i, oldRollapp := range oldRollapps {
+		newRollapp := rollapptypes.Rollapp{
+			RollappId:               oldRollapp.RollappId,
+			Creator:                 oldRollapp.Creator,
+			InitialSequencerAddress: "",
+			GenesisInfo:             nil,
+			GenesisState: rollapptypes.RollappGenesisState{
+				TransfersEnabled: oldRollapp.GenesisState.TransfersEnabled,
+			},
+			ChannelId: oldRollapp.ChannelId,
+			Frozen:    oldRollapp.Frozen,
+			// Bech32Prefix:            oldRollapp.Bech32Prefix,
+			RegisteredDenoms: oldRollapp.RegisteredDenoms,
+			Version:          oldRollapp.Version,
+		}
+		newRollapps[i] = newRollapp
+	}
+
+	// delete old rollapps
+	for _, oldRollapp := range oldRollapps {
+		rollappkeeper.RemoveRollapp(ctx, oldRollapp.RollappId)
+	}
+
+	// add new rollapps
+	for _, newRollapp := range newRollapps {
+		rollappkeeper.SetRollapp(ctx, newRollapp)
 	}
 }
 
