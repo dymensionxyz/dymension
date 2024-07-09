@@ -35,7 +35,7 @@ func GetStoreUpgrades() *storetypes.StoreUpgrades {
 	return &storeUpgrades
 }
 
-// CreateUpgradeHandler creates an SDK upgrade handler for v3
+// CreateUpgradeHandler creates an SDK upgrade handler for v4
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
@@ -46,7 +46,6 @@ func CreateUpgradeHandler(
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		// Set param key table for params module migration
 		for _, subspace := range paramsKeeper.GetSubspaces() {
-			subspace := subspace
 
 			var keyTable paramstypes.KeyTable
 			switch subspace.Name() {
