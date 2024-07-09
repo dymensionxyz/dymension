@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
@@ -70,7 +71,12 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 			finalizedRollappPackets := keeper.ListRollappPackets(ctx, types.ByRollappIDByStatus(rollappID, commontypes.Status_FINALIZED))
 			suite.Require().Equal(tc.finalizePacketsNum, len(finalizedRollappPackets))
 
-			keeper.SetParams(ctx, types.Params{EpochIdentifier: tc.epochIdentifierParam, BridgingFee: keeper.BridgingFee(ctx)})
+			params := keeper.GetParams(ctx)
+			keeper.SetParams(ctx, types.Params{
+				EpochIdentifier:         tc.epochIdentifierParam,
+				BridgingFee:             params.BridgingFee,
+				DeletePacketsEpochLimit: params.DeletePacketsEpochLimit,
+			})
 			epochHooks := keeper.GetEpochHooks()
 			err := epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)
 			suite.Require().NoError(err)

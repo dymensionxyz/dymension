@@ -3,6 +3,7 @@ package keeper_test
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+
 	dacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
@@ -46,7 +47,7 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 	}
 
 	// set 1% bridging fee
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	amt, _ := sdk.NewIntFromString(transferPacketData.Amount)
