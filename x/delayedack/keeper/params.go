@@ -25,3 +25,8 @@ func (k Keeper) BridgingFee(ctx sdk.Context) (res sdk.Dec) {
 func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int) {
 	return k.BridgingFee(ctx).MulInt(amt).TruncateInt()
 }
+
+func (k Keeper) DeletePacketsEpochLimit(ctx sdk.Context) (res int64) {
+	k.paramstore.Get(ctx, types.KeyDeletePacketsEpochLimit, &res)
+	return
+}

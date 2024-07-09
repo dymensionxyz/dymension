@@ -73,9 +73,9 @@ func (suite *DelayedAckTestSuite) TestAfterEpochEnd() {
 
 			params := keeper.GetParams(ctx)
 			keeper.SetParams(ctx, types.Params{
-				EpochIdentifier:       tc.epochIdentifierParam,
-				BridgingFee:           params.BridgingFee,
-				DeletePacketBatchSize: params.DeletePacketBatchSize,
+				EpochIdentifier:         tc.epochIdentifierParam,
+				BridgingFee:             params.BridgingFee,
+				DeletePacketsEpochLimit: params.DeletePacketsEpochLimit,
 			})
 			epochHooks := keeper.GetEpochHooks()
 			err := epochHooks.AfterEpochEnd(ctx, tc.epochIdentifier, 1)

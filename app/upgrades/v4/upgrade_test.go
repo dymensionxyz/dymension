@@ -34,10 +34,10 @@ func TestUpgradeTestSuite(t *testing.T) {
 }
 
 var (
-	dummyUpgradeHeight                    int64 = 5
-	expectDelayedackDeletePacketBatchSize int32 = 1000
-	expectDelayedackEpochIdentifier             = "hour"
-	expectDelayedackBridgingFee                 = sdk.NewDecWithPrec(1, 3)
+	dummyUpgradeHeight                      int64 = 5
+	expectDelayedackDeletePacketsEpochLimit int32 = 1000_000
+	expectDelayedackEpochIdentifier               = "hour"
+	expectDelayedackBridgingFee                   = sdk.NewDecWithPrec(1, 3)
 )
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
@@ -77,7 +77,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Delayedack parameters
 				delayedackParams := s.App.DelayedAckKeeper.GetParams(s.Ctx)
-				if delayedackParams.DeletePacketBatchSize != expectDelayedackDeletePacketBatchSize ||
+				if delayedackParams.DeletePacketsEpochLimit != expectDelayedackDeletePacketsEpochLimit ||
 					delayedackParams.EpochIdentifier != expectDelayedackEpochIdentifier ||
 					!delayedackParams.BridgingFee.Equal(expectDelayedackBridgingFee) {
 					return fmt.Errorf("delayedack parameters not set correctly")

@@ -188,7 +188,7 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-	/* ---------------------------- upgrade handlers ---------------------------- */)
+)
 
 var (
 	_ = packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp
@@ -196,11 +196,8 @@ var (
 	_ = packetforwardtypes.ErrIntOverflowGenesis
 )
 
-// this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
-
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
 	govProposalHandlers = append(govProposalHandlers,
 		paramsclient.ProposalHandler,
@@ -257,7 +254,6 @@ var (
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
-		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
 		evm.AppModuleBasic{},
@@ -376,7 +372,6 @@ func New(
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
 		eibcmoduletypes.StoreKey,
-		// this line is used by starport scaffolding # stargate/app/storeKey
 
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
@@ -420,7 +415,6 @@ func New(
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
 	app.CapabilityKeeper.Seal()
 
@@ -676,8 +670,6 @@ func New(
 		&stakingKeeper, govRouter, app.MsgServiceRouter(), govConfig,
 	)
 
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
-
 	app.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, keys[packetforwardtypes.StoreKey],
 		app.GetSubspace(packetforwardtypes.ModuleName),
@@ -751,7 +743,6 @@ func New(
 		denomMetadataModule,
 		delayedackModule,
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
-		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -799,7 +790,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
@@ -835,7 +825,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -877,7 +866,6 @@ func New(
 		denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -931,7 +919,6 @@ func New(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
 	return app
 }
@@ -1113,7 +1100,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)

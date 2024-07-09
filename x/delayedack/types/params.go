@@ -17,12 +17,13 @@ var (
 	// KeyBridgeFee is the key for the bridge fee
 	KeyBridgeFee = []byte("BridgeFee")
 
-	KeyDeletePacketBatchSize = []byte("DeletePacketBatchSize")
+	// KeyDeletePacketsEpochLimit is the key for the delete packets epoch limit
+	KeyDeletePacketsEpochLimit = []byte("DeletePacketsEpochLimit")
 )
 
 const (
-	defaultEpochIdentifier       = "hour"
-	defaultDeletePacketBatchSize = 1000
+	defaultEpochIdentifier         = "hour"
+	defaultDeletePacketsEpochLimit = 1000_000
 )
 
 // ParamKeyTable the param key table for launch module
@@ -31,11 +32,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketBatchSize int) Params {
+func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLimit int) Params {
 	return Params{
-		EpochIdentifier:       epochIdentifier,
-		BridgingFee:           bridgingFee,
-		DeletePacketBatchSize: int32(deletePacketBatchSize),
+		EpochIdentifier:         epochIdentifier,
+		BridgingFee:             bridgingFee,
+		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit),
 	}
 }
 
@@ -44,7 +45,7 @@ func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
 		sdk.NewDecWithPrec(1, 3), // 0.1%
-		defaultDeletePacketBatchSize,
+		defaultDeletePacketsEpochLimit,
 	)
 }
 
@@ -53,7 +54,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, validateEpochIdentifier),
 		paramtypes.NewParamSetPair(KeyBridgeFee, &p.BridgingFee, validateBridgingFee),
-		paramtypes.NewParamSetPair(KeyDeletePacketBatchSize, &p.DeletePacketBatchSize, validateDeletePacketBatchSize),
+		paramtypes.NewParamSetPair(KeyDeletePacketsEpochLimit, &p.DeletePacketsEpochLimit, validateDeletePacketsEpochLimit),
 	}
 }
 
@@ -87,13 +88,13 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
-func validateDeletePacketBatchSize(i interface{}) error {
+func validateDeletePacketsEpochLimit(i interface{}) error {
 	v, ok := i.(int32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v < 0 {
-		return fmt.Errorf("delete packet batch size must not be negative: %d", v)
+		return fmt.Errorf("delete packet epoch limit must not be negative: %d", v)
 	}
 	return nil
 }
@@ -106,7 +107,7 @@ func (p Params) Validate() error {
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
 		return err
 	}
-	if err := validateDeletePacketBatchSize(p.DeletePacketBatchSize); err != nil {
+	if err := validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit); err != nil {
 		return err
 	}
 	return nil
