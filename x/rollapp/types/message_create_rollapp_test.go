@@ -10,20 +10,12 @@ import (
 
 const bech32Prefix = "eth"
 
-var genesisInfo = &GenesisInfo{
+var genesisInfo = GenesisInfo{
 	GenesisUrls:     []string{"https://example.com/genesis"},
 	GenesisChecksum: "1234abcdef",
 }
 
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
-	var tooManyAddresses []string
-	for i := 0; i < 200; i++ {
-		tooManyAddresses = append(tooManyAddresses, sample.AccAddress())
-	}
-	var validNumberAddresses []string
-	for i := 0; i < 100; i++ {
-		validNumberAddresses = append(validNumberAddresses, sample.AccAddress())
-	}
 	tests := []struct {
 		name string
 		msg  MsgCreateRollapp
@@ -94,22 +86,25 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidBech32Prefix,
 		},
 		{
-			name: "nil genesis info",
+			name: "empty genesis urls",
 			msg: MsgCreateRollapp{
 				Creator:                 sample.AccAddress(),
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				GenesisInfo:             nil,
+				GenesisInfo: GenesisInfo{
+					GenesisUrls:     nil,
+					GenesisChecksum: "checksum",
+				},
 			},
-			err: ErrNilGenesisInfo,
+			err: ErrEmptyGenesisURLs,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, tt.err, err, "test %s failed", tt.name)
+				require.ErrorIs(t, err, tt.err, "test %s failed", tt.name)
 				return
 			}
 			require.NoError(t, err)

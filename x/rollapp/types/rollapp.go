@@ -51,7 +51,7 @@ func (r Rollapp) ValidateBasic() error {
 
 	// validate GenesisChecksum
 	if err = r.ValidateGenesisInfo(); err != nil {
-		return errorsmod.Wrap(ErrEmptyGenesisChecksum, err.Error())
+		return err
 	}
 
 	return nil

@@ -3,12 +3,11 @@ package keeper_test
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/rand"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (suite *RollappTestSuite) TestCreateRollapp() {
@@ -327,12 +326,10 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 	}
 }
 
-var (
-	genesisInfo = types.GenesisInfo{
-		GenesisUrls:     []string{"https://example.com/genesis.json"},
-		GenesisChecksum: "1234567890abcdef",
-	}
-)
+var genesisInfo = types.GenesisInfo{
+	GenesisUrls:     []string{"https://example.com/genesis.json"},
+	GenesisChecksum: "1234567890abcdef",
+}
 
 func (suite *RollappTestSuite) createRollapp(expectedErr error) {
 	// rollappsExpect is the expected result of query all

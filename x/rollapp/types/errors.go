@@ -12,7 +12,6 @@ var (
 	ErrInvalidInitialSequencerAddress = errorsmod.Register(ModuleName, 1001, "empty initial sequencer address")
 	ErrInvalidCreatorAddress          = errorsmod.Register(ModuleName, 1002, "invalid creator address")
 	ErrInvalidBech32Prefix            = errorsmod.Register(ModuleName, 1003, "invalid Bech32 prefix")
-	ErrNilGenesisInfo                 = errorsmod.Register(ModuleName, 1004, "nil genesis info")
 	ErrInvalidNumBlocks               = errorsmod.Register(ModuleName, 1005, "invalid number of blocks")
 	ErrInvalidBlockSequence           = errorsmod.Register(ModuleName, 1006, "invalid block sequence")
 	ErrUnknownRollappID               = errorsmod.Register(ModuleName, 1007, "rollapp does not exist")

@@ -124,7 +124,7 @@ func (k Keeper) GetRollappByEIP155(
 func (k Keeper) GetRollappByInitialSequencerAddress(ctx sdk.Context, address string) (types.Rollapp, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Rollapp
