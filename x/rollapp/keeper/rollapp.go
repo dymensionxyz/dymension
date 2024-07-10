@@ -11,10 +11,6 @@ import (
 )
 
 func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
-	if !k.RollappsEnabled(ctx) {
-		return types.ErrRollappsDisabled
-	}
-
 	if err := rollapp.ValidateBasic(); err != nil {
 		return fmt.Errorf("validate rollapp: %w", err)
 	}

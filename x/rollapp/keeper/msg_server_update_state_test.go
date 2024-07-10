@@ -76,7 +76,7 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            bech32Prefix,
-		GenesisInfo:             nil,
+		GenesisInfo:             genesisInfo,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -209,7 +209,7 @@ func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            bech32Prefix,
-		GenesisInfo:             nil,
+		GenesisInfo:             genesisInfo,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -240,7 +240,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            bech32Prefix,
-		GenesisInfo:             nil,
+		GenesisInfo:             genesisInfo,
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 

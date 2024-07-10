@@ -25,7 +25,6 @@ var (
 	ErrStateNotExists                 = errorsmod.Register(ModuleName, 1017, "state of this height doesn't exist")
 	ErrInvalidHeight                  = errorsmod.Register(ModuleName, 1018, "invalid rollapp height")
 	ErrInvalidRollappID               = errorsmod.Register(ModuleName, 1020, "invalid rollapp-id")
-	ErrRollappsDisabled               = errorsmod.Register(ModuleName, 1022, "rollapps are disabled")
 	ErrNoFinalizedStateYetForRollapp  = errorsmod.Register(ModuleName, 1024, "no finalized state yet for rollapp")
 	ErrInvalidClientState             = errorsmod.Register(ModuleName, 1025, "invalid client state")
 	ErrRollappNotRegistered           = errorsmod.Register(ModuleName, 1035, "rollapp not registered")

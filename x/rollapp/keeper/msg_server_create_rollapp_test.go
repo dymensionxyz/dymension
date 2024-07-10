@@ -67,17 +67,6 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerAlreadyExists() {
 	suite.ErrorIs(err, types.ErrInitialSequencerAddressTaken)
 }
 
-func (suite *RollappTestSuite) TestCreateRollappWhenDisabled() {
-	suite.SetupTest()
-
-	suite.createRollappAndVerify(nil)
-	params := suite.App.RollappKeeper.GetParams(suite.Ctx)
-	params.RollappsEnabled = false
-
-	suite.App.RollappKeeper.SetParams(suite.Ctx, params)
-	suite.createRollappAndVerify(types.ErrRollappsDisabled)
-}
-
 func (suite *RollappTestSuite) TestCreateRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -339,7 +328,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 }
 
 var (
-	genesisInfo = &types.GenesisInfo{
+	genesisInfo = types.GenesisInfo{
 		GenesisUrls:     []string{"https://example.com/genesis.json"},
 		GenesisChecksum: "1234567890abcdef",
 	}

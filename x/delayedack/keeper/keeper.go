@@ -55,10 +55,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) IsRollappsEnabled(ctx sdk.Context) bool {
-	return k.rollappKeeper.GetParams(ctx).RollappsEnabled
-}
-
 func (k Keeper) getRollappFinalizedHeight(ctx sdk.Context, chainID string) (uint64, error) {
 	// GetLatestFinalizedStateIndex
 	latestFinalizedStateIndex, found := k.rollappKeeper.GetLatestFinalizedStateIndex(ctx, chainID)

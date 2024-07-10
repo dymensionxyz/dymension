@@ -1,4 +1,4 @@
-package v3
+package v5
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -8,30 +8,27 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-func GetStoreUpgrades() *storetypes.StoreUpgrades {
-	storeUpgrades := storetypes.StoreUpgrades{
-		// Set migrations for all new modules
-	}
-	return &storeUpgrades
-}
-
-// CreateHandler creates an SDK upgrade handler for v5
-func CreateHandler(
+// CreateUpgradeHandler creates an SDK upgrade handler for v5
+func CreateUpgradeHandler(
 	mm *module.Manager,
 	appCodec codec.Codec,
 	configurator module.Configurator,
-	rollappkeeper RollappKeeper,
-	storeKey *storetypes.KVStoreKey,
+	_ upgrades.BaseAppParamManager,
+	keepers *keepers.AppKeepers,
+	getStoreKey func(string) *storetypes.KVStoreKey,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 
-		migrateRollappParams(ctx, rollappkeeper)
-		migrateRollapps(ctx, storeKey, appCodec, rollappkeeper)
+		migrateRollappParams(ctx, keepers.RollappKeeper)
+		migrateRollapps(ctx, getStoreKey(rollapptypes.ModuleName), appCodec, keepers.RollappKeeper)
 
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
@@ -39,43 +36,37 @@ func CreateHandler(
 	}
 }
 
-func migrateRollappParams(ctx sdk.Context, rollappkeeper RollappKeeper) {
+func migrateRollappParams(ctx sdk.Context, rollappkeeper rollappkeeper.Keeper) {
 	// overwrite params for rollapp module due to proto change
-	rollappParams := rollappkeeper.GetParams(ctx)
-	rollappParams.DisputePeriodInBlocks = rollapptypes.DefaultDisputePeriodInBlocks
-	rollappkeeper.SetParams(ctx, rollappParams)
+	params := rollapptypes.DefaultParams()
+	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
+	rollappkeeper.SetParams(ctx, params)
 }
 
-func migrateRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper RollappKeeper) {
-	oldRollapps := getAllOldRollapps(ctx, storeKey, appCodec)
-	newRollapps := make([]rollapptypes.Rollapp, len(oldRollapps))
-
-	for i, oldRollapp := range oldRollapps {
-		newRollapp := rollapptypes.Rollapp{
-			RollappId:               oldRollapp.RollappId,
-			Creator:                 oldRollapp.Creator,
-			InitialSequencerAddress: "",
-			GenesisInfo:             nil,
-			GenesisState: rollapptypes.RollappGenesisState{
-				TransfersEnabled: oldRollapp.GenesisState.TransfersEnabled,
-			},
-			ChannelId: oldRollapp.ChannelId,
-			Frozen:    oldRollapp.Frozen,
-			// Bech32Prefix:            oldRollapp.Bech32Prefix,
-			RegisteredDenoms: oldRollapp.RegisteredDenoms,
-			Version:          oldRollapp.Version,
-		}
-		newRollapps[i] = newRollapp
-	}
-
-	// delete old rollapps
-	for _, oldRollapp := range oldRollapps {
-		rollappkeeper.RemoveRollapp(ctx, oldRollapp.RollappId)
-	}
-
-	// add new rollapps
-	for _, newRollapp := range newRollapps {
+func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper rollappkeeper.Keeper) {
+	for _, oldRollapp := range getAllOldRollapps(ctx, rollappStoreKey, appCodec) {
+		newRollapp := ConvertOldRollappToNew(oldRollapp)
 		rollappkeeper.SetRollapp(ctx, newRollapp)
+	}
+}
+
+func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
+	return rollapptypes.Rollapp{
+		RollappId: oldRollapp.RollappId,
+		Creator:   oldRollapp.Creator,
+		GenesisState: rollapptypes.RollappGenesisState{
+			TransfersEnabled: oldRollapp.GenesisState.TransfersEnabled,
+		},
+		ChannelId:               oldRollapp.ChannelId,
+		Frozen:                  oldRollapp.Frozen,
+		RegisteredDenoms:        oldRollapp.RegisteredDenoms,
+		Version:                 oldRollapp.Version,
+		InitialSequencerAddress: "", // whatever
+		GenesisInfo: rollapptypes.GenesisInfo{
+			GenesisUrls:     nil, // optional
+			GenesisChecksum: "",  // TODO
+		},
+		Bech32Prefix: "", // TODO
 	}
 }
 
@@ -87,7 +78,8 @@ func getAllOldRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCode
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Rollapp
-		appCodec.MustUnmarshal(iterator.Value(), &val)
+		bz := iterator.Value()
+		appCodec.MustUnmarshalJSON(bz, &val)
 		list = append(list, val)
 	}
 

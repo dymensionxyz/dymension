@@ -13,6 +13,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	v5 "github.com/dymensionxyz/dymension/v3/app/upgrades/v5"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -223,7 +224,7 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
-	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade, v5.Upgrade}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -1162,9 +1163,11 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 		upgrade.UpgradeName,
 		upgrade.CreateUpgradeHandler(
 			app.mm,
+			app.appCodec,
 			app.configurator,
 			app.BaseApp,
 			&app.AppKeepers,
+			app.GetKey,
 		),
 	)
 

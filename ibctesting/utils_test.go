@@ -127,7 +127,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		rollappChainID(),
 		sample.AccAddress(),
 		"eth",
-		&rollapptypes.GenesisInfo{
+		rollapptypes.GenesisInfo{
 			GenesisUrls:     []string{"http://example.com/genesis.json"},
 			GenesisChecksum: "checksum",
 		})

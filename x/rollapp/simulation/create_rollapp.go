@@ -33,7 +33,7 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 			RollappId:               rollappId,
 			InitialSequencerAddress: "",
 			Bech32Prefix:            "",
-			GenesisInfo:             nil,
+			GenesisInfo:             types.GenesisInfo{},
 		}
 
 		if !bAlreadyExists {

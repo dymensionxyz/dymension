@@ -13,7 +13,7 @@ func NewMsgCreateRollapp(
 	rollappId,
 	initSequencerAddress,
 	bech32Prefix string,
-	genesisInfo *GenesisInfo,
+	genesisInfo GenesisInfo,
 ) *MsgCreateRollapp {
 	return &MsgCreateRollapp{
 		Creator:                 creator,

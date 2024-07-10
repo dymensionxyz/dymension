@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 
-	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	uibc "github.com/dymensionxyz/sdk-utils/utils/uibc"
+	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -97,7 +98,7 @@ func (w IBCModule) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet)
 
-	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedackKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

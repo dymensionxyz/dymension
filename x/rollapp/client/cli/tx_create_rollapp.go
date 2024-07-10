@@ -28,8 +28,8 @@ func CmdCreateRollapp() *cobra.Command {
 				return err
 			}
 
-			genesisInfo := new(types.GenesisInfo)
-			if err = json.Unmarshal([]byte(args[3]), genesisInfo); err != nil {
+			genesisInfo := types.GenesisInfo{}
+			if err = json.Unmarshal([]byte(args[3]), &genesisInfo); err != nil {
 				return err
 			}
 

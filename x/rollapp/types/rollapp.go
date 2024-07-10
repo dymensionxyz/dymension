@@ -14,7 +14,7 @@ func NewRollapp(
 	rollappId,
 	initSequencerAddress,
 	bech32Prefix string,
-	genesisInfo *GenesisInfo,
+	genesisInfo GenesisInfo,
 	transfersEnabled bool,
 ) Rollapp {
 	ret := Rollapp{
@@ -49,19 +49,9 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
 	}
 
-	// validate GenesisInfo
-	if r.GenesisInfo == nil {
-		return errorsmod.Wrap(ErrNilGenesisInfo, "GenesisInfo")
-	}
-
 	// validate GenesisChecksum
-	if r.GenesisInfo.GenesisChecksum == "" {
-		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
-	}
-
-	// validate GenesisURLs
-	if len(r.GenesisInfo.GenesisUrls) == 0 {
-		return errorsmod.Wrap(ErrEmptyGenesisURLs, "GenesisURLs")
+	if err = r.ValidateGenesisInfo(); err != nil {
+		return errorsmod.Wrap(ErrEmptyGenesisChecksum, err.Error())
 	}
 
 	return nil

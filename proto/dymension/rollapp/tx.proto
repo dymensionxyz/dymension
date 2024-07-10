@@ -28,7 +28,7 @@ message MsgCreateRollapp {
   // the unique rollapp address bech32 prefix.
   string bech32_prefix = 4;
   // genesis doc identifier
-  GenesisInfo genesis_info = 5;
+  GenesisInfo genesis_info = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateRollappResponse {

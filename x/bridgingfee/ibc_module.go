@@ -8,10 +8,11 @@ import (
 	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/tendermint/tendermint/libs/log"
+
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 const (
@@ -63,7 +64,7 @@ func (w IBCModule) logger(
 func (w *IBCModule) OnRecvPacket(ctx sdk.Context, packet channeltypes.Packet, relayer sdk.AccAddress) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if commontypes.SkipRollappMiddleware(ctx) || !w.delayedAckKeeper.IsRollappsEnabled(ctx) {
+	if commontypes.SkipRollappMiddleware(ctx) {
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
 	}
 

@@ -12,8 +12,6 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// KeyRollappsEnabled is store's key for RollappsEnabled Params
-	KeyRollappsEnabled = []byte("RollappsEnabled")
 	// KeyRegistrationFee is store's key for RegistrationFee Params
 	KeyRegistrationFee = []byte("RegistrationFee")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
@@ -32,22 +30,18 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	enabled bool,
 	disputePeriodInBlocks uint64,
 	registrationFee sdk.Coin,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		RegistrationFee:       registrationFee,
-		RollappsEnabled:       enabled,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(
-		true, DefaultDisputePeriodInBlocks, DefaultRegistrationFee,
-	)
+	return NewParams(DefaultDisputePeriodInBlocks, DefaultRegistrationFee)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -55,7 +49,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
 		paramtypes.NewParamSetPair(KeyRegistrationFee, &p.RegistrationFee, validateRegistrationFee),
-		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
 	}
 }
 

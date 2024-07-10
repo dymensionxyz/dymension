@@ -93,7 +93,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 
 				// Check Rollapp parameters
 				rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)
-				if rollappParams.RollappsEnabled != expectRollappsEnabled || rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
+				if rollappParams.DisputePeriodInBlocks != expectDisputePeriodInBlocks {
 					return fmt.Errorf("rollapp parameters not set correctly")
 				}
 

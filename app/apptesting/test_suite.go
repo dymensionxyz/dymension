@@ -40,7 +40,7 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 		RollappId:               name,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            "eth",
-		GenesisInfo: &rollapptypes.GenesisInfo{
+		GenesisInfo: rollapptypes.GenesisInfo{
 			GenesisUrls:     []string{"http://localhost:8080/genesis.json"},
 			GenesisChecksum: "1234567890abcdefg",
 		},

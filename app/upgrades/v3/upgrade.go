@@ -3,6 +3,8 @@ package v3
 import (
 	"math/big"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -19,9 +21,11 @@ import (
 // CreateUpgradeHandler creates an SDK upgrade handler for v3
 func CreateUpgradeHandler(
 	mm *module.Manager,
+	_ codec.Codec,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
 	keepers *keepers.AppKeepers,
+	_ func(string) *storetypes.KVStoreKey,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
@@ -32,7 +36,6 @@ func CreateUpgradeHandler(
 
 		// overwrite params for rollapp module due to proto change
 		rollappParams := rollapptypes.DefaultParams()
-		rollappParams.RollappsEnabled = false
 		rollappParams.DisputePeriodInBlocks = 120960 // 1 week
 		keepers.RollappKeeper.SetParams(ctx, rollappParams)
 

@@ -56,10 +56,6 @@ func (w IBCMiddleware) OnRecvPacket(
 ) exported.Acknowledgement {
 	l := w.logger(ctx, packet, "OnRecvPacket")
 
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
-	}
-
 	if commontypes.SkipRollappMiddleware(ctx) {
 		l.Debug("Skipping because of skip delay ctx.")
 		return w.IBCModule.OnRecvPacket(ctx, packet, relayer)
@@ -93,10 +89,6 @@ func (w IBCMiddleware) OnAcknowledgementPacket(
 	relayer sdk.AccAddress,
 ) error {
 	l := w.logger(ctx, packet, "OnAcknowledgementPacket")
-
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnAcknowledgementPacket(ctx, packet, acknowledgement, relayer)
-	}
 
 	var ack channeltypes.Acknowledgement
 	if err := types.ModuleCdc.UnmarshalJSON(acknowledgement, &ack); err != nil {
@@ -141,10 +133,6 @@ func (w IBCMiddleware) OnTimeoutPacket(
 	relayer sdk.AccAddress,
 ) error {
 	l := w.logger(ctx, packet, "OnTimeoutPacket")
-
-	if !w.Keeper.IsRollappsEnabled(ctx) {
-		return w.IBCModule.OnTimeoutPacket(ctx, packet, relayer)
-	}
 
 	transfer, err := w.GetValidTransferWithFinalizationInfo(ctx, packet, commontypes.RollappPacket_ON_TIMEOUT)
 	if err != nil {

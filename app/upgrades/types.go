@@ -1,6 +1,7 @@
 package upgrades
 
 import (
+	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -26,7 +27,14 @@ type Upgrade struct {
 	UpgradeName string
 
 	// CreateUpgradeHandler defines the function that creates an upgrade handler
-	CreateUpgradeHandler func(*module.Manager, module.Configurator, BaseAppParamManager, *keepers.AppKeepers) upgradetypes.UpgradeHandler
+	CreateUpgradeHandler func(
+		mm *module.Manager,
+		appCodec codec.Codec,
+		configurator module.Configurator,
+		_ BaseAppParamManager,
+		appKeepers *keepers.AppKeepers,
+		getStoreKey func(string) *storetypes.KVStoreKey,
+	) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades storetypes.StoreUpgrades
