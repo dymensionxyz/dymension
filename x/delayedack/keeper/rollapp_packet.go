@@ -138,7 +138,8 @@ outer:
 			}
 			list = append(list, val)
 
-			if withLimit && len(list) >= listFilter.Limit {
+			if withLimit && len(list) == listFilter.Limit {
+				_ = iterator.Close()
 				break outer
 			}
 		}

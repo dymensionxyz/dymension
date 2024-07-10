@@ -7,8 +7,9 @@ import (
 )
 
 // GetParams get all parameters as types.Params
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(k.EpochIdentifier(ctx), k.BridgingFee(ctx), k.DeletePacketBatchSize(ctx))
+func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
+	k.paramstore.GetParamSet(ctx, &params)
+	return
 }
 
 // SetParams set the params
@@ -30,7 +31,7 @@ func (k Keeper) BridgingFeeFromAmt(ctx sdk.Context, amt sdk.Int) (res sdk.Int) {
 	return k.BridgingFee(ctx).MulInt(amt).TruncateInt()
 }
 
-func (k Keeper) DeletePacketBatchSize(ctx sdk.Context) (res int32) {
-	k.paramstore.Get(ctx, types.KeyDeletePacketBatchSize, &res)
+func (k Keeper) DeletePacketsEpochLimit(ctx sdk.Context) (res int64) {
+	k.paramstore.Get(ctx, types.KeyDeletePacketsEpochLimit, &res)
 	return
 }

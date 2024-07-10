@@ -134,7 +134,6 @@ type AppKeepers struct {
 	StreamerKeeper  streamermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
 
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 	DelayedAckKeeper    delayedackkeeper.Keeper
 	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
 
@@ -395,8 +394,6 @@ func (a *AppKeepers) InitNormalKeepers(
 		&a.StakingKeeper, govRouter, bApp.MsgServiceRouter(), govConfig,
 	)
 
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
-
 	a.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, a.keys[packetforwardtypes.StoreKey],
 		a.GetSubspace(packetforwardtypes.ModuleName),
@@ -475,7 +472,6 @@ func (a *AppKeepers) InitTransferStack() {
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, a.TransferStack)
-	// this line is used by starport scaffolding # ibc/app/router
 	a.IBCKeeper.SetRouter(ibcRouter)
 }
 
