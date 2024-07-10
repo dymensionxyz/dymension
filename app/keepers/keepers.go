@@ -143,6 +143,7 @@ type AppKeepers struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 }
 
+// InitNormalKeepers initializes all 'normal' keepers (account, app, bank, auth, staking, distribution, slashing, transfer, gamm, incentives, governance, mint, txfees keepers...).
 func (a *AppKeepers) InitNormalKeepers(
 	appCodec codec.Codec,
 	bApp *baseapp.BaseApp,

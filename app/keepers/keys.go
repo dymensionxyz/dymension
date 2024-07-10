@@ -90,19 +90,6 @@ func (a *AppKeepers) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return a.memKeys[storeKey]
 }
 
-// ModuleAccountAddrs returns all the app's module account addresses.
-func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
-	modAccAddrs := make(map[string]bool)
-	for acc := range maccPerms {
-		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
-	}
-
-	// exclude the streamer as we want him to be able to get external incentives
-	modAccAddrs[authtypes.NewModuleAddress(streamermoduletypes.ModuleName).String()] = false
-	modAccAddrs[authtypes.NewModuleAddress(txfeestypes.ModuleName).String()] = false
-	return modAccAddrs
-}
-
 var KVStoreKeys = sdk.NewKVStoreKeys(
 	authtypes.StoreKey,
 	authzkeeper.StoreKey,
