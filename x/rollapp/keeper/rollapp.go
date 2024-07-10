@@ -15,24 +15,26 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	err := k.checkIfRollappExists(ctx, rollapp.RollappId)
-	if err != nil {
+	if err := k.checkIfRollappExists(ctx, rollapp.RollappId); err != nil {
 		return err
 	}
 
-	err = k.checkIfInitialSequencerAddressTaken(ctx, rollapp.InitialSequencerAddress)
-	if err != nil {
+	if err := k.checkIfInitialSequencerAddressTaken(ctx, rollapp.InitialSequencerAddress); err != nil {
 		return fmt.Errorf("check if initial sequencer address taken: %w", err)
+	}
+
+	if err := k.checkIfBech32PrefixTaken(ctx, rollapp.Bech32Prefix); err != nil {
+		return fmt.Errorf("check if bech32 prefix taken: %w", err)
 	}
 
 	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
-	if err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
 		return errorsmod.Wrap(types.ErrFeePayment, err.Error())
 	}
 
-	if err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {
+	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {
 		return fmt.Errorf("burn coins: %w", err)
 	}
 
@@ -78,6 +80,13 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, id string) error {
 func (k Keeper) checkIfInitialSequencerAddressTaken(ctx sdk.Context, address string) error {
 	if _, isFound := k.GetRollappByInitialSequencerAddress(ctx, address); isFound {
 		return types.ErrInitialSequencerAddressTaken
+	}
+	return nil
+}
+
+func (k Keeper) checkIfBech32PrefixTaken(ctx sdk.Context, prefix string) error {
+	if _, isFound := k.GetRollappByBech32Prefix(ctx, prefix); isFound {
+		return types.ErrBech32PrefixTaken
 	}
 	return nil
 }
@@ -130,6 +139,21 @@ func (k Keeper) GetRollappByInitialSequencerAddress(ctx sdk.Context, address str
 		var val types.Rollapp
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.InitialSequencerAddress == address {
+			return val, true
+		}
+	}
+	return types.Rollapp{}, false
+}
+
+func (k Keeper) GetRollappByBech32Prefix(ctx sdk.Context, pref string) (types.Rollapp, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Rollapp
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Bech32Prefix == pref {
 			return val, true
 		}
 	}

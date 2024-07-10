@@ -14,13 +14,13 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	// KeyRegistrationFee is store's key for RegistrationFee Params
 	KeyRegistrationFee = []byte("RegistrationFee")
+	// DefaultRegistrationFee is the default registration fee
+	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("1000000000000000000adym")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
-	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("1000000000000000000adym")
 )
 
 // ParamKeyTable the param key table for launch module

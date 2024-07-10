@@ -4,16 +4,13 @@ import (
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 const (
@@ -60,7 +57,6 @@ func (suite *SequencerTestSuite) TestMinBond() {
 	}
 
 	for _, tc := range testCases {
-
 		seqParams := types.Params{
 			MinBond:       tc.requiredBond,
 			UnbondingTime: 100,

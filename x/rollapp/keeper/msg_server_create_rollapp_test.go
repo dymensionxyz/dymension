@@ -39,10 +39,10 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.ErrorIs(err, types.ErrRollappExists)
 }
 
-func (suite *RollappTestSuite) TestCreateRollappSequencerAlreadyExists() {
+func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
 	seqAddr := sample.AccAddress()
 
 	rollapp := types.MsgCreateRollapp{
@@ -59,11 +59,37 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerAlreadyExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            bech32Prefix,
+		Bech32Prefix:            bech32Prefix2,
 		GenesisInfo:             genesisInfo,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrInitialSequencerAddressTaken)
+}
+
+func (suite *RollappTestSuite) TestCreateRollappBech32PrefixExists() {
+	suite.SetupTest()
+
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	rollapp := types.MsgCreateRollapp{
+		Creator:                 alice,
+		RollappId:               "rollapp1",
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            bech32Prefix,
+		GenesisInfo:             genesisInfo,
+	}
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Nil(err)
+
+	rollapp = types.MsgCreateRollapp{
+		Creator:                 alice,
+		RollappId:               "rollapp2",
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            bech32Prefix,
+		GenesisInfo:             genesisInfo,
+	}
+	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.ErrorIs(err, types.ErrBech32PrefixTaken)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappId() {
@@ -255,7 +281,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:                 alice,
 				RollappId:               test.newRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            bech32Prefix2,
 				GenesisInfo:             genesisInfo,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
@@ -316,7 +342,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:                 alice,
 				RollappId:               test.badRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            bech32Prefix2,
 				GenesisInfo:             genesisInfo,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)

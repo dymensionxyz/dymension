@@ -32,6 +32,7 @@ var (
 	ErrLogic                          = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                 = errorsmod.Register(ModuleName, 1040, "invalid address")
 	ErrInitialSequencerAddressTaken   = errorsmod.Register(ModuleName, 1041, "initial sequencer address already taken")
+	ErrBech32PrefixTaken              = errorsmod.Register(ModuleName, 1042, "Bech32 prefix already taken")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

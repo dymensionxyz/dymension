@@ -12,7 +12,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"

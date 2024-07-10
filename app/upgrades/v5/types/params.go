@@ -1,3 +1,5 @@
+// COPIED FROM main
+
 package types
 
 import (

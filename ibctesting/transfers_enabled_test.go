@@ -5,17 +5,15 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-
 	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 	"github.com/cosmos/ibc-go/v6/testing/simapp"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
 
 type transfersEnabledSuite struct {

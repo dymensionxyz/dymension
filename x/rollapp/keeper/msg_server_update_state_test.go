@@ -1,15 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // TODO: refactor the tests to use test-cases
