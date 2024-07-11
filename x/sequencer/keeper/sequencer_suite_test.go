@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/stretchr/testify/suite"
@@ -57,7 +57,7 @@ func (suite *SequencerTestSuite) CreateDefaultSequencer(ctx sdk.Context, rollapp
 }
 
 func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollappId string, bond sdk.Coin) string {
-	pubkey1 := secp256k1.GenPrivKey().PubKey()
+	pubkey1 := ed25519.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 	suite.Require().Nil(err)

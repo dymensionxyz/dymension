@@ -72,27 +72,28 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	}
 
 	// public key also checked by the application logic
-	if msg.DymintPubKey != nil {
-		// check it is a pubkey
-		if _, err = codectypes.NewAnyWithValue(msg.DymintPubKey); err != nil {
-			return errorsmod.Wrapf(ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
-		}
-
-		// cast to cryptotypes.PubKey type
-		pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
-		if !ok {
-			return errorsmod.Wrapf(ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
-		}
-
-		_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
-		// err means the pubkey validation failed
-		if err != nil {
-			return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
-		}
-
+	if msg.DymintPubKey == nil {
+		return errorsmod.Wrap(ErrInvalidPubKey, "sequencer pubkey is required")
 	}
 
-	if _, err = msg.Metadata.EnsureLength(); err != nil {
+	// check it is a pubkey
+	if _, err = codectypes.NewAnyWithValue(msg.DymintPubKey); err != nil {
+		return errorsmod.Wrapf(ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
+	}
+
+	// cast to cryptotypes.PubKey type
+	pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return errorsmod.Wrapf(ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+	}
+
+	_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
+	// err means the pubkey validation failed
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
+	}
+
+	if _, err = msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
 		return err
 	}
 

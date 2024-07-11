@@ -59,12 +59,13 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Metadata:     SequencerMetadata{
-					/*Moniker:         strings.Repeat("a", MaxMonikerLength),
+				Metadata: SequencerMetadata{
+					Moniker:         strings.Repeat("a", MaxMonikerLength),
 					Identity:        strings.Repeat("a", MaxIdentityLength),
 					Website:         strings.Repeat("a", MaxWebsiteLength),
+					Details:         strings.Repeat("a", MaxDetailsLength),
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxExtraDataLength),*/
+					ExtraData:       []byte(strings.Repeat("a", MaxExtraDataLength)),
 				},
 			},
 		}, {
@@ -73,8 +74,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Metadata:     SequencerMetadata{
-					// Moniker: strings.Repeat("a", MaxMonikerLength+1),
+				Metadata: SequencerMetadata{
+					Moniker: strings.Repeat("a", MaxMonikerLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -84,8 +85,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Metadata:     SequencerMetadata{
-					// Identity: strings.Repeat("a", MaxIdentityLength+1),
+				Metadata: SequencerMetadata{
+					Identity: strings.Repeat("a", MaxIdentityLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -106,8 +107,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Metadata:     SequencerMetadata{
-					// SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
+				Metadata: SequencerMetadata{
+					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -117,8 +118,19 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Metadata:     SequencerMetadata{
-					// Details: strings.Repeat("a", MaxExtraDataLength+1),
+				Metadata: SequencerMetadata{
+					Details: strings.Repeat("a", MaxDetailsLength+1),
+				},
+			},
+			err: ErrInvalidRequest,
+		}, {
+			name: "invalid extra data length",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				Metadata: SequencerMetadata{
+					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
 				},
 			},
 			err: ErrInvalidRequest,

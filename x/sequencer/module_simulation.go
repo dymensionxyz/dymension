@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	sequencersimulation "github.com/dymensionxyz/dymension/v3/x/sequencer/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -69,7 +70,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	)
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgCreateSequencer,
-		sequencersimulation.SimulateMsgCreateSequencer(am.accountKeeper, am.bankKeeper, am.keeper),
+		sequencersimulation.SimulateMsgCreateSequencer(am.accountKeeper, am.bankKeeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

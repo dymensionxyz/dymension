@@ -14,8 +14,8 @@ import (
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.DymintPubKey == nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
 	}
 
 	// check to see if the sequencer has been registered before
@@ -28,15 +28,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+
 	if rollapp.Frozen {
 		return nil, types.ErrRollappJailed
 	}
 
 	// check to see if the sequencer has enough balance and deduct the bond
-	seqAcc, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
+	seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
 
 	bond := sdk.Coins{}
 	minBond := k.GetParams(ctx).MinBond
@@ -53,7 +51,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			)
 		}
 
-		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
 		if err != nil {
 			return nil, err
 		}

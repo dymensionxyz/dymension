@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
@@ -63,7 +63,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		}
 		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
-		pubkey1 := secp256k1.GenPrivKey().PubKey()
+		pubkey1 := ed25519.GenPrivKey().PubKey()
 		addr1 := sdk.AccAddress(pubkey1.Address())
 		pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
 		suite.Require().Nil(err)
@@ -121,7 +121,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollappId := rollapp.GetRollappId()
 
 		for i := 0; i < 10; i++ {
-			pubkey := secp256k1.GenPrivKey().PubKey()
+			pubkey := ed25519.GenPrivKey().PubKey()
 			addr := sdk.AccAddress(pubkey.Address())
 			err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 			suite.Require().NoError(err)
@@ -197,7 +197,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 
 	rollappId := suite.CreateDefaultRollapp()
 
-	pubkey := secp256k1.GenPrivKey().PubKey()
+	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)
@@ -222,7 +222,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
-	pubkey := secp256k1.GenPrivKey().PubKey()
+	pubkey := ed25519.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
 	suite.Require().NoError(err)

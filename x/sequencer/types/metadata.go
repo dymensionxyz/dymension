@@ -7,6 +7,7 @@ const (
 	MaxMonikerLength         = 70
 	MaxIdentityLength        = 3000
 	MaxWebsiteLength         = 140
+	MaxDetailsLength         = 280
 	MaxSecurityContactLength = 140
 	MaxExtraDataLength       = 280
 )
@@ -21,28 +22,32 @@ func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (Sequen
 		P2PSeed:     d2.P2PSeed,
 		Rpcs:        d2.Rpcs,
 		EvmRpcs:     d2.EvmRpcs,
-		RestApiUrl:  d2.RestApiUrl,
+		RestApiUrls: d2.RestApiUrls,
 		ExplorerUrl: d2.ExplorerUrl,
 	}
 
 	if d.Moniker != DoNotModifyDesc {
-		d.Moniker = d2.Moniker
+		metadata.Moniker = d2.Moniker
 	}
 
 	if d.Identity != DoNotModifyDesc {
-		d.Identity = d2.Identity
+		metadata.Identity = d2.Identity
 	}
 
 	if d.Website != DoNotModifyDesc {
-		d.Website = d2.Website
+		metadata.Website = d2.Website
+	}
+
+	if d.Details != DoNotModifyDesc {
+		metadata.Details = d2.Details
 	}
 
 	if d.SecurityContact != DoNotModifyDesc {
-		d.SecurityContact = d2.SecurityContact
+		metadata.SecurityContact = d2.SecurityContact
 	}
 
 	if string(d.ExtraData) != DoNotModifyDesc {
-		d.ExtraData = d2.ExtraData
+		metadata.ExtraData = d2.ExtraData
 	}
 
 	return metadata.EnsureLength()
@@ -60,6 +65,10 @@ func (d SequencerMetadata) EnsureLength() (SequencerMetadata, error) {
 
 	if len(d.Website) > MaxWebsiteLength {
 		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid website length; got: %d, max: %d", len(d.Website), MaxWebsiteLength)
+	}
+
+	if len(d.Details) > MaxDetailsLength {
+		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
 	}
 
 	if len(d.SecurityContact) > MaxSecurityContactLength {
