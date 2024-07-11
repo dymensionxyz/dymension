@@ -24,8 +24,6 @@ const (
 	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
 	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
 	registrationFee = "1000000000000000000adym"
-	bech32Prefix    = "eth"
-	bech32Prefix2   = "rax"
 )
 
 type RollappTestSuite struct {

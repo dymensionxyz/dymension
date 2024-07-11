@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/rand"
@@ -29,7 +30,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            bech32Prefix,
+		Bech32Prefix:            uniqueBech32Prefix(),
 		GenesisInfo:             genesisInfo,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -49,7 +50,7 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            bech32Prefix,
+		Bech32Prefix:            uniqueBech32Prefix(),
 		GenesisInfo:             genesisInfo,
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -59,7 +60,7 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            bech32Prefix2,
+		Bech32Prefix:            uniqueBech32Prefix(),
 		GenesisInfo:             genesisInfo,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -70,6 +71,8 @@ func (suite *RollappTestSuite) TestCreateRollappBech32PrefixExists() {
 	suite.SetupTest()
 
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	bech32Prefix := "rax"
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:                 alice,
@@ -145,7 +148,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 
@@ -207,7 +210,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 
@@ -266,7 +269,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 
@@ -281,7 +284,7 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:                 alice,
 				RollappId:               test.newRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix2,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
@@ -321,7 +324,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -342,7 +345,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:                 alice,
 				RollappId:               test.badRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix2,
+				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisInfo:             genesisInfo,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
@@ -391,7 +394,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		Creator:                 creator,
 		RollappId:               fmt.Sprintf("%s%d", "rollapp", rand.Int63()), //nolint:gosec // this is for a test
 		InitialSequencerAddress: address,
-		Bech32Prefix:            bech32Prefix,
+		Bech32Prefix:            uniqueBech32Prefix(),
 		GenesisInfo:             genesisInfo,
 	}
 	// rollappExpect is the expected result of creating rollapp
@@ -423,4 +426,8 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		RollappId: rollappExpect.RollappId,
 	}
 	return rollappSummaryExpect
+}
+
+func uniqueBech32Prefix() string {
+	return strings.ToLower(rand.Str(3))
 }

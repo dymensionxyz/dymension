@@ -1,6 +1,8 @@
 package apptesting
 
 import (
+	"strings"
+
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -36,7 +38,7 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 		Creator:                 alice,
 		RollappId:               name,
 		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "eth",
+		Bech32Prefix:            strings.ToLower(rand.Str(3)),
 		GenesisInfo: rollapptypes.GenesisInfo{
 			GenesisUrls:     []string{"http://localhost:8080/genesis.json"},
 			GenesisChecksum: "1234567890abcdefg",
