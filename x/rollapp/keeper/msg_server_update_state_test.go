@@ -30,10 +30,10 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        rollapp.GetRollappId(),
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: rollapp.GetRollappId(),
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -81,10 +81,10 @@ func (suite *RollappTestSuite) TestUpdateState() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        rollapp.GetRollappId(),
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: rollapp.GetRollappId(),
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -275,10 +275,10 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp2",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp2",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -314,10 +314,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 
 	// set unpermissioned sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: rollapp.InitialSequencerAddress,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   rollapp.InitialSequencerAddress,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -353,10 +353,10 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -392,10 +392,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -406,7 +406,7 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	}
 	stateInfo := types.StateInfo{
 		StateInfoIndex: types.StateInfoIndex{RollappId: "rollapp1", Index: 1},
-		Sequencer:      sequencer.SequencerAddress,
+		Sequencer:      sequencer.Address,
 		StartHeight:    1,
 		NumBlocks:      3,
 		DAPath:         "",
@@ -454,10 +454,10 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
-		Proposer:         true,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
+		Proposer:  true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -501,9 +501,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 
 	// set sequencer
 	sequencer := sequencertypes.Sequencer{
-		SequencerAddress: bob,
-		RollappId:        "rollapp1",
-		Status:           sequencertypes.Bonded,
+		Address:   bob,
+		RollappId: "rollapp1",
+		Status:    sequencertypes.Bonded,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 

@@ -1,0 +1,28 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+
+// Metadata defines rollapp/sequencer extra information.
+message SequencerMetadata {
+  // moniker defines a human-readable name for the sequencer.
+  string moniker = 1;
+  // identity defines an optional identity signature (ex. UPort or Keybase).
+  string identity = 2;
+  // securityContact defines an optional email for security contact.
+  string securityContact = 3;
+  // bootstrap nodes list
+  string p2p_seed = 4;
+  // RPCs list
+  repeated string rpcs = 5;
+  // evm RPCs list
+  repeated string evm_rpcs = 6;
+  // REST API URL
+  string rest_api_url = 7;
+  // block explorer URL
+  string explorer_url = 8;
+  // website URL
+  string website = 9;
+  // json dump the sequencer can add (limited by size)
+  bytes extra_data = 10;
+}

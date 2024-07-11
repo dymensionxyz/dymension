@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -16,7 +17,7 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 
 	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
 	for _, s := range sequencers {
-		suite.NotEqual(s.SequencerAddress, seqAddr)
+		suite.NotEqual(s.Address, seqAddr)
 	}
 }
 
@@ -50,7 +51,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(found)
 
-	suite.Equal(seq.SequencerAddress, seqAddr)
+	suite.Equal(seq.Address, seqAddr)
 	suite.Equal(seq.Status, types.Unbonded)
 	err = keeper.Slashing(suite.Ctx, seqAddr)
 	suite.ErrorIs(err, types.ErrInvalidSequencerStatus)

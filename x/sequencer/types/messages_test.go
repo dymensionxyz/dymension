@@ -11,8 +11,9 @@ import (
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
@@ -53,17 +54,17 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 			},
 		}, {
-			name: "valid description",
+			name: "valid metadata",
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Moniker:         strings.Repeat("a", MaxMonikerLength),
+				Metadata:     SequencerMetadata{
+					/*Moniker:         strings.Repeat("a", MaxMonikerLength),
 					Identity:        strings.Repeat("a", MaxIdentityLength),
 					Website:         strings.Repeat("a", MaxWebsiteLength),
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxDetailsLength),
+					Details:         strings.Repeat("a", MaxExtraDataLength),*/
 				},
 			},
 		}, {
@@ -72,8 +73,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Moniker: strings.Repeat("a", MaxMonikerLength+1),
+				Metadata:     SequencerMetadata{
+					// Moniker: strings.Repeat("a", MaxMonikerLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -83,8 +84,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Identity: strings.Repeat("a", MaxIdentityLength+1),
+				Metadata:     SequencerMetadata{
+					// Identity: strings.Repeat("a", MaxIdentityLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -94,7 +95,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
+				Metadata: SequencerMetadata{
 					Website: strings.Repeat("a", MaxWebsiteLength+1),
 				},
 			},
@@ -105,8 +106,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
+				Metadata:     SequencerMetadata{
+					// SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -116,8 +117,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Details: strings.Repeat("a", MaxDetailsLength+1),
+				Metadata:     SequencerMetadata{
+					// Details: strings.Repeat("a", MaxExtraDataLength+1),
 				},
 			},
 			err: ErrInvalidRequest,

@@ -1,10 +1,8 @@
 syntax = "proto3";
-
 package dymensionxyz.dymension.sequencer;
 
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 
-// this line is used by starport scaffolding # proto/tx/import
-import "dymension/sequencer/description.proto";
 import "google/protobuf/any.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -12,32 +10,27 @@ import "cosmos/base/v1beta1/coin.proto";
 import "google/protobuf/timestamp.proto";
 import "cosmos/msg/v1/msg.proto";
 
-option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+import "dymension/sequencer/metadata.proto";
 
 // Msg defines the Msg service.
 service Msg {
-  
   // CreateSequencer defines a method for creating a new sequencer.
   rpc CreateSequencer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
-  
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
 }
-// MsgCreateSequencer defines a SDK message for creating a new sequencer.
+
 message MsgCreateSequencer {
-  
   // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
   string creator = 1;
-  
   // pubkey is the public key of the sequencers' dymint client, as a Protobuf Any.
   google.protobuf.Any dymintPubKey = 2 [(cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"];
-  
-  // rollappId defines the rollapp to which the sequencer belongs.
-  string rollappId = 3;
-  
-  // description defines the descriptive terms for the sequencer.
-  Description              description = 4 [(gogoproto.nullable) = false];
-  cosmos.base.v1beta1.Coin bond        = 5 [(gogoproto.nullable) = false];
+  // rollapp_id defines the rollapp to which the sequencer belongs.
+  string rollapp_id = 3;
+  // metadata defines the extra information for the sequencer.
+  SequencerMetadata metadata = 4 [(gogoproto.nullable) = false];
+  // entry bond for the sequencer.
+  cosmos.base.v1beta1.Coin bond = 5 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateSequencerResponse {}

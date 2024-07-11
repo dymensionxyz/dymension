@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 

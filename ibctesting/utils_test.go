@@ -154,7 +154,7 @@ func (s *utilSuite) registerSequencer() {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		pk,
 		rollappChainID(),
-		&sequencertypes.Description{},
+		sequencertypes.SequencerMetadata{},
 		bond,
 	)
 	s.Require().NoError(err) // message committed

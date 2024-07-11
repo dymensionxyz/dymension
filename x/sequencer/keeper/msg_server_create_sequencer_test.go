@@ -77,7 +77,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 			DymintPubKey: pkAny1,
 			Bond:         bond,
 			RollappId:    rollappId,
-			Description:  types.Description{},
+			Metadata:     types.SequencerMetadata{},
 		}
 		_, err = suite.msgServer.CreateSequencer(suite.Ctx, &sequencerMsg1)
 		if tc.expectedError != nil {
@@ -134,16 +134,16 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				RollappId:    rollappId,
-				Description:  types.Description{},
+				Metadata:     types.SequencerMetadata{},
 			}
 			// sequencerExpect is the expected result of creating a sequencer
 			sequencerExpect := types.Sequencer{
-				SequencerAddress: sequencerMsg.GetCreator(),
-				DymintPubKey:     sequencerMsg.GetDymintPubKey(),
-				Status:           types.Bonded,
-				RollappId:        rollappId,
-				Tokens:           sdk.NewCoins(bond),
-				Description:      sequencerMsg.GetDescription(),
+				Address:      sequencerMsg.GetCreator(),
+				DymintPubKey: sequencerMsg.GetDymintPubKey(),
+				Status:       types.Bonded,
+				RollappId:    rollappId,
+				Tokens:       sdk.NewCoins(bond),
+				Metadata:     sequencerMsg.GetMetadata(),
 			}
 			if i == 0 {
 				sequencerExpect.Status = types.Bonded
@@ -170,7 +170,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of spesific rollapp
-			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
+			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.Address}] = sequencerExpect.Address
 		}
 	}
 
@@ -183,15 +183,14 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		suite.Require().Nil(err)
 		// verify that all the addresses of the rollapp are found
 		for _, sequencer := range queryAllResponse.Sequencers {
-			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.SequencerAddress}],
-				sequencer.SequencerAddress)
+			suite.Require().EqualValues(rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencer.Address}],
+				sequencer.Address)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-// TODO: test with different sequencer status
 func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -210,7 +209,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  types.Description{},
+		Metadata:     types.SequencerMetadata{},
 	}
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
@@ -235,7 +234,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerUnknownRollappId() {
 		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    "rollappId",
-		Description:  types.Description{},
+		Metadata:     types.SequencerMetadata{},
 	}
 
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
@@ -274,7 +273,7 @@ func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, s
 	suite.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
 	for i := 0; i < len(sequencersExpect); i++ {
 		sequencerExpect := sequencersExpect[i]
-		sequencerRes := sequencersRes[sequencerExpect.GetSequencerAddress()]
+		sequencerRes := sequencersRes[sequencerExpect.GetAddress()]
 		equalSequencer(suite, sequencerExpect, sequencerRes)
 	}
 }
@@ -305,7 +304,7 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 
 		for i := 0; i < len(queryAllResponse.Sequencers); i++ {
 			sequencerRes := queryAllResponse.Sequencers[i]
-			sequencersRes[sequencerRes.GetSequencerAddress()] = &sequencerRes
+			sequencersRes[sequencerRes.GetAddress()] = &sequencerRes
 		}
 		totalChecked += len(queryAllResponse.Sequencers)
 		nextKey = queryAllResponse.GetPagination().GetNextKey()
@@ -325,7 +324,7 @@ func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Se
 }
 
 func CompareSequencers(s1, s2 *types.Sequencer) bool {
-	if s1.SequencerAddress != s2.SequencerAddress {
+	if s1.Address != s2.Address {
 		return false
 	}
 

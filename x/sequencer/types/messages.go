@@ -26,7 +26,7 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 }
 
 /* --------------------------- MsgCreateSequencer --------------------------- */
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description, bond sdk.Coin) (*MsgCreateSequencer, error) {
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -39,7 +39,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 		Creator:      creator,
 		DymintPubKey: pkAny,
 		RollappId:    rollappId,
-		Description:  *description,
+		Metadata:     metadata,
 		Bond:         bond,
 	}, nil
 }
@@ -92,7 +92,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 
 	}
 
-	if _, err := msg.Description.EnsureLength(); err != nil {
+	if _, err = msg.Metadata.EnsureLength(); err != nil {
 		return err
 	}
 

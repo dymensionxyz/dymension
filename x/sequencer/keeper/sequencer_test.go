@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error
@@ -19,8 +20,8 @@ func createNSequencer(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Seq
 	items := make([]types.Sequencer, n)
 	for i := range items {
 		seq := types.Sequencer{
-			SequencerAddress: strconv.Itoa(i),
-			Status:           types.Bonded,
+			Address: strconv.Itoa(i),
+			Status:  types.Bonded,
 		}
 		items[i] = seq
 
@@ -35,7 +36,7 @@ func TestSequencerGet(t *testing.T) {
 	for _, item := range items {
 		item := item
 		rst, found := keeper.GetSequencer(ctx,
-			item.SequencerAddress,
+			item.Address,
 		)
 		require.True(t, found)
 		require.Equal(t,

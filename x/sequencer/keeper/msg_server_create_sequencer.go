@@ -61,13 +61,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencer := types.Sequencer{
-		SequencerAddress: msg.Creator,
-		DymintPubKey:     msg.DymintPubKey,
-		RollappId:        msg.RollappId,
-		Description:      msg.Description,
-		Status:           types.Bonded,
-		Proposer:         false,
-		Tokens:           bond,
+		Address:      msg.Creator,
+		DymintPubKey: msg.DymintPubKey,
+		RollappId:    msg.RollappId,
+		Metadata:     msg.Metadata,
+		Status:       types.Bonded,
+		Proposer:     false,
+		Tokens:       bond,
 	}
 
 	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)

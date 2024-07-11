@@ -67,7 +67,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 		DymintPubKey: pkAny1,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  sequencertypes.Description{},
+		Metadata:     sequencertypes.SequencerMetadata{},
 	}
 
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)

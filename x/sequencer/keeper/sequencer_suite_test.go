@@ -3,22 +3,19 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/libs/rand"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
-
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-
-	"github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type SequencerTestSuite struct {
@@ -74,7 +71,7 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		DymintPubKey: pkAny1,
 		Bond:         bond,
 		RollappId:    rollappId,
-		Description:  types.Description{},
+		Metadata:     types.SequencerMetadata{},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	suite.Require().Nil(err)

@@ -43,7 +43,7 @@ func SimulateMsgCreateSequencer(
 			Creator:      seqAddress,
 			DymintPubKey: pkAny,
 			RollappId:    rollappId,
-			Description:  types.Description{},
+			Metadata:     types.SequencerMetadata{},
 		}
 
 		bExpectedError := bFailNoRollapp
