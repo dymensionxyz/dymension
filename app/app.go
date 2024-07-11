@@ -19,6 +19,10 @@ import (
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
+	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
 
 	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
@@ -191,11 +195,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-
-	/* ---------------------------- upgrade handlers ---------------------------- */
-
-	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
-	v4upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
 )
 
 var (
@@ -204,11 +203,8 @@ var (
 	_ = packetforwardtypes.ErrIntOverflowGenesis
 )
 
-// this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
-
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
 	govProposalHandlers = append(govProposalHandlers,
 		paramsclient.ProposalHandler,
@@ -232,6 +228,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
+
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -264,7 +262,6 @@ var (
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
-		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
 		evm.AppModuleBasic{},
@@ -335,49 +332,7 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper                 authkeeper.AccountKeeper
-	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
-	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 stakingkeeper.Keeper
-	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
-	GovKeeper                     *govkeeper.Keeper
-	CrisisKeeper                  *crisiskeeper.Keeper
-	UpgradeKeeper                 *upgradekeeper.Keeper
-	ParamsKeeper                  paramskeeper.Keeper
-	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper                evidencekeeper.Keeper
-	TransferKeeper                ibctransferkeeper.Keeper
-	FeeGrantKeeper                feegrantkeeper.Keeper
-	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
-	ConsensusParamsKeeper         consensusparamkeeper.Keeper
-
-	// Ethermint keepers
-	EvmKeeper       *evmkeeper.Keeper
-	FeeMarketKeeper feemarketkeeper.Keeper
-
-	// Osmosis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
-	TxFeesKeeper      *txfeeskeeper.Keeper
-
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-
-	RollappKeeper   rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
-
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper    delayedackkeeper.Keeper
-	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+	keepers.AppKeepers
 	// the module manager
 	mm *module.Manager
 
@@ -473,7 +428,6 @@ func New(
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
 	app.CapabilityKeeper.Seal()
 
@@ -668,7 +622,7 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -779,8 +733,6 @@ func New(
 	)
 	govKeeper.SetLegacyRouter(govRouter)
 	app.GovKeeper = govKeeper.SetHooks(govtypes.NewMultiGovHooks())
-
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	app.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, keys[packetforwardtypes.StoreKey],
@@ -904,7 +856,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
@@ -941,7 +892,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -983,7 +933,6 @@ func New(
 		denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -1053,7 +1002,6 @@ func New(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
 	return app
 }
@@ -1235,7 +1183,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
@@ -1280,20 +1227,20 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
-// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
-	app.setupV3upgrade()
-	app.setupV4upgrade()
+	for _, u := range Upgrades {
+		app.setupUpgradeHandler(u)
+	}
 }
 
-func (app *App) setupV3upgrade() {
-	UpgradeName := "v3"
-
+func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		v3upgrade.CreateUpgradeHandler(
-			app.mm, app.configurator,
-			app.RollappKeeper, app.SequencerKeeper, app.DelayedAckKeeper,
+		upgrade.UpgradeName,
+		upgrade.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.BaseApp,
+			&app.AppKeepers,
 		),
 	)
 
@@ -1305,31 +1252,8 @@ func (app *App) setupV3upgrade() {
 	switch upgradeInfo.Name {
 	}
 
-	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
-	}
-}
-
-func (app *App) setupV4upgrade() {
-	UpgradeName := "v4"
-
-	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		v4upgrade.CreateUpgradeHandler(
-			app.mm, app.configurator,
-			app.ParamsKeeper, app.ConsensusParamsKeeper,
-		),
-	)
-
-	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
-	}
-
-	switch upgradeInfo.Name {
-	}
-
-	if upgradeInfo.Name == "v4" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v4upgrade.GetStoreUpgrades()))
+	if upgradeInfo.Name == upgrade.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// configure store loader with the store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
 }

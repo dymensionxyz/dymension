@@ -46,7 +46,7 @@ func (suite *KeeperTestSuite) TestCreateDemandOrderOnRecv() {
 	}
 
 	// set 1% bridging fee
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	amt, _ := sdk.NewIntFromString(transferPacketData.Amount)

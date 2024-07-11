@@ -23,18 +23,19 @@ type Keeper struct {
 	channelKeeper   types.ChannelKeeper
 }
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
+func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper, ibcclientKeeper types.IBCClientKeeper) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
-		hooks:         nil,
-		channelKeeper: channelKeeper,
+		cdc:             cdc,
+		storeKey:        storeKey,
+		paramstore:      ps,
+		hooks:           nil,
+		channelKeeper:   channelKeeper,
+		ibcClientKeeper: ibcclientKeeper,
 	}
 }
 
