@@ -2,9 +2,12 @@ package v5_test
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 	"time"
 
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -18,6 +21,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/upgrades/v5/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -56,25 +60,17 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		{
 			msg: "Test that upgrade does not panic and sets correct parameters",
 			preUpgrade: func() error {
-				// create 5 rollapps with the old proto version
-				storeKey := s.App.GetKey(rollapptypes.StoreKey)
-				store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
-				eip155Store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappByEIP155KeyPrefix))
-				createMockOldAndNewRollapps(1)
+				const numRollapps = 5
+				// create rollapps with the old proto version
+				s.createAndStoreOldRollapps(numRollapps)
 
-				for _, rollapp := range oldRollapps {
-					bz := s.App.AppCodec().MustMarshalJSON(&rollapp)
-					store.Set(rollapptypes.RollappKey(rollapp.RollappId), bz)
-
-					rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
-					if !rollappID.IsEIP155() {
-						return nil
-					}
-
-					eip155Store.Set(rollapptypes.RollappByEIP155Key(
-						rollappID.GetEIP155ID(),
-					), bz)
+				// create sequencers with the old proto version
+				rollappIDs := make([]string, numRollapps)
+				for i := 0; i < numRollapps; i++ {
+					rollappIDs[i] = oldRollapps[i].RollappId
 				}
+				s.createAndStoreOldSequencers(rollappIDs)
+
 				return nil
 			},
 			upgrade: func() {
@@ -116,6 +112,34 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				}
 				s.Require().ElementsMatch(rollapps, newRollapps)
 
+				// Check that the sequencers have been migrated correctly
+
+				sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
+				s.Require().Len(sequencers, len(newSequencers))
+
+				sort.Slice(sequencers, func(i, j int) bool {
+					return sequencers[i].Address < sequencers[j].Address
+				})
+
+				for i, sequencer := range sequencers {
+					// check that the sequencer can be retrieved by address
+					_, ok := s.App.SequencerKeeper.GetSequencer(s.Ctx, sequencer.Address)
+					if !ok {
+						return fmt.Errorf("sequencer by address not migrated")
+					}
+
+					// check that the sequencer can be retrieved by rollapp and status
+					sequencer, ok = s.App.SequencerKeeper.GetSequencerByRollappByStatus(s.Ctx, sequencer.RollappId, sequencer.Address, sequencer.Status)
+					if !ok {
+						return fmt.Errorf("sequencer by rollapp and status not migrated")
+					}
+
+					seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
+					nSeq := s.App.AppCodec().MustMarshalJSON(&newSequencers[i])
+
+					s.Require().JSONEq(string(seq), string(nSeq))
+				}
+
 				return nil
 			},
 			expPass: true,
@@ -144,6 +168,27 @@ var (
 	newRollapps []rollapptypes.Rollapp
 )
 
+func (s *UpgradeTestSuite) createAndStoreOldRollapps(nRollapps int) {
+	storeKey := s.App.GetKey(rollapptypes.StoreKey)
+	store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
+	eip155Store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappByEIP155KeyPrefix))
+	createMockOldAndNewRollapps(nRollapps)
+
+	for _, rollapp := range oldRollapps {
+		bz := s.App.AppCodec().MustMarshalJSON(&rollapp)
+		store.Set(rollapptypes.RollappKey(rollapp.RollappId), bz)
+
+		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
+		if !rollappID.IsEIP155() {
+			return
+		}
+
+		eip155Store.Set(rollapptypes.RollappByEIP155Key(
+			rollappID.GetEIP155ID(),
+		), bz)
+	}
+}
+
 func createMockOldAndNewRollapps(nRollapps int) {
 	oldRollapps = make([]types.Rollapp, nRollapps)
 	newRollapps = make([]rollapptypes.Rollapp, nRollapps)
@@ -165,4 +210,63 @@ func createMockOldAndNewRollapps(nRollapps int) {
 		oldRollapps[i] = oldRollapp
 		newRollapps[i] = v5.ConvertOldRollappToNew(oldRollapp)
 	}
+}
+
+var (
+	oldSequencers []types.Sequencer
+	newSequencers []sequencertypes.Sequencer
+)
+
+func (s *UpgradeTestSuite) createAndStoreOldSequencers(rollappIDs []string) {
+	storeKey := s.App.GetKey(sequencertypes.StoreKey)
+	store := s.Ctx.KVStore(storeKey)
+	createMockOldAndNewSequencers(rollappIDs)
+
+	for _, sequencer := range oldSequencers {
+		bz := s.App.AppCodec().MustMarshalJSON(&sequencer)
+		store.Set(sequencertypes.SequencerKey(
+			sequencer.SequencerAddress,
+		), bz)
+
+		seqByRollappKey := sequencertypes.SequencerByRollappByStatusKey(
+			sequencer.RollappId,
+			sequencer.SequencerAddress,
+			sequencertypes.OperatingStatus(sequencer.Status),
+		)
+		store.Set(seqByRollappKey, bz)
+	}
+}
+
+func createMockOldAndNewSequencers(rollappIDs []string) {
+	numSeq := len(rollappIDs)
+	oldSequencers = make([]types.Sequencer, numSeq)
+	newSequencers = make([]sequencertypes.Sequencer, numSeq)
+
+	for i := 0; i < numSeq; i++ {
+		pk := ed25519.GenPrivKey().PubKey()
+		pkAny, _ := codectypes.NewAnyWithValue(pk)
+		oldSequencer := types.Sequencer{
+			SequencerAddress: sample.AccAddress(),
+			DymintPubKey:     pkAny,
+			RollappId:        rollappIDs[i],
+			Description: types.Description{
+				Moniker:         "moniker",
+				Identity:        "keybase:username",
+				Website:         "http://example.com",
+				SecurityContact: "security@example.com",
+				Details:         "Additional details about the validator.",
+			},
+			Status:   types.Bonded,
+			Proposer: true,
+			Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
+		}
+		oldSequencers[i] = oldSequencer
+		newSequencers[i] = v5.ConvertOldSequencerToNew(oldSequencer)
+	}
+	sort.Slice(oldSequencers, func(i, j int) bool {
+		return oldSequencers[i].SequencerAddress < oldSequencers[j].SequencerAddress
+	})
+	sort.Slice(newSequencers, func(i, j int) bool {
+		return newSequencers[i].Address < newSequencers[j].Address
+	})
 }
