@@ -5,7 +5,6 @@ import (
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
 
 const (
@@ -19,7 +18,6 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			consensustypes.ModuleName,
 			crisistypes.ModuleName,
-			delayedacktypes.ModuleName,
 		},
 	},
 }
