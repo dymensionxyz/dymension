@@ -25,6 +25,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(NewFulfillOrderTxCmd())
+	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 
 	return cmd
 }
