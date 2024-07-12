@@ -24,6 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Params is a module parameters.
 type Params struct {
 	// MinAllocationWeight is a minimum portion of the user's voting power that
 	// one can allocate to a single gauge. The value must fall between 0 and 100,
@@ -66,23 +67,26 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
-type DistributionPlan struct {
-	TotalPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=total_power,json=totalPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_power"`
-	Gauges     []*Gauge                               `protobuf:"bytes,2,rep,name=gauges,proto3" json:"gauges,omitempty"`
+// Distribution holds the distribution plan among gauges.
+type Distribution struct {
+	// TotalVotingPower is the total voting power that the plan holds.
+	TotalVotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=total_voting_power,json=totalVotingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_voting_power"`
+	// Gauges is a breakdown of the users' votes for different gauges.
+	Gauges []*Gauge `protobuf:"bytes,2,rep,name=gauges,proto3" json:"gauges,omitempty"`
 }
 
-func (m *DistributionPlan) Reset()         { *m = DistributionPlan{} }
-func (m *DistributionPlan) String() string { return proto.CompactTextString(m) }
-func (*DistributionPlan) ProtoMessage()    {}
-func (*DistributionPlan) Descriptor() ([]byte, []int) {
+func (m *Distribution) Reset()         { *m = Distribution{} }
+func (m *Distribution) String() string { return proto.CompactTextString(m) }
+func (*Distribution) ProtoMessage()    {}
+func (*Distribution) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a3b2c79ac58be076, []int{1}
 }
-func (m *DistributionPlan) XXX_Unmarshal(b []byte) error {
+func (m *Distribution) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *DistributionPlan) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Distribution) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_DistributionPlan.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Distribution.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -92,25 +96,26 @@ func (m *DistributionPlan) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *DistributionPlan) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DistributionPlan.Merge(m, src)
+func (m *Distribution) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Distribution.Merge(m, src)
 }
-func (m *DistributionPlan) XXX_Size() int {
+func (m *Distribution) XXX_Size() int {
 	return m.Size()
 }
-func (m *DistributionPlan) XXX_DiscardUnknown() {
-	xxx_messageInfo_DistributionPlan.DiscardUnknown(m)
+func (m *Distribution) XXX_DiscardUnknown() {
+	xxx_messageInfo_Distribution.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DistributionPlan proto.InternalMessageInfo
+var xxx_messageInfo_Distribution proto.InternalMessageInfo
 
-func (m *DistributionPlan) GetGauges() []*Gauge {
+func (m *Distribution) GetGauges() []*Gauge {
 	if m != nil {
 		return m.Gauges
 	}
 	return nil
 }
 
+// Gauge represents a single gauge with its absolute power.
 type Gauge struct {
 	// GaugeID is the ID of the gauge.
 	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
@@ -158,27 +163,26 @@ func (m *Gauge) GetGaugeId() uint64 {
 	return 0
 }
 
-type WeightedVote struct {
-	// GaugeID is the ID of the gauge.
-	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
-	// Weight is a portion of the voting power that the user wants to allocate for
-	// the given gauge. The value must fall between Params.MinAllocationWeight and
-	// 100, inclusive.
-	Weight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"weight"`
+// Vote represents the user's vote.
+type Vote struct {
+	// Voting power is a total voting power of the vote.
+	VotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=voting_power,json=votingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"voting_power"`
+	// Weights is a breakdown of the user's vote for different gauges.
+	Weights []GaugeWeight `protobuf:"bytes,2,rep,name=weights,proto3" json:"weights"`
 }
 
-func (m *WeightedVote) Reset()         { *m = WeightedVote{} }
-func (m *WeightedVote) String() string { return proto.CompactTextString(m) }
-func (*WeightedVote) ProtoMessage()    {}
-func (*WeightedVote) Descriptor() ([]byte, []int) {
+func (m *Vote) Reset()         { *m = Vote{} }
+func (m *Vote) String() string { return proto.CompactTextString(m) }
+func (*Vote) ProtoMessage()    {}
+func (*Vote) Descriptor() ([]byte, []int) {
 	return fileDescriptor_a3b2c79ac58be076, []int{3}
 }
-func (m *WeightedVote) XXX_Unmarshal(b []byte) error {
+func (m *Vote) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *WeightedVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *Vote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_WeightedVote.Marshal(b, m, deterministic)
+		return xxx_messageInfo_Vote.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -188,19 +192,69 @@ func (m *WeightedVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *WeightedVote) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WeightedVote.Merge(m, src)
+func (m *Vote) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Vote.Merge(m, src)
 }
-func (m *WeightedVote) XXX_Size() int {
+func (m *Vote) XXX_Size() int {
 	return m.Size()
 }
-func (m *WeightedVote) XXX_DiscardUnknown() {
-	xxx_messageInfo_WeightedVote.DiscardUnknown(m)
+func (m *Vote) XXX_DiscardUnknown() {
+	xxx_messageInfo_Vote.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_WeightedVote proto.InternalMessageInfo
+var xxx_messageInfo_Vote proto.InternalMessageInfo
 
-func (m *WeightedVote) GetGaugeId() uint64 {
+func (m *Vote) GetWeights() []GaugeWeight {
+	if m != nil {
+		return m.Weights
+	}
+	return nil
+}
+
+// Weight is a weight distributed to the specified gauge.
+type GaugeWeight struct {
+	// GaugeID is the ID of the gauge.
+	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
+	// Weight is a portion of the voting power that the user wants to allocate for
+	// the given gauge. The value must fall between Params.MinAllocationWeight and
+	// 100, inclusive.
+	Weight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"weight"`
+}
+
+func (m *GaugeWeight) Reset()         { *m = GaugeWeight{} }
+func (m *GaugeWeight) String() string { return proto.CompactTextString(m) }
+func (*GaugeWeight) ProtoMessage()    {}
+func (*GaugeWeight) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a3b2c79ac58be076, []int{4}
+}
+func (m *GaugeWeight) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GaugeWeight) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GaugeWeight.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GaugeWeight) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GaugeWeight.Merge(m, src)
+}
+func (m *GaugeWeight) XXX_Size() int {
+	return m.Size()
+}
+func (m *GaugeWeight) XXX_DiscardUnknown() {
+	xxx_messageInfo_GaugeWeight.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GaugeWeight proto.InternalMessageInfo
+
+func (m *GaugeWeight) GetGaugeId() uint64 {
 	if m != nil {
 		return m.GaugeId
 	}
@@ -209,9 +263,10 @@ func (m *WeightedVote) GetGaugeId() uint64 {
 
 func init() {
 	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.sponsorship.Params")
-	proto.RegisterType((*DistributionPlan)(nil), "dymensionxyz.dymension.sponsorship.DistributionPlan")
+	proto.RegisterType((*Distribution)(nil), "dymensionxyz.dymension.sponsorship.Distribution")
 	proto.RegisterType((*Gauge)(nil), "dymensionxyz.dymension.sponsorship.Gauge")
-	proto.RegisterType((*WeightedVote)(nil), "dymensionxyz.dymension.sponsorship.WeightedVote")
+	proto.RegisterType((*Vote)(nil), "dymensionxyz.dymension.sponsorship.Vote")
+	proto.RegisterType((*GaugeWeight)(nil), "dymensionxyz.dymension.sponsorship.GaugeWeight")
 }
 
 func init() {
@@ -219,30 +274,32 @@ func init() {
 }
 
 var fileDescriptor_a3b2c79ac58be076 = []byte{
-	// 354 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xc1, 0x4e, 0xc2, 0x40,
-	0x10, 0x86, 0x5b, 0x94, 0xaa, 0x8b, 0x07, 0x53, 0x35, 0x41, 0x0f, 0x85, 0xf4, 0xa0, 0x78, 0x70,
-	0x9b, 0xc8, 0xc5, 0x2b, 0x84, 0x68, 0x38, 0x49, 0x7a, 0xd0, 0xc4, 0x4b, 0xb3, 0xa5, 0x4d, 0xbb,
-	0xb1, 0xdd, 0xa9, 0xdd, 0x45, 0xc0, 0xa7, 0xf0, 0x29, 0x7c, 0x16, 0x8e, 0x1c, 0x8d, 0x07, 0x62,
-	0xe0, 0x45, 0x4c, 0xb7, 0x0d, 0xd6, 0x8b, 0x26, 0x9c, 0x76, 0x66, 0x32, 0xff, 0x37, 0x93, 0x7f,
-	0x07, 0x9d, 0x7b, 0xd3, 0xd8, 0x67, 0x9c, 0x02, 0xb3, 0x78, 0x02, 0x8c, 0x43, 0xca, 0x43, 0x9a,
-	0x94, 0x63, 0x9c, 0xa4, 0x20, 0x40, 0x37, 0xd7, 0x8d, 0x93, 0xe9, 0x2b, 0x5e, 0x27, 0xb8, 0xd4,
-	0x79, 0x7a, 0x14, 0x40, 0x00, 0xb2, 0xdd, 0xca, 0xa2, 0x5c, 0x69, 0x46, 0x48, 0x1b, 0x90, 0x94,
-	0xc4, 0x5c, 0x77, 0xd1, 0x71, 0x4c, 0x99, 0x43, 0xa2, 0x08, 0x86, 0x44, 0x50, 0x60, 0xce, 0xd8,
-	0xa7, 0x41, 0x28, 0xea, 0x6a, 0x53, 0x6d, 0xed, 0x75, 0xf1, 0x6c, 0xd1, 0x50, 0x3e, 0x17, 0x8d,
-	0xb3, 0x80, 0x8a, 0x70, 0xe4, 0xe2, 0x21, 0xc4, 0xd6, 0x10, 0x78, 0x0c, 0xbc, 0x78, 0x2e, 0xb9,
-	0xf7, 0x64, 0x89, 0x69, 0xe2, 0x73, 0xdc, 0x67, 0xc2, 0x3e, 0x8c, 0x29, 0xeb, 0xac, 0x59, 0x0f,
-	0x12, 0x65, 0xbe, 0xab, 0xe8, 0xa0, 0x47, 0xb9, 0x48, 0xa9, 0x3b, 0xca, 0xca, 0x83, 0x88, 0x30,
-	0xfd, 0x0e, 0xd5, 0x04, 0x08, 0x12, 0x39, 0x09, 0x8c, 0xfd, 0x74, 0xc3, 0x71, 0x48, 0x22, 0x06,
-	0x19, 0x41, 0xef, 0x20, 0x2d, 0x20, 0xa3, 0xc0, 0xe7, 0xf5, 0x4a, 0x73, 0xab, 0x55, 0xbb, 0xba,
-	0xc0, 0xff, 0xdb, 0x83, 0x6f, 0x33, 0x85, 0x5d, 0x08, 0xcd, 0x10, 0x55, 0x65, 0x41, 0x3f, 0x41,
-	0xbb, 0xb2, 0xe4, 0x50, 0x4f, 0x6e, 0xb6, 0x6d, 0xef, 0xc8, 0xbc, 0xef, 0xe9, 0x3d, 0x54, 0xcd,
-	0x37, 0xae, 0x6c, 0xb4, 0x71, 0x2e, 0x36, 0x9f, 0xd1, 0x7e, 0x6e, 0x8e, 0xef, 0xdd, 0x83, 0xf8,
-	0x73, 0xe0, 0x0d, 0xd2, 0x8a, 0x2f, 0xd9, 0x6c, 0x62, 0xa1, 0xee, 0xda, 0xb3, 0xa5, 0xa1, 0xce,
-	0x97, 0x86, 0xfa, 0xb5, 0x34, 0xd4, 0xb7, 0x95, 0xa1, 0xcc, 0x57, 0x86, 0xf2, 0xb1, 0x32, 0x94,
-	0xc7, 0xeb, 0x12, 0xa9, 0xec, 0xd9, 0x4f, 0x62, 0xbd, 0xb4, 0xad, 0xc9, 0xaf, 0x6b, 0x94, 0x7c,
-	0x57, 0x93, 0xe7, 0xd4, 0xfe, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x03, 0x61, 0x0a, 0xe7, 0xb3, 0x02,
-	0x00, 0x00,
+	// 400 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x93, 0xcf, 0x6e, 0xda, 0x40,
+	0x10, 0xc6, 0x6d, 0x0a, 0xa6, 0x5d, 0x38, 0x54, 0xdb, 0x56, 0xa2, 0x3d, 0x18, 0xe4, 0x43, 0x4b,
+	0x0f, 0x5d, 0x4b, 0xe5, 0xd2, 0x2b, 0x08, 0xb5, 0xe2, 0x54, 0xea, 0x03, 0x95, 0xaa, 0x4a, 0x96,
+	0x8d, 0x2d, 0x7b, 0x15, 0x7b, 0xc7, 0xf2, 0x2e, 0xff, 0xf2, 0x14, 0x79, 0x8e, 0x5c, 0xf2, 0x1a,
+	0x1c, 0x39, 0x46, 0x39, 0xa0, 0x08, 0x5e, 0x24, 0xf2, 0xda, 0x10, 0xe7, 0x92, 0x44, 0x28, 0x27,
+	0xef, 0x8c, 0xe7, 0xfb, 0xed, 0xf8, 0x1b, 0x0f, 0xfa, 0xe2, 0xad, 0x62, 0x9f, 0x71, 0x0a, 0xcc,
+	0xe4, 0x09, 0x30, 0x0e, 0x29, 0x0f, 0x69, 0x52, 0x3e, 0x93, 0x24, 0x05, 0x01, 0xd8, 0x38, 0x16,
+	0x2e, 0x57, 0xe7, 0xe4, 0x18, 0x90, 0x52, 0xe5, 0xa7, 0xf7, 0x01, 0x04, 0x20, 0xcb, 0xcd, 0xec,
+	0x94, 0x2b, 0x8d, 0x08, 0x69, 0x63, 0x27, 0x75, 0x62, 0x8e, 0x5d, 0xf4, 0x21, 0xa6, 0xcc, 0x76,
+	0xa2, 0x08, 0xa6, 0x8e, 0xa0, 0xc0, 0xec, 0x85, 0x4f, 0x83, 0x50, 0xb4, 0xd4, 0x8e, 0xda, 0x7d,
+	0x33, 0x20, 0xeb, 0x6d, 0x5b, 0xb9, 0xd9, 0xb6, 0x3f, 0x07, 0x54, 0x84, 0x33, 0x97, 0x4c, 0x21,
+	0x36, 0xa7, 0xc0, 0x63, 0xe0, 0xc5, 0xe3, 0x1b, 0xf7, 0xce, 0x4c, 0xb1, 0x4a, 0x7c, 0x4e, 0x46,
+	0x4c, 0x58, 0xef, 0x62, 0xca, 0xfa, 0x47, 0xd6, 0x5f, 0x89, 0x32, 0xae, 0x54, 0xd4, 0x1c, 0x52,
+	0x2e, 0x52, 0xea, 0xce, 0xb2, 0x34, 0xfe, 0x8f, 0xb0, 0x00, 0xe1, 0x44, 0xf6, 0x1c, 0x04, 0x65,
+	0x81, 0x9d, 0xc0, 0xc2, 0x4f, 0x4f, 0xbc, 0xf1, 0xad, 0x24, 0x4d, 0x24, 0x68, 0x9c, 0x71, 0x70,
+	0x1f, 0x69, 0x81, 0x33, 0x0b, 0x7c, 0xde, 0xaa, 0x74, 0x5e, 0x75, 0x1b, 0xdf, 0xbf, 0x92, 0xa7,
+	0x7d, 0x22, 0xbf, 0x32, 0x85, 0x55, 0x08, 0x8d, 0x10, 0xd5, 0x64, 0x02, 0x7f, 0x44, 0xaf, 0x65,
+	0xca, 0xa6, 0x9e, 0xec, 0xaf, 0x6a, 0xd5, 0x65, 0x3c, 0xf2, 0xf0, 0x10, 0xd5, 0xf2, 0xbe, 0x2b,
+	0x27, 0xf5, 0x9d, 0x8b, 0x8d, 0x4b, 0x15, 0x55, 0x27, 0x20, 0x7c, 0xfc, 0x07, 0x35, 0x5f, 0xc0,
+	0x8d, 0xc6, 0xbc, 0x64, 0xc4, 0x6f, 0x54, 0xcf, 0x87, 0x79, 0x70, 0xc2, 0x7c, 0xb6, 0x13, 0xf9,
+	0xe4, 0x06, 0xd5, 0xec, 0x7a, 0xeb, 0x40, 0x31, 0x12, 0xd4, 0x28, 0xbd, 0x7d, 0xcc, 0x9c, 0x9f,
+	0x48, 0x2b, 0xfe, 0xa3, 0xd3, 0xdc, 0x29, 0xd4, 0x03, 0x6b, 0xbd, 0xd3, 0xd5, 0xcd, 0x4e, 0x57,
+	0x6f, 0x77, 0xba, 0x7a, 0xb1, 0xd7, 0x95, 0xcd, 0x5e, 0x57, 0xae, 0xf7, 0xba, 0xf2, 0xef, 0x47,
+	0x89, 0x54, 0xfe, 0xaa, 0xfb, 0xc0, 0x9c, 0xf7, 0xcc, 0xe5, 0x83, 0x15, 0x92, 0x7c, 0x57, 0x93,
+	0x3b, 0xd0, 0xbb, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x65, 0x38, 0x4c, 0x3d, 0x68, 0x03, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -278,7 +335,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *DistributionPlan) Marshal() (dAtA []byte, err error) {
+func (m *Distribution) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -288,12 +345,12 @@ func (m *DistributionPlan) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *DistributionPlan) MarshalTo(dAtA []byte) (int, error) {
+func (m *Distribution) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *DistributionPlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Distribution) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -313,9 +370,9 @@ func (m *DistributionPlan) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 	}
 	{
-		size := m.TotalPower.Size()
+		size := m.TotalVotingPower.Size()
 		i -= size
-		if _, err := m.TotalPower.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.TotalVotingPower.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintSponsorship(dAtA, i, uint64(size))
@@ -363,7 +420,7 @@ func (m *Gauge) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *WeightedVote) Marshal() (dAtA []byte, err error) {
+func (m *Vote) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -373,12 +430,59 @@ func (m *WeightedVote) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *WeightedVote) MarshalTo(dAtA []byte) (int, error) {
+func (m *Vote) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *WeightedVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *Vote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Weights) > 0 {
+		for iNdEx := len(m.Weights) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Weights[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintSponsorship(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	{
+		size := m.VotingPower.Size()
+		i -= size
+		if _, err := m.VotingPower.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintSponsorship(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *GaugeWeight) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GaugeWeight) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GaugeWeight) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -423,13 +527,13 @@ func (m *Params) Size() (n int) {
 	return n
 }
 
-func (m *DistributionPlan) Size() (n int) {
+func (m *Distribution) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.TotalPower.Size()
+	l = m.TotalVotingPower.Size()
 	n += 1 + l + sovSponsorship(uint64(l))
 	if len(m.Gauges) > 0 {
 		for _, e := range m.Gauges {
@@ -454,7 +558,24 @@ func (m *Gauge) Size() (n int) {
 	return n
 }
 
-func (m *WeightedVote) Size() (n int) {
+func (m *Vote) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.VotingPower.Size()
+	n += 1 + l + sovSponsorship(uint64(l))
+	if len(m.Weights) > 0 {
+		for _, e := range m.Weights {
+			l = e.Size()
+			n += 1 + l + sovSponsorship(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *GaugeWeight) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -558,7 +679,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *DistributionPlan) Unmarshal(dAtA []byte) error {
+func (m *Distribution) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -581,15 +702,15 @@ func (m *DistributionPlan) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: DistributionPlan: wiretype end group for non-group")
+			return fmt.Errorf("proto: Distribution: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: DistributionPlan: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Distribution: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalPower", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalVotingPower", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -617,7 +738,7 @@ func (m *DistributionPlan) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.TotalPower.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.TotalVotingPower.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -779,7 +900,7 @@ func (m *Gauge) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *WeightedVote) Unmarshal(dAtA []byte) error {
+func (m *Vote) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -802,10 +923,128 @@ func (m *WeightedVote) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: WeightedVote: wiretype end group for non-group")
+			return fmt.Errorf("proto: Vote: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: WeightedVote: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: Vote: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VotingPower", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSponsorship
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSponsorship
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSponsorship
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.VotingPower.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Weights", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSponsorship
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthSponsorship
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthSponsorship
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Weights = append(m.Weights, GaugeWeight{})
+			if err := m.Weights[len(m.Weights)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSponsorship(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthSponsorship
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GaugeWeight) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSponsorship
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GaugeWeight: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GaugeWeight: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
