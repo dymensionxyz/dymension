@@ -173,7 +173,7 @@ func (a *AppKeepers) SetupModules(
 		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil),
 		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper),
 		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper),
-		staking.NewAppModule(appCodec, *a.StakingKeeper, a.AccountKeeper, a.BankKeeper),
+		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),

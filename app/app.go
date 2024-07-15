@@ -37,17 +37,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/dymensionxyz/dymension/v3/docs"
 
-	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
-
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	ibctesting "github.com/cosmos/ibc-go/v6/testing"
 
 	"github.com/dymensionxyz/dymension/v3/app/ante"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -336,21 +332,6 @@ func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
 	return nil
-}
-
-// GetIBCKeeper implements ibctesting.TestingApp
-func (app *App) GetIBCKeeper() *ibckeeper.Keeper {
-	return app.IBCKeeper
-}
-
-// GetScopedIBCKeeper implements ibctesting.TestingApp
-func (app *App) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
-	return app.ScopedIBCKeeper
-}
-
-// GetStakingKeeper implements ibctesting.TestingApp
-func (app *App) GetStakingKeeper() ibctestingtypes.StakingKeeper {
-	return app.StakingKeeper
 }
 
 // GetTxConfig implements ibctesting.TestingApp

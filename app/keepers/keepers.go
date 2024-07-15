@@ -50,6 +50,7 @@ import (
 	ibcporttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
+	ibctestingtypes "github.com/cosmos/ibc-go/v6/testing/types"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -96,7 +97,7 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    bankkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 *stakingkeeper.Keeper
+	StakingKeeper                 stakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
@@ -212,13 +213,12 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 		a.GetSubspace(stakingtypes.ModuleName),
 	)
-	a.StakingKeeper = &stakingKeeper
 
 	a.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.GetSubspace(minttypes.ModuleName),
-		a.StakingKeeper,
+		&stakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		authtypes.FeeCollectorName,
@@ -230,15 +230,20 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(distrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.StakingKeeper,
+		&stakingKeeper,
 		authtypes.FeeCollectorName,
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		a.keys[slashingtypes.StoreKey],
-		a.StakingKeeper,
+		&stakingKeeper,
 		a.GetSubspace(slashingtypes.ModuleName),
+	)
+
+	// TODO: move back to SetupHooks after https://github.com/dymensionxyz/dymension/pull/970 is merged
+	a.StakingKeeper = *stakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
 	)
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
@@ -264,7 +269,7 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		a.StakingKeeper,
+		&stakingKeeper,
 		a.FeeMarketKeeper,
 		nil,
 		geth.NewEVM,
@@ -319,7 +324,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[ibchost.StoreKey],
 		a.GetSubspace(ibchost.ModuleName),
-		a.StakingKeeper,
+		stakingKeeper,
 		a.UpgradeKeeper,
 		a.ScopedIBCKeeper,
 	)
@@ -417,13 +422,13 @@ func (a *AppKeepers) InitKeepers(
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	a.EvidenceKeeper = *evidencekeeper.NewKeeper(
-		appCodec, a.keys[evidencetypes.StoreKey], a.StakingKeeper, a.SlashingKeeper,
+		appCodec, a.keys[evidencetypes.StoreKey], stakingKeeper, a.SlashingKeeper,
 	)
 
 	govConfig := govtypes.DefaultConfig()
 	a.GovKeeper = govkeeper.NewKeeper(
 		appCodec, a.keys[govtypes.StoreKey], a.GetSubspace(govtypes.ModuleName), a.AccountKeeper, a.BankKeeper,
-		a.StakingKeeper, govRouter, bApp.MsgServiceRouter(), govConfig,
+		&stakingKeeper, govRouter, bApp.MsgServiceRouter(), govConfig,
 	)
 
 	a.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
@@ -473,10 +478,6 @@ func (a *AppKeepers) InitTransferStack() {
 
 func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
-	a.StakingKeeper = a.StakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
-	)
-
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
 		// insert lockup hooks receivers here
@@ -531,6 +532,21 @@ func (a *AppKeepers) SetupHooks() {
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
 	))
+}
+
+// GetIBCKeeper implements ibctesting.TestingApp
+func (a *AppKeepers) GetIBCKeeper() *ibckeeper.Keeper {
+	return a.IBCKeeper
+}
+
+// GetScopedIBCKeeper implements ibctesting.TestingApp
+func (a *AppKeepers) GetScopedIBCKeeper() capabilitykeeper.ScopedKeeper {
+	return a.ScopedIBCKeeper
+}
+
+// GetStakingKeeper implements ibctesting.TestingApp
+func (a *AppKeepers) GetStakingKeeper() ibctestingtypes.StakingKeeper {
+	return a.StakingKeeper
 }
 
 // initParamsKeeper init params keeper and its subspaces
