@@ -12,8 +12,8 @@ const (
 )
 
 var Upgrade = upgrades.Upgrade{
-	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateUpgradeHandler,
+	Name:          UpgradeName,
+	CreateHandler: CreateUpgradeHandler,
 	StoreUpgrades: storetypes.StoreUpgrades{
 		Added: []string{
 			consensustypes.ModuleName,

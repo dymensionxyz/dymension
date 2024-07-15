@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
 )
 
 type (
@@ -59,7 +60,7 @@ func DefaultConfig() network.Config {
 		)
 	}
 
-	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
+	cfg.GenesisState = keepers.ModuleBasics.DefaultGenesis(encoding.Codec)
 	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
 		// force disable Enable Create of x/evm
 		var evmGenesisState evmtypes.GenesisState
