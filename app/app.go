@@ -535,16 +535,7 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ClientKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.BankKeeper,
-		app.DenomMetadataKeeper,
-	)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -586,18 +577,6 @@ func New(
 		app.BankKeeper,
 		nil,
 	)
-
-	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		app.BankKeeper,
-	)
-
-	app.DenomMetadataKeeper.SetHooks(
-		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
-		),
-	)
-
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
