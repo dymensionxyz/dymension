@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -13,23 +11,16 @@ import (
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [genesis_info.json]",
+		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [genesis_checksum], [website], [description], [logo_data_uri], [alias]",
 		Short:   "Create a new rollapp",
-		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm genesis_info.json",
+		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm <genesis_checksum> http://example.com Description http://example.com/logo.png Rollapp",
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argRollappId := args[0]
-
-			argInitSequencerAddress := args[1]
-			argBech32Prefix := args[2]
+			argRollappId, argInitSequencerAddress, argBech32Prefix, genesisChecksum, website, description, logoDataUri, alias :=
+				args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
-				return err
-			}
-
-			genesisInfo := types.GenesisInfo{}
-			if err = json.Unmarshal([]byte(args[3]), &genesisInfo); err != nil {
 				return err
 			}
 
@@ -38,7 +29,11 @@ func CmdCreateRollapp() *cobra.Command {
 				argRollappId,
 				argInitSequencerAddress,
 				argBech32Prefix,
-				genesisInfo,
+				genesisChecksum,
+				website,
+				description,
+				logoDataUri,
+				alias,
 			)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)

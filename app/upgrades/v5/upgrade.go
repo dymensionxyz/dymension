@@ -60,13 +60,13 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 		ChannelId:               oldRollapp.ChannelId,
 		Frozen:                  oldRollapp.Frozen,
 		RegisteredDenoms:        oldRollapp.RegisteredDenoms,
-		Version:                 oldRollapp.Version,
 		InitialSequencerAddress: "", // whatever
-		GenesisInfo: rollapptypes.GenesisInfo{
-			GenesisUrls:     nil, // optional
-			GenesisChecksum: "",  // TODO
-		},
-		Bech32Prefix: "", // TODO
+		GenesisChecksum:         "", // TODO
+		Bech32Prefix:            "", // TODO
+		Website:                 "", // TODO
+		Description:             "", // TODO
+		LogoDataUri:             "", // TODO
+		Alias:                   "", // TODO
 	}
 }
 

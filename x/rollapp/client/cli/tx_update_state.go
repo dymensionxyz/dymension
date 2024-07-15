@@ -7,16 +7,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 var _ = strconv.Itoa(0)
 
 func CmdUpdateState() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-state [rollapp-id] [start-height] [num-blocks] [da-path] [version] [bds]",
+		Use:   "update-state [rollapp-id] [start-height] [num-blocks] [da-path] [bds]",
 		Short: "Update rollapp state",
 		Args:  cobra.ExactArgs(6),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -30,10 +31,6 @@ func CmdUpdateState() *cobra.Command {
 				return err
 			}
 			argDAPath := args[3]
-			argVersion, err := cast.ToUint64E(args[4])
-			if err != nil {
-				return err
-			}
 			argBDs := new(types.BlockDescriptors)
 			err = json.Unmarshal([]byte(args[5]), argBDs)
 			if err != nil {
@@ -48,10 +45,9 @@ func CmdUpdateState() *cobra.Command {
 			msg := types.NewMsgUpdateState(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
+				argDAPath,
 				argStartHeight,
 				argNumBlocks,
-				argDAPath,
-				argVersion,
 				argBDs,
 			)
 

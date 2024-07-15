@@ -39,10 +39,11 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 		RollappId:               name,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            strings.ToLower(rand.Str(3)),
-		GenesisInfo: rollapptypes.GenesisInfo{
-			GenesisUrls:     []string{"http://localhost:8080/genesis.json"},
-			GenesisChecksum: "1234567890abcdefg",
-		},
+		GenesisChecksum:         "1234567890abcdefg",
+		Website:                 "https://dymension.xyz",
+		Description:             "Sample description",
+		LogoDataUri:             "https://dymension.xyz/logo.png",
+		Alias:                   "Rollapp",
 	}
 
 	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)
@@ -91,7 +92,6 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 		StartHeight: startHeight,
 		NumBlocks:   numOfBlocks,
 		DAPath:      "",
-		Version:     0,
 		BDs:         bds,
 	}
 	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)

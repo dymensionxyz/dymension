@@ -125,10 +125,12 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		rollappChainID(),
 		sample.AccAddress(),
 		"eth",
-		rollapptypes.GenesisInfo{
-			GenesisUrls:     []string{"http://example.com/genesis.json"},
-			GenesisChecksum: "checksum",
-		})
+		"somechecksum",
+		"http://example.com",
+		"Some description",
+		"https://example.com/logo.png",
+		"Rollapp",
+	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
@@ -184,10 +186,9 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
+		"mock-da-path",
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
-		"mock-da-path",
-		0,
 		blockDescriptors,
 	)
 	err := msgUpdateState.ValidateBasic()

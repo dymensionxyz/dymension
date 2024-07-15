@@ -40,6 +40,11 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 
 	k.SetRollapp(ctx, rollapp)
 
+	// Emit event
+	if err := ctx.EventManager().EmitTypedEvent(&rollapp); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
+
 	return nil
 }
 
@@ -109,7 +114,7 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
-	), b)
+	), []byte(rollapp.RollappId))
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
@@ -118,16 +123,14 @@ func (k Keeper) GetRollappByEIP155(
 	eip155 uint64,
 ) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
-
-	b := store.Get(types.RollappByEIP155Key(
+	id := store.Get(types.RollappByEIP155Key(
 		eip155,
 	))
-	if b == nil {
+	if id == nil {
 		return val, false
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return k.GetRollapp(ctx, string(id))
 }
 
 func (k Keeper) GetRollappByInitialSequencerAddress(ctx sdk.Context, address string) (types.Rollapp, bool) {

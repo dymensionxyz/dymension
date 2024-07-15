@@ -27,8 +27,16 @@ message MsgCreateRollapp {
   string initial_sequencer_address = 3;
   // the unique rollapp address bech32 prefix.
   string bech32_prefix = 4;
-  // genesis doc identifier
-  GenesisInfo genesis_info = 5 [(gogoproto.nullable) = false];
+  // checksum used to verify integrity
+  string genesis_checksum = 5;
+  // website is the rollapp website
+  string website = 6;
+  // description is the rollapp description. should be limited to TBD chars
+  string description = 7;
+  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
+  string logo_data_uri = 8;
+  // alias is the chain alias used for display and namespace system
+  string alias = 9;
 }
 
 message MsgCreateRollappResponse {
@@ -48,11 +56,9 @@ message MsgUpdateState {
   uint64 numBlocks = 4;
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
-  // version is the version of the rollapp
-  uint64 version = 6;
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
+  BlockDescriptors BDs = 6 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateStateResponse {
