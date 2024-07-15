@@ -21,15 +21,41 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	*keeper.Keeper // keeper is an ics4 wrapper
-	raKeeper       rollappkeeper.Keeper
+	keeper.Keeper // keeper is an ics4 wrapper
+	raKeeper      rollappkeeper.Keeper
 }
 
-func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
-		IBCModule: app,
-		Keeper:    &keeper,
-		raKeeper:  raK,
+type option func(*IBCMiddleware)
+
+func WithIBCModule(m porttypes.IBCModule) option {
+	return func(i *IBCMiddleware) {
+		i.IBCModule = m
+	}
+}
+
+func WithKeeper(k keeper.Keeper) option {
+	return func(m *IBCMiddleware) {
+		m.Keeper = k
+	}
+}
+
+func WithRollappKeeper(k *rollappkeeper.Keeper) option {
+	return func(m *IBCMiddleware) {
+		m.raKeeper = *k
+	}
+}
+
+func NewIBCMiddleware(opts ...option) *IBCMiddleware {
+	w := &IBCMiddleware{}
+	for _, opt := range opts {
+		opt(w)
+	}
+	return w
+}
+
+func (w *IBCMiddleware) Setup(opts ...option) {
+	for _, opt := range opts {
+		opt(w)
 	}
 }
 

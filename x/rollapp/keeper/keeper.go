@@ -13,25 +13,24 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
-type (
-	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		hooks      types.MultiRollappHooks
-		paramstore paramtypes.Subspace
+type Keeper struct {
+	cdc        codec.BinaryCodec
+	storeKey   storetypes.StoreKey
+	hooks      types.MultiRollappHooks
+	paramstore paramtypes.Subspace
 
-		ibcClientKeeper types.IBCClientKeeper
-		channelKeeper   types.ChannelKeeper
+	ibcClientKeeper types.IBCClientKeeper
+	channelKeeper   types.ChannelKeeper
 
-		finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
-	}
-)
+	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
+	ibcclientKeeper types.IBCClientKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -39,11 +38,12 @@ func NewKeeper(
 	}
 
 	k := &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		paramstore:    ps,
-		hooks:         nil,
-		channelKeeper: channelKeeper,
+		cdc:             cdc,
+		storeKey:        storeKey,
+		paramstore:      ps,
+		hooks:           nil,
+		channelKeeper:   channelKeeper,
+		ibcClientKeeper: ibcclientKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

@@ -319,6 +319,7 @@ func findEvent(response abci.ResponseEndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
 }
 
+//nolint:govet
 func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 	tests := []struct {
 		name                     string

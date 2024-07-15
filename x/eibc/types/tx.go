@@ -56,7 +56,7 @@ func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
 }
 
-func NewMsgUpdateDemandOrder(orderId, ownerAddr, newFee string) *MsgUpdateDemandOrder {
+func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {
 	return &MsgUpdateDemandOrder{
 		OrderId:      orderId,
 		OwnerAddress: ownerAddr,
@@ -97,7 +97,7 @@ func isValidOrderId(orderId string) bool {
 
 func validateCommon(orderId, address, fee string) error {
 	if !isValidOrderId(orderId) {
-		return ErrInvalidOrderID
+		return fmt.Errorf("%w: %s", ErrInvalidOrderID, orderId)
 	}
 	_, err := sdk.AccAddressFromBech32(address)
 	if err != nil {

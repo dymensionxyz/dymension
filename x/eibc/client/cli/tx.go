@@ -25,13 +25,14 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(NewFulfillOrderTxCmd())
+	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 
 	return cmd
 }
 
 func NewFulfillOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "fulfill-order [order-id]",
+		Use:     "fulfill-order [order-id] [expected-fee-amount]",
 		Short:   "Fulfill a new eibc order",
 		Example: "dymd tx eibc fulfill-order <order-id> <expected-fee-amount>",
 		Long: `Fulfill a new eibc order by providing the order ID and the expected fee amount.
@@ -66,7 +67,7 @@ func NewFulfillOrderTxCmd() *cobra.Command {
 
 func NewUpdateDemandOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "update-demand-order [order-id]",
+		Use:     "update-demand-order [order-id] [new-fee-amount]",
 		Short:   "Update a demand order",
 		Example: "dymd tx eibc update-demand-order <order-id> <new-fee-amount>",
 		Args:    cobra.ExactArgs(2),

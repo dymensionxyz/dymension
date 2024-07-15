@@ -15,8 +15,11 @@ import (
 func (suite *DelayedAckTestSuite) TestInvariants() {
 	suite.SetupTest()
 
-	keeper, rollappKeeper := suite.App.DelayedAckKeeper, *suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(suite.App.DelayedAckKeeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	initialHeight := int64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialHeight)
