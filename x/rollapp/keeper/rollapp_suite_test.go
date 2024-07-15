@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -62,7 +63,7 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }

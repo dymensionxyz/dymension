@@ -66,7 +66,7 @@ func (k Keeper) FinalizePending(ctx sdk.Context, pendingFinalizationQueue []type
 	}
 }
 
-func (k Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
 	stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
 	if stateInfo.Status != common.Status_PENDING {
 		panic(fmt.Sprintf("invariant broken: stateInfo is not in pending state: rollapp: %s: status: %s", stateInfoIndex.RollappId, stateInfo.Status))

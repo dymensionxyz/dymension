@@ -45,7 +45,7 @@ func NewKeeper(
 		hooks:         nil,
 		channelKeeper: channelKeeper,
 	}
-	k.finalizePending = k.finalizePendingState
+	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k
 }
 

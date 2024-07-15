@@ -362,7 +362,7 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper   rollappmodulekeeper.Keeper
+	RollappKeeper   *rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
 	StreamerKeeper  streamermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
@@ -612,7 +612,7 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
+	app.RollappKeeper = rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -686,7 +686,7 @@ func New(
 	))
 
 	sequencerModule := sequencermodule.NewAppModule(appCodec, app.SequencerKeeper, app.AccountKeeper, app.BankKeeper)
-	rollappModule := rollappmodule.NewAppModule(appCodec, &app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
+	rollappModule := rollappmodule.NewAppModule(appCodec, app.RollappKeeper, app.AccountKeeper, app.BankKeeper)
 	streamerModule := streamermodule.NewAppModule(app.StreamerKeeper, app.AccountKeeper, app.BankKeeper, app.EpochsKeeper)
 	delayedackModule := delayedackmodule.NewAppModule(appCodec, app.DelayedAckKeeper)
 	denomMetadataModule := denommetadatamodule.NewAppModule(app.DenomMetadataKeeper, *app.EvmKeeper, app.BankKeeper)
@@ -701,7 +701,7 @@ func New(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(app.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&app.RollappKeeper)).
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(app.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(app.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(app.EvmKeeper))
 
@@ -734,14 +734,14 @@ func New(
 
 	var transferStack ibcporttypes.IBCModule
 	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
-	transferStack = bridgingfee.NewIBCModule(transferStack.(ibctransfer.IBCModule), app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
+	transferStack = bridgingfee.NewIBCModule(transferStack.(ibctransfer.IBCModule), app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), *app.RollappKeeper)
 	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
-	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
+	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, *app.RollappKeeper)
 	transferStack = delayedAckMiddleware
 	transferStack = transferinject.NewIBCModule(transferStack, app.RollappKeeper)
-	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
-	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper)
+	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, *app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
+	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, *app.RollappKeeper, app.IBCKeeper.ChannelKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -955,7 +955,7 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
-		RollappKeeper:          app.RollappKeeper,
+		RollappKeeper:          *app.RollappKeeper,
 	})
 	if err != nil {
 		panic(err)

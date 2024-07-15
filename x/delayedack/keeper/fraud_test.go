@@ -10,7 +10,7 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
-	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
+	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, *suite.App.RollappKeeper
 	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
 
 	rollappId := "testRollappId"
@@ -47,7 +47,7 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 }
 
 func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
-	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
+	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, *suite.App.RollappKeeper
 	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
 
 	rollappId := "testRollappId"

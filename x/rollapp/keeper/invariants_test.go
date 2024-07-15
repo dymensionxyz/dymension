@@ -55,7 +55,7 @@ func (suite *RollappTestSuite) TestInvariants() {
 	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 
 	// check invariant
-	msg, ok := keeper.AllInvariants(suite.App.RollappKeeper)(suite.Ctx)
+	msg, ok := keeper.AllInvariants(*suite.App.RollappKeeper)(suite.Ctx)
 	suite.Require().False(ok, msg)
 }
 
@@ -165,7 +165,7 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 				Index:     tc.latestStateInfoIndex.GetIndex().Index,
 			})
 			// check invariant
-			_, isBroken := keeper.RollappFinalizedStateInvariant(suite.App.RollappKeeper)(ctx)
+			_, isBroken := keeper.RollappFinalizedStateInvariant(*suite.App.RollappKeeper)(ctx)
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}

@@ -511,7 +511,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			suite.SetupTest()
 
-			k := &suite.App.RollappKeeper
+			k := suite.App.RollappKeeper
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
 			k.FinalizePending(suite.Ctx, tt.pendingFinalizationQueue)
 
