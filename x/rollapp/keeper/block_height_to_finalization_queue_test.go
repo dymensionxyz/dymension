@@ -327,7 +327,91 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 		expectQueueAfter         []types.BlockHeightToFinalizationQueue
 	}{
 		{
-			name: "finalize pending",
+			name: "finalize pending: all rollapps successfully finalized",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp3", Index: 1},
+						{RollappId: "rollapp2", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp2", Index: 4},
+						{RollappId: "rollapp1", Index: 4},
+						{RollappId: "rollapp3", Index: 3},
+						{RollappId: "rollapp2", Index: 5},
+						{RollappId: "rollapp3", Index: 4},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{},
+			expectQueueAfter:   nil,
+		}, {
+			name: "finalize pending: 2 rollapps failed at 1 height",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp3", Index: 1},
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 2}, {"rollapp3", 2}},
+			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				},
+			},
+		}, {
+			name: "finalize pending: 2 rollapps failed at 2 heights",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 1},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp2", Index: 2},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 1}, {"rollapp2", 2}},
+			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp2", Index: 2},
+					},
+				},
+			},
+		}, {
+			name: "finalize pending: 2 rollapps failed at 2 heights, one in each height",
 			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
 				{
 					CreationHeight: 1,
@@ -361,8 +445,62 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp3", Index: 4},
+					},
+				},
+			},
+		}, {
+			name: "finalize pending: all rollapps failed to finalize",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp3", Index: 1},
+						{RollappId: "rollapp2", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
 						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp2", Index: 4},
 						{RollappId: "rollapp1", Index: 4},
+						{RollappId: "rollapp3", Index: 3},
+						{RollappId: "rollapp2", Index: 5},
+						{RollappId: "rollapp3", Index: 4},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{
+				{RollappId: "rollapp1", Index: 1},
+				{RollappId: "rollapp2", Index: 2},
+				{RollappId: "rollapp3", Index: 1},
+				{RollappId: "rollapp1", Index: 3},
+				{RollappId: "rollapp2", Index: 4},
+				{RollappId: "rollapp3", Index: 3},
+			},
+			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp3", Index: 1},
+						{RollappId: "rollapp2", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp2", Index: 4},
+						{RollappId: "rollapp1", Index: 4},
+						{RollappId: "rollapp3", Index: 3},
+						{RollappId: "rollapp2", Index: 5},
 						{RollappId: "rollapp3", Index: 4},
 					},
 				},
@@ -373,20 +511,18 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 		suite.T().Run(tt.name, func(t *testing.T) {
 			suite.SetupTest()
 
-			k := suite.App.RollappKeeper
+			k := &suite.App.RollappKeeper
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
 			k.FinalizePending(suite.Ctx, tt.pendingFinalizationQueue)
 
-			suite.Require().ElementsMatch(tt.expectQueueAfter, k.GetAllBlockHeightToFinalizationQueue(suite.Ctx))
+			suite.Require().Equal(tt.expectQueueAfter, k.GetAllBlockHeightToFinalizationQueue(suite.Ctx))
 		})
 	}
 }
 
 func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
 	return func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
-		if slices.ContainsFunc(errFinalizedIndices, func(index types.StateInfoIndex) bool {
-			return index.RollappId == stateInfoIndex.RollappId && index.Index == stateInfoIndex.Index
-		}) {
+		if slices.Contains(errFinalizedIndices, stateInfoIndex) {
 			return errors.New("error")
 		}
 		return nil
