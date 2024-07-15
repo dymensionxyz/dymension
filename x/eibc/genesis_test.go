@@ -24,7 +24,6 @@ func TestInitGenesis(t *testing.T) {
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(50)}},
 				Recipient:            "dym17g9cn4ss0h0dz5qhg2cg4zfnee6z3ftg3q6v58",
-				IsFulfilled:          false,
 				TrackingPacketStatus: commontypes.Status_PENDING,
 			},
 			{
@@ -33,7 +32,7 @@ func TestInitGenesis(t *testing.T) {
 				Price:                sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(250)}},
 				Fee:                  sdk.Coins{sdk.Coin{Denom: "adym", Amount: math.NewInt(150)}},
 				Recipient:            "dym15saxgqw6kvhv6k5sg6r45kmdf4sf88kfw2adcw",
-				IsFulfilled:          true,
+				FulfillerAddress:     "dym19pas0pqwje540u5ptwnffjxeamdxc9tajmdrfa",
 				TrackingPacketStatus: commontypes.Status_REVERTED,
 			},
 		},

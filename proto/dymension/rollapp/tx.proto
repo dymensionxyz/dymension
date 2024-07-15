@@ -3,7 +3,6 @@ package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
 import "dymension/rollapp/block_descriptor.proto";
-import "dymension/rollapp/bank.proto";
 import "dymension/rollapp/rollapp.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
@@ -14,7 +13,6 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc TriggerGenesisEvent(MsgRollappGenesisEvent) returns (MsgRollappGenesisEventResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -30,10 +28,9 @@ message MsgCreateRollapp {
   // sequencers that are allowed to serve this rollappId.
   // In the case of an empty list, the rollapp is considered permissionless
   repeated string permissionedAddresses = 7;
-  // metadata provides the client information for all the registered tokens.
-  repeated TokenMetadata metadatas = 8 [(gogoproto.nullable) = false];
-  // genesis_accounts for the rollapp on the hub
-  repeated GenesisAccount genesis_accounts = 9 [(gogoproto.nullable) = false];
+  reserved 8;
+  reserved 9;
+  reserved 10;
 }
 
 message MsgCreateRollappResponse {
@@ -62,20 +59,4 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
-}
-
-
-// MsgRollappGenesisEvent is the message type for triggering the genesis event of the rollapp
-message MsgRollappGenesisEvent {
-  // address is the bech32-encoded address of the sender
-  string address = 1;
-  // channel_id is the rollapp channel id on the hub
-  string channel_id = 2; 
-  // rollapp_id is the rollapp id we want to mint tokens on the hub.
-  // Used for validation against channel_id to reduce error surface.
-  string rollapp_id = 3;
-}
-
-message MsgRollappGenesisEventResponse {
-  
 }

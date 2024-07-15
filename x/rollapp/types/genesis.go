@@ -75,5 +75,7 @@ func (gs GenesisState) Validate() error {
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 
+	// TODO:
+
 	return gs.Params.Validate()
 }

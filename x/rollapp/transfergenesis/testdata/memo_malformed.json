@@ -1,0 +1,15 @@
+{
+  "genesis_transfer": {
+    "denom": {
+      "description": "The native staking and governance token of the rollappevm_1234-1",
+      "denom_units": {
+        "foobar": "xyz"
+      },
+      "base": "arax",
+      "display": "rax",
+      "name": "rax",
+      "symbol": 42
+    },
+    "total_num_transfers": 0
+  }
+}

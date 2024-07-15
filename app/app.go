@@ -9,7 +9,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/dymensionxyz/dymension/v3/x/bridging_fee"
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
+	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
+
+	"github.com/dymensionxyz/dymension/v3/x/bridgingfee"
+
 	vfchooks "github.com/dymensionxyz/dymension/v3/x/vfc/hooks"
 
 	"github.com/gorilla/mux"
@@ -144,8 +151,6 @@ import (
 	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/keeper"
 	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
 
-	"github.com/dymensionxyz/dymension/v3/x/transferinject"
-
 	/* ------------------------------ ethermint imports ----------------------------- */
 
 	"github.com/evmos/ethermint/ethereum/eip712"
@@ -183,10 +188,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v15/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v15/x/txfees/types"
-
-	/* ---------------------------- upgrade handlers ---------------------------- */
-
-	v3upgrade "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
 )
 
 var (
@@ -195,11 +196,8 @@ var (
 	_ = packetforwardtypes.ErrIntOverflowGenesis
 )
 
-// this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
-
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
 	govProposalHandlers = append(govProposalHandlers,
 		paramsclient.ProposalHandler,
@@ -224,6 +222,8 @@ func getGovProposalHandlers() []govclient.ProposalHandler {
 var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
+
+	Upgrades = []upgrades.Upgrade{v3.Upgrade, v4.Upgrade}
 
 	// ModuleBasics defines the module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -254,7 +254,6 @@ var (
 		packetforwardmiddleware.AppModuleBasic{},
 		delayedackmodule.AppModuleBasic{},
 		eibcmodule.AppModuleBasic{},
-		// this line is used by starport scaffolding # stargate/app/moduleBasic
 
 		// Ethermint modules
 		evm.AppModuleBasic{},
@@ -279,7 +278,7 @@ var (
 		govtypes.ModuleName:                                {authtypes.Burner},
 		ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
 		sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		rollappmoduletypes.ModuleName:                      {authtypes.Minter},
+		rollappmoduletypes.ModuleName:                      {},
 		streamermoduletypes.ModuleName:                     nil,
 		evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
 		evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
@@ -325,48 +324,7 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers
-	AccountKeeper                 authkeeper.AccountKeeper
-	AuthzKeeper                   authzkeeper.Keeper
-	BankKeeper                    bankkeeper.Keeper
-	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 stakingkeeper.Keeper
-	SlashingKeeper                slashingkeeper.Keeper
-	MintKeeper                    mintkeeper.Keeper
-	DistrKeeper                   distrkeeper.Keeper
-	GovKeeper                     govkeeper.Keeper
-	CrisisKeeper                  crisiskeeper.Keeper
-	UpgradeKeeper                 upgradekeeper.Keeper
-	ParamsKeeper                  paramskeeper.Keeper
-	IBCKeeper                     *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	EvidenceKeeper                evidencekeeper.Keeper
-	TransferKeeper                ibctransferkeeper.Keeper
-	FeeGrantKeeper                feegrantkeeper.Keeper
-	PacketForwardMiddlewareKeeper *packetforwardkeeper.Keeper
-
-	// Ethermint keepers
-	EvmKeeper       *evmkeeper.Keeper
-	FeeMarketKeeper feemarketkeeper.Keeper
-
-	// Osmosis keepers
-	GAMMKeeper        *gammkeeper.Keeper
-	PoolManagerKeeper *poolmanagerkeeper.Keeper
-	LockupKeeper      *lockupkeeper.Keeper
-	EpochsKeeper      *epochskeeper.Keeper
-	IncentivesKeeper  *incentiveskeeper.Keeper
-	TxFeesKeeper      *txfeeskeeper.Keeper
-
-	// make scoped keepers public for test purposes
-	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
-	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
-
-	RollappKeeper   rollappmodulekeeper.Keeper
-	SequencerKeeper sequencermodulekeeper.Keeper
-	StreamerKeeper  streamermodulekeeper.Keeper
-	EIBCKeeper      eibckeeper.Keeper
-
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
-	DelayedAckKeeper    delayedackkeeper.Keeper
-	DenomMetadataKeeper *denommetadatamodulekeeper.Keeper
+	keepers.AppKeepers
 	// the module manager
 	mm *module.Manager
 
@@ -414,7 +372,6 @@ func New(
 		packetforwardtypes.StoreKey,
 		delayedacktypes.StoreKey,
 		eibcmoduletypes.StoreKey,
-		// this line is used by starport scaffolding # stargate/app/storeKey
 
 		// ethermint keys
 		evmtypes.StoreKey, feemarkettypes.StoreKey,
@@ -458,7 +415,6 @@ func New(
 	// grant capabilities for the ibc and ibc-transfer modules
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/scopedKeeper
 
 	app.CapabilityKeeper.Seal()
 
@@ -546,7 +502,7 @@ func New(
 		app.AccountKeeper,
 	)
 
-	txfeeskeeper := txfeeskeeper.NewKeeper(
+	txFeesKeeper := txfeeskeeper.NewKeeper(
 		app.keys[txfeestypes.StoreKey],
 		app.GetSubspace(txfeestypes.ModuleName),
 		app.AccountKeeper,
@@ -555,7 +511,7 @@ func New(
 		app.PoolManagerKeeper,
 		app.GAMMKeeper,
 	)
-	app.TxFeesKeeper = &txfeeskeeper
+	app.TxFeesKeeper = &txFeesKeeper
 	app.GAMMKeeper.SetPoolManager(app.PoolManagerKeeper)
 	app.GAMMKeeper.SetTxFees(app.TxFeesKeeper)
 
@@ -609,31 +565,20 @@ func New(
 		),
 	)
 
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(
-		appCodec,
-		keys[rollappmoduletypes.StoreKey],
-		keys[rollappmoduletypes.MemStoreKey],
-		app.GetSubspace(rollappmoduletypes.ModuleName),
-		app.IBCKeeper.ClientKeeper,
-		app.IBCKeeper.ChannelKeeper,
-		app.BankKeeper,
-		app.DenomMetadataKeeper,
-	)
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		app.GetSubspace(ibctransfertypes.ModuleName),
-		transferinject.NewIBCSendMiddleware(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
+		denommetadatamodule.NewICS4Wrapper(app.IBCKeeper.ChannelKeeper, app.RollappKeeper, app.BankKeeper),
 		app.IBCKeeper.ChannelKeeper,
 		&app.IBCKeeper.PortKeeper,
 		app.AccountKeeper,
 		app.BankKeeper,
 		scopedTransferKeeper,
 	)
-
-	app.RollappKeeper.SetTransferKeeper(app.TransferKeeper)
 
 	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
 		appCodec,
@@ -649,13 +594,9 @@ func New(
 		keys[delayedacktypes.StoreKey],
 		app.GetSubspace(delayedacktypes.ModuleName),
 		app.RollappKeeper,
-		app.SequencerKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
-		app.IBCKeeper.ConnectionKeeper,
-		app.IBCKeeper.ClientKeeper,
-		app.EIBCKeeper,
-		app.BankKeeper,
+		&app.EIBCKeeper,
 	)
 
 	app.EIBCKeeper.SetDelayedAckKeeper(app.DelayedAckKeeper)
@@ -729,8 +670,6 @@ func New(
 		&stakingKeeper, govRouter, app.MsgServiceRouter(), govConfig,
 	)
 
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
-
 	app.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
 		appCodec, keys[packetforwardtypes.StoreKey],
 		app.GetSubspace(packetforwardtypes.ModuleName),
@@ -742,27 +681,17 @@ func New(
 	)
 
 	transferModule := ibctransfer.NewAppModule(app.TransferKeeper)
-	transferMiddleware := ibctransfer.NewIBCModule(app.TransferKeeper)
 
 	var transferStack ibcporttypes.IBCModule
-	transferStack = bridging_fee.NewIBCMiddleware(
-		transferMiddleware,
-		app.IBCKeeper.ChannelKeeper,
-		app.DelayedAckKeeper,
-		app.RollappKeeper,
-		app.TransferKeeper,
-		app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-	)
+	transferStack = ibctransfer.NewIBCModule(app.TransferKeeper)
+	transferStack = bridgingfee.NewIBCModule(transferStack.(ibctransfer.IBCModule), app.DelayedAckKeeper, app.TransferKeeper, app.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName), app.RollappKeeper)
+	transferStack = packetforwardmiddleware.NewIBCMiddleware(transferStack, app.PacketForwardMiddlewareKeeper, 0, packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp, packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp)
 
-	transferStack = packetforwardmiddleware.NewIBCMiddleware(
-		transferStack,
-		app.PacketForwardMiddlewareKeeper,
-		0,
-		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
-		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
-	)
+	transferStack = denommetadatamodule.NewIBCModule(transferStack, app.DenomMetadataKeeper, app.RollappKeeper)
 	delayedAckMiddleware := delayedackmodule.NewIBCMiddleware(transferStack, app.DelayedAckKeeper, app.RollappKeeper)
-	transferStack = transferinject.NewIBCAckMiddleware(delayedAckMiddleware, app.RollappKeeper)
+	transferStack = delayedAckMiddleware
+	transferStack = transfergenesis.NewIBCModule(transferStack, app.DelayedAckKeeper, app.RollappKeeper, app.TransferKeeper, app.DenomMetadataKeeper)
+	transferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(transferStack, app.RollappKeeper, app.IBCKeeper.ChannelKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -814,7 +743,6 @@ func New(
 		denomMetadataModule,
 		delayedackModule,
 		eibcmodule.NewAppModule(appCodec, app.EIBCKeeper, app.AccountKeeper, app.BankKeeper),
-		// this line is used by starport scaffolding # stargate/app/appModule
 
 		// Ethermint app modules
 		evm.NewAppModule(app.EvmKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(evmtypes.ModuleName).WithKeyTable(evmtypes.ParamKeyTable())),
@@ -862,7 +790,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/beginBlockers
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
 		poolmanagertypes.ModuleName,
@@ -898,7 +825,6 @@ func New(
 		denommetadatamoduletypes.ModuleName,
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/endBlockers
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
 		gammtypes.ModuleName,
@@ -940,7 +866,6 @@ func New(
 		denommetadatamoduletypes.ModuleName, // must after `x/bank` to trigger hooks
 		delayedacktypes.ModuleName,
 		eibcmoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/initGenesis
 
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
@@ -976,6 +901,7 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
+		RollappKeeper:          app.RollappKeeper,
 	})
 	if err != nil {
 		panic(err)
@@ -993,7 +919,6 @@ func New(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
 	return app
 }
@@ -1175,7 +1100,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(denommetadatamoduletypes.ModuleName)
 	paramsKeeper.Subspace(delayedacktypes.ModuleName)
 	paramsKeeper.Subspace(eibcmoduletypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	// ethermint subspaces
 	paramsKeeper.Subspace(evmtypes.ModuleName)
@@ -1220,15 +1144,20 @@ func (app *App) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	return app.mm.ExportGenesis(ctx, app.AppCodec())
 }
 
-// TODO: Create upgrade interface and setup generic upgrades handling a la osmosis
 func (app *App) setupUpgradeHandlers() {
-	UpgradeName := "v3"
+	for _, u := range Upgrades {
+		app.setupUpgradeHandler(u)
+	}
+}
 
+func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	app.UpgradeKeeper.SetUpgradeHandler(
-		UpgradeName,
-		v3upgrade.CreateUpgradeHandler(
-			app.mm, app.configurator,
-			app.RollappKeeper, app.SequencerKeeper, app.DelayedAckKeeper,
+		upgrade.UpgradeName,
+		upgrade.CreateUpgradeHandler(
+			app.mm,
+			app.configurator,
+			app.BaseApp,
+			&app.AppKeepers,
 		),
 	)
 
@@ -1245,8 +1174,8 @@ func (app *App) setupUpgradeHandlers() {
 	// do nothing
 	}
 
-	if upgradeInfo.Name == "v3" && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	if upgradeInfo.Name == upgrade.UpgradeName && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		// configure store loader with the store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, v3upgrade.GetStoreUpgrades()))
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &upgrade.StoreUpgrades))
 	}
 }

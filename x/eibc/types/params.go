@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -47,7 +47,7 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, func(_ interface{}) error { return nil }),
+		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, validateEpochIdentifier),
 		paramtypes.NewParamSetPair(KeyTimeoutFee, &p.TimeoutFee, validateTimeoutFee),
 		paramtypes.NewParamSetPair(KeyErrAckFee, &p.ErrackFee, validateErrAckFee),
 	}
@@ -55,7 +55,15 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	// TODO(danwt): need to validate fees again?
+	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
+		return fmt.Errorf("epoch identifier: %w", err)
+	}
+	if err := validateTimeoutFee(p.TimeoutFee); err != nil {
+		return fmt.Errorf("timeout fee: %w", err)
+	}
+	if err := validateErrAckFee(p.ErrackFee); err != nil {
+		return fmt.Errorf("error acknowledgement fee: %w", err)
+	}
 	return nil
 }
 
@@ -63,6 +71,17 @@ func (p Params) Validate() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func validateEpochIdentifier(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if len(v) == 0 {
+		return fmt.Errorf("epoch identifier cannot be empty")
+	}
+	return nil
 }
 
 func validateTimeoutFee(i interface{}) error {
@@ -74,11 +93,11 @@ func validateTimeoutFee(i interface{}) error {
 		return fmt.Errorf("invalid global pool params: %+v", i)
 	}
 	if v.IsNegative() {
-		return ErrNegativeTimeoutFee
+		return ErrNegativeFee
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchTimeoutFee
+		return ErrFeeTooHigh
 	}
 
 	return nil
@@ -93,11 +112,11 @@ func validateErrAckFee(i any) error {
 		return fmt.Errorf("invalid global pool params: %+v", i)
 	}
 	if v.IsNegative() {
-		return ErrNegativeErrAckFee
+		return ErrNegativeFee
 	}
 
 	if v.GTE(sdk.OneDec()) {
-		return ErrTooMuchErrAckFee
+		return ErrFeeTooHigh
 	}
 
 	return nil
