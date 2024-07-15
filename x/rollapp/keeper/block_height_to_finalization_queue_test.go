@@ -24,7 +24,7 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	initialHeight := uint64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight))
 	ctx := &suite.Ctx
-	keeper := suite.App.RollappKeeper
+	k := suite.App.RollappKeeper
 
 	rollapp := suite.CreateDefaultRollapp()
 	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
@@ -36,18 +36,18 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	suite.Require().Nil(err)
 
 	// Get the pending finalization queue
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight-1), 0)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight), 1)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+1), 2)
-	suite.Len(keeper.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+100), 2)
+	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight-1), 0)
+	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight), 1)
+	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+1), 2)
+	suite.Len(k.GetAllFinalizationQueueUntilHeightInclusive(*ctx, initialHeight+100), 2)
 }
 
 func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
 		item := item
-		rst, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
+		rst, found := k.GetBlockHeightToFinalizationQueue(ctx,
 			item.CreationHeight,
 		)
 		require.True(t, found)
@@ -59,13 +59,13 @@ func TestBlockHeightToFinalizationQueueGet(t *testing.T) {
 }
 
 func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveBlockHeightToFinalizationQueue(ctx,
+		k.RemoveBlockHeightToFinalizationQueue(ctx,
 			item.CreationHeight,
 		)
-		_, found := keeper.GetBlockHeightToFinalizationQueue(ctx,
+		_, found := k.GetBlockHeightToFinalizationQueue(ctx,
 			item.CreationHeight,
 		)
 		require.False(t, found)
@@ -73,11 +73,11 @@ func TestBlockHeightToFinalizationQueueRemove(t *testing.T) {
 }
 
 func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
-	keeper, ctx := keepertest.RollappKeeper(t)
-	items := createNBlockHeightToFinalizationQueue(keeper, ctx, 10)
+	k, ctx := keepertest.RollappKeeper(t)
+	items := createNBlockHeightToFinalizationQueue(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllBlockHeightToFinalizationQueue(ctx)),
+		nullify.Fill(k.GetAllBlockHeightToFinalizationQueue(ctx)),
 	)
 }
 
@@ -263,7 +263,7 @@ func (suite *RollappTestSuite) TestFinalize() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
 	ctx := &suite.Ctx
 
-	keeper := suite.App.RollappKeeper
+	k := suite.App.RollappKeeper
 
 	// Create a rollapp
 	rollapp := suite.CreateDefaultRollapp()
@@ -279,19 +279,19 @@ func (suite *RollappTestSuite) TestFinalize() {
 
 	// Finalize pending queues and check
 	response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
+	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 2)
 	suite.False(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx)))
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx)))
 	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
+	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 1)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 
 	// Finalize pending queues and check
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + keeper.DisputePeriodInBlocks(*ctx) + 1))
+	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight + k.DisputePeriodInBlocks(*ctx) + 1))
 	response = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
-	suite.Require().Len(keeper.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
+	suite.Require().Len(k.GetAllBlockHeightToFinalizationQueue(*ctx), 0)
 	suite.True(findEvent(response, types.EventTypeStatusChange))
 }
 
@@ -407,6 +407,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 2},
 						{RollappId: "rollapp2", Index: 2},
 					},
 				},
@@ -446,6 +447,8 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				}, {
 					CreationHeight: 2,
 					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp1", Index: 4},
 						{RollappId: "rollapp3", Index: 4},
 					},
 				},
@@ -479,9 +482,6 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 				{RollappId: "rollapp1", Index: 1},
 				{RollappId: "rollapp2", Index: 2},
 				{RollappId: "rollapp3", Index: 1},
-				{RollappId: "rollapp1", Index: 3},
-				{RollappId: "rollapp2", Index: 4},
-				{RollappId: "rollapp3", Index: 3},
 			},
 			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
 				{
@@ -514,7 +514,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 
 			k := suite.App.RollappKeeper
 			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
-			k.FinalizePending(suite.Ctx, tt.pendingFinalizationQueue)
+			k.FinalizeAllPending(suite.Ctx, tt.pendingFinalizationQueue)
 
 			suite.Require().Equal(tt.expectQueueAfter, k.GetAllBlockHeightToFinalizationQueue(suite.Ctx))
 		})
