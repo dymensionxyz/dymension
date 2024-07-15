@@ -11,7 +11,7 @@ const (
 )
 
 var Upgrade = upgrades.Upgrade{
-	UpgradeName:          UpgradeName,
-	CreateUpgradeHandler: CreateUpgradeHandler,
-	StoreUpgrades:        storetypes.StoreUpgrades{},
+	Name:          UpgradeName,
+	CreateHandler: CreateUpgradeHandler,
+	StoreUpgrades: storetypes.StoreUpgrades{},
 }
