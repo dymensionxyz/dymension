@@ -143,14 +143,43 @@ type AppKeepers struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 }
 
-// InitNormalKeepers initializes all 'normal' keepers (account, app, bank, auth, staking, distribution, slashing, transfer, gamm, incentives, governance, mint, txfees keepers...).
-func (a *AppKeepers) InitNormalKeepers(
+// InitKeepers initializes all keepers for the app
+func (a *AppKeepers) InitKeepers(
 	appCodec codec.Codec,
+	cdc *codec.LegacyAmino,
 	bApp *baseapp.BaseApp,
 	moduleAccountAddrs map[string]bool,
-	tracer string,
+	skipUpgradeHeights map[int64]bool,
+	invCheckPeriod uint,
+	tracer, homePath string,
 ) {
-	// add keepers
+	// init keepers
+
+	a.ParamsKeeper = initParamsKeeper(appCodec, cdc, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
+	// set the BaseApp's parameter store
+	bApp.SetParamStore(a.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
+
+	// add capability keeper and ScopeToModule for ibc module
+	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
+
+	// grant capabilities for the ibc and ibc-transfer modules
+	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+
+	a.CapabilityKeeper.Seal()
+
+	a.CrisisKeeper = crisiskeeper.NewKeeper(
+		a.GetSubspace(crisistypes.ModuleName), invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName,
+	)
+
+	a.UpgradeKeeper = upgradekeeper.NewKeeper(
+		skipUpgradeHeights,
+		a.keys[upgradetypes.StoreKey],
+		appCodec,
+		homePath,
+		bApp,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
 
 	a.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
@@ -281,6 +310,7 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.GAMMKeeper,
 	)
 	a.TxFeesKeeper = &txFeesKeeper
+
 	a.GAMMKeeper.SetPoolManager(a.PoolManagerKeeper)
 	a.GAMMKeeper.SetTxFees(a.TxFeesKeeper)
 
@@ -404,42 +434,6 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.DistrKeeper,
 		a.BankKeeper,
 		a.IBCKeeper.ChannelKeeper,
-	)
-}
-
-// InitSpecialKeepers initiates special keepers (crisis appkeeper, upgradekeeper, params keeper)
-func (a *AppKeepers) InitSpecialKeepers(
-	appCodec codec.Codec,
-	bApp *baseapp.BaseApp,
-	cdc *codec.LegacyAmino,
-	invCheckPeriod uint,
-	skipUpgradeHeights map[int64]bool,
-	homePath string,
-) {
-	a.ParamsKeeper = initParamsKeeper(appCodec, cdc, a.keys[paramstypes.StoreKey], a.tkeys[paramstypes.TStoreKey])
-	// set the BaseApp's parameter store
-	bApp.SetParamStore(a.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
-
-	// add capability keeper and ScopeToModule for ibc module
-	a.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, a.keys[capabilitytypes.StoreKey], a.memKeys[capabilitytypes.MemStoreKey])
-
-	// grant capabilities for the ibc and ibc-transfer modules
-	a.ScopedIBCKeeper = a.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
-	a.ScopedTransferKeeper = a.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
-
-	a.CapabilityKeeper.Seal()
-
-	a.CrisisKeeper = crisiskeeper.NewKeeper(
-		a.GetSubspace(crisistypes.ModuleName), invCheckPeriod, a.BankKeeper, authtypes.FeeCollectorName,
-	)
-
-	a.UpgradeKeeper = upgradekeeper.NewKeeper(
-		skipUpgradeHeights,
-		a.keys[upgradetypes.StoreKey],
-		appCodec,
-		homePath,
-		bApp,
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 }
 

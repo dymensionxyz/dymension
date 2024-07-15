@@ -214,6 +214,26 @@ func (*AppKeepers) ModuleAccountAddrs() map[string]bool {
 	return modAccAddrs
 }
 
+// module account permissions
+var maccPerms = map[string][]string{
+	authtypes.FeeCollectorName:                         nil,
+	distrtypes.ModuleName:                              nil,
+	minttypes.ModuleName:                               {authtypes.Minter},
+	stakingtypes.BondedPoolName:                        {authtypes.Burner, authtypes.Staking},
+	stakingtypes.NotBondedPoolName:                     {authtypes.Burner, authtypes.Staking},
+	govtypes.ModuleName:                                {authtypes.Burner},
+	ibctransfertypes.ModuleName:                        {authtypes.Minter, authtypes.Burner},
+	sequencermoduletypes.ModuleName:                    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+	rollappmoduletypes.ModuleName:                      {},
+	streamermoduletypes.ModuleName:                     nil,
+	evmtypes.ModuleName:                                {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account.
+	evmtypes.ModuleVirtualFrontierContractDeployerName: nil,                                  // used for deploying virtual frontier bank contract.
+	gammtypes.ModuleName:                               {authtypes.Minter, authtypes.Burner},
+	lockuptypes.ModuleName:                             {authtypes.Minter, authtypes.Burner},
+	incentivestypes.ModuleName:                         {authtypes.Minter, authtypes.Burner},
+	txfeestypes.ModuleName:                             {authtypes.Burner},
+}
+
 var BeginBlockers = []string{
 	epochstypes.ModuleName,
 	upgradetypes.ModuleName,

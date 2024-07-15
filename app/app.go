@@ -155,8 +155,7 @@ func New(
 
 	tracer := cast.ToString(appOpts.Get(flags.EVMTracer))
 
-	app.AppKeepers.InitSpecialKeepers(appCodec, bApp, cdc, invCheckPeriod, skipUpgradeHeights, homePath)
-	app.AppKeepers.InitNormalKeepers(appCodec, bApp, app.ModuleAccountAddrs(), tracer)
+	app.AppKeepers.InitKeepers(appCodec, cdc, bApp, app.ModuleAccountAddrs(), skipUpgradeHeights, invCheckPeriod, tracer, homePath)
 	app.AppKeepers.SetupHooks()
 	app.AppKeepers.InitTransferStack()
 
