@@ -33,7 +33,6 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.Tokens = sdk.Coins{}
 
 	oldStatus := seq.Status
-	wasProposer := seq.Proposer
 	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
@@ -43,7 +42,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.Status = types.Unbonded
 	seq.Jailed = true
 	seq.Proposer = false
-	seq.UnbondingHeight = ctx.BlockHeight()
+	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
 	k.UpdateSequencer(ctx, seq, oldStatus)
 
@@ -55,11 +54,6 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),
 	)
-
-	// rotate proposer if the slashed sequencer was the proposer
-	if wasProposer {
-		k.RotateProposer(ctx, seq.RollappId)
-	}
 
 	return nil
 }

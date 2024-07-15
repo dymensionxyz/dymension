@@ -52,5 +52,8 @@ message MsgUnbond {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 message MsgUnbondResponse {
-  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  oneof completion_time {
+    google.protobuf.Timestamp unbonding_completion_time = 1 [ (gogoproto.stdtime) = true];
+    google.protobuf.Timestamp notice_period_completion_time = 2 [ (gogoproto.stdtime) = true];
+  }
 }

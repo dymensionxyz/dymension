@@ -23,6 +23,7 @@ const (
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
 
+	//TODO: remove, unused
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_sequencer"
 )
@@ -40,7 +41,10 @@ var (
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
 
-	UnbondingQueueKey = []byte{0x41} // prefix for the timestamps in unbonding queue
+	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
+	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
+
+	// NoticePeriodPerRollappKeyPrefix = []byte{0x02} // prefix/rollappId
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
@@ -98,6 +102,33 @@ func UnbondingQueueByTimeKey(endTime time.Time) []byte {
 
 func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
 	key := UnbondingQueueByTimeKey(endTime)
+	key = append(key, KeySeparator...)
+	key = append(key, []byte(sequencerAddress)...)
+	return key
+}
+
+// FIXME: make common with unbond queue
+/* --------------------------- notice period keys --------------------------- */
+// func NoticePeriodPerRollappKey(rollappId string) []byte {
+// 	return []byte(fmt.Sprintf("%s%s%s", NoticePeriodPerRollappKeyPrefix, KeySeparator, []byte(rollappId)))
+// }
+
+func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
+	timeBz := sdk.FormatTimeBytes(endTime)
+	prefixL := len(NoticePeriodQueueKey)
+
+	bz := make([]byte, prefixL+len(timeBz))
+
+	// copy the prefix
+	copy(bz[:prefixL], NoticePeriodQueueKey)
+	// copy the encoded time bytes
+	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
+
+	return bz
+}
+
+func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte {
+	key := NoticePeriodQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key

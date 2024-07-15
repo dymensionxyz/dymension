@@ -8,12 +8,31 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
+// validateBasic
+func (seq Sequencer) ValidateBasic() error {
+	if seq.Proposer && seq.NextProposer {
+		return ErrInvalidSequencerStatus
+	}
+
+	if seq.Status == Unbonding {
+		if seq.UnbondRequestHeight == 0 {
+			return ErrInvalidSequencerStatus
+		}
+	}
+
+	return nil
+}
+
 func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }
 
 func (seq Sequencer) IsProposer() bool {
 	return seq.Proposer
+}
+
+func (seq Sequencer) IsNextProposer() bool {
+	return seq.NextProposer
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer

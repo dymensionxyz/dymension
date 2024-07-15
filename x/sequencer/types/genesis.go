@@ -27,7 +27,7 @@ func (gs GenesisState) Validate() error {
 		sequencerIndexMap[index] = struct{}{}
 	}
 
-	// FIXME: validate single PROPOSER per rollapp
+	// FIXME: validate single PROPOSER and nextProposer per rollapp
 
 	return gs.Params.Validate()
 }

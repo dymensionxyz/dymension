@@ -37,9 +37,15 @@ service Query {
 		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/sequencers_by_rollapp/{rollappId}/{status}";
 	}
 
+	// Queries the current proposer by rollappId.
+	rpc GetProposerByRollapp(QueryGetProposerByRollappRequest) returns (QueryGetProposerByRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/proposer/{rollappId}";
+	}
 
-
-// this line is used by starport scaffolding # 2
+	// Queries the next proposer by rollappId.
+	rpc GetNextProposerByRollapp(QueryGetNextProposerByRollappRequest) returns (QueryGetNextProposerByRollappResponse) {
+		option (google.api.http).get = "/dymensionxyz/dymension/sequencer/next_proposer/{rollappId}";
+	}
 }
   
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -85,4 +91,22 @@ message QueryGetSequencersByRollappByStatusResponse {
   repeated Sequencer sequencers = 1 [(gogoproto.nullable) = false];
 }
 
-// this line is used by starport scaffolding # 3
+// Request type for the GetProposerByRollapp RPC method.
+message QueryGetProposerByRollappRequest {
+    string rollappId = 1;
+}
+
+// Response type for the GetProposerByRollapp RPC method.
+message QueryGetProposerByRollappResponse {
+    string proposer = 1;
+}
+
+// Request type for the GetNextProposerByRollapp RPC method.
+message QueryGetNextProposerByRollappRequest {
+    string rollappId = 1;
+}
+
+// Response type for the GetNextProposerByRollapp RPC method.
+message QueryGetNextProposerByRollappResponse {
+    string nextProposer = 1;
+}
