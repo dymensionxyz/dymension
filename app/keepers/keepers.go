@@ -96,7 +96,7 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    bankkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 stakingkeeper.Keeper
+	StakingKeeper                 *stakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
@@ -176,19 +176,20 @@ func (a *AppKeepers) InitNormalKeepers(
 		moduleAccountAddrs,
 	)
 
-	a.StakingKeeper = stakingkeeper.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.GetSubspace(stakingtypes.ModuleName),
 	)
+	a.StakingKeeper = &stakingKeeper
 
 	a.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
 		a.GetSubspace(minttypes.ModuleName),
-		&a.StakingKeeper,
+		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		authtypes.FeeCollectorName,
@@ -200,14 +201,14 @@ func (a *AppKeepers) InitNormalKeepers(
 		a.GetSubspace(distrtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		&a.StakingKeeper,
+		a.StakingKeeper,
 		authtypes.FeeCollectorName,
 	)
 
 	a.SlashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
 		a.keys[slashingtypes.StoreKey],
-		&a.StakingKeeper,
+		a.StakingKeeper,
 		a.GetSubspace(slashingtypes.ModuleName),
 	)
 
@@ -234,7 +235,7 @@ func (a *AppKeepers) InitNormalKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		&a.StakingKeeper,
+		a.StakingKeeper,
 		a.FeeMarketKeeper,
 		nil,
 		geth.NewEVM,
@@ -392,7 +393,7 @@ func (a *AppKeepers) InitNormalKeepers(
 	govConfig := govtypes.DefaultConfig()
 	a.GovKeeper = govkeeper.NewKeeper(
 		appCodec, a.keys[govtypes.StoreKey], a.GetSubspace(govtypes.ModuleName), a.AccountKeeper, a.BankKeeper,
-		&a.StakingKeeper, govRouter, bApp.MsgServiceRouter(), govConfig,
+		a.StakingKeeper, govRouter, bApp.MsgServiceRouter(), govConfig,
 	)
 
 	a.PacketForwardMiddlewareKeeper = packetforwardkeeper.NewKeeper(
@@ -478,7 +479,7 @@ func (a *AppKeepers) InitTransferStack() {
 
 func (a *AppKeepers) SetupHooks() {
 	// register the staking hooks
-	a.StakingKeeper = *a.StakingKeeper.SetHooks(
+	a.StakingKeeper = a.StakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
 	)
 
