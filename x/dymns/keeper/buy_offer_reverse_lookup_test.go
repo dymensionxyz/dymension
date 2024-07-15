@@ -318,8 +318,6 @@ func TestKeeper_AddReverseMappingGoodsIdToBuyOffer_Generic(t *testing.T) {
 }
 
 func TestKeeper_GetAddReverseMappingGoodsIdToBuyOffer_Type_DymName(t *testing.T) {
-	// TODO DymNS: add test for Sell/Buy Alias
-
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	_, err := dk.GetBuyOffersOfDymName(ctx, "@")
@@ -432,6 +430,100 @@ func TestKeeper_GetAddReverseMappingGoodsIdToBuyOffer_Type_DymName(t *testing.T)
 	})
 }
 
+func TestKeeper_GetAddReverseMappingGoodsIdToBuyOffer_Type_Alias(t *testing.T) {
+	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+	_, err := dk.GetBuyOffersOfAlias(ctx, "@")
+	require.Error(
+		t,
+		err,
+		"fail - should reject invalid Alias",
+	)
+
+	const alias1 = "one"
+
+	const dstRollAppId = "rollapp_3-2"
+
+	buyerA := testAddr(1).bech32()
+
+	offer11 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 11),
+		GoodsId:    alias1,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer11))
+
+	offer12 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 12),
+		GoodsId:    alias1,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer12))
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+	)
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+	)
+
+	const alias2 = "two"
+
+	offer2 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2),
+		GoodsId:    alias2,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer2))
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+	)
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias2, dymnstypes.AliasOrder, "2012356215631"),
+		"no check non-existing offer id",
+	)
+
+	t.Run("no error if duplicated name", func(t *testing.T) {
+		for i := 0; i < 3; i++ {
+			require.NoError(t,
+				dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+			)
+		}
+	})
+
+	linked1, err1 := dk.GetBuyOffersOfAlias(ctx, alias1)
+	require.NoError(t, err1)
+	require.Len(t, linked1, 2)
+	require.Equal(t, offer11.Id, linked1[0].Id)
+	require.Equal(t, offer12.Id, linked1[1].Id)
+
+	linked2, err2 := dk.GetBuyOffersOfAlias(ctx, alias2)
+	require.NoError(t, err2)
+	require.NotEqual(t, 2, len(linked2), "should not include non-existing offers")
+	require.Len(t, linked2, 1)
+	require.Equal(t, offer2.Id, linked2[0].Id)
+
+	linkedByNotExists, err3 := dk.GetBuyOffersOfAlias(ctx, "nah")
+	require.NoError(t, err3)
+	require.Len(t, linkedByNotExists, 0)
+}
+
 func TestKeeper_RemoveReverseMappingGoodsIdToBuyOffer_Generic(t *testing.T) {
 	supportedOrderTypes := []dymnstypes.OrderType{
 		dymnstypes.NameOrder, dymnstypes.AliasOrder,
@@ -533,8 +625,6 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOffer_Generic(t *testing.T) {
 }
 
 func TestKeeper_RemoveReverseMappingGoodsIdToBuyOffer_Type_DymName(t *testing.T) {
-	// TODO DymNS: add test for Sell/Buy Alias
-
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	ownerA := testAddr(1).bech32()
@@ -645,6 +735,113 @@ func TestKeeper_RemoveReverseMappingGoodsIdToBuyOffer_Type_DymName(t *testing.T)
 	})
 
 	linked, err := dk.GetBuyOffersOfDymName(ctx, dymName2.Name)
+	require.NoError(t, err)
+	require.Len(t, linked, 1)
+}
+
+func TestKeeper_RemoveReverseMappingGoodsIdToBuyOffer_Type_Alias(t *testing.T) {
+	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+	buyerA := testAddr(1).bech32()
+
+	const alias1 = "one"
+
+	const dstRollAppId = "rollapp_3-2"
+
+	offer11 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 11),
+		GoodsId:    alias1,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer11))
+
+	offer12 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 12),
+		GoodsId:    alias1,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer12))
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+	)
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+	)
+
+	const alias2 = "two"
+
+	offer2 := dymnstypes.BuyOffer{
+		Id:         dymnstypes.CreateBuyOfferId(dymnstypes.AliasOrder, 2),
+		GoodsId:    alias2,
+		Type:       dymnstypes.AliasOrder,
+		Params:     []string{dstRollAppId},
+		Buyer:      buyerA,
+		OfferPrice: dymnsutils.TestCoin(1),
+	}
+	require.NoError(t, dk.SetBuyOffer(ctx, offer2))
+
+	require.NoError(
+		t,
+		dk.AddReverseMappingGoodsIdToBuyOffer(ctx, alias2, dymnstypes.AliasOrder, offer2.Id),
+	)
+
+	t.Run("no error if remove a record that not linked", func(t *testing.T) {
+		linked, _ := dk.GetBuyOffersOfAlias(ctx, alias1)
+		require.Len(t, linked, 2)
+
+		require.NoError(
+			t,
+			dk.RemoveReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer2.Id),
+		)
+
+		linked, err := dk.GetBuyOffersOfAlias(ctx, alias1)
+		require.NoError(t, err)
+		require.Len(t, linked, 2, "existing data must be kept")
+	})
+
+	t.Run("no error if element is not in the list", func(t *testing.T) {
+		require.NoError(
+			t,
+			dk.RemoveReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, "20218362184621"),
+		)
+
+		linked, err := dk.GetBuyOffersOfAlias(ctx, alias1)
+		require.NoError(t, err)
+		require.Len(t, linked, 2, "existing data must be kept")
+	})
+
+	t.Run("remove correctly", func(t *testing.T) {
+		require.NoError(
+			t,
+			dk.RemoveReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer11.Id),
+		)
+
+		linked, err := dk.GetBuyOffersOfAlias(ctx, alias1)
+		require.NoError(t, err)
+		require.Len(t, linked, 1)
+		require.Equal(t, offer12.Id, linked[0].Id)
+
+		require.NoError(
+			t,
+			dk.RemoveReverseMappingGoodsIdToBuyOffer(ctx, alias1, dymnstypes.AliasOrder, offer12.Id),
+		)
+
+		linked, err = dk.GetBuyOffersOfAlias(ctx, alias1)
+		require.NoError(t, err)
+		require.Empty(t, linked)
+	})
+
+	linked, err := dk.GetBuyOffersOfAlias(ctx, alias2)
 	require.NoError(t, err)
 	require.Len(t, linked, 1)
 }

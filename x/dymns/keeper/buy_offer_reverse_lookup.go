@@ -122,6 +122,31 @@ func (k Keeper) GetBuyOffersOfDymName(
 	return offers, nil
 }
 
+// GetBuyOffersOfAlias returns all Buy-Orders that placed for the Alias.
+func (k Keeper) GetBuyOffersOfAlias(
+	ctx sdk.Context, alias string,
+) ([]dymnstypes.BuyOffer, error) {
+	if !dymnsutils.IsValidAlias(alias) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Alias: %s", alias)
+	}
+
+	key := dymnstypes.AliasToOfferIdsRvlKey(alias)
+
+	offerIds := k.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
+
+	var offers []dymnstypes.BuyOffer
+	for _, offerId := range offerIds.OfferIds {
+		offer := k.GetBuyOffer(ctx, offerId)
+		if offer == nil {
+			// offer not found, skip
+			continue
+		}
+		offers = append(offers, *offer)
+	}
+
+	return offers, nil
+}
+
 // RemoveReverseMappingGoodsIdToBuyOffer removes reverse mapping from Dym-Name/Alias to Buy-Order which placed for it, from the KVStore.
 func (k Keeper) RemoveReverseMappingGoodsIdToBuyOffer(ctx sdk.Context, goodsId string, orderType dymnstypes.OrderType, offerId string) error {
 	var key []byte
