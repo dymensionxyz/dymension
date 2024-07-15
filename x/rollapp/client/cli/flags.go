@@ -5,14 +5,13 @@ import (
 )
 
 const (
-	// Create rollapp flags
-	FlagGenesisAccountsPath = "genesis-accounts-path"
+// Create rollapp flags
+
 )
 
 // FlagSetCreateRollapp returns flags for creating gauges.
 func FlagSetCreateRollapp() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagGenesisAccountsPath, "", "path to a json file containing genesis accounts")
 	return fs
 }

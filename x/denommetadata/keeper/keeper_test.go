@@ -3,13 +3,13 @@ package keeper_test
 import (
 	"testing"
 
+	errorsmod "cosmossdk.io/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
 
 type KeeperTestSuite struct {
@@ -64,14 +64,14 @@ func (suite *KeeperTestSuite) TestCreateExistingDenom() {
 	suite.Require().NoError(err)
 
 	err = keeper.CreateDenomMetadata(suite.Ctx, suite.getDymMetadata())
-	suite.Require().EqualError(err, types.ErrDenomAlreadyExists.Error())
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrAlreadyExists))
 }
 
 func (suite *KeeperTestSuite) TestUpdateMissingDenom() {
 	keeper := suite.App.DenomMetadataKeeper
 
 	err := keeper.UpdateDenomMetadata(suite.Ctx, suite.getDymUpdateMetadata())
-	suite.Require().EqualError(err, types.ErrDenomDoesNotExist.Error())
+	suite.Require().True(errorsmod.IsOf(err, gerrc.ErrNotFound))
 }
 
 func (suite *KeeperTestSuite) getDymMetadata() banktypes.Metadata {

@@ -51,6 +51,6 @@ func (s *KeeperTestHelper) ExtractAttributes(event sdk.Event) map[string]string 
 func (s *KeeperTestHelper) AssertAttributes(event sdk.Event, eventAttributes []sdk.Attribute) {
 	attrs := s.ExtractAttributes(event)
 	for _, attr := range eventAttributes {
-		s.Assert().Equal(attr.Value, attrs[attr.Key])
+		s.Equal(attr.Value, attrs[attr.Key])
 	}
 }

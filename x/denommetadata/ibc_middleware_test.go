@@ -1,6 +1,7 @@
-package transferinject_test
+package denommetadata_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -12,14 +13,119 @@ import (
 	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
 	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
+	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/dymensionxyz/dymension/v3/x/transferinject"
-	"github.com/dymensionxyz/dymension/v3/x/transferinject/types"
 )
 
-func TestIBCMiddleware_SendPacket(t *testing.T) {
+func TestIBCModule_OnRecvPacket(t *testing.T) {
+	tests := []struct {
+		name          string
+		keeper        *mockDenomMetadataKeeper
+		rollappKeeper *mockRollappKeeper
+
+		memoData         *memoData
+		wantAck          exported.Acknowledgement
+		wantSentMemoData *memoData
+		wantCreated      bool
+	}{
+		{
+			name:   "valid packet data with packet metadata",
+			keeper: &mockDenomMetadataKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         validMemoData,
+			wantAck:          emptyResult,
+			wantSentMemoData: nil,
+			wantCreated:      true,
+		}, {
+			name:   "valid packet data with packet metadata and user memo",
+			keeper: &mockDenomMetadataKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         validMemoDataWithUserMemo,
+			wantAck:          emptyResult,
+			wantSentMemoData: validUserMemo,
+			wantCreated:      true,
+		}, {
+			name:   "no memo",
+			keeper: &mockDenomMetadataKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         nil,
+			wantAck:          emptyResult,
+			wantSentMemoData: nil,
+			wantCreated:      false,
+		}, {
+			name:   "custom memo",
+			keeper: &mockDenomMetadataKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         validUserMemo,
+			wantAck:          emptyResult,
+			wantSentMemoData: validUserMemo,
+			wantCreated:      false,
+		}, {
+			name:   "memo has empty denom metadata",
+			keeper: &mockDenomMetadataKeeper{},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         invalidMemoDataNoDenomMetadata,
+			wantAck:          emptyResult,
+			wantSentMemoData: nil,
+			wantCreated:      false,
+		}, {
+			name:   "denom metadata already exists in keeper",
+			keeper: &mockDenomMetadataKeeper{hasDenomMetaData: true},
+			rollappKeeper: &mockRollappKeeper{
+				returnRollapp: &rollapptypes.Rollapp{},
+			},
+			memoData:         validMemoData,
+			wantAck:          emptyResult,
+			wantSentMemoData: nil,
+			wantCreated:      false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := &mockIBCModule{}
+			im := denommetadata.NewIBCModule(app, tt.keeper, tt.rollappKeeper)
+			var memo string
+			if tt.memoData != nil {
+				memo = mustMarshalJSON(tt.memoData)
+			}
+			packetData := packetDataWithMemo(memo)
+			tt.rollappKeeper.packetData = packetData
+			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
+			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
+			got := im.OnRecvPacket(sdk.NewContext(nil, tmproto.Header{}, false, nil), packet, sdk.AccAddress{})
+			require.Equal(t, tt.wantAck, got)
+			if !tt.wantAck.Success() {
+				return
+			}
+			var wantMemo string
+			if tt.wantSentMemoData != nil {
+				wantMemo = mustMarshalJSON(tt.wantSentMemoData)
+			}
+			wantPacketData := packetDataWithMemo(wantMemo)
+			wantPacketDataBytes := types.ModuleCdc.MustMarshalJSON(&wantPacketData)
+			require.Equal(t, string(wantPacketDataBytes), string(app.sentData))
+			require.Equal(t, tt.wantCreated, tt.keeper.created)
+		})
+	}
+}
+
+func TestICS4Wrapper_SendPacket(t *testing.T) {
 	type fields struct {
 		ICS4Wrapper   porttypes.ICS4Wrapper
 		rollappKeeper types.RollappKeeper
@@ -92,11 +198,11 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 				destinationChannel: "channel",
 				data: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  `{"transferinject":{}}`,
+					Memo:  `{"denom_metadata":{}}`,
 				},
 			},
 			wantSentData: []byte(""),
-			wantErr:      types.ErrMemoTransferInjectAlreadyExists,
+			wantErr:      types.ErrMemoDenomMetadataAlreadyExists,
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
@@ -196,7 +302,7 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := transferinject.NewIBCSendMiddleware(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
+			m := denommetadata.NewICS4Wrapper(tt.fields.ICS4Wrapper, tt.fields.rollappKeeper, tt.fields.bankKeeper)
 
 			data := types.ModuleCdc.MustMarshalJSON(tt.args.data)
 
@@ -219,10 +325,10 @@ func TestIBCMiddleware_SendPacket(t *testing.T) {
 	}
 }
 
-func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
+func TestIBCModule_OnAcknowledgementPacket(t *testing.T) {
 	type fields struct {
 		IBCModule     porttypes.IBCModule
-		rollappKeeper types.RollappKeeper
+		rollappKeeper *mockRollappKeeper
 	}
 	type args struct {
 		packetData      *transfertypes.FungibleTokenPacketData
@@ -238,7 +344,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		{
 			name: "success: added token metadata to rollapp",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{},
 				},
@@ -256,7 +362,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "success: added token metadata to rollapp with user memo",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{},
 				},
@@ -275,7 +381,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: error acknowledgement",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				IBCModule:     &mockIBCModule{},
 			},
 			args: args{
 				acknowledgement: badAck(),
@@ -284,8 +390,10 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "return early: no memo",
 			fields: fields{
-				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				rollappKeeper: &mockRollappKeeper{
+					returnRollapp: &rollapptypes.Rollapp{},
+				},
+				IBCModule: &mockIBCModule{},
 			},
 			args: args{
 				packetData: &transfertypes.FungibleTokenPacketData{
@@ -293,12 +401,12 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				},
 				acknowledgement: okAck(),
 			},
-			wantRollapp: nil,
+			wantRollapp: &rollapptypes.Rollapp{},
 		}, {
 			name: "return early: no packet metadata in memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				IBCModule:     &mockIBCModule{},
 			},
 			args: args{
 				packetData: &transfertypes.FungibleTokenPacketData{
@@ -312,12 +420,12 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 			name: "return early: no denom metadata in memo",
 			fields: fields{
 				rollappKeeper: &mockRollappKeeper{},
-				IBCModule:     mockIBCModule{},
+				IBCModule:     &mockIBCModule{},
 			},
 			args: args{
 				packetData: &transfertypes.FungibleTokenPacketData{
 					Denom: "adym",
-					Memo:  `{"transferinject":{}}`,
+					Memo:  `{"denom_metadata":{}}`,
 				},
 				acknowledgement: okAck(),
 			},
@@ -325,7 +433,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "error: extract rollapp from channel",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					err: errortypes.ErrInvalidRequest,
 				},
@@ -342,7 +450,7 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 		}, {
 			name: "error: rollapp not found",
 			fields: fields{
-				IBCModule:     mockIBCModule{},
+				IBCModule:     &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{},
 			},
 			args: args{
@@ -353,11 +461,11 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				acknowledgement: okAck(),
 			},
 			wantRollapp: nil,
-			wantErr:     errortypes.ErrNotFound,
+			wantErr:     gerrc.ErrNotFound,
 		}, {
 			name: "return early: rollapp already has token metadata",
 			fields: fields{
-				IBCModule: mockIBCModule{},
+				IBCModule: &mockIBCModule{},
 				rollappKeeper: &mockRollappKeeper{
 					returnRollapp: &rollapptypes.Rollapp{
 						RegisteredDenoms: []string{validDenomMetadata.Base},
@@ -378,11 +486,12 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := transferinject.NewIBCAckMiddleware(tt.fields.IBCModule, tt.fields.rollappKeeper)
+			m := denommetadata.NewIBCModule(tt.fields.IBCModule, nil, tt.fields.rollappKeeper)
 
 			packet := channeltypes.Packet{}
 
 			if tt.args.packetData != nil {
+				tt.fields.rollappKeeper.packetData = *tt.args.packetData
 				packet.Data = types.ModuleCdc.MustMarshalJSON(tt.args.packetData)
 			}
 
@@ -394,31 +503,82 @@ func TestIBCMiddleware_OnAcknowledgementPacket(t *testing.T) {
 				require.ErrorIs(t, err, tt.wantErr)
 			}
 
-			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.(*mockRollappKeeper).returnRollapp)
+			require.Equal(t, tt.wantRollapp, tt.fields.rollappKeeper.returnRollapp)
 		})
 	}
 }
 
-var validDenomMetadata = banktypes.Metadata{
-	Description: "Denom of the Hub",
-	Base:        "adym",
-	Display:     "DYM",
-	Name:        "DYM",
-	Symbol:      "adym",
-	DenomUnits: []*banktypes.DenomUnit{
-		{
-			Denom:    "adym",
-			Exponent: 0,
-		}, {
-			Denom:    "DYM",
-			Exponent: 18,
+var (
+	emptyResult   = channeltypes.Acknowledgement{}
+	validUserMemo = &memoData{
+		User: &validUserData,
+	}
+	validMemoDataWithUserMemo = &memoData{
+		MemoData: validMemoData.MemoData,
+		User:     &validUserData,
+	}
+	validUserData = userData{Data: "data"}
+	validMemoData = &memoData{
+		MemoData: types.MemoData{
+			DenomMetadata: &validDenomMetadata,
 		},
-	},
+	}
+	invalidMemoDataNoDenomMetadata = &memoData{
+		MemoData: types.MemoData{},
+	}
+	validDenomMetadata = banktypes.Metadata{
+		Description: "Denom of the Hub",
+		Base:        "adym",
+		Display:     "DYM",
+		Name:        "DYM",
+		Symbol:      "adym",
+		DenomUnits: []*banktypes.DenomUnit{
+			{
+				Denom:    "adym",
+				Exponent: 0,
+			}, {
+				Denom:    "DYM",
+				Exponent: 18,
+			},
+		},
+	}
+)
+
+type memoData struct {
+	types.MemoData
+	User *userData `json:"user,omitempty"`
+}
+
+type userData struct {
+	Data string `json:"data"`
+}
+
+func packetDataWithMemo(memo string) transfertypes.FungibleTokenPacketData {
+	return transfertypes.FungibleTokenPacketData{
+		Denom:    "adym",
+		Amount:   "100",
+		Sender:   "sender",
+		Receiver: "receiver",
+		Memo:     memo,
+	}
 }
 
 func addDenomMetadataToPacketData(memo string, metadata banktypes.Metadata) string {
 	memo, _ = types.AddDenomMetadataToMemo(memo, metadata)
 	return memo
+}
+
+func mustMarshalJSON(v any) string {
+	bz, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
+}
+
+type mockIBCModule struct {
+	porttypes.IBCModule
+	sentData []byte
 }
 
 func okAck() []byte {
@@ -429,6 +589,24 @@ func okAck() []byte {
 func badAck() []byte {
 	ack := channeltypes.NewErrorAcknowledgement(fmt.Errorf("unsuccessful"))
 	return types.ModuleCdc.MustMarshalJSON(&ack)
+}
+
+func (m *mockIBCModule) OnRecvPacket(_ sdk.Context, p channeltypes.Packet, _ sdk.AccAddress) exported.Acknowledgement {
+	m.sentData = p.Data
+	return emptyResult
+}
+
+func (m *mockIBCModule) OnAcknowledgementPacket(_ sdk.Context, _ channeltypes.Packet, ack []byte, _ sdk.AccAddress) error {
+	return nil
+}
+
+type mockDenomMetadataKeeper struct {
+	hasDenomMetaData, created bool
+}
+
+func (m *mockDenomMetadataKeeper) CreateDenomMetadata(ctx sdk.Context, metadata banktypes.Metadata) error {
+	m.created = true
+	return nil
 }
 
 type mockICS4Wrapper struct {
@@ -448,24 +626,9 @@ func (m *mockICS4Wrapper) SendPacket(
 	return 0, nil
 }
 
-type mockIBCModule struct {
-	porttypes.IBCModule
-}
-
-func (m mockIBCModule) OnAcknowledgementPacket(sdk.Context, channeltypes.Packet, []byte, sdk.AccAddress) error {
-	return nil
-}
-
-type mockBankKeeper struct {
-	returnMetadata banktypes.Metadata
-}
-
-func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadata, bool) {
-	return m.returnMetadata, m.returnMetadata.Base != ""
-}
-
 type mockRollappKeeper struct {
 	returnRollapp *rollapptypes.Rollapp
+	packetData    transfertypes.FungibleTokenPacketData
 	err           error
 }
 
@@ -473,6 +636,20 @@ func (m *mockRollappKeeper) SetRollapp(_ sdk.Context, rollapp rollapptypes.Rolla
 	m.returnRollapp = &rollapp
 }
 
-func (m *mockRollappKeeper) ExtractRollappFromChannel(sdk.Context, string, string) (*rollapptypes.Rollapp, error) {
-	return m.returnRollapp, m.err
+func (m *mockRollappKeeper) GetValidTransfer(sdk.Context, []byte, string, string) (data rollapptypes.TransferData, err error) {
+	return rollapptypes.TransferData{
+		Rollapp:                 m.returnRollapp,
+		FungibleTokenPacketData: m.packetData,
+	}, m.err
+}
+
+type mockBankKeeper struct {
+	returnMetadata banktypes.Metadata
+}
+
+func (m mockBankKeeper) SetDenomMetaData(ctx sdk.Context, denomMetaData banktypes.Metadata) {
+}
+
+func (m mockBankKeeper) GetDenomMetaData(sdk.Context, string) (banktypes.Metadata, bool) {
+	return m.returnMetadata, m.returnMetadata.Base != ""
 }

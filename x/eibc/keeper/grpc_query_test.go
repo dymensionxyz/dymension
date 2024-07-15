@@ -71,7 +71,9 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 		demandOrder := types.NewDemandOrder(*rollappPacket, math.NewIntFromUint64(150), math.NewIntFromUint64(50), "stake", recipientAddress)
 		// Assert needed type of status for packet
 		demandOrder.TrackingPacketStatus = status
-		demandOrder.IsFulfilled = status == commontypes.Status_FINALIZED
+		if status == commontypes.Status_FINALIZED {
+			demandOrder.FulfillerAddress = demandOrderAddresses[0].String() // simulate fulfillment
+		}
 
 		err := keeper.SetDemandOrder(suite.Ctx, demandOrder)
 		suite.Require().NoError(err)
@@ -93,11 +95,11 @@ func (suite *KeeperTestSuite) TestQueryDemandOrdersByStatus() {
 	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_FINALIZED, FulfillmentState: types.FulfillmentState_FULFILLED})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
-	suite.Require().Equal(true, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfillment state fulfilled")
+	suite.Require().Equal(true, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state fulfilled")
 
 	// Query by fulfillment status: UNFULFILLED
 	res, err = suite.queryClient.DemandOrdersByStatus(sdk.WrapSDKContext(suite.Ctx), &types.QueryDemandOrdersByStatusRequest{Status: commontypes.Status_PENDING, FulfillmentState: types.FulfillmentState_UNFULFILLED})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(res.DemandOrders)
-	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled, "Expected 0 demand orders with fulfillment state unfulfilled")
+	suite.Require().Equal(false, res.DemandOrders[0].IsFulfilled(), "Expected 0 demand orders with fulfillment state unfulfilled")
 }

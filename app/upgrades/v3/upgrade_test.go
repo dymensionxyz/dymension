@@ -8,12 +8,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	app "github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 )
 
 // UpgradeTestSuite defines the structure for the upgrade test suite
@@ -41,11 +42,13 @@ var (
 	expectCreateGaugeFee = DYM.Mul(sdk.NewInt(10))
 	// AddToGagugeFee is the fee required to add to gauge.
 	expectAddToGaugeFee = sdk.ZeroInt()
+
+	expectDelayedackEpochIdentifier = "hour"
+	expectDelayedackBridgingFee     = sdk.NewDecWithPrec(1, 3)
 )
 
 const (
 	dummyUpgradeHeight          = 5
-	dummyEndBlockHeight         = 10
 	expectRollappsEnabled       = false
 	expectDisputePeriodInBlocks = 120960
 	expectMinBond               = "1000000000000000000000"
@@ -80,6 +83,13 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 			},
 			func() error {
 				// Post-update validation to ensure parameters are correctly set
+
+				// Check Delayedack parameters
+				delayedackParams := s.App.DelayedAckKeeper.GetParams(s.Ctx)
+				if delayedackParams.EpochIdentifier != expectDelayedackEpochIdentifier ||
+					!delayedackParams.BridgingFee.Equal(expectDelayedackBridgingFee) {
+					return fmt.Errorf("delayedack parameters not set correctly")
+				}
 
 				// Check Rollapp parameters
 				rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)

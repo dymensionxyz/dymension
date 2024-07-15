@@ -36,6 +36,17 @@ func (k Keeper) GetStateInfo(
 	return val, true
 }
 
+// GetLatestStateInfo is utility
+func (k Keeper) GetLatestStateInfo(ctx sdk.Context,
+	rollappId string,
+) (types.StateInfo, bool) {
+	ix, ok := k.GetLatestStateInfoIndex(ctx, rollappId)
+	if !ok {
+		return types.StateInfo{}, false
+	}
+	return k.GetStateInfo(ctx, rollappId, ix.GetIndex())
+}
+
 func (k Keeper) MustGetStateInfo(ctx sdk.Context,
 	rollappId string,
 	index uint64,

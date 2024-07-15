@@ -5,17 +5,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string,
-	metadatas []*TokenMetadata, genesisAccounts RollappGenesisState,
-) Rollapp {
-	return Rollapp{
+func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
+	ret := Rollapp{
 		RollappId:             rollappId,
 		Creator:               creator,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
-		GenesisState:          genesisAccounts,
-		TokenMetadata:         metadatas,
 	}
+	ret.GenesisState.TransfersEnabled = transfersEnabled
+	return ret
 }
 
 func (r Rollapp) ValidateBasic() error {
@@ -54,23 +52,6 @@ func (r Rollapp) ValidateBasic() error {
 			}
 			// mark as exist
 			duplicateAddresses[item] = true
-		}
-	}
-
-	// verifies that token metadata, if any, must be valid
-	if len(r.TokenMetadata) > 0 {
-		for _, metadata := range r.TokenMetadata {
-			if err := metadata.Validate(); err != nil {
-				return errorsmod.Wrapf(ErrInvalidTokenMetadata, "%s: %v", metadata.Base, err)
-			}
-		}
-	}
-
-	// genesisAccounts address validation
-	for _, acc := range r.GenesisState.GenesisAccounts {
-		_, err := sdk.AccAddressFromBech32(acc.Address)
-		if err != nil {
-			return errorsmod.Wrapf(err, "invalid genesis account address (%s)", acc.Address)
 		}
 	}
 

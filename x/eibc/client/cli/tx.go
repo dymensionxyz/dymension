@@ -24,27 +24,65 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(NewFullfilOrderTxCmd())
+	cmd.AddCommand(NewFulfillOrderTxCmd())
+	cmd.AddCommand(NewUpdateDemandOrderTxCmd())
 
 	return cmd
 }
 
-func NewFullfilOrderTxCmd() *cobra.Command {
+func NewFulfillOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "fulfill-order [order-id]",
-		Short:   "Fullfil a new eibc order",
-		Example: "dymd tx eibc fulfill-order <order-id>",
-		Args:    cobra.ExactArgs(1),
+		Short:   "Fulfill a new eibc order",
+		Example: "dymd tx eibc fulfill-order <order-id> <expected-fee-amount>",
+		Long: `Fulfill a new eibc order by providing the order ID and the expected fee amount.
+		The expected fee amount is the amount of fee that the user expects to pay for fulfilling the order.
+		`,
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 			orderId := args[0]
+			fee := args[1]
 
 			msg := types.NewMsgFulfillOrder(
 				clientCtx.GetFromAddress().String(),
 				orderId,
+				fee,
+			)
+
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func NewUpdateDemandOrderTxCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "update-demand-order [order-id]",
+		Short:   "Update a demand order",
+		Example: "dymd tx eibc update-demand-order <order-id> <new-fee-amount>",
+		Args:    cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			orderId := args[0]
+			newFee := args[1]
+
+			msg := types.NewMsgUpdateDemandOrder(
+				clientCtx.GetFromAddress().String(),
+				orderId,
+				newFee,
 			)
 
 			if err := msg.ValidateBasic(); err != nil {
