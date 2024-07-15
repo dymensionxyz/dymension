@@ -36,11 +36,9 @@ func newDistributionInfo() distributionInfo {
 func (k Keeper) getLocksToDistributionWithMaxDuration(ctx sdk.Context, distrTo lockuptypes.QueryCondition, minDuration time.Duration) []lockuptypes.PeriodLock {
 	switch distrTo.LockQueryType {
 	case lockuptypes.ByDuration:
-		denom := distrTo.Denom
-		if distrTo.Duration > minDuration {
-			return k.lk.GetLocksLongerThanDurationDenom(ctx, denom, minDuration)
-		}
-		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, distrTo.Duration)
+		// TODO: what the meaning of minDuration here? it's set to time.Millisecond in the caller.
+		duration := min(distrTo.Duration, minDuration)
+		return k.lk.GetLocksLongerThanDurationDenom(ctx, distrTo.Denom, duration)
 	case lockuptypes.ByTime:
 		panic("Gauge by time is present, however is no longer supported. This should have been blocked in ValidateBasic")
 	default:
@@ -55,7 +53,7 @@ func (d *distributionInfo) addLockRewards(owner string, rewards sdk.Coins) error
 		d.idToDistrCoins[id] = rewards.Add(oldDistrCoins...)
 	} else {
 		id := d.nextID
-		d.nextID += 1
+		d.nextID++
 		d.lockOwnerAddrToID[owner] = id
 		decodedOwnerAddr, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
@@ -74,7 +72,7 @@ func (k Keeper) sendRewardsToLocks(ctx sdk.Context, distrs *distributionInfo) er
 	if len(distrs.idToDistrCoins) != numIDs {
 		return fmt.Errorf("number of addresses and coins to distribute to must be equal")
 	}
-	ctx.Logger().Debug(fmt.Sprintf("Beginning distribution to %d users", numIDs))
+	ctx.Logger().Debug("Beginning distribution to users", "num_of_user", numIDs)
 
 	for id := 0; id < numIDs; id++ {
 		err := k.bk.SendCoinsFromModuleToAccount(
@@ -96,7 +94,7 @@ func (k Keeper) sendRewardsToLocks(ctx sdk.Context, distrs *distributionInfo) er
 			),
 		})
 	}
-	ctx.Logger().Debug(fmt.Sprintf("Finished Distributing to %d users", numIDs))
+	ctx.Logger().Debug("Finished Distributing to users")
 	return nil
 }
 
@@ -120,8 +118,8 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, currR
 	}
 
 	remainCoins := gauge.Coins.Sub(gauge.DistributedCoins...)
-	// if its a perpetual gauge, we set remaining epochs to 1.
-	// otherwise is is a non perpetual gauge and we determine how many epoch payouts are left
+	// if it's a perpetual gauge, we set remaining epochs to 1.
+	// otherwise it is a non perpetual gauge and we determine how many epoch payouts are left
 	remainEpochs := uint64(1)
 	if !gauge.IsPerpetual {
 		remainEpochs = gauge.NumEpochsPaidOver - gauge.FilledEpochs
@@ -129,7 +127,7 @@ func (k Keeper) distributeToAssetGauge(ctx sdk.Context, gauge types.Gauge, currR
 
 	/* ---------------------------- defense in depth ---------------------------- */
 	// this should never happen in practice since gauge passed in should always be an active gauge.
-	if remainEpochs == uint64(0) {
+	if remainEpochs == 0 {
 		ctx.Logger().Error(fmt.Sprintf("gauge %d has no remaining epochs, skipping", gauge.Id))
 		return sdk.Coins{}, nil
 	}
