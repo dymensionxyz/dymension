@@ -56,7 +56,7 @@ func (m *MsgFulfillOrder) GetFulfillerBech32Address() []byte {
 	return sdk.MustAccAddressFromBech32(m.FulfillerAddress)
 }
 
-func NewMsgUpdateDemandOrder(orderId, ownerAddr, newFee string) *MsgUpdateDemandOrder {
+func NewMsgUpdateDemandOrder(ownerAddr, orderId, newFee string) *MsgUpdateDemandOrder {
 	return &MsgUpdateDemandOrder{
 		OrderId:      orderId,
 		OwnerAddress: ownerAddr,
