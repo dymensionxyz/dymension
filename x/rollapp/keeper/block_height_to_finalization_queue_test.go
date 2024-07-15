@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"slices"
 	"strconv"
 	"testing"
@@ -162,7 +163,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 				},
 			},
 		}, {
-			name: "finalize fize rollapps, two with failed state",
+			name: "finalize five rollapps, two with failed state",
 			fields: fields{
 				rollappStateUpdates: []rollappStateUpdate{
 					{
@@ -316,4 +317,78 @@ func countFinalized(response abci.ResponseEndBlock) int {
 
 func findEvent(response abci.ResponseEndBlock, eventType string) bool {
 	return slices.ContainsFunc(response.Events, func(e abci.Event) bool { return e.Type == eventType })
+}
+
+func (suite *RollappTestSuite) TestKeeperFinalizePending() {
+	tests := []struct {
+		name                     string
+		pendingFinalizationQueue []types.BlockHeightToFinalizationQueue
+		errFinalizeIndices       []types.StateInfoIndex
+		expectQueueAfter         []types.BlockHeightToFinalizationQueue
+	}{
+		{
+			name: "finalize pending",
+			pendingFinalizationQueue: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 1},
+						{RollappId: "rollapp2", Index: 2},
+						{RollappId: "rollapp1", Index: 2},
+						{RollappId: "rollapp3", Index: 1},
+						{RollappId: "rollapp2", Index: 3},
+						{RollappId: "rollapp3", Index: 2},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp2", Index: 4},
+						{RollappId: "rollapp1", Index: 4},
+						{RollappId: "rollapp3", Index: 3},
+						{RollappId: "rollapp2", Index: 5},
+						{RollappId: "rollapp3", Index: 4},
+					},
+				},
+			},
+			errFinalizeIndices: []types.StateInfoIndex{{"rollapp1", 2}, {"rollapp3", 4}},
+			expectQueueAfter: []types.BlockHeightToFinalizationQueue{
+				{
+					CreationHeight: 1,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 2},
+					},
+				}, {
+					CreationHeight: 2,
+					FinalizationQueue: []types.StateInfoIndex{
+						{RollappId: "rollapp1", Index: 3},
+						{RollappId: "rollapp1", Index: 4},
+						{RollappId: "rollapp3", Index: 4},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.SetupTest()
+
+			k := suite.App.RollappKeeper
+			k.SetFinalizePendingFn(MockFinalizePending(tt.errFinalizeIndices))
+			k.FinalizePending(suite.Ctx, tt.pendingFinalizationQueue)
+
+			suite.Require().ElementsMatch(tt.expectQueueAfter, k.GetAllBlockHeightToFinalizationQueue(suite.Ctx))
+		})
+	}
+}
+
+func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	return func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+		if slices.ContainsFunc(errFinalizedIndices, func(index types.StateInfoIndex) bool {
+			return index.RollappId == stateInfoIndex.RollappId && index.Index == stateInfoIndex.Index
+		}) {
+			return errors.New("error")
+		}
+		return nil
+	}
 }

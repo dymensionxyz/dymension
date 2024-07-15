@@ -22,22 +22,35 @@ type (
 
 		ibcClientKeeper types.IBCClientKeeper
 		channelKeeper   types.ChannelKeeper
+
+		finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 	}
 )
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeKey storetypes.StoreKey,
+	ps paramtypes.Subspace,
+	channelKeeper types.ChannelKeeper,
+) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
 		paramstore:    ps,
 		hooks:         nil,
 		channelKeeper: channelKeeper,
 	}
+	k.finalizePending = k.finalizePendingState
+	return k
+}
+
+func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error) {
+	k.finalizePending = fn
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
