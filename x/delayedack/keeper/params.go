@@ -17,6 +17,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
 
+func (k Keeper) EpochIdentifier(ctx sdk.Context) (res string) {
+	k.paramstore.Get(ctx, types.KeyEpochIdentifier, &res)
+	return
+}
+
 func (k Keeper) BridgingFee(ctx sdk.Context) (res sdk.Dec) {
 	k.paramstore.Get(ctx, types.KeyBridgeFee, &res)
 	return
