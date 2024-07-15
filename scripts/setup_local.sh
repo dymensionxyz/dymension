@@ -107,11 +107,11 @@ if [ ! "$answer" != "${answer#[Nn]}" ] ;then
 fi
 
 echo "$MNEMONIC" | dymd keys add "$KEY_NAME" --recover --keyring-backend test
-dymd genesis add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
+dymd add-genesis-account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)" "$TOKEN_AMOUNT"
 
-dymd genesis gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
-dymd genesis collect-gentxs
+dymd gentx "$KEY_NAME" "$STAKING_AMOUNT" --chain-id "$CHAIN_ID" --keyring-backend test
+dymd collect-gentxs
 
 set_authorised_deployer_account "$(dymd keys show "$KEY_NAME" -a --keyring-backend test)"
 
-dymd genesis validate-genesis
+dymd validate-genesis
