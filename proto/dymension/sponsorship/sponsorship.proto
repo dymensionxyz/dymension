@@ -16,6 +16,12 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
+  // MinVotingPower is a minimum voting power a user must have in order to be
+  // able to vote.
+  string min_voting_power = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }
 
 // Distribution holds the distribution plan among gauges.
