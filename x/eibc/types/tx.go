@@ -97,7 +97,7 @@ func isValidOrderId(orderId string) bool {
 
 func validateCommon(orderId, address, fee string) error {
 	if !isValidOrderId(orderId) {
-		return ErrInvalidOrderID
+		return fmt.Errorf("%w: %s", ErrInvalidOrderID, orderId)
 	}
 	_, err := sdk.AccAddressFromBech32(address)
 	if err != nil {
