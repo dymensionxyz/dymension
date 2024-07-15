@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -197,4 +201,20 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 	gaugeID, _, gaugeCoins, startTime := suite.SetupNewGauge(isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 10)})
 
 	return lockOwner, gaugeID, gaugeCoins, startTime
+}
+
+// SetupLockAndGauge creates both a lock and a gauge.
+func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
+	alice := sdk.AccAddress([]byte("addr1---------------"))
+
+	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
+		Creator:       alice.String(),
+		RollappId:     tmrand.Str(8),
+		MaxSequencers: 1,
+	}
+
+	msgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
+	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
+	suite.Require().NoError(err)
+	return msgCreateRollapp.RollappId
 }

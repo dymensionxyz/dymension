@@ -19,12 +19,12 @@ var (
 	AddToGaugeFee = sdk.ZeroInt()
 )
 
-// NewGauge creates a new gauge struct given the required gauge parameters.
-func NewGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64, filledEpochs uint64, distrCoins sdk.Coins) Gauge {
+// NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.
+func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64, filledEpochs uint64, distrCoins sdk.Coins) Gauge {
 	return Gauge{
 		Id:                id,
 		IsPerpetual:       isPerpetual,
-		DistributeTo:      distrTo,
+		DistributeTo:      &Gauge_Asset{&distrTo},
 		Coins:             coins,
 		StartTime:         startTime,
 		NumEpochsPaidOver: numEpochsPaidOver,
@@ -33,9 +33,18 @@ func NewGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, c
 	}
 }
 
-// IsUpcomingGauge returns true if the gauge's distribution start time is after the provided time.
-func (gauge Gauge) IsUpcomingGauge(curTime time.Time) bool {
-	return curTime.Before(gauge.StartTime)
+// NewRollappGauge creates a new rollapp gauge to stream rewards to a rollapp.
+func NewRollappGauge(id uint64, rollappId string) Gauge {
+	return Gauge{
+		Id:                id,
+		IsPerpetual:       false,
+		DistributeTo:      &Gauge_Rollapp{Rollapp: &RollappGauge{RollappId: rollappId}},
+		Coins:             sdk.NewCoins(),
+		StartTime:         time.Time{},
+		NumEpochsPaidOver: 0,
+		FilledEpochs:      0,
+		DistributedCoins:  sdk.NewCoins(),
+	}
 }
 
 // IsActiveGauge returns true if the gauge is in an active state during the provided time.
@@ -44,6 +53,11 @@ func (gauge Gauge) IsActiveGauge(curTime time.Time) bool {
 		return true
 	}
 	return false
+}
+
+// IsUpcomingGauge returns true if the gauge's distribution start time is after the provided time.
+func (gauge Gauge) IsUpcomingGauge(curTime time.Time) bool {
+	return curTime.Before(gauge.StartTime)
 }
 
 // IsFinishedGauge returns true if the gauge is in a finished state during the provided time.

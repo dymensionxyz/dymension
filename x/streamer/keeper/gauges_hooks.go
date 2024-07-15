@@ -10,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// TODO: move to incentives module
+
 func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 	for _, duration := range k.ik.GetLockableDurations(ctx) {
 		_, err := k.ik.CreateGauge(
@@ -29,6 +31,19 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
+	_, err := k.ik.CreateRollappGauge(
+		ctx,
+		k.ak.GetModuleAddress(types.ModuleName),
+		rollappID,
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil

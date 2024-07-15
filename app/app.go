@@ -525,6 +525,27 @@ func New(
 		scopedIBCKeeper,
 	)
 
+	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		app.BankKeeper,
+	)
+
+	app.DenomMetadataKeeper.SetHooks(
+		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
+			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
+		),
+	)
+
+	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
+
+	app.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		keys[sequencermoduletypes.StoreKey],
+		keys[sequencermoduletypes.MemStoreKey],
+		app.GetSubspace(sequencermoduletypes.ModuleName),
+		app.BankKeeper,
+		app.RollappKeeper,
+	)
+
 	app.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		app.keys[incentivestypes.StoreKey],
 		app.GetSubspace(incentivestypes.ModuleName),
@@ -533,6 +554,8 @@ func New(
 		app.EpochsKeeper,
 		app.DistrKeeper,
 		app.TxFeesKeeper,
+		app.RollappKeeper,
+		app.SequencerKeeper,
 	)
 
 	app.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -554,18 +577,6 @@ func New(
 		app.BankKeeper,
 		nil,
 	)
-
-	app.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		app.BankKeeper,
-	)
-
-	app.DenomMetadataKeeper.SetHooks(
-		denommetadatamoduletypes.NewMultiDenomMetadataHooks(
-			vfchooks.NewVirtualFrontierBankContractRegistrationHook(*app.EvmKeeper),
-		),
-	)
-
-	app.RollappKeeper = *rollappmodulekeeper.NewKeeper(appCodec, keys[rollappmoduletypes.StoreKey], app.GetSubspace(rollappmoduletypes.ModuleName), app.IBCKeeper.ChannelKeeper, app.IBCKeeper.ClientKeeper)
 
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
@@ -704,6 +715,7 @@ func New(
 		// insert rollapp hooks receivers here
 		app.SequencerKeeper.RollappHooks(),
 		delayedAckMiddleware,
+		app.StreamerKeeper.Hooks(),
 	))
 
 	/****  Module Options ****/

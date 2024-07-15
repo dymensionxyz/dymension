@@ -63,6 +63,21 @@ func (q Querier) Gauges(goCtx context.Context, req *types.GaugesRequest) (*types
 	return &types.GaugesResponse{Data: gauges, Pagination: pageRes}, nil
 }
 
+// RollappGauges implements types.QueryServer.
+func (q Querier) RollappGauges(goCtx context.Context, req *types.GaugesRequest) (*types.GaugesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	pageRes, gauges, err := q.filterRollappGauges(ctx, req.Pagination)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.GaugesResponse{Data: gauges, Pagination: pageRes}, nil
+}
+
 // ActiveGauges returns all active gauges.
 func (q Querier) ActiveGauges(goCtx context.Context, req *types.ActiveGaugesRequest) (*types.ActiveGaugesResponse, error) {
 	if req == nil {
@@ -129,6 +144,18 @@ func (q Querier) UpcomingGaugesPerDenom(goCtx context.Context, req *types.Upcomi
 	return &types.UpcomingGaugesPerDenomResponse{UpcomingGauges: gauges, Pagination: pageRes}, nil
 }
 
+// Params implements types.QueryServer.
+func (q Querier) Params(goCtx context.Context, req *types.ParamsRequest) (*types.ParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	params := q.Keeper.GetParams(ctx)
+
+	return &types.ParamsResponse{Params: &params}, nil
+}
+
 // LockableDurations returns all of the allowed lockable durations on chain.
 func (q Querier) LockableDurations(ctx context.Context, _ *types.QueryLockableDurationsRequest) (*types.QueryLockableDurationsResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
@@ -174,13 +201,41 @@ func (q Querier) filterByPrefixAndDenom(ctx sdk.Context, prefixType []byte, deno
 		if accumulate {
 			if denom != "" {
 				for _, gauge := range newGauges {
-					if gauge.DistributeTo.Denom != denom {
+					assetGauge := gauge.GetAsset()
+					if assetGauge == nil {
+						continue
+					}
+					if assetGauge.Denom != denom {
 						return false, nil
 					}
 					gauges = append(gauges, gauge)
 				}
 			} else {
 				gauges = append(gauges, newGauges...)
+			}
+		}
+		return true, nil
+	})
+	return pageRes, gauges, err
+}
+
+// filterRollappGauges
+func (q Querier) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequest) (*query.PageResponse, []types.Gauge, error) {
+	gauges := []types.Gauge{}
+	store := ctx.KVStore(q.Keeper.storeKey)
+	valStore := prefix.NewStore(store, types.KeyPrefixGauges)
+
+	pageRes, err := query.FilteredPaginate(valStore, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		newGauges, err := q.getGaugeFromIDJsonBytes(ctx, value)
+		if err != nil {
+			return false, err
+		}
+		if accumulate {
+			for _, gauge := range newGauges {
+				if gauge.GetRollapp() == nil {
+					continue
+				}
+				gauges = append(gauges, gauge)
 			}
 		}
 		return true, nil
