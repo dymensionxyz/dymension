@@ -24,6 +24,8 @@ func CreateUpgradeHandler(
 		daParams := delayedacktypes.DefaultParams()
 		keepers.DelayedAckKeeper.SetParams(ctx, daParams)
 
+		// TODO: create rollapp gauges for each existing rollapp
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)
