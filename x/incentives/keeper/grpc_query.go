@@ -226,8 +226,6 @@ func (q Querier) filterRollappGauges(ctx sdk.Context, pagination *query.PageRequ
 	valStore := prefix.NewStore(store, types.KeyPrefixGauges)
 
 	pageRes, err := query.FilteredPaginate(valStore, pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
-		// this may return multiple gauges at once if two gauges start at the same time.
-		// for now this is treated as an edge case that is not of importance
 		newGauges, err := q.getGaugeFromIDJsonBytes(ctx, value)
 		if err != nil {
 			return false, err

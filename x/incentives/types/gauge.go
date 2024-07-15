@@ -19,7 +19,7 @@ var (
 	AddToGaugeFee = sdk.ZeroInt()
 )
 
-// NewGauge creates a new gauge struct given the required gauge parameters.
+// NewAssetGauge creates a new asset gauge to stream rewards to some asset lockup conditions.
 func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryCondition, coins sdk.Coins, startTime time.Time, numEpochsPaidOver uint64, filledEpochs uint64, distrCoins sdk.Coins) Gauge {
 	return Gauge{
 		Id:                id,
@@ -33,7 +33,7 @@ func NewAssetGauge(id uint64, isPerpetual bool, distrTo lockuptypes.QueryConditi
 	}
 }
 
-// NewGauge creates a new gauge struct given the required gauge parameters.
+// NewRollappGauge creates a new rollapp gauge to stream rewards to a rollapp.
 func NewRollappGauge(id uint64, rollappId string) Gauge {
 	return Gauge{
 		Id:                id,

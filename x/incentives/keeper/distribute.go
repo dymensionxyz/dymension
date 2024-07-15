@@ -3,6 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +28,7 @@ func (k Keeper) Distribute(ctx sdk.Context, gauges []types.Gauge) (sdk.Coins, er
 		case *types.Gauge_Rollapp:
 			gaugeDistributedCoins, err = k.distributeToRollappGauge(ctx, gauge)
 		default:
-			return nil, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id)
+			return nil, errorsmod.WithType(sdkerrors.ErrInvalidType, fmt.Errorf("gauge %d has an unsupported distribution type", gauge.Id))
 		}
 		if err != nil {
 			return nil, err

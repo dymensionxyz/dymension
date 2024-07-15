@@ -10,8 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// distributionInfo stores all of the information for pent up sends for rewards distributions.
-// This enables us to lower the number of events and calls to back.
+// distributionInfo stores all of the information for rewards distributions.
 type distributionInfo struct {
 	nextID            int
 	lockOwnerAddrToID map[string]int
