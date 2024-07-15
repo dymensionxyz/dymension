@@ -43,5 +43,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
+	// TODO: validate gauges
+
 	return nil
 }

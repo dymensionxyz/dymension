@@ -88,3 +88,9 @@ func (suite *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAd
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }
+
+// FundAcc funds target address with specified amount.
+func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, acc, amounts)
+	s.Require().NoError(err)
+}

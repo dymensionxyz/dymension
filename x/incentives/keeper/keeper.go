@@ -8,6 +8,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+	epochtypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,4 +73,10 @@ func (k Keeper) GetLockableDurations(ctx sdk.Context) []time.Duration {
 	info := types.LockableDurationsInfo{}
 	osmoutils.MustGet(store, types.LockableDurationsKey, &info)
 	return info.LockableDurations
+}
+
+// GetEpochInfo returns EpochInfo struct given context.
+func (k Keeper) GetEpochInfo(ctx sdk.Context) epochtypes.EpochInfo {
+	params := k.GetParams(ctx)
+	return k.ek.GetEpochInfo(ctx, params.DistrEpochIdentifier)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	apptesting "github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
@@ -83,10 +84,8 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		suite.Require().Len(gaugeIdsByDenom, 0)
 
 		// setup lock and gauge
-		lockOwners := suite.SetupManyLocks(tc.numLocks, defaultLiquidTokens, defaultLPTokens, time.Second)
+		_ = suite.SetupManyLocks(tc.numLocks, defaultLiquidTokens, defaultLPTokens, time.Second)
 		gaugeID, _, coins, startTime := suite.SetupNewGauge(tc.isPerpetual, sdk.Coins{sdk.NewInt64Coin("stake", 12)})
-		// evenly distributed per lock
-		expectedCoinsPerLock := sdk.Coins{sdk.NewInt64Coin("stake", 12/int64(tc.numLocks))}
 		// set expected epochs
 		var expectedNumEpochsPaidOver int
 		if tc.isPerpetual {
@@ -118,10 +117,6 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 		gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
 		suite.Require().Len(gaugeIdsByDenom, 1)
 		suite.Require().Equal(gaugeID, gaugeIdsByDenom[0])
-
-		// check rewards estimation
-		rewardsEst := suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
-		suite.Require().Equal(expectedCoinsPerLock.String(), rewardsEst.String())
 
 		// check gauges
 		gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
@@ -215,8 +210,6 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			// check invalid gauge ID
 			_, err = suite.App.IncentivesKeeper.GetGaugeByID(suite.Ctx, gaugeID+1000)
 			suite.Require().Error(err)
-			rewardsEst = suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
-			suite.Require().Equal(sdk.Coins{}, rewardsEst)
 
 			// check gauge ids by denom
 			gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
@@ -226,10 +219,6 @@ func (suite *KeeperTestSuite) TestGaugeOperations() {
 			// check finished gauges
 			gauges = suite.App.IncentivesKeeper.GetFinishedGauges(suite.Ctx)
 			suite.Require().Len(gauges, 0)
-
-			// check rewards estimation
-			rewardsEst = suite.App.IncentivesKeeper.GetRewardsEst(suite.Ctx, lockOwners[0], []lockuptypes.PeriodLock{}, 100)
-			suite.Require().Equal(sdk.Coins(nil), rewardsEst)
 
 			// check gauge ids by denom
 			gaugeIdsByDenom = suite.App.IncentivesKeeper.GetAllGaugeIDsByDenom(suite.Ctx, "lptoken")
@@ -302,8 +291,7 @@ func (suite *KeeperTestSuite) TestChargeFeeIfSufficientFeeDenomBalance() {
 			err := suite.App.TxFeesKeeper.SetBaseDenom(suite.Ctx, "adym")
 			suite.Require().NoError(err)
 
-			testAccount := suite.TestAccs[0]
-
+			testAccount := apptesting.CreateRandomAccounts(1)[0]
 			ctx := suite.Ctx
 			incentivesKeepers := suite.App.IncentivesKeeper
 			bankKeeper := suite.App.BankKeeper

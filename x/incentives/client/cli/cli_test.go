@@ -7,11 +7,8 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/client/cli"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils/osmocli"
 )
-
-var testAddresses = apptesting.CreateRandomAccounts(3)
 
 func TestGetCmdGauges(t *testing.T) {
 	desc, _ := cli.GetCmdGauges()
@@ -53,7 +50,8 @@ func TestGetCmdActiveGauges(t *testing.T) {
 			Cmd: "--offset=2",
 			ExpectedQuery: &types.ActiveGaugesRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
@@ -66,7 +64,8 @@ func TestGetCmdActiveGaugesPerDenom(t *testing.T) {
 			ExpectedQuery: &types.ActiveGaugesPerDenomRequest{
 				Denom:      "uosmo",
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
@@ -78,7 +77,8 @@ func TestGetCmdUpcomingGauges(t *testing.T) {
 			Cmd: "--offset=2",
 			ExpectedQuery: &types.UpcomingGaugesRequest{
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
@@ -91,7 +91,8 @@ func TestGetCmdUpcomingGaugesPerDenom(t *testing.T) {
 			ExpectedQuery: &types.UpcomingGaugesPerDenomRequest{
 				Denom:      "uosmo",
 				Pagination: &query.PageRequest{Key: []uint8{}, Offset: 2, Limit: 100},
-			}},
+			},
+		},
 	}
 	osmocli.RunQueryTestCases(t, desc, tcs)
 }
