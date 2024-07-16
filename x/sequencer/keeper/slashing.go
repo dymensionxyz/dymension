@@ -42,6 +42,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	seq.Status = types.Unbonded
 	seq.Jailed = true
 	seq.Proposer = false
+	seq.NextProposer = false
 	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
 	k.UpdateSequencer(ctx, seq, oldStatus)
@@ -50,6 +51,61 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
+			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
+		),
+	)
+
+	return nil
+}
+
+// in case of fraud, we need to unbond all other bonded sequencers as the rollapp is frozen
+func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
+	seq, found := k.GetSequencer(ctx, seqAddr)
+	if !found {
+		return types.ErrUnknownSequencer
+	}
+
+	if seq.Status == types.Unbonded {
+		return errorsmod.Wrapf(
+			types.ErrInvalidSequencerStatus,
+			"sequencer status is already unbonded",
+		)
+	}
+
+	oldStatus := seq.Status
+
+	seqTokens := seq.Tokens
+	if !seqTokens.Empty() {
+		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
+		if err != nil {
+			return err
+		}
+
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
+		if err != nil {
+			return err
+		}
+	} else {
+		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
+	}
+
+	// set the status to unbonded and remove from the unbonding queue if needed
+	seq.Status = types.Unbonded
+	seq.Proposer = false
+	seq.Tokens = sdk.Coins{}
+
+	k.UpdateSequencer(ctx, seq, oldStatus)
+
+	if oldStatus == types.Unbonding {
+		k.removeUnbondingSequencer(ctx, seq)
+	}
+
+	//TODO: clear notice period queue if needed
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnbonded,
 			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
 			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),

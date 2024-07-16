@@ -29,11 +29,13 @@ func (k Keeper) GetRollappNextProposer(ctx sdk.Context, rollappId string) (seq *
 }
 
 // SetNextProposer sets the proposer for a rollapp to be the next sequencer in the list
-// This function will not clear the current proposer (assumes no proposer is set)
-func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) {
+// This function will not clear the current proposer
+func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) string {
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	if len(seqs) == 0 {
-		k.Logger(ctx).Info("no bonded sequencer found for rollapp", "rollappId", rollappId)
+
+	// we need at least 2 sequencers to rotate (1 proposer, 1 nextProposer)
+	if len(seqs) <= 1 {
+		k.Logger(ctx).Info("no next bonded sequencer available", "rollappId", rollappId)
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeNoBondedSequencer,
@@ -48,13 +50,20 @@ func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) {
 		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
 	})
 
-	seq := seqs[0]
-	// TODO: validate seq state
+	// filter out proposer and nextProposer
+	var seq *types.Sequencer
+	for _, s := range seqs {
+		if s.Proposer || s.NextProposer {
+			continue
+		}
+		seq = &s
+		break
+	}
 
 	seq.NextProposer = true
+	k.UpdateSequencer(ctx, *seq, types.Bonded)
 
 	// TODO: emit event
-
 }
 
 // RotateProposer sets the proposer for a rollapp to be the proposer with the greatest bond
@@ -65,6 +74,15 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		propopser.Proposer = false
 		k.UpdateSequencer(ctx, *propopser, types.Bonded)
 	}
+
+	/*
+			// set this sequencer to unbonding
+		_, err := k.setSequencerToUnbonding(ctx, &seq)
+		if err != nil {
+			return err
+		}
+
+	*/
 
 	nextProposer := k.GetRollappNextProposer(ctx, rollappId)
 	nextProposer.Proposer = true

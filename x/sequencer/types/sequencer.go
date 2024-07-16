@@ -35,6 +35,12 @@ func (seq Sequencer) IsNextProposer() bool {
 	return seq.NextProposer
 }
 
+// clear bonded state
+func (seq *Sequencer) ClearBondedState() {
+	seq.Proposer = false
+	seq.NextProposer = false
+}
+
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
