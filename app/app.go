@@ -358,7 +358,6 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 			app.configurator,
 			app.BaseApp,
 			&app.AppKeepers,
-			app.GetKey,
 		),
 	)
 

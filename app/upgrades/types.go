@@ -33,7 +33,6 @@ type Upgrade struct {
 		configurator module.Configurator,
 		_ BaseAppParamManager,
 		appKeepers *keepers.AppKeepers,
-		getStoreKey func(string) *storetypes.KVStoreKey,
 	) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
