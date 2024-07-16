@@ -349,18 +349,23 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			suite.Require().NotEqual(0, id.GetEIP155ID())
 			eip155key := id.GetEIP155ID()
 			// eip155 key registers to correct roll app
-			rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 			suite.Require().True(found)
-			suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
+
+			rollappFromAlias, found := suite.App.RollappKeeper.GetRollappByAlias(suite.Ctx, rollapp.Alias)
+			suite.Require().True(found)
+			suite.Require().Equal(rollappFromAlias.RollappId, rollapp.RollappId)
+
 			// create bad rollapp
-			badrollapp := types.MsgCreateRollapp{
+			badRollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.badRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
 				GenesisChecksum:         "checksum",
 			}
-			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
 			suite.Require().ErrorIs(err, types.ErrRollappExists)
 		})

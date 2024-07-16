@@ -115,13 +115,16 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
 	), []byte(rollapp.RollappId))
+
+	// save mapping for rollapp-by-alias
+	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
+	store.Set(types.RollappByAliasKey(
+		rollapp.GetAlias(),
+	), []byte(rollapp.RollappId))
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
-func (k Keeper) GetRollappByEIP155(
-	ctx sdk.Context,
-	eip155 uint64,
-) (val types.Rollapp, found bool) {
+func (k Keeper) GetRollappByEIP155(ctx sdk.Context, eip155 uint64) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	id := store.Get(types.RollappByEIP155Key(
 		eip155,
@@ -161,6 +164,18 @@ func (k Keeper) GetRollappByBech32Prefix(ctx sdk.Context, pref string) (types.Ro
 		}
 	}
 	return types.Rollapp{}, false
+}
+
+func (k Keeper) GetRollappByAlias(ctx sdk.Context, alias string) (val types.Rollapp, ok bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
+	id := store.Get(types.RollappByAliasKey(
+		alias,
+	))
+	if id == nil {
+		return val, false
+	}
+
+	return k.GetRollapp(ctx, string(id))
 }
 
 // GetRollapp returns a rollapp from its chain name
