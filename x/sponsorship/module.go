@@ -31,7 +31,7 @@ var (
 // AppModuleBasic
 // ----------------------------------------------------------------------------
 
-// Implements the AppModuleBasic interface for the module.
+// AppModuleBasic Implements the module.AppModuleBasic interface for the module.
 type AppModuleBasic struct{}
 
 // NewAppModuleBasic creates a new AppModuleBasic struct.
