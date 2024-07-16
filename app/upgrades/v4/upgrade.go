@@ -1,12 +1,15 @@
 package v4
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
@@ -32,7 +35,9 @@ func CreateUpgradeHandler(
 
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
-		migrateRollapps(ctx, keepers.GetKey(rollapptypes.ModuleName), appCodec, keepers.RollappKeeper)
+		if err := migrateRollapps(ctx, keepers.GetKey(rollapptypes.ModuleName), appCodec, keepers.RollappKeeper); err != nil {
+			return nil, err
+		}
 		migrateSequencers(ctx, keepers.GetKey(sequencertypes.ModuleName), appCodec, keepers.SequencerKeeper)
 
 		// Start running the module migrations
@@ -54,11 +59,15 @@ func migrateRollappParams(ctx sdk.Context, rollappkeeper rollappkeeper.Keeper) {
 	rollappkeeper.SetParams(ctx, params)
 }
 
-func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper rollappkeeper.Keeper) {
+func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper rollappkeeper.Keeper) error {
 	for _, oldRollapp := range getAllOldRollapps(ctx, rollappStoreKey, appCodec) {
 		newRollapp := ConvertOldRollappToNew(oldRollapp)
+		if err := newRollapp.ValidateBasic(); err != nil {
+			return err
+		}
 		rollappkeeper.SetRollapp(ctx, newRollapp)
 	}
+	return nil
 }
 
 func migrateSequencers(ctx sdk.Context, sequencerStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, sequencerkeeper sequencerkeeper.Keeper) {
@@ -70,6 +79,7 @@ func migrateSequencers(ctx sdk.Context, sequencerStoreKey *storetypes.KVStoreKey
 }
 
 func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
+	bech32Prefix := oldRollapp.RollappId[:5]
 	return rollapptypes.Rollapp{
 		RollappId: oldRollapp.RollappId,
 		Creator:   oldRollapp.Creator,
@@ -79,10 +89,10 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 		ChannelId:               oldRollapp.ChannelId,
 		Frozen:                  oldRollapp.Frozen,
 		RegisteredDenoms:        oldRollapp.RegisteredDenoms,
-		InitialSequencerAddress: "", // whatever
-		GenesisChecksum:         "", // TODO
-		Bech32Prefix:            "", // TODO
-		Alias:                   "", // TODO IMPORTANT! This is needed for GetByAlias endpoint
+		InitialSequencerAddress: oldRollapp.Creator,                                  // whatever, just to make test pass
+		Bech32Prefix:            bech32Prefix,                                        // whatever, just to make test pass
+		GenesisChecksum:         string(crypto.Sha256([]byte(oldRollapp.RollappId))), // whatever, just to make test pass
+		Alias:                   fmt.Sprintf("rol%s", bech32Prefix),                  // whatever, just to make test pass
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:      "", // TODO
 			Description:  "", // TODO

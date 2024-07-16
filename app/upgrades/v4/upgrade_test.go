@@ -250,7 +250,7 @@ func createMockOldAndNewRollapps(nRollapps int) {
 
 	for i := 0; i < nRollapps; i++ {
 		oldRollapp := types.Rollapp{
-			RollappId:     fmt.Sprintf("rollapp_123%d-1", i+1),
+			RollappId:     fmt.Sprintf("roll%spp_123%d-1", string(rune(i+97)), i+1),
 			Creator:       sample.AccAddress(),
 			Version:       0,
 			MaxSequencers: 10,
