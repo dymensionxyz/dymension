@@ -21,10 +21,13 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
+		GenesisChecksum:         "checksum",
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		Website:                 "http://example.com",
+		Description:             "Some description",
+		LogoDataUri:             "http://example.com/logo.png",
+		Alias:                   "Rollapp",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -48,7 +51,6 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 1}, {Height: 2}}},
 	}
 
@@ -72,10 +74,9 @@ func (suite *RollappTestSuite) TestUpdateState() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -95,7 +96,6 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -141,7 +141,6 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			StartHeight: expectedStateInfo.StartHeight + expectedStateInfo.NumBlocks,
 			NumBlocks:   2,
 			DAPath:      "",
-			Version:     3,
 			BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: expectedStateInfo.StartHeight}, {Height: expectedStateInfo.StartHeight + 1}}},
 		}
 
@@ -188,43 +187,11 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     0,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
 	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
-}
-
-// FIXME: need to add sequncer to rollapp to test this scenario
-func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
-	suite.SetupTest()
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-
-	// set rollapp
-	rollapp := types.Rollapp{
-		RollappId:               "rollapp1",
-		Creator:                 alice,
-		Version:                 3,
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
-	}
-	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
-
-	// update state of version different than the rollapp
-	updateState := types.MsgUpdateState{
-		Creator:     bob,
-		RollappId:   rollapp.GetRollappId(),
-		StartHeight: 1,
-		NumBlocks:   3,
-		DAPath:      "",
-		Version:     0,
-		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
-	}
-
-	_, err := suite.msgServer.UpdateState(goCtx, &updateState)
-	suite.ErrorIs(err, types.ErrVersionMismatch)
 }
 
 // FIXME: need to add sequncer to rollapp to test this scenario
@@ -236,10 +203,9 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -250,7 +216,6 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -266,10 +231,9 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -289,7 +253,6 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -305,10 +268,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -328,7 +290,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -344,10 +305,9 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -367,7 +327,6 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 		StartHeight: 2,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}}},
 	}
 
@@ -383,10 +342,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -410,7 +368,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		StartHeight:    1,
 		NumBlocks:      3,
 		DAPath:         "",
-		Version:        0,
 		CreationHeight: 0,
 		Status:         common.Status_PENDING,
 		BDs:            types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
@@ -429,7 +386,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		StartHeight: 2,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 2}, {Height: 3}, {Height: 4}}},
 	}
 
@@ -445,10 +401,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -475,7 +430,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 
@@ -492,10 +446,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 	rollapp := types.Rollapp{
 		RollappId:               "rollapp1",
 		Creator:                 alice,
-		Version:                 3,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -514,7 +467,6 @@ func (suite *RollappTestSuite) TestUpdateStateErrNotActiveSequencer() {
 		StartHeight: 1,
 		NumBlocks:   3,
 		DAPath:      "",
-		Version:     3,
 		BDs:         types.BlockDescriptors{BD: []types.BlockDescriptor{{Height: 1}, {Height: 2}, {Height: 3}}},
 	}
 

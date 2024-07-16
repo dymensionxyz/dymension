@@ -10,6 +10,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -31,9 +32,13 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 		msg := &types.MsgCreateRollapp{
 			Creator:                 simAccount.Address.String(),
 			RollappId:               rollappId,
-			InitialSequencerAddress: "",
-			Bech32Prefix:            "",
-			GenesisInfo:             types.GenesisInfo{},
+			InitialSequencerAddress: sample.AccAddress(),
+			Bech32Prefix:            "rol",
+			GenesisChecksum:         "somechecksum",
+			Website:                 "http://example.com",
+			Description:             "Some description",
+			LogoDataUri:             "https://example.com/logo.png",
+			Alias:                   "Rollapp",
 		}
 
 		if !bAlreadyExists {

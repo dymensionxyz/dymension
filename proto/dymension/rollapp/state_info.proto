@@ -37,8 +37,8 @@ message StateInfo {
     uint64 numBlocks = 4;
     // DAPath is the description of the location on the DA layer
     string DAPath = 5;
-    // version is the version of the rollapp
-    uint64 version = 6;
+
+    reserved 6;
     // creationHeight is the height at which the UpdateState took place
     uint64 creationHeight = 7; 
     // status is the status of the state update

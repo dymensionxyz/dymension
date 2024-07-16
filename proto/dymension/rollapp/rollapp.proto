@@ -28,8 +28,8 @@ message Rollapp {
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially serve this rollappId.
   string initial_sequencer_address = 3;
-  // genesis doc identifier
-  GenesisInfo genesis_info = 4 [(gogoproto.nullable) = false];
+  // checksum used to verify integrity
+  string genesis_checksum = 4;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 5 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
@@ -40,16 +40,14 @@ message Rollapp {
   string bech32_prefix = 8;
   // registered_denoms is a list of registered denom bases on this rollapp
   repeated string registered_denoms = 9;
-  // version is the software and configuration version.
-  // starts from 1 and increases by one on every MsgUpdateState
-  uint64 version = 10;
-}
-
-message GenesisInfo {
-  // one or more urls where the genesis file can be obtained
-  repeated string genesis_urls = 1;
-  // checksum used to verify integrity
-  string genesis_checksum  = 2;
+  // website is the rollapp website
+  string website = 10;
+  // description is the rollapp description. should be limited to TBD chars
+  string description = 11;
+  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
+  string logo_data_uri = 12;
+  // alias is the chain alias used for display and namespace system
+  string alias = 13;
 }
 
 // Rollapp summary is a compact representation of Rollapp

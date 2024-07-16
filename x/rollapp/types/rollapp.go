@@ -1,8 +1,6 @@
 package types
 
 import (
-	"net/url"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -13,16 +11,24 @@ func NewRollapp(
 	creator,
 	rollappId,
 	initSequencerAddress,
-	bech32Prefix string,
-	genesisInfo GenesisInfo,
+	bech32Prefix,
+	genesisChecksum,
+	website,
+	description,
+	logoDataUri,
+	alias string,
 	transfersEnabled bool,
 ) Rollapp {
 	ret := Rollapp{
 		RollappId:               rollappId,
 		Creator:                 creator,
 		InitialSequencerAddress: initSequencerAddress,
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         genesisChecksum,
 		Bech32Prefix:            bech32Prefix,
+		Website:                 website,
+		Description:             description,
+		LogoDataUri:             logoDataUri,
+		Alias:                   alias,
 	}
 	ret.GenesisState.TransfersEnabled = transfersEnabled
 	return ret
@@ -49,9 +55,8 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
 	}
 
-	// validate GenesisChecksum
-	if err = r.ValidateGenesisInfo(); err != nil {
-		return err
+	if r.GenesisChecksum == "" {
+		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
 	}
 
 	return nil
@@ -71,27 +76,5 @@ func validateBech32Prefix(prefix string) error {
 	if err = sdk.VerifyAddressFormat(bAddr); err != nil {
 		return err
 	}
-	return nil
-}
-
-func (r Rollapp) ValidateGenesisInfo() error {
-	// validate GenesisChecksum
-	if r.GenesisInfo.GenesisChecksum == "" {
-		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
-	}
-
-	// validate GenesisURLs
-	if len(r.GenesisInfo.GenesisUrls) == 0 {
-		return errorsmod.Wrap(ErrEmptyGenesisURLs, "GenesisURLs")
-	}
-
-	for _, u := range r.GenesisInfo.GenesisUrls {
-		// validate url
-		_, err := url.Parse(u)
-		if err != nil {
-			return errorsmod.Wrap(err, "GenesisURL")
-		}
-	}
-
 	return nil
 }

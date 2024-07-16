@@ -31,7 +31,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -51,7 +51,7 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: seqAddr,
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -61,7 +61,7 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: seqAddr,
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrInitialSequencerAddressTaken)
@@ -79,7 +79,7 @@ func (suite *RollappTestSuite) TestCreateRollappBech32PrefixExists() {
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            bech32Prefix,
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.Require().Nil(err)
@@ -89,7 +89,7 @@ func (suite *RollappTestSuite) TestCreateRollappBech32PrefixExists() {
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            bech32Prefix,
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrBech32PrefixTaken)
@@ -149,7 +149,11 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
+				Website:                 "https://dymension.xyz",
+				Description:             "Sample description",
+				LogoDataUri:             "https://dymension.xyz/logo.png",
+				Alias:                   "Rollapp",
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -211,7 +215,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -270,7 +274,11 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
+				Website:                 "https://dymension.xyz",
+				Description:             "Sample description",
+				LogoDataUri:             "https://dymension.xyz/logo.png",
+				Alias:                   "Rollapp1",
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
@@ -285,7 +293,11 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				RollappId:               test.newRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum1",
+				Website:                 "https://rollapp.rol",
+				Description:             "Sample description1",
+				LogoDataUri:             "https://rollapp.rol/logo.png",
+				Alias:                   "Rollapp2",
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
@@ -325,7 +337,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
@@ -337,27 +349,27 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			suite.Require().NotEqual(0, id.GetEIP155ID())
 			eip155key := id.GetEIP155ID()
 			// eip155 key registers to correct roll app
-			rollAppfromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
+			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 			suite.Require().True(found)
-			suite.Require().Equal(rollAppfromEip1155.RollappId, rollapp.RollappId)
+			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
+
+			rollappFromAlias, found := suite.App.RollappKeeper.GetRollappByAlias(suite.Ctx, rollapp.Alias)
+			suite.Require().True(found)
+			suite.Require().Equal(rollappFromAlias.RollappId, rollapp.RollappId)
+
 			// create bad rollapp
-			badrollapp := types.MsgCreateRollapp{
+			badRollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.badRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            uniqueBech32Prefix(),
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			}
-			_, err = suite.msgServer.CreateRollapp(goCtx, &badrollapp)
+			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
 			suite.Require().ErrorIs(err, types.ErrRollappExists)
 		})
 	}
-}
-
-var genesisInfo = types.GenesisInfo{
-	GenesisUrls:     []string{"https://example.com/genesis.json"},
-	GenesisChecksum: "1234567890abcdef",
 }
 
 func (suite *RollappTestSuite) createRollapp(expectedErr error) {
@@ -395,16 +407,23 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		RollappId:               fmt.Sprintf("%s%d", "rollapp", rand.Int63()), //nolint:gosec // this is for a test
 		InitialSequencerAddress: address,
 		Bech32Prefix:            uniqueBech32Prefix(),
-		GenesisInfo:             genesisInfo,
+		GenesisChecksum:         "checksum",
+		Website:                 "https://dymension.xyz",
+		Description:             "Sample description",
+		LogoDataUri:             "https://dymension.xyz/logo.png",
+		Alias:                   "Rollapp",
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
 		RollappId:               rollapp.GetRollappId(),
 		Creator:                 rollapp.GetCreator(),
-		Version:                 0,
 		InitialSequencerAddress: rollapp.GetInitialSequencerAddress(),
+		GenesisChecksum:         rollapp.GetGenesisChecksum(),
 		Bech32Prefix:            rollapp.GetBech32Prefix(),
-		GenesisInfo:             rollapp.GetGenesisInfo(),
+		Website:                 rollapp.GetWebsite(),
+		Description:             rollapp.GetDescription(),
+		LogoDataUri:             rollapp.GetLogoDataUri(),
+		Alias:                   rollapp.GetAlias(),
 	}
 	// create rollapp
 	createResponse, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)

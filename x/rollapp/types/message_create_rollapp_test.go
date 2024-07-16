@@ -10,11 +10,6 @@ import (
 
 const bech32Prefix = "eth"
 
-var genesisInfo = GenesisInfo{
-	GenesisUrls:     []string{"https://example.com/genesis"},
-	GenesisChecksum: "1234abcdef",
-}
-
 func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
@@ -26,9 +21,13 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			msg: MsgCreateRollapp{
 				Creator:                 sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
-				GenesisInfo:             genesisInfo,
+				Bech32Prefix:            bech32Prefix,
+				GenesisChecksum:         "checksum",
+				Website:                 "https://dymension.xyz",
+				Description:             "Sample description",
+				LogoDataUri:             "https://dymension.xyz/logo.png",
+				Alias:                   "Rollapp",
 			},
 		},
 		{
@@ -38,7 +37,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               " ",
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			},
 			err: ErrInvalidRollappID,
 		},
@@ -49,7 +48,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			},
 			err: ErrInvalidCreatorAddress,
 		},
@@ -60,7 +59,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			},
 		},
 		{
@@ -70,7 +69,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: "invalid_address",
 				RollappId:               "dym_100-1",
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			},
 			err: ErrInvalidInitialSequencerAddress,
 		},
@@ -81,23 +80,20 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				Bech32Prefix:            "DYM",
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				GenesisInfo:             genesisInfo,
+				GenesisChecksum:         "checksum",
 			},
 			err: ErrInvalidBech32Prefix,
 		},
 		{
-			name: "empty genesis urls",
+			name: "empty genesis checksum",
 			msg: MsgCreateRollapp{
 				Creator:                 sample.AccAddress(),
 				Bech32Prefix:            bech32Prefix,
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
-				GenesisInfo: GenesisInfo{
-					GenesisUrls:     nil,
-					GenesisChecksum: "checksum",
-				},
+				GenesisChecksum:         "",
 			},
-			err: ErrEmptyGenesisURLs,
+			err: ErrEmptyGenesisChecksum,
 		},
 	}
 	for _, tt := range tests {

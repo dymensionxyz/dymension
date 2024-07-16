@@ -24,16 +24,15 @@ type BaseAppParamManager interface {
 // The app.go will then define the handler.
 type Upgrade struct {
 	// Upgrade version name, for the upgrade handler, e.g. `v4`
-	UpgradeName string
+	Name string
 
-	// CreateUpgradeHandler defines the function that creates an upgrade handler
-	CreateUpgradeHandler func(
+	// CreateHandler defines the function that creates an upgrade handler
+	CreateHandler func(
 		mm *module.Manager,
 		appCodec codec.Codec,
 		configurator module.Configurator,
 		_ BaseAppParamManager,
 		appKeepers *keepers.AppKeepers,
-		getStoreKey func(string) *storetypes.KVStoreKey,
 	) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.

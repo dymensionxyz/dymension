@@ -13,14 +13,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// load rollapp object for stateful validations
-	rollapp, isFound := k.GetRollapp(ctx, msg.RollappId)
+	_, isFound := k.GetRollapp(ctx, msg.RollappId)
 	if !isFound {
 		return nil, types.ErrUnknownRollappID
-	}
-
-	// check rollapp version
-	if rollapp.Version != msg.Version {
-		return nil, errorsmod.Wrapf(types.ErrVersionMismatch, "rollappId(%s) current version is %d, but got %d", msg.RollappId, rollapp.Version, msg.Version)
 	}
 
 	// call the before-update-state hook
@@ -68,7 +63,7 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	})
 
 	creationHeight := uint64(ctx.BlockHeight())
-	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, msg.Version, creationHeight, msg.BDs)
+	stateInfo := types.NewStateInfo(msg.RollappId, newIndex, msg.Creator, msg.StartHeight, msg.NumBlocks, msg.DAPath, creationHeight, msg.BDs)
 	// Write new state information to the store indexed by <RollappId,LatestStateInfoIndex>
 	k.SetStateInfo(ctx, *stateInfo)
 
