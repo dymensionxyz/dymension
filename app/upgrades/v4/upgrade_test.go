@@ -66,25 +66,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		{
 			msg: "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
 			preUpgrade: func() error {
-				// create 5 rollapps with the old proto version
-				storeKey := s.App.GetKey(rollapptypes.StoreKey)
-				store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
-				eip155Store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappByEIP155KeyPrefix))
-				createMockOldAndNewRollapps(1)
+				// Create and store old rollapps
+				numRollapps := 5
+				rollappIDs := s.createAndStoreOldRollapps(numRollapps)
 
-				for _, rollapp := range oldRollapps {
-					bz := s.App.AppCodec().MustMarshalJSON(&rollapp)
-					store.Set(rollapptypes.RollappKey(rollapp.RollappId), bz)
-
-					rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
-					if !rollappID.IsEIP155() {
-						return nil
-					}
-
-					eip155Store.Set(rollapptypes.RollappByEIP155Key(
-						rollappID.GetEIP155ID(),
-					), bz)
-				}
+				// Create and store old sequencers
+				s.createAndStoreOldSequencers(rollappIDs)
 				return nil
 			},
 			upgrade: func() {
@@ -232,6 +219,30 @@ var (
 	oldRollapps []types.Rollapp
 	newRollapps []rollapptypes.Rollapp
 )
+
+func (s *UpgradeTestSuite) createAndStoreOldRollapps(numRollapps int) (ids []string) {
+	// create 5 rollapps with the old proto version
+	storeKey := s.App.GetKey(rollapptypes.StoreKey)
+	store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
+	eip155Store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappByEIP155KeyPrefix))
+	createMockOldAndNewRollapps(numRollapps)
+
+	for _, rollapp := range oldRollapps {
+		bz := s.App.AppCodec().MustMarshalJSON(&rollapp)
+		store.Set(rollapptypes.RollappKey(rollapp.RollappId), bz)
+
+		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
+		if !rollappID.IsEIP155() {
+			return
+		}
+
+		eip155Store.Set(rollapptypes.RollappByEIP155Key(
+			rollappID.GetEIP155ID(),
+		), []byte(rollapp.RollappId))
+		ids = append(ids, rollapp.RollappId)
+	}
+	return
+}
 
 func createMockOldAndNewRollapps(nRollapps int) {
 	oldRollapps = make([]types.Rollapp, nRollapps)

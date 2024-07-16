@@ -85,7 +85,7 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 		Website:                 "", // TODO
 		Description:             "", // TODO
 		LogoDataUri:             "", // TODO
-		Alias:                   "", // TODO
+		Alias:                   "", // TODO IMPORTANT! This is needed for GetByAlias endpoint
 	}
 }
 
