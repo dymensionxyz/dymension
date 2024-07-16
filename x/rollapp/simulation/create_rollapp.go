@@ -34,11 +34,13 @@ func SimulateMsgCreateRollapp(ak simulationtypes.AccountKeeper, bk simulationtyp
 			RollappId:               rollappId,
 			InitialSequencerAddress: sample.AccAddress(),
 			Bech32Prefix:            "rol",
-			GenesisChecksum:         "somechecksum",
-			Website:                 "http://example.com",
-			Description:             "Some description",
-			LogoDataUri:             "https://example.com/logo.png",
 			Alias:                   "Rollapp",
+			Metadata: &types.RollappMetadata{
+				Website:      "https://dymension.xyz",
+				Description:  "Sample description",
+				LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+				TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+			},
 		}
 
 		if !bAlreadyExists {

@@ -24,10 +24,13 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 		InitialSequencerAddress: sample.AccAddress(),
 		GenesisChecksum:         "checksum",
 		Bech32Prefix:            uniqueBech32Prefix(),
-		Website:                 "http://example.com",
-		Description:             "Some description",
-		LogoDataUri:             "http://example.com/logo.png",
 		Alias:                   "Rollapp",
+		Metadata: &types.RollappMetadata{
+			Website:      "https://dymension.xyz",
+			Description:  "Sample description",
+			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+		},
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 
@@ -168,8 +171,6 @@ func (suite *RollappTestSuite) TestUpdateState() {
 			// fmt.Printf("finalizationQueue: %s %d\n", finalizationQueue.String())
 			stateInfo, found := suite.App.RollappKeeper.GetStateInfo(suite.Ctx, finalizationQueue.FinalizationQueue[0].RollappId, finalizationQueue.FinalizationQueue[0].Index)
 			suite.Require().True(found)
-			// fmt.Printf("stateInfo: %s\n", stateInfo.String())
-
 			suite.Require().EqualValues(stateInfo.Status, common.Status_PENDING)
 
 		}
@@ -206,6 +207,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            uniqueBech32Prefix(),
 		GenesisChecksum:         "checksum",
+		Alias:                   "Rollapp",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 

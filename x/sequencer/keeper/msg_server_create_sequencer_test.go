@@ -116,10 +116,13 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			Creator:         alice,
 			Bech32Prefix:    bech32Prefix,
 			GenesisChecksum: "1234567890abcdefg",
-			Website:         "https://dymension.xyz",
-			Description:     "Sample description",
-			LogoDataUri:     "htpps://dymension.xyz/logo.png",
 			Alias:           "Rollapp",
+			Metadata: &rollapptypes.RollappMetadata{
+				Website:      "https://dymension.xyz",
+				Description:  "Sample description",
+				LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+				TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 

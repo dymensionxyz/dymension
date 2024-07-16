@@ -2,9 +2,11 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
 import "gogoproto/gogo.proto";
 import "dymension/rollapp/state_info.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymension/rollapp/metadata.proto";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 message RollappGenesisState {
@@ -38,16 +40,12 @@ message Rollapp {
   bool frozen = 7;
   // unique bech32 prefix
   string bech32_prefix = 8;
-  // registered_denoms is a list of registered denom bases on this rollapp
-  repeated string registered_denoms = 9;
-  // website is the rollapp website
-  string website = 10;
-  // description is the rollapp description. should be limited to TBD chars
-  string description = 11;
-  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
-  string logo_data_uri = 12;
   // alias is the chain alias used for display and namespace system
-  string alias = 13;
+  string alias = 9;
+  // registered_denoms is a list of registered denom bases on this rollapp
+  repeated string registered_denoms = 10;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 11;
 }
 
 // Rollapp summary is a compact representation of Rollapp

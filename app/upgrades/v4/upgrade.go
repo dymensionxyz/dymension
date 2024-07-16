@@ -71,10 +71,13 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 		InitialSequencerAddress: "", // whatever
 		GenesisChecksum:         "", // TODO
 		Bech32Prefix:            "", // TODO
-		Website:                 "", // TODO
-		Description:             "", // TODO
-		LogoDataUri:             "", // TODO
 		Alias:                   "", // TODO
+		Metadata: &rollapptypes.RollappMetadata{
+			Website:      "", // TODO
+			Description:  "", // TODO
+			LogoDataUri:  "", // TODO
+			TokenLogoUri: "", // TODO
+		},
 	}
 }
 

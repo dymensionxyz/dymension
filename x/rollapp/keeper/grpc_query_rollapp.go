@@ -6,9 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest) (*types.QueryAllRollappResponse, error) {
@@ -85,6 +86,33 @@ func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByE
 	val, found := k.GetRollappByEIP155(
 		ctx,
 		req.Eip155,
+	)
+	if !found {
+		return nil, status.Error(codes.NotFound, "not found")
+	}
+
+	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestStateIndex = &latestStateInfoIndex
+	}
+	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
+	if found {
+		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+	}
+
+	return rollappResponse, nil
+}
+
+func (k Keeper) RollappByAlias(c context.Context, req *types.QueryGetRollappByAliasRequest) (*types.QueryGetRollappResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	val, found := k.GetRollappByAlias(
+		ctx,
+		req.Alias,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

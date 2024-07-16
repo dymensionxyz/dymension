@@ -1,0 +1,15 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+message RollappMetadata {
+  // website is the rollapp website
+  string website = 1;
+  // description is the rollapp description. should be limited to TBD chars
+  string description = 2;
+  // logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
+  string logo_data_uri = 3;
+  // token_logo_uri is a URI to the native token logo. Should be limited to 25kb.
+  string token_logo_uri = 4;
+}

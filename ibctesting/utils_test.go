@@ -126,10 +126,14 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		sample.AccAddress(),
 		"eth",
 		"somechecksum",
-		"http://example.com",
-		"Some description",
-		"https://example.com/logo.png",
 		"Rollapp",
+
+		&rollapptypes.RollappMetadata{
+			"http://example.com",
+			"Some description",
+			"data:image/png;base64,c2lzZQ==",
+			"data:image/png;base64,ZHVwZQ==",
+		},
 	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
