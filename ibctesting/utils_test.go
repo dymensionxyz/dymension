@@ -129,10 +129,10 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 		"Rollapp",
 
 		&rollapptypes.RollappMetadata{
-			"http://example.com",
-			"Some description",
-			"data:image/png;base64,c2lzZQ==",
-			"data:image/png;base64,ZHVwZQ==",
+			Website:      "http://example.com",
+			Description:  "Some description",
+			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
 		},
 	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)

@@ -366,7 +366,8 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			name:         "extra whitespace id",
 			rollappId:    "rollapp_1234-1",
 			badRollappId: "rollapp_1234-1  ",
-		}, {
+		},
+		{
 			name:         "same EIP ID",
 			rollappId:    "rollapp_1234-1",
 			badRollappId: "dummy_1234-1",

@@ -17,6 +17,7 @@ func CmdCreateRollapp() *cobra.Command {
 		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm <genesis_checksum> Rollapp metadata.json",
 		Args:    cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			// nolint:gofumpt
 			argRollappId, argInitSequencerAddress, argBech32Prefix, genesisChecksum, alias, metadataArg :=
 				args[0], args[1], args[2], args[3], args[4], args[5]
 
