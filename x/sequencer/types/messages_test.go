@@ -62,10 +62,14 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Metadata: SequencerMetadata{
 					Moniker:         strings.Repeat("a", MaxMonikerLength),
 					Identity:        strings.Repeat("a", MaxIdentityLength),
-					Website:         strings.Repeat("a", MaxWebsiteLength),
-					Details:         strings.Repeat("a", MaxDetailsLength),
 					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					ExtraData:       []byte(strings.Repeat("a", MaxExtraDataLength)),
+					Details:         strings.Repeat("a", MaxDetailsLength),
+					ContactDetails: &ContactDetails{
+						Website:  strings.Repeat("a", MaxContactFieldLength),
+						Telegram: strings.Repeat("a", MaxContactFieldLength),
+						X:        strings.Repeat("a", MaxContactFieldLength),
+					},
+					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
 				},
 			},
 		}, {
@@ -97,7 +101,9 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					Website: strings.Repeat("a", MaxWebsiteLength+1),
+					ContactDetails: &ContactDetails{
+						Website: strings.Repeat("a", MaxContactFieldLength+1),
+					},
 				},
 			},
 			err: ErrInvalidRequest,

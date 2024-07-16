@@ -89,27 +89,36 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 	}
 }
 
+var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
+
 func ConvertOldSequencerToNew(oldSequencer types.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
 		Address:      oldSequencer.SequencerAddress,
 		DymintPubKey: oldSequencer.DymintPubKey,
 		RollappId:    oldSequencer.RollappId,
+		Status:       sequencertypes.OperatingStatus(oldSequencer.Status),
+		Proposer:     oldSequencer.Proposer,
+		Tokens:       oldSequencer.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
 			Moniker:         oldSequencer.Description.Moniker,
 			Identity:        oldSequencer.Description.Identity,
 			SecurityContact: oldSequencer.Description.SecurityContact,
 			Details:         oldSequencer.Description.Details,
-			// P2PSeed:         oldSequencer.Description.P2PSeed,
-			// Rpcs:            oldSequencer.Description.Rpcs,
-			// EvmRpcs:         oldSequencer.Description.EvmRpcs,
-			// RestApiUrls:     oldSequencer.Description.RestApiUrls,
-			// ExplorerUrl:     oldSequencer.Description.ExplorerUrl,
-			Website: oldSequencer.Description.Website,
-			// ExtraData:       oldSequencer.Description.ExtraData,
+			GasPrice:        &defaultGasPrice,
+			// P2PSeed:         "", TODO
+			// Rpcs:            []string{}, TODO
+			// EvmRpcs:         []string{}, TODO
+			// RestApiUrls:     []string{}, TODO
+			// GenesisUrl:      "", TODO
+			// ExplorerUrl:     "", TODO
+			// ContactDetails: &sequencertypes.ContactDetails{ TODO
+			// 	Website:  "", TODO
+			// 	Telegram: "", TODO
+			// 	X:        "", TODO
+			// }, TODO
+			// ExtraData: []byte{}, TODO
+			// Snapshots: []*sequencertypes.SnapshotInfo{}, TODO
 		},
-		Status:   sequencertypes.OperatingStatus(oldSequencer.Status),
-		Proposer: oldSequencer.Proposer,
-		Tokens:   oldSequencer.Tokens,
 	}
 }
 
