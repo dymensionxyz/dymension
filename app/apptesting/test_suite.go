@@ -34,16 +34,20 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 }
 
 func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
+	alias := name // reuse rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:                 alice,
 		RollappId:               name,
 		InitialSequencerAddress: sample.AccAddress(),
 		Bech32Prefix:            strings.ToLower(rand.Str(3)),
 		GenesisChecksum:         "1234567890abcdefg",
-		Website:                 "https://dymension.xyz",
-		Description:             "Sample description",
-		LogoDataUri:             "https://dymension.xyz/logo.png",
-		Alias:                   "Rollapp",
+		Alias:                   alias,
+		Metadata: &rollapptypes.RollappMetadata{
+			Website:      "https://dymension.xyz",
+			Description:  "Sample description",
+			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+		},
 	}
 
 	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)

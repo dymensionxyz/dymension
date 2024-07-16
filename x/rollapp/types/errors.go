@@ -31,6 +31,13 @@ var (
 	ErrInvalidAddress                 = errorsmod.Register(ModuleName, 1040, "invalid address")
 	ErrInitialSequencerAddressTaken   = errorsmod.Register(ModuleName, 1041, "initial sequencer address already taken")
 	ErrBech32PrefixTaken              = errorsmod.Register(ModuleName, 1042, "Bech32 prefix already taken")
+	ErrInvalidAlias                   = errorsmod.Register(ModuleName, 1043, "invalid alias")
+	ErrAliasAlreadyTaken              = errorsmod.Register(ModuleName, 1044, "alias already taken")
+	ErrInvalidWebsiteURL              = errorsmod.Register(ModuleName, 1045, "invalid website url")
+	ErrInvalidDescription             = errorsmod.Register(ModuleName, 1046, "invalid description")
+	ErrInvalidLogoURI                 = errorsmod.Register(ModuleName, 1047, "invalid logo uri")
+	ErrInvalidTokenLogoURI            = errorsmod.Register(ModuleName, 1048, "invalid token logo uri")
+	ErrInvalidMetadata                = errorsmod.Register(ModuleName, 1049, "invalid metadata")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

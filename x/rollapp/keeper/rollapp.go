@@ -15,7 +15,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	if err := k.checkIfRollappExists(ctx, rollapp.RollappId); err != nil {
+	if err := k.checkIfRollappExists(ctx, rollapp.RollappId, rollapp.Alias); err != nil {
 		return err
 	}
 
@@ -48,7 +48,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	return nil
 }
 
-func (k Keeper) checkIfRollappExists(ctx sdk.Context, id string) error {
+func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
 	rollappId, err := types.NewChainID(id)
 	if err != nil {
 		return err
@@ -57,6 +57,11 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, id string) error {
 	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return types.ErrRollappExists
 	}
+
+	if _, isFound := k.GetRollappByAlias(ctx, alias); isFound {
+		return types.ErrAliasAlreadyTaken
+	}
+
 	if !rollappId.IsEIP155() {
 		return nil
 	}
@@ -104,6 +109,12 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.RollappId,
 	), b)
 
+	// save mapping for rollapp-by-alias
+	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
+	store.Set(types.RollappByAliasKey(
+		rollapp.GetAlias(),
+	), []byte(rollapp.RollappId))
+
 	// check if chain-id is EVM compatible. no err check as rollapp is already validated
 	rollappID, _ := types.NewChainID(rollapp.RollappId)
 	if !rollappID.IsEIP155() {
@@ -114,12 +125,6 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
-	), []byte(rollapp.RollappId))
-
-	// save mapping for rollapp-by-alias
-	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByAliasPrefix))
-	store.Set(types.RollappByAliasKey(
-		rollapp.GetAlias(),
 	), []byte(rollapp.RollappId))
 }
 
