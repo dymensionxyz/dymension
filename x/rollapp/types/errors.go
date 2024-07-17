@@ -39,7 +39,10 @@ var (
 	ErrInvalidLogoURI                 = errorsmod.Register(ModuleName, 1047, "invalid logo uri")
 	ErrInvalidTokenLogoURI            = errorsmod.Register(ModuleName, 1048, "invalid token logo uri")
 	ErrInvalidMetadata                = errorsmod.Register(ModuleName, 1049, "invalid metadata")
-	ErrUpdateInitialSequencer         = errorsmod.Register(ModuleName, 1050, "cannot update initial sequencer address")
+	ErrInitialSequencerUpdate         = errorsmod.Register(ModuleName, 1050, "cannot update initial sequencer address")
+	ErrAliasUpdate                    = errorsmod.Register(ModuleName, 1051, "cannot update alias")
+	ErrIGenesisChecksumUpdate         = errorsmod.Register(ModuleName, 1052, "cannot update genesis checksum")
+	ErrInvalidHandle                  = errorsmod.Register(ModuleName, 1053, "invalid handle")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

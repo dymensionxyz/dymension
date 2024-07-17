@@ -40,7 +40,8 @@ func NewRollapp(
 const (
 	maxAliasLength           = 64
 	maxDescriptionLength     = 256
-	maxWebsiteLength         = 256
+	maxURLLength             = 256
+	maxHandleLength          = 64
 	maxGenesisChecksumLength = 64
 	maxDataURILength         = 25 * 1024 // 25KB
 	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
@@ -106,13 +107,16 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return nil
 	}
 
-	if metadata.Website != "" {
-		if len(metadata.Website) > maxWebsiteLength {
-			return ErrInvalidWebsiteURL
-		}
-		if _, err := url.Parse(metadata.Website); err != nil {
-			return errorsmod.Wrap(ErrInvalidWebsiteURL, err.Error())
-		}
+	if err := validateURL(metadata.Website); err != nil {
+		return errorsmod.Wrap(ErrInvalidWebsiteURL, err.Error())
+	}
+
+	if len(metadata.Telegram) > maxHandleLength {
+		return ErrInvalidHandle
+	}
+
+	if len(metadata.X) > maxHandleLength {
+		return ErrInvalidHandle
 	}
 
 	if len(metadata.Description) > maxDescriptionLength {
@@ -125,6 +129,22 @@ func validateMetadata(metadata *RollappMetadata) error {
 
 	if err := validateBaseURI(metadata.TokenLogoUri); err != nil {
 		return errorsmod.Wrap(ErrInvalidTokenLogoURI, err.Error())
+	}
+
+	return nil
+}
+
+func validateURL(urlStr string) error {
+	if urlStr == "" {
+		return nil
+	}
+
+	if len(urlStr) > maxURLLength {
+		return ErrInvalidWebsiteURL
+	}
+
+	if _, err := url.Parse(urlStr); err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	return nil

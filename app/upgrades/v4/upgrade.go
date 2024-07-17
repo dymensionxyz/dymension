@@ -144,6 +144,8 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 			Description:  "", // TODO
 			LogoDataUri:  "", // TODO
 			TokenLogoUri: "", // TODO
+			Telegram:     "", // TODO
+			X:            "", // TODO
 		},
 	}
 }

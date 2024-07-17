@@ -31,6 +31,8 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 					Description:  "Sample description",
 					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+					Telegram:     "rolly",
+					X:            "rolly",
 				},
 			},
 		},

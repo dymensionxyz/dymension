@@ -134,6 +134,8 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 			Description:  "Some description",
 			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+			Telegram:     "rolly",
+			X:            "rolly",
 		},
 	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
