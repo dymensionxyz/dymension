@@ -1,15 +1,15 @@
 package rollapp
 
 import (
-	"fmt"
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollappsimulation "github.com/dymensionxyz/dymension/v3/x/rollapp/simulation"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -18,7 +18,7 @@ import (
 // avoid unused import issue
 var (
 	_ = sample.AccAddress
-	_ = simappparams.StakePerAccount
+	_ = params.StakePerAccount
 	_ = simulation.MsgEntryKind
 	_ = baseapp.Paramspace
 )
@@ -33,8 +33,6 @@ const (
 	opWeightMsgUpdateState = "op_weight_msg_update_state"
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgUpdateState int = 100
-
-	// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -45,7 +43,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	}
 	rollappGenesis := types.GenesisState{
 		Params: types.DefaultParams(),
-		// this line is used by starport scaffolding # simapp/module/genesisState
 	}
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&rollappGenesis)
 }
@@ -53,24 +50,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 // ProposalContents doesn't return any content functions for governance proposals
 func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
 	return nil
-}
-
-// RandomizedParams creates randomized  param changes for the simulator
-func (am AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	_ = r
-	rollappParams := types.DefaultParams()
-	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDisputePeriodInBlocks),
-			func(r *rand.Rand) string {
-				return string(types.Amino.MustMarshalJSON(rollappParams.DisputePeriodInBlocks))
-			},
-		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyDeployerWhitelist),
-			func(r *rand.Rand) string {
-				return fmt.Sprintf("%v", []string{})
-			},
-		),
-	}
 }
 
 // RegisterStoreDecoder registers a decoder
@@ -101,8 +80,6 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 		weightMsgUpdateState,
 		rollappsimulation.SimulateMsgUpdateState(am.accountKeeper, am.bankKeeper),
 	))
-
-	// this line is used by starport scaffolding # simapp/module/operation
 
 	return operations
 }
