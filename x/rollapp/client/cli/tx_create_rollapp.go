@@ -1,11 +1,11 @@
 package cli
 
 import (
+	"github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/json"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )

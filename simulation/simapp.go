@@ -4,9 +4,9 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	simapp "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 	"github.com/dymensionxyz/dymension/v3/simulation/types"
@@ -66,7 +66,7 @@ func GenAndDeliverMsgWithRandFees(
 	txCtx := simulation.OperationInput{
 		R:               r,
 		App:             app,
-		TxGen:           simappparams.MakeTestEncodingConfig().TxConfig,
+		TxGen:           moduletestutil.MakeTestEncodingConfig().TxConfig,
 		Cdc:             nil,
 		Msg:             msg,
 		MsgType:         msgType,
@@ -121,8 +121,8 @@ func GenAndDeliverTxWithRandFees(txCtx simulation.OperationInput) (simtypes.Oper
 func GenAndDeliverTx(txCtx simulation.OperationInput, fees sdk.Coins) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 	account := txCtx.AccountKeeper.GetAccount(txCtx.Context, txCtx.SimAccount.Address)
 
-	txGas := uint64(10 * helpers.DefaultGenTxGas)
-	tx, err := helpers.GenSignedMockTx(
+	txGas := uint64(10 * simapp.DefaultGenTxGas)
+	tx, err := simapp.GenSignedMockTx(
 		txCtx.R,
 		txCtx.TxGen,
 		[]sdk.Msg{txCtx.Msg},
