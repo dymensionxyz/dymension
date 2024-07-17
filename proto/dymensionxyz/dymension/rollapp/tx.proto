@@ -2,9 +2,10 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 // this line is used by starport scaffolding # proto/tx/import
-import "dymension/rollapp/block_descriptor.proto";
-import "dymension/rollapp/rollapp.proto";
-import "dymension/rollapp/metadata.proto";
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/metadata.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
@@ -19,6 +20,7 @@ service Msg {
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
 message MsgCreateRollapp {
+  option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollappId is the unique identifier of the rollapp chain.
@@ -52,6 +54,7 @@ message MsgUpdateRollappInformationResponse {
 // MsgUpdateState updates a rollapp state with a block batch.
 // a block batch is a list of ordered blocks (by height)
 message MsgUpdateState {
+  option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the sequencer sending the update
   string creator = 1;
   // rollappId is the rollapp that the sequencer belongs to and asking to update

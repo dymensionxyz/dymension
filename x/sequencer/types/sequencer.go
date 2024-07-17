@@ -1,11 +1,11 @@
 package types
 
 import (
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 func (seq Sequencer) IsBonded() bool {
@@ -38,7 +38,7 @@ func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {
 	// Create a new tmValidator with fixed voting power of 1
 	// TODO: Make sure the voting power is a param coming from hub and
 	// not being set independently in dymint and hub
-	tmValidator := tmtypes.NewValidator(tmPubKey, 1)
-	tmValidatorSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{tmValidator})
+	tmValidator := cometbfttypes.NewValidator(tmPubKey, 1)
+	tmValidatorSet := cometbfttypes.NewValidatorSet([]*cometbfttypes.Validator{tmValidator})
 	return tmValidatorSet.Hash(), nil
 }

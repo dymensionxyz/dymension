@@ -4,12 +4,12 @@ import (
 	"strconv"
 	"testing"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -33,10 +33,12 @@ type RollappTestSuite struct {
 
 func (suite *RollappTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
+	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	suite.Require().NoError(err)
 	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
 	app.RollappKeeper.SetParams(ctx, types.NewParams(2, regFee))
 

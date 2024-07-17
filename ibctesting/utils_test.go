@@ -5,21 +5,21 @@ import (
 	"encoding/json"
 	"testing"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
-	"github.com/cosmos/ibc-go/v6/testing/mock"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
+	"github.com/cosmos/ibc-go/v7/testing/mock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -36,6 +36,7 @@ var chainIDPrefix = "evmos_9000-"
 
 func init() {
 	ibctesting.ChainIDPrefix = chainIDPrefix
+	ibctesting.ChainIDSuffix = ""
 	ibctesting.DefaultTestingAppInit = func() (ibctesting.TestingApp, map[string]json.RawMessage) {
 		return apptesting.SetupTestingApp()
 	}
@@ -284,18 +285,18 @@ func (s *utilSuite) newTestChainWithSingleValidator(t *testing.T, coord *ibctest
 
 	senderAccs = append(senderAccs, senderAcc)
 
-	var validators []*tmtypes.Validator
-	signersByAddress := make(map[string]tmtypes.PrivValidator, 1)
+	var validators []*cometbfttypes.Validator
+	signersByAddress := make(map[string]cometbfttypes.PrivValidator, 1)
 
-	validators = append(validators, tmtypes.NewValidator(valPubKey, 1))
+	validators = append(validators, cometbfttypes.NewValidator(valPubKey, 1))
 
 	signersByAddress[valPubKey.Address().String()] = valPrivKey
-	valSet := tmtypes.NewValidatorSet(validators)
+	valSet := cometbfttypes.NewValidatorSet(validators)
 
 	app := ibctesting.SetupWithGenesisValSet(t, valSet, genAccs, chainID, sdk.DefaultPowerReduction, genBals...)
 
 	// create current header and call begin block
-	header := tmproto.Header{
+	header := cometbftproto.Header{
 		ChainID: chainID,
 		Height:  1,
 		Time:    coord.CurrentTime.UTC(),

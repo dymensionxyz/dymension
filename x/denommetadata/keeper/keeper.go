@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
