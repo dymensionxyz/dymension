@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,8 +38,8 @@ func MakeEncodingConfig() params.EncodingConfig {
 	RegisterLegacyAminoCodec(encodingConfig.Amino)
 	RegisterInterfaces(encodingConfig.InterfaceRegistry)
 
-	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
-	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	keepers.ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
+	keepers.ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
 

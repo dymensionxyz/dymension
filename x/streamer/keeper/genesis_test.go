@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 	// export genesis using default configurations
 	// ensure resulting genesis params match default params
 	app := apptesting.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
 	genesis := app.StreamerKeeper.ExportGenesis(ctx)
 	require.Equal(t, genesis.Params, types.DefaultGenesis().Params)
 	require.Len(t, genesis.Streams, 0)
@@ -79,7 +79,7 @@ func TestStreamerExportGenesis(t *testing.T) {
 // TestStreamerInitGenesis takes a genesis state and tests initializing that genesis for the streamer module.
 func TestStreamerInitGenesis(t *testing.T) {
 	app := apptesting.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{})
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.Validate()
@@ -131,7 +131,7 @@ func TestStreamerInitGenesis(t *testing.T) {
 
 func TestStreamerOrder(t *testing.T) {
 	app := apptesting.Setup(t, false)
-	ctx := app.BaseApp.NewContext(false, tmproto.Header{}).WithBlockTime(time.Now())
+	ctx := app.BaseApp.NewContext(false, cometbftproto.Header{}).WithBlockTime(time.Now())
 
 	// checks that the default genesis parameters pass validation
 	validateGenesis := types.DefaultGenesis().Params.Validate()

@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
 
@@ -261,7 +261,7 @@ func (suite *KeeperTestSuite) TestMsgUpdateDemandOrder() {
 		suite.Require().NoError(err)
 
 		// try to update the demand order
-		msg := types.NewMsgUpdateDemandOrder(demandOrder.Id, tc.submittedBy, tc.newFee.String())
+		msg := types.NewMsgUpdateDemandOrder(tc.submittedBy, demandOrder.Id, tc.newFee.String())
 		_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
 		if tc.expectError {
 			suite.Require().Error(err, tc.name)
@@ -281,7 +281,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	testAddresses := apptesting.AddTestAddrs(suite.App, suite.Ctx, 2, sdk.NewInt(100_000))
 	eibcSupplyAddr := testAddresses[0]
 
-	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2)) // 1%
+	dackParams := dacktypes.NewParams("hour", sdk.NewDecWithPrec(1, 2), 0) // 1%
 	suite.App.DelayedAckKeeper.SetParams(suite.Ctx, dackParams)
 
 	denom := suite.App.StakingKeeper.BondDenom(suite.Ctx)
@@ -304,7 +304,7 @@ func (suite *KeeperTestSuite) TestUpdateDemandOrderOnAckOrTimeout() {
 	// try to update the demand order
 	newFee := sdk.NewInt(400)
 	expectedNewPrice := sdk.NewInt(600)
-	msg := types.NewMsgUpdateDemandOrder(demandOrder.Id, eibcSupplyAddr.String(), newFee.String())
+	msg := types.NewMsgUpdateDemandOrder(eibcSupplyAddr.String(), demandOrder.Id, newFee.String())
 	_, err = suite.msgServer.UpdateDemandOrder(suite.Ctx, msg)
 	suite.Require().NoError(err)
 	// check if the demand order is updated

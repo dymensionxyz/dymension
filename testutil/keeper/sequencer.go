@@ -3,9 +3,9 @@ package keeper
 import (
 	"testing"
 
-	tmdb "github.com/cometbft/cometbft-db"
+	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -21,7 +21,7 @@ func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
-	db := tmdb.NewMemDB()
+	db := cometbftdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
@@ -45,7 +45,7 @@ func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		nil,
 	)
 
-	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbft "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -108,7 +108,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			tt.rollappKeeper.packetData = packetData
 			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
 			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
-			got := im.OnRecvPacket(sdk.NewContext(nil, tmproto.Header{}, false, nil), packet, sdk.AccAddress{})
+			got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
 			if !tt.wantAck.Success() {
 				return

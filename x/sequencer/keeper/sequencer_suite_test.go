@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 
 	"github.com/cometbft/cometbft/libs/rand"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
 type SequencerTestSuite struct {
@@ -33,7 +33,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (suite *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)

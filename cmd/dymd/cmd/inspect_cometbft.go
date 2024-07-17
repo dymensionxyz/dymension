@@ -43,7 +43,7 @@ func loadStateAndBlockStore(config *cfg.Config) (*store.BlockStore, state.Store,
 	return blockStore, stateStore, nil
 }
 
-func getTendermintState(config *cfg.Config) error {
+func getCometbftState(config *cfg.Config) error {
 	// use the parsed config to load the block and state store
 	blockStore, stateStore, err := loadStateAndBlockStore(config)
 	if err != nil {

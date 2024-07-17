@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -16,10 +16,14 @@ var (
 
 	// KeyBridgeFee is the key for the bridge fee
 	KeyBridgeFee = []byte("BridgeFee")
+
+	// KeyDeletePacketsEpochLimit is the key for the delete packets epoch limit
+	KeyDeletePacketsEpochLimit = []byte("DeletePacketsEpochLimit")
 )
 
 const (
-	defaultEpochIdentifier = "hour"
+	defaultEpochIdentifier         = "hour"
+	defaultDeletePacketsEpochLimit = 1000_000
 )
 
 // ParamKeyTable the param key table for launch module
@@ -28,10 +32,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(epochIdentifier string, bridgingFee sdk.Dec) Params {
+func NewParams(epochIdentifier string, bridgingFee sdk.Dec, deletePacketsEpochLimit int) Params {
 	return Params{
-		EpochIdentifier: epochIdentifier,
-		BridgingFee:     bridgingFee,
+		EpochIdentifier:         epochIdentifier,
+		BridgingFee:             bridgingFee,
+		DeletePacketsEpochLimit: int32(deletePacketsEpochLimit),
 	}
 }
 
@@ -40,6 +45,7 @@ func DefaultParams() Params {
 	return NewParams(
 		defaultEpochIdentifier,
 		sdk.NewDecWithPrec(1, 3), // 0.1%
+		defaultDeletePacketsEpochLimit,
 	)
 }
 
@@ -48,6 +54,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyEpochIdentifier, &p.EpochIdentifier, validateEpochIdentifier),
 		paramtypes.NewParamSetPair(KeyBridgeFee, &p.BridgingFee, validateBridgingFee),
+		paramtypes.NewParamSetPair(KeyDeletePacketsEpochLimit, &p.DeletePacketsEpochLimit, validateDeletePacketsEpochLimit),
 	}
 }
 
@@ -81,12 +88,26 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
+func validateDeletePacketsEpochLimit(i interface{}) error {
+	v, ok := i.(int32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v < 0 {
+		return fmt.Errorf("delete packet epoch limit must not be negative: %d", v)
+	}
+	return nil
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateBridgingFee(p.BridgingFee); err != nil {
 		return err
 	}
 	if err := validateEpochIdentifier(p.EpochIdentifier); err != nil {
+		return err
+	}
+	if err := validateDeletePacketsEpochLimit(p.DeletePacketsEpochLimit); err != nil {
 		return err
 	}
 	return nil

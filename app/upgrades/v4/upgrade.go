@@ -2,51 +2,39 @@ package v4
 
 import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
-	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	// Ethermint modules
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
+	"github.com/dymensionxyz/dymension/v3/app/upgrades"
+	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
 
-func GetStoreUpgrades() *storetypes.StoreUpgrades {
-	storeUpgrades := storetypes.StoreUpgrades{
-		Added: []string{
-			consensustypes.ModuleName,
-			crisistypes.ModuleName,
-		},
-	}
-	return &storeUpgrades
-}
-
-// CreateUpgradeHandler creates an SDK upgrade handler for v3
+// CreateUpgradeHandler creates an SDK upgrade handler for v4
 func CreateUpgradeHandler(
 	mm *module.Manager,
 	configurator module.Configurator,
-	paramsKeeper paramskeeper.Keeper,
-	consensusKeeper consensusparamkeeper.Keeper,
+	_ upgrades.BaseAppParamManager,
+	keepers *keepers.AppKeepers,
 ) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		logger := ctx.Logger().With("upgrade", UpgradeName)
 		// Set param key table for params module migration
-		for _, subspace := range paramsKeeper.GetSubspaces() {
-			subspace := subspace
+		for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 
 			var keyTable paramstypes.KeyTable
 			switch subspace.Name() {
@@ -81,8 +69,13 @@ func CreateUpgradeHandler(
 			}
 		}
 		// Migrate Tendermint consensus parameters from x/params module to a dedicated x/consensus module.
-		baseAppLegacySS := paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
-		baseapp.MigrateParams(ctx, baseAppLegacySS, &consensusKeeper)
+		baseAppLegacySS := keepers.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable())
+		baseapp.MigrateParams(ctx, baseAppLegacySS, &keepers.ConsensusParamsKeeper)
+
+		// overwrite params for delayedack module due to added parameters
+		daParams := delayedacktypes.DefaultParams()
+		keepers.DelayedAckKeeper.SetParams(ctx, daParams)
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)

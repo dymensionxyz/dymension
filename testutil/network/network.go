@@ -6,7 +6,7 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"cosmossdk.io/simapp"
-	tmdb "github.com/cometbft/cometbft-db"
+	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/app"
+	"github.com/dymensionxyz/dymension/v3/app/keepers"
 )
 
 type (
@@ -51,7 +52,7 @@ func DefaultConfig() network.Config {
 	cfg.ChainID = "dymension_1000-1"
 	cfg.AppConstructor = func(val network.ValidatorI) servertypes.Application {
 		return app.New(
-			val.GetCtx().Logger, tmdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
+			val.GetCtx().Logger, cometbftdb.NewMemDB(), nil, true, map[int64]bool{}, val.GetCtx().Config.RootDir, 0,
 			encoding,
 			sims.EmptyAppOptions{},
 			baseapp.SetPruning(pruningtypes.NewPruningOptionsFromString(val.GetAppConfig().Pruning)),
@@ -59,7 +60,7 @@ func DefaultConfig() network.Config {
 		)
 	}
 
-	cfg.GenesisState = app.ModuleBasics.DefaultGenesis(encoding.Codec)
+	cfg.GenesisState = keepers.ModuleBasics.DefaultGenesis(encoding.Codec)
 	if evmGenesisStateJson, found := cfg.GenesisState[evmtypes.ModuleName]; found {
 		// force disable Enable Create of x/evm
 		var evmGenesisState evmtypes.GenesisState
