@@ -25,7 +25,8 @@ func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 }
 
 func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
-	// cache the rollapps that failed to finalize at current EndBlocker execution
+	// Cache the rollapps that failed to finalize at current EndBlocker execution.
+	// The mapping is from rollappID to the first index of the state that failed to finalize.
 	failedRollapps := make(map[string]uint64)
 	// iterate over all the pending finalization height queues
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
@@ -99,8 +100,10 @@ func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQ
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
 		return
 	}
-	// remove from the queue the rollapps that were successfully finalized at all indices.
-	// for failed rollapps at current height, all state indices including and following the failed index will stay in the queue
+	// remove from the queue only the rollapps that were successfully finalized at all indices.
+	// while iterating the queue for deleting the successfully finalized states, we remove them if
+	// - rollapp was not found in the failedRollapps map
+	// - if it was found, the indexes to be deleted should only be the ones up to the point of the index of the first failed state change
 	blockHeightToFinalizationQueue.FinalizationQueue = slices.DeleteFunc(blockHeightToFinalizationQueue.FinalizationQueue,
 		func(si types.StateInfoIndex) bool {
 			idx, failed := failedRollapps[si.RollappId]
