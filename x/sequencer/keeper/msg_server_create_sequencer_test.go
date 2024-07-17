@@ -576,7 +576,7 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.UnbondingHeight != s2.UnbondingHeight {
+	if s1.UnbondRequestHeight != s2.UnbondRequestHeight {
 		return false
 	}
 	if !s1.UnbondTime.Equal(s2.UnbondTime) {

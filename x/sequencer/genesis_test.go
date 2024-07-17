@@ -45,6 +45,7 @@ func TestExportGenesis(t *testing.T) {
 	params := types.Params{
 		MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
 		UnbondingTime: 100,
+		NoticePeriod:  200,
 	}
 	sequencerList := []types.Sequencer{
 		{

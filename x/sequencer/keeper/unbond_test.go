@@ -91,7 +91,7 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Require().NoError(err)
 	sequencer1, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Unbonding)
-	suite.Require().Equal(sequencer1.UnbondingHeight, int64(blockheight))
+	suite.Require().Equal(sequencer1.UnbondRequestHeight, int64(blockheight))
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	// start the 2nd unbond later

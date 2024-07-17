@@ -35,20 +35,19 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	keeper := suite.App.SequencerKeeper
 
 	rollappId := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
 	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
 	unbondMsg := types.MsgUnbond{Creator: seqAddr}
-	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	unbondTime := res.CompletionTime
-	keeper.UnbondAllMatureSequencers(suite.Ctx, unbondTime.Add(1*time.Second))
-
-	seq, found := keeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
+	seq, _ := keeper.GetSequencer(suite.Ctx, seqAddr)
+	keeper.UnbondAllMatureSequencers(suite.Ctx, seq.UnbondTime.Add(1*time.Second))
+	seq, _ = keeper.GetSequencer(suite.Ctx, seqAddr)
 
 	suite.Equal(seq.SequencerAddress, seqAddr)
 	suite.Equal(seq.Status, types.Unbonded)

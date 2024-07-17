@@ -42,7 +42,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 	}
 
 	if lastStateOfSequencer {
-		// FIXME: the hub should probably validate the lastBlock in the lastBatch,
+		// TODO: the hub should probably validate the lastBlock in the lastBatch,
 		// to make sure the sequencer is passing the correct nextSequencer on the L2
 		hook.k.RotateProposer(ctx, rollappId)
 	}

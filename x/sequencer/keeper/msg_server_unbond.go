@@ -64,7 +64,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	k.SetNoticePeriodQueue(ctx, *seq)
 
 	nextSeqAddr := ""
-	nextSeq := k.expectedNextProposer(ctx, seq.RollappId)
+	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
 	if nextSeq == nil {
 		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
 	} else {

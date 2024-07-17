@@ -17,6 +17,13 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 	}
 }
 
+// IsRotating returns true if the rollapp is currently rotating proposers
+func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
+	curr := k.GetRollappProposer(ctx, rollappId)
+	next := k.GetRollappNextProposer(ctx, rollappId)
+	return curr != nil && next != nil && curr.SequencerAddress != next.SequencerAddress
+}
+
 // TODO: refactor to use store for optimization
 func (k Keeper) GetRollappProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
@@ -38,8 +45,8 @@ func (k Keeper) GetRollappNextProposer(ctx sdk.Context, rollappId string) (seq *
 	return nil
 }
 
-// expectedNextProposer returns the next proposer for a rollapp
-func (k Keeper) expectedNextProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
+// ExpectedNextProposer returns the next proposer for a rollapp
+func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 	if len(seqs) == 0 {
 		return
@@ -66,12 +73,14 @@ func (k Keeper) expectedNextProposer(ctx sdk.Context, rollappId string) (seq *ty
 // This function will not clear the current proposer
 func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 	addr := ""
-	nextProposer := k.expectedNextProposer(ctx, rollappId)
+	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
 	if nextProposer != nil {
 		addr = nextProposer.SequencerAddress
 		nextProposer.NextProposer = true
 		k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
 	}
+
+	// FIXME: need to seprate the case between empty nextProposer and no proposer
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
