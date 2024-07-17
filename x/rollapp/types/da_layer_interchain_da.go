@@ -17,10 +17,10 @@ func NewInterchainDALayer() InterchainDALayer {
 
 // OnRollappStateUpdate implements DALayer.
 func (da InterchainDALayer) OnRollappStateUpdate(ctx sdk.Context, commitment *codectypes.Any) error {
-	return nil //panic("unimplemented 👻")
+	return nil // panic("unimplemented 👻")
 }
 
 // VerifyMembership implements DALayer.
 func (da InterchainDALayer) VerifyMembership(ctx sdk.Context, commitment *codectypes.Any, proof []byte) error {
-	return nil //panic("unimplemented 👻")
+	return nil // panic("unimplemented 👻")
 }
