@@ -99,7 +99,7 @@ func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQ
 		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
 		return
 	}
-	// remove from the queue only the rollapps that were successfully finalized at all indices.
+	// remove from the queue the rollapps that were successfully finalized at all indices.
 	// for failed rollapps at current height, all state indices including and following the failed index will stay in the queue
 	blockHeightToFinalizationQueue.FinalizationQueue = slices.DeleteFunc(blockHeightToFinalizationQueue.FinalizationQueue,
 		func(si types.StateInfoIndex) bool {
