@@ -9,21 +9,6 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
-// MatureSequencersWithNoticePeriod moves all the sequencers that have finished their notice period
-func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
-	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
-	for _, seq := range seqs {
-		// set the next proposer for the rollapp
-		k.SetNextProposer(ctx, seq.RollappId)
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeNoBondedSequencer,
-				sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			),
-		)
-	}
-}
-
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
 // have finished their unbonding period.
 func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {

@@ -29,69 +29,72 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 		)
 	}
 
-	// todo: wrap in IsUnbondRequested
 	if seq.UnbondRequestHeight != 0 {
 		return nil, errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer has already requested to unbond",
 		)
 	}
+	seq.UnbondRequestHeight = ctx.BlockHeight()
 
-	var (
-		completionTime time.Time
-		err            error
-	)
-	// sequencer required for a notice period before unbonding
-	if seq.Proposer || seq.NextProposer {
-		completionTime, err = k.startNoticePeriodForSequencer(ctx, &seq)
+	// check if sequencer required for a notice period before unbonding
+	if seq.IsNoticePeriodRequired() {
+		completionTime, err := k.startNoticePeriodForSequencer(ctx, &seq)
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{
 				NoticePeriodCompletionTime: &completionTime,
 			},
 		}, err
-	} else {
-		completionTime, err = k.setSequencerToUnbonding(ctx, &seq)
-		return &types.MsgUnbondResponse{
-			CompletionTime: &types.MsgUnbondResponse_UnbondingCompletionTime{
-				UnbondingCompletionTime: &completionTime,
-			},
-		}, err
 	}
+
+	// otherwise, start unbonding
+	completionTime, err := k.setSequencerToUnbonding(ctx, &seq)
+	return &types.MsgUnbondResponse{
+		CompletionTime: &types.MsgUnbondResponse_UnbondingCompletionTime{
+			UnbondingCompletionTime: &completionTime,
+		},
+	}, err
 }
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) (time.Time, error) {
 	completionTime := ctx.BlockHeader().Time.Add(k.NoticePeriod(ctx))
-
-	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = completionTime
 
 	k.UpdateSequencer(ctx, *seq, types.Bonded) // only bonded sequencers can have notice period
-
 	k.SetNoticePeriodQueue(ctx, *seq)
 
-	// TODO: emit notice period started event
+	nextSeqAddr := ""
+	nextSeq := k.expectedNextProposer(ctx, seq.RollappId)
+	if nextSeq == nil {
+		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
+	} else {
+		nextSeqAddr = nextSeq.SequencerAddress
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeNoticePeriodStarted,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeqAddr),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+		),
+	)
 
 	return completionTime, nil
 }
 
+// setSequencerToUnbonding sets the sequencer to unbonding status
+// can be called after notice period or directly if notice period is not required
 func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seq *types.Sequencer) (time.Time, error) {
-	oldStatus := seq.Status
-
 	// set the status to unbonding
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+	seq.UnbondTime = completionTime
 
-	// todo: wrap in seq.SetToUnbonding
 	seq.Status = types.Unbonding
 	seq.Proposer = false
 	seq.NextProposer = false
-	seq.UnbondTime = completionTime
 
-	// don't overwrite the unbond request height in case notice period is already started
-	if seq.UnbondRequestHeight == 0 {
-		seq.UnbondRequestHeight = ctx.BlockHeight()
-	}
-
-	k.UpdateSequencer(ctx, *seq, oldStatus)
+	k.UpdateSequencer(ctx, *seq, types.Bonded) // only bonded sequencers can start unbonding
 	k.SetUnbondingSequencerQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(

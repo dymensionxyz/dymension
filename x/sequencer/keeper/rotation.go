@@ -2,10 +2,20 @@ package keeper
 
 import (
 	"sort"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
+
+// MatureSequencersWithNoticePeriod moves all the sequencers that have finished their notice period
+func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
+	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
+	for _, seq := range seqs {
+		// set the next proposer for the rollapp
+		k.StartRotation(ctx, seq.RollappId)
+	}
+}
 
 // TODO: refactor to use store for optimization
 func (k Keeper) GetRollappProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
@@ -28,20 +38,10 @@ func (k Keeper) GetRollappNextProposer(ctx sdk.Context, rollappId string) (seq *
 	return nil
 }
 
-// SetNextProposer sets the proposer for a rollapp to be the next sequencer in the list
-// This function will not clear the current proposer
-func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) string {
+// expectedNextProposer returns the next proposer for a rollapp
+func (k Keeper) expectedNextProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-
-	// we need at least 2 sequencers to rotate (1 proposer, 1 nextProposer)
-	if len(seqs) <= 1 {
-		k.Logger(ctx).Info("no next bonded sequencer available", "rollappId", rollappId)
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeNoBondedSequencer,
-				sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			),
-		)
+	if len(seqs) == 0 {
 		return
 	}
 
@@ -51,7 +51,6 @@ func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) string {
 	})
 
 	// filter out proposer and nextProposer
-	var seq *types.Sequencer
 	for _, s := range seqs {
 		if s.Proposer || s.NextProposer {
 			continue
@@ -60,40 +59,58 @@ func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId string) string {
 		break
 	}
 
-	seq.NextProposer = true
-	k.UpdateSequencer(ctx, *seq, types.Bonded)
-
-	// TODO: emit event
+	return seq
 }
 
-// RotateProposer sets the proposer for a rollapp to be the proposer with the greatest bond
-// This function will not clear the current proposer (assumes no proposer is set)
+// StartRotation sets the proposer for a rollapp to be the next sequencer in the list
+// This function will not clear the current proposer
+func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
+	addr := ""
+	nextProposer := k.expectedNextProposer(ctx, rollappId)
+	if nextProposer != nil {
+		addr = nextProposer.SequencerAddress
+		nextProposer.NextProposer = true
+		k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeRotationStarted,
+			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, addr),
+		),
+	)
+}
+
+// RotateProposer completes the sequencer rotation flow.
+// it will start unbonding the current proposer, and set new proposer from the bonded sequencers
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	propopser := k.GetRollappProposer(ctx, rollappId)
 	if propopser != nil {
 		propopser.Proposer = false
-		k.UpdateSequencer(ctx, *propopser, types.Bonded)
+		_, err := k.setSequencerToUnbonding(ctx, propopser)
+		if err != nil {
+			k.Logger(ctx).Error("unbond proposer", "err", err)
+			// fixme: return err?
+		}
 	}
 
-	/*
-			// set this sequencer to unbonding
-		_, err := k.setSequencerToUnbonding(ctx, &seq)
-		if err != nil {
-			return err
-		}
-
-	*/
-
+	addr := ""
 	nextProposer := k.GetRollappNextProposer(ctx, rollappId)
-	nextProposer.Proposer = true
-	nextProposer.NextProposer = false
-	k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
+	if nextProposer == nil {
+		k.Logger(ctx).Error("no next proposer available", "rollappId", rollappId)
+	} else {
+		addr = nextProposer.SequencerAddress
+		nextProposer.Proposer = true
+		nextProposer.NextProposer = false
+		k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, addr),
 		),
 	)
 }

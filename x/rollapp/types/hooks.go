@@ -11,8 +11,8 @@ import (
 
 // RollappHooks event hooks for rollapp object (noalias)
 type RollappHooks interface {
-	BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error         // Must be called when a rollapp's state changes
-	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error // Must be called when a rollapp's state changes
+	BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateOfSequencer bool) error // Must be called when a rollapp's state changes
+	AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo *StateInfo) error             // Must be called when a rollapp's state changes
 	FraudSubmitted(ctx sdk.Context, rollappID string, height uint64, seqAddr string) error
 }
 
@@ -26,9 +26,9 @@ func NewMultiRollappHooks(hooks ...RollappHooks) MultiRollappHooks {
 	return hooks
 }
 
-func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (h MultiRollappHooks) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateOfSequencer bool) error {
 	for i := range h {
-		err := h[i].BeforeUpdateState(ctx, seqAddr, rollappId)
+		err := h[i].BeforeUpdateState(ctx, seqAddr, rollappId, lastStateOfSequencer)
 		if err != nil {
 			return err
 		}

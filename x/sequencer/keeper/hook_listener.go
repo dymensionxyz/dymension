@@ -20,7 +20,7 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	}
 }
 
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateOfSequencer bool) error {
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -40,6 +40,13 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 	if !sequencer.Proposer {
 		return types.ErrNotActiveSequencer
 	}
+
+	if lastStateOfSequencer {
+		// FIXME: the hub should probably validate the lastBlock in the lastBatch,
+		// to make sure the sequencer is passing the correct nextSequencer on the L2
+		hook.k.RotateProposer(ctx, rollappId)
+	}
+
 	return nil
 }
 

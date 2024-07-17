@@ -35,6 +35,10 @@ func (seq Sequencer) IsNextProposer() bool {
 	return seq.NextProposer
 }
 
+func (seq Sequencer) IsNoticePeriodRequired() bool {
+	return seq.Proposer || seq.NextProposer
+}
+
 // clear bonded state
 func (seq *Sequencer) ClearBondedState() {
 	seq.Proposer = false
