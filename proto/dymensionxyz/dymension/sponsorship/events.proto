@@ -3,7 +3,7 @@ package dymensionxyz.dymension.sponsorship;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
-import "dymension/sponsorship/sponsorship.proto";
+import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
 
