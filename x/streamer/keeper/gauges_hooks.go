@@ -39,7 +39,6 @@ func (k Keeper) CreatePoolGauge(ctx sdk.Context, poolId uint64) error {
 func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
 	_, err := k.ik.CreateRollappGauge(
 		ctx,
-		k.ak.GetModuleAddress(types.ModuleName),
 		rollappID,
 	)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 )
 
 // CreateRollappGauge creates a gauge and sends coins to the gauge.
-func (k Keeper) CreateRollappGauge(ctx sdk.Context, owner sdk.AccAddress, rollappId string) (uint64, error) {
+func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, error) {
 	// Ensure the rollapp exists
 	_, found := k.rk.GetRollapp(ctx, rollappId)
 	if !found {
@@ -32,9 +32,7 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, owner sdk.AccAddress, rollap
 	k.SetLastGaugeID(ctx, gauge.Id)
 
 	combinedKeys := combineKeys(types.KeyPrefixUpcomingGauges, getTimeKey(gauge.StartTime))
-	activeOrUpcomingGauge := true
-
-	err = k.CreateGaugeRefKeys(ctx, &gauge, combinedKeys, activeOrUpcomingGauge)
+	err = k.CreateGaugeRefKeys(ctx, &gauge, combinedKeys, true)
 	if err != nil {
 		return 0, err
 	}
@@ -43,10 +41,6 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, owner sdk.AccAddress, rollap
 }
 
 func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (totalDistrCoins sdk.Coins, err error) {
-	defer func() {
-		err = k.updateGaugePostDistribute(ctx, gauge, totalDistrCoins)
-	}()
-
 	seqs := k.sq.GetSequencersByRollapp(ctx, gauge.GetRollapp().RollappId)
 	if len(seqs) == 0 {
 		k.Logger(ctx).Error(fmt.Sprintf("no sequencers found for rollapp %s", gauge.GetRollapp().RollappId))
@@ -69,13 +63,18 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 	totalDistrCoins = gauge.Coins.Sub(gauge.DistributedCoins...)
 	if totalDistrCoins.Empty() {
 		ctx.Logger().Debug(fmt.Sprintf("gauge %d is empty, skipping", gauge.Id))
-		return totalDistrCoins, nil
+		return sdk.Coins{}, nil
 	}
 
 	err = k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, addr, totalDistrCoins)
 	if err != nil {
-		return totalDistrCoins, err
+		return sdk.Coins{}, err
 	}
 
-	return totalDistrCoins, err
+	err = k.updateGaugePostDistribute(ctx, gauge, totalDistrCoins)
+	if err != nil {
+		return sdk.Coins{}, err
+	}
+
+	return totalDistrCoins, nil
 }
