@@ -103,7 +103,7 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				GenesisChecksum:         "",
 				Alias:                   "Rollapp",
 			},
-			err: ErrEmptyGenesisChecksum,
+			err: ErrInvalidGenesisChecksum,
 		},
 		{
 			name: "invalid alias: too long",
@@ -133,6 +133,18 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 				},
 			},
 			err: ErrInvalidLogoURI,
+		},
+		{
+			name: "invalid genesis checksum: too long",
+			msg: MsgCreateRollapp{
+				Creator:                 sample.AccAddress(),
+				Bech32Prefix:            bech32Prefix,
+				InitialSequencerAddress: sample.AccAddress(),
+				RollappId:               "dym_100-1",
+				GenesisChecksum:         strings.Repeat("a", maxGenesisChecksumLength+1),
+				Alias:                   "alias",
+			},
+			err: ErrInvalidGenesisChecksum,
 		},
 	}
 	for _, tt := range tests {

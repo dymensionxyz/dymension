@@ -12,7 +12,7 @@ import (
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [genesis_checksum] [alias] [metadata]",
+		Use:     "create-rollapp [rollapp-id] [init-sequencer-address] [bech32-prefix] [genesis_checksum] [alias] [metadata]",
 		Short:   "Create a new rollapp",
 		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm <genesis_checksum> Rollapp metadata.json",
 		Args:    cobra.ExactArgs(4),

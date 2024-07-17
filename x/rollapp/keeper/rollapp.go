@@ -6,6 +6,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -30,8 +31,10 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
-	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
-		return errorsmod.Wrap(types.ErrFeePayment, err.Error())
+	if registrationFee.IsAllPositive() {
+		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
+			return errorsmod.Wrap(types.ErrFeePayment, err.Error())
+		}
 	}
 
 	if err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, registrationFee); err != nil {
@@ -46,6 +49,74 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	}
 
 	return nil
+}
+
+func (k Keeper) UpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInformation) error {
+	if err := update.ValidateBasic(); err != nil {
+		return fmt.Errorf("validate update: %w", err)
+	}
+
+	rollapp, found := k.GetRollapp(ctx, update.RollappId)
+	if !found {
+		return errRollappNotFound
+	}
+
+	updated, err := k.checkIfCanUpdateRollapp(ctx, rollapp, update)
+	if err != nil {
+		return err
+	}
+
+	k.SetRollapp(ctx, updated)
+
+	// Emit event
+	if err = ctx.EventManager().EmitTypedEvent(&updated); err != nil {
+		return fmt.Errorf("emit event: %w", err)
+	}
+
+	return nil
+}
+
+func (k Keeper) checkIfCanUpdateRollapp(
+	ctx sdk.Context,
+	current types.Rollapp,
+	update *types.UpdateRollappInformation,
+) (types.Rollapp, error) {
+	if update.Creator != current.Creator {
+		return current, sdkerrors.ErrUnauthorized
+	}
+
+	if current.Frozen {
+		return current, types.ErrRollappFrozen
+	}
+
+	if update.InitialSequencerAddress != "" {
+		if current.InitialSequencerAddress != "" {
+			return current, types.ErrUpdateInitialSequencer
+		}
+		if err := k.checkIfInitialSequencerAddressTaken(ctx, update.InitialSequencerAddress); err != nil {
+			return current, fmt.Errorf("check if initial sequencer address taken: %w", err)
+		}
+		current.InitialSequencerAddress = update.InitialSequencerAddress
+	}
+
+	if update.Alias != "" && current.Alias != update.Alias {
+		if _, isFound := k.GetRollappByAlias(ctx, update.Alias); isFound {
+			return current, types.ErrAliasAlreadyTaken
+		}
+		current.Alias = update.Alias
+	}
+
+	if update.GenesisChecksum != "" {
+		current.GenesisChecksum = update.GenesisChecksum
+	}
+
+	current.Metadata = update.Metadata
+
+	if err := current.ValidateBasic(); err != nil {
+		return current, fmt.Errorf("validate rollapp: %w", err)
+	}
+
+	return current, nil
 }
 
 func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
@@ -88,6 +159,9 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
 }
 
 func (k Keeper) checkIfInitialSequencerAddressTaken(ctx sdk.Context, address string) error {
+	if address == "" {
+		return nil
+	}
 	if _, isFound := k.GetRollappByInitialSequencerAddress(ctx, address); isFound {
 		return types.ErrInitialSequencerAddressTaken
 	}
