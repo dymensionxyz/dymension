@@ -1,11 +1,11 @@
 package upgrades
 
 import (
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 )
@@ -13,8 +13,8 @@ import (
 // BaseAppParamManager defines an interface that BaseApp is expected to fulfill
 // that allows upgrade handlers to modify BaseApp parameters.
 type BaseAppParamManager interface {
-	GetConsensusParams(ctx sdk.Context) *abci.ConsensusParams
-	StoreConsensusParams(ctx sdk.Context, cp *abci.ConsensusParams)
+	GetConsensusParams(ctx sdk.Context) *cometbftproto.ConsensusParams
+	StoreConsensusParams(ctx sdk.Context, cp *cometbftproto.ConsensusParams)
 }
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal

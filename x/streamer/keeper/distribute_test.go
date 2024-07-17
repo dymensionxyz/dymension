@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 
 	// check that the sum of coins yet to be distributed is nil
 	coins := suite.App.StreamerKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, sdk.Coins(nil))
+	suite.Require().Equal(coins, sdk.Coins{})
 
 	// setup a stream
 	streamCoins := sdk.Coins{sdk.NewInt64Coin("stake", 600000)}

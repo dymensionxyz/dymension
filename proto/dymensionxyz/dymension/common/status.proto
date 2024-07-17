@@ -1,0 +1,12 @@
+syntax = "proto3";
+package dymensionxyz.dymension.common;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
+
+enum Status {
+    PENDING = 0;
+    FINALIZED = 1;
+    REVERTED = 3;
+}

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.denommetadata;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/denommetadata/types";
+
+
+// GenesisState defines the denommetadata module's various parameters when first
+// initialized
+message GenesisState {
+
+}

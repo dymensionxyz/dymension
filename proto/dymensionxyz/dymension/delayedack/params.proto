@@ -1,0 +1,28 @@
+syntax = "proto3";
+package dymensionxyz.dymension.delayedack;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/delayedack/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  string epoch_identifier = 1
+      [ (gogoproto.moretags) = "yaml:\"epoch_identifier\"" ];
+
+  string bridging_fee = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.moretags) = "yaml:\"bridging_fee\"",
+    (gogoproto.nullable) = false
+  ];
+  // `delete_packets_epoch_limit` is the hard limit of the number of finalized rollapp packets
+  // that will be deleted from the store on every epoch end.
+  // As deleting finalized rollapp packets is meant to keep the store from growing,
+  // it is more of a "nice to have" rather than a "must have" feature,
+  // this is a way to limit the time it takes to do so,
+  // even if it means potentially causing the store to temporarily grow by piling up packets
+  // that weren't deleted but rather "postponed", to subsequent epochs.
+  int32 delete_packets_epoch_limit = 3
+      [ (gogoproto.moretags) = "yaml:\"delete_packets_epoch_limit\"" ];
+}

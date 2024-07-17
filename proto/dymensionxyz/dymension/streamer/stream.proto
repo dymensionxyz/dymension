@@ -1,0 +1,53 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/streamer/distr_info.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+// Stream is an object that stores and distributes yields to recipients who
+// satisfy certain conditions. Currently streams support conditions around the
+// duration for which a given denom is locked.
+message Stream {
+  // id is the unique ID of a Stream
+  uint64 id = 1;
+
+  // distribute_to is the distr_info.
+  DistrInfo distribute_to = 2;
+  
+  // coins is the total amount of coins that have been in the stream
+  // Can distribute multiple coin denoms
+  repeated cosmos.base.v1beta1.Coin coins = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // start_time is the distribution start time
+  google.protobuf.Timestamp start_time = 4 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"start_time\""
+  ];
+
+    // distr_epoch_identifier is what epoch type di-stribution will be triggered by
+  // (day, week, etc.)
+  string distr_epoch_identifier = 5
+      [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+
+  // num_epochs_paid_over is the number of total epochs distribution will be
+  // completed over
+  uint64 num_epochs_paid_over = 6;
+  // filled_epochs is the number of epochs distribution has been completed on
+  // already
+  uint64 filled_epochs = 7;
+  // distributed_coins are coins that have been distributed already
+  repeated cosmos.base.v1beta1.Coin distributed_coins = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

@@ -1,0 +1,32 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+message DeployerParams {
+  // address is a bech32-encoded address of the 
+  // accounts that are allowed to create a rollapp.  
+  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+}
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  
+  // dispute_period_in_blocks the number of blocks it takes
+  // to change a status of a state from received to finalized.
+  // during that period, any user could submit fraud proof
+  uint64 dispute_period_in_blocks = 1
+      [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
+
+  // deployer_whitelist is a list of the
+  // accounts that are allowed to create a rollapp and maximum number of rollapps.
+  // In the case of an empty list, there are no restrictions
+  repeated DeployerParams deployer_whitelist = 2
+      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" , (gogoproto.nullable) = false];
+
+  bool rollapps_enabled = 3
+      [ (gogoproto.moretags) = "yaml:\"rollapps_enabled\"" ];
+}

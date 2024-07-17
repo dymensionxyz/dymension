@@ -1,0 +1,24 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  cosmos.base.v1beta1.Coin min_bond = 1 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.jsontag)      = "min_bond,omitempty"
+  ];
+
+  // unbonding_time is the time duration of unbonding.
+  google.protobuf.Duration unbonding_time = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+
+}
