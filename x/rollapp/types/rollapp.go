@@ -38,10 +38,13 @@ func NewRollapp(
 }
 
 const (
-	maxAliasLength       = 64
-	maxDescriptionLength = 256
-	maxDataURILength     = 25 * 1024 // 25KB
-	dataURIPattern       = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
+	maxAliasLength           = 64
+	maxDescriptionLength     = 256
+	maxURLLength             = 256
+	maxHandleLength          = 64
+	maxGenesisChecksumLength = 64
+	maxDataURILength         = 25 * 1024 // 25KB
+	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
 )
 
 func (r Rollapp) ValidateBasic() error {
@@ -56,17 +59,19 @@ func (r Rollapp) ValidateBasic() error {
 		return err
 	}
 
-	_, err = sdk.AccAddressFromBech32(r.InitialSequencerAddress)
-	if err != nil {
-		return errorsmod.Wrap(ErrInvalidInitialSequencerAddress, err.Error())
+	if r.InitialSequencerAddress != "" {
+		_, err = sdk.AccAddressFromBech32(r.InitialSequencerAddress)
+		if err != nil {
+			return errorsmod.Wrap(ErrInvalidInitialSequencerAddress, err.Error())
+		}
 	}
 
 	if err = validateBech32Prefix(r.Bech32Prefix); err != nil {
 		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
 	}
 
-	if r.GenesisChecksum == "" {
-		return errorsmod.Wrap(ErrEmptyGenesisChecksum, "GenesisChecksum")
+	if l := len(r.GenesisChecksum); l == 0 || l > maxGenesisChecksumLength {
+		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
 	if l := len(r.Alias); l == 0 || l > maxAliasLength {
@@ -102,8 +107,16 @@ func validateMetadata(metadata *RollappMetadata) error {
 		return nil
 	}
 
-	if _, err := url.Parse(metadata.Website); err != nil {
+	if err := validateURL(metadata.Website); err != nil {
 		return errorsmod.Wrap(ErrInvalidWebsiteURL, err.Error())
+	}
+
+	if len(metadata.Telegram) > maxHandleLength {
+		return ErrInvalidHandle
+	}
+
+	if len(metadata.X) > maxHandleLength {
+		return ErrInvalidHandle
 	}
 
 	if len(metadata.Description) > maxDescriptionLength {
@@ -116,6 +129,22 @@ func validateMetadata(metadata *RollappMetadata) error {
 
 	if err := validateBaseURI(metadata.TokenLogoUri); err != nil {
 		return errorsmod.Wrap(ErrInvalidTokenLogoURI, err.Error())
+	}
+
+	return nil
+}
+
+func validateURL(urlStr string) error {
+	if urlStr == "" {
+		return nil
+	}
+
+	if len(urlStr) > maxURLLength {
+		return ErrInvalidWebsiteURL
+	}
+
+	if _, err := url.Parse(urlStr); err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	return nil

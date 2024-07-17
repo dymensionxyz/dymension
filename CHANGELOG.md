@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### State Machine Breaking
+
+- (dependencies) [#970](https://github.com/dymensionxyz/dymension/pull/970) Bump dependencies cosmos-sdk to v0.47.12 
+
 ### Features
 
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
@@ -48,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (rollapp) [#996](https://github.com/dymensionxyz/dymension/issues/996) Handle rollapp information updates.
 - (sequencer) [#955](https://github.com/dymensionxyz/dymension/issues/979) Rework the sequencer registration flow.
 - (app) [#972](https://github.com/dymensionxyz/dymension/pull/972) Refactor upgrade handlers. 
 - (delayedack) [#972](https://github.com/dymensionxyz/dymension/pull/972) Use pagination when deleting rollapp packets.

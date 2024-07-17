@@ -1,0 +1,52 @@
+syntax = "proto3";
+package dymensionxyz.dymension.streamer;
+
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/timestamp.proto";
+import "dymensionxyz/dymension/streamer/distr_info.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/streamer/types";
+
+
+message CreateStreamProposal {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_getters) = false;
+  option (gogoproto.goproto_stringer) = false;
+  
+  string title = 1;
+  string description = 2;
+  
+  repeated DistrRecord distribute_to_records = 3 [ (gogoproto.nullable) = false ];
+
+  // coins are coin(s) to be distributed by the stream
+  repeated cosmos.base.v1beta1.Coin coins = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  // start_time is the distribution start time
+  google.protobuf.Timestamp start_time = 5 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"timestamp\""
+  ];
+
+  string distr_epoch_identifier = 6
+  [ (gogoproto.moretags) = "yaml:\"distr_epoch_identifier\"" ];
+
+  // num_epochs_paid_over is the number of epochs distribution will be completed
+  // over
+  uint64 num_epochs_paid_over = 7;
+  }
+
+  message TerminateStreamProposal {
+    option (gogoproto.equal) = true;
+    option (gogoproto.goproto_getters) = false;
+    option (gogoproto.goproto_stringer) = false;
+    
+    string title = 1;
+    string description = 2;
+
+    uint64 stream_id = 4;
+  }

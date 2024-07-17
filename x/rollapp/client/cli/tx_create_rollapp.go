@@ -1,18 +1,18 @@
 package cli
 
 import (
+	"github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/json"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func CmdCreateRollapp() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "create-rollapp [rollapp-id] [init-sequencers-address] [bech32-prefix] [genesis_checksum] [alias] [metadata]",
+		Use:     "create-rollapp [rollapp-id] [init-sequencer-address] [bech32-prefix] [genesis_checksum] [alias] [metadata]",
 		Short:   "Create a new rollapp",
 		Example: "dymd tx rollapp create-rollapp ROLLAPP_CHAIN_ID <seq_address> ethm <genesis_checksum> Rollapp metadata.json",
 		Args:    cobra.ExactArgs(4),

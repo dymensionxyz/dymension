@@ -3,14 +3,14 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/cometbft/cometbft/libs/rand"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/libs/rand"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -30,7 +30,7 @@ func TestSequencerKeeperTestSuite(t *testing.T) {
 
 func (suite *SequencerTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.SequencerKeeper)

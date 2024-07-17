@@ -14,3 +14,8 @@ type EncodingConfig struct {
 	TxConfig          client.TxConfig
 	Amino             *codec.LegacyAmino
 }
+
+const (
+	StakePerAccount           = "stake_per_account"
+	InitiallyBondedValidators = "initially_bonded_validators"
+)

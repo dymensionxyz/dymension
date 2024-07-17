@@ -1,0 +1,75 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+// this line is used by starport scaffolding # proto/tx/import
+import "cosmos/msg/v1/msg.proto";
+import "dymensionxyz/dymension/rollapp/block_descriptor.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/metadata.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+import "gogoproto/gogo.proto";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
+  rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
+}
+
+// MsgCreateRollapp creates a new rollapp chain on the hub.
+message MsgCreateRollapp {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the rollapp creator
+  string creator = 1;
+  // rollappId is the unique identifier of the rollapp chain.
+  // The rollapp_id follows the same standard as cosmos chain_id
+  string rollapp_id = 2;
+  // initial_sequencer_address is a bech32-encoded address of the
+  // sequencer that is allowed to initially serve this rollappId.
+  string initial_sequencer_address = 3;
+  // the unique rollapp address bech32 prefix.
+  string bech32_prefix = 4;
+  // alias is the chain alias used for display and namespace system
+  string alias = 5;
+  // checksum used to verify integrity
+  string genesis_checksum = 6;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 7;
+}
+
+message MsgCreateRollappResponse {
+}
+
+// MsgUpdateRollappInformation updates the rollapp information.
+message MsgUpdateRollappInformation {
+  // update is the new rollapp information
+  UpdateRollappInformation update = 1;
+}
+
+message MsgUpdateRollappInformationResponse {
+}
+
+// MsgUpdateState updates a rollapp state with a block batch.
+// a block batch is a list of ordered blocks (by height)
+message MsgUpdateState {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer sending the update
+  string creator = 1;
+  // rollappId is the rollapp that the sequencer belongs to and asking to update
+  // The rollappId follows the same standard as cosmos chain_id
+  string rollappId = 2;
+  // startHeight is the block height of the first block in the batch
+  uint64 startHeight = 3;
+  // numBlocks is the number of blocks included in this batch update
+  uint64 numBlocks = 4;
+  // DAPath is the description of the location on the DA layer
+  string DAPath = 5;
+  // BDs is a list of block description objects (one per block)
+  // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
+  BlockDescriptors BDs = 6 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateStateResponse {
+}

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"testing"
 
+	cometbft "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-	transfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/stretchr/testify/require"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
@@ -108,7 +108,7 @@ func TestIBCModule_OnRecvPacket(t *testing.T) {
 			tt.rollappKeeper.packetData = packetData
 			packetDataBytes := types.ModuleCdc.MustMarshalJSON(&packetData)
 			packet := channeltypes.Packet{Data: packetDataBytes, SourcePort: "transfer", SourceChannel: "channel-0"}
-			got := im.OnRecvPacket(sdk.NewContext(nil, tmproto.Header{}, false, nil), packet, sdk.AccAddress{})
+			got := im.OnRecvPacket(sdk.NewContext(nil, cometbft.Header{}, false, nil), packet, sdk.AccAddress{})
 			require.Equal(t, tt.wantAck, got)
 			if !tt.wantAck.Success() {
 				return
