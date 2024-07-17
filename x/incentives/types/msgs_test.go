@@ -4,13 +4,13 @@ import (
 	"testing"
 	time "time"
 
+	"github.com/cometbft/cometbft/crypto/ed25519"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/ed25519"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
+	"github.com/osmosis-labs/osmosis/v15/testutils"
 
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 
@@ -254,7 +254,7 @@ func TestAuthzMsg(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			apptesting.TestMessageAuthzSerialization(t, tc.incentivesMsg)
+			testutils.TestMessageAuthzSerialization(t, tc.incentivesMsg)
 		})
 	}
 }

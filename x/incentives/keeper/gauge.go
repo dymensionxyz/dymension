@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
-	db "github.com/tendermint/tm-db"
+	db "github.com/cometbft/cometbft-db"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"

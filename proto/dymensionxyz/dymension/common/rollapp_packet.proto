@@ -3,7 +3,7 @@ package dymensionxyz.dymension.common;
 
 import "gogoproto/gogo.proto";
 import "ibc/core/channel/v1/channel.proto"; 
-import "dymension/common/status.proto";
+import "dymensionxyz/dymension/common/status.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/common/types";
 

@@ -7,10 +7,10 @@ import (
 
 	dbm "github.com/cometbft/cometbft-db"
 
-	cfg "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/libs/os"
-	"github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
+	cfg "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/libs/os"
+	"github.com/cometbft/cometbft/state"
+	"github.com/cometbft/cometbft/store"
 )
 
 func loadStateAndBlockStore(config *cfg.Config) (*store.BlockStore, state.Store, error) {
@@ -43,7 +43,7 @@ func loadStateAndBlockStore(config *cfg.Config) (*store.BlockStore, state.Store,
 	return blockStore, stateStore, nil
 }
 
-func getTendermintState(config *cfg.Config) error {
+func getCometbftState(config *cfg.Config) error {
 	// use the parsed config to load the block and state store
 	blockStore, stateStore, err := loadStateAndBlockStore(config)
 	if err != nil {

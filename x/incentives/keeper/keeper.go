@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"

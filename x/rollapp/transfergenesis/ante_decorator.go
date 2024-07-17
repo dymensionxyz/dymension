@@ -6,7 +6,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"github.com/dymensionxyz/sdk-utils/utils/uibc"
 
-	transferTypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	transferTypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 

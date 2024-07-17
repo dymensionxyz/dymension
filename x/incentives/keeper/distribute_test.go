@@ -97,7 +97,7 @@ func (suite *KeeperTestSuite) TestGetModuleToDistributeCoins() {
 
 	// check that the sum of coins yet to be distributed is nil
 	coins := suite.App.IncentivesKeeper.GetModuleToDistributeCoins(suite.Ctx)
-	suite.Require().Equal(coins, sdk.Coins(nil))
+	suite.Require().Equal(coins, sdk.Coins{})
 
 	// setup a non perpetual lock and gauge
 	_, gaugeID, gaugeCoins, startTime := suite.SetupLockAndGauge(false)
@@ -141,14 +141,14 @@ func (suite *KeeperTestSuite) TestGetModuleDistributedCoins() {
 
 	// check that the sum of coins yet to be distributed is nil
 	coins := suite.App.IncentivesKeeper.GetModuleDistributedCoins(suite.Ctx)
-	suite.Require().Equal(coins, sdk.Coins(nil))
+	suite.Require().Equal(coins, sdk.Coins{})
 
 	// setup a non perpetual lock and gauge
 	_, gaugeID, _, startTime := suite.SetupLockAndGauge(false)
 
 	// check that the sum of coins yet to be distributed is equal to the newly created gaugeCoins
 	coins = suite.App.IncentivesKeeper.GetModuleDistributedCoins(suite.Ctx)
-	suite.Require().Equal(coins, sdk.Coins(nil))
+	suite.Require().Equal(coins, sdk.Coins{})
 
 	// move all created gauges from upcoming to active
 	suite.Ctx = suite.Ctx.WithBlockTime(startTime)
@@ -206,7 +206,7 @@ func (suite *KeeperTestSuite) TestNoLockPerpetualGaugeDistribution() {
 	// distribute coins to stakers, since it's perpetual distribute everything on single distribution
 	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins(nil))
+	suite.Require().Equal(distrCoins, sdk.Coins{})
 
 	// check state is same after distribution
 	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)
@@ -253,7 +253,7 @@ func (suite *KeeperTestSuite) TestNoLockNonPerpetualGaugeDistribution() {
 	// distribute coins to stakers
 	distrCoins, err := suite.App.IncentivesKeeper.Distribute(suite.Ctx, []types.Gauge{*gauge})
 	suite.Require().NoError(err)
-	suite.Require().Equal(distrCoins, sdk.Coins(nil))
+	suite.Require().Equal(distrCoins, sdk.Coins{})
 
 	// check state is same after distribution
 	gauges = suite.App.IncentivesKeeper.GetNotFinishedGauges(suite.Ctx)

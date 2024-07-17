@@ -16,7 +16,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -52,7 +53,10 @@ func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec registers the module's types on the LegacyAmino codec.
+func (AppModuleBasic) RegisterCodec(cdc *codec.LegacyAmino) {
+	types.RegisterCodec(cdc)
+}
+
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterCodec(cdc)
 }
@@ -129,21 +133,6 @@ func NewAppModule(keeper keeper.Keeper,
 // Name returns the module's name.
 func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
-}
-
-// Route returns the module's message routing key.
-func (am AppModule) Route() sdk.Route {
-	return sdk.Route{}
-}
-
-// QuerierRoute returns the module's query routing key.
-func (AppModule) QuerierRoute() string { return types.QuerierRoute }
-
-// LegacyQuerierHandler returns the incentive module's Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return func(sdk.Context, []string, abci.RequestQuery) ([]byte, error) {
-		return nil, fmt.Errorf("legacy querier not supported for the x/%s module", types.ModuleName)
-	}
 }
 
 // RegisterServices registers the module's services.

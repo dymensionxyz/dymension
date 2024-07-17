@@ -14,11 +14,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	"github.com/cosmos/cosmos-sdk/x/consensus"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	distrclient "github.com/cosmos/cosmos-sdk/x/distribution/client"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -41,17 +42,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
-	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward"
-	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v6/packetforward/types"
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	ibc "github.com/cosmos/ibc-go/v6/modules/core"
-	ibcclientclient "github.com/cosmos/ibc-go/v6/modules/core/02-client/client"
-	ibchost "github.com/cosmos/ibc-go/v6/modules/core/24-host"
-	"github.com/dymensionxyz/dymension/v3/x/incentives"
-	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
+	packetforwardmiddleware "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	ibc "github.com/cosmos/ibc-go/v7/modules/core"
+	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/evmos/ethermint/x/evm"
 	evmclient "github.com/evmos/ethermint/x/evm/client"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -72,6 +72,7 @@ import (
 	delayedackmodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
 	denommetadatamodule "github.com/dymensionxyz/dymension/v3/x/denommetadata"
 	eibcmodule "github.com/dymensionxyz/dymension/v3/x/eibc"
+	"github.com/dymensionxyz/dymension/v3/x/incentives"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	sequencermodule "github.com/dymensionxyz/dymension/v3/x/sequencer"
 	streamermodule "github.com/dymensionxyz/dymension/v3/x/streamer"
@@ -83,7 +84,9 @@ import (
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	"github.com/dymensionxyz/dymension/v3/x/eibc"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp"
+
 	rollappmoduleclient "github.com/dymensionxyz/dymension/v3/x/rollapp/client"
 	rollappmoduletypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
@@ -102,12 +105,12 @@ var ModuleBasics = module.NewBasicManager(
 	genutil.AppModuleBasic{},
 	bank.AppModuleBasic{},
 	capability.AppModuleBasic{},
+	consensus.AppModuleBasic{},
 	staking.AppModuleBasic{},
 	mint.AppModuleBasic{},
 	distribution.AppModuleBasic{},
 	gov.NewAppModuleBasic([]client.ProposalHandler{
 		paramsclient.ProposalHandler,
-		distrclient.ProposalHandler,
 		upgradeclient.LegacyProposalHandler,
 		upgradeclient.LegacyCancelProposalHandler,
 		ibcclientclient.UpdateClientProposalHandler,
@@ -126,6 +129,7 @@ var ModuleBasics = module.NewBasicManager(
 	slashing.AppModuleBasic{},
 	feegrantmodule.AppModuleBasic{},
 	ibc.AppModuleBasic{},
+	ibctm.AppModuleBasic{},
 	upgrade.AppModuleBasic{},
 	evidence.AppModuleBasic{},
 	transfer.AppModuleBasic{},
@@ -162,23 +166,24 @@ func (a *AppKeepers) SetupModules(
 			a.AccountKeeper, a.StakingKeeper, bApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
-		auth.NewAppModule(appCodec, a.AccountKeeper, nil),
+		auth.NewAppModule(appCodec, a.AccountKeeper, nil, a.GetSubspace(authtypes.ModuleName)),
 		authzmodule.NewAppModule(appCodec, a.AuthzKeeper, a.AccountKeeper, a.BankKeeper, encodingConfig.InterfaceRegistry),
 		vesting.NewAppModule(a.AccountKeeper, a.BankKeeper),
-		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper),
-		capability.NewAppModule(appCodec, *a.CapabilityKeeper),
+		bank.NewAppModule(appCodec, a.BankKeeper, a.AccountKeeper, a.GetSubspace(banktypes.ModuleName)),
+		capability.NewAppModule(appCodec, *a.CapabilityKeeper, false),
 		feegrantmodule.NewAppModule(appCodec, a.AccountKeeper, a.BankKeeper, a.FeeGrantKeeper, encodingConfig.InterfaceRegistry),
-		crisis.NewAppModule(&a.CrisisKeeper, skipGenesisInvariants),
-		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper),
-		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil),
-		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper),
-		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper),
-		staking.NewAppModule(appCodec, a.StakingKeeper, a.AccountKeeper, a.BankKeeper),
+		crisis.NewAppModule(a.CrisisKeeper, skipGenesisInvariants, a.GetSubspace(crisistypes.ModuleName)),
+		consensus.NewAppModule(appCodec, a.ConsensusParamsKeeper),
+		gov.NewAppModule(appCodec, a.GovKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(govtypes.ModuleName)),
+		mint.NewAppModule(appCodec, a.MintKeeper, a.AccountKeeper, nil, a.GetSubspace(minttypes.ModuleName)),
+		slashing.NewAppModule(appCodec, a.SlashingKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(slashingtypes.ModuleName)),
+		distr.NewAppModule(appCodec, a.DistrKeeper, a.AccountKeeper, a.BankKeeper, a.StakingKeeper, a.GetSubspace(distrtypes.ModuleName)),
+		staking.NewAppModule(appCodec, &a.StakingKeeper, a.AccountKeeper, a.BankKeeper, a.GetSubspace(stakingtypes.ModuleName)),
 		upgrade.NewAppModule(a.UpgradeKeeper),
 		evidence.NewAppModule(a.EvidenceKeeper),
 		ibc.NewAppModule(a.IBCKeeper),
 		params.NewAppModule(a.ParamsKeeper),
-		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper),
+		packetforwardmiddleware.NewAppModule(a.PacketForwardMiddlewareKeeper, a.GetSubspace(packetforwardtypes.ModuleName)),
 		ibctransfer.NewAppModule(a.TransferKeeper),
 		rollappmodule.NewAppModule(appCodec, &a.RollappKeeper, a.AccountKeeper, a.BankKeeper),
 		sequencermodule.NewAppModule(appCodec, a.SequencerKeeper, a.AccountKeeper, a.BankKeeper),
@@ -246,7 +251,7 @@ var BeginBlockers = []string{
 	vestingtypes.ModuleName,
 	feemarkettypes.ModuleName,
 	evmtypes.ModuleName,
-	ibchost.ModuleName,
+	ibcexported.ModuleName,
 	ibctransfertypes.ModuleName,
 	packetforwardtypes.ModuleName,
 	authtypes.ModuleName,
@@ -268,6 +273,7 @@ var BeginBlockers = []string{
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
+	consensusparamtypes.ModuleName,
 }
 
 var EndBlockers = []string{
@@ -289,7 +295,7 @@ var EndBlockers = []string{
 	feegrant.ModuleName,
 	paramstypes.ModuleName,
 	upgradetypes.ModuleName,
-	ibchost.ModuleName,
+	ibcexported.ModuleName,
 	ibctransfertypes.ModuleName,
 	packetforwardtypes.ModuleName,
 	rollappmoduletypes.ModuleName,
@@ -304,6 +310,7 @@ var EndBlockers = []string{
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
+	consensusparamtypes.ModuleName,
 }
 
 var InitGenesis = []string{
@@ -320,7 +327,7 @@ var InitGenesis = []string{
 	govtypes.ModuleName,
 	minttypes.ModuleName,
 	crisistypes.ModuleName,
-	ibchost.ModuleName,
+	ibcexported.ModuleName,
 	genutiltypes.ModuleName,
 	evidencetypes.ModuleName,
 	paramstypes.ModuleName,
@@ -340,4 +347,5 @@ var InitGenesis = []string{
 	poolmanagertypes.ModuleName,
 	incentivestypes.ModuleName,
 	txfeestypes.ModuleName,
+	consensusparamtypes.ModuleName,
 }

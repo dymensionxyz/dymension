@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/app/apptesting"
+	"github.com/osmosis-labs/osmosis/v15/testutils/apptesting"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
