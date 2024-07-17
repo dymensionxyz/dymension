@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"reflect"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -169,7 +170,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				SequencerAddress: sequencerMsg.GetCreator(),
 			})
 			suite.Require().Nil(err)
-			equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
+			suite.equalSequencer(&sequencerExpect, &queryResponse.Sequencer)
 
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
@@ -177,7 +178,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			sequencersRes, totalRes := getAll(suite)
 			suite.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
-			verifyAll(suite, sequencersExpect, sequencersRes)
+			suite.verifyAll(sequencersExpect, sequencersRes)
 
 			// add the sequencer to the list of spesific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.Address}] = sequencerExpect.Address
@@ -278,13 +279,13 @@ func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer()
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
-func verifyAll(suite *SequencerTestSuite, sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
+func (suite *SequencerTestSuite) verifyAll(sequencersExpect []*types.Sequencer, sequencersRes map[string]*types.Sequencer) {
 	// check number of items are equal
 	suite.Require().EqualValues(len(sequencersExpect), len(sequencersRes))
 	for i := 0; i < len(sequencersExpect); i++ {
 		sequencerExpect := sequencersExpect[i]
 		sequencerRes := sequencersRes[sequencerExpect.GetAddress()]
-		equalSequencer(suite, sequencerExpect, sequencerRes)
+		suite.equalSequencer(sequencerExpect, sequencerRes)
 	}
 }
 
@@ -328,12 +329,12 @@ func getAll(suite *SequencerTestSuite) (map[string]*types.Sequencer, int) {
 }
 
 // equalSequencer receives two sequencers and compares them. If there they not equal, fails the test
-func equalSequencer(suite *SequencerTestSuite, s1 *types.Sequencer, s2 *types.Sequencer) {
-	eq := CompareSequencers(s1, s2)
+func (suite *SequencerTestSuite) equalSequencer(s1 *types.Sequencer, s2 *types.Sequencer) {
+	eq := compareSequencers(s1, s2)
 	suite.Require().True(eq, "expected: %v\nfound: %v", *s1, *s2)
 }
 
-func CompareSequencers(s1, s2 *types.Sequencer) bool {
+func compareSequencers(s1, s2 *types.Sequencer) bool {
 	if s1.Address != s2.Address {
 		return false
 	}
@@ -362,6 +363,10 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 	if !s1.UnbondTime.Equal(s2.UnbondTime) {
+		return false
+	}
+
+	if !reflect.DeepEqual(s1.Metadata, s2.Metadata) {
 		return false
 	}
 	return true

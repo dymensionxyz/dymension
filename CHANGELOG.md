@@ -52,6 +52,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (rollapp) [#999](https://github.com/dymensionxyz/dymension/issues/999) Handle sequencer information updates.
 - (rollapp) [#996](https://github.com/dymensionxyz/dymension/issues/996) Handle rollapp information updates.
 - (sequencer) [#955](https://github.com/dymensionxyz/dymension/issues/979) Rework the sequencer registration flow.
 - (app) [#972](https://github.com/dymensionxyz/dymension/pull/972) Refactor upgrade handlers. 

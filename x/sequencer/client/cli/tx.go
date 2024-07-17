@@ -25,6 +25,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdCreateSequencer())
+	cmd.AddCommand(CmdUpdateSequencer())
 	cmd.AddCommand(CmdUnbond())
 
 	return cmd
@@ -67,6 +68,42 @@ func CmdCreateSequencer() *cobra.Command {
 				argRollappId,
 				argMetadata,
 				bondCoin,
+			)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateSequencer() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-sequencer [rollapp-id] [metadata]",
+		Short: "Update a sequencer",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argRollappId := args[0]
+			argMetadata := types.SequencerMetadata{}
+
+			if err = json.Unmarshal([]byte(args[2]), &argMetadata); err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg, err := types.NewMsgUpdateSequencerInformation(
+				clientCtx.GetFromAddress().String(),
+				argRollappId,
+				argMetadata,
 			)
 			if err != nil {
 				return err

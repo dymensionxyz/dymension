@@ -10,7 +10,6 @@ import (
 
 const (
 	TypeMsgCreateSequencer = "create_sequencer"
-	TypeMsgUnbond          = "unbond"
 )
 
 var (
@@ -19,13 +18,6 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pubKey cryptotypes.PubKey
-	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
-}
-
-/* --------------------------- MsgCreateSequencer --------------------------- */
 func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
 	var pkAny *codectypes.Any
 	if pubkey != nil {
@@ -104,26 +96,8 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	return nil
 }
 
-/* -------------------------------- MsgUnbond ------------------------------- */
-func NewMsgUnbond(creator string) *MsgUnbond {
-	return &MsgUnbond{
-		Creator: creator,
-	}
-}
-
-func (msg *MsgUnbond) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-
-	return nil
-}
-
-func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{creator}
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pubKey cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.DymintPubKey, &pubKey)
 }
