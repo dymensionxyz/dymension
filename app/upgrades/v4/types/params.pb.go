@@ -136,15 +136,6 @@ func (m *Params) GetRollappsEnabled() bool {
 	return false
 }
 
-func init() {
-	proto.RegisterType((*DeployerParams)(nil), "dymensionxyz.dymension.rollapp.DeployerParams")
-	proto.RegisterType((*Params)(nil), "dymensionxyz.dymension.rollapp.Params")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/rollapp/params.proto", fileDescriptor_75a44aa904ae1ba5)
-}
-
 var fileDescriptor_75a44aa904ae1ba5 = []byte{
 	// 356 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xd2, 0x4e, 0xa9, 0xcc, 0x4d,

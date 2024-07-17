@@ -54,14 +54,6 @@ func (OperatingStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4d19c29067c09de2, []int{0}
 }
 
-func init() {
-	proto.RegisterEnum("dymensionxyz.dymension.sequencer.OperatingStatus", OperatingStatus_name, OperatingStatus_value)
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/sequencer/operating_status.proto", fileDescriptor_4d19c29067c09de2)
-}
-
 var fileDescriptor_4d19c29067c09de2 = []byte{
 	// 260 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x32, 0x4f, 0xa9, 0xcc, 0x4d,

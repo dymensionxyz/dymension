@@ -161,14 +161,6 @@ func (m *Sequencer) GetUnbondTime() time.Time {
 	return time.Time{}
 }
 
-func init() {
-	proto.RegisterType((*Sequencer)(nil), "dymensionxyz.dymension.sequencer.Sequencer")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/sequencer/sequencer.proto", fileDescriptor_997b8663a5fc0f58)
-}
-
 var fileDescriptor_997b8663a5fc0f58 = []byte{
 	// 545 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0x4f, 0x6f, 0xd3, 0x30,
