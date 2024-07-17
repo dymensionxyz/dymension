@@ -15,14 +15,14 @@ const (
 	VoteByte
 )
 
-func ParamsPrefix() []byte {
+func ParamsKey() []byte {
 	return []byte{ParamsByte}
 }
 
-func DistributionPrefix() []byte {
+func DistributionKey() []byte {
 	return []byte{DistributionByte}
 }
 
-func VotePrefix() []byte {
-	return []byte{VoteByte}
+func VoteKey(voterAddr string) []byte {
+	return append([]byte{VoteByte}, []byte(voterAddr)...)
 }

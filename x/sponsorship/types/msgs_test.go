@@ -12,8 +12,7 @@ import (
 )
 
 func TestMsgVote(t *testing.T) {
-	var addrs = sample.GenerateAddresses(1)
-	var addr = addrs[0]
+	addrs := sample.GenerateAddresses(1)
 
 	tests := []struct {
 		name          string
@@ -24,7 +23,7 @@ func TestMsgVote(t *testing.T) {
 		{
 			name: "Valid input",
 			input: types.MsgVote{
-				Voter: addr,
+				Voter: addrs[0],
 				Weights: []types.GaugeWeight{
 					{GaugeId: 15, Weight: math.NewInt(60)},
 					{GaugeId: 10, Weight: math.NewInt(30)},
@@ -50,7 +49,7 @@ func TestMsgVote(t *testing.T) {
 		{
 			name: "Invalid distribution, Weight > 100",
 			input: types.MsgVote{
-				Voter: addr,
+				Voter: addrs[0],
 				Weights: []types.GaugeWeight{
 					{GaugeId: 15, Weight: math.NewInt(101)},
 					{GaugeId: 10, Weight: math.NewInt(30)},
@@ -80,8 +79,7 @@ func TestMsgVote(t *testing.T) {
 }
 
 func TestMsgUpdateParams(t *testing.T) {
-	var addrs = sample.GenerateAddresses(1)
-	var addr = addrs[0]
+	addrs := sample.GenerateAddresses(1)
 
 	tests := []struct {
 		name          string
@@ -92,7 +90,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		{
 			name: "Valid input",
 			input: types.MsgUpdateParams{
-				Authority: addr,
+				Authority: addrs[0],
 				NewParams: types.DefaultParams(),
 			},
 			errorIs:       nil,
@@ -110,7 +108,7 @@ func TestMsgUpdateParams(t *testing.T) {
 		{
 			name: "Invalid params, MinAllocationWeight < 0",
 			input: types.MsgUpdateParams{
-				Authority: addr,
+				Authority: addrs[0],
 				NewParams: types.Params{
 					MinAllocationWeight: math.NewInt(-20),
 					MinVotingPower:      math.NewInt(20),
