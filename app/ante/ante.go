@@ -6,8 +6,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	cometbftlog "github.com/cometbft/cometbft/libs/log"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	tmlog "github.com/tendermint/tendermint/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
 	errortypes "github.com/cosmos/cosmos-sdk/types/errors"
@@ -63,7 +63,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}, nil
 }
 
-func Recover(logger tmlog.Logger, err *error) {
+func Recover(logger cometbftlog.Logger, err *error) {
 	if r := recover(); r != nil {
 		*err = errorsmod.Wrapf(errortypes.ErrPanic, "%v", r)
 

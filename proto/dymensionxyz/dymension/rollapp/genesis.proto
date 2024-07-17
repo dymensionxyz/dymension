@@ -2,10 +2,10 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
-import "dymension/rollapp/params.proto";
-import "dymension/rollapp/rollapp.proto";
-import "dymension/rollapp/state_info.proto";
-import "dymension/rollapp/genesis_transfer.proto";
+import "dymensionxyz/dymension/rollapp/params.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/state_info.proto";
+import "dymensionxyz/dymension/rollapp/genesis_transfer.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
