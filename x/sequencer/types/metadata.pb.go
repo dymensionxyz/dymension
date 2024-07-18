@@ -28,32 +28,28 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type SequencerMetadata struct {
 	// moniker defines a human-readable name for the sequencer.
 	Moniker string `protobuf:"bytes,1,opt,name=moniker,proto3" json:"moniker,omitempty"`
-	// identity defines an optional identity signature (ex. UPort or Keybase).
-	Identity string `protobuf:"bytes,2,opt,name=identity,proto3" json:"identity,omitempty"`
-	// security_contact defines an optional email for security contact.
-	SecurityContact string `protobuf:"bytes,3,opt,name=security_contact,json=securityContact,proto3" json:"security_contact,omitempty"`
 	// details define other optional details.
-	Details string `protobuf:"bytes,4,opt,name=details,proto3" json:"details,omitempty"`
+	Details string `protobuf:"bytes,2,opt,name=details,proto3" json:"details,omitempty"`
 	// bootstrap nodes list
-	P2PSeed string `protobuf:"bytes,5,opt,name=p2p_seed,json=p2pSeed,proto3" json:"p2p_seed,omitempty"`
+	P2PSeeds []string `protobuf:"bytes,3,rep,name=p2p_seeds,json=p2pSeeds,proto3" json:"p2p_seeds,omitempty"`
 	// RPCs list
-	Rpcs []string `protobuf:"bytes,6,rep,name=rpcs,proto3" json:"rpcs,omitempty"`
+	Rpcs []string `protobuf:"bytes,4,rep,name=rpcs,proto3" json:"rpcs,omitempty"`
 	// evm RPCs list
-	EvmRpcs []string `protobuf:"bytes,7,rep,name=evm_rpcs,json=evmRpcs,proto3" json:"evm_rpcs,omitempty"`
-	// REST API URLs
-	RestApiUrls []string `protobuf:"bytes,8,rep,name=rest_api_urls,json=restApiUrls,proto3" json:"rest_api_urls,omitempty"`
-	// genesis URL
-	GenesisUrl string `protobuf:"bytes,9,opt,name=genesis_url,json=genesisUrl,proto3" json:"genesis_url,omitempty"`
+	EvmRpcs []string `protobuf:"bytes,5,rep,name=evm_rpcs,json=evmRpcs,proto3" json:"evm_rpcs,omitempty"`
+	// REST API URL
+	RestApiUrl string `protobuf:"bytes,6,opt,name=rest_api_url,json=restApiUrl,proto3" json:"rest_api_url,omitempty"`
 	// block explorer URL
-	ExplorerUrl string `protobuf:"bytes,10,opt,name=explorer_url,json=explorerUrl,proto3" json:"explorer_url,omitempty"`
+	ExplorerUrl string `protobuf:"bytes,7,opt,name=explorer_url,json=explorerUrl,proto3" json:"explorer_url,omitempty"`
+	// genesis URLs
+	GenesisUrls []string `protobuf:"bytes,8,rep,name=genesis_urls,json=genesisUrls,proto3" json:"genesis_urls,omitempty"`
 	// contact details
-	ContactDetails *ContactDetails `protobuf:"bytes,11,opt,name=contact_details,json=contactDetails,proto3" json:"contact_details,omitempty"`
+	ContactDetails *ContactDetails `protobuf:"bytes,9,opt,name=contact_details,json=contactDetails,proto3" json:"contact_details,omitempty"`
 	// json dump the sequencer can add (limited by size)
-	ExtraData []byte `protobuf:"bytes,12,opt,name=extra_data,json=extraData,proto3" json:"extra_data,omitempty"`
+	ExtraData []byte `protobuf:"bytes,10,opt,name=extra_data,json=extraData,proto3" json:"extra_data,omitempty"`
 	// snapshots of the sequencer
-	Snapshots []*SnapshotInfo `protobuf:"bytes,13,rep,name=snapshots,proto3" json:"snapshots,omitempty"`
+	Snapshots []*SnapshotInfo `protobuf:"bytes,11,rep,name=snapshots,proto3" json:"snapshots,omitempty"`
 	// gas_price defines the value for each gas unit
-	GasPrice *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,14,opt,name=gas_price,json=gasPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"gas_price,omitempty"`
+	GasPrice *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,12,opt,name=gas_price,json=gasPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"gas_price,omitempty"`
 }
 
 func (m *SequencerMetadata) Reset()         { *m = SequencerMetadata{} }
@@ -96,20 +92,6 @@ func (m *SequencerMetadata) GetMoniker() string {
 	return ""
 }
 
-func (m *SequencerMetadata) GetIdentity() string {
-	if m != nil {
-		return m.Identity
-	}
-	return ""
-}
-
-func (m *SequencerMetadata) GetSecurityContact() string {
-	if m != nil {
-		return m.SecurityContact
-	}
-	return ""
-}
-
 func (m *SequencerMetadata) GetDetails() string {
 	if m != nil {
 		return m.Details
@@ -117,11 +99,11 @@ func (m *SequencerMetadata) GetDetails() string {
 	return ""
 }
 
-func (m *SequencerMetadata) GetP2PSeed() string {
+func (m *SequencerMetadata) GetP2PSeeds() []string {
 	if m != nil {
-		return m.P2PSeed
+		return m.P2PSeeds
 	}
-	return ""
+	return nil
 }
 
 func (m *SequencerMetadata) GetRpcs() []string {
@@ -138,16 +120,9 @@ func (m *SequencerMetadata) GetEvmRpcs() []string {
 	return nil
 }
 
-func (m *SequencerMetadata) GetRestApiUrls() []string {
+func (m *SequencerMetadata) GetRestApiUrl() string {
 	if m != nil {
-		return m.RestApiUrls
-	}
-	return nil
-}
-
-func (m *SequencerMetadata) GetGenesisUrl() string {
-	if m != nil {
-		return m.GenesisUrl
+		return m.RestApiUrl
 	}
 	return ""
 }
@@ -157,6 +132,13 @@ func (m *SequencerMetadata) GetExplorerUrl() string {
 		return m.ExplorerUrl
 	}
 	return ""
+}
+
+func (m *SequencerMetadata) GetGenesisUrls() []string {
+	if m != nil {
+		return m.GenesisUrls
+	}
+	return nil
 }
 
 func (m *SequencerMetadata) GetContactDetails() *ContactDetails {
@@ -317,42 +299,40 @@ func init() {
 }
 
 var fileDescriptor_0ffb58cf0478671a = []byte{
-	// 556 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0x41, 0x6f, 0xd3, 0x30,
-	0x14, 0x5e, 0x58, 0xd9, 0x1a, 0xa7, 0xeb, 0xc0, 0x42, 0xc8, 0x4c, 0x22, 0x0b, 0x3d, 0xa0, 0x82,
-	0x44, 0x82, 0x3a, 0x89, 0x3b, 0x63, 0x12, 0x9a, 0x04, 0xd2, 0x94, 0xb2, 0x03, 0x5c, 0xa2, 0x34,
-	0x79, 0xa4, 0x56, 0x93, 0xd8, 0xd8, 0x6e, 0x49, 0xf9, 0x15, 0xfc, 0x2c, 0x8e, 0xe3, 0x86, 0x38,
-	0x20, 0xd4, 0xfe, 0x11, 0x64, 0x27, 0xe9, 0xba, 0x03, 0xda, 0x29, 0xf9, 0xbe, 0xf7, 0x3d, 0x3f,
-	0xbf, 0xf7, 0x3d, 0xa3, 0x20, 0x5d, 0x16, 0x50, 0x4a, 0xca, 0xca, 0x6a, 0xf9, 0xed, 0x1a, 0x04,
-	0x12, 0xbe, 0xcc, 0xa1, 0x4c, 0x40, 0x04, 0x05, 0xa8, 0x38, 0x8d, 0x55, 0xec, 0x73, 0xc1, 0x14,
-	0xc3, 0xde, 0x76, 0x82, 0xbf, 0x01, 0xfe, 0x26, 0xe1, 0xe8, 0x41, 0xc6, 0x32, 0x66, 0xc4, 0x81,
-	0xfe, 0xab, 0xf3, 0x06, 0x3f, 0x3b, 0xe8, 0xfe, 0xb8, 0xd5, 0xbc, 0x6f, 0xce, 0xc4, 0x04, 0xed,
-	0x17, 0xac, 0xa4, 0x33, 0x10, 0xc4, 0xf2, 0xac, 0xa1, 0x1d, 0xb6, 0x10, 0x1f, 0xa1, 0x2e, 0x4d,
-	0xa1, 0x54, 0x54, 0x2d, 0xc9, 0x1d, 0x13, 0xda, 0x60, 0xfc, 0x0c, 0xdd, 0x93, 0x90, 0xcc, 0x05,
-	0x55, 0xcb, 0x28, 0x61, 0xa5, 0x8a, 0x13, 0x45, 0x76, 0x8d, 0xe6, 0xb0, 0xe5, 0xdf, 0xd4, 0xb4,
-	0x2e, 0x90, 0x82, 0x8a, 0x69, 0x2e, 0x49, 0xa7, 0x2e, 0xd0, 0x40, 0xfc, 0x08, 0x75, 0xf9, 0x88,
-	0x47, 0x12, 0x20, 0x25, 0x77, 0xeb, 0x10, 0x1f, 0xf1, 0x31, 0x40, 0x8a, 0x31, 0xea, 0x08, 0x9e,
-	0x48, 0xb2, 0xe7, 0xed, 0x0e, 0xed, 0xd0, 0xfc, 0x6b, 0x39, 0x2c, 0x8a, 0xc8, 0xf0, 0xfb, 0x86,
-	0xdf, 0x87, 0x45, 0x11, 0xea, 0xd0, 0x00, 0x1d, 0x08, 0x90, 0x2a, 0x8a, 0x39, 0x8d, 0xe6, 0x22,
-	0x97, 0xa4, 0x6b, 0xe2, 0x8e, 0x26, 0x5f, 0x73, 0x7a, 0x29, 0x72, 0x89, 0x8f, 0x91, 0x93, 0x41,
-	0x09, 0x92, 0x4a, 0x2d, 0x21, 0xb6, 0x29, 0x88, 0x1a, 0xea, 0x52, 0xe4, 0xf8, 0x09, 0xea, 0x41,
-	0xc5, 0x73, 0x26, 0x40, 0x18, 0x05, 0x32, 0x0a, 0xa7, 0xe5, 0xb4, 0xe4, 0x23, 0x3a, 0x6c, 0xba,
-	0x8d, 0xda, 0x9e, 0x1c, 0xcf, 0x1a, 0x3a, 0xa3, 0x97, 0xfe, 0x6d, 0xa6, 0xf8, 0xcd, 0x3c, 0xce,
-	0xea, 0xbc, 0xb0, 0x9f, 0xdc, 0xc0, 0xf8, 0x31, 0x42, 0x50, 0x29, 0x11, 0x47, 0xda, 0x15, 0xd2,
-	0xf3, 0xac, 0x61, 0x2f, 0xb4, 0x0d, 0x73, 0xa6, 0x6d, 0x7a, 0x87, 0x6c, 0x59, 0xc6, 0x5c, 0x4e,
-	0x99, 0x92, 0xe4, 0xc0, 0xdb, 0x1d, 0x3a, 0x23, 0xff, 0xf6, 0x9a, 0xe3, 0x26, 0xe5, 0xbc, 0xfc,
-	0xcc, 0xc2, 0xeb, 0x03, 0xf0, 0x5b, 0x64, 0x67, 0xb1, 0x8c, 0xb8, 0xa0, 0x09, 0x90, 0xbe, 0xee,
-	0xf3, 0xf4, 0xf9, 0xef, 0x3f, 0xc7, 0x4f, 0x33, 0xaa, 0xa6, 0xf3, 0x89, 0x9f, 0xb0, 0x22, 0x48,
-	0x98, 0x2c, 0x98, 0x6c, 0x3e, 0x2f, 0x64, 0x3a, 0x0b, 0xd4, 0x92, 0x83, 0xf4, 0xcf, 0x4b, 0x15,
-	0x76, 0xb3, 0x58, 0x5e, 0xe8, 0xdc, 0xc1, 0x07, 0xd4, 0xbf, 0xd9, 0x97, 0xb6, 0xfb, 0x2b, 0x4c,
-	0x24, 0x55, 0x60, 0x46, 0x63, 0x87, 0x2d, 0xd4, 0xfb, 0xa4, 0x20, 0x87, 0x4c, 0xc4, 0x45, 0xb3,
-	0x6a, 0x1b, 0x8c, 0x7b, 0xc8, 0xaa, 0x9a, 0x25, 0xb3, 0xaa, 0x01, 0xa0, 0xde, 0xf6, 0xcd, 0xb5,
-	0x33, 0xed, 0xdd, 0x8d, 0x33, 0x75, 0xb6, 0xd3, 0x72, 0xda, 0x99, 0x87, 0x68, 0x6f, 0x0a, 0x34,
-	0x9b, 0x2a, 0x73, 0x4a, 0x27, 0x6c, 0x90, 0x2e, 0x9a, 0x4c, 0x21, 0x99, 0xc9, 0x79, 0xd1, 0x2c,
-	0xe8, 0x06, 0x9f, 0x5e, 0xfc, 0x58, 0xb9, 0xd6, 0xd5, 0xca, 0xb5, 0xfe, 0xae, 0x5c, 0xeb, 0xfb,
-	0xda, 0xdd, 0xb9, 0x5a, 0xbb, 0x3b, 0xbf, 0xd6, 0xee, 0xce, 0xa7, 0x57, 0x5b, 0x83, 0xf8, 0xcf,
-	0xf3, 0x5c, 0x9c, 0x04, 0xd5, 0xd6, 0x1b, 0x35, 0xc3, 0x99, 0xec, 0x99, 0x97, 0x76, 0xf2, 0x2f,
-	0x00, 0x00, 0xff, 0xff, 0xbe, 0x71, 0x6a, 0xe3, 0xd4, 0x03, 0x00, 0x00,
+	// 526 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x53, 0x41, 0x8f, 0xd3, 0x3c,
+	0x14, 0x6c, 0xbe, 0xf6, 0x6b, 0x1b, 0x27, 0x5a, 0x84, 0x85, 0x90, 0x59, 0x44, 0x08, 0x3d, 0xa0,
+	0x0a, 0x89, 0x04, 0x75, 0x25, 0xee, 0x2c, 0x2b, 0xa1, 0x95, 0x40, 0x5a, 0xa5, 0xec, 0x01, 0x2e,
+	0x91, 0x9b, 0x3e, 0xd2, 0xa8, 0x49, 0x6c, 0x6c, 0xb7, 0xa4, 0xfc, 0x06, 0x0e, 0xfc, 0x2c, 0x8e,
+	0x7b, 0x44, 0x1c, 0x10, 0x6a, 0xff, 0x08, 0xb2, 0x93, 0x74, 0xbb, 0x07, 0xb4, 0xa7, 0x64, 0xc6,
+	0x33, 0x7e, 0xf6, 0x3c, 0x3f, 0x14, 0xce, 0x37, 0x05, 0x94, 0x32, 0x63, 0x65, 0xb5, 0xf9, 0x7a,
+	0x0d, 0x42, 0x09, 0x9f, 0x57, 0x50, 0x26, 0x20, 0xc2, 0x02, 0x14, 0x9d, 0x53, 0x45, 0x03, 0x2e,
+	0x98, 0x62, 0xd8, 0x3f, 0x34, 0x04, 0x7b, 0x10, 0xec, 0x0d, 0xc7, 0xf7, 0x52, 0x96, 0x32, 0x23,
+	0x0e, 0xf5, 0x5f, 0xed, 0x1b, 0x7d, 0xeb, 0xa1, 0xbb, 0xd3, 0x56, 0xf3, 0xae, 0xd9, 0x13, 0x13,
+	0x34, 0x28, 0x58, 0x99, 0x2d, 0x41, 0x10, 0xcb, 0xb7, 0xc6, 0x76, 0xd4, 0x42, 0xbd, 0x32, 0x07,
+	0x45, 0xb3, 0x5c, 0x92, 0xff, 0xea, 0x95, 0x06, 0xe2, 0x87, 0xc8, 0xe6, 0x13, 0x1e, 0x4b, 0x80,
+	0xb9, 0x24, 0x5d, 0xbf, 0x3b, 0xb6, 0xa3, 0x21, 0x9f, 0xf0, 0xa9, 0xc6, 0x18, 0xa3, 0x9e, 0xe0,
+	0x89, 0x24, 0x3d, 0xc3, 0x9b, 0x7f, 0xfc, 0x00, 0x0d, 0x61, 0x5d, 0xc4, 0x86, 0xff, 0xdf, 0xf0,
+	0x03, 0x58, 0x17, 0x91, 0x5e, 0xf2, 0x91, 0x2b, 0x40, 0xaa, 0x98, 0xf2, 0x2c, 0x5e, 0x89, 0x9c,
+	0xf4, 0x4d, 0x29, 0xa4, 0xb9, 0x57, 0x3c, 0xbb, 0x14, 0x39, 0x7e, 0x82, 0x5c, 0xa8, 0x78, 0xce,
+	0x04, 0x08, 0xa3, 0x18, 0x18, 0x85, 0xd3, 0x72, 0x8d, 0x24, 0x85, 0x12, 0x64, 0x26, 0xb5, 0x42,
+	0x92, 0xa1, 0xa9, 0xe1, 0x34, 0xdc, 0xa5, 0xc8, 0x25, 0xfe, 0x80, 0xee, 0x24, 0xac, 0x54, 0x34,
+	0x51, 0x71, 0x7b, 0x2b, 0xdb, 0xb7, 0xc6, 0xce, 0xe4, 0x45, 0x70, 0x5b, 0x9e, 0xc1, 0xeb, 0xda,
+	0x78, 0x56, 0xfb, 0xa2, 0xa3, 0xe4, 0x06, 0xc6, 0x8f, 0x10, 0x82, 0x4a, 0x09, 0x1a, 0xeb, 0x40,
+	0x09, 0xf2, 0xad, 0xb1, 0x1b, 0xd9, 0x86, 0x39, 0xd3, 0x09, 0xbf, 0x45, 0xb6, 0x2c, 0x29, 0x97,
+	0x0b, 0xa6, 0x24, 0x71, 0xfc, 0xee, 0xd8, 0x99, 0x04, 0xb7, 0xd7, 0x9c, 0x36, 0x96, 0xf3, 0xf2,
+	0x13, 0x8b, 0xae, 0x37, 0xc0, 0x6f, 0x90, 0x9d, 0x52, 0x19, 0x73, 0x91, 0x25, 0x40, 0x5c, 0x1d,
+	0xc5, 0xe9, 0xb3, 0x5f, 0xbf, 0x1f, 0x3f, 0x4d, 0x33, 0xb5, 0x58, 0xcd, 0x82, 0x84, 0x15, 0x61,
+	0xc2, 0x64, 0xc1, 0x64, 0xf3, 0x79, 0x2e, 0xe7, 0xcb, 0x50, 0x6d, 0x38, 0xc8, 0xe0, 0xbc, 0x54,
+	0xd1, 0x30, 0xa5, 0xf2, 0x42, 0x7b, 0x47, 0xef, 0xd1, 0xd1, 0xcd, 0x7b, 0xe9, 0x86, 0x7f, 0x81,
+	0x99, 0xcc, 0x14, 0x10, 0xa7, 0x6e, 0x78, 0x03, 0xf1, 0x31, 0x1a, 0x2a, 0xc8, 0x21, 0x15, 0xb4,
+	0x68, 0x5e, 0xc9, 0x1e, 0x63, 0x17, 0x59, 0x55, 0xf3, 0x40, 0xac, 0x6a, 0x04, 0xc8, 0x3d, 0x3c,
+	0xb9, 0xee, 0x4c, 0x7b, 0x76, 0xd3, 0xbc, 0xda, 0xed, 0xb4, 0x9c, 0x6e, 0xde, 0x7d, 0xd4, 0x5f,
+	0x40, 0x96, 0x2e, 0x94, 0xd9, 0xa5, 0x17, 0x35, 0x48, 0x17, 0x4d, 0x16, 0x90, 0x2c, 0xe5, 0xaa,
+	0x20, 0xdd, 0xba, 0x68, 0x8b, 0x4f, 0x2f, 0x7e, 0x6c, 0x3d, 0xeb, 0x6a, 0xeb, 0x59, 0x7f, 0xb6,
+	0x9e, 0xf5, 0x7d, 0xe7, 0x75, 0xae, 0x76, 0x5e, 0xe7, 0xe7, 0xce, 0xeb, 0x7c, 0x7c, 0x79, 0x10,
+	0xc4, 0x3f, 0x26, 0x6b, 0x7d, 0x12, 0x56, 0x07, 0xe3, 0x65, 0xc2, 0x99, 0xf5, 0xcd, 0x90, 0x9c,
+	0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x50, 0x02, 0xfb, 0x74, 0x8f, 0x03, 0x00, 0x00,
 }
 
 func (m *SequencerMetadata) Marshal() (dAtA []byte, err error) {
@@ -385,7 +365,7 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i = encodeVarintMetadata(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x72
+		dAtA[i] = 0x62
 	}
 	if len(m.Snapshots) > 0 {
 		for iNdEx := len(m.Snapshots) - 1; iNdEx >= 0; iNdEx-- {
@@ -398,7 +378,7 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintMetadata(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x6a
+			dAtA[i] = 0x5a
 		}
 	}
 	if len(m.ExtraData) > 0 {
@@ -406,7 +386,7 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.ExtraData)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.ExtraData)))
 		i--
-		dAtA[i] = 0x62
+		dAtA[i] = 0x52
 	}
 	if m.ContactDetails != nil {
 		{
@@ -418,30 +398,30 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i = encodeVarintMetadata(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x5a
+		dAtA[i] = 0x4a
+	}
+	if len(m.GenesisUrls) > 0 {
+		for iNdEx := len(m.GenesisUrls) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.GenesisUrls[iNdEx])
+			copy(dAtA[i:], m.GenesisUrls[iNdEx])
+			i = encodeVarintMetadata(dAtA, i, uint64(len(m.GenesisUrls[iNdEx])))
+			i--
+			dAtA[i] = 0x42
+		}
 	}
 	if len(m.ExplorerUrl) > 0 {
 		i -= len(m.ExplorerUrl)
 		copy(dAtA[i:], m.ExplorerUrl)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.ExplorerUrl)))
 		i--
-		dAtA[i] = 0x52
+		dAtA[i] = 0x3a
 	}
-	if len(m.GenesisUrl) > 0 {
-		i -= len(m.GenesisUrl)
-		copy(dAtA[i:], m.GenesisUrl)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.GenesisUrl)))
+	if len(m.RestApiUrl) > 0 {
+		i -= len(m.RestApiUrl)
+		copy(dAtA[i:], m.RestApiUrl)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.RestApiUrl)))
 		i--
-		dAtA[i] = 0x4a
-	}
-	if len(m.RestApiUrls) > 0 {
-		for iNdEx := len(m.RestApiUrls) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.RestApiUrls[iNdEx])
-			copy(dAtA[i:], m.RestApiUrls[iNdEx])
-			i = encodeVarintMetadata(dAtA, i, uint64(len(m.RestApiUrls[iNdEx])))
-			i--
-			dAtA[i] = 0x42
-		}
+		dAtA[i] = 0x32
 	}
 	if len(m.EvmRpcs) > 0 {
 		for iNdEx := len(m.EvmRpcs) - 1; iNdEx >= 0; iNdEx-- {
@@ -449,7 +429,7 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.EvmRpcs[iNdEx])
 			i = encodeVarintMetadata(dAtA, i, uint64(len(m.EvmRpcs[iNdEx])))
 			i--
-			dAtA[i] = 0x3a
+			dAtA[i] = 0x2a
 		}
 	}
 	if len(m.Rpcs) > 0 {
@@ -458,34 +438,22 @@ func (m *SequencerMetadata) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.Rpcs[iNdEx])
 			i = encodeVarintMetadata(dAtA, i, uint64(len(m.Rpcs[iNdEx])))
 			i--
-			dAtA[i] = 0x32
+			dAtA[i] = 0x22
 		}
 	}
-	if len(m.P2PSeed) > 0 {
-		i -= len(m.P2PSeed)
-		copy(dAtA[i:], m.P2PSeed)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.P2PSeed)))
-		i--
-		dAtA[i] = 0x2a
+	if len(m.P2PSeeds) > 0 {
+		for iNdEx := len(m.P2PSeeds) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.P2PSeeds[iNdEx])
+			copy(dAtA[i:], m.P2PSeeds[iNdEx])
+			i = encodeVarintMetadata(dAtA, i, uint64(len(m.P2PSeeds[iNdEx])))
+			i--
+			dAtA[i] = 0x1a
+		}
 	}
 	if len(m.Details) > 0 {
 		i -= len(m.Details)
 		copy(dAtA[i:], m.Details)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Details)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.SecurityContact) > 0 {
-		i -= len(m.SecurityContact)
-		copy(dAtA[i:], m.SecurityContact)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.SecurityContact)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Identity) > 0 {
-		i -= len(m.Identity)
-		copy(dAtA[i:], m.Identity)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Identity)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -606,21 +574,15 @@ func (m *SequencerMetadata) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	l = len(m.Identity)
-	if l > 0 {
-		n += 1 + l + sovMetadata(uint64(l))
-	}
-	l = len(m.SecurityContact)
-	if l > 0 {
-		n += 1 + l + sovMetadata(uint64(l))
-	}
 	l = len(m.Details)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	l = len(m.P2PSeed)
-	if l > 0 {
-		n += 1 + l + sovMetadata(uint64(l))
+	if len(m.P2PSeeds) > 0 {
+		for _, s := range m.P2PSeeds {
+			l = len(s)
+			n += 1 + l + sovMetadata(uint64(l))
+		}
 	}
 	if len(m.Rpcs) > 0 {
 		for _, s := range m.Rpcs {
@@ -634,19 +596,19 @@ func (m *SequencerMetadata) Size() (n int) {
 			n += 1 + l + sovMetadata(uint64(l))
 		}
 	}
-	if len(m.RestApiUrls) > 0 {
-		for _, s := range m.RestApiUrls {
-			l = len(s)
-			n += 1 + l + sovMetadata(uint64(l))
-		}
-	}
-	l = len(m.GenesisUrl)
+	l = len(m.RestApiUrl)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
 	l = len(m.ExplorerUrl)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if len(m.GenesisUrls) > 0 {
+		for _, s := range m.GenesisUrls {
+			l = len(s)
+			n += 1 + l + sovMetadata(uint64(l))
+		}
 	}
 	if m.ContactDetails != nil {
 		l = m.ContactDetails.Size()
@@ -779,70 +741,6 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Identity", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMetadata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Identity = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SecurityContact", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMetadata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SecurityContact = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Details", wireType)
 			}
 			var stringLen uint64
@@ -873,9 +771,9 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.Details = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field P2PSeed", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field P2PSeeds", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -903,9 +801,9 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.P2PSeed = string(dAtA[iNdEx:postIndex])
+			m.P2PSeeds = append(m.P2PSeeds, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 6:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Rpcs", wireType)
 			}
@@ -937,7 +835,7 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.Rpcs = append(m.Rpcs, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 7:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field EvmRpcs", wireType)
 			}
@@ -969,9 +867,9 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.EvmRpcs = append(m.EvmRpcs, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
-		case 8:
+		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RestApiUrls", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RestApiUrl", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -999,41 +897,9 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RestApiUrls = append(m.RestApiUrls, string(dAtA[iNdEx:postIndex]))
+			m.RestApiUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GenesisUrl", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMetadata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMetadata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GenesisUrl = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 10:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExplorerUrl", wireType)
 			}
@@ -1065,7 +931,39 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 			}
 			m.ExplorerUrl = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 11:
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GenesisUrls", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GenesisUrls = append(m.GenesisUrls, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ContactDetails", wireType)
 			}
@@ -1101,7 +999,7 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 12:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExtraData", wireType)
 			}
@@ -1135,7 +1033,7 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 				m.ExtraData = []byte{}
 			}
 			iNdEx = postIndex
-		case 13:
+		case 11:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Snapshots", wireType)
 			}
@@ -1169,7 +1067,7 @@ func (m *SequencerMetadata) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 14:
+		case 12:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GasPrice", wireType)
 			}

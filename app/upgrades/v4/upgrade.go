@@ -172,15 +172,13 @@ func ConvertOldSequencerToNew(oldSequencer types.Sequencer) sequencertypes.Seque
 		Proposer:     oldSequencer.Proposer,
 		Tokens:       oldSequencer.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
-			Moniker:         oldSequencer.Description.Moniker,
-			Identity:        oldSequencer.Description.Identity,
-			SecurityContact: oldSequencer.Description.SecurityContact,
-			Details:         oldSequencer.Description.Details,
-			GasPrice:        &defaultGasPrice,
-			// P2PSeed:         "", TODO
+			Moniker:  oldSequencer.Description.Moniker,
+			Details:  oldSequencer.Description.Details,
+			GasPrice: &defaultGasPrice,
+			// P2PSeeds:        "", TODO
 			// Rpcs:            []string{}, TODO
 			// EvmRpcs:         []string{}, TODO
-			// RestApiUrls:     []string{}, TODO
+			// RestApiUrl:      "", TODO
 			// GenesisUrl:      "", TODO
 			// ExplorerUrl:     "", TODO
 			// ContactDetails: &sequencertypes.ContactDetails{ TODO

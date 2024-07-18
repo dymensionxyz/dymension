@@ -4,12 +4,10 @@ import errorsmod "cosmossdk.io/errors"
 
 // constant for maximum string length of the SequencerMetadata fields
 const (
-	MaxMonikerLength         = 70
-	MaxIdentityLength        = 3000
-	MaxContactFieldLength    = 140
-	MaxDetailsLength         = 280
-	MaxSecurityContactLength = 140
-	MaxExtraDataLength       = 280
+	MaxMonikerLength      = 70
+	MaxContactFieldLength = 140
+	MaxDetailsLength      = 280
+	MaxExtraDataLength    = 280
 )
 
 // DoNotModifyDesc constant is used in flags to indicate that the metadata field should not be updated
@@ -19,31 +17,26 @@ const DoNotModifyDesc = "[do-not-modify]"
 // returned if the resulting metadata contains an invalid length.
 func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (SequencerMetadata, error) {
 	metadata := SequencerMetadata{
-		P2PSeed:        d2.P2PSeed,
+		Moniker:        d2.Moniker,
+		Details:        d2.Details,
+		P2PSeeds:       d2.P2PSeeds,
 		Rpcs:           d2.Rpcs,
 		EvmRpcs:        d2.EvmRpcs,
-		RestApiUrls:    d2.RestApiUrls,
+		RestApiUrl:     d2.RestApiUrl,
 		ExplorerUrl:    d2.ExplorerUrl,
-		GenesisUrl:     d2.GenesisUrl,
+		GenesisUrls:    d2.GenesisUrls,
+		ContactDetails: d2.ContactDetails,
+		ExtraData:      d2.ExtraData,
 		Snapshots:      d2.Snapshots,
 		GasPrice:       d2.GasPrice,
-		ContactDetails: nil,
 	}
 
 	if d.Moniker != DoNotModifyDesc {
 		metadata.Moniker = d2.Moniker
 	}
 
-	if d.Identity != DoNotModifyDesc {
-		metadata.Identity = d2.Identity
-	}
-
 	if d.Details != DoNotModifyDesc {
 		metadata.Details = d2.Details
-	}
-
-	if d.SecurityContact != DoNotModifyDesc {
-		metadata.SecurityContact = d2.SecurityContact
 	}
 
 	if string(d.ExtraData) != DoNotModifyDesc {
@@ -73,16 +66,8 @@ func (d SequencerMetadata) EnsureLength() (SequencerMetadata, error) {
 		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
 	}
 
-	if len(d.Identity) > MaxIdentityLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid identity length; got: %d, max: %d", len(d.Identity), MaxIdentityLength)
-	}
-
 	if len(d.Details) > MaxDetailsLength {
 		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
-	}
-
-	if len(d.SecurityContact) > MaxSecurityContactLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid security contact length; got: %d, max: %d", len(d.SecurityContact), MaxSecurityContactLength)
 	}
 
 	if len(d.ExtraData) > MaxExtraDataLength {
