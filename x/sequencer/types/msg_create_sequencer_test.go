@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
@@ -60,16 +61,28 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				DymintPubKey: pkAny,
 				Bond:         bond,
 				Metadata: SequencerMetadata{
-					Moniker:         strings.Repeat("a", MaxMonikerLength),
-					Identity:        strings.Repeat("a", MaxIdentityLength),
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxDetailsLength),
+					Moniker:     strings.Repeat("a", MaxMonikerLength),
+					Details:     strings.Repeat("a", MaxDetailsLength),
+					P2PSeeds:    []string{"seed1", "seed2"},
+					Rpcs:        []string{"rpc1", "rpc2"},
+					EvmRpcs:     []string{"evm1", "evm2"},
+					RestApiUrl:  "rest_api_url",
+					ExplorerUrl: "explorer_url",
+					GenesisUrls: []string{"genesis1", "genesis2"},
 					ContactDetails: &ContactDetails{
 						Website:  strings.Repeat("a", MaxContactFieldLength),
 						Telegram: strings.Repeat("a", MaxContactFieldLength),
 						X:        strings.Repeat("a", MaxContactFieldLength),
 					},
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
+					Snapshots: []*SnapshotInfo{
+						{
+							SnapshotUrl: "snapshot_url",
+							Height:      123,
+							Checksum:    "checksum",
+						},
+					},
+					GasPrice: utils.ToPtr(sdk.NewInt(100)),
 				},
 			},
 		}, {
@@ -84,17 +97,6 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidRequest,
 		}, {
-			name: "invalid identity length",
-			msg: MsgCreateSequencer{
-				Creator:      sample.AccAddress(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				Metadata: SequencerMetadata{
-					Identity: strings.Repeat("a", MaxIdentityLength+1),
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
 			name: "invalid website length",
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
@@ -104,17 +106,6 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					ContactDetails: &ContactDetails{
 						Website: strings.Repeat("a", MaxContactFieldLength+1),
 					},
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
-			name: "invalid security contact length",
-			msg: MsgCreateSequencer{
-				Creator:      sample.AccAddress(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				Metadata: SequencerMetadata{
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
 				},
 			},
 			err: ErrInvalidRequest,

@@ -9,32 +9,28 @@ import "gogoproto/gogo.proto";
 message SequencerMetadata {
   // moniker defines a human-readable name for the sequencer.
   string moniker = 1;
-  // identity defines an optional identity signature (ex. UPort or Keybase).
-  string identity = 2;
-  // security_contact defines an optional email for security contact.
-  string security_contact = 3;
   // details define other optional details.
-  string details = 4;
+  string details = 2;
   // bootstrap nodes list
-  string p2p_seed = 5;
+  repeated string p2p_seeds = 3;
   // RPCs list
-  repeated string rpcs = 6;
+  repeated string rpcs = 4;
   // evm RPCs list
-  repeated string evm_rpcs = 7;
-  // REST API URLs
-  repeated string rest_api_urls = 8;
-  // genesis URL
-  string genesis_url = 9;
+  repeated string evm_rpcs = 5;
+  // REST API URL
+  string rest_api_url = 6;
   // block explorer URL
-  string explorer_url = 10;
+  string explorer_url = 7;
+  // genesis URLs
+  repeated string genesis_urls = 8;
   // contact details
-  ContactDetails contact_details = 11;
+  ContactDetails contact_details = 9;
   // json dump the sequencer can add (limited by size)
-  bytes extra_data = 12;
+  bytes extra_data = 10;
   // snapshots of the sequencer
-  repeated SnapshotInfo snapshots = 13;
+  repeated SnapshotInfo snapshots = 11;
   // gas_price defines the value for each gas unit
-  string gas_price = 14 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string gas_price = 12 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
 }
 
 message ContactDetails {

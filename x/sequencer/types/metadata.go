@@ -17,31 +17,26 @@ const DoNotModifyDesc = "[do-not-modify]"
 // returned if the resulting metadata contains an invalid length.
 func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (SequencerMetadata, error) {
 	metadata := SequencerMetadata{
-		P2PSeed:        d2.P2PSeed,
+		Moniker:        d2.Moniker,
+		Details:        d2.Details,
+		P2PSeeds:       d2.P2PSeeds,
 		Rpcs:           d2.Rpcs,
 		EvmRpcs:        d2.EvmRpcs,
-		RestApiUrls:    d2.RestApiUrls,
+		RestApiUrl:     d2.RestApiUrl,
 		ExplorerUrl:    d2.ExplorerUrl,
-		GenesisUrl:     d2.GenesisUrl,
+		GenesisUrls:    d2.GenesisUrls,
+		ContactDetails: d2.ContactDetails,
+		ExtraData:      d2.ExtraData,
 		Snapshots:      d2.Snapshots,
 		GasPrice:       d2.GasPrice,
-		ContactDetails: nil,
 	}
 
 	if d.Moniker != DoNotModifyDesc {
 		metadata.Moniker = d2.Moniker
 	}
 
-	if d.Identity != DoNotModifyDesc {
-		metadata.Identity = d2.Identity
-	}
-
 	if d.Details != DoNotModifyDesc {
 		metadata.Details = d2.Details
-	}
-
-	if d.SecurityContact != DoNotModifyDesc {
-		metadata.SecurityContact = d2.SecurityContact
 	}
 
 	if string(d.ExtraData) != DoNotModifyDesc {
