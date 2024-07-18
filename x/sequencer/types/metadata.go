@@ -4,12 +4,10 @@ import errorsmod "cosmossdk.io/errors"
 
 // constant for maximum string length of the SequencerMetadata fields
 const (
-	MaxMonikerLength         = 70
-	MaxIdentityLength        = 3000
-	MaxContactFieldLength    = 140
-	MaxDetailsLength         = 280
-	MaxSecurityContactLength = 140
-	MaxExtraDataLength       = 280
+	MaxMonikerLength      = 70
+	MaxContactFieldLength = 140
+	MaxDetailsLength      = 280
+	MaxExtraDataLength    = 280
 )
 
 // DoNotModifyDesc constant is used in flags to indicate that the metadata field should not be updated
@@ -73,16 +71,8 @@ func (d SequencerMetadata) EnsureLength() (SequencerMetadata, error) {
 		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
 	}
 
-	if len(d.Identity) > MaxIdentityLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid identity length; got: %d, max: %d", len(d.Identity), MaxIdentityLength)
-	}
-
 	if len(d.Details) > MaxDetailsLength {
 		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
-	}
-
-	if len(d.SecurityContact) > MaxSecurityContactLength {
-		return d, errorsmod.Wrapf(ErrInvalidRequest, "invalid security contact length; got: %d, max: %d", len(d.SecurityContact), MaxSecurityContactLength)
 	}
 
 	if len(d.ExtraData) > MaxExtraDataLength {

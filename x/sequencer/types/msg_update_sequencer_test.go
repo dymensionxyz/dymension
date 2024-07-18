@@ -31,10 +31,8 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 			msg: MsgUpdateSequencerInformation{
 				Creator: sample.AccAddress(),
 				Metadata: SequencerMetadata{
-					Moniker:         strings.Repeat("a", MaxMonikerLength),
-					Identity:        strings.Repeat("a", MaxIdentityLength),
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxDetailsLength),
+					Moniker: strings.Repeat("a", MaxMonikerLength),
+					Details: strings.Repeat("a", MaxDetailsLength),
 					ContactDetails: &ContactDetails{
 						Website:  strings.Repeat("a", MaxContactFieldLength),
 						Telegram: strings.Repeat("a", MaxContactFieldLength),
@@ -53,15 +51,6 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidRequest,
 		}, {
-			name: "invalid identity length",
-			msg: MsgUpdateSequencerInformation{
-				Creator: sample.AccAddress(),
-				Metadata: SequencerMetadata{
-					Identity: strings.Repeat("a", MaxIdentityLength+1),
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
 			name: "invalid website length",
 			msg: MsgUpdateSequencerInformation{
 				Creator: sample.AccAddress(),
@@ -69,15 +58,6 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 					ContactDetails: &ContactDetails{
 						Website: strings.Repeat("a", MaxContactFieldLength+1),
 					},
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
-			name: "invalid security contact length",
-			msg: MsgUpdateSequencerInformation{
-				Creator: sample.AccAddress(),
-				Metadata: SequencerMetadata{
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
