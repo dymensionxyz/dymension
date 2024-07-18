@@ -2,63 +2,115 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 // FinalizeRollappStates is called every block to finalize states when their dispute period over.
-func (k Keeper) FinalizeRollappStates(ctx sdk.Context) error {
+func (k Keeper) FinalizeRollappStates(ctx sdk.Context) {
 	if uint64(ctx.BlockHeight()) < k.DisputePeriodInBlocks(ctx) {
-		return nil
+		return
 	}
 	// check to see if there are pending  states to be finalized
 	finalizationHeight := uint64(ctx.BlockHeight() - int64(k.DisputePeriodInBlocks(ctx)))
 	pendingFinalizationQueue := k.GetAllFinalizationQueueUntilHeightInclusive(ctx, finalizationHeight)
 
-	return osmoutils.ApplyFuncIfNoError(ctx,
-		// we trap at this granularity because we want to avoid iterating inside the
-		// wrapped function (above), and we want the function to be atomic, so
-		// we cannot trap inside finalizePending
-		func(ctx sdk.Context) error {
-			return k.finalizePending(ctx, pendingFinalizationQueue)
-		})
+	k.FinalizeAllPending(ctx, pendingFinalizationQueue)
 }
 
-func (k Keeper) finalizePending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) error {
-	// Iterate over all the pending finalization queue
+func (k Keeper) FinalizeAllPending(ctx sdk.Context, pendingFinalizationQueue []types.BlockHeightToFinalizationQueue) {
+	// Cache the rollapps that failed to finalize at current EndBlocker execution.
+	// The mapping is from rollappID to the first index of the state that failed to finalize.
+	failedRollapps := make(map[string]uint64)
+	// iterate over all the pending finalization height queues
 	for _, blockHeightToFinalizationQueue := range pendingFinalizationQueue {
-		// finalize pending states
-		for _, stateInfoIndex := range blockHeightToFinalizationQueue.FinalizationQueue {
-			stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
-			if stateInfo.Status != common.Status_PENDING {
-				panic(fmt.Sprintf("invariant broken: stateInfo is not in pending state: rollapp: %s: status: %s", stateInfoIndex.RollappId, stateInfo.Status))
-			}
-			stateInfo.Finalize()
-			// update the status of the stateInfo
-			k.SetStateInfo(ctx, stateInfo)
-			// update the LatestStateInfoIndex of the rollapp
-			k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
-			// call the after-update-state hook
-			keeperHooks := k.GetHooks()
-			err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
-			if err != nil {
-				return fmt.Errorf("after state finalized: %w", err)
-			}
+		k.finalizeQueueForHeight(ctx, blockHeightToFinalizationQueue, failedRollapps)
+	}
+}
 
-			// emit event
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(types.EventTypeStatusChange,
-					stateInfo.GetEvents()...,
-				),
-			)
+func (k Keeper) finalizeQueueForHeight(ctx sdk.Context, queue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
+	// finalize pending states
+	for _, stateInfoIndex := range queue.FinalizationQueue {
+		if _, failed := failedRollapps[stateInfoIndex.RollappId]; failed {
+			// if the rollapp has already failed to finalize for at least one state index,
+			// skip all subsequent state changes for this rollapp
+			continue
 		}
-		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		if err := k.finalizeStateForIndex(ctx, stateInfoIndex); err != nil {
+			// record the rollapp that had a failed state change at current height
+			failedRollapps[stateInfoIndex.RollappId] = stateInfoIndex.Index
+		}
+	}
+	k.updateQueueForHeight(ctx, queue, failedRollapps)
+}
+
+func (k Keeper) finalizeStateForIndex(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	// if this fails, no state change will happen
+	err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+		return k.finalizePending(ctx, stateInfoIndex)
+	})
+	if err != nil {
+		// TODO: think about (non)recoverable errors and how to handle them accordingly
+		k.Logger(ctx).Error(
+			"failed to finalize state",
+			"rollapp", stateInfoIndex.RollappId,
+			"index", stateInfoIndex.Index,
+			"error", err.Error(),
+		)
+		return fmt.Errorf("finalize state: %w", err)
 	}
 	return nil
+}
+
+func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	stateInfo := k.MustGetStateInfo(ctx, stateInfoIndex.RollappId, stateInfoIndex.Index)
+	if stateInfo.Status != common.Status_PENDING {
+		panic(fmt.Sprintf("invariant broken: stateInfo is not in pending state: rollapp: %s: status: %s", stateInfoIndex.RollappId, stateInfo.Status))
+	}
+	stateInfo.Finalize()
+	// update the status of the stateInfo
+	k.SetStateInfo(ctx, stateInfo)
+	// update the LatestStateInfoIndex of the rollapp
+	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
+	// call the after-update-state hook
+	keeperHooks := k.GetHooks()
+	err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+	if err != nil {
+		return fmt.Errorf("after state finalized: %w", err)
+	}
+
+	// emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(types.EventTypeStatusChange,
+			stateInfo.GetEvents()...,
+		),
+	)
+	return nil
+}
+
+func (k Keeper) updateQueueForHeight(ctx sdk.Context, blockHeightToFinalizationQueue types.BlockHeightToFinalizationQueue, failedRollapps map[string]uint64) {
+	// remove the blockHeightToFinalizationQueue if all the rollapps' states are finalized
+	if len(failedRollapps) == 0 {
+		k.RemoveBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue.CreationHeight)
+		return
+	}
+	// remove from the queue only the rollapps that were successfully finalized at all indices.
+	// while iterating the queue for deleting the successfully finalized states, we remove them if
+	// - rollapp was not found in the failedRollapps map
+	// - if it was found, the indexes to be deleted should only be the ones up to the point of the index of the first failed state change
+	blockHeightToFinalizationQueue.FinalizationQueue = slices.DeleteFunc(blockHeightToFinalizationQueue.FinalizationQueue,
+		func(si types.StateInfoIndex) bool {
+			idx, failed := failedRollapps[si.RollappId]
+			return !failed || si.Index < idx
+		})
+	// save the current queue with "leftover" rollapp's state changes
+	k.SetBlockHeightToFinalizationQueue(ctx, blockHeightToFinalizationQueue)
 }
 
 // SetBlockHeightToFinalizationQueue set a specific blockHeightToFinalizationQueue in the store from its index

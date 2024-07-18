@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	eibcsimulation "github.com/dymensionxyz/dymension/v3/x/eibc/simulation"
@@ -19,10 +20,6 @@ var (
 	_ = params.StakePerAccount
 	_ = simulation.MsgEntryKind
 	_ = baseapp.Paramspace
-)
-
-const (
-// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -49,8 +46,5 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
-
-	// this line is used by starport scaffolding # simapp/module/operation
-
 	return operations
 }
