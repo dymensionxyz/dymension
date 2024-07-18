@@ -65,7 +65,7 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }
