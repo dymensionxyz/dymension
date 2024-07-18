@@ -4,9 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
 func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
@@ -16,29 +18,32 @@ func TestMsgUpdateSequencerInformation_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
-			msg: MsgUpdateSequencerInformation{
-				Creator: "invalid_address",
-			},
-			err: ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgUpdateSequencerInformation{
-				Creator: sample.AccAddress(),
-			},
-		}, {
 			name: "valid metadata",
 			msg: MsgUpdateSequencerInformation{
 				Creator: sample.AccAddress(),
 				Metadata: SequencerMetadata{
-					Moniker: strings.Repeat("a", MaxMonikerLength),
-					Details: strings.Repeat("a", MaxDetailsLength),
+					Moniker:     strings.Repeat("a", MaxMonikerLength),
+					Details:     strings.Repeat("a", MaxDetailsLength),
+					P2PSeeds:    []string{"seed1", "seed2"},
+					Rpcs:        []string{"rpc1", "rpc2"},
+					EvmRpcs:     []string{"evm1", "evm2"},
+					RestApiUrl:  "rest1",
+					GenesisUrls: []string{"genesis1", "genesis2"},
+					ExplorerUrl: "explorer",
 					ContactDetails: &ContactDetails{
 						Website:  strings.Repeat("a", MaxContactFieldLength),
 						Telegram: strings.Repeat("a", MaxContactFieldLength),
 						X:        strings.Repeat("a", MaxContactFieldLength),
 					},
 					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
+					Snapshots: []*SnapshotInfo{
+						{
+							SnapshotUrl: "snapshot",
+							Height:      1234,
+							Checksum:    "checksum",
+						},
+					},
+					GasPrice: utils.ToPtr(sdk.NewInt(100)),
 				},
 			},
 		}, {

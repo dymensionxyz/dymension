@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/dymensionxyz/dymension/v3/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -30,16 +31,14 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				Creator:   addr.String(),
 				RollappId: "rollapp_1234-1",
 				Metadata: types.SequencerMetadata{
-					Moniker:         "Sequencer",
-					Identity:        "something",
-					SecurityContact: "me@yourplace.xxx",
-					Details:         "Details and such",
-					P2PSeed:         "seed",
-					Rpcs:            []string{"rpc1", "rpc2"},
-					EvmRpcs:         []string{"evm1", "evm2"},
-					RestApiUrls:     []string{"rest1", "rest2"},
-					GenesisUrl:      "genesis",
-					ExplorerUrl:     "explorer",
+					Moniker:     "Sequencer",
+					Details:     "Details and such",
+					P2PSeeds:    []string{"seed1", "seed2"},
+					Rpcs:        []string{"rpc1", "rpc2"},
+					EvmRpcs:     []string{"evm1", "evm2"},
+					RestApiUrl:  "rest1",
+					GenesisUrls: []string{"genesis1", "genesis2"},
+					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
 						Website:  "https://dymension.xyz",
 						Telegram: "rolly",
@@ -53,10 +52,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: func() *sdk.Int {
-						gasPrice := sdk.NewInt(100)
-						return &gasPrice
-					}(),
+					GasPrice: utils.ToPtr(sdk.NewInt(100)),
 				},
 			},
 			expError: nil,
@@ -65,16 +61,14 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 				DymintPubKey: pkAny,
 				RollappId:    "rollapp_1234-1",
 				Metadata: types.SequencerMetadata{
-					Moniker:         "Sequencer",
-					Identity:        "something",
-					SecurityContact: "me@yourplace.xxx",
-					Details:         "Details and such",
-					P2PSeed:         "seed",
-					Rpcs:            []string{"rpc1", "rpc2"},
-					EvmRpcs:         []string{"evm1", "evm2"},
-					RestApiUrls:     []string{"rest1", "rest2"},
-					GenesisUrl:      "genesis",
-					ExplorerUrl:     "explorer",
+					Moniker:     "Sequencer",
+					Details:     "Details and such",
+					P2PSeeds:    []string{"seed1", "seed2"},
+					Rpcs:        []string{"rpc1", "rpc2"},
+					EvmRpcs:     []string{"evm1", "evm2"},
+					RestApiUrl:  "rest1",
+					GenesisUrls: []string{"genesis1", "genesis2"},
+					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
 						Website:  "https://dymension.xyz",
 						Telegram: "rolly",
@@ -88,10 +82,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: func() *sdk.Int {
-						gasPrice := sdk.NewInt(100)
-						return &gasPrice
-					}(),
+					GasPrice: utils.ToPtr(sdk.NewInt(100)),
 				},
 				Jailed:          false,
 				Proposer:        false,
