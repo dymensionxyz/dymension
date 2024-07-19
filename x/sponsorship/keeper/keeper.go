@@ -12,6 +12,9 @@ type Keeper struct {
 	cdc        codec.BinaryCodec
 	storeKey   storetypes.StoreKey
 	paramSpace paramtypes.Subspace
+
+	stakingKeeper    types.StakingKeeper
+	incentivesKeeper types.IncentivesKeeper
 }
 
 // NewKeeper returns a new instance of the x/sponsorship keeper.
@@ -20,6 +23,8 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper,
+	sk types.StakingKeeper,
+	ik types.IncentivesKeeper,
 ) Keeper {
 	// ensure the module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -32,8 +37,10 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		paramSpace: paramSpace,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		paramSpace:       paramSpace,
+		stakingKeeper:    sk,
+		incentivesKeeper: ik,
 	}
 }

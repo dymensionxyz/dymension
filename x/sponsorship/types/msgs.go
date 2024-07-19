@@ -42,3 +42,4 @@ func (m MsgRevokeVote) GetSigners() []sdk.AccAddress {
 	signer, _ := sdk.AccAddressFromBech32(m.Voter)
 	return []sdk.AccAddress{signer}
 }
+
