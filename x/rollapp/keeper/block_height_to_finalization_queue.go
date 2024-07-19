@@ -79,8 +79,7 @@ func (k *Keeper) finalizePendingState(ctx sdk.Context, stateInfoIndex types.Stat
 	// update the LatestStateInfoIndex of the rollapp
 	k.SetLatestFinalizedStateIndex(ctx, stateInfoIndex)
 	// call the after-update-state hook
-	keeperHooks := k.GetHooks()
-	err := keeperHooks.AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
+	err := k.GetHooks().AfterStateFinalized(ctx, stateInfoIndex.RollappId, &stateInfo)
 	if err != nil {
 		return fmt.Errorf("after state finalized: %w", err)
 	}
