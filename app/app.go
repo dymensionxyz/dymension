@@ -215,7 +215,7 @@ func New(
 		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
 		MaxTxGasWanted:         maxGasWanted,
 		ExtensionOptionChecker: nil, // uses default
-		RollappKeeper:          app.RollappKeeper,
+		RollappKeeper:          *app.RollappKeeper,
 	})
 	if err != nil {
 		panic(err)

@@ -100,7 +100,7 @@ func (s *utilSuite) rollappCtx() sdk.Context {
 }
 
 func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
-	return rollappkeeper.NewMsgServerImpl(s.hubApp().RollappKeeper)
+	return rollappkeeper.NewMsgServerImpl(*s.hubApp().RollappKeeper)
 }
 
 // SetupTest creates a coordinator with 2 test chains.

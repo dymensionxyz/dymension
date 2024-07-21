@@ -36,9 +36,9 @@ func WithKeeper(k keeper.Keeper) option {
 	}
 }
 
-func WithRollappKeeper(k rollappkeeper.Keeper) option {
+func WithRollappKeeper(k *rollappkeeper.Keeper) option {
 	return func(m *IBCMiddleware) {
-		m.raKeeper = k
+		m.raKeeper = *k
 	}
 }
 

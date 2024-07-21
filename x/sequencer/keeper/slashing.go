@@ -18,7 +18,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	if seq.Status == types.Unbonded {
 		return errorsmod.Wrap(
 			types.ErrInvalidSequencerStatus,
-			"cant slash unbonded sequencer",
+			"can't slash unbonded sequencer",
 		)
 	}
 
