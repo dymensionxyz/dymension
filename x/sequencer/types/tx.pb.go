@@ -153,6 +153,105 @@ func (m *MsgCreateSequencerResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateSequencerResponse proto.InternalMessageInfo
 
+type MsgUpdateSequencerInformation struct {
+	// creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// rollapp_id defines the rollapp to which the sequencer belongs.
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// metadata defines the extra information for the sequencer.
+	Metadata SequencerMetadata `protobuf:"bytes,3,opt,name=metadata,proto3" json:"metadata"`
+}
+
+func (m *MsgUpdateSequencerInformation) Reset()         { *m = MsgUpdateSequencerInformation{} }
+func (m *MsgUpdateSequencerInformation) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSequencerInformation) ProtoMessage()    {}
+func (*MsgUpdateSequencerInformation) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{2}
+}
+func (m *MsgUpdateSequencerInformation) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateSequencerInformation) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateSequencerInformation.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateSequencerInformation) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSequencerInformation.Merge(m, src)
+}
+func (m *MsgUpdateSequencerInformation) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateSequencerInformation) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSequencerInformation.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateSequencerInformation proto.InternalMessageInfo
+
+func (m *MsgUpdateSequencerInformation) GetCreator() string {
+	if m != nil {
+		return m.Creator
+	}
+	return ""
+}
+
+func (m *MsgUpdateSequencerInformation) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgUpdateSequencerInformation) GetMetadata() SequencerMetadata {
+	if m != nil {
+		return m.Metadata
+	}
+	return SequencerMetadata{}
+}
+
+type MsgUpdateSequencerInformationResponse struct {
+}
+
+func (m *MsgUpdateSequencerInformationResponse) Reset()         { *m = MsgUpdateSequencerInformationResponse{} }
+func (m *MsgUpdateSequencerInformationResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSequencerInformationResponse) ProtoMessage()    {}
+func (*MsgUpdateSequencerInformationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_02cdd6b9ffa005b4, []int{3}
+}
+func (m *MsgUpdateSequencerInformationResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateSequencerInformationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateSequencerInformationResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateSequencerInformationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSequencerInformationResponse.Merge(m, src)
+}
+func (m *MsgUpdateSequencerInformationResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateSequencerInformationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSequencerInformationResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateSequencerInformationResponse proto.InternalMessageInfo
+
 // MsgUnbond defines a SDK message for performing an undelegation from a
 // bond and a sequencer.
 type MsgUnbond struct {
@@ -163,7 +262,7 @@ func (m *MsgUnbond) Reset()         { *m = MsgUnbond{} }
 func (m *MsgUnbond) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbond) ProtoMessage()    {}
 func (*MsgUnbond) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{2}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{4}
 }
 func (m *MsgUnbond) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -208,7 +307,7 @@ func (m *MsgUnbondResponse) Reset()         { *m = MsgUnbondResponse{} }
 func (m *MsgUnbondResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgUnbondResponse) ProtoMessage()    {}
 func (*MsgUnbondResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_02cdd6b9ffa005b4, []int{3}
+	return fileDescriptor_02cdd6b9ffa005b4, []int{5}
 }
 func (m *MsgUnbondResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -247,6 +346,8 @@ func (m *MsgUnbondResponse) GetCompletionTime() time.Time {
 func init() {
 	proto.RegisterType((*MsgCreateSequencer)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencer")
 	proto.RegisterType((*MsgCreateSequencerResponse)(nil), "dymensionxyz.dymension.sequencer.MsgCreateSequencerResponse")
+	proto.RegisterType((*MsgUpdateSequencerInformation)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformation")
+	proto.RegisterType((*MsgUpdateSequencerInformationResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUpdateSequencerInformationResponse")
 	proto.RegisterType((*MsgUnbond)(nil), "dymensionxyz.dymension.sequencer.MsgUnbond")
 	proto.RegisterType((*MsgUnbondResponse)(nil), "dymensionxyz.dymension.sequencer.MsgUnbondResponse")
 }
@@ -256,42 +357,46 @@ func init() {
 }
 
 var fileDescriptor_02cdd6b9ffa005b4 = []byte{
-	// 558 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcf, 0x6e, 0xd3, 0x4e,
-	0x10, 0x8e, 0xdb, 0xfc, 0xfa, 0x6b, 0xb6, 0x15, 0x85, 0x55, 0x24, 0x1c, 0x0b, 0x9c, 0x28, 0xa7,
-	0x02, 0x62, 0x57, 0x49, 0x10, 0x87, 0x8a, 0x4b, 0xdd, 0x13, 0x42, 0x96, 0x8a, 0x4b, 0x2f, 0x5c,
-	0x22, 0xff, 0x59, 0x16, 0xa3, 0x78, 0xd7, 0x78, 0x37, 0x51, 0xcc, 0x11, 0x89, 0x7b, 0x1f, 0x81,
-	0x47, 0xe0, 0xc0, 0x8d, 0x17, 0xa8, 0x38, 0x55, 0x9c, 0x38, 0x01, 0x4a, 0x0e, 0xf0, 0x0a, 0xdc,
-	0x90, 0xed, 0xb5, 0xdb, 0x26, 0x42, 0x01, 0x4e, 0xc9, 0xcc, 0x7c, 0xdf, 0x7c, 0x33, 0xdf, 0x6c,
-	0x02, 0x6e, 0x05, 0x69, 0x44, 0x98, 0x08, 0x39, 0x9b, 0xa6, 0xaf, 0x70, 0x15, 0x60, 0x41, 0x5e,
-	0x8e, 0x09, 0xf3, 0x49, 0x82, 0xe5, 0x14, 0xc5, 0x09, 0x97, 0x1c, 0x76, 0x2e, 0x42, 0x51, 0x15,
-	0xa0, 0x0a, 0x6a, 0xb4, 0x28, 0xe7, 0x74, 0x44, 0x70, 0x8e, 0xf7, 0xc6, 0xcf, 0xb0, 0xcb, 0xd2,
-	0x82, 0x6c, 0xb4, 0x7c, 0x2e, 0x22, 0x2e, 0x86, 0x79, 0x84, 0x8b, 0x40, 0x95, 0x9a, 0x94, 0x53,
-	0x5e, 0xe4, 0xb3, 0x6f, 0x2a, 0x6b, 0x16, 0x18, 0xec, 0xb9, 0x82, 0xe0, 0x49, 0xcf, 0x23, 0xd2,
-	0xed, 0x61, 0x9f, 0x87, 0x4c, 0xd5, 0xdb, 0x8b, 0x5a, 0x32, 0x8c, 0x88, 0x90, 0x6e, 0x14, 0x2b,
-	0xc0, 0x75, 0xd5, 0x20, 0x12, 0x14, 0x4f, 0x7a, 0xd9, 0x87, 0x2a, 0xe0, 0x95, 0x2b, 0x47, 0x44,
-	0xba, 0x81, 0x2b, 0xdd, 0x82, 0xd0, 0xfd, 0xb0, 0x06, 0xa0, 0x2d, 0xe8, 0x41, 0x42, 0x5c, 0x49,
-	0x8e, 0x4a, 0x14, 0xd4, 0xc1, 0xff, 0x7e, 0x96, 0xe2, 0x89, 0xae, 0x75, 0xb4, 0xdd, 0x86, 0x53,
-	0x86, 0xd0, 0x01, 0xdb, 0x41, 0x1a, 0x85, 0x4c, 0x1e, 0x8e, 0xbd, 0x47, 0x24, 0xd5, 0xd7, 0x3a,
-	0xda, 0xee, 0x56, 0xbf, 0x89, 0x8a, 0x91, 0x51, 0x39, 0x32, 0xda, 0x67, 0xa9, 0xa5, 0x7f, 0x7c,
-	0x7f, 0xb7, 0xa9, 0xfc, 0xf0, 0x93, 0x34, 0x96, 0x1c, 0x15, 0x2c, 0xe7, 0x52, 0x0f, 0x78, 0x13,
-	0x80, 0x84, 0x8f, 0x46, 0x6e, 0x1c, 0x0f, 0xc3, 0x40, 0x5f, 0xcf, 0x05, 0x1b, 0x2a, 0xf3, 0x30,
-	0x80, 0xc7, 0x60, 0xb3, 0x9c, 0x5a, 0xaf, 0xe7, 0x72, 0x03, 0xb4, 0xea, 0x5e, 0xa8, 0xda, 0xc5,
-	0x56, 0x54, 0xab, 0x7e, 0xfa, 0xa5, 0x5d, 0x73, 0xaa, 0x56, 0x70, 0x00, 0xea, 0x1e, 0x67, 0x81,
-	0xfe, 0x5f, 0xde, 0xb2, 0x85, 0xd4, 0xa0, 0xd9, 0x51, 0x90, 0x3a, 0x0a, 0x3a, 0xe0, 0x21, 0x53,
-	0xc4, 0x1c, 0xbc, 0xb7, 0xfd, 0xfa, 0xfb, 0xbb, 0xdb, 0xa5, 0x19, 0xdd, 0x1b, 0xc0, 0x58, 0x36,
-	0xcf, 0x21, 0x22, 0xe6, 0x4c, 0x90, 0xee, 0x63, 0xd0, 0xb0, 0x05, 0x3d, 0x66, 0x19, 0x11, 0xf6,
-	0x17, 0x1c, 0xb5, 0xf4, 0x4f, 0xe7, 0xe6, 0xec, 0x07, 0x41, 0x42, 0x84, 0x38, 0x92, 0x49, 0xc8,
-	0x68, 0xe5, 0xf5, 0xde, 0xd5, 0x1f, 0x6f, 0xdb, 0xb5, 0x4b, 0x82, 0x1e, 0xb8, 0x56, 0xb5, 0x2c,
-	0x75, 0xa0, 0x0d, 0x76, 0x7c, 0x1e, 0xc5, 0x23, 0x22, 0x43, 0xce, 0x86, 0xd9, 0x5b, 0xc9, 0x25,
-	0xb6, 0xfa, 0xc6, 0xd2, 0x55, 0x9e, 0x94, 0x0f, 0xc9, 0xda, 0xcc, 0x96, 0x3a, 0xf9, 0xda, 0xd6,
-	0x9c, 0x2b, 0xe7, 0xe4, 0xac, 0xdc, 0xff, 0xa9, 0x81, 0x75, 0x5b, 0x50, 0xf8, 0x46, 0x03, 0x3b,
-	0x8b, 0xef, 0xe2, 0xde, 0x6a, 0xe3, 0x97, 0x0d, 0x31, 0x1e, 0xfc, 0x0b, 0xab, 0x5a, 0xef, 0x05,
-	0xd8, 0x50, 0x1e, 0xde, 0xf9, 0xa3, 0x3e, 0x05, 0xd8, 0x18, 0xfc, 0x05, 0xb8, 0xd4, 0xb2, 0x0e,
-	0x4f, 0x67, 0xa6, 0x76, 0x36, 0x33, 0xb5, 0x6f, 0x33, 0x53, 0x3b, 0x99, 0x9b, 0xb5, 0xb3, 0xb9,
-	0x59, 0xfb, 0x3c, 0x37, 0x6b, 0x4f, 0xef, 0xd3, 0x50, 0x3e, 0x1f, 0x7b, 0xc8, 0xe7, 0xd1, 0xef,
-	0x7e, 0x64, 0x93, 0x01, 0x9e, 0x5e, 0xfc, 0x73, 0x49, 0x63, 0x22, 0xbc, 0x8d, 0xdc, 0xfb, 0xc1,
-	0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x51, 0x57, 0x0c, 0xd9, 0x8d, 0x04, 0x00, 0x00,
+	// 618 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xbf, 0x6f, 0xd3, 0x40,
+	0x14, 0x8e, 0x9b, 0x50, 0x9a, 0x6b, 0x45, 0xc1, 0x8a, 0x84, 0x63, 0x51, 0x27, 0x8a, 0x84, 0x28,
+	0x20, 0xee, 0x94, 0x04, 0x31, 0x54, 0x48, 0xa8, 0xe9, 0x80, 0x2a, 0x14, 0xa9, 0xb8, 0x74, 0x61,
+	0x89, 0xfc, 0xe3, 0x6a, 0x8c, 0xe2, 0x3b, 0xe3, 0xbb, 0x44, 0x31, 0x23, 0x12, 0x7b, 0xff, 0x04,
+	0xc4, 0xc0, 0xcc, 0xc0, 0x86, 0xd8, 0x2b, 0xa6, 0x8a, 0x89, 0x09, 0x50, 0x32, 0xc0, 0x9f, 0x81,
+	0x6c, 0x9f, 0xdd, 0xfc, 0x50, 0x93, 0xf2, 0x63, 0x4a, 0xde, 0xbd, 0xef, 0x7d, 0xef, 0x7d, 0xdf,
+	0xbb, 0x33, 0xb8, 0x69, 0x87, 0x1e, 0x26, 0xcc, 0xa5, 0x64, 0x10, 0xbe, 0x44, 0x59, 0x80, 0x18,
+	0x7e, 0xd1, 0xc3, 0xc4, 0xc2, 0x01, 0xe2, 0x03, 0xe8, 0x07, 0x94, 0x53, 0xb9, 0x3a, 0x0e, 0x85,
+	0x59, 0x00, 0x33, 0xa8, 0x5a, 0x76, 0x28, 0x75, 0xba, 0x18, 0xc5, 0x78, 0xb3, 0x77, 0x88, 0x0c,
+	0x12, 0x26, 0xc5, 0x6a, 0xd9, 0xa2, 0xcc, 0xa3, 0xac, 0x13, 0x47, 0x28, 0x09, 0x44, 0xaa, 0xe4,
+	0x50, 0x87, 0x26, 0xe7, 0xd1, 0x3f, 0x71, 0xaa, 0x25, 0x18, 0x64, 0x1a, 0x0c, 0xa3, 0x7e, 0xdd,
+	0xc4, 0xdc, 0xa8, 0x23, 0x8b, 0xba, 0x44, 0xe4, 0x2b, 0xd3, 0xbd, 0xb8, 0xeb, 0x61, 0xc6, 0x0d,
+	0xcf, 0x17, 0x80, 0xab, 0x82, 0xc0, 0x63, 0x0e, 0xea, 0xd7, 0xa3, 0x1f, 0x91, 0x40, 0x0b, 0x25,
+	0x7b, 0x98, 0x1b, 0xb6, 0xc1, 0x8d, 0xa4, 0xa0, 0xf6, 0x71, 0x09, 0xc8, 0x6d, 0xe6, 0xec, 0x04,
+	0xd8, 0xe0, 0x78, 0x3f, 0x45, 0xc9, 0x0a, 0xb8, 0x68, 0x45, 0x47, 0x34, 0x50, 0xa4, 0xaa, 0xb4,
+	0x59, 0xd4, 0xd3, 0x50, 0xd6, 0xc1, 0x9a, 0x1d, 0x7a, 0x2e, 0xe1, 0x7b, 0x3d, 0xf3, 0x11, 0x0e,
+	0x95, 0xa5, 0xaa, 0xb4, 0xb9, 0xda, 0x28, 0xc1, 0x64, 0x64, 0x98, 0x8e, 0x0c, 0xb7, 0x49, 0xd8,
+	0x52, 0x3e, 0x7f, 0xb8, 0x53, 0x12, 0x7e, 0x58, 0x41, 0xe8, 0x73, 0x0a, 0x93, 0x2a, 0x7d, 0x82,
+	0x43, 0xde, 0x00, 0x20, 0xa0, 0xdd, 0xae, 0xe1, 0xfb, 0x1d, 0xd7, 0x56, 0xf2, 0x71, 0xc3, 0xa2,
+	0x38, 0xd9, 0xb5, 0xe5, 0x03, 0xb0, 0x92, 0x4e, 0xad, 0x14, 0xe2, 0x76, 0x4d, 0xb8, 0x68, 0x5f,
+	0x30, 0xd3, 0xd2, 0x16, 0xa5, 0xad, 0xc2, 0xf1, 0xb7, 0x4a, 0x4e, 0xcf, 0xa8, 0xe4, 0x26, 0x28,
+	0x98, 0x94, 0xd8, 0xca, 0x85, 0x98, 0xb2, 0x0c, 0xc5, 0xa0, 0xd1, 0x52, 0xa0, 0x58, 0x0a, 0xdc,
+	0xa1, 0x2e, 0x11, 0x85, 0x31, 0x78, 0x6b, 0xed, 0xd5, 0xcf, 0xf7, 0xb7, 0x52, 0x33, 0x6a, 0xd7,
+	0x80, 0x3a, 0x6b, 0x9e, 0x8e, 0x99, 0x4f, 0x09, 0xc3, 0xb5, 0x4f, 0x12, 0xd8, 0x68, 0x33, 0xe7,
+	0xc0, 0xb7, 0xc7, 0xd3, 0xbb, 0xe4, 0x90, 0x06, 0x9e, 0xc1, 0x5d, 0x4a, 0xe6, 0xd8, 0x3c, 0x69,
+	0xc9, 0xd2, 0x3c, 0x4b, 0xf2, 0xff, 0xcd, 0x92, 0x29, 0x75, 0x37, 0xc0, 0xf5, 0xb9, 0xe3, 0x67,
+	0x42, 0x1f, 0x83, 0x62, 0x04, 0x24, 0x91, 0x43, 0x72, 0x63, 0x4a, 0x53, 0x4b, 0xf9, 0x72, 0x7a,
+	0x0b, 0xb6, 0x6d, 0x3b, 0xc0, 0x8c, 0xed, 0xf3, 0xc0, 0x25, 0x4e, 0xa6, 0x76, 0xeb, 0xf2, 0xaf,
+	0x37, 0x95, 0xdc, 0x44, 0x6f, 0x13, 0x5c, 0xc9, 0x28, 0xd3, 0x3e, 0x72, 0x1b, 0xac, 0x5b, 0xd4,
+	0xf3, 0xbb, 0x38, 0xea, 0xde, 0x89, 0x1e, 0x45, 0xdc, 0x62, 0xb5, 0xa1, 0xce, 0x5c, 0xbf, 0x27,
+	0xe9, 0x8b, 0x69, 0xad, 0x44, 0x1a, 0x8f, 0xbe, 0x57, 0x24, 0xfd, 0xd2, 0x69, 0x71, 0x94, 0x6e,
+	0xbc, 0xcd, 0x83, 0x7c, 0x9b, 0x39, 0xf2, 0x6b, 0x09, 0xac, 0x4f, 0x3f, 0x80, 0xbb, 0x8b, 0xed,
+	0x9c, 0xdd, 0xbc, 0x7a, 0xff, 0x6f, 0xaa, 0x32, 0x79, 0xef, 0x24, 0xa0, 0xce, 0xb9, 0x2c, 0x0f,
+	0xce, 0x45, 0x7e, 0x36, 0x81, 0xfa, 0xf0, 0x1f, 0x09, 0xb2, 0x41, 0x9f, 0x83, 0x65, 0xb1, 0xec,
+	0xdb, 0xe7, 0xa3, 0x8c, 0xc1, 0x6a, 0xf3, 0x0f, 0xc0, 0x69, 0xaf, 0xd6, 0xde, 0xf1, 0x50, 0x93,
+	0x4e, 0x86, 0x9a, 0xf4, 0x63, 0xa8, 0x49, 0x47, 0x23, 0x2d, 0x77, 0x32, 0xd2, 0x72, 0x5f, 0x47,
+	0x5a, 0xee, 0xe9, 0x3d, 0xc7, 0xe5, 0xcf, 0x7a, 0x26, 0xb4, 0xa8, 0x77, 0xd6, 0x67, 0xaf, 0xdf,
+	0x44, 0x83, 0xf1, 0xcf, 0x7d, 0xe8, 0x63, 0x66, 0x2e, 0xc7, 0x97, 0xa4, 0xf9, 0x3b, 0x00, 0x00,
+	0xff, 0xff, 0xc1, 0x67, 0xa0, 0x16, 0x1f, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -308,6 +413,8 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	// CreateSequencer defines a method for creating a new sequencer.
 	CreateSequencer(ctx context.Context, in *MsgCreateSequencer, opts ...grpc.CallOption) (*MsgCreateSequencerResponse, error)
+	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
+	UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error)
 }
@@ -329,6 +436,15 @@ func (c *msgClient) CreateSequencer(ctx context.Context, in *MsgCreateSequencer,
 	return out, nil
 }
 
+func (c *msgClient) UpdateSequencerInformation(ctx context.Context, in *MsgUpdateSequencerInformation, opts ...grpc.CallOption) (*MsgUpdateSequencerInformationResponse, error) {
+	out := new(MsgUpdateSequencerInformationResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/UpdateSequencerInformation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.CallOption) (*MsgUnbondResponse, error) {
 	out := new(MsgUnbondResponse)
 	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Msg/Unbond", in, out, opts...)
@@ -342,6 +458,8 @@ func (c *msgClient) Unbond(ctx context.Context, in *MsgUnbond, opts ...grpc.Call
 type MsgServer interface {
 	// CreateSequencer defines a method for creating a new sequencer.
 	CreateSequencer(context.Context, *MsgCreateSequencer) (*MsgCreateSequencerResponse, error)
+	// UpdateSequencerInformation defines a method for updating the sequencer's metadata.
+	UpdateSequencerInformation(context.Context, *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error)
 	// Unbond defines a method for removing coins from sequencer's bond
 	Unbond(context.Context, *MsgUnbond) (*MsgUnbondResponse, error)
 }
@@ -352,6 +470,9 @@ type UnimplementedMsgServer struct {
 
 func (*UnimplementedMsgServer) CreateSequencer(ctx context.Context, req *MsgCreateSequencer) (*MsgCreateSequencerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSequencer not implemented")
+}
+func (*UnimplementedMsgServer) UpdateSequencerInformation(ctx context.Context, req *MsgUpdateSequencerInformation) (*MsgUpdateSequencerInformationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSequencerInformation not implemented")
 }
 func (*UnimplementedMsgServer) Unbond(ctx context.Context, req *MsgUnbond) (*MsgUnbondResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unbond not implemented")
@@ -375,6 +496,24 @@ func _Msg_CreateSequencer_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MsgServer).CreateSequencer(ctx, req.(*MsgCreateSequencer))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateSequencerInformation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateSequencerInformation)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateSequencerInformation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Msg/UpdateSequencerInformation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateSequencerInformation(ctx, req.(*MsgUpdateSequencerInformation))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -404,6 +543,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateSequencer",
 			Handler:    _Msg_CreateSequencer_Handler,
+		},
+		{
+			MethodName: "UpdateSequencerInformation",
+			Handler:    _Msg_UpdateSequencerInformation_Handler,
 		},
 		{
 			MethodName: "Unbond",
@@ -506,6 +649,76 @@ func (m *MsgCreateSequencerResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateSequencerInformation) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateSequencerInformation) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateSequencerInformation) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Metadata.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateSequencerInformationResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateSequencerInformationResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateSequencerInformationResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func (m *MsgUnbond) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -556,12 +769,12 @@ func (m *MsgUnbondResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n4, err4 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.CompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime):])
-	if err4 != nil {
-		return 0, err4
+	n5, err5 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.CompletionTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.CompletionTime):])
+	if err5 != nil {
+		return 0, err5
 	}
-	i -= n4
-	i = encodeVarintTx(dAtA, i, uint64(n4))
+	i -= n5
+	i = encodeVarintTx(dAtA, i, uint64(n5))
 	i--
 	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
@@ -604,6 +817,34 @@ func (m *MsgCreateSequencer) Size() (n int) {
 }
 
 func (m *MsgCreateSequencerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateSequencerInformation) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Creator)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Metadata.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateSequencerInformationResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -885,6 +1126,203 @@ func (m *MsgCreateSequencerResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgCreateSequencerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateSequencerInformation) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateSequencerInformation: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateSequencerInformation: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Creator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateSequencerInformationResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateSequencerInformationResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateSequencerInformationResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
