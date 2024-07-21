@@ -190,6 +190,8 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 					Description:  "Sample description",
 					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+					Telegram:     "rolly",
+					X:            "rolly",
 				},
 			}
 
@@ -320,6 +322,8 @@ func (suite *RollappTestSuite) TestForkChainId() {
 					Description:  "Sample description",
 					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+					Telegram:     "rolly",
+					X:            "rolly",
 				},
 			}
 
@@ -342,6 +346,8 @@ func (suite *RollappTestSuite) TestForkChainId() {
 					Description:  "Sample description",
 					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+					Telegram:     "rolly",
+					X:            "rolly",
 				},
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
@@ -465,6 +471,8 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 			Description:  "Sample description",
 			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
 			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+			Telegram:     "rolly",
+			X:            "rolly",
 		},
 	}
 	// rollappExpect is the expected result of creating rollapp

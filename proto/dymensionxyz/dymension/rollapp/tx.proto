@@ -14,6 +14,7 @@ import "gogoproto/gogo.proto";
 // Msg defines the Msg service.
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
+  rpc UpdateRollappInformation(MsgUpdateRollappInformation) returns (MsgUpdateRollappInformationResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
 }
 
@@ -39,6 +40,15 @@ message MsgCreateRollapp {
 }
 
 message MsgCreateRollappResponse {
+}
+
+// MsgUpdateRollappInformation updates the rollapp information.
+message MsgUpdateRollappInformation {
+  // update is the new rollapp information
+  UpdateRollappInformation update = 1;
+}
+
+message MsgUpdateRollappInformationResponse {
 }
 
 // MsgUpdateState updates a rollapp state with a block batch.

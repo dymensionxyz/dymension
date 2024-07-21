@@ -12,4 +12,8 @@ message RollappMetadata {
   string logo_data_uri = 3;
   // token_logo_uri is a URI to the native token logo. Should be limited to 25kb.
   string token_logo_uri = 4;
+  // telegram is the rollapp telegram
+  string telegram = 5;
+  // x is the rollapp twitter
+  string x = 6;
 }

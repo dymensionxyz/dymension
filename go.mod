@@ -29,6 +29,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
+	github.com/tendermint/tendermint v0.34.29
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	gonum.org/v1/gonum v0.8.2
 	google.golang.org/genproto/googleapis/api v0.0.0-20240318140521-94a12d6c2237
