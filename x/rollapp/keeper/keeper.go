@@ -22,6 +22,8 @@ type Keeper struct {
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
 	bankKeeper      types.BankKeeper
+
+	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
 
 func NewKeeper(
@@ -37,7 +39,7 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		paramstore:      ps,
@@ -46,6 +48,12 @@ func NewKeeper(
 		ibcClientKeeper: ibcclientKeeper,
 		bankKeeper:      bankKeeper,
 	}
+	k.SetFinalizePendingFn(k.finalizePendingState)
+	return k
+}
+
+func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error) {
+	k.finalizePending = fn
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

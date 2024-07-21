@@ -106,14 +106,14 @@ func migrateDelayedAckParams(ctx sdk.Context, delayedAckKeeper delayedackkeeper.
 	delayedAckKeeper.SetParams(ctx, params)
 }
 
-func migrateRollappParams(ctx sdk.Context, rollappkeeper rollappkeeper.Keeper) {
+func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) {
 	// overwrite params for rollapp module due to proto change
 	params := rollapptypes.DefaultParams()
 	params.DisputePeriodInBlocks = rollappkeeper.DisputePeriodInBlocks(ctx)
 	rollappkeeper.SetParams(ctx, params)
 }
 
-func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper rollappkeeper.Keeper) error {
+func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper *rollappkeeper.Keeper) error {
 	for _, oldRollapp := range getAllOldRollapps(ctx, rollappStoreKey, appCodec) {
 		newRollapp := ConvertOldRollappToNew(oldRollapp)
 		if err := newRollapp.ValidateBasic(); err != nil {

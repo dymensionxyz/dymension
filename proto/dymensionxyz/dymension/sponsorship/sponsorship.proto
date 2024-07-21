@@ -1,0 +1,71 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sponsorship;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
+
+// Params is a module parameters.
+message Params {
+  // MinAllocationWeight is a minimum portion of the user's voting power that
+  // one can allocate to a single gauge. The value must fall between 0 and 100,
+  // inclusively. For example, if this parameter is 20%, then the min allocation
+  // is 20%, and consequently, the user can vote on a max of 5 gauges (100 / 20
+  // = 5).
+  string min_allocation_weight = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // MinVotingPower is a minimum voting power a user must have in order to be
+  // able to vote.
+  string min_voting_power = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+// Distribution holds the distribution plan among gauges.
+message Distribution {
+  // TotalVotingPower is the total voting power that the plan holds.
+  string total_voting_power = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // Gauges is a breakdown of the users' votes for different gauges.
+  repeated Gauge gauges = 2;
+}
+
+// Gauge represents a single gauge with its absolute power.
+message Gauge {
+  // GaugeID is the ID of the gauge.
+  uint64 gauge_id = 1;
+  // Power is a total voting power distributed to this gauge.
+  string power = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+// Vote represents the user's vote.
+message Vote {
+  // Voting power is a total voting power of the vote.
+  string voting_power = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // Weights is a breakdown of the user's vote for different gauges.
+  repeated GaugeWeight weights = 2 [ (gogoproto.nullable) = false ];
+}
+
+// Weight is a weight distributed to the specified gauge.
+message GaugeWeight {
+  // GaugeID is the ID of the gauge.
+  uint64 gauge_id = 1;
+  // Weight is a portion of the voting power that the user wants to allocate for
+  // the given gauge. The value must fall between Params.MinAllocationWeight and
+  // 100, inclusive.
+  string weight = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}

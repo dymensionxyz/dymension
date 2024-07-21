@@ -45,7 +45,6 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 
 	sequence := uint64(0)
 	for j := 0; j < numOfStates; j++ {
-
 		numOfBlocks := uint64(rand.Intn(10) + 1)
 		for rollapp, sequencer := range seqPerRollapp {
 
@@ -71,8 +70,7 @@ func (suite *DelayedAckTestSuite) TestInvariants() {
 	}
 
 	// progress finalization queue
-	err := suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
-	suite.Require().NoError(err)
+	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 
 	// test fraud
 	for rollapp := range seqPerRollapp {

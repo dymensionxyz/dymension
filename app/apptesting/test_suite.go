@@ -13,6 +13,7 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
+
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -56,7 +57,7 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)
 	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
-	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
 	s.Require().NoError(err)
 	return name
@@ -101,7 +102,7 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 		DAPath:      "",
 		BDs:         bds,
 	}
-	msgServer := rollappkeeper.NewMsgServerImpl(s.App.RollappKeeper)
+	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err = msgServer.UpdateState(ctx, &updateState)
 	return startHeight + numOfBlocks, err
 }
