@@ -41,9 +41,5 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappID string) error {
 		ctx,
 		rollappID,
 	)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
