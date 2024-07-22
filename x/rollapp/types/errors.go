@@ -43,6 +43,7 @@ var (
 	ErrAliasUpdate                    = errorsmod.Register(ModuleName, 1051, "cannot update alias")
 	ErrIGenesisChecksumUpdate         = errorsmod.Register(ModuleName, 1052, "cannot update genesis checksum")
 	ErrInvalidHandle                  = errorsmod.Register(ModuleName, 1053, "invalid handle")
+	ErrInvalidRequest                 = errorsmod.Register(ModuleName, 1054, "invalid request")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

@@ -31,7 +31,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
-	if registrationFee.IsAllPositive() {
+	if !registrationFee.IsZero() {
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
 			return errorsmod.Wrap(types.ErrFeePayment, err.Error())
 		}
@@ -51,7 +51,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	return nil
 }
 
-func (k Keeper) UpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInformation) error {
+func (k Keeper) UpdateRollapp(ctx sdk.Context, update types.UpdateRollappInformation) error {
 	if err := update.ValidateBasic(); err != nil {
 		return fmt.Errorf("validate update: %w", err)
 	}
@@ -71,53 +71,52 @@ func (k Keeper) UpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInform
 	return nil
 }
 
-func (k Keeper) checkIfCanUpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInformation) (current types.Rollapp, err error) {
-	var found bool
-	current, found = k.GetRollapp(ctx, update.RollappId)
+func (k Keeper) checkIfCanUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInformation) (types.Rollapp, error) {
+	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
-		err = errRollappNotFound
-		return
+		return current, errRollappNotFound
 	}
 
 	if update.Creator != current.Creator {
-		err = sdkerrors.ErrUnauthorized
-		return
+		return current, sdkerrors.ErrUnauthorized
 	}
 
 	if current.Frozen {
-		err = types.ErrRollappFrozen
-		return
+		return current, types.ErrRollappFrozen
 	}
 
-	_, hasState := k.GetLatestStateInfoIndex(ctx, update.RollappId)
+	if update.InitialSequencerAddress != "" || update.Alias != "" || update.GenesisChecksum != "" {
+		_, hasState := k.GetLatestStateInfoIndex(ctx, update.RollappId)
 
-	current.InitialSequencerAddress, err = k.checkIfCanUpdateInitialSequencer(
-		ctx,
-		current.InitialSequencerAddress,
-		update.InitialSequencerAddress,
-		hasState,
-	)
-	if err != nil {
-		return
-	}
+		var err error
+		current.InitialSequencerAddress, err = k.checkIfCanUpdateInitialSequencer(
+			ctx,
+			current.InitialSequencerAddress,
+			update.InitialSequencerAddress,
+			hasState,
+		)
+		if err != nil {
+			return current, err
+		}
 
-	current.Alias, err = k.checkIfCanUpdateAlias(ctx, current.Alias, update.Alias, hasState)
-	if err != nil {
-		return
-	}
+		current.Alias, err = k.checkIfCanUpdateAlias(ctx, current.Alias, update.Alias, hasState)
+		if err != nil {
+			return current, err
+		}
 
-	current.GenesisChecksum, err = k.checkIfCanUpdateGenesisChecksum(current.GenesisChecksum, update.GenesisChecksum, hasState)
-	if err != nil {
-		return
+		current.GenesisChecksum, err = k.checkIfCanUpdateGenesisChecksum(current.GenesisChecksum, update.GenesisChecksum, hasState)
+		if err != nil {
+			return current, err
+		}
 	}
 
 	current.Metadata = update.Metadata
 
-	if err = current.ValidateBasic(); err != nil {
-		err = fmt.Errorf("validate rollapp: %w", err)
+	if err := current.ValidateBasic(); err != nil {
+		return current, fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	return
+	return current, nil
 }
 
 func (k Keeper) checkIfCanUpdateInitialSequencer(ctx sdk.Context, currentInitSeq, updateInitSeq string, hasState bool) (string, error) {
