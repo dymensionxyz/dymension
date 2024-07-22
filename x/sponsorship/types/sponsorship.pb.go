@@ -70,63 +70,12 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
-// Distribution holds the distribution plan among gauges. Distribution with the
-// Merge operation forms an Abelian group:
-// https://en.wikipedia.org/wiki/Abelian_group. Which helps to safely operate
-// with it. That is, Distribution:
-//  1. Is commutative:           a + b = b + a
-//  2. Is associative:           a + (b + c) = (a + b) + c
-//  3. Has the identity element: e + a = a + e = a
-//  4. Has inverse elements:     i + a = a + i = e
-//
-// where
-// a, b, c, i, e : Distribution type,
-// + : Merge operation (Merge method)
-// i : inverse of a (Negate method),
-// e : identity element (zero, NewDistribution method).
-//
-// Example 1:
-//
-//	a     : [100, 1] [50, 2] [0, 3] power 100
-//	b     : [160, 1] [40, 2] [5, 3] power 200
-//	a + b : [260, 1] [90, 2] [5, 3] power 300
-//
-// Example 2:
-//
-//	a     : [100, 1] [50, 2] [0, 3] power 100
-//	b     : [160, 1]                power 200
-//	a + b : [260, 1] [50, 2] [0, 3] power 300
-//
-// Example 3:
-//
-//	a     : [100, 1] [50, 2] [0, 3]          power 100
-//	b     :                         [160, 4] power 200
-//	a + b : [100, 1] [50, 2] [0, 3] [160, 4] power 300
-//
-// Example 4:
-//
-//	a     : [210, 1] [180, 2] [210, 3] power 600
-//	-b    : [-40, 1] [-10, 2]          power -50
-//	a - b : [170, 1] [180, 2] [210, 3] power 550
-//
-// Example 5:
-//
-//	a         : [210, 1] [180, 2] [210, 3] power 600
-//	e         :                            power 0
-//	a + e = a : [210, 1] [180, 2] [210, 3] power 600
-//
-// Example 6:
-//
-//	a         : [ 210, 1] [ 180, 2] [ 210, 3] power  600
-//	i = -a    : [-210, 1] [-180, 2] [-210, 3] power -600
-//	a + i = e :                               power 0
-//
-// CONTRACT: Gauges are sorted by the gauge ID.
-// CONTRACT: Gauges hold gauges only with non-vero power.
+// Distribution holds the distribution plan among gauges.
 type Distribution struct {
 	// VotingPower is the total voting power that the distribution holds.
 	VotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=voting_power,json=votingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"voting_power"`
 	// Gauges is a breakdown of the voting power for different gauges.
+	// CONTRACT: Gauges MUST be sorted by the gauge ID.
 	Gauges []Gauge `protobuf:"bytes,2,rep,name=gauges,proto3" json:"gauges"`
 }
 
@@ -270,9 +219,8 @@ func (m *Vote) GetWeights() []GaugeWeight {
 type GaugeWeight struct {
 	// GaugeID is the ID of the gauge.
 	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
-	// Weight is a portion of the voting power that is allocated for the given
-	// gauge. The value must fall between Params.MinAllocationWeight and 100,
-	// inclusive.
+	// Weight is a portion of the voting power that is allocated for the given gauge.
+	// The value must fall between Params.MinAllocationWeight and 100, inclusive.
 	Weight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"weight"`
 }
 

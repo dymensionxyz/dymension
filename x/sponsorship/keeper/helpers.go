@@ -10,6 +10,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
+var hundred = math.NewInt(100)
+
 // SetParams sets the total set of params.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)

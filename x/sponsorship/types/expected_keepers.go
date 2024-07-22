@@ -12,15 +12,9 @@ type AccountKeeper interface {
 }
 
 type StakingKeeper interface {
-	GetBondedValidatorsByPower(sdk.Context) []stakingtypes.Validator
-	GetDelegatorValidator(ctx sdk.Context, delegatorAddr sdk.AccAddress, validatorAddr sdk.ValAddress) (stakingtypes.Validator, error)
+	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (stakingtypes.Validator, bool)
 	GetDelegation(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (stakingtypes.Delegation, bool)
-	IterateBondedValidatorsByPower(sdk.Context, func(index int64, validator stakingtypes.ValidatorI) (stop bool))
-	IterateDelegations(
-		ctx sdk.Context,
-		delAddr sdk.AccAddress,
-		fn func(index int64, del stakingtypes.DelegationI) (stop bool),
-	)
+	IterateDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress, cb func(stakingtypes.Delegation) (stop bool))
 }
 
 type IncentivesKeeper interface {
