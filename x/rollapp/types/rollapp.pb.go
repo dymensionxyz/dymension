@@ -85,7 +85,7 @@ type Rollapp struct {
 	// initial_sequencer_address is a bech32-encoded address of the
 	// sequencer that is allowed to initially serve this rollappId.
 	InitialSequencerAddress string `protobuf:"bytes,3,opt,name=initial_sequencer_address,json=initialSequencerAddress,proto3" json:"initial_sequencer_address,omitempty"`
-	// checksum used to verify integrity
+	// checksum used to verify integrity of the genesis file
 	GenesisChecksum string `protobuf:"bytes,4,opt,name=genesis_checksum,json=genesisChecksum,proto3" json:"genesis_checksum,omitempty"`
 	// genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 	GenesisState RollappGenesisState `protobuf:"bytes,5,opt,name=genesis_state,json=genesisState,proto3" json:"genesis_state"`

@@ -21,11 +21,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	}
 
 	if err := k.checkIfInitialSequencerAddressTaken(ctx, rollapp.InitialSequencerAddress); err != nil {
-		return err
-	}
-
-	if err := k.checkIfBech32PrefixTaken(ctx, rollapp.Bech32Prefix); err != nil {
-		return err
+		return fmt.Errorf("check if initial sequencer address taken: %w", err)
 	}
 
 	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
@@ -214,13 +210,6 @@ func (k Keeper) checkIfInitialSequencerAddressTaken(ctx sdk.Context, address str
 	return nil
 }
 
-func (k Keeper) checkIfBech32PrefixTaken(ctx sdk.Context, prefix string) error {
-	if _, isFound := k.GetRollappByBech32Prefix(ctx, prefix); isFound {
-		return types.ErrBech32PrefixTaken
-	}
-	return nil
-}
-
 // SetRollapp set a specific rollapp in the store from its index
 func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
@@ -270,21 +259,6 @@ func (k Keeper) GetRollappByInitialSequencerAddress(ctx sdk.Context, address str
 		var val types.Rollapp
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.InitialSequencerAddress == address {
-			return val, true
-		}
-	}
-	return types.Rollapp{}, false
-}
-
-func (k Keeper) GetRollappByBech32Prefix(ctx sdk.Context, pref string) (types.Rollapp, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Rollapp
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.Bech32Prefix == pref {
 			return val, true
 		}
 	}

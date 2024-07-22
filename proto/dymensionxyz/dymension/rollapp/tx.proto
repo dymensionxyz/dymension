@@ -33,7 +33,7 @@ message MsgCreateRollapp {
   string bech32_prefix = 4;
   // alias is the chain alias used for display and namespace system
   string alias = 5;
-  // checksum used to verify integrity
+  // checksum used to verify integrity of the genesis file
   string genesis_checksum = 6;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 7;

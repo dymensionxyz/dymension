@@ -30,7 +30,7 @@ message Rollapp {
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially serve this rollappId.
   string initial_sequencer_address = 3;
-  // checksum used to verify integrity
+  // checksum used to verify integrity of the genesis file
   string genesis_checksum = 4;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 5 [(gogoproto.nullable) = false];

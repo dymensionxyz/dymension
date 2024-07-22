@@ -3,10 +3,13 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
+
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -14,8 +17,10 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	// KeyRegistrationFee is store's key for RegistrationFee Params
 	KeyRegistrationFee = []byte("RegistrationFee")
+	// DYM is the integer representation of 1 DYM
+	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee, _ = sdk.ParseCoinNormalized("1000000000000000000adym")
+	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) // 1000DYM
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
 	DefaultDisputePeriodInBlocks uint64 = 3
@@ -92,7 +97,7 @@ func validateRegistrationFee(v interface{}) error {
 		return fmt.Errorf("invalid registration fee: %s", registrationFee)
 	}
 
-	if registrationFee.Denom != "adym" {
+	if registrationFee.Denom != appparams.BaseDenom {
 		return fmt.Errorf("invalid registration fee denom: %s", registrationFee.Denom)
 	}
 

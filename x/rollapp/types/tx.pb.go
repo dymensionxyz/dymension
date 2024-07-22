@@ -43,7 +43,7 @@ type MsgCreateRollapp struct {
 	Bech32Prefix string `protobuf:"bytes,4,opt,name=bech32_prefix,json=bech32Prefix,proto3" json:"bech32_prefix,omitempty"`
 	// alias is the chain alias used for display and namespace system
 	Alias string `protobuf:"bytes,5,opt,name=alias,proto3" json:"alias,omitempty"`
-	// checksum used to verify integrity
+	// checksum used to verify integrity of the genesis file
 	GenesisChecksum string `protobuf:"bytes,6,opt,name=genesis_checksum,json=genesisChecksum,proto3" json:"genesis_checksum,omitempty"`
 	// metadata is the rollapp metadata
 	Metadata *RollappMetadata `protobuf:"bytes,7,opt,name=metadata,proto3" json:"metadata,omitempty"`
