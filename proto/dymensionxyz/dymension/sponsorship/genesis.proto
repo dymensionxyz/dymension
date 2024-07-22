@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sponsorship;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/sponsorship/sponsorship.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sponsorship/types";
+
+// GenesisState defines the sponsorship module's genesis state.
+message GenesisState {
+  // Params defines params for x/sponsorship module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}

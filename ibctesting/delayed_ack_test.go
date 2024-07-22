@@ -142,7 +142,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
 
-	// Upate rollapp state
+	// Update rollapp state
 	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	s.updateRollappState(currentRollappBlockHeight)
 

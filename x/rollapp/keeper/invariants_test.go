@@ -52,12 +52,11 @@ func (suite *RollappTestSuite) TestInvariants() {
 
 	// progress finalization queue
 	suite.Ctx = suite.Ctx.WithBlockHeight(initialheight + 2)
-	err := suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
-	suite.Require().Nil(err)
+	suite.App.RollappKeeper.FinalizeRollappStates(suite.Ctx)
 
 	// check invariant
-	msg, bool := keeper.AllInvariants(suite.App.RollappKeeper)(suite.Ctx)
-	suite.Require().False(bool, msg)
+	msg, ok := keeper.AllInvariants(*suite.App.RollappKeeper)(suite.Ctx)
+	suite.Require().False(ok, msg)
 }
 
 func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
@@ -166,7 +165,7 @@ func (suite *RollappTestSuite) TestRollappFinalizedStateInvariant() {
 				Index:     tc.latestStateInfoIndex.GetIndex().Index,
 			})
 			// check invariant
-			_, isBroken := keeper.RollappFinalizedStateInvariant(suite.App.RollappKeeper)(ctx)
+			_, isBroken := keeper.RollappFinalizedStateInvariant(*suite.App.RollappKeeper)(ctx)
 			suite.Require().Equal(tc.expectedIsBroken, isBroken)
 		})
 	}

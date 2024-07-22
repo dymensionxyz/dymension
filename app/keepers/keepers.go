@@ -99,7 +99,7 @@ type AppKeepers struct {
 	AuthzKeeper                   authzkeeper.Keeper
 	BankKeeper                    bankkeeper.Keeper
 	CapabilityKeeper              *capabilitykeeper.Keeper
-	StakingKeeper                 stakingkeeper.Keeper
+	StakingKeeper                 *stakingkeeper.Keeper
 	SlashingKeeper                slashingkeeper.Keeper
 	MintKeeper                    mintkeeper.Keeper
 	DistrKeeper                   distrkeeper.Keeper
@@ -133,7 +133,7 @@ type AppKeepers struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	RollappKeeper   rollappmodulekeeper.Keeper
+	RollappKeeper   *rollappmodulekeeper.Keeper
 	SequencerKeeper sequencermodulekeeper.Keeper
 	StreamerKeeper  streamermodulekeeper.Keeper
 	EIBCKeeper      eibckeeper.Keeper
@@ -211,7 +211,7 @@ func (a *AppKeepers) InitKeepers(
 		govModuleAddress,
 	)
 
-	stakingKeeper := stakingkeeper.NewKeeper(
+	a.StakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		a.keys[stakingtypes.StoreKey],
 		a.AccountKeeper,
@@ -222,7 +222,7 @@ func (a *AppKeepers) InitKeepers(
 	a.MintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		a.keys[minttypes.StoreKey],
-		stakingKeeper,
+		a.StakingKeeper,
 		a.AccountKeeper,
 		a.BankKeeper,
 		authtypes.FeeCollectorName,
@@ -234,7 +234,7 @@ func (a *AppKeepers) InitKeepers(
 		a.keys[distrtypes.StoreKey],
 		a.AccountKeeper,
 		a.BankKeeper,
-		stakingKeeper,
+		a.StakingKeeper,
 		authtypes.FeeCollectorName,
 		govModuleAddress,
 	)
@@ -243,15 +243,9 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		cdc,
 		a.keys[slashingtypes.StoreKey],
-		stakingKeeper,
+		a.StakingKeeper,
 		govModuleAddress,
 	)
-
-	// TODO: move back to SetupHooks after https://github.com/dymensionxyz/dymension/pull/970 is merged
-	stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
-	)
-	a.StakingKeeper = *stakingKeeper
 
 	a.FeeGrantKeeper = feegrantkeeper.NewKeeper(
 		appCodec,
@@ -277,7 +271,7 @@ func (a *AppKeepers) InitKeepers(
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 		a.AccountKeeper,
 		a.BankKeeper,
-		stakingKeeper,
+		a.StakingKeeper,
 		a.FeeMarketKeeper,
 		nil,
 		geth.NewEVM,
@@ -332,7 +326,7 @@ func (a *AppKeepers) InitKeepers(
 		appCodec,
 		a.keys[ibcexported.StoreKey],
 		a.GetSubspace(ibcexported.ModuleName),
-		stakingKeeper,
+		a.StakingKeeper,
 		a.UpgradeKeeper,
 		a.ScopedIBCKeeper,
 	)
@@ -341,7 +335,7 @@ func (a *AppKeepers) InitKeepers(
 		a.BankKeeper,
 	)
 
-	a.RollappKeeper = *rollappmodulekeeper.NewKeeper(
+	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
 		appCodec,
 		a.keys[rollappmoduletypes.StoreKey],
 		a.GetSubspace(rollappmoduletypes.ModuleName),
@@ -366,7 +360,7 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.DistrKeeper,
 		a.TxFeesKeeper,
-		&a.RollappKeeper,
+		a.RollappKeeper,
 		&a.SequencerKeeper,
 	)
 
@@ -424,20 +418,20 @@ func (a *AppKeepers) InitKeepers(
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(a.UpgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(a.IBCKeeper.ClientKeeper)).
 		AddRoute(streamermoduletypes.RouterKey, streamermodule.NewStreamerProposalHandler(a.StreamerKeeper)).
-		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(&a.RollappKeeper)).
+		AddRoute(rollappmoduletypes.RouterKey, rollappmodule.NewRollappProposalHandler(a.RollappKeeper)).
 		AddRoute(denommetadatamoduletypes.RouterKey, denommetadatamodule.NewDenomMetadataProposalHandler(a.DenomMetadataKeeper)).
 		AddRoute(evmtypes.RouterKey, evm.NewEvmProposalHandler(a.EvmKeeper))
 
 	// Create evidence Keeper for to register the IBC light client misbehaviour evidence route
 	// If evidence needs to be handled for the app, set routes in router here and seal
 	a.EvidenceKeeper = *evidencekeeper.NewKeeper(
-		appCodec, a.keys[evidencetypes.StoreKey], stakingKeeper, a.SlashingKeeper,
+		appCodec, a.keys[evidencetypes.StoreKey], a.StakingKeeper, a.SlashingKeeper,
 	)
 
 	govConfig := govtypes.DefaultConfig()
 	a.GovKeeper = govkeeper.NewKeeper(
 		appCodec, a.keys[govtypes.StoreKey], a.AccountKeeper, a.BankKeeper,
-		stakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
+		a.StakingKeeper, bApp.MsgServiceRouter(), govConfig, govModuleAddress,
 	)
 	a.GovKeeper.SetLegacyRouter(govRouter)
 
@@ -459,7 +453,7 @@ func (a *AppKeepers) InitTransferStack() {
 		a.DelayedAckKeeper,
 		a.TransferKeeper,
 		a.AccountKeeper.GetModuleAddress(txfeestypes.ModuleName),
-		a.RollappKeeper,
+		*a.RollappKeeper,
 	)
 	a.TransferStack = packetforwardmiddleware.NewIBCMiddleware(
 		a.TransferStack,
@@ -477,8 +471,8 @@ func (a *AppKeepers) InitTransferStack() {
 		delayedackmodule.WithRollappKeeper(a.RollappKeeper),
 	)
 	a.TransferStack = a.delayedAckMiddleware
-	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
-	a.TransferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(a.TransferStack, a.RollappKeeper, a.IBCKeeper.ChannelKeeper)
+	a.TransferStack = transfergenesis.NewIBCModule(a.TransferStack, a.DelayedAckKeeper, *a.RollappKeeper, a.TransferKeeper, a.DenomMetadataKeeper)
+	a.TransferStack = transfergenesis.NewIBCModuleCanonicalChannelHack(a.TransferStack, *a.RollappKeeper, a.IBCKeeper.ChannelKeeper)
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
@@ -487,6 +481,10 @@ func (a *AppKeepers) InitTransferStack() {
 }
 
 func (a *AppKeepers) SetupHooks() {
+	a.StakingKeeper.SetHooks(
+		stakingtypes.NewMultiStakingHooks(a.DistrKeeper.Hooks(), a.SlashingKeeper.Hooks()),
+	)
+
 	// register the staking hooks
 	a.LockupKeeper.SetHooks(
 		lockuptypes.NewMultiLockupHooks(
