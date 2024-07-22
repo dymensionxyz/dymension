@@ -84,10 +84,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
-	// this is the first sequencer, make it a PROPOSER
+	// if this is the first sequencer, make it a PROPOSER
 	proposer := len(bondedSequencers) == 0
 	if proposer {
-		k.SetActiveSequencer(ctx, sequencer.RollappId, sequencer)
+		k.SetProposer(ctx, sequencer.RollappId, sequencer)
 	}
 
 	k.SetSequencer(ctx, sequencer)

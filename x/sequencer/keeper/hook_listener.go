@@ -37,7 +37,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		return types.ErrInvalidSequencerStatus
 	}
 
-	seq, ok := hook.k.GetActiveSequencer(ctx, rollappId)
+	seq, ok := hook.k.GetProposer(ctx, rollappId)
 	if !ok {
 		return types.ErrNoProposer
 	}
@@ -52,7 +52,6 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		// TODO: the hub should probably validate the lastBlock in the lastBatch,
 		// to make sure the sequencer is passing the correct nextSequencer on the L2
 
-		// fixme: wrap in cache ctx
 		hook.k.RotateProposer(ctx, rollappId)
 	}
 

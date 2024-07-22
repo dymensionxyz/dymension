@@ -71,14 +71,14 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
-	suite.Require().True(sequencer1.Proposer)
+	suite.Require().True(suite.App.SequencerKeeper.IsProposer(suite.Ctx, rollappId, addr1))
 
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	sequencer2, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(sequencer2.Status == types.Bonded)
-	suite.Require().False(sequencer2.Proposer)
+	suite.Require().False(suite.App.SequencerKeeper.IsProposer(suite.Ctx, rollappId, addr2))
 
 	suite.Require().False(sequencer2.Tokens.IsZero())
 

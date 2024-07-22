@@ -75,7 +75,7 @@ func SequencerBondedInvariant(k Keeper) sdk.Invariant {
 
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
-			active, ok := k.GetActiveSequencer(ctx, rollapp.RollappId)
+			active, ok := k.GetProposer(ctx, rollapp.RollappId)
 			if ok && active.Status != types.Bonded {
 				broken = true
 				msg += "active sequencer is not bonded " + rollapp.RollappId + "\n"

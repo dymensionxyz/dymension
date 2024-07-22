@@ -108,7 +108,6 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		}
 	}
 }
-
 func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -163,10 +162,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Tokens:           sdk.NewCoins(bond),
 				Description:      sequencerMsg.GetDescription(),
 			}
-			if i == 0 {
-				sequencerExpect.Status = types.Bonded
-				sequencerExpect.Proposer = true
-			}
+
 			// create sequencer
 			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().Nil(err)
@@ -187,7 +183,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			// verify that query all contains all the sequencers that were created
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
-			// add the sequencer to the list of spesific rollapp
+			// add the sequencer to the list of specific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
 		}
 	}
@@ -205,6 +201,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				sequencer.SequencerAddress)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
+
+		// check that the first sequencer created is the active sequencer
+		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
+			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
+		suite.Require().Nil(err)
+		suite.Require().EqualValues(proposer.Proposer, sequencersExpect[0].SequencerAddress)
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
@@ -304,7 +306,6 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		SequencerAddress: sequencerMsg.GetCreator(),
 		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
 		Status:           types.Bonded,
-		Proposer:         true,
 		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
 		Tokens:           sdk.NewCoins(bond),
@@ -467,30 +468,6 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 		_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 		suite.Require().Nil(err)
 	}
-}
-
-func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
-	suite.SetupTest()
-
-	rollappId := suite.CreateDefaultRollapp()
-
-	// create first sequencer
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-
-	// create second sequencer
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-
-	// check scheduler operating status
-	scheduler, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.True(scheduler.Proposer)
-
-	// check scheduler operating status
-	scheduler, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.False(scheduler.Proposer)
 }
 
 // ---------------------------------------

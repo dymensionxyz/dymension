@@ -14,8 +14,6 @@ import (
 func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.MsgUnbondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	//TODO: msg.ValidateBasic?
-
 	seq, found := k.GetSequencer(ctx, msg.Creator)
 	if !found {
 		return nil, types.ErrUnknownSequencer
@@ -39,24 +37,24 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 
 	// check if sequencer required for a notice period before unbonding
 	if k.IsNoticePeriodRequired(ctx, seq) {
-		completionTime, err := k.startNoticePeriodForSequencer(ctx, &seq)
+		completionTime := k.startNoticePeriodForSequencer(ctx, &seq)
 		return &types.MsgUnbondResponse{
 			CompletionTime: &types.MsgUnbondResponse_NoticePeriodCompletionTime{
 				NoticePeriodCompletionTime: &completionTime,
 			},
-		}, err
+		}, nil
 	}
 
 	// otherwise, start unbonding
-	completionTime, err := k.setSequencerToUnbonding(ctx, &seq)
+	completionTime := k.startUnbondingPeriodForSequencer(ctx, &seq)
 	return &types.MsgUnbondResponse{
 		CompletionTime: &types.MsgUnbondResponse_UnbondingCompletionTime{
 			UnbondingCompletionTime: &completionTime,
 		},
-	}, err
+	}, nil
 }
 
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) (time.Time, error) {
+func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockHeader().Time.Add(k.NoticePeriod(ctx))
 	seq.UnbondTime = completionTime
 
@@ -77,13 +75,12 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 		),
 	)
 
-	return completionTime, nil
+	return completionTime
 }
 
-// setSequencerToUnbonding sets the sequencer to unbonding status
+// startUnbondingPeriodForSequencer sets the sequencer to unbonding status
 // can be called after notice period or directly if notice period is not required
-func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seq *types.Sequencer) (time.Time, error) {
-	// set the status to unbonding
+func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	seq.UnbondTime = completionTime
 
@@ -100,5 +97,5 @@ func (k Keeper) setSequencerToUnbonding(ctx sdk.Context, seq *types.Sequencer) (
 		),
 	)
 
-	return completionTime, nil
+	return completionTime
 }

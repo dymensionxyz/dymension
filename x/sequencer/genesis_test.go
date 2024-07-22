@@ -19,7 +19,6 @@ func TestInitGenesis(t *testing.T) {
 			{
 				SequencerAddress: "0",
 				Status:           types.Bonded,
-				Proposer:         true,
 			},
 			{
 				SequencerAddress: "1",
@@ -51,7 +50,6 @@ func TestExportGenesis(t *testing.T) {
 		{
 			SequencerAddress: "0",
 			Status:           types.Bonded,
-			Proposer:         true,
 		},
 		{
 			SequencerAddress: "1",

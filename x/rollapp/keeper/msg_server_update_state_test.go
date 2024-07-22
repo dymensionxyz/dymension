@@ -30,9 +30,9 @@ func (suite *RollappTestSuite) TestFirstUpdateState() {
 		SequencerAddress: bob,
 		RollappId:        rollapp.GetRollappId(),
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// check no index exists
 	_, found := suite.App.RollappKeeper.GetLatestStateInfoIndex(suite.Ctx, rollapp.GetRollappId())
@@ -79,9 +79,9 @@ func (suite *RollappTestSuite) TestUpdateState() {
 		SequencerAddress: bob,
 		RollappId:        rollapp.GetRollappId(),
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// create new update
 	updateState := types.MsgUpdateState{
@@ -267,7 +267,6 @@ func (suite *RollappTestSuite) TestUpdateStateSequencerRollappMismatch() {
 		SequencerAddress: bob,
 		RollappId:        "rollapp2",
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
 
@@ -305,9 +304,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicUnpermissioned() {
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -343,9 +342,9 @@ func (suite *RollappTestSuite) TestFirstUpdateStateGensisHightGreaterThanZero() 
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// update state
 	updateState := types.MsgUpdateState{
@@ -381,9 +380,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrWrongBlockHeight() {
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// set initial latestStateInfoIndex & StateInfo
 	latestStateInfoIndex := types.StateInfoIndex{
@@ -442,9 +441,9 @@ func (suite *RollappTestSuite) TestUpdateStateErrLogicMissingStateInfo() {
 		SequencerAddress: bob,
 		RollappId:        "rollapp1",
 		Status:           sequencertypes.Bonded,
-		Proposer:         true,
 	}
 	suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencer)
+	suite.App.SequencerKeeper.SetProposer(suite.Ctx, rollapp.GetRollappId(), sequencer)
 
 	// set initial latestStateInfoIndex
 	latestStateInfoIndex := types.StateInfoIndex{

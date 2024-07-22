@@ -14,6 +14,8 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 	suite.Equal(types.Unbonded, seq.Status)
 	suite.Equal(sdk.Coins(nil), seq.Tokens)
 
+	suite.False(suite.App.SequencerKeeper.IsProposer(suite.Ctx, seq.RollappId, seqAddr))
+
 	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
 	for _, s := range sequencers {
 		suite.NotEqual(s.SequencerAddress, seqAddr)
@@ -78,7 +80,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	suite.assertSlashed(seqAddr)
 }
 
-func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
+func (suite *SequencerTestSuite) TestSlashingProposer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
@@ -89,15 +91,13 @@ func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
 
-	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
+	seq, ok := keeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
-	suite.Equal(seq.Status, types.Bonded)
-	suite.True(seq.Proposer)
+	suite.Equal(seq.SequencerAddress, seqAddr)
 
 	seq2, ok := keeper.GetSequencer(suite.Ctx, seqAddr2)
 	suite.Require().True(ok)
 	suite.Equal(seq2.Status, types.Bonded)
-	suite.False(seq2.Proposer)
 
 	err := keeper.Slashing(suite.Ctx, seqAddr)
 	suite.NoError(err)
@@ -107,5 +107,7 @@ func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
 	seq2, ok = keeper.GetSequencer(suite.Ctx, seqAddr2)
 	suite.Require().True(ok)
 	suite.Equal(seq2.Status, types.Bonded)
-	suite.True(seq2.Proposer)
+
+	_, ok = keeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
 }

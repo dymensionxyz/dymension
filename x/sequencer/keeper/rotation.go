@@ -39,7 +39,7 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 	})
 
 	// filter out proposer and nextProposer
-	active, _ := k.GetActiveSequencer(ctx, rollappId)
+	active, _ := k.GetProposer(ctx, rollappId)
 	next, _ := k.GetNextProposer(ctx, rollappId)
 	for _, s := range seqs {
 		if s.SequencerAddress == active.SequencerAddress || s.SequencerAddress == next.SequencerAddress {
@@ -70,18 +70,22 @@ func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 
 // RotateProposer completes the sequencer rotation flow.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
-func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) error {
-	proposer, ok := k.GetActiveSequencer(ctx, rollappId)
+func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
+	// start unbonding the current proposer
+	proposer, ok := k.GetProposer(ctx, rollappId)
 	if ok {
-		_, err := k.setSequencerToUnbonding(ctx, &proposer)
-		if err != nil {
-			return err
-		}
+		k.startUnbondingPeriodForSequencer(ctx, &proposer)
 	}
 
 	nextProposer, _ := k.GetNextProposer(ctx, rollappId) // nextProposer is guaranteed to exist by caller
-	k.SetActiveSequencer(ctx, rollappId, nextProposer)
 	k.RemoveNextProposer(ctx, rollappId)
+
+	if nextProposer.SequencerAddress == "" {
+		k.Logger(ctx).Info("rollapp left with no proposer", "rollappId", rollappId)
+		k.RemoveActiveSequencer(ctx, rollappId)
+	} else {
+		k.SetProposer(ctx, rollappId, nextProposer)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -90,6 +94,4 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) error {
 			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.SequencerAddress),
 		),
 	)
-
-	return nil
 }

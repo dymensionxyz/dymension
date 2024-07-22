@@ -17,6 +17,8 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		}
 	}
 	k.SetParams(ctx, genState.Params)
+
+	//FIXME: set proposer and nextProposer
 }
 
 // ExportGenesis returns the sequencer module's exported genesis.
