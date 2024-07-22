@@ -39,7 +39,7 @@ func NewRollapp(
 
 const (
 	maxAliasLength           = 64
-	maxDescriptionLength     = 256
+	maxDescriptionLength     = 512
 	maxURLLength             = 256
 	maxHandleLength          = 64
 	maxGenesisChecksumLength = 64

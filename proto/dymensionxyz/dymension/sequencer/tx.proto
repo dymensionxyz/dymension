@@ -16,6 +16,8 @@ import "dymensionxyz/dymension/sequencer/metadata.proto";
 service Msg {
   // CreateSequencer defines a method for creating a new sequencer.
   rpc CreateSequencer (MsgCreateSequencer) returns (MsgCreateSequencerResponse);
+  // UpdateSequencerInformation defines a method for updating the sequencer's metadata.
+  rpc UpdateSequencerInformation (MsgUpdateSequencerInformation) returns (MsgUpdateSequencerInformationResponse);
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
 }
@@ -35,6 +37,18 @@ message MsgCreateSequencer {
 }
 
 message MsgCreateSequencerResponse {}
+
+message MsgUpdateSequencerInformation {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string creator = 1;
+  // rollapp_id defines the rollapp to which the sequencer belongs.
+  string rollapp_id = 2;
+  // metadata defines the extra information for the sequencer.
+  SequencerMetadata metadata = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgUpdateSequencerInformationResponse {}
 
 // MsgUnbond defines a SDK message for performing an undelegation from a
 // bond and a sequencer.

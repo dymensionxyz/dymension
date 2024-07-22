@@ -50,6 +50,7 @@ message Rollapp {
 
 // UpdateRollappInformation updates the rollapp information.
 message UpdateRollappInformation {
+  option (cosmos.msg.v1.signer) = "creator";
   // creator is the bech32-encoded address of the rollapp creator
   string creator = 1;
   // rollapp_id is the unique identifier of the rollapp chain.

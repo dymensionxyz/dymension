@@ -177,6 +177,12 @@ proto-swagger-gen:
 	@echo "Generating Protobuf Swagger"
 	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
 
+proto-format:
+	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+
+proto-lint:
+	@$(protoCosmosImage) buf lint --error-format=json
+
 SWAGGER_DIR=./swagger-proto
 THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
 
@@ -250,3 +256,5 @@ proto-download-deps:
 
 	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
 	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"
+
+.PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps
