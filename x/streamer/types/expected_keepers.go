@@ -3,8 +3,8 @@ package types
 import (
 	time "time"
 
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,6 +30,8 @@ type AccountKeeper interface {
 // IncentivesKeeper creates and gets gauges, and also allows additions to gauge rewards.
 type IncentivesKeeper interface {
 	CreateGauge(ctx sdk.Context, isPerpetual bool, owner sdk.AccAddress, coins sdk.Coins, distrTo lockuptypes.QueryCondition, startTime time.Time, numEpochsPaidOver uint64) (uint64, error)
+	CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, error)
+
 	GetLockableDurations(ctx sdk.Context) []time.Duration
 
 	GetGaugeByID(ctx sdk.Context, gaugeID uint64) (*incentivestypes.Gauge, error)
