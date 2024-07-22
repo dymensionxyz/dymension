@@ -5,7 +5,7 @@ import (
 	fmt "fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils"
 )
 
 var _ binary.ByteOrder
@@ -22,10 +22,6 @@ const (
 
 	// QuerierRoute defines the module's query routing key
 	QuerierRoute = ModuleName
-
-	//TODO: remove, unused
-	// MemStoreKey defines the in-memory store key
-	MemStoreKey = "mem_sequencer"
 )
 
 var (
@@ -37,6 +33,13 @@ var (
 
 	// SequencersByRollappKeyPrefix is the prefix to retrieve all SequencersByRollapp
 	SequencersByRollappKeyPrefix = []byte{0x01} // prefix/rollappId
+
+	// ActiveSequencersByRollappKeyPrefix is the prefix to retrieve the active sequencers for a rollapp
+	ActiveSequencersByRollappKeyPrefix = []byte{0x02} // prefix/rollappId
+	// NextSequencersByRollappKeyPrefix is the prefix to retrieve the next sequencers for a rollapp
+	NextSequencersByRollappKeyPrefix = []byte{0x03} // prefix/rollappId
+
+	// Prefixes for the different sequencer statuses
 	BondedSequencersKeyPrefix    = []byte{0xa1}
 	UnbondedSequencersKeyPrefix  = []byte{0xa2}
 	UnbondingSequencersKeyPrefix = []byte{0xa3}
@@ -44,7 +47,6 @@ var (
 	UnbondingQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding queue
 	NoticePeriodQueueKey = []byte{0x42} // prefix for the timestamps in notice period queue
 
-	// NoticePeriodPerRollappKeyPrefix = []byte{0x02} // prefix/rollappId
 )
 
 /* --------------------- specific sequencer address keys -------------------- */
@@ -85,19 +87,14 @@ func SequencersByRollappByStatusKey(rollappId string, status OperatingStatus) []
 	return []byte(fmt.Sprintf("%s%s%s", SequencersByRollappKey(rollappId), KeySeparator, prefix))
 }
 
-/* -------------------------- unbonding queue keys -------------------------- */
+/* --------------------------  queues keys -------------------------- */
+
 func UnbondingQueueByTimeKey(endTime time.Time) []byte {
-	timeBz := sdk.FormatTimeBytes(endTime)
-	prefixL := len(UnbondingQueueKey)
+	return utils.EncodeTimeToKey(UnbondingQueueKey, endTime)
+}
 
-	bz := make([]byte, prefixL+len(timeBz))
-
-	// copy the prefix
-	copy(bz[:prefixL], UnbondingQueueKey)
-	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
-
-	return bz
+func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
+	return utils.EncodeTimeToKey(NoticePeriodQueueKey, endTime)
 }
 
 func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
@@ -107,29 +104,19 @@ func UnbondingSequencerKey(sequencerAddress string, endTime time.Time) []byte {
 	return key
 }
 
-// FIXME: make common with unbond queue
-/* --------------------------- notice period keys --------------------------- */
-// func NoticePeriodPerRollappKey(rollappId string) []byte {
-// 	return []byte(fmt.Sprintf("%s%s%s", NoticePeriodPerRollappKeyPrefix, KeySeparator, []byte(rollappId)))
-// }
-
-func NoticePeriodQueueByTimeKey(endTime time.Time) []byte {
-	timeBz := sdk.FormatTimeBytes(endTime)
-	prefixL := len(NoticePeriodQueueKey)
-
-	bz := make([]byte, prefixL+len(timeBz))
-
-	// copy the prefix
-	copy(bz[:prefixL], NoticePeriodQueueKey)
-	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
-
-	return bz
-}
-
 func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte {
 	key := NoticePeriodQueueByTimeKey(endTime)
 	key = append(key, KeySeparator...)
 	key = append(key, []byte(sequencerAddress)...)
 	return key
+}
+
+/* --------------------- active and next sequencer keys --------------------- */
+
+func ActiveSequencersByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", ActiveSequencersByRollappKeyPrefix, KeySeparator, []byte(rollappId)))
+}
+
+func NextSequencersByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", NextSequencersByRollappKeyPrefix, KeySeparator, []byte(rollappId)))
 }

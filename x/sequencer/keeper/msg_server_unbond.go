@@ -63,19 +63,16 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	k.UpdateSequencer(ctx, *seq, types.Bonded) // only bonded sequencers can have notice period
 	k.SetNoticePeriodQueue(ctx, *seq)
 
-	nextSeqAddr := ""
 	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
-	if nextSeq == nil {
+	if nextSeq.SequencerAddress == "" {
 		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
-	} else {
-		nextSeqAddr = nextSeq.SequencerAddress
 	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeqAddr),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeq.SequencerAddress),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
 		),
 	)

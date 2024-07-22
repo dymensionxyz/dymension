@@ -53,8 +53,8 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq := k.GetRollappNextProposer(ctx, req.RollappId)
-	if seq == nil {
+	seq, ok := k.GetNextProposer(ctx, req.RollappId)
+	if !ok {
 		return nil, types.ErrNoProposer
 	}
 
@@ -70,8 +70,8 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	seq := k.GetRollappProposer(ctx, req.RollappId)
-	if seq == nil {
+	seq, ok := k.GetActiveSequencer(ctx, req.RollappId)
+	if !ok {
 		return nil, types.ErrNoProposer
 	}
 

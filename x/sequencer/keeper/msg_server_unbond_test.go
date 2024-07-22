@@ -47,12 +47,12 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p := suite.App.SequencerKeeper.GetRollappProposer(suite.Ctx, rollappId)
-	suite.Require().NotNil(p)
+	p, ok := suite.App.SequencerKeeper.GetActiveSequencer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
 	suite.Equal(proposerAddr, p.SequencerAddress)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
-	n := suite.App.SequencerKeeper.GetRollappNextProposer(suite.Ctx, rollappId)
-	suite.Nil(n)
+	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
 
 	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(-10*time.Second))
 	suite.Require().Len(m, 0)

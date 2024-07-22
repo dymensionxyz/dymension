@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
@@ -12,44 +13,20 @@ import (
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
-		// set the next proposer for the rollapp
 		k.StartRotation(ctx, seq.RollappId)
 	}
 }
 
 // IsRotating returns true if the rollapp is currently rotating proposers
 func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
-	curr := k.GetRollappProposer(ctx, rollappId)
-	next := k.GetRollappNextProposer(ctx, rollappId)
-	return curr != nil && next != nil && curr.SequencerAddress != next.SequencerAddress
-}
-
-// TODO: refactor to use store for optimization
-func (k Keeper) GetRollappProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	for _, s := range seqs {
-		if s.Proposer {
-			return &s
-		}
-	}
-	return nil
-}
-
-func (k Keeper) GetRollappNextProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
-	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
-	for _, s := range seqs {
-		if s.NextProposer {
-			return &s
-		}
-	}
-	return nil
+	return k.HasNextProposer(ctx, rollappId)
 }
 
 // ExpectedNextProposer returns the next proposer for a rollapp
-func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) (seq *types.Sequencer) {
+func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 	if len(seqs) == 0 {
-		return
+		return types.Sequencer{}
 	}
 
 	// take the next bonded sequencer to be the proposer. sorted by bond
@@ -58,62 +35,58 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) (seq *ty
 	})
 
 	// filter out proposer and nextProposer
+	active, _ := k.GetActiveSequencer(ctx, rollappId)
+	next, _ := k.GetNextProposer(ctx, rollappId)
 	for _, s := range seqs {
-		if s.Proposer || s.NextProposer {
+		if s.SequencerAddress == active.SequencerAddress || s.SequencerAddress == next.SequencerAddress {
 			continue
 		}
-		seq = &s
-		break
+		return s
 	}
 
-	return seq
+	return types.Sequencer{}
 }
 
-// StartRotation sets the proposer for a rollapp to be the next sequencer in the list
+// StartRotation sets the nextSequencer for the rollapp.
 // This function will not clear the current proposer
+// This function called when the sequencer has finished its notice period
 func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
-	addr := ""
+	// next proposer can be empty if there are no bonded sequencers available
 	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
-	if nextProposer != nil {
-		addr = nextProposer.SequencerAddress
-		nextProposer.NextProposer = true
-		k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
-	}
-
-	// FIXME: need to seprate the case between empty nextProposer and no proposer
+	k.SetNextProposer(ctx, rollappId, nextProposer)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeRotationStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, addr),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, nextProposer.SequencerAddress),
 		),
 	)
 }
 
 // RotateProposer completes the sequencer rotation flow.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
-func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
-	propopser := k.GetRollappProposer(ctx, rollappId)
-	if propopser != nil {
-		propopser.Proposer = false
-		_, err := k.setSequencerToUnbonding(ctx, propopser)
+func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) error {
+	proposer, ok := k.GetActiveSequencer(ctx, rollappId)
+	if ok {
+		proposer.Proposer = false
+		_, err := k.setSequencerToUnbonding(ctx, &proposer)
 		if err != nil {
-			k.Logger(ctx).Error("unbond proposer", "err", err)
-			// fixme: return err?
+			return err
 		}
 	}
 
-	addr := ""
-	nextProposer := k.GetRollappNextProposer(ctx, rollappId)
-	if nextProposer == nil {
-		k.Logger(ctx).Error("no next proposer available", "rollappId", rollappId)
-	} else {
-		addr = nextProposer.SequencerAddress
-		nextProposer.Proposer = true
-		nextProposer.NextProposer = false
-		k.UpdateSequencer(ctx, *nextProposer, types.Bonded)
+	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
+	if !ok {
+		return fmt.Errorf("no next proposer available. shouldn't happen", "rollappId", rollappId)
 	}
+
+	addr := nextProposer.SequencerAddress
+	nextProposer.Proposer = true
+	nextProposer.NextProposer = false
+
+	k.SetActiveSequencer(ctx, rollappId, nextProposer)
+	k.RemoveNextProposer(ctx, rollappId)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -122,4 +95,6 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 			sdk.NewAttribute(types.AttributeKeySequencer, addr),
 		),
 	)
+
+	return nil
 }

@@ -57,7 +57,8 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.Require().NoError(err)
 
 	// check proposer still bonded and notice period started
-	p := suite.App.SequencerKeeper.GetRollappProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetActiveSequencer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
 	suite.Equal(addr1, p.SequencerAddress)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
@@ -68,11 +69,12 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
 
 	// validate nextProposer is set
-	n := suite.App.SequencerKeeper.GetRollappNextProposer(suite.Ctx, rollappId)
-	suite.Require().NotNil(n)
+	n, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Require().NotEmpty(n.SequencerAddress)
 
 	// validate proposer not changed
-	p = suite.App.SequencerKeeper.GetRollappProposer(suite.Ctx, rollappId)
+	p, _ = suite.App.SequencerKeeper.GetActiveSequencer(suite.Ctx, rollappId)
 	suite.Equal(addr1, p.SequencerAddress)
 
 }
@@ -95,15 +97,15 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 
 	// assert addr2 is now proposer
-	p := suite.App.SequencerKeeper.GetRollappProposer(suite.Ctx, rollappId)
-	suite.NotNil(p)
+	p, ok := suite.App.SequencerKeeper.GetActiveSequencer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
 	suite.Equal(addr2, p.SequencerAddress)
 	// assert addr1 is unbonding
 	u, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Equal(types.Unbonding, u.Status)
 	// assert nextProposer is nil
-	n := suite.App.SequencerKeeper.GetRollappNextProposer(suite.Ctx, rollappId)
-	suite.Nil(n)
+	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
 }
 
 // TODO: TestRotateProposer with no proposer
