@@ -19,7 +19,7 @@ import (
 
 func SequencerKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
-	memStoreKey := storetypes.NewMemoryStoreKey(types.StoreKey)
+	memStoreKey := storetypes.NewMemoryStoreKey(types.StoreKey + "_transient")
 
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db)

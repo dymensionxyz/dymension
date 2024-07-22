@@ -8,6 +8,30 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
+func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
+	completionTime := ctx.BlockHeader().Time.Add(k.NoticePeriod(ctx))
+	seq.UnbondTime = completionTime
+
+	k.UpdateSequencer(ctx, *seq) // only bonded sequencers can have notice period
+	k.SetNoticePeriodQueue(ctx, *seq)
+
+	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
+	if nextSeq.SequencerAddress == "" {
+		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeNoticePeriodStarted,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+		),
+	)
+
+	return completionTime
+}
+
 // MatureSequencersWithNoticePeriod moves all the sequencers that have finished their notice period
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)

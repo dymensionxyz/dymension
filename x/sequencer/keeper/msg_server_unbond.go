@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -52,50 +51,4 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 			UnbondingCompletionTime: &completionTime,
 		},
 	}, nil
-}
-
-func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockHeader().Time.Add(k.NoticePeriod(ctx))
-	seq.UnbondTime = completionTime
-
-	k.UpdateSequencer(ctx, *seq, types.Bonded) // only bonded sequencers can have notice period
-	k.SetNoticePeriodQueue(ctx, *seq)
-
-	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
-	if nextSeq.SequencerAddress == "" {
-		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
-	}
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeNoticePeriodStarted,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeq.SequencerAddress),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
-		),
-	)
-
-	return completionTime
-}
-
-// startUnbondingPeriodForSequencer sets the sequencer to unbonding status
-// can be called after notice period or directly if notice period is not required
-func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
-	seq.UnbondTime = completionTime
-
-	seq.Status = types.Unbonding
-	k.UpdateSequencer(ctx, *seq, types.Bonded) // only bonded sequencers can start unbonding
-	k.SetUnbondingSequencerQueue(ctx, *seq)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeUnbonding,
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
-			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
-			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
-		),
-	)
-
-	return completionTime
 }

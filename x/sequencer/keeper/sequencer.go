@@ -20,8 +20,11 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store.Set(seqByRollappKey, b)
 }
 
-// FIXME: review usage of this function
-func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldStatus types.OperatingStatus) {
+func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+	k.UpdateSequencerWithStateChange(ctx, sequencer, sequencer.Status)
+}
+
+func (k Keeper) UpdateSequencerWithStateChange(ctx sdk.Context, sequencer types.Sequencer, oldStatus types.OperatingStatus) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 	store.Set(types.SequencerKey(sequencer.SequencerAddress), b)
@@ -159,6 +162,13 @@ func (k Keeper) SetNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer)
 
 	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
 	store.Set(noticePeriodKey, b)
+}
+
+// remove sequencer from notice period queue
+func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Sequencer) {
+	store := ctx.KVStore(k.storeKey)
+	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	store.Delete(noticePeriodKey)
 }
 
 /* ------------------------- proposer/next proposer ------------------------- */

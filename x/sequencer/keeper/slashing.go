@@ -38,9 +38,19 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		k.removeUnbondingSequencer(ctx, seq)
 	}
 
-	// FIXME: check for notice period queue and remove if needed
+	if seq.IsNoticePeriodInProgress() {
+		k.removeNoticePeriodSequencer(ctx, seq)
+	}
 
-	//FIXME: check for proposer/next and remove if needed
+	if k.IsProposer(ctx, seq.RollappId, seqAddr) {
+		k.RemoveActiveSequencer(ctx, seq.RollappId)
+	}
+
+	// if we slash the next proposer, we're in the middle of rotation
+	// instead of removing the next proposer, we set it to empty
+	if k.IsNextProposer(ctx, seq.RollappId, seqAddr) {
+		k.SetNextProposer(ctx, seq.RollappId, types.Sequencer{})
+	}
 
 	// set the status to unbonded
 	seq.Status = types.Unbonded
@@ -48,7 +58,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 
 	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
-	k.UpdateSequencer(ctx, seq, oldStatus)
+	k.UpdateSequencerWithStateChange(ctx, seq, oldStatus)
 
 	// emit event
 	ctx.EventManager().EmitEvent(
@@ -97,7 +107,7 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coins{}
 
-	k.UpdateSequencer(ctx, seq, oldStatus)
+	k.UpdateSequencerWithStateChange(ctx, seq, oldStatus)
 
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)

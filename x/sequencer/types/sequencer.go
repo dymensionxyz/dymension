@@ -21,6 +21,11 @@ func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }
 
+// is notice period in progress
+func (seq Sequencer) IsNoticePeriodInProgress() bool {
+	return seq.Status == Bonded && seq.UnbondRequestHeight != 0
+}
+
 // GetDymintPubKeyHash returns the hash of the sequencer
 // as expected to be written on the rollapp ibc client headers
 func (seq Sequencer) GetDymintPubKeyHash() ([]byte, error) {

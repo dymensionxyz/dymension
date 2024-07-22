@@ -9,6 +9,28 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
+// startUnbondingPeriodForSequencer sets the sequencer to unbonding status
+// can be called after notice period or directly if notice period is not required
+func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
+	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+	seq.UnbondTime = completionTime
+
+	seq.Status = types.Unbonding
+	k.UpdateSequencerWithStateChange(ctx, *seq, types.Bonded) // only bonded sequencers can start unbonding
+	k.SetUnbondingSequencerQueue(ctx, *seq)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeUnbonding,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyBond, seq.Tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
+		),
+	)
+
+	return completionTime
+}
+
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
 // have finished their unbonding period.
 func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
@@ -58,7 +80,7 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coins{}
 
-	k.UpdateSequencer(ctx, seq, types.Unbonding)
+	k.UpdateSequencerWithStateChange(ctx, seq, types.Unbonding)
 	k.removeUnbondingSequencer(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
