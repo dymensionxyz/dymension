@@ -37,7 +37,8 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	for i := 1; i < numOfSequencers; i++ {
 		sequencer, found := keeper.GetSequencer(suite.Ctx, seqAddrs[i])
 		suite.Require().True(found)
-		suite.Require().False(sequencer.Proposer)
 		suite.Require().Equal(sequencer.Status, types.Unbonded)
 	}
+
+	//TODO: test proposer and nextProposer
 }

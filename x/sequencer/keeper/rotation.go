@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -20,6 +19,11 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 // IsRotating returns true if the rollapp is currently rotating proposers
 func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 	return k.HasNextProposer(ctx, rollappId)
+}
+
+// IsNoticePeriodRequired returns true if the sequencer requires a notice period before unbonding
+func (k Keeper) IsNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) bool {
+	return k.IsProposer(ctx, seq.RollappId, seq.SequencerAddress) || k.IsNextProposer(ctx, seq.RollappId, seq.SequencerAddress)
 }
 
 // ExpectedNextProposer returns the next proposer for a rollapp
@@ -69,22 +73,13 @@ func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) error {
 	proposer, ok := k.GetActiveSequencer(ctx, rollappId)
 	if ok {
-		proposer.Proposer = false
 		_, err := k.setSequencerToUnbonding(ctx, &proposer)
 		if err != nil {
 			return err
 		}
 	}
 
-	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
-	if !ok {
-		return fmt.Errorf("no next proposer available. shouldn't happen", "rollappId", rollappId)
-	}
-
-	addr := nextProposer.SequencerAddress
-	nextProposer.Proposer = true
-	nextProposer.NextProposer = false
-
+	nextProposer, _ := k.GetNextProposer(ctx, rollappId) // nextProposer is guaranteed to exist by caller
 	k.SetActiveSequencer(ctx, rollappId, nextProposer)
 	k.RemoveNextProposer(ctx, rollappId)
 
@@ -92,7 +87,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) error {
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, addr),
+			sdk.NewAttribute(types.AttributeKeySequencer, nextProposer.SequencerAddress),
 		),
 	)
 

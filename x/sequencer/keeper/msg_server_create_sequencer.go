@@ -74,7 +74,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:        msg.RollappId,
 		Description:      msg.Description,
 		Status:           types.Bonded,
-		Proposer:         false,
 		Tokens:           bond,
 	}
 
@@ -86,8 +85,9 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrMaxSequencersLimit
 	}
 	// this is the first sequencer, make it a PROPOSER
-	if len(bondedSequencers) == 0 {
-		sequencer.Proposer = true
+	proposer := len(bondedSequencers) == 0
+	if proposer {
+		k.SetActiveSequencer(ctx, sequencer.RollappId, sequencer)
 	}
 
 	k.SetSequencer(ctx, sequencer)
@@ -98,7 +98,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(sequencer.Proposer)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(proposer)),
 		),
 	)
 

@@ -34,10 +34,13 @@ var (
 	// SequencersByRollappKeyPrefix is the prefix to retrieve all SequencersByRollapp
 	SequencersByRollappKeyPrefix = []byte{0x01} // prefix/rollappId
 
-	// ActiveSequencersByRollappKeyPrefix is the prefix to retrieve the active sequencers for a rollapp
-	ActiveSequencersByRollappKeyPrefix = []byte{0x02} // prefix/rollappId
-	// NextSequencersByRollappKeyPrefix is the prefix to retrieve the next sequencers for a rollapp
-	NextSequencersByRollappKeyPrefix = []byte{0x03} // prefix/rollappId
+	// ProposerKeyPrefix is the prefix to retrieve the proposer for a rollapp
+	// This key is set when the rotation handshake is completed
+	ProposerKeyPrefix = []byte{0x02} // prefix/rollappId
+	// NextProposerKeyPrefix is the prefix to retrieve the next proposer for a rollapp
+	// This key is set only when rotation handshake is started
+	// It will be cleared after the rotation is completed
+	NextProposerKeyPrefix = []byte{0x03} // prefix/rollappId
 
 	// Prefixes for the different sequencer statuses
 	BondedSequencersKeyPrefix    = []byte{0xa1}
@@ -113,10 +116,10 @@ func NoticePeriodSequencerKey(sequencerAddress string, endTime time.Time) []byte
 
 /* --------------------- active and next sequencer keys --------------------- */
 
-func ActiveSequencersByRollappKey(rollappId string) []byte {
-	return []byte(fmt.Sprintf("%s%s%s", ActiveSequencersByRollappKeyPrefix, KeySeparator, []byte(rollappId)))
+func ProposerByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", ProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }
 
-func NextSequencersByRollappKey(rollappId string) []byte {
-	return []byte(fmt.Sprintf("%s%s%s", NextSequencersByRollappKeyPrefix, KeySeparator, []byte(rollappId)))
+func NextProposerByRollappKey(rollappId string) []byte {
+	return []byte(fmt.Sprintf("%s%s%s", NextProposerKeyPrefix, KeySeparator, []byte(rollappId)))
 }

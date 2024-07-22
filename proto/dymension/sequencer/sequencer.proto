@@ -29,9 +29,7 @@ message Sequencer {
   bool jailed = 5;
 
   // proposer defines whether the sequencer is a proposer or not.
-  bool proposer = 6;
-  // next_proposer defines whether the sequencer is the next proposer or not.
-  bool next_proposer = 11;
+  reserved 6;
 
   // status is the sequencer status (bonded/unbonding/unbonded).
   OperatingStatus status = 7;

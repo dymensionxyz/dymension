@@ -10,14 +10,8 @@ import (
 
 // validateBasic
 func (seq Sequencer) ValidateBasic() error {
-	if seq.Proposer && seq.NextProposer {
+	if seq.Status == Unbonding && seq.UnbondRequestHeight == 0 {
 		return ErrInvalidSequencerStatus
-	}
-
-	if seq.Status == Unbonding {
-		if seq.UnbondRequestHeight == 0 {
-			return ErrInvalidSequencerStatus
-		}
 	}
 
 	return nil
@@ -25,24 +19,6 @@ func (seq Sequencer) ValidateBasic() error {
 
 func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
-}
-
-func (seq Sequencer) IsProposer() bool {
-	return seq.Proposer
-}
-
-func (seq Sequencer) IsNextProposer() bool {
-	return seq.NextProposer
-}
-
-func (seq Sequencer) IsNoticePeriodRequired() bool {
-	return seq.Proposer || seq.NextProposer
-}
-
-// clear bonded state
-func (seq *Sequencer) ClearBondedState() {
-	seq.Proposer = false
-	seq.NextProposer = false
 }
 
 // GetDymintPubKeyHash returns the hash of the sequencer

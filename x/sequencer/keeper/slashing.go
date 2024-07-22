@@ -38,11 +38,14 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		k.removeUnbondingSequencer(ctx, seq)
 	}
 
+	// FIXME: check for notice period queue and remove if needed
+
+	//FIXME: check for proposer/next and remove if needed
+
 	// set the status to unbonded
 	seq.Status = types.Unbonded
 	seq.Jailed = true
-	seq.Proposer = false
-	seq.NextProposer = false
+
 	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockHeader().Time
 	k.UpdateSequencer(ctx, seq, oldStatus)
@@ -92,7 +95,6 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 
 	// set the status to unbonded and remove from the unbonding queue if needed
 	seq.Status = types.Unbonded
-	seq.Proposer = false
 	seq.Tokens = sdk.Coins{}
 
 	k.UpdateSequencer(ctx, seq, oldStatus)
@@ -102,6 +104,8 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 	}
 
 	//TODO: clear notice period queue if needed
+
+	//TODO: clear proposer/next if needed
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

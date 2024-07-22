@@ -51,3 +51,5 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
 	suite.Require().False(bool, msg)
 }
+
+//TODO: test the invariants
