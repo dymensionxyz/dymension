@@ -52,4 +52,4 @@ func (suite *SequencerTestSuite) TestInvariants() {
 	suite.Require().False(bool, msg)
 }
 
-//TODO: test the invariants
+//FIXME: test the invariants

@@ -211,12 +211,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-// TODO: test with different sequencer status
 func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollappId := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
@@ -235,6 +235,15 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.EqualError(err, types.ErrSequencerExists.Error())
+
+	// unbond the sequencer
+	unbondMsg := types.MsgUnbond{Creator: addr.String()}
+	_, err = suite.msgServer.Unbond(goCtx, &unbondMsg)
+	suite.Require().NoError(err)
+
+	// create the sequencer again, expect to fail anyway
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
@@ -328,7 +337,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 
 	rollappId := rollapp.GetRollappId()
 
-	// TODO: cahnge with common func
+	// TODO: use common func (CreateSequencerWithBond)
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))

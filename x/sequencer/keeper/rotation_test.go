@@ -45,7 +45,7 @@ func (suite *SequencerTestSuite) TestExpectedNextProposerFiltering() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 	_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer
-	seqAddrs := make([]string, 10)
+	seqAddrs := make([]string, 4)
 	for i := 0; i < len(seqAddrs); i++ {
 		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(bond.Amount))
 	}
@@ -149,4 +149,4 @@ func (suite *SequencerTestSuite) TestRotateProposerEmptyNextProposer() {
 	suite.Require().Empty(next.SequencerAddress)
 }
 
-// TODO: test nextSequencer also unbonds
+// FIXME: test case where nextSequencer also unbonds

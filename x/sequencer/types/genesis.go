@@ -18,7 +18,7 @@ func (gs GenesisState) Validate() error {
 
 	for _, elem := range gs.SequencerList {
 
-		// FIXME: should run validation on the sequencer objects
+		// TODO: should run validation on the sequencer objects
 
 		index := string(SequencerKey(elem.SequencerAddress))
 		if _, ok := sequencerIndexMap[index]; ok {

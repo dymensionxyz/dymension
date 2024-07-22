@@ -40,5 +40,5 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 		suite.Require().Equal(sequencer.Status, types.Unbonded)
 	}
 
-	//TODO: test proposer and nextProposer
+	//FIXME: test proposer and nextProposer
 }
