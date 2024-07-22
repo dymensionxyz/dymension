@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
 		MaxSequencers: 1,
 	}
 
-	msgServer := rollapp.NewMsgServerImpl(suite.App.RollappKeeper)
+	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
 	suite.Require().NoError(err)
 	return msgCreateRollapp.RollappId

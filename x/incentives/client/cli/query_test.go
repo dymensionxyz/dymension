@@ -5,51 +5,56 @@ import (
 	"testing"
 	"time"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
+	tmrand "github.com/tendermint/tendermint/libs/rand"
+
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
+	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/testutils/apptesting"
-	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+
+	"github.com/cosmos/cosmos-sdk/baseapp"
+
+	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type QueryTestSuite struct {
 	apptesting.KeeperTestHelper
-	queryClient types.QueryClient
+	queryHelper *baseapp.QueryServiceTestHelper
 }
 
-func (s *QueryTestSuite) SetupSuite() {
-	s.Setup()
-	s.queryClient = types.NewQueryClient(s.QueryHelper)
+// SetupLockAndGauge creates both a lock and a gauge.
+func (suite *QueryTestSuite) CreateDefaultRollapp() string {
+	alice := sdk.AccAddress([]byte("addr1---------------"))
 
-	// create a pool
-	poolID := s.PrepareBalancerPool()
+	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
+		Creator:       alice.String(),
+		RollappId:     tmrand.Str(8),
+		MaxSequencers: 1,
+	}
 
-	// set up lock with id = 1
-	s.LockTokens(s.TestAccs[0], sdk.Coins{sdk.NewCoin("gamm/pool/1", sdk.NewInt(1000000))}, time.Hour*24)
-
-	// create a gauge
-	_, err := s.App.IncentivesKeeper.CreateGauge(
-		s.Ctx,
-		true,
-		s.App.AccountKeeper.GetModuleAddress(types.ModuleName),
-		sdk.Coins{},
-		lockuptypes.QueryCondition{
-			LockQueryType: lockuptypes.ByDuration,
-			Denom:         gammtypes.GetPoolShareDenom(poolID),
-			Duration:      time.Hour,
-			Timestamp:     time.Time{},
-		},
-		s.Ctx.BlockTime(),
-		1,
-	)
-	s.NoError(err)
-	s.Commit()
+	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
+	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)
+	suite.Require().NoError(err)
+	return msgCreateRollapp.RollappId
 }
 
-func (s *QueryTestSuite) TestQueriesNeverAlterState() {
+func (suite *QueryTestSuite) SetupSuite() {
+	suite.App = apptesting.Setup(suite.T(), false)
+	suite.Ctx = suite.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, keeper.NewQuerier(*suite.App.IncentivesKeeper))
+	suite.queryHelper = queryHelper
+
+	suite.CreateDefaultRollapp()
+}
+
+func (suite *QueryTestSuite) TestQueriesNeverAlterState() {
 	testCases := []struct {
 		name   string
 		query  string
@@ -115,11 +120,11 @@ func (s *QueryTestSuite) TestQueriesNeverAlterState() {
 	for _, tc := range testCases {
 		tc := tc
 
-		s.Run(tc.name, func() {
-			s.SetupSuite()
-			err := s.QueryHelper.Invoke(context.Background(), tc.query, tc.input, tc.output)
-			s.Require().NoError(err)
-			s.StateNotAltered()
+		suite.Run(tc.name, func() {
+			suite.SetupSuite()
+			err := suite.queryHelper.Invoke(context.Background(), tc.query, tc.input, tc.output)
+			suite.Require().NoError(err)
+			suite.StateNotAltered()
 		})
 	}
 }

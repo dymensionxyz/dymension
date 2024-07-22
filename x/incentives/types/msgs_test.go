@@ -10,8 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
-	"github.com/osmosis-labs/osmosis/v15/testutils"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	appParams "github.com/dymensionxyz/dymension/v3/app/params"
 
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
@@ -254,7 +254,7 @@ func TestAuthzMsg(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			testutils.TestMessageAuthzSerialization(t, tc.incentivesMsg)
+			apptesting.TestMessageAuthzSerialization(t, tc.incentivesMsg)
 		})
 	}
 }

@@ -347,7 +347,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// ensure initially querying to distribute coins returns no coins
 	res, err := suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, sdk.Coins(nil))
+	suite.Require().Equal(res.Coins, sdk.Coins{})
 
 	// create two locks with different durations
 	addr1 := sdk.AccAddress([]byte("addr1---------------"))
@@ -402,7 +402,7 @@ func (suite *KeeperTestSuite) TestGRPCToDistributeCoins() {
 	// to distribute coins should be null
 	res, err = suite.querier.ModuleToDistributeCoins(sdk.WrapSDKContext(suite.Ctx), &types.ModuleToDistributeCoinsRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(res.Coins, sdk.Coins(nil))
+	suite.Require().Equal(res.Coins, sdk.Coins{})
 }
 
 // TestGRPCDistributedCoins tests querying coins that have been distributed via gRPC returns the correct response.
