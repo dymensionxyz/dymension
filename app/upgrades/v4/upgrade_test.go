@@ -160,16 +160,16 @@ func (s *UpgradeTestSuite) validateRollappsMigration() error {
 		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
 		// check that the rollapp can be retrieved by EIP155 key
 		if _, ok := s.App.RollappKeeper.GetRollappByEIP155(s.Ctx, rollappID.GetEIP155ID()); !ok {
-			return fmt.Errorf("rollapp not migrated correctly")
+			return fmt.Errorf("rollapp by EIP155 not found")
 		}
 	}
 
 	if len(rollapps) != len(newRollapps) {
-		return fmt.Errorf("rollapps not migrated correctly")
+		return fmt.Errorf("rollapps length not equal")
 	}
 
 	if !reflect.DeepEqual(rollapps, newRollapps) {
-		return fmt.Errorf("rollapps not migrated correctly")
+		return fmt.Errorf("rollapps do not match")
 	}
 	return nil
 }
@@ -207,7 +207,7 @@ func createMockOldAndNewRollapps(nRollapps int) {
 	oldRollapps = make([]types.Rollapp, nRollapps)
 	newRollapps = make([]rollapptypes.Rollapp, nRollapps)
 
-	for i := 0; i < nRollapps; i++ {
+	for i := range nRollapps {
 		oldRollapp := types.Rollapp{
 			RollappId:     fmt.Sprintf("roll%spp_123%d-1", string(rune(i+97)), i+1),
 			Creator:       sample.AccAddress(),

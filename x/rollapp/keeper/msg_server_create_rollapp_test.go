@@ -2,10 +2,11 @@ package keeper_test
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -30,7 +31,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   "Rollapp",
 	}
@@ -51,7 +52,7 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   "Rollapp1",
 	}
@@ -62,41 +63,12 @@ func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   "Rollapp2",
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrInitialSequencerAddressTaken)
-}
-
-func (suite *RollappTestSuite) TestCreateRollappBech32PrefixExists() {
-	suite.SetupTest()
-
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	bech32Prefix := "rax"
-
-	rollapp := types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp1",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            bech32Prefix,
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp1",
-	}
-	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
-
-	rollapp = types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp2",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            bech32Prefix,
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp2",
-	}
-	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, types.ErrBech32PrefixTaken)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
@@ -109,7 +81,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp1",
 		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   alias,
 	}
@@ -120,12 +92,12 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		Creator:                 alice,
 		RollappId:               "rollapp2",
 		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   alias,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, types.ErrAliasAlreadyTaken)
+	suite.ErrorIs(err, gerrc.ErrAlreadyExists)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappId() {
@@ -182,17 +154,10 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
-				Metadata: &types.RollappMetadata{
-					Website:      "https://dymension.xyz",
-					Description:  "Sample description",
-					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-					Telegram:     "rolly",
-					X:            "rolly",
-				},
+				Metadata:                &mockRollappMetadata,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -254,7 +219,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
 			}
@@ -314,17 +279,10 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   "Rollapp1",
-				Metadata: &types.RollappMetadata{
-					Website:      "https://dymension.xyz",
-					Description:  "Sample description",
-					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-					Telegram:     "rolly",
-					X:            "rolly",
-				},
+				Metadata:                &mockRollappMetadata,
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollappMsg)
@@ -338,17 +296,10 @@ func (suite *RollappTestSuite) TestForkChainId() {
 				Creator:                 alice,
 				RollappId:               test.newRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum1",
 				Alias:                   "Rollapp2",
-				Metadata: &types.RollappMetadata{
-					Website:      "https://dymension.xyz",
-					Description:  "Sample description",
-					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-					Telegram:     "rolly",
-					X:            "rolly",
-				},
+				Metadata:                &mockRollappMetadata,
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &rollappMsg2)
 			if test.valid {
@@ -388,7 +339,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   alias,
 			}
@@ -415,7 +366,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 				Creator:                 alice,
 				RollappId:               test.badRollappId,
 				InitialSequencerAddress: sample.AccAddress(),
-				Bech32Prefix:            uniqueBech32Prefix(),
+				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
 				Alias:                   "alias",
 			}
@@ -463,17 +414,10 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		Creator:                 creator,
 		RollappId:               rollappID,
 		InitialSequencerAddress: address,
-		Bech32Prefix:            uniqueBech32Prefix(),
+		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
 		Alias:                   alias,
-		Metadata: &types.RollappMetadata{
-			Website:      "https://dymension.xyz",
-			Description:  "Sample description",
-			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:     "rolly",
-			X:            "rolly",
-		},
+		Metadata:                &mockRollappMetadata,
 	}
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
@@ -514,6 +458,11 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	return rollappSummaryExpect
 }
 
-func uniqueBech32Prefix() string {
-	return strings.ToLower(rand.Str(3))
+var mockRollappMetadata = types.RollappMetadata{
+	Website:      "https://dymension.xyz",
+	Description:  "Sample description",
+	LogoDataUri:  "data:image/png;base64,c2lzZQ==",
+	TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
+	Telegram:     "rolly",
+	X:            "rolly",
 }

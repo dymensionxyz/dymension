@@ -1,6 +1,8 @@
 package types
 
 import (
+	"unicode"
+
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -31,8 +33,8 @@ func (r UpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if len(r.Alias) > maxAliasLength {
-		return ErrInvalidAlias
+	if err := validateAlias(r.Alias); err != nil {
+		return err
 	}
 
 	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
@@ -41,6 +43,21 @@ func (r UpdateRollappInformation) ValidateBasic() error {
 
 	if err := validateMetadata(r.Metadata); err != nil {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	}
+
+	return nil
+}
+
+func validateAlias(alias string) error {
+	if l := len(alias); l == 0 || l > maxAliasLength {
+		return ErrInvalidAlias
+	}
+
+	// only allow alphanumeric characters and underscores
+	for _, c := range alias {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '_' {
+			return ErrInvalidAlias
+		}
 	}
 
 	return nil

@@ -28,19 +28,7 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 		if err := k.cdc.Unmarshal(value, &rollapp); err != nil {
 			return err
 		}
-		rollappSummary := types.RollappSummary{
-			RollappId: rollapp.RollappId,
-		}
-		latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
-		if found {
-			rollappSummary.LatestStateIndex = &latestStateInfoIndex
-		}
-		latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
-		if found {
-			rollappSummary.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
-		}
-
-		rollapps = append(rollapps, rollappSummary)
+		rollapps = append(rollapps, k.buildRollappSummary(ctx, rollapp))
 		return nil
 	})
 	if err != nil {
@@ -51,82 +39,53 @@ func (k Keeper) RollappAll(c context.Context, req *types.QueryAllRollappRequest)
 }
 
 func (k Keeper) Rollapp(c context.Context, req *types.QueryGetRollappRequest) (*types.QueryGetRollappResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	val, found := k.GetRollapp(
-		ctx,
-		req.RollappId,
-	)
-	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
-	}
-
-	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
-	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestStateIndex = &latestStateInfoIndex
-	}
-	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
-	}
-
-	return rollappResponse, nil
+	return queryRollapp[types.QueryGetRollappRequest](c, k, req, k.GetRollapp, req.GetRollappId)
 }
 
 func (k Keeper) RollappByEIP155(c context.Context, req *types.QueryGetRollappByEIP155Request) (*types.QueryGetRollappResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	val, found := k.GetRollappByEIP155(
-		ctx,
-		req.Eip155,
-	)
-	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
-	}
-
-	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
-	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestStateIndex = &latestStateInfoIndex
-	}
-	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
-	}
-
-	return rollappResponse, nil
+	return queryRollapp[types.QueryGetRollappByEIP155Request](c, k, req, k.GetRollappByEIP155, req.GetEip155)
 }
 
 func (k Keeper) RollappByAlias(c context.Context, req *types.QueryGetRollappByAliasRequest) (*types.QueryGetRollappResponse, error) {
-	if req == nil {
+	return queryRollapp[types.QueryGetRollappByAliasRequest](c, k, req, k.GetRollappByAlias, req.GetAlias)
+}
+
+type (
+	queryRollappFn[T any]       func(ctx sdk.Context, q T) (val types.Rollapp, found bool)
+	queryRollappGetArgFn[T any] func() T
+)
+
+func queryRollapp[Q, T any](c context.Context, k Keeper, req any, qFn queryRollappFn[T], argFn queryRollappGetArgFn[T]) (*types.QueryGetRollappResponse, error) {
+	if req == (*Q)(nil) {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	val, found := k.GetRollappByAlias(
-		ctx,
-		req.Alias,
-	)
+	rollapp, found := qFn(ctx, argFn())
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	rollappResponse := &types.QueryGetRollappResponse{Rollapp: val}
-	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestStateIndex = &latestStateInfoIndex
-	}
-	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, val.RollappId)
-	if found {
-		rollappResponse.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
-	}
+	summary := k.buildRollappSummary(ctx, rollapp)
 
-	return rollappResponse, nil
+	return &types.QueryGetRollappResponse{
+		Rollapp:                   rollapp,
+		LatestStateIndex:          summary.LatestStateIndex,
+		LatestFinalizedStateIndex: summary.LatestFinalizedStateIndex,
+	}, nil
+}
+
+func (k Keeper) buildRollappSummary(ctx sdk.Context, rollapp types.Rollapp) types.RollappSummary {
+	rollappSummary := types.RollappSummary{
+		RollappId: rollapp.RollappId,
+	}
+	latestStateInfoIndex, found := k.GetLatestStateInfoIndex(ctx, rollapp.RollappId)
+	if found {
+		rollappSummary.LatestStateIndex = &latestStateInfoIndex
+	}
+	latestFinalizedStateInfoIndex, found := k.GetLatestFinalizedStateIndex(ctx, rollapp.RollappId)
+	if found {
+		rollappSummary.LatestFinalizedStateIndex = &latestFinalizedStateInfoIndex
+	}
+	return rollappSummary
 }

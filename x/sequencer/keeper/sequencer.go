@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -86,6 +87,11 @@ func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val type
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
+}
+
+func (k Keeper) IsSequencerBonded(ctx sdk.Context, address string) bool {
+	seq, found := k.GetSequencer(ctx, address)
+	return found && seq.Status == types.Bonded
 }
 
 // GetAllSequencers returns all sequencer
