@@ -64,7 +64,6 @@ func (suite *SequencerTestSuite) TestExpectedNextProposerFiltering() {
 	// check that the next proposer is filtered out
 	next = suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
 	suite.Equal(seqAddrs[len(seqAddrs)-2], next.SequencerAddress)
-
 }
 
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period
@@ -117,14 +116,14 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 
 	// mature notice period
 	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
-	p, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	_, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 
 	// simulate lastBlock received
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 
 	// assert addr2 is now proposer
-	p, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(addr2, p.SequencerAddress)
 	// assert addr1 is unbonding

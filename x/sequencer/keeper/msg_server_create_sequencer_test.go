@@ -109,6 +109,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		}
 	}
 }
+
 func (suite *SequencerTestSuite) TestCreateSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)

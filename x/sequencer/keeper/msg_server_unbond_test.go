@@ -37,7 +37,7 @@ func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	suite.Require().True(found)
 	suite.Equal(types.Unbonded, bondedSeq.Status)
 
-	//check proposer not changed
+	// check proposer not changed
 	proposer, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(proposerAddr, proposer.SequencerAddress)

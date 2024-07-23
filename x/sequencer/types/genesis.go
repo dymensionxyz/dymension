@@ -31,7 +31,7 @@ func (gs GenesisState) Validate() error {
 	// Check for duplicated index in proposer
 	proposerIndexMap := make(map[string]struct{})
 	for _, elem := range gs.GenesisProposers {
-		rollappId := string(elem.RollappId)
+		rollappId := elem.RollappId
 		if _, ok := proposerIndexMap[rollappId]; ok {
 			return fmt.Errorf("duplicated proposer for %s", rollappId)
 		}
