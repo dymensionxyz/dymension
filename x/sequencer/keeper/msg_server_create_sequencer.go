@@ -87,7 +87,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	// if this is the first sequencer, make it a PROPOSER
 	proposer := len(bondedSequencers) == 0
 	if proposer {
-		k.SetProposer(ctx, sequencer.RollappId, sequencer)
+		k.SetProposer(ctx, sequencer.RollappId, sequencer.SequencerAddress)
 	}
 
 	k.SetSequencer(ctx, sequencer)

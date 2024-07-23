@@ -2,10 +2,10 @@ package sequencer_test
 
 import (
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/stretchr/testify/require"
@@ -16,53 +16,58 @@ func TestInitGenesis(t *testing.T) {
 		Params: types.DefaultParams(),
 
 		SequencerList: []types.Sequencer{
+			// rollapp 1 - proposer
 			{
-				SequencerAddress: "0",
+				SequencerAddress: "rollapp1_addr1",
+				RollappId:        "rollapp1",
 				Status:           types.Bonded,
+				Tokens:           sdk.Coins(nil),
 			},
 			{
-				SequencerAddress: "1",
+				SequencerAddress: "rollapp1_addr2",
+				RollappId:        "rollapp1",
 				Status:           types.Bonded,
+				Tokens:           sdk.NewCoins(sdk.NewCoin("dym", sdk.NewInt(100))),
+			},
+			{
+				SequencerAddress:    "rollapp1_addr3",
+				RollappId:           "rollapp1",
+				Status:              types.Unbonding,
+				Tokens:              sdk.Coins(nil),
+				UnbondRequestHeight: 10,
+				UnbondTime:          time.Time{}, // todo: set time
+			},
+			{
+				SequencerAddress: "rollapp1_addr4",
+				RollappId:        "rollapp1",
+				Status:           types.Unbonded,
+				Tokens:           sdk.Coins(nil),
+			},
+			{
+				SequencerAddress:    "rollapp2_addr1",
+				RollappId:           "rollapp2",
+				Status:              types.Bonded,
+				Tokens:              sdk.Coins(nil),
+				UnbondRequestHeight: 0,
+				UnbondTime:          time.Time{},
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
+		GenesisProposers: []types.GenesisProposer{
+			{
+				Address:   "rollapp1_addr1",
+				RollappId: "rollap1",
+			},
+		},
 	}
+
+	// change the params for assertion
+	genesisState.Params.NoticePeriod = 100
 
 	k, ctx := keepertest.SequencerKeeper(t)
 	sequencer.InitGenesis(ctx, *k, genesisState)
+
 	got := sequencer.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
-
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
+	require.Equal(t, genesisState.Params, got.Params)
 	require.ElementsMatch(t, genesisState.SequencerList, got.SequencerList)
-	// this line is used by starport scaffolding # genesis/test/assert
-}
-
-func TestExportGenesis(t *testing.T) {
-	params := types.Params{
-		MinBond:       sdk.NewCoin("dym", sdk.NewInt(100)),
-		UnbondingTime: 100,
-		NoticePeriod:  200,
-	}
-	sequencerList := []types.Sequencer{
-		{
-			SequencerAddress: "0",
-			Status:           types.Bonded,
-		},
-		{
-			SequencerAddress: "1",
-			Status:           types.Bonded,
-		},
-	}
-	k, ctx := keepertest.SequencerKeeper(t)
-	k.SetParams(ctx, params)
-	for _, sequencer := range sequencerList {
-		k.SetSequencer(ctx, sequencer)
-	}
-	got := sequencer.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-	require.Equal(t, params, got.Params)
-	require.ElementsMatch(t, sequencerList, got.SequencerList)
 }

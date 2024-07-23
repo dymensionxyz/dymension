@@ -108,7 +108,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		k.Logger(ctx).Info("rollapp left with no proposer", "rollappId", rollappId)
 		k.RemoveActiveSequencer(ctx, rollappId)
 	} else {
-		k.SetProposer(ctx, rollappId, nextProposer)
+		k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
 	}
 
 	ctx.EventManager().EmitEvent(
