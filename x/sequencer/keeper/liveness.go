@@ -29,4 +29,5 @@ type SlashAndJail func(
 	hHub uint64,
 	hUpdate uint64,
 	balance sdk.Coins,
+	minBond sdk.Coins,
 ) (slashAmt sdk.Coins, jailed bool)
