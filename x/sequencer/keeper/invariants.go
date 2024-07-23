@@ -8,7 +8,7 @@ import (
 // RegisterInvariants registers the sequencer module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "sequencers-count", SequencersCountInvariant(k))
-	ir.RegisterRoute(types.ModuleName, "sequencer-bonded", SequencerBondedInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "sequencer-proposer-bonded", ProposerBondedInvariant(k))
 }
 
 // AllInvariants runs all invariants of the x/sequencer module.
@@ -19,7 +19,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 			return res, stop
 		}
 
-		res, stop = SequencerBondedInvariant(k)(ctx)
+		res, stop = ProposerBondedInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -66,7 +66,7 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 }
 
 // proposer / next proposer are bonded
-func SequencerBondedInvariant(k Keeper) sdk.Invariant {
+func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			broken bool

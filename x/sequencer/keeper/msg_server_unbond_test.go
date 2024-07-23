@@ -65,31 +65,40 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
 	suite.Require().False(ok)
 
-	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(-10*time.Second))
+	// check notice period queue
+	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(-1*time.Second))
 	suite.Require().Len(m, 0)
-	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(1*time.Second))
 	suite.Require().Len(m, 1)
-
-	// now next proposer should be set
-	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
-	suite.Require().True(ok)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
 	suite.SetupTest()
+	suite.Ctx = suite.Ctx.WithBlockHeight(10)
+
 	rollappId := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	// already unbonding, we expect error
+	// unbonding again, we expect error as sequencer is in notice period
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().Error(err)
 
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
+	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().Error(err)
+
+	// complete rotation
+	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	suite.Require().Equal(types.Unbonding, sequencer.Status)
+
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
+	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	suite.Require().Equal(types.Unbonded, sequencer.Status)
 
 	// already unbonded, we expect error
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)

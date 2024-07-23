@@ -73,6 +73,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		seqParams := types.Params{
 			MinBond:       tc.requiredBond,
 			UnbondingTime: 100,
+			NoticePeriod:  10,
 		}
 		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
@@ -123,6 +124,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollappId, sequencerAddress string
 	}
 	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
+	rollappExpectedProposers := make(map[string]string)
 
 	// for 3 rollapps, test 10 sequencers creations
 	for j := 0; j < 3; j++ {
@@ -178,6 +180,10 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
 
+			if i == 0 {
+				rollappExpectedProposers[rollappId] = sequencerExpect.SequencerAddress
+			}
+
 			sequencersRes, totalRes := getAll(suite)
 			suite.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
@@ -206,7 +212,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
 			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
 		suite.Require().Nil(err)
-		suite.Require().EqualValues(proposer.Proposer, sequencersExpect[0].SequencerAddress)
+		suite.Require().EqualValues(proposer.Proposer, rollappExpectedProposers[rollappId])
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }

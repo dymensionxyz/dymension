@@ -37,6 +37,7 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
 		k.StartRotation(ctx, seq.RollappId)
+		k.removeNoticePeriodSequencer(ctx, seq)
 	}
 }
 
@@ -81,7 +82,7 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 	// next proposer can be empty if there are no bonded sequencers available
 	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
-	k.SetNextProposer(ctx, rollappId, nextProposer)
+	k.SetNextProposer(ctx, rollappId, nextProposer.SequencerAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

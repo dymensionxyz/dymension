@@ -49,7 +49,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	// if we slash the next proposer, we're in the middle of rotation
 	// instead of removing the next proposer, we set it to empty
 	if k.IsNextProposer(ctx, seq.RollappId, seqAddr) {
-		k.SetNextProposer(ctx, seq.RollappId, types.Sequencer{})
+		k.SetNextProposer(ctx, seq.RollappId, "")
 	}
 
 	// set the status to unbonded

@@ -62,6 +62,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	keeper := suite.App.SequencerKeeper
 
 	rollappId := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
 	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
@@ -73,7 +74,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 
 	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(ok)
-	suite.Equal(seq.Status, types.Unbonding)
+	suite.Equal(types.Unbonding, seq.Status)
 	err = keeper.Slashing(suite.Ctx, seqAddr)
 	suite.NoError(err)
 

@@ -21,12 +21,15 @@ func (suite *SequencerTestSuite) TestExpectedNextProposer() {
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			rollappId := suite.CreateDefaultRollapp()
 
+			rollappId := suite.CreateDefaultRollapp()
 			_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer
+
 			seqAddrs := make([]string, tc.numSeqAddrs)
+			currBond := bond
 			for i := 0; i < len(seqAddrs); i++ {
-				seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(bond.Amount))
+				currBond = currBond.AddAmount(bond.Amount)
+				seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, currBond)
 			}
 			next := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
 			if tc.expectEmptyNextProposer {
@@ -40,21 +43,23 @@ func (suite *SequencerTestSuite) TestExpectedNextProposer() {
 	}
 }
 
-// tests that current next proposer is filtered out from the list of expected next proposers
+// tests that the proposer and nextProposer are filtered out from the list of expected next proposers
 func (suite *SequencerTestSuite) TestExpectedNextProposerFiltering() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 	_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer
 	seqAddrs := make([]string, 4)
+	currBond := bond
 	for i := 0; i < len(seqAddrs); i++ {
-		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(bond.Amount))
+		currBond = currBond.AddAmount(bond.Amount)
+		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, currBond)
 	}
 
 	next := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
 	suite.Equal(seqAddrs[len(seqAddrs)-1], next.SequencerAddress)
 
 	// set the expected next proposer as the next proposer
-	suite.App.SequencerKeeper.SetNextProposer(suite.Ctx, rollappId, types.Sequencer{SequencerAddress: seqAddrs[len(seqAddrs)-1]})
+	suite.App.SequencerKeeper.SetNextProposer(suite.Ctx, rollappId, seqAddrs[len(seqAddrs)-1])
 
 	// check that the next proposer is filtered out
 	next = suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
@@ -96,7 +101,6 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	// validate proposer not changed
 	p, _ = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Equal(addr1, p.SequencerAddress)
-
 }
 
 func (suite *SequencerTestSuite) TestRotateProposer() {
@@ -108,16 +112,19 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
 	// mature notice period
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, suite.Ctx.BlockTime().Add(10*time.Second))
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
+	p, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+
 	// simulate lastBlock received
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 
 	// assert addr2 is now proposer
-	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	p, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)
 	suite.Equal(addr2, p.SequencerAddress)
 	// assert addr1 is unbonding
@@ -128,7 +135,7 @@ func (suite *SequencerTestSuite) TestRotateProposer() {
 	suite.Require().False(ok)
 }
 
-func (suite *SequencerTestSuite) TestRotateProposerEmptyNextProposer() {
+func (suite *SequencerTestSuite) TestRotateProposerNoNextProposer() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 
@@ -136,17 +143,76 @@ func (suite *SequencerTestSuite) TestRotateProposerEmptyNextProposer() {
 
 	/* ----------------------------- unbond proposer ---------------------------- */
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
 	// mature notice period
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, suite.Ctx.BlockTime().Add(10*time.Second))
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
 	// simulate lastBlock received
 	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 
-	next, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
-	suite.Require().True(ok)
-	suite.Require().Empty(next.SequencerAddress)
+	_, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
+
+	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
 }
 
-// FIXME: test case where nextSequencer also unbonds
+// Both the proposer and nextProposer tries to unbond
+func (suite *SequencerTestSuite) TestStartRotationTwice() {
+	suite.SetupTest()
+	suite.Ctx = suite.Ctx.WithBlockHeight(10)
+
+	rollappId := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	// unbond proposer
+	unbondMsg := types.MsgUnbond{Creator: addr1}
+	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().NoError(err)
+
+	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(addr1, p.SequencerAddress)
+	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
+
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	suite.Require().True(suite.App.SequencerKeeper.IsRotating(suite.Ctx, rollappId))
+
+	n, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(addr2, n.SequencerAddress)
+
+	// unbond nextProposer before rotation completes
+	suite.Ctx = suite.Ctx.WithBlockHeight(20)
+	unbondMsg = types.MsgUnbond{Creator: addr2}
+	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().NoError(err)
+
+	// check nextProposer is still the nextProposer and notice period started
+	n, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(addr2, n.SequencerAddress)
+	suite.Require().True(n.IsNoticePeriodInProgress())
+
+	// rotation completes before notice period ends for addr2 (the nextProposer)
+	// FIXME: what if notice period ends for addr2 before rotation completes?
+	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId) // simulate lastBlock received
+
+	// validate addr2 is now proposer and still with notice period
+	p, _ = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Equal(addr2, p.SequencerAddress)
+	suite.Require().True(p.IsNoticePeriodInProgress())
+
+	// validate nextProposer is unset after rotation completes
+	n, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
+
+	// mature notice period for addr2
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	// validate nextProposer is set
+	n, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Require().Empty(n.SequencerAddress)
+}

@@ -15,16 +15,19 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	keeper := suite.App.SequencerKeeper
 
 	rollappId := suite.CreateDefaultRollapp()
-	rollappId2 := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer for rollapp
 
-	numOfSequencers := 5
+	rollappId2 := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId2) // proposer for rollapp2
+
+	numOfSequencers := 4
 	numOfSequencers2 := 3
 	unbodingSeq := 2
 
 	seqAddr1 := make([]string, numOfSequencers)
 	seqAddr2 := make([]string, numOfSequencers2)
 
-	// create 5 sequencers for rollapp1
+	// create 4 sequencers for rollapp1
 	for i := 0; i < numOfSequencers; i++ {
 		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	}
@@ -68,18 +71,16 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	var err error
 
 	rollappId := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
+
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
-	suite.Require().True(suite.App.SequencerKeeper.IsProposer(suite.Ctx, rollappId, addr1))
-
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
 	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	sequencer2, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(sequencer2.Status == types.Bonded)
-	suite.Require().False(suite.App.SequencerKeeper.IsProposer(suite.Ctx, rollappId, addr2))
-
 	suite.Require().False(sequencer2.Tokens.IsZero())
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(blockheight))
