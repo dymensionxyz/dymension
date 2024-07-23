@@ -6,7 +6,7 @@ VERSION ?= $(shell git describe --tags --always)
 PACKAGES_SIMTEST=$(shell go list ./... | grep '/simulation')
 LEDGER_ENABLED ?= true
 SDK_PACK := $(shell go list -m github.com/cosmos/cosmos-sdk | sed  's/ /\@/g')
-TM_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+TM_VERSION := $(shell go list -m github.com/cometbft/cometbft | sed 's:.* ::')
 DOCKER := $(shell which docker)
 BUILDDIR ?= $(CURDIR)/build
 
@@ -65,7 +65,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=dymension \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-	      -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_VERSION)
+	      -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(TM_VERSION)
 
 ifeq (cleveldb,$(findstring cleveldb,$(DYMENSION_BUILD_OPTIONS)))
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
@@ -164,21 +164,24 @@ containerProtoFmt=cosmos-sdk-proto-fmt-$(protoVer)
 #		Link to the cosmos/proto-builder docker images:
 #       https://github.com/cosmos/cosmos-sdk/pkgs/container/proto-builder
 #
-protoCosmosVer=0.11.2
+protoCosmosVer=0.14.0
 protoCosmosName=ghcr.io/cosmos/proto-builder:$(protoCosmosVer)
 protoCosmosImage=$(DOCKER) run --network host --rm -v $(CURDIR):/workspace --workdir /workspace $(protoCosmosName)
 
 proto-gen:
 	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protocgen.sh; fi
+	$(protoCosmosImage) sh ./scripts/protocgen.sh
 	@go mod tidy
 
 proto-swagger-gen:
-	@echo "Downloading Protobuf dependencies"
-	@make proto-download-deps
 	@echo "Generating Protobuf Swagger"
 	$(protoCosmosImage) sh ./scripts/protoc-swagger-gen.sh
+
+proto-format:
+	@$(protoCosmosImage) find ./ -name "*.proto" -exec clang-format -i {} \;
+
+proto-lint:
+	@$(protoCosmosImage) buf lint --error-format=json
 
 SWAGGER_DIR=./swagger-proto
 THIRD_PARTY_DIR=$(SWAGGER_DIR)/third_party
@@ -253,3 +256,5 @@ proto-download-deps:
 
 	mkdir -p "$(THIRD_PARTY_DIR)/confio/ics23" && \
 	curl -sSL https://raw.githubusercontent.com/confio/ics23/$(DEPS_CONFIO_ICS23_VERSION)/proofs.proto > "$(THIRD_PARTY_DIR)/proofs.proto"
+
+.PHONY: proto-gen proto-swagger-gen proto-format proto-lint proto-download-deps

@@ -1,8 +1,8 @@
 package keeper_test
 
 import (
-	ibctransfer "github.com/cosmos/ibc-go/v6/modules/apps/transfer"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
+	ibctransfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	damodule "github.com/dymensionxyz/dymension/v3/x/delayedack"
@@ -10,8 +10,12 @@ import (
 )
 
 func (suite *DelayedAckTestSuite) TestHandleFraud() {
-	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(keeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 5)
@@ -47,8 +51,12 @@ func (suite *DelayedAckTestSuite) TestHandleFraud() {
 }
 
 func (suite *DelayedAckTestSuite) TestDeletionOfRevertedPackets() {
-	keeper, ctx, rollappKeeper := suite.App.DelayedAckKeeper, suite.Ctx, suite.App.RollappKeeper
-	transferStack := damodule.NewIBCMiddleware(ibctransfer.NewIBCModule(suite.App.TransferKeeper), keeper, rollappKeeper)
+	keeper, ctx := suite.App.DelayedAckKeeper, suite.Ctx
+	transferStack := damodule.NewIBCMiddleware(
+		damodule.WithIBCModule(ibctransfer.NewIBCModule(suite.App.TransferKeeper)),
+		damodule.WithKeeper(keeper),
+		damodule.WithRollappKeeper(suite.App.RollappKeeper),
+	)
 
 	rollappId := "testRollappId"
 	pkts := generatePackets(rollappId, 5)

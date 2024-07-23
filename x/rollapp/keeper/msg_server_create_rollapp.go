@@ -36,6 +36,11 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 	// Write rollapp information to the store
 	k.SetRollapp(ctx, rollapp)
 
+	err = k.hooks.RollappCreated(ctx, rollapp.RollappId)
+	if err != nil {
+		return nil, err
+	}
+
 	return &types.MsgCreateRollappResponse{}, nil
 }
 

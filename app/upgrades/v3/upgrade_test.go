@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -27,7 +27,7 @@ type UpgradeTestSuite struct {
 // SetupTest initializes the necessary items for each test
 func (s *UpgradeTestSuite) SetupTest(t *testing.T) {
 	s.App = apptesting.Setup(t, false)
-	s.Ctx = s.App.BaseApp.NewContext(false, tmproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
+	s.Ctx = s.App.BaseApp.NewContext(false, cometbftproto.Header{Height: 1, ChainID: "dymension_100-1", Time: time.Now().UTC()})
 }
 
 // TestUpgradeTestSuite runs the suite of tests for the upgrade handler

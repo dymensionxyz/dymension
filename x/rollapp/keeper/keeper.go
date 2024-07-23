@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -21,15 +21,23 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+
+	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
 
-func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtypes.Subspace, channelKeeper types.ChannelKeeper, ibcclientKeeper types.IBCClientKeeper) *Keeper {
+func NewKeeper(
+	cdc codec.BinaryCodec,
+	storeKey storetypes.StoreKey,
+	ps paramtypes.Subspace,
+	channelKeeper types.ChannelKeeper,
+	ibcclientKeeper types.IBCClientKeeper,
+) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:             cdc,
 		storeKey:        storeKey,
 		paramstore:      ps,
@@ -37,6 +45,12 @@ func NewKeeper(cdc codec.BinaryCodec, storeKey storetypes.StoreKey, ps paramtype
 		channelKeeper:   channelKeeper,
 		ibcClientKeeper: ibcclientKeeper,
 	}
+	k.SetFinalizePendingFn(k.finalizePendingState)
+	return k
+}
+
+func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error) {
+	k.finalizePending = fn
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

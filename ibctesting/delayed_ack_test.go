@@ -7,9 +7,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
-	ibctesting "github.com/cosmos/ibc-go/v6/testing"
+	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 )
 
 const (
@@ -142,7 +142,7 @@ func (s *delayedAckSuite) TestTransferRollappToHubFinalization() {
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
 
-	// Upate rollapp state
+	// Update rollapp state
 	currentRollappBlockHeight := uint64(s.rollappCtx().BlockHeight())
 	s.updateRollappState(currentRollappBlockHeight)
 

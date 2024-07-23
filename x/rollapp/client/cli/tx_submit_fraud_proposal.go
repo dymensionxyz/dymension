@@ -5,14 +5,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cobra"
-
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
 	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 // NewCmdSubmitFraudProposal submits a fraud proposal
@@ -47,7 +45,11 @@ func NewCmdSubmitFraudProposal() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txfCli, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			txf := txfCli.WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}

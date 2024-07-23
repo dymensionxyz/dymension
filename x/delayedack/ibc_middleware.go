@@ -6,11 +6,11 @@ import (
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	channeltypes "github.com/cosmos/ibc-go/v6/modules/core/04-channel/types"
-	porttypes "github.com/cosmos/ibc-go/v6/modules/core/05-port/types"
-	"github.com/cosmos/ibc-go/v6/modules/core/exported"
+	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
+	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
@@ -21,15 +21,41 @@ var _ porttypes.Middleware = &IBCMiddleware{}
 
 type IBCMiddleware struct {
 	porttypes.IBCModule
-	*keeper.Keeper // keeper is an ics4 wrapper
-	raKeeper       rollappkeeper.Keeper
+	keeper.Keeper // keeper is an ics4 wrapper
+	raKeeper      rollappkeeper.Keeper
 }
 
-func NewIBCMiddleware(app porttypes.IBCModule, keeper keeper.Keeper, raK rollappkeeper.Keeper) IBCMiddleware {
-	return IBCMiddleware{
-		IBCModule: app,
-		Keeper:    &keeper,
-		raKeeper:  raK,
+type option func(*IBCMiddleware)
+
+func WithIBCModule(m porttypes.IBCModule) option {
+	return func(i *IBCMiddleware) {
+		i.IBCModule = m
+	}
+}
+
+func WithKeeper(k keeper.Keeper) option {
+	return func(m *IBCMiddleware) {
+		m.Keeper = k
+	}
+}
+
+func WithRollappKeeper(k *rollappkeeper.Keeper) option {
+	return func(m *IBCMiddleware) {
+		m.raKeeper = *k
+	}
+}
+
+func NewIBCMiddleware(opts ...option) *IBCMiddleware {
+	w := &IBCMiddleware{}
+	for _, opt := range opts {
+		opt(w)
+	}
+	return w
+}
+
+func (w *IBCMiddleware) Setup(opts ...option) {
+	for _, opt := range opts {
+		opt(w)
 	}
 }
 

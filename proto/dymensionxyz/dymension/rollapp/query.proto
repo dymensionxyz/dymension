@@ -1,0 +1,116 @@
+syntax = "proto3";
+package dymensionxyz.dymension.rollapp;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "dymensionxyz/dymension/rollapp/params.proto";
+import "dymensionxyz/dymension/rollapp/rollapp.proto";
+import "dymensionxyz/dymension/rollapp/state_info.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/params";
+  }
+  // Queries a Rollapp by index.
+  rpc Rollapp(QueryGetRollappRequest) returns (QueryGetRollappResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/rollapp/{rollappId}";
+  }
+
+  // Queries a Rollapp by index.
+  rpc RollappByEIP155(QueryGetRollappByEIP155Request)
+      returns (QueryGetRollappResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/eip155/{eip155}";
+  }
+
+  // Queries a list of Rollapp items.
+  rpc RollappAll(QueryAllRollappRequest) returns (QueryAllRollappResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
+  }
+
+  // Queries a LatestHeight by rollapp-id.
+  rpc LatestHeight(QueryGetLatestHeightRequest)
+      returns (QueryGetLatestHeightResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/latest_height/{rollappId}";
+  }
+
+  // Queries a LatestStateIndex by rollapp-id.
+  rpc LatestStateIndex(QueryGetLatestStateIndexRequest)
+      returns (QueryGetLatestStateIndexResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/latest_state_index/{rollappId}";
+  }
+
+  // Queries a StateInfo by index.
+  rpc StateInfo(QueryGetStateInfoRequest) returns (QueryGetStateInfoResponse) {
+    option (google.api.http).get =
+        "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetRollappRequest { string rollappId = 1; }
+
+message QueryGetRollappByEIP155Request { uint64 eip155 = 1; }
+
+message QueryGetLatestHeightRequest {
+  string rollappId = 1;
+  bool finalized = 2;
+}
+
+message QueryGetLatestHeightResponse { uint64 height = 1; }
+
+message QueryGetLatestStateIndexRequest {
+  string rollappId = 1;
+  bool finalized = 2;
+}
+
+message QueryGetLatestStateIndexResponse {
+  StateInfoIndex stateIndex = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryGetRollappResponse {
+  Rollapp rollapp = 1 [ (gogoproto.nullable) = false ];
+  // Defines the index of the last rollapp UpdateState.
+  StateInfoIndex latestStateIndex = 2;
+  // Defines the index of the last rollapp UpdateState that was finalized.
+  StateInfoIndex latestFinalizedStateIndex = 3;
+
+  uint64 latestHeight = 4;
+  uint64 latestFinalizedHeight = 5;
+}
+
+message QueryAllRollappRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllRollappResponse {
+  repeated RollappSummary rollapp = 1 [ (gogoproto.nullable) = false ];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGetStateInfoRequest {
+  string rollappId = 1;
+  uint64 index = 2;
+  uint64 height = 3;
+  bool finalized = 4;
+}
+
+message QueryGetStateInfoResponse {
+  StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
+}

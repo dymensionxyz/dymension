@@ -4,16 +4,17 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/baseapp"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 )
 
 // Prevent strconv unused error
@@ -50,10 +51,12 @@ type RollappTestSuite struct {
 
 func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerParams) {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
-	app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	err := app.AccountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
+	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
+	suite.Require().NoError(err)
 	app.RollappKeeper.SetParams(ctx, types.NewParams(true, 2, deployerWhitelist))
 	rollappModuleAddress = app.AccountKeeper.GetModuleAddress(types.ModuleName).String()
 
@@ -62,7 +65,7 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	queryClient := types.NewQueryClient(queryHelper)
 
 	suite.App = app
-	suite.msgServer = keeper.NewMsgServerImpl(app.RollappKeeper)
+	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }

@@ -5,8 +5,8 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 const (
@@ -23,7 +23,7 @@ func TestKeeperTestSuite(t *testing.T) {
 
 func (suite *DelayedAckTestSuite) SetupTest() {
 	app := apptesting.Setup(suite.T(), false)
-	ctx := app.GetBaseApp().NewContext(false, tmproto.Header{})
+	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
 	suite.App = app
 	suite.Ctx = ctx

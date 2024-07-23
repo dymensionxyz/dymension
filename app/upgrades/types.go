@@ -1,11 +1,11 @@
 package upgrades
 
 import (
+	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 )
@@ -13,8 +13,8 @@ import (
 // BaseAppParamManager defines an interface that BaseApp is expected to fulfill
 // that allows upgrade handlers to modify BaseApp parameters.
 type BaseAppParamManager interface {
-	GetConsensusParams(ctx sdk.Context) *abci.ConsensusParams
-	StoreConsensusParams(ctx sdk.Context, cp *abci.ConsensusParams)
+	GetConsensusParams(ctx sdk.Context) *cometbftproto.ConsensusParams
+	StoreConsensusParams(ctx sdk.Context, cp *cometbftproto.ConsensusParams)
 }
 
 // Upgrade defines a struct containing necessary fields that a SoftwareUpgradeProposal
@@ -23,10 +23,10 @@ type BaseAppParamManager interface {
 // The app.go will then define the handler.
 type Upgrade struct {
 	// Upgrade version name, for the upgrade handler, e.g. `v4`
-	UpgradeName string
+	Name string
 
-	// CreateUpgradeHandler defines the function that creates an upgrade handler
-	CreateUpgradeHandler func(*module.Manager, module.Configurator, BaseAppParamManager, *keepers.AppKeepers) upgradetypes.UpgradeHandler
+	// CreateHandler defines the function that creates an upgrade handler
+	CreateHandler func(*module.Manager, module.Configurator, BaseAppParamManager, *keepers.AppKeepers) upgradetypes.UpgradeHandler
 
 	// Store upgrades, should be used for any new modules introduced, new modules deleted, or store names renamed.
 	StoreUpgrades storetypes.StoreUpgrades

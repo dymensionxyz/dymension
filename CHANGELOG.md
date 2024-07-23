@@ -37,6 +37,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Unreleased
 
+### State Machine Breaking
+
+- (dependencies) [#970](https://github.com/dymensionxyz/dymension/pull/970) Bump dependencies cosmos-sdk to v0.47.12 
+
 ### Features
 
 - (swagger) [#856](https://github.com/dymensionxyz/dymension/issues/856) Add make command `proto-swagger-gen`
@@ -144,6 +148,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rollapp) [#681](https://github.com/dymensionxyz/dymension/pull/681) Accept rollapp initial state with arbitrary height
 - (ibc) [#678](https://github.com/dymensionxyz/dymension/pull/678) Apply a pfm patch
 - (rollapp) [#671](https://github.com/dymensionxyz/dymension/pull/671) Fix rollapp genesis token not registered as IBC denom
+- (delayedack) [#670](https://github.com/dymensionxyz/dymension/issues/670) Finalize error handling per rollapp
 - (dependencies) [#677](https://github.com/dymensionxyz/dymension/pull/677) Bump cosmos ecosystem dependencies
 - (hygiene) [#676](https://github.com/dymensionxyz/dymension/pull/676) Lint tests
 - (rollapp) [#657](https://github.com/dymensionxyz/dymension/pull/657) Verification of broken invariant logic

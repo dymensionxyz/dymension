@@ -4,10 +4,10 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func (suite *RollappTestSuite) TestFirstUpdateState() {
