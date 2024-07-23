@@ -74,7 +74,7 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 	}
 
 	// clear the proposer and next proposer
-	hook.k.RemoveActiveSequencer(ctx, rollappID)
+	hook.k.RemoveProposer(ctx, rollappID)
 	hook.k.RemoveNextProposer(ctx, rollappID)
 
 	return nil

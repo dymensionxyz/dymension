@@ -210,12 +210,12 @@ func (k Keeper) GetProposer(ctx sdk.Context, rollappId string) (val types.Sequen
 	return k.GetSequencer(ctx, address)
 }
 
-func (k Keeper) HasActiveSequencer(ctx sdk.Context, rollappId string) bool {
+func (k Keeper) HasProposer(ctx sdk.Context, rollappId string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.ProposerByRollappKey(rollappId))
 }
 
-func (k Keeper) RemoveActiveSequencer(ctx sdk.Context, rollappId string) {
+func (k Keeper) RemoveProposer(ctx sdk.Context, rollappId string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.ProposerByRollappKey(rollappId))
 }
@@ -232,7 +232,6 @@ func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId, seqAddr string) {
 	store.Set(nextProposerKey, addressBytes)
 }
 
-// get next proposer
 func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.NextProposerByRollappKey(rollappId))
@@ -247,19 +246,16 @@ func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Se
 	return k.GetSequencer(ctx, address)
 }
 
-// has next proposer
 func (k Keeper) HasNextProposer(ctx sdk.Context, rollappId string) bool {
 	store := ctx.KVStore(k.storeKey)
 	return store.Has(types.NextProposerByRollappKey(rollappId))
 }
 
-// is next proposer
 func (k Keeper) IsNextProposer(ctx sdk.Context, rollappId, seqAddr string) bool {
 	nextProposer, ok := k.GetNextProposer(ctx, rollappId)
 	return ok && nextProposer.SequencerAddress == seqAddr
 }
 
-// remove next proposer
 func (k Keeper) RemoveNextProposer(ctx sdk.Context, rollappId string) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.NextProposerByRollappKey(rollappId))

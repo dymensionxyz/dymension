@@ -43,7 +43,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	}
 
 	if k.IsProposer(ctx, seq.RollappId, seqAddr) {
-		k.RemoveActiveSequencer(ctx, seq.RollappId)
+		k.RemoveProposer(ctx, seq.RollappId)
 	}
 
 	// if we slash the next proposer, we're in the middle of rotation
