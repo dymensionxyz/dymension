@@ -16,7 +16,7 @@ create_asset_pool "$(dirname "$0")/nativeDenomPoolB.json"
 echo "====================="
 streamer_addr=$(dymd q auth module-account streamer -o json | jq '.account.base_account.address' | tr -d '"')
 echo "Sending 300000dym to $streamer_addr"
-dymd tx bank send local-user $streamer_addr 300000dym --keyring-backend test -b block -y --fees 1dym
+dymd tx bank send hub-user $streamer_addr 300000dym --keyring-backend test -b block -y --fees 1dym
 
 # lock LP tokens
 echo "====================="
@@ -29,7 +29,7 @@ dymd tx lockup lock-tokens 50000000000000000000gamm/pool/2 --duration="1m" --fro
 # create new stream
 echo "====================="
 echo "Gov proposal for creating new stream with LP1 and LP2 as incentives targets"
-dymd tx gov submit-legacy-proposal create-stream-proposal 1,2 40,60 10000dym --epoch-identifier minute --from local-user -b block --title sfasfas --description ddasda --deposit 1dym -y --fees 1dym --gas auto
+dymd tx gov submit-legacy-proposal create-stream-proposal 1,2 40,60 10000dym --epoch-identifier minute --from hub-user -b block --title sfasfas --description ddasda --deposit 1dym -y --fees 1dym --gas auto
 
 last_proposal_id=$(dymd q gov proposals -o json | jq '.proposals | map(.id | tonumber) | max')
-dymd tx gov vote "$last_proposal_id" yes --from local-user -b block -y --fees 1dym
+dymd tx gov vote "$last_proposal_id" yes --from hub-user -b block -y --fees 1dym

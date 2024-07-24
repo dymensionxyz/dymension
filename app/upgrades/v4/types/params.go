@@ -101,7 +101,7 @@ func validateDeployerWhitelist(v interface{}) error {
 	for i, item := range deployerWhitelist {
 		// check Bech32 format
 		if _, err := sdk.AccAddressFromBech32(item.Address); err != nil {
-			return fmt.Errorf("deployerWhitelist[%d] format error: %s", i, err.Error())
+			return fmt.Errorf("deployerWhitelist[%d] format error: %w", i, err)
 		}
 
 		// check duplicate

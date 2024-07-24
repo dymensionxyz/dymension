@@ -67,3 +67,8 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 
 	return nil
 }
+
+// RollappCreated implements types.RollappHooks.
+func (hook rollappHook) RollappCreated(ctx sdk.Context, rollappID string) error {
+	return nil
+}

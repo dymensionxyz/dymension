@@ -11,6 +11,7 @@ import (
 type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
+	SetSequencerKeeper(sequencerKeeper rollapptypes.SequencerKeeper)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

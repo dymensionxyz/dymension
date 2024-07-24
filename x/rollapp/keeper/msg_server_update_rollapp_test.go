@@ -25,14 +25,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 					InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
 					Alias:                   "rolly",
 					GenesisChecksum:         "new_checksum",
-					Metadata: &types.RollappMetadata{
-						Website:      "https://dymension.xyz",
-						Description:  "Sample description",
-						LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-						TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-						Telegram:     "rolly",
-						X:            "rolly",
-					},
+					Metadata:                &mockRollappMetadata,
 				},
 			},
 			expError: nil,
@@ -43,14 +36,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "new_checksum",
 				Alias:                   "rolly",
-				Metadata: &types.RollappMetadata{
-					Website:      "https://dymension.xyz",
-					Description:  "Sample description",
-					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-					Telegram:     "rolly",
-					X:            "rolly",
-				},
+				Metadata:                &mockRollappMetadata,
 			},
 		}, {
 			name: "Update rollapp: fail - try to update a non-existing rollapp",
@@ -99,7 +85,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				r.InitialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
 				return r
 			},
-			expError: types.ErrInitialSequencerUpdate,
+			expError: types.ErrInitialSequencerUpdateAfterState,
 		}, {
 			name: "Update rollapp: fail - try to update using another rollapp's InitialSequencerAddress",
 			update: &types.MsgUpdateRollappInformation{
@@ -136,7 +122,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				})
 				return r
 			},
-			expError: types.ErrAliasAlreadyTaken,
+			expError: gerrc.ErrAlreadyExists,
 		}, {
 			name: "Update rollapp: fail - try to update InitialSequencerAddress with existing state",
 			update: &types.MsgUpdateRollappInformation{
@@ -154,7 +140,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				})
 				return r
 			},
-			expError: types.ErrInitialSequencerUpdate,
+			expError: types.ErrInitialSequencerUpdateAfterState,
 		}, {
 			name: "Update rollapp: fail - try to update alias with existing state",
 			update: &types.MsgUpdateRollappInformation{
@@ -190,21 +176,14 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				})
 				return r
 			},
-			expError: types.ErrIGenesisChecksumUpdate,
+			expError: types.ErrGenesisChecksumUpdate,
 		}, {
 			name: "Update rollapp: success - update metadata with existing state",
 			update: &types.MsgUpdateRollappInformation{
 				Update: &types.UpdateRollappInformation{
 					Creator:   alice,
 					RollappId: "rollapp_1234-1",
-					Metadata: &types.RollappMetadata{
-						Website:      "https://dymension.xyz",
-						Description:  "Sample description",
-						LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-						TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-						Telegram:     "rolly",
-						X:            "rolly",
-					},
+					Metadata:  &mockRollappMetadata,
 				},
 			},
 			malleate: func(r types.Rollapp) types.Rollapp {
@@ -226,14 +205,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Bech32Prefix:            "rol",
 				Alias:                   "Rollapp2",
 				RegisteredDenoms:        nil,
-				Metadata: &types.RollappMetadata{
-					Website:      "https://dymension.xyz",
-					Description:  "Sample description",
-					LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-					TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-					Telegram:     "rolly",
-					X:            "rolly",
-				},
+				Metadata:                &mockRollappMetadata,
 			},
 		},
 	}

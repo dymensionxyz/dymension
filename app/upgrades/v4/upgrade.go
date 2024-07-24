@@ -57,6 +57,8 @@ func CreateUpgradeHandler(
 		}
 		migrateSequencers(ctx, keepers.GetKey(sequencertypes.ModuleName), appCodec, keepers.SequencerKeeper)
 
+		// TODO: create rollapp gauges for each existing rollapp
+
 		// Start running the module migrations
 		logger.Debug("running module migrations ...")
 		return mm.RunMigrations(ctx, configurator, fromVM)

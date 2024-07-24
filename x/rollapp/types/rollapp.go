@@ -47,6 +47,8 @@ const (
 	dataURIPattern           = `^data:(?P<mimeType>[\w/]+);base64,(?P<data>[A-Za-z0-9+/=]+)$`
 )
 
+var dataUriPattern = regexp.MustCompile(dataURIPattern)
+
 func (r Rollapp) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(r.Creator)
 	if err != nil {
@@ -74,7 +76,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
-	if l := len(r.Alias); l == 0 || l > maxAliasLength {
+	if err = validateAlias(r.Alias); err != nil {
 		return ErrInvalidAlias
 	}
 
@@ -159,7 +161,7 @@ func validateBaseURI(dataURI string) error {
 		return fmt.Errorf("data URI exceeds maximum length")
 	}
 
-	matched, _ := regexp.MatchString(dataURIPattern, dataURI)
+	matched := dataUriPattern.MatchString(dataURI)
 	if !matched {
 		return fmt.Errorf("invalid data URI format")
 	}
