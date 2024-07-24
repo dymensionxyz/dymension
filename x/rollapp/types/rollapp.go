@@ -72,7 +72,7 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidBech32Prefix, err.Error())
 	}
 
-	if l := len(r.GenesisChecksum); l == 0 || l > maxGenesisChecksumLength {
+	if len(r.GenesisChecksum) > maxGenesisChecksumLength {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,35 +41,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrRollappExists)
-}
-
-func (suite *RollappTestSuite) TestCreateRollappSequencerExists() {
-	suite.SetupTest()
-
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	seqAddr := sample.AccAddress()
-
-	rollapp := types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp1",
-		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp1",
-	}
-	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
-
-	rollapp = types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp2",
-		InitialSequencerAddress: seqAddr,
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   "Rollapp2",
-	}
-	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, types.ErrInitialSequencerAddressTaken)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
@@ -149,7 +121,7 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			alias := test.rollappId // reuse rollapp ID to avoid alias conflicts
+			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
@@ -214,7 +186,7 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			alias := test.rollappId // reuse rollapp ID to avoid alias conflicts
+			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
@@ -334,7 +306,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
-			alias := test.rollappId // reuse rollapp ID to avoid alias conflicts
+			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
@@ -407,8 +379,8 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	// generate sequencer address
 	address := sample.AccAddress()
 	// rollapp is the rollapp to create
-	rollappID := fmt.Sprintf("%s%d", "rollapp", rand.Int63()) //nolint:gosec // this is for a test
-	alias := rollappID                                        // has to be unique, so same as rollapp ID
+	rollappID := fmt.Sprintf("%s%d", "rollapp", rand.Int63())         //nolint:gosec // this is for a test
+	alias := strings.NewReplacer("_", "", "-", "").Replace(rollappID) // reuse rollapp ID to avoid alias conflicts
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:                 creator,

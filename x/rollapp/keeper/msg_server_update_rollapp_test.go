@@ -6,6 +6,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (suite *RollappTestSuite) TestUpdateRollapp() {
@@ -73,38 +74,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 			},
 			expError: types.ErrRollappFrozen,
 		}, {
-			name: "Update rollapp: fail - try to update non-empty InitialSequencerAddress",
-			update: &types.MsgUpdateRollappInformation{
-				Update: &types.UpdateRollappInformation{
-					Creator:                 alice,
-					RollappId:               "rollapp_1234-1",
-					InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
-				},
-			},
-			malleate: func(r types.Rollapp) types.Rollapp {
-				r.InitialSequencerAddress = "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
-				return r
-			},
-			expError: types.ErrInitialSequencerUpdateAfterState,
-		}, {
-			name: "Update rollapp: fail - try to update using another rollapp's InitialSequencerAddress",
-			update: &types.MsgUpdateRollappInformation{
-				Update: &types.UpdateRollappInformation{
-					Creator:                 alice,
-					RollappId:               "rollapp_1234-1",
-					InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
-				},
-			},
-			malleate: func(r types.Rollapp) types.Rollapp {
-				// create another rollapp with the same InitialSequencerAddress
-				suite.App.RollappKeeper.SetRollapp(suite.Ctx, types.Rollapp{
-					RollappId:               "somerollapp_1235-1",
-					InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
-				})
-				return r
-			},
-			expError: types.ErrInitialSequencerAddressTaken,
-		}, {
 			name: "Update rollapp: fail - try to update using another rollapp's alias",
 			update: &types.MsgUpdateRollappInformation{
 				Update: &types.UpdateRollappInformation{
@@ -133,14 +102,35 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				},
 			},
 			malleate: func(r types.Rollapp) types.Rollapp {
-				// create another rollapp with the same InitialSequencerAddress
+				// create state for the rollapp
 				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{
-					RollappId: "rollapp_1234-1",
+					RollappId: r.RollappId,
 					Index:     1,
 				})
 				return r
 			},
-			expError: types.ErrInitialSequencerUpdateAfterState,
+			expError: types.ErrImmutableFieldUpdateAfterState,
+		}, {
+			name: "Update rollapp: fail - try to update InitialSequencerAddress with bonded initial sequencer",
+			update: &types.MsgUpdateRollappInformation{
+				Update: &types.UpdateRollappInformation{
+					Creator:                 alice,
+					RollappId:               "rollapp_1234-1",
+					InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
+				},
+			},
+			malleate: func(r types.Rollapp) types.Rollapp {
+				// create initial bonded sequencer
+				initialSequencer := "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencertypes.Sequencer{
+					SequencerAddress: initialSequencer,
+					RollappId:        r.RollappId,
+					Status:           sequencertypes.Bonded,
+				})
+				r.InitialSequencerAddress = initialSequencer
+				return r
+			},
+			expError: types.ErrImmutableFieldUpdateAfterInitialSequencerBonded,
 		}, {
 			name: "Update rollapp: fail - try to update alias with existing state",
 			update: &types.MsgUpdateRollappInformation{
@@ -151,14 +141,35 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				},
 			},
 			malleate: func(r types.Rollapp) types.Rollapp {
-				// create another rollapp with the same InitialSequencerAddress
+				// create state for the rollapp
 				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{
-					RollappId: "rollapp_1234-1",
+					RollappId: r.RollappId,
 					Index:     1,
 				})
 				return r
 			},
-			expError: types.ErrAliasUpdate,
+			expError: types.ErrImmutableFieldUpdateAfterState,
+		}, {
+			name: "Update rollapp: fail - try to update alias with bonded initial sequencer",
+			update: &types.MsgUpdateRollappInformation{
+				Update: &types.UpdateRollappInformation{
+					Creator:   alice,
+					RollappId: "rollapp_1234-1",
+					Alias:     "rolly",
+				},
+			},
+			malleate: func(r types.Rollapp) types.Rollapp {
+				// create initial bonded sequencer
+				initialSequencer := "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencertypes.Sequencer{
+					SequencerAddress: initialSequencer,
+					RollappId:        r.RollappId,
+					Status:           sequencertypes.Bonded,
+				})
+				r.InitialSequencerAddress = initialSequencer
+				return r
+			},
+			expError: types.ErrImmutableFieldUpdateAfterInitialSequencerBonded,
 		}, {
 			name: "Update rollapp: fail - try to update genesis checksum with existing state",
 			update: &types.MsgUpdateRollappInformation{
@@ -169,14 +180,35 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				},
 			},
 			malleate: func(r types.Rollapp) types.Rollapp {
-				// create another rollapp with the same InitialSequencerAddress
+				// create state for the rollapp
 				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{
 					RollappId: "rollapp_1234-1",
 					Index:     1,
 				})
 				return r
 			},
-			expError: types.ErrGenesisChecksumUpdate,
+			expError: types.ErrImmutableFieldUpdateAfterState,
+		}, {
+			name: "Update rollapp: fail - try to update genesis checksum with bonded initial sequencer",
+			update: &types.MsgUpdateRollappInformation{
+				Update: &types.UpdateRollappInformation{
+					Creator:         alice,
+					RollappId:       "rollapp_1234-1",
+					GenesisChecksum: "new_checksum",
+				},
+			},
+			malleate: func(r types.Rollapp) types.Rollapp {
+				// create initial bonded sequencer
+				initialSequencer := "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencertypes.Sequencer{
+					SequencerAddress: initialSequencer,
+					RollappId:        r.RollappId,
+					Status:           sequencertypes.Bonded,
+				})
+				r.InitialSequencerAddress = initialSequencer
+				return r
+			},
+			expError: types.ErrImmutableFieldUpdateAfterInitialSequencerBonded,
 		}, {
 			name: "Update rollapp: success - update metadata with existing state",
 			update: &types.MsgUpdateRollappInformation{
@@ -187,7 +219,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				},
 			},
 			malleate: func(r types.Rollapp) types.Rollapp {
-				// create another rollapp with the same InitialSequencerAddress
+				// create state for the rollapp
 				suite.App.RollappKeeper.SetLatestStateInfoIndex(suite.Ctx, types.StateInfoIndex{
 					RollappId: "rollapp_1234-1",
 					Index:     1,
@@ -199,6 +231,39 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				RollappId:               "rollapp_1234-1",
 				Creator:                 alice,
 				InitialSequencerAddress: "",
+				GenesisChecksum:         "checksum1",
+				ChannelId:               "",
+				Frozen:                  false,
+				Bech32Prefix:            "rol",
+				Alias:                   "Rollapp2",
+				RegisteredDenoms:        nil,
+				Metadata:                &mockRollappMetadata,
+			},
+		}, {
+			name: "Update rollapp: success - update metadata with bonded initial sequencer",
+			update: &types.MsgUpdateRollappInformation{
+				Update: &types.UpdateRollappInformation{
+					Creator:   alice,
+					RollappId: "rollapp_1234-1",
+					Metadata:  &mockRollappMetadata,
+				},
+			},
+			malleate: func(r types.Rollapp) types.Rollapp {
+				// create initial bonded sequencer
+				initialSequencer := "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz"
+				suite.App.SequencerKeeper.SetSequencer(suite.Ctx, sequencertypes.Sequencer{
+					SequencerAddress: initialSequencer,
+					RollappId:        r.RollappId,
+					Status:           sequencertypes.Bonded,
+				})
+				r.InitialSequencerAddress = initialSequencer
+				return r
+			},
+			expError: nil,
+			expRollapp: types.Rollapp{
+				RollappId:               "rollapp_1234-1",
+				Creator:                 alice,
+				InitialSequencerAddress: "dym10l6edrf9gjv02um5kp7cmy4zgd26tafz6eqajz",
 				GenesisChecksum:         "checksum1",
 				ChannelId:               "",
 				Frozen:                  false,

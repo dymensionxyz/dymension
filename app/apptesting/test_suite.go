@@ -36,7 +36,7 @@ func (s *KeeperTestHelper) CreateDefaultRollapp() string {
 }
 
 func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
-	alias := name // reuse rollappID to avoid alias conflicts
+	alias := strings.NewReplacer("_", "", "-", "").Replace(name) // base it on rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:                 alice,
 		RollappId:               name,
