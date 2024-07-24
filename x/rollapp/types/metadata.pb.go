@@ -25,7 +25,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type RollappMetadata struct {
 	// website is the rollapp website
 	Website string `protobuf:"bytes,1,opt,name=website,proto3" json:"website,omitempty"`
-	// description is the rollapp description. should be limited to TBD chars
+	// description is the rollapp description. should be limited to 512 chars
 	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	// logo_data_uri is a base64 rep with a URI prefix to the rollapp logo. Should be limited to 25kb.
 	LogoDataUri string `protobuf:"bytes,3,opt,name=logo_data_uri,json=logoDataUri,proto3" json:"logo_data_uri,omitempty"`
