@@ -68,9 +68,8 @@ func (k Keeper) UpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInform
 	return nil
 }
 
-func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInformation) (current types.Rollapp, err error) {
-	var found bool
-	current, found = k.GetRollapp(ctx, update.RollappId)
+func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInformation) (types.Rollapp, error) {
+	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
 		return current, errRollappNotFound
 	}
@@ -83,38 +82,29 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInf
 		return current, types.ErrRollappFrozen
 	}
 
-	_, hasState := k.GetLatestStateInfoIndex(ctx, update.RollappId)
-	initSequencerBonded := k.sequencerKeeper.IsSequencerBonded(ctx, update.InitialSequencerAddress)
-
-	current.InitialSequencerAddress, err = k.canUpdateInitialSequencer(
-		current.InitialSequencerAddress,
-		update.InitialSequencerAddress,
-		hasState,
-		initSequencerBonded,
-	)
-	if err != nil {
-		return
+	if update.UpdatingImutableValues() {
+		// initial sequencer address cannot be updated after the initial sequencer has bonded
+		if k.sequencerKeeper.IsSequencerBonded(ctx, update.InitialSequencerAddress) {
+			return current, types.ErrInitialSequencerBonded
+		}
+		// initial sequencer address cannot be updated after the first state update
+		if _, hasState := k.GetLatestStateInfoIndex(ctx, update.RollappId); hasState {
+			return current, types.ErrInitialSequencerUpdateAfterState
+		}
 	}
 
-	current.Alias, err = k.canUpdateAlias(
-		ctx,
-		current.Alias,
-		update.Alias,
-		hasState,
-		initSequencerBonded,
-	)
+	var err error
+	current.Alias, err = k.canUpdateAlias(ctx, current.Alias, update.Alias)
 	if err != nil {
-		return
+		return current, err
 	}
 
-	current.GenesisChecksum, err = k.canUpdateGenesisChecksum(
-		current.GenesisChecksum,
-		update.GenesisChecksum,
-		hasState,
-		initSequencerBonded,
-	)
-	if err != nil {
-		return
+	if update.InitialSequencerAddress != "" {
+		current.InitialSequencerAddress = update.InitialSequencerAddress
+	}
+
+	if update.GenesisChecksum != "" {
+		current.GenesisChecksum = update.GenesisChecksum
 	}
 
 	current.Metadata = update.Metadata
@@ -123,71 +113,21 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.UpdateRollappInf
 		return current, fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	return
-}
-
-func (k Keeper) canUpdateInitialSequencer(
-	currentInitSeq, updateInitSeq string,
-	hasState, initSeqBonded bool,
-) (string, error) {
-	if updateInitSeq == "" {
-		return currentInitSeq, nil
-	}
-
-	// initial sequencer address cannot be updated after the initial sequencer has bonded
-	if initSeqBonded {
-		return "", types.ErrInitialSequencerBonded
-	}
-
-	// initial sequencer address cannot be updated after the first state update
-	if hasState {
-		return "", types.ErrInitialSequencerUpdateAfterState
-	}
-
-	return updateInitSeq, nil
+	return current, nil
 }
 
 func (k Keeper) canUpdateAlias(
 	ctx sdk.Context,
 	currentAlias, updateAlias string,
-	hasState, initSeqBonded bool,
 ) (string, error) {
 	if updateAlias == "" || currentAlias == updateAlias {
 		return currentAlias, nil
-	}
-
-	// alias address cannot be updated after the initial sequencer has bonded
-	if initSeqBonded {
-		return "", types.ErrInitialSequencerBonded
-	}
-	// alias cannot be updated after the first state update
-	if hasState {
-		return "", types.ErrAliasUpdate
 	}
 
 	if _, isFound := k.GetRollappByAlias(ctx, updateAlias); isFound {
 		return "", gerrc.ErrAlreadyExists
 	}
 	return updateAlias, nil
-}
-
-func (k Keeper) canUpdateGenesisChecksum(
-	currentChecksum, updateChecksum string,
-	hasState, initSeqBonded bool,
-) (string, error) {
-	if updateChecksum == "" {
-		return currentChecksum, nil
-	}
-	// genesis checksum cannot be updated after the initial sequencer has bonded
-	if initSeqBonded {
-		return "", types.ErrInitialSequencerBonded
-	}
-	// genesis checksum cannot be updated after the first state update
-	if hasState {
-		return "", types.ErrGenesisChecksumUpdate
-	}
-
-	return updateChecksum, nil
 }
 
 func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
