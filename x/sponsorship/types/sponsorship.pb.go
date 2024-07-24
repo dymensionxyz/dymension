@@ -70,12 +70,27 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
-// Distribution holds the distribution plan among gauges.
+// Distribution holds the distribution plan among gauges. Distribution with the
+// Merge operation forms an Abelian group:
+// https://en.wikipedia.org/wiki/Abelian_group. Which helps to safely operate
+// with it. That is, Distribution:
+//  1. Is commutative:           a + b = b + a
+//  2. Is associative:           a + (b + c) = (a + b) + c
+//  3. Has the identity element: e + a = a + e = a
+//  4. Has inverse elements:     i + a = a + i = e
+//
+// where
+// a, b, c, i, e : Distribution type,
+// + : Merge operation
+// i : inverse of a,
+// e : identity element (zero).
+//
+// CONTRACT: Gauges are sorted by the gauge ID.
+// CONTRACT: Gauges hold gauges only with non-vero power.
 type Distribution struct {
 	// VotingPower is the total voting power that the distribution holds.
 	VotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=voting_power,json=votingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"voting_power"`
 	// Gauges is a breakdown of the voting power for different gauges.
-	// CONTRACT: Gauges MUST be sorted by the gauge ID.
 	Gauges []Gauge `protobuf:"bytes,2,rep,name=gauges,proto3" json:"gauges"`
 }
 
@@ -219,8 +234,9 @@ func (m *Vote) GetWeights() []GaugeWeight {
 type GaugeWeight struct {
 	// GaugeID is the ID of the gauge.
 	GaugeId uint64 `protobuf:"varint,1,opt,name=gauge_id,json=gaugeId,proto3" json:"gauge_id,omitempty"`
-	// Weight is a portion of the voting power that is allocated for the given gauge.
-	// The value must fall between Params.MinAllocationWeight and 100, inclusive.
+	// Weight is a portion of the voting power that is allocated for the given
+	// gauge. The value must fall between Params.MinAllocationWeight and 100,
+	// inclusive.
 	Weight github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"weight"`
 }
 

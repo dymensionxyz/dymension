@@ -57,9 +57,9 @@ func (k Keeper) GetDistribution(ctx sdk.Context) (types.Distribution, error) {
 	return v, nil
 }
 
-func (k Keeper) SaveVotingPower(ctx sdk.Context, voterAddr, validatorAddr string, power math.Int) error {
+func (k Keeper) SaveVotingPower(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress, power math.Int) error {
 	store := ctx.KVStore(k.storeKey)
-	key := types.VotingPowerKey(voterAddr, validatorAddr)
+	key := types.VotingPowerKey(valAddr, voterAddr)
 
 	value, err := k.cdc.Marshal(&sdk.IntProto{Int: power})
 	if err != nil {
@@ -70,9 +70,9 @@ func (k Keeper) SaveVotingPower(ctx sdk.Context, voterAddr, validatorAddr string
 	return nil
 }
 
-func (k Keeper) GetVotingPower(ctx sdk.Context, voterAddr, validatorAddr string) (math.Int, error) {
+func (k Keeper) GetVotingPower(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) (math.Int, error) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.VoteKey(voterAddr))
+	b := store.Get(types.VotingPowerKey(valAddr, voterAddr))
 	if b == nil {
 		return math.ZeroInt(), sdkerrors.ErrNotFound
 	}
@@ -86,7 +86,17 @@ func (k Keeper) GetVotingPower(ctx sdk.Context, voterAddr, validatorAddr string)
 	return v.Int, nil
 }
 
-func (k Keeper) SaveVote(ctx sdk.Context, voterAddr string, v types.Vote) error {
+func (k Keeper) DeleteVotingPowerForDelegation(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.VotingPowerKey(valAddr, voterAddr))
+}
+
+func (k Keeper) DeleteVotingPower(ctx sdk.Context, valAddr sdk.ValAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.VotingPowerKey(valAddr, []byte{})) // delete the whole record
+}
+
+func (k Keeper) SaveVote(ctx sdk.Context, voterAddr sdk.AccAddress, v types.Vote) error {
 	store := ctx.KVStore(k.storeKey)
 	key := types.VoteKey(voterAddr)
 
@@ -99,7 +109,7 @@ func (k Keeper) SaveVote(ctx sdk.Context, voterAddr string, v types.Vote) error 
 	return nil
 }
 
-func (k Keeper) GetVote(ctx sdk.Context, voterAddr string) (types.Vote, error) {
+func (k Keeper) GetVote(ctx sdk.Context, voterAddr sdk.AccAddress) (types.Vote, error) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.VoteKey(voterAddr))
 	if b == nil {
@@ -113,4 +123,14 @@ func (k Keeper) GetVote(ctx sdk.Context, voterAddr string) (types.Vote, error) {
 	}
 
 	return v, nil
+}
+
+func (k Keeper) Voted(ctx sdk.Context, voterAddr sdk.AccAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.VoteKey(voterAddr))
+}
+
+func (k Keeper) DeleteVote(ctx sdk.Context, voterAddr sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.VoteKey(voterAddr))
 }

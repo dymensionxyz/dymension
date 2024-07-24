@@ -9,11 +9,16 @@ import (
 
 func ValidateGaugeWeights(w []GaugeWeight) error {
 	total := math.ZeroInt()
+	gaugeIDs := make(map[uint64]struct{}, len(w)) // this map helps check for duplicates
 	for _, g := range w {
 		err := g.Validate()
 		if err != nil {
 			return ErrInvalidDistribution.Wrap(err.Error())
 		}
+		if _, ok := gaugeIDs[g.GaugeId]; ok {
+			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
+		}
+		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
 	if !total.Equal(hundred) {
@@ -34,52 +39,97 @@ func (g GaugeWeight) Validate() error {
 
 // ToDistribution multiplies each gauge weight by the voting power to get its absolut voting power.
 func (v Vote) ToDistribution() Distribution {
-	gauges := make(Gauges, 0, len(v.Weights))
-	for _, weight := range v.Weights {
+	return ApplyWeights(v.VotingPower, v.Weights)
+}
+
+func ApplyWeights(votingPower math.Int, weights []GaugeWeight) Distribution {
+	gauges := make(Gauges, 0, len(weights))
+	for _, weight := range weights {
 		gauges = append(gauges, Gauge{
 			GaugeId: weight.GetGaugeId(),
-			Power:   v.VotingPower.Mul(weight.Weight).Quo(hundred),
+			Power:   votingPower.Mul(weight.Weight).Quo(hundred),
 		})
 	}
 
 	// All gauges must be sorted by the gauge ID
 	sort.Sort(gauges)
 	return Distribution{
-		VotingPower: v.VotingPower,
+		VotingPower: votingPower,
 		Gauges:      gauges,
 	}
 }
 
-// TODO: add tests!
-func ApplyUpdate(initial, update Distribution) Distribution {
+func NewDistribution() Distribution {
+	return Distribution{
+		VotingPower: math.ZeroInt(),
+		Gauges:      make([]Gauge, 0),
+	}
+}
+
+// Merge is a binary associative and commutative operation over Distribution. It takes two
+// distributions and applies one to another. Example:
+func (d Distribution) Merge(d1 Distribution) Distribution {
 	// O(n+m) solution based on modified https://leetcode.com/problems/merge-sorted-array.
-	gauges := make(Gauges, 0, len(initial.Gauges)+len(update.Gauges))
-	var i = 0 // initial iterator
-	var j = 0 // update iterator
-	var k = 0 // result iterator
-	var ini = initial.Gauges
-	var upd = update.Gauges
-	for i < len(ini) && j < len(upd) {
+	gauges := make(Gauges, 0, len(d.Gauges)+len(d1.Gauges))
+	var i = 0           // first iterator
+	var j = 0           // second iterator
+	var lhs = d.Gauges  // alias
+	var rhs = d1.Gauges // alias
+
+	for i < len(lhs) && j < len(rhs) {
+		var gauge Gauge
 		switch {
-		case ini[i].GaugeId == upd[j].GaugeId:
-			gauges[k] = Gauge{
-				GaugeId: ini[i].GaugeId,
-				Power:   ini[i].Power.Add(upd[j].Power),
+		case lhs[i].GaugeId == rhs[j].GaugeId:
+			gauge = Gauge{
+				GaugeId: lhs[i].GaugeId,
+				Power:   lhs[i].Power.Add(rhs[j].Power),
 			}
-		case ini[i].GaugeId < upd[j].GaugeId:
-			gauges[k] = initial.Gauges[i]
 			i++
-		case ini[i].GaugeId > upd[j].GaugeId:
-			gauges[k] = initial.Gauges[i]
+			j++
+		case lhs[i].GaugeId < rhs[j].GaugeId:
+			gauge = lhs[i]
+			i++
+		case lhs[i].GaugeId > rhs[j].GaugeId:
+			gauge = rhs[j]
 			j++
 		}
-		k++
+		// Don't store gauges with zero power
+		if !gauge.Power.IsZero() {
+			gauges = append(gauges, gauge)
+		}
 	}
-	slices.Clip(gauges)
+
+	if i != len(lhs) {
+		gauges = append(gauges, lhs[i:]...)
+	}
+	if j != len(rhs) {
+		gauges = append(gauges, rhs[j:]...)
+	}
+
 	return Distribution{
-		VotingPower: initial.VotingPower.Add(update.VotingPower),
+		VotingPower: d.VotingPower.Add(d1.VotingPower),
+		Gauges:      slices.Clip(gauges),
+	}
+}
+
+func (d Distribution) Negate() Distribution {
+	gauges := make([]Gauge, len(d.Gauges))
+	for i, g := range d.Gauges {
+		gauges[i] = Gauge{
+			GaugeId: g.GaugeId,
+			Power:   g.Power.Neg(),
+		}
+	}
+	return Distribution{
+		VotingPower: d.VotingPower.Neg(),
 		Gauges:      gauges,
 	}
+}
+
+func (d Distribution) Equal(d1 Distribution) bool {
+	return d.VotingPower.Equal(d1.VotingPower) && slices.EqualFunc(d.Gauges, d1.Gauges, func(g1 Gauge, g2 Gauge) bool {
+		return g1.GaugeId == g2.GaugeId && g1.Power.Equal(g2.Power)
+	})
 }
 
 var _ sort.Interface = Gauges{}

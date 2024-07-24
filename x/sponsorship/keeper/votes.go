@@ -30,33 +30,49 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	}
 
 	// Get the user’s total voting power from the x/staking
-	votingPower, err := k.GetStakingVotingPower(ctx, voter)
+	vpBreakdown, err := k.GetStakingVotingPower(ctx, voter)
 	if err != nil {
 		return types.Vote{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
 	}
 
 	// Validate that the user is bonded (power > MinVotingPower)
-	if votingPower.LT(params.MinVotingPower) {
-		return types.Vote{}, fmt.Errorf("voting power '%d' is less than min voting power expected '%d'", votingPower.Int64(), params.MinVotingPower.Int64())
+	if vpBreakdown.TotalPower.LT(params.MinVotingPower) {
+		return types.Vote{}, fmt.Errorf("voting power '%d' is less than min voting power expected '%d'", vpBreakdown.TotalPower.Int64(), params.MinVotingPower.Int64())
 	}
 
 	vote := types.Vote{
-		VotingPower: votingPower,
+		VotingPower: vpBreakdown.TotalPower,
 		Weights:     weights,
 	}
 
 	// Apply the weights to the voting power -> now the weights are in absolute values
-	distrUpdate := vote.ToDistribution()
+	update := vote.ToDistribution()
 
 	// Get the current plan from the state
-	distr, err := k.GetDistribution(ctx)
+	current, err := k.GetDistribution(ctx)
 	if err != nil {
-		return types.Vote{}, fmt.Errorf("failed to get distribution from the state: %w", err)
+		return types.Vote{}, fmt.Errorf("failed to get distribution: %w", err)
 	}
 
-	// Apply the user weights to the current plan and save it back to the state
-	resultDistr := types.ApplyUpdate(distr, distrUpdate)
-	err := k.SaveDistribution(ctx, resultDistr)
+	// Apply the user weights to the current plan
+	result := current.Merge(update)
+
+	// Save the user's vote
+	err = k.SaveVote(ctx, voter, vote)
+	if err != nil {
+		return types.Vote{}, fmt.Errorf("failed to save vote: %w", err)
+	}
+
+	// Save the user's voting power breakdown
+	for _, valPower := range vpBreakdown.Breakdown {
+		err = k.SaveVotingPower(ctx, valPower.ValAddr, voter, valPower.Power)
+		if err != nil {
+			return types.Vote{}, fmt.Errorf("failed to save voting power: %w", err)
+		}
+	}
+
+	// Save the updated distribution
+	err = k.SaveDistribution(ctx, result)
 	if err != nil {
 		return types.Vote{}, fmt.Errorf("failed to save distribution: %w", err)
 	}
@@ -65,17 +81,56 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 }
 
 func (k Keeper) RevokeVote(ctx sdk.Context, voter sdk.AccAddress) error {
-	panic("not implemented")
+	// Get the user’s vote from the state
+	vote, err := k.GetVote(ctx, voter)
+	if err != nil {
+		return fmt.Errorf("failed to get vote: %w", err)
+	}
+
+	// Apply the weights to the user’s voting power -> now the weights are in absolute values
+	update := vote.ToDistribution()
+
+	// Get the current plan from the state
+	current, err := k.GetDistribution(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get distribution: %w", err)
+	}
+
+	// result = current - update
+	result := current.Merge(update.Negate())
+
+	// Save the updated distribution
+	err = k.SaveDistribution(ctx, result)
+	if err != nil {
+		return fmt.Errorf("failed to save distribution: %w", err)
+	}
+
+	// Prune the user’s vote and voting power
+	k.DeleteVote(ctx, voter)
+	k.DeleteVotingPower(ctx, voter) // TODO!
+
+	return nil
 }
 
 func (k Keeper) UpdateVotingPower(ctx sdk.Context, voter sdk.AccAddress, power math.Int) error {
 	panic("not implemented")
 }
 
+type ValidatorPower struct {
+	ValAddr sdk.ValAddress
+	Power   math.Int
+}
+
+type VotingPowerBreakdown struct {
+	TotalPower math.Int
+	Breakdown  []ValidatorPower
+}
+
 // GetStakingVotingPower returns the user's voting power calculated based on the x/staking module.
-func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (math.Int, error) {
+func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (VotingPowerBreakdown, error) {
 	var err error
 	totalPower := math.ZeroInt()
+	breakdown := make([]ValidatorPower, 0)
 
 	const Break = true
 	const Continue = false
@@ -93,9 +148,18 @@ func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (ma
 
 		// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
 		votingPower := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
+
 		totalPower = totalPower.Add(votingPower)
+		breakdown = append(breakdown, ValidatorPower{
+			ValAddr: d.GetValidatorAddr(),
+			Power:   votingPower,
+		})
+
 		return Continue
 	})
 
-	return totalPower, err
+	return VotingPowerBreakdown{
+		TotalPower: totalPower,
+		Breakdown:  breakdown,
+	}, err
 }
