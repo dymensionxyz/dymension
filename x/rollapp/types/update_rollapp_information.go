@@ -25,6 +25,10 @@ func NewUpdateRollappInformation(
 	}
 }
 
+func (r UpdateRollappInformation) UpdatingImutableValues() bool {
+	return r.InitialSequencerAddress != "" || r.GenesisChecksum != "" || r.Alias != ""
+}
+
 func (r UpdateRollappInformation) ValidateBasic() error {
 	if r.InitialSequencerAddress != "" {
 		_, err := sdk.AccAddressFromBech32(r.InitialSequencerAddress)
@@ -49,7 +53,7 @@ func (r UpdateRollappInformation) ValidateBasic() error {
 }
 
 func validateAlias(alias string) error {
-	if l := len(alias); l == 0 || l > maxAliasLength {
+	if len(alias) > maxAliasLength {
 		return ErrInvalidAlias
 	}
 

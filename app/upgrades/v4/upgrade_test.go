@@ -49,7 +49,7 @@ const (
 	expectDelayedackEpochIdentifier               = "hour"
 
 	expectDisputePeriodInBlocks = 3
-	expectRegistrationFee       = "1000000000000000000adym"
+	expectRegistrationFee       = "10000000000000000000adym"
 )
 
 var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)

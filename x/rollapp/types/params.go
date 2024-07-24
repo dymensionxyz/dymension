@@ -20,7 +20,7 @@ var (
 	// DYM is the integer representation of 1 DYM
 	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(1000))) // 1000DYM
+	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(10))) // 10DYM
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
 	DefaultDisputePeriodInBlocks uint64 = 3

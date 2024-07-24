@@ -91,7 +91,7 @@ func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val type
 
 func (k Keeper) IsSequencerBonded(ctx sdk.Context, address string) bool {
 	seq, found := k.GetSequencer(ctx, address)
-	return found && seq.Status == types.Bonded
+	return found && seq.IsBonded()
 }
 
 func (k Keeper) GetSequencerByRollappByStatus(ctx sdk.Context, rollappId, seqAddress string, status types.OperatingStatus) (val types.Sequencer, found bool) {

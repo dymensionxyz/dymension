@@ -96,18 +96,6 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidBech32Prefix,
 		},
 		{
-			name: "empty genesis checksum",
-			msg: MsgCreateRollapp{
-				Creator:                 sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
-				InitialSequencerAddress: sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         "",
-				Alias:                   "Rollapp",
-			},
-			err: ErrInvalidGenesisChecksum,
-		},
-		{
 			name: "invalid alias: too long",
 			msg: MsgCreateRollapp{
 				Creator:                 sample.AccAddress(),

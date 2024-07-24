@@ -3,14 +3,16 @@ package keeper_test
 import (
 	"crypto/rand"
 	"fmt"
+	"strings"
 	"time"
 
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -205,12 +207,13 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
-	alice := sdk.AccAddress([]byte("addr1---------------"))
+	alice := sdk.AccAddress("addr1---------------")
+	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:       alice.String(),
-		RollappId:     tmrand.Str(8),
-		MaxSequencers: 1,
+		Creator:      alice.String(),
+		RollappId:    tmrand.Str(8),
+		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
