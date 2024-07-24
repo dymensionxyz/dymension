@@ -83,13 +83,13 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInfo
 	}
 
 	if update.UpdatingImutableValues() {
+		// initial sequencer address cannot be updated after the first state update
+		if k.IsRollappStarted(ctx, current.RollappId) {
+			return current, types.ErrImmutableFieldUpdateAfterState
+		}
 		// initial sequencer address cannot be updated after the initial sequencer has bonded
 		if k.sequencerKeeper.IsSequencerBonded(ctx, current.InitialSequencerAddress) {
 			return current, types.ErrImmutableFieldUpdateAfterInitialSequencerBonded
-		}
-		// initial sequencer address cannot be updated after the first state update
-		if _, hasState := k.GetLatestStateInfoIndex(ctx, current.RollappId); hasState {
-			return current, types.ErrImmutableFieldUpdateAfterState
 		}
 	}
 

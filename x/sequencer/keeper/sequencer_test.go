@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -47,18 +48,18 @@ func TestSequencerGet(t *testing.T) {
 }
 
 func TestSequencerGetAll(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(keeper, ctx, 10)
+	k, ctx := keepertest.SequencerKeeper(t)
+	items := createNSequencer(k, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllSequencers(ctx)),
+		nullify.Fill(k.GetAllSequencers(ctx)),
 	)
 }
 
 func TestSequencersByRollappGet(t *testing.T) {
-	keeper, ctx := keepertest.SequencerKeeper(t)
-	items := createNSequencer(keeper, ctx, 10)
-	rst := keeper.GetSequencersByRollapp(ctx,
+	k, ctx := keepertest.SequencerKeeper(t)
+	items := createNSequencer(k, ctx, 10)
+	rst := k.GetSequencersByRollapp(ctx,
 		items[0].RollappId,
 	)
 
@@ -71,17 +72,19 @@ func TestSequencersByRollappGet(t *testing.T) {
 
 func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
 	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
 
 	numOfSequencers := 5
 
 	// create sequencers
 	seqAddrs := make([]string, numOfSequencers)
-	for j := 0; j < len(seqAddrs)-1; j++ {
-		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
+	for j := 1; j < len(seqAddrs)-1; j++ {
+		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	}
 	// last one with high bond is the expected new proposer
-	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)))
+	pkx := ed25519.GenPrivKey().PubKey()
+	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)), pkx)
 	expecetedProposer := seqAddrs[len(seqAddrs)-1]
 
 	// check starting proposer and unbond

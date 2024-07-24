@@ -23,7 +23,6 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	common "github.com/dymensionxyz/dymension/v3/x/common/types"
 	eibctypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -124,7 +123,7 @@ func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
 	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
-		sample.AccAddress(),
+		s.hubChain().SenderAccount.GetAddress().String(),
 		"eth",
 		"somechecksum",
 		"Rollapp",

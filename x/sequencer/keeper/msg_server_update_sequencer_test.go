@@ -6,8 +6,8 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
-	"github.com/dymensionxyz/dymension/v3/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -52,7 +52,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: utils.ToPtr(sdk.NewInt(100)),
+					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
 			},
 			expError: nil,
@@ -82,7 +82,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 							Checksum:    "checksum",
 						},
 					},
-					GasPrice: utils.ToPtr(sdk.NewInt(100)),
+					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
 				Jailed:          false,
 				Proposer:        false,

@@ -45,6 +45,7 @@ func (msg *MsgUpdateSequencerInformation) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateSequencerInformation) ValidateBasic() error {
+	// validation if the sequencer metadata can be updated
 	if _, err := msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
 		return err
 	}

@@ -76,7 +76,7 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	// cast to cryptotypes.PubKey type
 	pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		return errorsmod.Wrapf(ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
+		return errorsmod.Wrapf(ErrInvalidType, "expecting cryptotypes.PubKey, got %T", pk)
 	}
 
 	_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())

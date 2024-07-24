@@ -19,20 +19,19 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 	initialheight := uint64(10)
 	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialheight))
 
-	numOfSequencers := uint64(3)
+	numOfSequencers := uint64(3) - 1 // already created one with rollapp
 	numOfStates := uint64(100)
 	numOfBlocks := uint64(10)
 	fraudHeight := uint64(300)
 
 	// unrelated rollapp just to validate it's unaffected
-	rollapp_2 := suite.CreateDefaultRollapp()
-	proposer_2 := suite.CreateDefaultSequencer(*ctx, rollapp_2)
+	rollapp2, proposer2 := suite.CreateDefaultRollappWithProposer()
 
 	// create rollapp and sequencers before fraud evidence
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	for i := uint64(0); i < numOfSequencers-1; i++ {
-		suite.CreateDefaultSequencer(*ctx, rollapp)
+		_, err = suite.CreateDefaultSequencer(*ctx, rollapp)
+		suite.Require().Nil(err)
 	}
 
 	// send state updates
@@ -42,7 +41,7 @@ func (suite *RollappTestSuite) TestHandleFraud() {
 		_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, lastHeight, numOfBlocks)
 		suite.Require().Nil(err)
 
-		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp_2, proposer_2, lastHeight, numOfBlocks)
+		lastHeight, err = suite.PostStateUpdate(*ctx, rollapp2, proposer2, lastHeight, numOfBlocks)
 		suite.Require().Nil(err)
 
 		suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeader().Height + 1)
@@ -66,8 +65,7 @@ func (suite *RollappTestSuite) TestHandleFraud_InvalidRollapp() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -81,8 +79,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongHeight() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -96,8 +93,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongSequencer() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -111,8 +107,7 @@ func (suite *RollappTestSuite) TestHandleFraud_WrongChannelID() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 
@@ -126,13 +121,13 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyReverted() {
 	var err error
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
-	numOfSequencers := uint64(3)
+	numOfSequencers := uint64(3) - 1 // already created one with rollapp
 	numOfStates := uint64(10)
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	for i := uint64(0); i < numOfSequencers-1; i++ {
-		suite.CreateDefaultSequencer(*ctx, rollapp)
+		_, err = suite.CreateDefaultSequencer(*ctx, rollapp)
+		suite.Require().Nil(err)
 	}
 
 	// send state updates
@@ -157,8 +152,7 @@ func (suite *RollappTestSuite) TestHandleFraud_AlreadyFinalized() {
 	ctx := &suite.Ctx
 	keeper := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
 

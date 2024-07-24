@@ -15,6 +15,7 @@ const DoNotModifyDesc = "[do-not-modify]"
 
 // UpdateSequencerMetadata updates the fields of a given metadata. An error is
 // returned if the resulting metadata contains an invalid length.
+// TODO: add more length checks
 func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (SequencerMetadata, error) {
 	metadata := SequencerMetadata{
 		Moniker:        d2.Moniker,

@@ -26,8 +26,7 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	ctx := &suite.Ctx
 	k := suite.App.RollappKeeper
 
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
@@ -224,8 +223,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 
 			for _, rf := range tt.fields.rollappStateUpdates {
 				// Create a rollapp
-				rollapp := suite.CreateDefaultRollapp()
-				proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+				rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 
 				// Create state update
 				su := rf.stateUpdate
@@ -266,8 +264,7 @@ func (suite *RollappTestSuite) TestFinalize() {
 	k := suite.App.RollappKeeper
 
 	// Create a rollapp
-	rollapp := suite.CreateDefaultRollapp()
-	proposer := suite.CreateDefaultSequencer(*ctx, rollapp)
+	rollapp, proposer := suite.CreateDefaultRollappWithProposer()
 
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))

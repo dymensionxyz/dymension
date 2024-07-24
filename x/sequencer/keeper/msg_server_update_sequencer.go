@@ -40,7 +40,6 @@ func (k msgServer) UpdateSequencerInformation(goCtx context.Context, msg *types.
 
 	k.SetSequencer(ctx, sequencer)
 
-	// Emit event
 	if err := ctx.EventManager().EmitTypedEvent(&sequencer); err != nil {
 		return nil, fmt.Errorf("emit event: %w", err)
 	}

@@ -505,8 +505,8 @@ github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1 h1:59ZE3Ocrn04MUpb5VJ
 github.com/dymensionxyz/osmosis/osmomath v0.0.6-dym-v0.0.1/go.mod h1:2idySYJxP5YfMAEeSeqD8e7fSchfsI4jn7XFHJgNUsM=
 github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3 h1:4VD23Jv5d8hqXEhLNNcLXlpSDJCWAGYJLF0kisJtkIk=
 github.com/dymensionxyz/osmosis/v15 v15.2.1-0.20240627111157-f2243f47cdb3/go.mod h1:2rsnXAdjYfXtyEw0mNwAdOiAccALYjAPvINGUf9Qg7Y=
-github.com/dymensionxyz/sdk-utils v0.2.0 h1:7nmP3CZ9w0XkSGaIKh3xuAw2Ah/Gc5ENwM46+AALyy8=
-github.com/dymensionxyz/sdk-utils v0.2.0/go.mod h1:ywr7+EEhHyuXCPUyLsktF3R4Mr31uCiviIjqwWNbQ84=
+github.com/dymensionxyz/sdk-utils v0.2.2 h1:RoANEXbR4nkEMaRGWCLT1P9A7KBCmzJ2U9wAZnNbszo=
+github.com/dymensionxyz/sdk-utils v0.2.2/go.mod h1:ywr7+EEhHyuXCPUyLsktF3R4Mr31uCiviIjqwWNbQ84=
 github.com/eapache/go-resiliency v1.1.0/go.mod h1:kFI+JgMyC7bLPUVY133qvEBtVayf5mFgVsvEsIPBvNs=
 github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1:+020luEh2TKB4/GOp8oxxtq0Daoen/Cii55CzbTV6DU=
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=

@@ -165,31 +165,31 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 
 var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
 
-func ConvertOldSequencerToNew(oldSequencer types.Sequencer) sequencertypes.Sequencer {
+func ConvertOldSequencerToNew(old types.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
-		Address:      oldSequencer.SequencerAddress,
-		DymintPubKey: oldSequencer.DymintPubKey,
-		RollappId:    oldSequencer.RollappId,
-		Status:       sequencertypes.OperatingStatus(oldSequencer.Status),
-		Proposer:     oldSequencer.Proposer,
-		Tokens:       oldSequencer.Tokens,
+		Address:      old.SequencerAddress,
+		DymintPubKey: old.DymintPubKey,
+		RollappId:    old.RollappId,
+		Status:       sequencertypes.OperatingStatus(old.Status),
+		Proposer:     old.Proposer,
+		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
-			Moniker:  oldSequencer.Description.Moniker,
-			Details:  oldSequencer.Description.Details,
-			GasPrice: &defaultGasPrice,
-			// P2PSeeds:        "", TODO
-			// Rpcs:            []string{}, TODO
-			// EvmRpcs:         []string{}, TODO
-			// RestApiUrl:      "", TODO
-			// GenesisUrl:      "", TODO
-			// ExplorerUrl:     "", TODO
-			// ContactDetails: &sequencertypes.ContactDetails{ TODO
-			// 	Website:  "", TODO
-			// 	Telegram: "", TODO
-			// 	X:        "", TODO
-			// }, TODO
-			// ExtraData: []byte{}, TODO
-			// Snapshots: []*sequencertypes.SnapshotInfo{}, TODO
+			Moniker:     old.Description.Moniker,
+			Details:     old.Description.Details,
+			P2PSeeds:    nil,        // TODO
+			Rpcs:        nil,        // TODO
+			EvmRpcs:     nil,        // TODO
+			RestApiUrl:  "",         // TODO
+			ExplorerUrl: "",         // TODO
+			GenesisUrls: []string{}, // TODO
+			ContactDetails: &sequencertypes.ContactDetails{ // TODO
+				Website:  "", // TODO
+				Telegram: "", // TODO
+				X:        "", // TODO
+			}, // TODO
+			ExtraData: nil,                              // TODO
+			Snapshots: []*sequencertypes.SnapshotInfo{}, // TODO
+			GasPrice:  &defaultGasPrice,
 		},
 	}
 }

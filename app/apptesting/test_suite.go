@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/cometbft/cometbft/libs/rand"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -12,8 +13,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
@@ -31,16 +30,19 @@ type KeeperTestHelper struct {
 	Ctx sdk.Context
 }
 
-func (s *KeeperTestHelper) CreateDefaultRollapp() string {
-	return s.CreateRollappWithName(rand.Str(8))
+func (s *KeeperTestHelper) CreateDefaultRollappWithProposer() (string, string) {
+	return s.CreateRollappWithNameWithProposer(rand.Str(8))
 }
 
-func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
+func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (string, string) {
+	pubkey := ed25519.GenPrivKey().PubKey()
+	addr := sdk.AccAddress(pubkey.Address())
+
 	alias := strings.NewReplacer("_", "", "-", "").Replace(name) // base it on rollappID to avoid alias conflicts
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:                 alice,
 		RollappId:               name,
-		InitialSequencerAddress: sample.AccAddress(),
+		InitialSequencerAddress: addr.String(),
 		Bech32Prefix:            strings.ToLower(rand.Str(3)),
 		GenesisChecksum:         "1234567890abcdefg",
 		Alias:                   alias,
@@ -60,22 +62,29 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
 	s.Require().NoError(err)
-	return name
+
+	err = s.CreateSequencer(s.Ctx, name, pubkey)
+	s.Require().NoError(err)
+	return name, addr.String()
 }
 
-func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
-	pubkey1 := ed25519.GenPrivKey().PubKey()
-	addr1 := sdk.AccAddress(pubkey1.Address())
-	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
+func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) (string, error) {
+	pubkey := ed25519.GenPrivKey().PubKey()
+	return sdk.AccAddress(pubkey.Address()).String(), s.CreateSequencer(ctx, rollappId, pubkey)
+}
+
+func (s *KeeperTestHelper) CreateSequencer(ctx sdk.Context, rollappId string, pubKey types.PubKey) error {
+	addr := sdk.AccAddress(pubKey.Address())
+	// fund account
+	err := bankutil.FundAccount(s.App.BankKeeper, ctx, addr, sdk.NewCoins(bond))
 	s.Require().Nil(err)
 
-	// fund account
-	err = bankutil.FundAccount(s.App.BankKeeper, ctx, addr1, sdk.NewCoins(bond))
+	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	s.Require().Nil(err)
 
 	sequencerMsg1 := sequencertypes.MsgCreateSequencer{
-		Creator:      addr1.String(),
-		DymintPubKey: pkAny1,
+		Creator:      addr.String(),
+		DymintPubKey: pkAny,
 		Bond:         bond,
 		RollappId:    rollappId,
 		Metadata:     sequencertypes.SequencerMetadata{},
@@ -83,8 +92,7 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)
 	_, err = msgServer.CreateSequencer(ctx, &sequencerMsg1)
-	s.Require().Nil(err)
-	return addr1.String()
+	return err
 }
 
 func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr string, startHeight, numOfBlocks uint64) (lastHeight uint64, err error) {
@@ -114,15 +122,15 @@ func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
 }
 
 // FundModuleAcc funds target modules with specified amount.
-func (suite *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
-	err := bankutil.FundModuleAccount(suite.App.BankKeeper, suite.Ctx, moduleName, amounts)
-	suite.Require().NoError(err)
+func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
+	err := bankutil.FundModuleAccount(s.App.BankKeeper, s.Ctx, moduleName, amounts)
+	s.Require().NoError(err)
 }
 
 // StateNotAltered validates that app state is not altered. Fails if it is.
-func (suite *KeeperTestHelper) StateNotAltered() {
-	oldState := suite.App.ExportState(suite.Ctx)
-	suite.App.Commit()
-	newState := suite.App.ExportState(suite.Ctx)
-	suite.Require().Equal(oldState, newState)
+func (s *KeeperTestHelper) StateNotAltered() {
+	oldState := s.App.ExportState(s.Ctx)
+	s.App.Commit()
+	newState := s.App.ExportState(s.Ctx)
+	s.Require().Equal(oldState, newState)
 }

@@ -33,6 +33,10 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrRollappJailed
 	}
 
+	if rollapp.GenesisChecksum == "" {
+		return nil, types.ErrGenesisChecksumNotSet
+	}
+
 	// check to see if the sequencer has enough balance and deduct the bond
 	seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
 
@@ -68,10 +72,11 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		Tokens:       bond,
 	}
 
-	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
+	isInitialSequencer := sequencer.Address == rollapp.InitialSequencerAddress
+	isStarted := k.rollappKeeper.IsRollappStarted(ctx, msg.RollappId)
 
-	// this is the first sequencer, make it a PROPOSER
-	if len(bondedSequencers) == 0 {
+	// only the initial sequencer address is going to be selected as the first proposer
+	if isInitialSequencer && !isStarted {
 		sequencer.Proposer = true
 	}
 

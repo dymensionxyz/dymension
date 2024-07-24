@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -24,7 +25,7 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 	suite.SetupTest()
 
-	_ = suite.CreateDefaultRollapp()
+	suite.CreateDefaultRollapp()
 	keeper := suite.App.SequencerKeeper
 
 	err := keeper.Slashing(suite.Ctx, "unknown_sequencer")
@@ -35,8 +36,8 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -61,8 +62,8 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk := suite.CreateDefaultRollapp()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())
@@ -84,9 +85,10 @@ func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk1 := suite.CreateDefaultRollapp()
+	pk2 := ed25519.GenPrivKey().PubKey()
+	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	seqAddr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(20)
 	suite.Ctx = suite.Ctx.WithBlockTime(time.Now())

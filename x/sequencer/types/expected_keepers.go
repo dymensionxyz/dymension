@@ -12,12 +12,12 @@ type RollappKeeper interface {
 	GetRollapp(ctx sdk.Context, rollappId string) (val rollapptypes.Rollapp, found bool)
 	GetAllRollapps(ctx sdk.Context) (list []rollapptypes.Rollapp)
 	SetSequencerKeeper(sequencerKeeper rollapptypes.SequencerKeeper)
+	IsRollappStarted(ctx sdk.Context, rollappId string) bool
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
-	// Methods imported from account should be defined here
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
