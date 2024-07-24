@@ -139,7 +139,7 @@ func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequen
 /* -------------------------------------------------------------------------- */
 /*                                notice period                               */
 /* -------------------------------------------------------------------------- */
-// get finished notice period sequencers
+// GetMatureNoticePeriodSequencers returns all sequencers that have finished their notice period
 func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Time) (list []types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := store.Iterator(types.NoticePeriodQueueKey, sdk.PrefixEndBytes(types.NoticePeriodQueueByTimeKey(endTime)))
@@ -155,7 +155,7 @@ func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Ti
 	return
 }
 
-// set sequencer to notice period
+// SetNoticePeriodQueue set sequencer in notice period queue
 func (k Keeper) SetNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)

@@ -9,15 +9,15 @@ import (
 )
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockHeader().Time.Add(k.NoticePeriod(ctx))
+	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
 	seq.UnbondTime = completionTime
 
-	k.UpdateSequencer(ctx, *seq) // only bonded sequencers can have notice period
+	k.UpdateSequencer(ctx, *seq)
 	k.SetNoticePeriodQueue(ctx, *seq)
 
 	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
 	if nextSeq.SequencerAddress == "" {
-		k.Logger(ctx).Info("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
+		k.Logger(ctx).Debug("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -83,6 +83,8 @@ func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 	// next proposer can be empty if there are no bonded sequencers available
 	nextProposer := k.ExpectedNextProposer(ctx, rollappId)
 	k.SetNextProposer(ctx, rollappId, nextProposer.SequencerAddress)
+
+	k.Logger(ctx).Info("rotation started", "rollappId", rollappId, "nextProposer", nextProposer.SequencerAddress)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
