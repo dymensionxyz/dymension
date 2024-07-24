@@ -37,6 +37,10 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 
 	k.SetRollapp(ctx, rollapp)
 
+	if err := k.hooks.RollappCreated(ctx, rollapp.RollappId); err != nil {
+		return fmt.Errorf("rollapp created hook: %w", err)
+	}
+
 	if err := ctx.EventManager().EmitTypedEvent(&rollapp); err != nil {
 		return fmt.Errorf("emit event: %w", err)
 	}
