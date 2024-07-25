@@ -21,45 +21,24 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 		)
 	}
 
-	seqTokens := seq.Tokens
-	if !seqTokens.Empty() {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
-		if err != nil {
-			return err
-		}
-	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to slash", "sequencer", seq.SequencerAddress)
-	}
-	seq.Tokens = sdk.Coins{}
+	tokens := seq.Tokens
 
-	oldStatus := seq.Status
-	wasProposer := seq.Proposer
-	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
-	if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, seq)
+	if err := k.Slash(ctx, seq, tokens, nil); err != nil {
+		return err // TODO:
 	}
 
-	// set the status to unbonded
-	seq.Status = types.Unbonded
-	seq.Jailed = true
-	seq.Proposer = false
-	seq.UnbondingHeight = ctx.BlockHeight()
-	seq.UnbondTime = ctx.BlockHeader().Time
-	k.UpdateSequencer(ctx, seq, oldStatus)
+	if err := k.Jail(ctx, seq); err != nil {
+		return err // TODO:
+	}
 
 	// emit event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,
 			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
+			sdk.NewAttribute(types.AttributeKeyBond, tokens.String()),
 		),
 	)
-
-	// rotate proposer if the slashed sequencer was the proposer
-	if wasProposer {
-		k.RotateProposer(ctx, seq.RollappId)
-	}
 
 	return nil
 }
