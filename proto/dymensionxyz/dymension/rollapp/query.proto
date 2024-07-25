@@ -114,3 +114,14 @@ message QueryGetStateInfoRequest {
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
 }
+
+message QueryCheckLivenessRequest {
+  string rollappId = 1;
+}
+
+message QueryCheckLivenessResponse {
+  // Live is whether the sequencer of the rollapp has passed a deadline for updating state
+  bool live = 1;
+  // Slashable is whether
+  bool slashable = 2;
+}
