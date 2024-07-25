@@ -45,23 +45,6 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	}, nil
 }
 
-// GetNextProposerByRollapp implements types.QueryServer.
-func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetNextProposerByRollappRequest) (*types.QueryGetNextProposerByRollappResponse, error) {
-	if req == nil {
-		return nil, gerrc.ErrInvalidArgument
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	seq, ok := k.GetNextProposer(ctx, req.RollappId)
-	if !ok {
-		return nil, types.ErrNoProposer
-	}
-
-	return &types.QueryGetNextProposerByRollappResponse{
-		NextProposerAddr: seq.SequencerAddress,
-	}, nil
-}
-
 // GetProposerByRollapp implements types.QueryServer.
 func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetProposerByRollappRequest) (*types.QueryGetProposerByRollappResponse, error) {
 	if req == nil {
@@ -76,5 +59,28 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 
 	return &types.QueryGetProposerByRollappResponse{
 		ProposerAddr: seq.SequencerAddress,
+	}, nil
+}
+
+// GetNextProposerByRollapp implements types.QueryServer.
+func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetNextProposerByRollappRequest) (*types.QueryGetNextProposerByRollappResponse, error) {
+	if req == nil {
+		return nil, gerrc.ErrInvalidArgument
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	seq, ok := k.GetNextProposer(ctx, req.RollappId)
+	if ok {
+		return &types.QueryGetNextProposerByRollappResponse{
+			NextProposerAddr:   seq.SequencerAddress,
+			RotationInProgress: true,
+		}, nil
+	}
+
+	// if rotation is not in progress, we return the expected next proposer in case for the next rotation
+	expectedNext := k.ExpectedNextProposer(ctx, req.RollappId)
+	return &types.QueryGetNextProposerByRollappResponse{
+		NextProposerAddr:   expectedNext.SequencerAddress,
+		RotationInProgress: false,
 	}, nil
 }

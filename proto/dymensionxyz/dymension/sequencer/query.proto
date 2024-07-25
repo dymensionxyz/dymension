@@ -109,4 +109,5 @@ message QueryGetNextProposerByRollappRequest {
 // Response type for the GetNextProposerByRollapp RPC method.
 message QueryGetNextProposerByRollappResponse {
     string nextProposerAddr = 1;
+	bool rotationInProgress = 2;
 }
