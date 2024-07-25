@@ -83,6 +83,7 @@ func TestBlockHeightToFinalizationQueueGetAll(t *testing.T) {
 	)
 }
 
+//nolint:gofumpt
 func (suite *RollappTestSuite) TestFinalizeRollapps() {
 	suite.SetupTest()
 
@@ -269,7 +270,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						// fourth finalization: 1 state finalized from first finalization, 0 states left
 						wantNumFinalized: 1,
 						recovers: map[types.StateInfoIndex]struct{}{
-							{RollappId: "rollapp5", Index: 1}: {},
+							{RollappId: "rollapp4", Index: 2}: {},
 						},
 						wantQueue: nil,
 					},
@@ -311,7 +312,7 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 			suite.setMockErrRollappKeeperHooks(errFinalizeIndexes)
 			// run finalizations and check finalized state updates
 			for i, be := range tt.fields.finalizations {
-				slices.DeleteFunc(errFinalizeIndexes, func(e types.StateInfoIndex) bool {
+				errFinalizeIndexes = slices.DeleteFunc(errFinalizeIndexes, func(e types.StateInfoIndex) bool {
 					_, ok := be.recovers[e]
 					return ok
 				})
@@ -320,17 +321,17 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 				response := suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{Height: suite.Ctx.BlockHeight()})
 
 				numFinalized := countFinalized(response)
-				suite.Require().Equal(be.wantNumFinalized, numFinalized)
+				suite.Require().Equalf(be.wantNumFinalized, numFinalized, "finalization %d", i+1)
 
 				heightQueue := suite.App.RollappKeeper.GetAllBlockHeightToFinalizationQueue(*ctx)
-				suite.Require().Len(heightQueue, len(be.wantQueue))
+				suite.Require().Lenf(heightQueue, len(be.wantQueue), "finalization %d", i+1)
 
 				for i, q := range be.wantQueue {
-					suite.Require().Len(heightQueue[i].FinalizationQueue, len(q.rollappsLeft))
+					suite.Require().Lenf(heightQueue[i].FinalizationQueue, len(q.rollappsLeft), "finalization %d", i+1)
 
 					for j, r := range q.rollappsLeft {
-						suite.Require().Equal(heightQueue[i].FinalizationQueue[j].RollappId, r.rollappId)
-						suite.Require().Equal(heightQueue[i].FinalizationQueue[j].Index, r.index)
+						suite.Require().Equalf(heightQueue[i].FinalizationQueue[j].RollappId, r.rollappId, "finalization %d, rollappLeft: %d", i+1, j+1)
+						suite.Require().Equalf(heightQueue[i].FinalizationQueue[j].Index, r.index, "finalization %d, rollappLeft: %d", i+1, j+1)
 					}
 				}
 			}
@@ -606,6 +607,7 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 }
 
 // black-ops: don't do this at home
+// nolint:gosec
 func (suite *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.StateInfoIndex) {
 	k := suite.App.RollappKeeper
 	v := reflect.ValueOf(k).Elem()
