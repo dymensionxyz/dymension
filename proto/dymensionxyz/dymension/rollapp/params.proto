@@ -2,31 +2,46 @@ syntax = "proto3";
 package dymensionxyz.dymension.rollapp;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
+
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 
 message DeployerParams {
   // address is a bech32-encoded address of the 
   // accounts that are allowed to create a rollapp.  
-  string address = 1 [ (gogoproto.moretags) = "yaml:\"address\"" ];
+  string address = 1 [(gogoproto.moretags) = "yaml:\"address\""];
 }
 
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  
+
   // dispute_period_in_blocks the number of blocks it takes
   // to change a status of a state from received to finalized.
   // during that period, any user could submit fraud proof
   uint64 dispute_period_in_blocks = 1
-      [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
+  [(gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\""];
 
   // deployer_whitelist is a list of the
   // accounts that are allowed to create a rollapp and maximum number of rollapps.
   // In the case of an empty list, there are no restrictions
   repeated DeployerParams deployer_whitelist = 2
-      [ (gogoproto.moretags) = "yaml:\"deployer_whitelist\"" , (gogoproto.nullable) = false];
+  [(gogoproto.moretags) = "yaml:\"deployer_whitelist\"", (gogoproto.nullable) = false];
 
   bool rollapps_enabled = 3
-      [ (gogoproto.moretags) = "yaml:\"rollapps_enabled\"" ];
+  [(gogoproto.moretags) = "yaml:\"rollapps_enabled\""];
+
+  // How long it typically takes to produce a Hub block (e.g. 6 secs). Used to calculate length of time based on height.
+  google.protobuf.Duration hub_expected_block_time = 4 [(gogoproto.moretags) = "yaml:\"hub_expected_block_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // The time a sequencer has to post a block, before he will be slashed
+  google.protobuf.Duration liveness_slash_time = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // The min gap between a sequence of slashes if the sequencer continues to be down
+  google.protobuf.Duration liveness_slash_interval = 6 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // The time a sequencer can be down after which he will be jailed rather than slashed
+  google.protobuf.Duration liveness_jail_time = 7 [(gogoproto.moretags) = "yaml:\"liveness_jail_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // A multiplier for the slashed amount to be sent to the successful slash TX reward addr
+  string liveness_slash_reward_multiplier = 8 [(gogoproto.moretags) = "yaml:\"liveness_slash_reward_multiplier\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  // A multiplier with the sequencer balance to calculate the slash amount
+  string liveness_slash_multiplier = 9 [(gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
