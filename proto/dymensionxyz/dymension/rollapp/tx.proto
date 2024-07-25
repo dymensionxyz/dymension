@@ -64,10 +64,11 @@ message MsgUpdateState {
 message MsgUpdateStateResponse {
 }
 
-// MsgCheckLiveness checks to see if the sequencer of the rollapp has been
+// MsgSlashLiveness checks to see if the sequencer of the rollapp has been
 // submitting updates. If he has not, he will be slashed and a portion of slashed
-// funds will be allocated to the creator of this transaction.
-message MsgCheckLiveness {
+// funds will be allocated to the creator of this transaction. At least gas cost
+// will always be refunded.
+message MsgLivenessSlash {
   option (cosmos.msg.v1.signer) = "signer";
   // Signer is the bech32-encoded address of the person sending the tx
   string signer = 1;
@@ -77,5 +78,7 @@ message MsgCheckLiveness {
   optional string reward_addr = 3;
 }
 
-message MsgCheckLivenessResponse {
+message MsgLivenessSlashResponse {
+  // Slashed is true if the sequencer of the rollapp was slashed for liveness
+  bool slashed = 1;
 }

@@ -120,8 +120,10 @@ message QueryCheckLivenessRequest {
 }
 
 message QueryCheckLivenessResponse {
-  // Live is whether the sequencer of the rollapp has passed a deadline for updating state
+  // Live is whether the sequencer of the rollapp has passed a deadline for updating state. If it is not
+  // live it does not mean the sequencer is slashable, if it was slashed recently.
   bool live = 1;
-  // Slashable is whether
+  // Slashable is whether a MsgLivenessSlash is likely to succeed in slashing. Note, it's not always
+  // guaranteed even if this value is true, because another slash tx might race ahead.
   bool slashable = 2;
 }
