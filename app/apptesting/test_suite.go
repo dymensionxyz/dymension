@@ -47,6 +47,10 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 }
 
 func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId string) string {
+	return s.CreateSequencerWithBond(ctx, rollappId, bond)
+}
+
+func (s *KeeperTestHelper) CreateSequencerWithBond(ctx sdk.Context, rollappId string, bond sdk.Coin) string {
 	pubkey1 := secp256k1.GenPrivKey().PubKey()
 	addr1 := sdk.AccAddress(pubkey1.Address())
 	pkAny1, err := codectypes.NewAnyWithValue(pubkey1)
@@ -63,10 +67,13 @@ func (s *KeeperTestHelper) CreateDefaultSequencer(ctx sdk.Context, rollappId str
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
-
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)
 	_, err = msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	s.Require().Nil(err)
+
+	// set the sequencer as proposer if it is the first sequencer created
+	s.App.SequencerKeeper.SetProposerIfMissing(ctx)
+
 	return addr1.String()
 }
 

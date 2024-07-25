@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"slices"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -84,11 +83,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
-	// if this is the first sequencer, make it a PROPOSER
-	proposer := len(bondedSequencers) == 0
-	if proposer {
-		k.SetProposer(ctx, sequencer.RollappId, sequencer.SequencerAddress)
-	}
 
 	k.SetSequencer(ctx, sequencer)
 
@@ -98,7 +92,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(proposer)),
 		),
 	)
 
