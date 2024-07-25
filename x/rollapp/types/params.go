@@ -3,7 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
+	"time"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -17,10 +19,25 @@ var (
 	// KeyDeployerWhitelist is store's key for DeployerWhitelist Params
 	KeyDeployerWhitelist = []byte("DeployerWhitelist")
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
-	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
+	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
+
+	KeyHubExpectedBlockTime          = []byte("HubExpectedBlockTime")
+	KeyLivenessSlashTime             = []byte("LivenessSlashTime")
+	KeyLivenessSlashInterval         = []byte("LivenessSlashInterval")
+	KeyLivenessJailTime              = []byte("LivenessJailTime")
+	KeyLivenessSlashRewardMultiplier = []byte("LivenessSlashRewardMultiplier")
+	KeyLivenessSlashMultiplier       = []byte("LivenessSlashMultiplier")
+
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
+
+	DefaultHubExpectedBlockTime          = time.Second * 6
+	DefaultLivenessSlashTime             = time.Hour * 12
+	DefaultLivenessSlashInterval         = time.Hour
+	DefaultLivenessJailTime              = time.Hour * 48
+	DefaultLivenessSlashMultiplier       = math.LegacyMustNewDecFromStr("0.01907") // roughly 2%
+	DefaultLivenessSlashRewardMultiplier = math.LegacyMustNewDecFromStr("0.5")
 )
 
 // ParamKeyTable the param key table for launch module
@@ -33,18 +50,38 @@ func NewParams(
 	enabled bool,
 	disputePeriodInBlocks uint64,
 	deployerWhitelist []DeployerParams,
+	hubExpectedBlockTime time.Duration,
+	livenessSlashTime time.Duration,
+	livenessSlashInterval time.Duration,
+	livenessJailTime time.Duration,
+	livenessSlashMultiplier math.LegacyDec,
+	livenessSlashRewardMultiplier math.LegacyDec,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks: disputePeriodInBlocks,
-		DeployerWhitelist:     deployerWhitelist,
-		RollappsEnabled:       enabled,
+		DisputePeriodInBlocks:         disputePeriodInBlocks,
+		DeployerWhitelist:             deployerWhitelist,
+		RollappsEnabled:               enabled,
+		HubExpectedBlockTime:          hubExpectedBlockTime,
+		LivenessSlashTime:             livenessSlashTime,
+		LivenessSlashInterval:         livenessSlashInterval,
+		LivenessJailTime:              livenessJailTime,
+		LivenessSlashMultiplier:       livenessSlashMultiplier,
+		LivenessSlashRewardMultiplier: livenessSlashRewardMultiplier,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		true, DefaultDisputePeriodInBlocks, []DeployerParams{},
+		true,
+		DefaultDisputePeriodInBlocks,
+		[]DeployerParams{},
+		DefaultHubExpectedBlockTime,
+		DefaultLivenessSlashTime,
+		DefaultLivenessSlashInterval,
+		DefaultLivenessJailTime,
+		DefaultLivenessSlashMultiplier,
+		DefaultLivenessSlashRewardMultiplier,
 	)
 }
 
@@ -54,6 +91,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
 		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
 		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
+		// TODO: impl
 	}
 }
 
@@ -62,6 +100,8 @@ func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
 		return err
 	}
+
+	// TODO: impl
 
 	return validateDeployerWhitelist(p.DeployerWhitelist)
 }

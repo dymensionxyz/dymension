@@ -7,6 +7,7 @@ import (
 )
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) bool {
+	k.GetParams(ctx)
 	slashAmt, jail := LivenessSlashAndJail(
 		ctx.BlockHeight(),
 		0,

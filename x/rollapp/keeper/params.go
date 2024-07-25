@@ -36,6 +36,17 @@ func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 	return
 }
 
+func (k Keeper) LivenessCheckParams(ctx sdk.Context) (res types.LivenessCheckParams) {
+	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
+	k.paramstore.Get(ctx, types.KeyHubExpectedBlockTime, &res.HubExpectedBlockTime)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.LivenessSlashTime)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.LivenessSlashInterval)
+	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res.LivenessJailTime)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashRewardMultiplier, &res.LivenessSlashMultiplier)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res.LivenessSlashRewardMultiplier)
+	return
+}
+
 func (k Keeper) IsAddressInDeployerWhiteList(ctx sdk.Context, address string) bool {
 	whitelist := k.DeployerWhitelist(ctx)
 	for _, item := range whitelist {
