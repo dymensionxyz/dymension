@@ -9,23 +9,22 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-
-func MulCoinsDec(coins sdk.Coins, dec sdk.Dec ) sdk.Coins {
+func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
 	return sdk.Coins{}
 }
 
 func (k Keeper) LivenessSlashAndJail(ctx sdk.Context,
-	hUpdate                   int64,
-	hubBlockTime              time.Duration,
-	slashTimeNoUpdate         time.Duration,
+	hUpdate int64,
+	hubBlockTime time.Duration,
+	slashTimeNoUpdate time.Duration,
 	slashTimeNoTerminalUpdate time.Duration,
-	slashInterval             time.Duration,
-	slashMultiplier           sdk.Dec,
-	jailTime                  time.Duration,
-	minBond                   sdk.Coins, // TODO: comes from where?
+	slashInterval time.Duration,
+	slashMultiplier sdk.Dec,
+	jailTime time.Duration,
+	minBond sdk.Coins, // TODO: comes from where?
 	seqAddr string,
-	burnMultiplier sdk.Dec, recipients ...types.LivenessSlashAndJailFundsRecipient) (types.LivenessSlashAndJailResult, error) {
-
+	burnMultiplier sdk.Dec, recipients ...types.LivenessSlashAndJailFundsRecipient,
+) (types.LivenessSlashAndJailResult, error) {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
 		return types.LivenessSlashAndJailResult{}, errorsmod.Wrap(gerrc.ErrNotFound, "get sequencer")
@@ -49,33 +48,48 @@ func (k Keeper) LivenessSlashAndJail(ctx sdk.Context,
 
 	slashAmt, jail := args.Calculate()
 
+	if err := k.Slash(ctx, seq, MulCoinsDec(slashAmt, burnMultiplier), nil); err != nil {
+		return types.LivenessSlashAndJailResult{}, err // TODO:
+	}
 
 	for _, r := range recipients {
-		sendAmt := MulCoinsDec(slashAmt, r.Multiplier)
-		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, r.Addr, sendAmt)
-		if err!=nil{
+		if err := k.Slash(ctx, seq, MulCoinsDec(slashAmt, r.Multiplier), &r.Addr); err != nil {
 			return types.LivenessSlashAndJailResult{}, err // TODO:
 		}
-
-		newCoins := slashAmt.New
-		sdk.Coins{}
-		amt :=r.Multiplier.MulInt(slashAmt.)
-
 	}
+
+	if jail {
+		if err := k.Jail(ctx, seq); err != nil {
+			return types.LivenessSlashAndJailResult{}, err // TODO:
+		}
+	}
+
+	return types.LivenessSlashAndJailResult{
+		Slashed:                    slashAmt,
+		Jailed:                     jail,
+		TimeUntilNextSlashPossible: time.Time{}, // TODO:
+		FundsReceived:              nil,         // TODO:
+	}, nil
 }
 
-func (k Keeper) Slash(ctx sdk.Context,  seq types.Sequencer, multiplier sdk.Dec) error{
-	amt := MulCoinsDec(seq.Tokens, multiplier)
+func (k Keeper) Slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coins, recipientAddr *sdk.AccAddress) error {
 	seq.Tokens.Sub(amt...)
-	err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
-	if err!=nil{
-		return errorsmod.Wrap(err, "burn coins")
+	if recipientAddr != nil {
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, *recipientAddr, amt)
+		if err != nil {
+			return errorsmod.Wrap(err, "send coins from module to account")
+		}
+	} else {
+		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
+		if err != nil {
+			return errorsmod.Wrap(err, "burn coins")
+		}
 	}
 	// TODO: write back sequencer?
 	return nil
 }
 
-func (k Keeper) Jail(ctx sdk.Context,  seq types.Sequencer) error{
+func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 	// TODO: check contents of this, since it was copied
 
 	oldStatus := seq.Status
@@ -99,27 +113,3 @@ func (k Keeper) Jail(ctx sdk.Context,  seq types.Sequencer) error{
 
 	return nil
 }
-
-func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string, rewardAddr sdk.AccAddress) (SlashLivenessResult, error)  {
-	p := k.GetParams(ctx).Liveness()
-	slashAmt, jail := LivenessSlashAndJail(
-		LivenessSlashAndJailArgs{
-			ctx.BlockHeight(),
-			0,
-			0,
-			p.HubExpectedBlockTime,
-			p.SlashTime,
-			time.Nanosecond, // TODO:
-			p.SlashInterval,
-			p.SlashMultiplier,
-			p.JailTime,
-			sdk.Coins{},
-			sdk.Coins{}, // TODO:
-		},
-	)
-
-	k.bankKeeper.SendCoins(ctx, )
-	rewardee :=
-}
-
-
