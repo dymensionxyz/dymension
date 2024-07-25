@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -23,10 +24,10 @@ func (suite *SequencerTestSuite) TestExpectedNextProposer() {
 			suite.SetupTest()
 
 			rollappId := suite.CreateDefaultRollapp()
-			_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer
+			_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer, with highest bond
 
 			seqAddrs := make([]string, tc.numSeqAddrs)
-			currBond := bond
+			currBond := sdk.NewCoin(bond.Denom, bond.Amount.Quo(sdk.NewInt(10)))
 			for i := 0; i < len(seqAddrs); i++ {
 				currBond = currBond.AddAmount(bond.Amount)
 				seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, currBond)
@@ -41,29 +42,6 @@ func (suite *SequencerTestSuite) TestExpectedNextProposer() {
 			suite.Equal(expectedNextProposer, next.SequencerAddress)
 		})
 	}
-}
-
-// tests that the proposer and nextProposer are filtered out from the list of expected next proposers
-func (suite *SequencerTestSuite) TestExpectedNextProposerFiltering() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	_ = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond) // proposer
-	seqAddrs := make([]string, 4)
-	currBond := bond
-	for i := 0; i < len(seqAddrs); i++ {
-		currBond = currBond.AddAmount(bond.Amount)
-		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, currBond)
-	}
-
-	next := suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
-	suite.Equal(seqAddrs[len(seqAddrs)-1], next.SequencerAddress)
-
-	// set the expected next proposer as the next proposer
-	suite.App.SequencerKeeper.SetNextProposer(suite.Ctx, rollappId, seqAddrs[len(seqAddrs)-1])
-
-	// check that the next proposer is filtered out
-	next = suite.App.SequencerKeeper.ExpectedNextProposer(suite.Ctx, rollappId)
-	suite.Equal(seqAddrs[len(seqAddrs)-2], next.SequencerAddress)
 }
 
 // TestStartRotation tests the StartRotation function which is called when a sequencer has finished its notice period

@@ -38,8 +38,10 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
-		k.StartRotation(ctx, seq.RollappId)
-		k.removeNoticePeriodSequencer(ctx, seq)
+		if k.IsProposer(ctx, seq.RollappId, seq.SequencerAddress) {
+			k.StartRotation(ctx, seq.RollappId)
+			k.removeNoticePeriodSequencer(ctx, seq)
+		}
 	}
 }
 
@@ -56,6 +58,12 @@ func (k Keeper) IsNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) boo
 
 // ExpectedNextProposer returns the next proposer for a rollapp
 func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Sequencer {
+	// if nextProposer is set, were in the middle of rotation
+	seq, ok := k.GetNextProposer(ctx, rollappId)
+	if ok {
+		return seq
+	}
+
 	seqs := k.GetSequencersByRollappByStatus(ctx, rollappId, types.Bonded)
 	if len(seqs) == 0 {
 		return types.Sequencer{}
@@ -66,14 +74,12 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 		return seqs[i].Tokens.IsAllGT(seqs[j].Tokens)
 	})
 
-	// filter out proposer and nextProposer
+	// return the first sequencer that is not the proposer
 	active, _ := k.GetProposer(ctx, rollappId)
-	next, _ := k.GetNextProposer(ctx, rollappId)
 	for _, s := range seqs {
-		if s.SequencerAddress == active.SequencerAddress || s.SequencerAddress == next.SequencerAddress {
-			continue
+		if s.SequencerAddress != active.SequencerAddress {
+			return s
 		}
-		return s
 	}
 
 	return types.Sequencer{}
