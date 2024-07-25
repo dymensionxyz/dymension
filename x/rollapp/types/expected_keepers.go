@@ -13,3 +13,7 @@ type IBCClientKeeper interface {
 type ChannelKeeper interface {
 	GetChannelClientState(ctx sdk.Context, portID, channelID string) (string, exported.ClientState, error)
 }
+
+type BankKeeper interface {
+	SendCoins(ctx context.Context, fromAddr, toAddr sdk.AccAddress, amt sdk.Coins) error
+}

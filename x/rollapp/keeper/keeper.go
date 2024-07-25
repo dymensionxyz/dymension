@@ -21,6 +21,7 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
+	bankKeeper      types.BankKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
