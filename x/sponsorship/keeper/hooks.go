@@ -58,7 +58,7 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 	stakingVP := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
 
 	// Get the current voting power saved in x/sponsorship
-	sponsorshipVP, err := h.k.GetVotingPower(ctx, valAddr, delAddr)
+	sponsorshipVP, err := h.k.GetVotedDelegation(ctx, valAddr, delAddr)
 	if err != nil {
 		return fmt.Errorf("cannot get current voting power: %w", err)
 	}
@@ -112,7 +112,7 @@ func (h Hooks) AfterDelegationModified1(ctx sdk.Context, delAddr sdk.AccAddress,
 		stakingVP := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
 
 		// Get the current voting power saved in x/sponsorship
-		sponsorshipVP, err := h.k.GetVotingPower(ctx, valAddr, delAddr)
+		sponsorshipVP, err := h.k.GetVotedDelegation(ctx, valAddr, delAddr)
 		if err != nil {
 			return math.ZeroInt(), math.ZeroInt(), fmt.Errorf("cannot get current voting power: %w", err)
 		}
@@ -145,7 +145,7 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	// Get the current voting power saved in x/sponsorship
-	sponsorshipVP, err := h.k.GetVotingPower(ctx, valAddr, delAddr)
+	sponsorshipVP, err := h.k.GetVotedDelegation(ctx, valAddr, delAddr)
 	if err != nil {
 		return fmt.Errorf("cannot get current voting power for delegator '%s' and validaror '%s': %w", delAddr, valAddr, err)
 	}
@@ -179,7 +179,7 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 	}
 
 	// Delete the voting power cast for this validator
-	h.k.DeleteVotingPowerForDelegation(ctx, valAddr, delAddr)
+	h.k.DeleteVotedDelegation(ctx, valAddr, delAddr)
 
 	return nil
 }
@@ -187,7 +187,7 @@ func (h Hooks) beforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, 
 func (h Hooks) BeforeDelegationRemoved1(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	err := h.processHook(ctx, delAddr, valAddr, func() (oldVP, newVP math.Int, _ error) {
 		// Get the current voting power saved in x/sponsorship
-		sponsorshipVP, err := h.k.GetVotingPower(ctx, valAddr, delAddr)
+		sponsorshipVP, err := h.k.GetVotedDelegation(ctx, valAddr, delAddr)
 		if err != nil {
 			return math.ZeroInt(), math.ZeroInt(),
 				fmt.Errorf("cannot get current voting power for delegator '%s' and validaror '%s': %w", delAddr, valAddr, err)
@@ -209,6 +209,8 @@ func (h Hooks) processHook(
 	valAddr sdk.ValAddress,
 	getVotingPowerFn func() (oldVP, newVP math.Int, _ error),
 ) error {
+	// TODO: check the validator is bonded
+
 	// Get the vote from the state. If it is not present, then the user hasn't voted yet
 	vote, err := h.k.GetVote(ctx, delAddr)
 	switch {
@@ -256,10 +258,10 @@ func (h Hooks) processHook(
 	// Delete the record if the new VP is zero. Otherwise, update the existing.
 	if newVP.IsZero() {
 		// Delete the voting power cast for this validator
-		h.k.DeleteVotingPowerForDelegation(ctx, valAddr, delAddr)
+		h.k.DeleteVotedDelegation(ctx, valAddr, delAddr)
 	} else {
 		// Update the voting power cast for this validator
-		err = h.k.SaveVotingPower(ctx, valAddr, delAddr, newVP)
+		err = h.k.SaveVotedDelegation(ctx, valAddr, delAddr, newVP)
 		if err != nil {
 			return fmt.Errorf("cannot save voting power: %w", err)
 		}
@@ -268,9 +270,8 @@ func (h Hooks) processHook(
 	return nil
 }
 
-func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
-	//TODO implement me
-	panic("implement me")
+func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, _ sdk.ConsAddress, valAddr sdk.ValAddress) error {
+
 }
 
 func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {

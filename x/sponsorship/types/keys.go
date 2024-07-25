@@ -14,7 +14,7 @@ const (
 const (
 	ParamsByte uint8 = iota
 	DistributionByte
-	VotingPowerByte
+	VotedDelegationsByte
 	VoteByte
 )
 
@@ -26,11 +26,18 @@ func DistributionKey() []byte {
 	return []byte{DistributionByte}
 }
 
-func VotingPowerKey(valAddr sdk.ValAddress, voterAddr sdk.AccAddress) []byte {
+func VotedDelegationKey(valAddr sdk.ValAddress, voterAddr sdk.AccAddress) []byte {
 	key := make([]byte, 0, 1+len(voterAddr)+len(valAddr))
-	key = append(key, VotingPowerByte)
+	key = append(key, VotedDelegationsByte)
 	key = append(key, valAddr.Bytes()...)
 	key = append(key, voterAddr.Bytes()...)
+	return key
+}
+
+func VotedDelegationsByValidatorKey(valAddr sdk.ValAddress) []byte {
+	key := make([]byte, 0, 1+len(valAddr))
+	key = append(key, VotedDelegationsByte)
+	key = append(key, valAddr.Bytes()...)
 	return key
 }
 

@@ -30,7 +30,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	}
 
 	// Get the user’s total voting power from the x/staking
-	vpBreakdown, err := k.GetStakingVotingPower(ctx, voter)
+	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
 	if err != nil {
 		return types.Vote{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
 	}
@@ -65,7 +65,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 
 	// Save the user's voting power breakdown
 	for _, valPower := range vpBreakdown.Breakdown {
-		err = k.SaveVotingPower(ctx, valPower.ValAddr, voter, valPower.Power)
+		err = k.SaveVotedDelegation(ctx, valPower.ValAddr, voter, valPower.Power)
 		if err != nil {
 			return types.Vote{}, fmt.Errorf("failed to save voting power: %w", err)
 		}
@@ -107,7 +107,7 @@ func (k Keeper) RevokeVote(ctx sdk.Context, voter sdk.AccAddress) error {
 
 	// Prune the user’s vote and voting power
 	k.DeleteVote(ctx, voter)
-	k.DeleteVotingPower(ctx, voter) // TODO!
+	k.DeleteVotedDelegationsForValidator(ctx, voter) // TODO!
 
 	return nil
 }
@@ -117,17 +117,17 @@ func (k Keeper) UpdateVotingPower(ctx sdk.Context, voter sdk.AccAddress, power m
 }
 
 type ValidatorPower struct {
-	ValAddr sdk.ValAddress
-	Power   math.Int
+	ValAddr sdk.ValAddress // Address of the validator.
+	Power   math.Int       // If the validator is not bonded, then Power is math.ZeroInt.
 }
 
-type VotingPowerBreakdown struct {
-	TotalPower math.Int
+type ValidatorBreakdown struct {
+	TotalPower math.Int // Total power of the breakdown. Only bonded validators are count.
 	Breakdown  []ValidatorPower
 }
 
-// GetStakingVotingPower returns the user's voting power calculated based on the x/staking module.
-func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (VotingPowerBreakdown, error) {
+// GetValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
+func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
 	var err error
 	totalPower := math.ZeroInt()
 	breakdown := make([]ValidatorPower, 0)
@@ -142,14 +142,14 @@ func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (Vo
 			return Break
 		}
 
-		if !v.IsBonded() {
-			return Continue
+		var votingPower = math.ZeroInt()
+
+		if v.IsBonded() {
+			// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
+			votingPower = v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
+			totalPower = totalPower.Add(votingPower)
 		}
 
-		// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
-		votingPower := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
-
-		totalPower = totalPower.Add(votingPower)
 		breakdown = append(breakdown, ValidatorPower{
 			ValAddr: d.GetValidatorAddr(),
 			Power:   votingPower,
@@ -157,8 +157,11 @@ func (k Keeper) GetStakingVotingPower(ctx sdk.Context, voter sdk.AccAddress) (Vo
 
 		return Continue
 	})
+	if err != nil {
+		return ValidatorBreakdown{}, fmt.Errorf("failed to iterate delegator delegations: %w", err)
+	}
 
-	return VotingPowerBreakdown{
+	return ValidatorBreakdown{
 		TotalPower: totalPower,
 		Breakdown:  breakdown,
 	}, err

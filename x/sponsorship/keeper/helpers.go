@@ -57,22 +57,29 @@ func (k Keeper) GetDistribution(ctx sdk.Context) (types.Distribution, error) {
 	return v, nil
 }
 
-func (k Keeper) SaveVotingPower(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress, power math.Int) error {
+func (k Keeper) SaveVotedDelegation(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress, power math.Int) error {
 	store := ctx.KVStore(k.storeKey)
-	key := types.VotingPowerKey(valAddr, voterAddr)
+	key := types.VotedDelegationKey(valAddr, voterAddr)
 
-	value, err := k.cdc.Marshal(&sdk.IntProto{Int: power})
-	if err != nil {
-		return fmt.Errorf("can't marshal value: %s", err.Error())
+	var value []byte
+
+	if !power.IsZero() {
+		var err error
+		value, err = k.cdc.Marshal(&sdk.IntProto{Int: power})
+		if err != nil {
+			return fmt.Errorf("can't marshal value: %s", err.Error())
+		}
 	}
+
 	store.Set(key, value)
 
 	return nil
 }
 
-func (k Keeper) GetVotingPower(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) (math.Int, error) {
+func (k Keeper) GetVotedDelegation(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) (math.Int, error) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.VotingPowerKey(valAddr, voterAddr))
+	// TODO: check what will happen if the key exist but the value is []byte{}
+	b := store.Get(types.VotedDelegationKey(valAddr, voterAddr))
 	if b == nil {
 		return math.ZeroInt(), sdkerrors.ErrNotFound
 	}
@@ -86,14 +93,31 @@ func (k Keeper) GetVotingPower(ctx sdk.Context, valAddr sdk.ValAddress, voterAdd
 	return v.Int, nil
 }
 
-func (k Keeper) DeleteVotingPowerForDelegation(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) {
+func (k Keeper) IterateVotedDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (math.Int, error) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.VotingPowerKey(valAddr, voterAddr))
+
+	iterator := sdk.KVStorePrefixIterator(store, types.VotedDelegationsByValidatorKey(valAddr))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		// TODO: ???
+		delegation := types.MustUnmarshalDelegation(k.cdc, iterator.Value())
+		if delegation.GetValidatorAddr().Equals(valAddr) {
+			delegations = append(delegations, delegation)
+		}
+	}
+
+	return v.Int, nil
 }
 
-func (k Keeper) DeleteVotingPower(ctx sdk.Context, valAddr sdk.ValAddress) {
+func (k Keeper) DeleteVotedDelegation(ctx sdk.Context, valAddr sdk.ValAddress, voterAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.VotingPowerKey(valAddr, []byte{})) // delete the whole record
+	store.Delete(types.VotedDelegationKey(valAddr, voterAddr))
+}
+
+func (k Keeper) DeleteVotedDelegationsForValidator(ctx sdk.Context, valAddr sdk.ValAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.VotedDelegationKey(valAddr, []byte{})) // delete the whole record
 }
 
 func (k Keeper) SaveVote(ctx sdk.Context, voterAddr sdk.AccAddress, v types.Vote) error {
