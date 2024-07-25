@@ -158,7 +158,7 @@ func RollappCountInvariant(k Keeper) sdk.Invariant {
 			return "", false
 		}
 
-		// If the count is not equal, need to check wether it's due to rollapp that didn't publish state yet
+		// If the count is not equal, need to check whether it's due to rollapp that didn't publish state yet
 		var noStateRollappCount int
 		for _, rollapp := range rollapps {
 			if !k.IsRollappStarted(ctx, rollapp.RollappId) {

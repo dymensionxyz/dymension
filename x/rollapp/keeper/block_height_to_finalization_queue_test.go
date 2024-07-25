@@ -606,6 +606,15 @@ func (suite *RollappTestSuite) TestKeeperFinalizePending() {
 	}
 }
 
+func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+	return func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
+		if slices.Contains(errFinalizedIndices, stateInfoIndex) {
+			return errors.New("error")
+		}
+		return nil
+	}
+}
+
 // black-ops: don't do this at home
 // nolint:gosec
 func (suite *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.StateInfoIndex) {
@@ -621,6 +630,8 @@ func (suite *RollappTestSuite) setMockErrRollappKeeperHooks(failIndexes []types.
 	}
 }
 
+var _ types.RollappHooks = mockRollappHooks{}
+
 type mockRollappHooks struct {
 	failIndexes []types.StateInfoIndex
 }
@@ -631,15 +642,6 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 	}
 	return
 }
-
 func (m mockRollappHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
 func (m mockRollappHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
-
-func MockFinalizePending(errFinalizedIndices []types.StateInfoIndex) func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
-	return func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error {
-		if slices.Contains(errFinalizedIndices, stateInfoIndex) {
-			return errors.New("error")
-		}
-		return nil
-	}
-}
+func (m mockRollappHooks) RollappCreated(sdk.Context, string) error                 { return nil }

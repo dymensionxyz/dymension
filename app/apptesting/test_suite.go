@@ -91,6 +91,12 @@ func (s *KeeperTestHelper) PostStateUpdate(ctx sdk.Context, rollappId, seqAddr s
 	return startHeight + numOfBlocks, err
 }
 
+// FundAcc funds target address with specified amount.
+func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
+	err := bankutil.FundAccount(s.App.BankKeeper, s.Ctx, acc, amounts)
+	s.Require().NoError(err)
+}
+
 // FundModuleAcc funds target modules with specified amount.
 func (suite *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
 	err := bankutil.FundModuleAccount(suite.App.BankKeeper, suite.Ctx, moduleName, amounts)
