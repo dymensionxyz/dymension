@@ -50,23 +50,18 @@ func NewParams(
 	enabled bool,
 	disputePeriodInBlocks uint64,
 	deployerWhitelist []DeployerParams,
-	hubExpectedBlockTime time.Duration,
-	livenessSlashTime time.Duration,
-	livenessSlashInterval time.Duration,
-	livenessJailTime time.Duration,
-	livenessSlashMultiplier math.LegacyDec,
-	livenessSlashRewardMultiplier math.LegacyDec,
+	livenessCheck LivenessCheckParams,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks:         disputePeriodInBlocks,
 		DeployerWhitelist:             deployerWhitelist,
 		RollappsEnabled:               enabled,
-		HubExpectedBlockTime:          hubExpectedBlockTime,
-		LivenessSlashTime:             livenessSlashTime,
-		LivenessSlashInterval:         livenessSlashInterval,
-		LivenessJailTime:              livenessJailTime,
-		LivenessSlashMultiplier:       livenessSlashMultiplier,
-		LivenessSlashRewardMultiplier: livenessSlashRewardMultiplier,
+		HubExpectedBlockTime:          livenessCheck.HubExpectedBlockTime,
+		LivenessSlashTime:             livenessCheck.SlashTime,
+		LivenessSlashInterval:         livenessCheck.SlashInterval,
+		LivenessJailTime:              livenessCheck.JailTime,
+		LivenessSlashMultiplier:       livenessCheck.SlashMultiplier,
+		LivenessSlashRewardMultiplier: livenessCheck.SlashRewardMultiplier,
 	}
 }
 
@@ -76,12 +71,14 @@ func DefaultParams() Params {
 		true,
 		DefaultDisputePeriodInBlocks,
 		[]DeployerParams{},
-		DefaultHubExpectedBlockTime,
-		DefaultLivenessSlashTime,
-		DefaultLivenessSlashInterval,
-		DefaultLivenessJailTime,
-		DefaultLivenessSlashMultiplier,
-		DefaultLivenessSlashRewardMultiplier,
+		LivenessCheckParams{
+			DefaultHubExpectedBlockTime,
+			DefaultLivenessSlashTime,
+			DefaultLivenessSlashInterval,
+			DefaultLivenessJailTime,
+			DefaultLivenessSlashMultiplier,
+			DefaultLivenessSlashRewardMultiplier,
+		},
 	)
 }
 
@@ -150,4 +147,15 @@ func validateDeployerWhitelist(v interface{}) error {
 	}
 
 	return nil
+}
+
+func (p Params) Liveness() LivenessCheckParams {
+	return LivenessCheckParams{
+		p.HubExpectedBlockTime,
+		p.LivenessSlashTime,
+		p.LivenessSlashInterval,
+		p.LivenessJailTime,
+		p.LivenessSlashMultiplier,
+		p.LivenessSlashRewardMultiplier,
+	}
 }

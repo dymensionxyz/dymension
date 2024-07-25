@@ -11,6 +11,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.RollappsEnabled(ctx),
 		k.DisputePeriodInBlocks(ctx),
 		k.DeployerWhitelist(ctx),
+		k.LivenessCheckParams(ctx),
 	)
 }
 
@@ -39,11 +40,11 @@ func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 func (k Keeper) LivenessCheckParams(ctx sdk.Context) (res types.LivenessCheckParams) {
 	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
 	k.paramstore.Get(ctx, types.KeyHubExpectedBlockTime, &res.HubExpectedBlockTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.LivenessSlashTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.LivenessSlashInterval)
-	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res.LivenessJailTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashRewardMultiplier, &res.LivenessSlashMultiplier)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res.LivenessSlashRewardMultiplier)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.SlashTime)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.SlashInterval)
+	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res.JailTime)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashRewardMultiplier, &res.SlashRewardMultiplier)
+	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res.SlashMultiplier)
 	return
 }
 

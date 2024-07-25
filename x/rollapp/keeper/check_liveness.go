@@ -7,17 +7,17 @@ import (
 )
 
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) bool {
-	k.GetParams(ctx)
+	p := k.GetParams(ctx).Liveness()
 	slashAmt, jail := LivenessSlashAndJail(
 		ctx.BlockHeight(),
 		0,
-		time.Second,
-		time.Second,
-		time.Second,
-		sdk.Dec{},
-		time.Second,
+		p.HubExpectedBlockTime,
+		p.SlashTime,
+		p.SlashInterval,
+		p.SlashMultiplier,
+		p.JailTime,
 		sdk.Coins{},
-		sdk.Coins{},
+		sdk.Coins{}, // TODO:
 	)
 }
 
@@ -27,7 +27,7 @@ func LivenessSlashAndJail(
 	hubBlockTime time.Duration,
 	slashTime time.Duration,
 	slashInterval time.Duration,
-	slashFactor sdk.Dec,
+	slashMultiplier sdk.Dec,
 	jailTime time.Duration,
 	balance sdk.Coins,
 	minBond sdk.Coins,
