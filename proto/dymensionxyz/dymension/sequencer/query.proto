@@ -98,7 +98,7 @@ message QueryGetProposerByRollappRequest {
 
 // Response type for the GetProposerByRollapp RPC method.
 message QueryGetProposerByRollappResponse {
-    string proposer = 1;
+    string proposerAddr = 1;
 }
 
 // Request type for the GetNextProposerByRollapp RPC method.
@@ -108,5 +108,5 @@ message QueryGetNextProposerByRollappRequest {
 
 // Response type for the GetNextProposerByRollapp RPC method.
 message QueryGetNextProposerByRollappResponse {
-    string nextProposer = 1;
+    string nextProposerAddr = 1;
 }

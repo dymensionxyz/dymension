@@ -213,7 +213,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
 			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
 		suite.Require().Nil(err)
-		suite.Require().EqualValues(proposer.Proposer, rollappExpectedProposers[rollappId])
+		suite.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }

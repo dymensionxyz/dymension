@@ -34,6 +34,8 @@ type Params struct {
 	// unbonding_time is the time duration of unbonding.
 	UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
 	// notice_period is the time duration of notice period.
+	// notice period is the duration between the unbond request and the actual unbonding.
+	// the proposer is still bonded during this period.
 	NoticePeriod time.Duration `protobuf:"bytes,3,opt,name=notice_period,json=noticePeriod,proto3,stdduration" json:"notice_period"`
 }
 

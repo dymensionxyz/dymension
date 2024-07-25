@@ -23,5 +23,7 @@ message Params {
 
 
   // notice_period is the time duration of notice period.
+  // notice period is the duration between the unbond request and the actual unbonding.
+  // the proposer is still bonded during this period.
   google.protobuf.Duration notice_period = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 }

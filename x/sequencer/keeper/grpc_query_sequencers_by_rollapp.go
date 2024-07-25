@@ -58,7 +58,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 	}
 
 	return &types.QueryGetNextProposerByRollappResponse{
-		NextProposer: seq.SequencerAddress,
+		NextProposerAddr: seq.SequencerAddress,
 	}, nil
 }
 
@@ -75,6 +75,6 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 	}
 
 	return &types.QueryGetProposerByRollappResponse{
-		Proposer: seq.SequencerAddress,
+		ProposerAddr: seq.SequencerAddress,
 	}, nil
 }

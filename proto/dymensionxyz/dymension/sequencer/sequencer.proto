@@ -28,7 +28,6 @@ message Sequencer {
   // jailed defined whether the sequencer has been jailed from bonded status or not.
   bool jailed = 5;
 
-  // proposer defines whether the sequencer is a proposer or not.
   reserved 6;
 
   // status is the sequencer status (bonded/unbonding/unbonded).

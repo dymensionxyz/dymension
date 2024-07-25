@@ -25,8 +25,10 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the sequencer module's genesis state.
 type GenesisState struct {
-	Params           Params            `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
-	SequencerList    []Sequencer       `protobuf:"bytes,2,rep,name=sequencerList,proto3" json:"sequencerList"`
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// sequencerList is a list of all defined sequencers
+	SequencerList []Sequencer `protobuf:"bytes,2,rep,name=sequencerList,proto3" json:"sequencerList"`
+	// genesisProposers is a list of the defined genesis proposers
 	GenesisProposers []GenesisProposer `protobuf:"bytes,3,rep,name=genesisProposers,proto3" json:"genesisProposers"`
 }
 

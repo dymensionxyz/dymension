@@ -11,7 +11,9 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
 // GenesisState defines the sequencer module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
+  // sequencerList is a list of all defined sequencers
   repeated Sequencer sequencerList = 2 [(gogoproto.nullable) = false];
+  // genesisProposers is a list of the defined genesis proposers
   repeated GenesisProposer genesisProposers = 3 [(gogoproto.nullable) = false];
 }
 
