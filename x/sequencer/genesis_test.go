@@ -12,6 +12,8 @@ import (
 )
 
 func TestInitGenesis(t *testing.T) {
+	timeToTest := time.Now().Round(0).UTC()
+
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
@@ -38,7 +40,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:              types.Unbonding,
 				Tokens:              sdk.Coins(nil),
 				UnbondRequestHeight: 10,
-				UnbondTime:          time.Time{}, // todo: set time
+				UnbondTime:          timeToTest,
 			},
 			// unbonded
 			{
@@ -49,12 +51,19 @@ func TestInitGenesis(t *testing.T) {
 			},
 			// rollapp 2
 			{
-				SequencerAddress:    "rollapp2_addr1",
+				SequencerAddress: "rollapp2_addr1",
+				RollappId:        "rollapp2",
+				Status:           types.Bonded,
+				Tokens:           sdk.Coins(nil),
+			},
+			// unbonding
+			{
+				SequencerAddress:    "rollapp2_addr2",
 				RollappId:           "rollapp2",
-				Status:              types.Bonded,
+				Status:              types.Unbonding,
 				Tokens:              sdk.Coins(nil),
-				UnbondRequestHeight: 0,
-				UnbondTime:          time.Time{},
+				UnbondRequestHeight: 10,
+				UnbondTime:          timeToTest,
 			},
 			// rollapp 3
 			// proposer with notice period
@@ -64,7 +73,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:              types.Bonded,
 				Tokens:              sdk.Coins(nil),
 				UnbondRequestHeight: 20,
-				UnbondTime:          time.Time{},
+				UnbondTime:          timeToTest,
 			},
 		},
 		GenesisProposers: []types.GenesisProposer{
@@ -85,6 +94,10 @@ func TestInitGenesis(t *testing.T) {
 
 	k, ctx := keepertest.SequencerKeeper(t)
 	sequencer.InitGenesis(ctx, *k, genesisState)
+
+	require.Len(t, k.GetMatureNoticePeriodSequencers(ctx, timeToTest), 1)
+	require.Len(t, k.GetMatureUnbondingSequencers(ctx, timeToTest), 2)
+	require.Len(t, k.GetAllProposers(ctx), 2)
 
 	got := sequencer.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
