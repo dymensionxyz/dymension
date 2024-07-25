@@ -27,7 +27,7 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	seqAddr1 := make([]string, numOfSequencers)
 	seqAddr2 := make([]string, numOfSequencers2)
 
-	// create 4 sequencers for rollapp1
+	// create sequencers for rollapp1
 	for i := 0; i < numOfSequencers; i++ {
 		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	}

@@ -8,9 +8,15 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )
 
-// validateBasic
+// ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
+	// unbonding must have a UnbondRequestHeight
 	if seq.Status == Unbonding && seq.UnbondRequestHeight == 0 {
+		return ErrInvalidSequencerStatus
+	}
+
+	// if UnbondRequestHeight is set, UnbondTime must be set
+	if seq.UnbondRequestHeight != 0 && seq.UnbondTime.IsZero() {
 		return ErrInvalidSequencerStatus
 	}
 
@@ -21,7 +27,7 @@ func (seq Sequencer) IsBonded() bool {
 	return seq.Status == Bonded
 }
 
-// is notice period in progress
+// IsNoticePeriodInProgress returns true if the sequencer is bonded and has an unbond request
 func (seq Sequencer) IsNoticePeriodInProgress() bool {
 	return seq.Status == Bonded && seq.UnbondRequestHeight != 0
 }

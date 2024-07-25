@@ -121,7 +121,7 @@ func (k Keeper) GetMatureUnbondingSequencers(ctx sdk.Context, endTime time.Time)
 	return
 }
 
-func (k Keeper) SetUnbondingSequencerQueue(ctx sdk.Context, sequencer types.Sequencer) {
+func (k Keeper) AddSequencerToUnbondingQueue(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
@@ -155,8 +155,8 @@ func (k Keeper) GetMatureNoticePeriodSequencers(ctx sdk.Context, endTime time.Ti
 	return
 }
 
-// SetNoticePeriodQueue set sequencer in notice period queue
-func (k Keeper) SetNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer) {
+// AddSequencerToNoticePeriodQueue set sequencer in notice period queue
+func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
@@ -172,7 +172,7 @@ func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Seq
 }
 
 /* ------------------------- proposer/next proposer ------------------------- */
-// GtAllProposers returns all proposers for all rollapps
+// GetAllProposers returns all proposers for all rollapps
 func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ProposerByRollappKey(""))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -232,6 +232,9 @@ func (k Keeper) SetNextProposer(ctx sdk.Context, rollappId, seqAddr string) {
 	store.Set(nextProposerKey, addressBytes)
 }
 
+// GetNextProposer returns the next proposer for a rollapp
+// It will return found=false if the next proposer is not set
+// It will return found=true if the next proposer is set, even if it's empty
 func (k Keeper) GetNextProposer(ctx sdk.Context, rollappId string) (val types.Sequencer, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.NextProposerByRollappKey(rollappId))

@@ -5,13 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequencersByRollappRequest) (*types.QueryGetSequencersByRollappResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -27,7 +26,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 
 func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryGetSequencersByRollappByStatusRequest) (*types.QueryGetSequencersByRollappByStatusResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -49,7 +48,7 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 // GetNextProposerByRollapp implements types.QueryServer.
 func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetNextProposerByRollappRequest) (*types.QueryGetNextProposerByRollappResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -66,7 +65,7 @@ func (k Keeper) GetNextProposerByRollapp(c context.Context, req *types.QueryGetN
 // GetProposerByRollapp implements types.QueryServer.
 func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetProposerByRollappRequest) (*types.QueryGetProposerByRollappResponse, error) {
 	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+		return nil, gerrc.ErrInvalidArgument
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 

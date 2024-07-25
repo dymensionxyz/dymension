@@ -13,12 +13,12 @@ import (
 // can be called after notice period or directly if notice period is not required
 // caller is responsible for updating the proposer for the rollapp if neeeded
 func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
-	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+	completionTime := ctx.BlockTime().Add(k.UnbondingTime(ctx))
 	seq.UnbondTime = completionTime
 
 	seq.Status = types.Unbonding
-	k.UpdateSequencerWithStateChange(ctx, *seq, types.Bonded) // only bonded sequencers can start unbonding
-	k.SetUnbondingSequencerQueue(ctx, *seq)
+	k.UpdateSequencerWithStateChange(ctx, *seq, types.Bonded)
+	k.AddSequencerToUnbondingQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

@@ -65,7 +65,7 @@ func SequencersCountInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// proposer / next proposer are bonded
+// ProposerBondedInvariant checks if the proposer and next proposer are bonded as expected
 func ProposerBondedInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (

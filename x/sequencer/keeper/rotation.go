@@ -13,7 +13,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	seq.UnbondTime = completionTime
 
 	k.UpdateSequencer(ctx, *seq)
-	k.SetNoticePeriodQueue(ctx, *seq)
+	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
 
 	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
 	if nextSeq.SequencerAddress == "" {
@@ -32,7 +32,9 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	return completionTime
 }
 
-// MatureSequencersWithNoticePeriod moves all the sequencers that have finished their notice period
+// MatureSequencersWithNoticePeriod start rotation flow for all sequencers that have finished their notice period
+// The next proposer is set to the next bonded sequencer
+// The hub will expect a "last state update" from the sequencer to start unbonding
 func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.Time) {
 	seqs := k.GetMatureNoticePeriodSequencers(ctx, currTime)
 	for _, seq := range seqs {
@@ -47,6 +49,7 @@ func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 }
 
 // IsNoticePeriodRequired returns true if the sequencer requires a notice period before unbonding
+// Both the proposer and the next proposer require a notice period
 func (k Keeper) IsNoticePeriodRequired(ctx sdk.Context, seq types.Sequencer) bool {
 	return k.IsProposer(ctx, seq.RollappId, seq.SequencerAddress) || k.IsNextProposer(ctx, seq.RollappId, seq.SequencerAddress)
 }
@@ -96,6 +99,7 @@ func (k Keeper) StartRotation(ctx sdk.Context, rollappId string) {
 }
 
 // RotateProposer completes the sequencer rotation flow.
+// It's called when a last state update is received from the active, rotating sequencer.
 // it will start unbonding the current proposer, and set new proposer from the bonded sequencers
 func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	// start unbonding the current proposer
@@ -110,6 +114,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 	if nextProposer.SequencerAddress == "" {
 		k.Logger(ctx).Info("rollapp left with no proposer", "rollappId", rollappId)
 		k.RemoveProposer(ctx, rollappId)
+		// in case of new sequencers bonding, the proposer is checked and set on BeginBlock
 	} else {
 		k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
 	}

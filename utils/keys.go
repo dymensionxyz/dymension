@@ -14,6 +14,6 @@ func EncodeTimeToKey(queueKey []byte, endTime time.Time) []byte {
 	// copy the prefix
 	copy(bz[:prefixL], queueKey)
 	// copy the encoded time bytes
-	copy(bz[prefixL:prefixL+len(timeBz)], timeBz)
+	copy(bz[prefixL:], timeBz)
 	return bz
 }

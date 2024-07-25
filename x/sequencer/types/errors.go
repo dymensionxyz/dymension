@@ -4,6 +4,7 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // x/sequencer module sentinel errors
@@ -27,5 +28,5 @@ var (
 	ErrInvalidType              = errorsmod.Register(ModuleName, 1016, "invalid type")
 	ErrUnknownRequest           = errorsmod.Register(ModuleName, 1017, "unknown request")
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
-	ErrNoProposer               = errorsmod.Register(ModuleName, 1019, "no proposer found")
+	ErrNoProposer               = errorsmod.Wrap(gerrc.ErrNotFound, "proposer")
 )

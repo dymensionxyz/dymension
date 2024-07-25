@@ -5,12 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/dymensionxyz/dymension/v3/testutil/nullify"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
@@ -69,7 +68,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 		},
 		{
 			desc: "InvalidRequest",
-			err:  status.Error(codes.InvalidArgument, "invalid request"),
+			err:  gerrc.ErrInvalidArgument,
 		},
 	} {
 		suite.T().Run(tc.desc, func(t *testing.T) {
@@ -153,7 +152,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 		},
 		{
 			desc: "InvalidRequest",
-			err:  status.Error(codes.InvalidArgument, "invalid request"),
+			err:  gerrc.ErrInvalidArgument,
 		},
 	} {
 		suite.T().Run(tc.desc, func(t *testing.T) {
