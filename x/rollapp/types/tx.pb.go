@@ -280,11 +280,153 @@ func (m *MsgUpdateStateResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateStateResponse proto.InternalMessageInfo
 
+// MsgSlashLiveness checks to see if the sequencer of the rollapp has been
+// submitting updates. If he has not, he will be slashed and a portion of slashed
+// funds will be allocated to the creator of this transaction. At least gas cost
+// will always be refunded.
+type MsgLivenessSlash struct {
+	// Signer is the bech32-encoded address of the person sending the tx
+	Signer string `protobuf:"bytes,1,opt,name=signer,proto3" json:"signer,omitempty"`
+	// RollappId of the rollapp who is suspected to be down (not live)
+	RollappId string `protobuf:"bytes,2,opt,name=rollapp_id,json=rollappId,proto3" json:"rollapp_id,omitempty"`
+	// Types that are valid to be assigned to XRewardAddr:
+	//
+	//	*MsgLivenessSlash_RewardAddr
+	XRewardAddr isMsgLivenessSlash_XRewardAddr `protobuf_oneof:"_reward_addr"`
+}
+
+func (m *MsgLivenessSlash) Reset()         { *m = MsgLivenessSlash{} }
+func (m *MsgLivenessSlash) String() string { return proto.CompactTextString(m) }
+func (*MsgLivenessSlash) ProtoMessage()    {}
+func (*MsgLivenessSlash) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1a86300fb8647ecb, []int{4}
+}
+func (m *MsgLivenessSlash) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgLivenessSlash) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgLivenessSlash.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgLivenessSlash) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLivenessSlash.Merge(m, src)
+}
+func (m *MsgLivenessSlash) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgLivenessSlash) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLivenessSlash.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgLivenessSlash proto.InternalMessageInfo
+
+type isMsgLivenessSlash_XRewardAddr interface {
+	isMsgLivenessSlash_XRewardAddr()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type MsgLivenessSlash_RewardAddr struct {
+	RewardAddr string `protobuf:"bytes,3,opt,name=reward_addr,json=rewardAddr,proto3,oneof" json:"reward_addr,omitempty"`
+}
+
+func (*MsgLivenessSlash_RewardAddr) isMsgLivenessSlash_XRewardAddr() {}
+
+func (m *MsgLivenessSlash) GetXRewardAddr() isMsgLivenessSlash_XRewardAddr {
+	if m != nil {
+		return m.XRewardAddr
+	}
+	return nil
+}
+
+func (m *MsgLivenessSlash) GetSigner() string {
+	if m != nil {
+		return m.Signer
+	}
+	return ""
+}
+
+func (m *MsgLivenessSlash) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+func (m *MsgLivenessSlash) GetRewardAddr() string {
+	if x, ok := m.GetXRewardAddr().(*MsgLivenessSlash_RewardAddr); ok {
+		return x.RewardAddr
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*MsgLivenessSlash) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*MsgLivenessSlash_RewardAddr)(nil),
+	}
+}
+
+type MsgLivenessSlashResponse struct {
+	// Slashed is true if the sequencer of the rollapp was slashed for liveness
+	Slashed bool `protobuf:"varint,1,opt,name=slashed,proto3" json:"slashed,omitempty"`
+}
+
+func (m *MsgLivenessSlashResponse) Reset()         { *m = MsgLivenessSlashResponse{} }
+func (m *MsgLivenessSlashResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgLivenessSlashResponse) ProtoMessage()    {}
+func (*MsgLivenessSlashResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1a86300fb8647ecb, []int{5}
+}
+func (m *MsgLivenessSlashResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgLivenessSlashResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgLivenessSlashResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgLivenessSlashResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgLivenessSlashResponse.Merge(m, src)
+}
+func (m *MsgLivenessSlashResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgLivenessSlashResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgLivenessSlashResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgLivenessSlashResponse proto.InternalMessageInfo
+
+func (m *MsgLivenessSlashResponse) GetSlashed() bool {
+	if m != nil {
+		return m.Slashed
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*MsgCreateRollapp)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollapp")
 	proto.RegisterType((*MsgCreateRollappResponse)(nil), "dymensionxyz.dymension.rollapp.MsgCreateRollappResponse")
 	proto.RegisterType((*MsgUpdateState)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateState")
 	proto.RegisterType((*MsgUpdateStateResponse)(nil), "dymensionxyz.dymension.rollapp.MsgUpdateStateResponse")
+	proto.RegisterType((*MsgLivenessSlash)(nil), "dymensionxyz.dymension.rollapp.MsgLivenessSlash")
+	proto.RegisterType((*MsgLivenessSlashResponse)(nil), "dymensionxyz.dymension.rollapp.MsgLivenessSlashResponse")
 }
 
 func init() {
@@ -292,39 +434,45 @@ func init() {
 }
 
 var fileDescriptor_1a86300fb8647ecb = []byte{
-	// 500 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcf, 0x8b, 0xd3, 0x4e,
-	0x14, 0x6f, 0xb6, 0xf9, 0x76, 0x9b, 0xe9, 0x77, 0xa5, 0x0c, 0xba, 0x0e, 0x41, 0x62, 0x29, 0x82,
-	0x45, 0x24, 0xd1, 0xdd, 0x55, 0xc4, 0xdb, 0xd6, 0x1e, 0xd6, 0x42, 0x45, 0xb2, 0x78, 0xf1, 0x22,
-	0x69, 0xf2, 0x48, 0x83, 0x4d, 0x26, 0xce, 0x9b, 0x96, 0x56, 0x6f, 0xfe, 0x05, 0xe2, 0x5f, 0xe2,
-	0x5f, 0x21, 0x7b, 0xdc, 0xa3, 0x27, 0x91, 0xf6, 0xe0, 0xdf, 0xe0, 0x4d, 0x26, 0x4d, 0xfa, 0x63,
-	0x51, 0xeb, 0x7a, 0x9a, 0x79, 0x9f, 0xf7, 0x3e, 0xef, 0xf7, 0x0c, 0xb9, 0x1d, 0x4c, 0x63, 0x48,
-	0x30, 0xe2, 0xc9, 0x64, 0xfa, 0xd6, 0x59, 0x0a, 0x8e, 0xe0, 0xc3, 0xa1, 0x97, 0xa6, 0x8e, 0x9c,
-	0xd8, 0xa9, 0xe0, 0x92, 0x53, 0x6b, 0xdd, 0xd0, 0x5e, 0x0a, 0x76, 0x6e, 0x68, 0x5e, 0xf7, 0x39,
-	0xc6, 0x1c, 0x9d, 0x18, 0x43, 0x67, 0x7c, 0x5f, 0x1d, 0x0b, 0xa2, 0xf9, 0x60, 0x4b, 0x84, 0xfe,
-	0x90, 0xfb, 0xaf, 0x5f, 0x05, 0x80, 0xbe, 0x88, 0x52, 0xc9, 0x45, 0x4e, 0xbb, 0xbb, 0x85, 0x96,
-	0x9f, 0xb9, 0xf5, 0xd5, 0x90, 0x87, 0x3c, 0xbb, 0x3a, 0xea, 0xb6, 0x40, 0x9b, 0x9f, 0x35, 0x52,
-	0xef, 0x61, 0xf8, 0x44, 0x80, 0x27, 0xc1, 0x5d, 0x10, 0x28, 0x23, 0xbb, 0xbe, 0x02, 0xb8, 0x60,
-	0x5a, 0x43, 0x6b, 0x19, 0x6e, 0x21, 0xd2, 0x1b, 0xc4, 0xc8, 0xbd, 0x3e, 0x0d, 0xd8, 0x4e, 0xa6,
-	0x5b, 0x01, 0xf4, 0x16, 0xd9, 0x8b, 0xbd, 0xc9, 0x29, 0xbc, 0x19, 0x41, 0xe2, 0x83, 0x40, 0x56,
-	0x69, 0x68, 0x2d, 0xdd, 0xdd, 0x04, 0xe9, 0x11, 0xb9, 0x96, 0x82, 0x88, 0x23, 0x54, 0xc9, 0x42,
-	0x70, 0x1c, 0x04, 0x02, 0x10, 0x01, 0xd9, 0x6e, 0xa3, 0xdc, 0x32, 0xdc, 0x5f, 0x2b, 0x1f, 0xff,
-	0xff, 0xfe, 0xfb, 0xa7, 0x3b, 0x45, 0x1e, 0x5d, 0xbd, 0x5a, 0xad, 0x1b, 0x5d, 0xbd, 0x6a, 0xd4,
-	0x49, 0x57, 0xaf, 0x92, 0x7a, 0xad, 0x69, 0x12, 0x76, 0xb1, 0x0e, 0x17, 0x30, 0xe5, 0x09, 0x42,
-	0xf3, 0xe3, 0x0e, 0xb9, 0xd2, 0xc3, 0xf0, 0x45, 0x1a, 0x78, 0x12, 0x4e, 0xa5, 0x27, 0xe1, 0x9f,
-	0x4b, 0x6c, 0x90, 0x1a, 0x4a, 0x4f, 0xc8, 0x13, 0x88, 0xc2, 0x81, 0x64, 0xe5, 0xac, 0xc0, 0x75,
-	0x48, 0xf1, 0x93, 0x51, 0xdc, 0x56, 0x23, 0x43, 0xa6, 0x67, 0xfa, 0x15, 0x40, 0xf7, 0x49, 0xa5,
-	0x73, 0xfc, 0xdc, 0x93, 0x03, 0xf6, 0x5f, 0xe6, 0x3a, 0x97, 0x54, 0x3e, 0x63, 0x10, 0xaa, 0xe8,
-	0xbc, 0x69, 0x85, 0x48, 0x4f, 0x48, 0xb9, 0xdd, 0x51, 0xcd, 0xd1, 0x5a, 0xb5, 0x83, 0x7b, 0xf6,
-	0x9f, 0x77, 0xcc, 0xce, 0xc2, 0x74, 0x96, 0x9b, 0x82, 0x6d, 0xfd, 0xec, 0xeb, 0xcd, 0x92, 0xab,
-	0x5c, 0x6c, 0xb6, 0xb0, 0xc9, 0xc8, 0xfe, 0x66, 0x4f, 0x8a, 0x76, 0x1d, 0xfc, 0xd0, 0x48, 0xb9,
-	0x87, 0x21, 0x7d, 0x47, 0xf6, 0x36, 0xf7, 0x62, 0x6b, 0xf4, 0x8b, 0x13, 0x30, 0x1f, 0x5d, 0x96,
-	0x51, 0x24, 0x41, 0x47, 0xa4, 0xb6, 0x3e, 0x2f, 0xfb, 0x2f, 0x1c, 0xad, 0xd9, 0x9b, 0x0f, 0x2f,
-	0x67, 0x5f, 0x84, 0x6d, 0x3f, 0x3b, 0x9b, 0x59, 0xda, 0xf9, 0xcc, 0xd2, 0xbe, 0xcd, 0x2c, 0xed,
-	0xc3, 0xdc, 0x2a, 0x9d, 0xcf, 0xad, 0xd2, 0x97, 0xb9, 0x55, 0x7a, 0x79, 0x14, 0x46, 0x72, 0x30,
-	0xea, 0xdb, 0x3e, 0x8f, 0x9d, 0xdf, 0x3c, 0xbc, 0xf1, 0xa1, 0x33, 0x59, 0x7d, 0x0b, 0xd3, 0x14,
-	0xb0, 0x5f, 0xc9, 0x9e, 0xd9, 0xe1, 0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xab, 0x3e, 0x69, 0xe0,
-	0x45, 0x04, 0x00, 0x00,
+	// 601 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xc1, 0x8f, 0xd2, 0x4e,
+	0x14, 0xa6, 0x4b, 0x7f, 0xbb, 0x74, 0xba, 0x6c, 0x48, 0xf3, 0x73, 0x6d, 0x88, 0x56, 0x42, 0x4c,
+	0x24, 0xc6, 0xb4, 0xba, 0x8b, 0xc6, 0xec, 0x6d, 0x91, 0x03, 0x12, 0x31, 0xa6, 0xc4, 0x8b, 0x17,
+	0x52, 0xda, 0x49, 0x69, 0xa4, 0x9d, 0x3a, 0x6f, 0x40, 0x70, 0x6f, 0x9e, 0x3c, 0x78, 0x30, 0xfe,
+	0x25, 0xfe, 0x15, 0x66, 0x8f, 0x7b, 0xf4, 0x64, 0x0c, 0x1c, 0xfc, 0x0f, 0x3c, 0x9b, 0x29, 0x6d,
+	0xa1, 0x1b, 0x14, 0xd6, 0x53, 0xfb, 0xbe, 0x79, 0xdf, 0x9b, 0xef, 0x7d, 0xef, 0x65, 0xd0, 0x1d,
+	0x67, 0xea, 0xe3, 0x00, 0x3c, 0x12, 0x4c, 0xa6, 0xef, 0x8c, 0x34, 0x30, 0x28, 0x19, 0x0e, 0xad,
+	0x30, 0x34, 0xd8, 0x44, 0x0f, 0x29, 0x61, 0x44, 0xd1, 0x56, 0x13, 0xf5, 0x34, 0xd0, 0xe3, 0xc4,
+	0xf2, 0x75, 0x9b, 0x80, 0x4f, 0xc0, 0xf0, 0xc1, 0x35, 0xc6, 0x0f, 0xf8, 0x67, 0x41, 0x2c, 0x3f,
+	0xdc, 0x70, 0x43, 0x7f, 0x48, 0xec, 0xd7, 0x3d, 0x07, 0x83, 0x4d, 0xbd, 0x90, 0x11, 0x1a, 0xd3,
+	0xee, 0x6d, 0xa0, 0xc5, 0xdf, 0x38, 0xfb, 0x7f, 0x97, 0xb8, 0x24, 0xfa, 0x35, 0xf8, 0xdf, 0x02,
+	0xad, 0x7e, 0x15, 0x50, 0xa9, 0x03, 0xee, 0x13, 0x8a, 0x2d, 0x86, 0xcd, 0x05, 0x41, 0x51, 0xd1,
+	0x9e, 0xcd, 0x01, 0x42, 0x55, 0xa1, 0x22, 0xd4, 0x24, 0x33, 0x09, 0x95, 0x1b, 0x48, 0x8a, 0xab,
+	0x3e, 0x75, 0xd4, 0x9d, 0xe8, 0x6c, 0x09, 0x28, 0xb7, 0x51, 0xd1, 0xb7, 0x26, 0x5d, 0xfc, 0x66,
+	0x84, 0x03, 0x1b, 0x53, 0x50, 0x77, 0x2b, 0x42, 0x4d, 0x34, 0xb3, 0xa0, 0x52, 0x47, 0xd7, 0x42,
+	0x4c, 0x7d, 0x0f, 0xb8, 0x58, 0xec, 0x9c, 0x3a, 0x0e, 0xc5, 0x00, 0x18, 0xd4, 0xbd, 0x4a, 0xbe,
+	0x26, 0x99, 0xeb, 0x0f, 0x4f, 0xf6, 0xdf, 0xff, 0xfc, 0x72, 0x37, 0xd1, 0xd1, 0x16, 0x0b, 0x85,
+	0x92, 0xd4, 0x16, 0x0b, 0x52, 0x09, 0xb5, 0xc5, 0x02, 0x2a, 0xc9, 0xd5, 0x32, 0x52, 0x2f, 0xf7,
+	0x61, 0x62, 0x08, 0x49, 0x00, 0xb8, 0xfa, 0x79, 0x07, 0x1d, 0x74, 0xc0, 0x7d, 0x19, 0x3a, 0x16,
+	0xc3, 0x5d, 0x66, 0x31, 0xfc, 0xcf, 0x2d, 0x56, 0x90, 0x0c, 0xcc, 0xa2, 0xac, 0x85, 0x3d, 0x77,
+	0xc0, 0xd4, 0x7c, 0xd4, 0xe0, 0x2a, 0xc4, 0xf9, 0xc1, 0xc8, 0x6f, 0xf0, 0x91, 0x81, 0x2a, 0x46,
+	0xe7, 0x4b, 0x40, 0x39, 0x44, 0xbb, 0xcd, 0xd3, 0x17, 0x16, 0x1b, 0xa8, 0xff, 0x45, 0xa5, 0xe3,
+	0x88, 0xeb, 0x19, 0x63, 0xca, 0x9b, 0x8e, 0x4d, 0x4b, 0x42, 0xa5, 0x85, 0xf2, 0x8d, 0x26, 0x37,
+	0x47, 0xa8, 0xc9, 0x47, 0xf7, 0xf5, 0xbf, 0xef, 0x98, 0x1e, 0x5d, 0xd3, 0x4c, 0x37, 0x05, 0x1a,
+	0xe2, 0xf9, 0xf7, 0x5b, 0x39, 0x93, 0x97, 0xc8, 0x5a, 0x58, 0x55, 0xd1, 0x61, 0xd6, 0x93, 0xd4,
+	0xae, 0x8f, 0x8b, 0x9d, 0x78, 0xe6, 0x8d, 0x71, 0x80, 0x01, 0xba, 0x43, 0x0b, 0x06, 0x5c, 0x38,
+	0x78, 0x6e, 0x80, 0x13, 0xbf, 0xe2, 0x48, 0xb9, 0x89, 0x50, 0x7c, 0x77, 0xcf, 0x5b, 0xbb, 0x12,
+	0x32, 0xc5, 0x6f, 0x2d, 0xea, 0xf4, 0x2c, 0xc7, 0xa1, 0x91, 0x5f, 0x52, 0x2b, 0x67, 0xa2, 0x05,
+	0xc8, 0xc7, 0xfb, 0x41, 0x10, 0x4e, 0x64, 0xae, 0x2c, 0xae, 0xd8, 0x38, 0x40, 0xfb, 0xbd, 0x15,
+	0x4e, 0xb5, 0x1e, 0x4d, 0x36, 0xa3, 0x26, 0x91, 0xca, 0x6d, 0x03, 0x0e, 0x60, 0x27, 0x92, 0x55,
+	0x30, 0x93, 0xf0, 0xe8, 0xd7, 0x0e, 0xca, 0x77, 0xc0, 0x55, 0xce, 0x50, 0x31, 0xbb, 0xdc, 0x1b,
+	0x2d, 0xbc, 0xbc, 0x46, 0xe5, 0xc7, 0x57, 0x65, 0xa4, 0xf2, 0x46, 0x48, 0x5e, 0x5d, 0x3a, 0x7d,
+	0x8b, 0x42, 0x2b, 0xf9, 0xe5, 0x47, 0x57, 0xcb, 0x4f, 0xaf, 0x3d, 0x43, 0xc5, 0xec, 0xf0, 0xb6,
+	0xe9, 0x39, 0xc3, 0xd8, 0xaa, 0xe7, 0xb5, 0x23, 0x69, 0x3c, 0x3f, 0x9f, 0x69, 0xc2, 0xc5, 0x4c,
+	0x13, 0x7e, 0xcc, 0x34, 0xe1, 0xd3, 0x5c, 0xcb, 0x5d, 0xcc, 0xb5, 0xdc, 0xb7, 0xb9, 0x96, 0x7b,
+	0x55, 0x77, 0x3d, 0x36, 0x18, 0xf5, 0x75, 0x9b, 0xf8, 0xc6, 0x1f, 0x9e, 0xae, 0xf1, 0xb1, 0x31,
+	0x59, 0x3e, 0xac, 0xd3, 0x10, 0x43, 0x7f, 0x37, 0x7a, 0xa8, 0x8e, 0x7f, 0x07, 0x00, 0x00, 0xff,
+	0xff, 0x3a, 0xc5, 0x41, 0x8d, 0x87, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -341,6 +489,7 @@ const _ = grpc.SupportPackageIsVersion4
 type MsgClient interface {
 	CreateRollapp(ctx context.Context, in *MsgCreateRollapp, opts ...grpc.CallOption) (*MsgCreateRollappResponse, error)
 	UpdateState(ctx context.Context, in *MsgUpdateState, opts ...grpc.CallOption) (*MsgUpdateStateResponse, error)
+	LivenessSlash(ctx context.Context, in *MsgLivenessSlash, opts ...grpc.CallOption) (*MsgLivenessSlashResponse, error)
 }
 
 type msgClient struct {
@@ -369,10 +518,20 @@ func (c *msgClient) UpdateState(ctx context.Context, in *MsgUpdateState, opts ..
 	return out, nil
 }
 
+func (c *msgClient) LivenessSlash(ctx context.Context, in *MsgLivenessSlash, opts ...grpc.CallOption) (*MsgLivenessSlashResponse, error) {
+	out := new(MsgLivenessSlashResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.rollapp.Msg/LivenessSlash", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateRollapp(context.Context, *MsgCreateRollapp) (*MsgCreateRollappResponse, error)
 	UpdateState(context.Context, *MsgUpdateState) (*MsgUpdateStateResponse, error)
+	LivenessSlash(context.Context, *MsgLivenessSlash) (*MsgLivenessSlashResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -384,6 +543,9 @@ func (*UnimplementedMsgServer) CreateRollapp(ctx context.Context, req *MsgCreate
 }
 func (*UnimplementedMsgServer) UpdateState(ctx context.Context, req *MsgUpdateState) (*MsgUpdateStateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateState not implemented")
+}
+func (*UnimplementedMsgServer) LivenessSlash(ctx context.Context, req *MsgLivenessSlash) (*MsgLivenessSlashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LivenessSlash not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -426,6 +588,24 @@ func _Msg_UpdateState_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_LivenessSlash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgLivenessSlash)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).LivenessSlash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.rollapp.Msg/LivenessSlash",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).LivenessSlash(ctx, req.(*MsgLivenessSlash))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.rollapp.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -437,6 +617,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateState",
 			Handler:    _Msg_UpdateState_Handler,
+		},
+		{
+			MethodName: "LivenessSlash",
+			Handler:    _Msg_LivenessSlash_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -609,6 +793,99 @@ func (m *MsgUpdateStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgLivenessSlash) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLivenessSlash) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLivenessSlash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XRewardAddr != nil {
+		{
+			size := m.XRewardAddr.Size()
+			i -= size
+			if _, err := m.XRewardAddr.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Signer) > 0 {
+		i -= len(m.Signer)
+		copy(dAtA[i:], m.Signer)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Signer)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgLivenessSlash_RewardAddr) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLivenessSlash_RewardAddr) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.RewardAddr)
+	copy(dAtA[i:], m.RewardAddr)
+	i = encodeVarintTx(dAtA, i, uint64(len(m.RewardAddr)))
+	i--
+	dAtA[i] = 0x1a
+	return len(dAtA) - i, nil
+}
+func (m *MsgLivenessSlashResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgLivenessSlashResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgLivenessSlashResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Slashed {
+		i--
+		if m.Slashed {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -693,6 +970,48 @@ func (m *MsgUpdateStateResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
+	return n
+}
+
+func (m *MsgLivenessSlash) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Signer)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.XRewardAddr != nil {
+		n += m.XRewardAddr.Size()
+	}
+	return n
+}
+
+func (m *MsgLivenessSlash_RewardAddr) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RewardAddr)
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+func (m *MsgLivenessSlashResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Slashed {
+		n += 2
+	}
 	return n
 }
 
@@ -1182,6 +1501,222 @@ func (m *MsgUpdateStateResponse) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: MsgUpdateStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLivenessSlash) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLivenessSlash: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLivenessSlash: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Signer", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Signer = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardAddr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XRewardAddr = &MsgLivenessSlash_RewardAddr{string(dAtA[iNdEx:postIndex])}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgLivenessSlashResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgLivenessSlashResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgLivenessSlashResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Slashed", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Slashed = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
