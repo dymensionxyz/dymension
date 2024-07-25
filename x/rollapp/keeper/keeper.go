@@ -22,7 +22,6 @@ type Keeper struct {
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
 	bankKeeper      types.BankKeeper
-	sequencerKeeper types.SequencerKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -55,10 +54,6 @@ func NewKeeper(
 
 func (k *Keeper) SetFinalizePendingFn(fn func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error) {
 	k.finalizePending = fn
-}
-
-func (k *Keeper) SetSequencerKeeper(sequencerKeeper types.SequencerKeeper) {
-	k.sequencerKeeper = sequencerKeeper
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

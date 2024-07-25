@@ -48,6 +48,8 @@ message Rollapp {
   repeated string registered_denoms = 10;
   // metadata is the rollapp metadata
   RollappMetadata metadata = 11;
+  // sealed is a boolean that indicates if the immutable fields are no longer updatable.
+  bool sealed = 12;
 }
 
 // UpdateRollappInformation updates the rollapp information.

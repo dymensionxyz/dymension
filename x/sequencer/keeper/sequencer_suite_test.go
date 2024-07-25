@@ -52,6 +52,7 @@ func (suite *SequencerTestSuite) CreateDefaultRollapp() (string, cryptotypes.Pub
 		Creator:                 addr.String(),
 		GenesisChecksum:         "checksum",
 		InitialSequencerAddress: addr.String(),
+		Alias:                   "alias",
 	}
 	suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)
 	return rollapp.GetRollappId(), pubkey

@@ -33,16 +33,25 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		return nil, types.ErrRollappJailed
 	}
 
-	if rollapp.GenesisChecksum == "" {
-		return nil, types.ErrGenesisChecksumNotSet
+	// Only the initial sequencer can be the first to register, and is automatically selected as the first proposer,
+	// allowing the Rollapp to be sealed (provided that all the immutable fields are set in the Rollapp).
+	// This limitation prevents scenarios such as:
+	// a) any non-initial sequencer getting registered before the immutable fields are set in the Rollapp.
+	// b) situation when sequencer "X" is registered prior to the initial sequencer,
+	// after which the initial sequencer's address is set to sequencer X's address, effectively preventing:
+	// 	1. the initial sequencer from getting selected as the first proposer,
+	// 	2. the rollapp from getting sealed
+	isInitial := msg.Creator == rollapp.InitialSequencerAddress
+	if isInitial {
+		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+			return nil, err
+		}
+	} else if !rollapp.Sealed {
+		return nil, types.ErrRollappNotSealed
 	}
 
-	// check to see if the sequencer has enough balance and deduct the bond
-	seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
-
 	bond := sdk.Coins{}
-	minBond := k.GetParams(ctx).MinBond
-	if !minBond.IsNil() && !minBond.IsZero() {
+	if minBond := k.GetParams(ctx).MinBond; !(minBond.IsNil() || minBond.IsZero()) {
 		if msg.Bond.Denom != minBond.Denom {
 			return nil, errorsmod.Wrapf(
 				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
@@ -55,6 +64,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			)
 		}
 
+		seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
 		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
 		if err != nil {
 			return nil, err
@@ -68,16 +78,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:    msg.RollappId,
 		Metadata:     msg.Metadata,
 		Status:       types.Bonded,
-		Proposer:     false,
+		Proposer:     isInitial,
 		Tokens:       bond,
-	}
-
-	isInitialSequencer := sequencer.Address == rollapp.InitialSequencerAddress
-	isStarted := k.rollappKeeper.IsRollappStarted(ctx, msg.RollappId)
-
-	// only the initial sequencer address is going to be selected as the first proposer
-	if isInitialSequencer && !isStarted {
-		sequencer.Proposer = true
 	}
 
 	k.SetSequencer(ctx, sequencer)

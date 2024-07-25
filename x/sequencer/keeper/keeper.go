@@ -37,17 +37,14 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	k := &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		bankKeeper: bankKeeper,
+	return &Keeper{
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramstore:    ps,
+		bankKeeper:    bankKeeper,
+		rollappKeeper: rollappKeeper,
 	}
-	rollappKeeper.SetSequencerKeeper(k)
-	k.rollappKeeper = rollappKeeper
-
-	return k
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

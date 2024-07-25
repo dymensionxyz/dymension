@@ -25,5 +25,5 @@ var (
 	ErrUnknownRequest           = errorsmod.Register(ModuleName, 1017, "unknown request")
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
 	ErrSequencerJailed          = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "sequencer is jailed")
-	ErrGenesisChecksumNotSet    = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "genesis checksum not set")
+	ErrRollappNotSealed         = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "rollapp is not sealed")
 )
