@@ -1,12 +1,11 @@
 package cli
 
 import (
-	"github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -15,7 +14,7 @@ func CmdUpdateRollapp() *cobra.Command {
 		Use:     "update-rollapp [rollapp-id] [init-sequencer] [genesis_checksum] [alias] [metadata]",
 		Short:   "Update a new rollapp",
 		Example: "dymd tx rollapp update-rollapp ROLLAPP_CHAIN_ID --init-sequencer <seq_address> --genesis-checksum <genesis_checksum> --alias Rollapp --metadata metadata.json",
-		Args:    cobra.MinimumNArgs(2),
+		Args:    cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
@@ -40,8 +39,10 @@ func CmdUpdateRollapp() *cobra.Command {
 			}
 
 			metadata := new(types.RollappMetadata)
-			if err = json.Unmarshal([]byte(metadataFlag), metadata); err != nil {
-				return
+			if metadataFlag != "" {
+				if err = utils.ParseJsonFromFile(metadataFlag, metadata); err != nil {
+					return
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -62,7 +63,7 @@ func CmdUpdateRollapp() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FlagSetCreateRollapp())
+	cmd.Flags().AddFlagSet(FlagSetUpdateRollapp())
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

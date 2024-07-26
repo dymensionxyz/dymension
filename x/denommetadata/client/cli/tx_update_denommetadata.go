@@ -3,14 +3,13 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
-
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // NewCmdSubmitUpdateDenomMetadataProposal broadcasts a CreateMetadataProposal message.
@@ -34,7 +33,7 @@ func NewCmdSubmitUpdateDenomMetadataProposal() *cobra.Command {
 			path := args[0]
 
 			var metadatas []banktypes.Metadata
-			metadatas, err = utils.ParseJsonFromFile[banktypes.Metadata](path)
+			err = utils.ParseJsonFromFile(path, &metadatas)
 			if err != nil {
 				return err
 			}

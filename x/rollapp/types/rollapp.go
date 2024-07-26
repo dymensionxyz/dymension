@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"unicode"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -76,12 +77,30 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
+	if len(r.Alias) == 0 {
+		return ErrInvalidAlias
+	}
+
 	if err = validateAlias(r.Alias); err != nil {
 		return ErrInvalidAlias
 	}
 
 	if err = validateMetadata(r.Metadata); err != nil {
 		return errorsmod.Wrap(ErrInvalidMetadata, err.Error())
+	}
+
+	return nil
+}
+
+func validateAlias(alias string) error {
+	if len(alias) > maxAliasLength {
+		return ErrInvalidAlias
+	}
+	// only allow alphanumeric characters and underscores
+	for _, c := range alias {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) && c != '_' {
+			return ErrInvalidAlias
+		}
 	}
 
 	return nil

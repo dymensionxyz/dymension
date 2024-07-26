@@ -7,8 +7,6 @@ import (
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
-
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -40,7 +38,7 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	suite.Require().Nil(err)
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, types.ErrRollappExists)
+	suite.ErrorIs(err, types.ErrRollappIDExists)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
@@ -69,7 +67,7 @@ func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
 		Alias:                   alias,
 	}
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, gerrc.ErrAlreadyExists)
+	suite.ErrorIs(err, types.ErrRollappAliasExists)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappId() {
@@ -344,7 +342,7 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			}
 			_, err = suite.msgServer.CreateRollapp(goCtx, &badRollapp)
 			// it should not be possible to register rollapp name with extra space
-			suite.Require().ErrorIs(err, types.ErrRollappExists)
+			suite.Require().ErrorIs(err, types.ErrRollappIDExists)
 		})
 	}
 }

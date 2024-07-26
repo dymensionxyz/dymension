@@ -37,6 +37,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 		Creator:      alice.String(),
 		RollappId:    tmrand.Str(8),
 		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
+		Alias:        strings.ToLower(tmrand.Str(3)),
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

@@ -9,13 +9,13 @@ import (
 )
 
 func (k msgServer) UpdateRollappInformation(goCtx context.Context, msg *types.MsgUpdateRollappInformation) (*types.MsgUpdateRollappInformationResponse, error) {
-	if msg == nil || msg.GetUpdate() == nil {
+	if msg == nil {
 		return nil, types.ErrInvalidRequest
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.UpdateRollapp(ctx, *msg.Update); err != nil {
+	if err := k.UpdateRollapp(ctx, msg); err != nil {
 		return nil, err
 	}
 

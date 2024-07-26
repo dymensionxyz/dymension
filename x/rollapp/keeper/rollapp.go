@@ -48,12 +48,12 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	return nil
 }
 
-func (k Keeper) UpdateRollapp(ctx sdk.Context, update types.UpdateRollappInformation) error {
-	if err := update.ValidateBasic(); err != nil {
+func (k Keeper) UpdateRollapp(ctx sdk.Context, msg *types.MsgUpdateRollappInformation) error {
+	if err := msg.ValidateBasic(); err != nil {
 		return fmt.Errorf("validate update: %w", err)
 	}
 
-	updated, err := k.canUpdateRollapp(ctx, update)
+	updated, err := k.canUpdateRollapp(ctx, msg)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func (k Keeper) UpdateRollapp(ctx sdk.Context, update types.UpdateRollappInforma
 	return nil
 }
 
-func (k Keeper) canUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInformation) (types.Rollapp, error) {
+func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollappInformation) (types.Rollapp, error) {
 	current, found := k.GetRollapp(ctx, update.RollappId)
 	if !found {
 		return current, errRollappNotFound
@@ -83,7 +83,7 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInfo
 	}
 
 	// immutable values cannot be updated when the rollapp is sealed
-	if update.UpdatingImutableValues() && current.Sealed {
+	if update.UpdatingImmutableValues() && current.Sealed {
 		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
@@ -101,7 +101,9 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInfo
 		current.GenesisChecksum = update.GenesisChecksum
 	}
 
-	current.Metadata = update.Metadata
+	if update.Metadata != nil {
+		current.Metadata = update.Metadata
+	}
 
 	if err = current.ValidateBasic(); err != nil {
 		return current, fmt.Errorf("validate rollapp: %w", err)
@@ -131,11 +133,11 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
 	}
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
-		return types.ErrRollappExists
+		return types.ErrRollappIDExists
 	}
 
 	if _, isFound := k.GetRollappByAlias(ctx, alias); isFound {
-		return gerrc.ErrAlreadyExists
+		return types.ErrRollappAliasExists
 	}
 
 	if !rollappId.IsEIP155() {
@@ -148,7 +150,7 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
 		return nil
 	}
 	if !existingRollapp.Frozen {
-		return types.ErrRollappExists
+		return types.ErrRollappIDExists
 	}
 	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
 

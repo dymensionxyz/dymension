@@ -9,7 +9,7 @@ import (
 
 // x/rollapp module sentinel errors
 var (
-	ErrRollappExists                   = errorsmod.Register(ModuleName, 1000, "rollapp already exists for this rollapp-id; must use new rollapp-id")
+	ErrRollappIDExists                 = errorsmod.Register(ModuleName, 1000, "rollapp already exists for this rollapp-id; must use new rollapp-id")
 	ErrInvalidInitialSequencerAddress  = errorsmod.Register(ModuleName, 1001, "empty initial sequencer address")
 	ErrInvalidCreatorAddress           = errorsmod.Register(ModuleName, 1002, "invalid creator address")
 	ErrInvalidBech32Prefix             = errorsmod.Register(ModuleName, 1003, "invalid Bech32 prefix")
@@ -41,6 +41,7 @@ var (
 	ErrSealWithImmutableFieldsNotSet   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "seal with immutable fields not set")
 	ErrInvalidHandle                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "handle")
 	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
+	ErrRollappAliasExists              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "rollapp already exists for this alias; must use new alias")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

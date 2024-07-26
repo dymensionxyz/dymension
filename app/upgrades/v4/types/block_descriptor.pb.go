@@ -124,15 +124,6 @@ func (m *BlockDescriptors) GetBD() []BlockDescriptor {
 	return nil
 }
 
-func init() {
-	proto.RegisterType((*BlockDescriptor)(nil), "dymensionxyz.dymension.rollapp.BlockDescriptor")
-	proto.RegisterType((*BlockDescriptors)(nil), "dymensionxyz.dymension.rollapp.BlockDescriptors")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/rollapp/block_descriptor.proto", fileDescriptor_6eb4c1d0c21c2e68)
-}
-
 var fileDescriptor_6eb4c1d0c21c2e68 = []byte{
 	// 243 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x32, 0x4d, 0xa9, 0xcc, 0x4d,
