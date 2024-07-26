@@ -14,6 +14,8 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // Prevent strconv unused error
@@ -27,8 +29,9 @@ const (
 
 type RollappTestSuite struct {
 	apptesting.KeeperTestHelper
-	msgServer   types.MsgServer
-	queryClient types.QueryClient
+	msgServer    types.MsgServer
+	seqMsgServer sequencertypes.MsgServer
+	queryClient  types.QueryClient
 }
 
 func (suite *RollappTestSuite) SetupTest() {
@@ -51,6 +54,7 @@ func (suite *RollappTestSuite) SetupTest() {
 
 	suite.App = app
 	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
+	suite.seqMsgServer = sequencerkeeper.NewMsgServerImpl(app.SequencerKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
 }

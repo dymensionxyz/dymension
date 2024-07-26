@@ -9,6 +9,10 @@ import (
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
+	if msg == nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if err := k.RegisterRollapp(ctx, msg.GetRollapp()); err != nil {

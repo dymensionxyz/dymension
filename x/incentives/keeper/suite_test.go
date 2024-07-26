@@ -206,14 +206,16 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 }
 
 // SetupLockAndGauge creates both a lock and a gauge.
-func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
-	alice := sdk.AccAddress("addr1---------------")
-	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
+func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
+	suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:      alice.String(),
-		RollappId:    tmrand.Str(8),
-		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
+		Creator:                 addr.String(),
+		RollappId:               tmrand.Str(8),
+		Bech32Prefix:            strings.ToLower(tmrand.Str(3)),
+		GenesisChecksum:         "checksum",
+		InitialSequencerAddress: addr.String(),
+		Alias:                   "alias",
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

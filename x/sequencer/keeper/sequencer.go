@@ -15,10 +15,10 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 	store.Set(types.SequencerKey(
-		sequencer.SequencerAddress,
+		sequencer.Address,
 	), b)
 
-	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
+	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, sequencer.Status)
 	store.Set(seqByRollappKey, b)
 
 	// To support InitGenesis scenario
@@ -30,14 +30,14 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 func (k Keeper) UpdateSequencer(ctx sdk.Context, sequencer types.Sequencer, oldStatus types.OperatingStatus) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
-	store.Set(types.SequencerKey(sequencer.SequencerAddress), b)
+	store.Set(types.SequencerKey(sequencer.Address), b)
 
-	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, sequencer.Status)
+	seqByRollappKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, sequencer.Status)
 	store.Set(seqByRollappKey, b)
 
 	// status changed, need to remove old status key
 	if sequencer.Status != oldStatus {
-		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.SequencerAddress, oldStatus)
+		oldKey := types.SequencerByRollappByStatusKey(sequencer.RollappId, sequencer.Address, oldStatus)
 		store.Delete(oldKey)
 	}
 }
@@ -70,7 +70,7 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		sdk.NewEvent(
 			types.EventTypeProposerRotated,
 			sdk.NewAttribute(types.AttributeKeyRollappId, rollappId),
-			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.Address),
 		),
 	)
 }
@@ -89,9 +89,19 @@ func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val type
 	return val, true
 }
 
-func (k Keeper) IsSequencerBonded(ctx sdk.Context, address string) bool {
-	seq, found := k.GetSequencer(ctx, address)
-	return found && seq.IsBonded()
+func (k Keeper) GetSequencerByRollappByStatus(ctx sdk.Context, rollappId, seqAddress string, status types.OperatingStatus) (val types.Sequencer, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.SequencerByRollappByStatusKey(
+		rollappId,
+		seqAddress,
+		status,
+	))
+	if b == nil {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(b, &val)
+	return val, true
 }
 
 // GetAllSequencers returns all sequencer
@@ -167,13 +177,13 @@ func (k Keeper) setUnbondingSequencerQueue(ctx sdk.Context, sequencer types.Sequ
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
-	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.Address, sequencer.UnbondTime)
 	store.Set(unbondingQueueKey, b)
 }
 
 // remove unbonding sequencer from the queue
 func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	unbondingQueueKey := types.UnbondingSequencerKey(sequencer.Address, sequencer.UnbondTime)
 	store.Delete(unbondingQueueKey)
 }

@@ -329,17 +329,6 @@ func (m *BlockHeightToFinalizationQueue) GetFinalizationQueue() []StateInfoIndex
 	return nil
 }
 
-func init() {
-	proto.RegisterType((*StateInfoIndex)(nil), "dymensionxyz.dymension.rollapp.StateInfoIndex")
-	proto.RegisterType((*StateInfo)(nil), "dymensionxyz.dymension.rollapp.StateInfo")
-	proto.RegisterType((*StateInfoSummary)(nil), "dymensionxyz.dymension.rollapp.StateInfoSummary")
-	proto.RegisterType((*BlockHeightToFinalizationQueue)(nil), "dymensionxyz.dymension.rollapp.BlockHeightToFinalizationQueue")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/rollapp/state_info.proto", fileDescriptor_750f3a9f16533ec4)
-}
-
 var fileDescriptor_750f3a9f16533ec4 = []byte{
 	// 487 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0x4f, 0x6b, 0x13, 0x41,

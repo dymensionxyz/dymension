@@ -262,16 +262,6 @@ func (m *RollappSummary) GetLatestFinalizedStateIndex() *StateInfoIndex {
 	return nil
 }
 
-func init() {
-	proto.RegisterType((*RollappGenesisState)(nil), "dymensionxyz.dymension.rollapp.RollappGenesisState")
-	proto.RegisterType((*Rollapp)(nil), "dymensionxyz.dymension.rollapp.Rollapp")
-	proto.RegisterType((*RollappSummary)(nil), "dymensionxyz.dymension.rollapp.RollappSummary")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/rollapp/rollapp.proto", fileDescriptor_d4ef2bec3aea5528)
-}
-
 var fileDescriptor_d4ef2bec3aea5528 = []byte{
 	// 498 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xcd, 0x6e, 0x13, 0x31,

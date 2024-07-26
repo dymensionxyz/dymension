@@ -5,10 +5,11 @@ package types
 
 import (
 	fmt "fmt"
-	proto "github.com/cosmos/gogoproto/proto"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+
+	proto "github.com/cosmos/gogoproto/proto"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -102,14 +103,6 @@ func (m *Description) GetDetails() string {
 		return m.Details
 	}
 	return ""
-}
-
-func init() {
-	proto.RegisterType((*Description)(nil), "dymensionxyz.dymension.sequencer.Description")
-}
-
-func init() {
-	proto.RegisterFile("dymensionxyz/dymension/sequencer/description.proto", fileDescriptor_51488ae6fd653edd)
 }
 
 var fileDescriptor_51488ae6fd653edd = []byte{

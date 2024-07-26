@@ -34,6 +34,8 @@ import (
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sequencerkeeper "github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
+	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
@@ -53,6 +55,7 @@ func CreateUpgradeHandler(
 		if err := migrateRollapps(ctx, keepers.GetKey(rollapptypes.ModuleName), appCodec, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
+		migrateSequencers(ctx, keepers.GetKey(sequencertypes.ModuleName), appCodec, keepers.SequencerKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp
 
@@ -126,6 +129,14 @@ func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, ap
 	return nil
 }
 
+func migrateSequencers(ctx sdk.Context, sequencerStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, sequencerkeeper sequencerkeeper.Keeper) {
+	list := getAllOldSequencers(ctx, sequencerStoreKey, appCodec)
+	for _, oldSequencer := range list {
+		newSequencer := ConvertOldSequencerToNew(oldSequencer)
+		sequencerkeeper.SetSequencer(ctx, newSequencer)
+	}
+}
+
 func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 	bech32Prefix := oldRollapp.RollappId[:5]
 	return rollapptypes.Rollapp{
@@ -152,6 +163,37 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 	}
 }
 
+var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
+
+func ConvertOldSequencerToNew(old types.Sequencer) sequencertypes.Sequencer {
+	return sequencertypes.Sequencer{
+		Address:      old.SequencerAddress,
+		DymintPubKey: old.DymintPubKey,
+		RollappId:    old.RollappId,
+		Status:       sequencertypes.OperatingStatus(old.Status),
+		Proposer:     old.Proposer,
+		Tokens:       old.Tokens,
+		Metadata: sequencertypes.SequencerMetadata{
+			Moniker:     old.Description.Moniker,
+			Details:     old.Description.Details,
+			P2PSeeds:    nil,        // TODO
+			Rpcs:        nil,        // TODO
+			EvmRpcs:     nil,        // TODO
+			RestApiUrl:  "",         // TODO
+			ExplorerUrl: "",         // TODO
+			GenesisUrls: []string{}, // TODO
+			ContactDetails: &sequencertypes.ContactDetails{ // TODO
+				Website:  "", // TODO
+				Telegram: "", // TODO
+				X:        "", // TODO
+			}, // TODO
+			ExtraData: nil,                              // TODO
+			Snapshots: []*sequencertypes.SnapshotInfo{}, // TODO
+			GasPrice:  &defaultGasPrice,
+		},
+	}
+}
+
 func getAllOldRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec) (list []types.Rollapp) {
 	store := prefix.NewStore(ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -160,6 +202,22 @@ func getAllOldRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCode
 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Rollapp
+		bz := iterator.Value()
+		appCodec.MustUnmarshalJSON(bz, &val)
+		list = append(list, val)
+	}
+
+	return
+}
+
+func getAllOldSequencers(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec) (list []types.Sequencer) {
+	store := prefix.NewStore(ctx.KVStore(storeKey), sequencertypes.SequencersKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.Sequencer
 		bz := iterator.Value()
 		appCodec.MustUnmarshalJSON(bz, &val)
 		list = append(list, val)

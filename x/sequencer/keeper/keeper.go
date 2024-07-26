@@ -5,9 +5,8 @@ import (
 
 	"github.com/cometbft/cometbft/libs/log"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -38,17 +37,14 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	k := &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		bankKeeper: bankKeeper,
+	return &Keeper{
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramstore:    ps,
+		bankKeeper:    bankKeeper,
+		rollappKeeper: rollappKeeper,
 	}
-	rollappKeeper.SetSequencerKeeper(k)
-	k.rollappKeeper = rollappKeeper
-
-	return k
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,25 +17,27 @@ import (
 func (suite *SequencerTestSuite) TestSequencersByRollappQuery3() {
 	suite.SetupTest()
 
-	rollappId := suite.CreateDefaultRollapp()
-	rollappId2 := suite.CreateDefaultRollapp()
+	rollappId, pk11 := suite.CreateDefaultRollapp()
+	pk12 := ed25519.GenPrivKey().PubKey()
+	rollappId2, pk21 := suite.CreateDefaultRollapp()
+	pk22 := ed25519.GenPrivKey().PubKey()
 
 	// create 2 sequencer
-	addr1_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seq1, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1_1)
+	addr11 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk11)
+	addr21 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk12)
+	seq1, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr11)
 	require.True(suite.T(), found)
-	seq2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2_1)
+	seq2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr21)
 	require.True(suite.T(), found)
 	seq1Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq1, seq2},
 	}
 
-	addr1_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
-	addr2_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
-	seq3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1_2)
+	addr12 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk21)
+	addr22 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk22)
+	seq3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr12)
 	require.True(suite.T(), found)
-	seq4, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2_2)
+	seq4, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr22)
 	require.True(suite.T(), found)
 	seq2Response := types.QueryGetSequencersByRollappResponse{
 		Sequencers: []types.Sequencer{seq3, seq4},
@@ -92,19 +95,21 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 
 	msgserver := keeper.NewMsgServerImpl(suite.App.SequencerKeeper)
 
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk11 := suite.CreateDefaultRollapp()
+	pk12 := ed25519.GenPrivKey().PubKey()
 	// create 2 sequencers on rollapp1
-	addr1_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	addr2_1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr11 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk11)
+	addr21 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk12)
 	_, err := msgserver.Unbond(suite.Ctx, &types.MsgUnbond{
-		Creator: addr2_1,
+		Creator: addr21,
 	})
 	require.NoError(suite.T(), err)
 
 	// create 2 sequencers on rollapp2
-	rollappId2 := suite.CreateDefaultRollapp()
-	addr1_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
-	addr2_2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
+	rollappId2, pk21 := suite.CreateDefaultRollapp()
+	pk22 := ed25519.GenPrivKey().PubKey()
+	addr12 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk21)
+	addr22 := suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk22)
 
 	for _, tc := range []struct {
 		desc          string
@@ -118,7 +123,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				RollappId: rollappId,
 				Status:    types.Bonded,
 			},
-			response_addr: []string{addr1_1},
+			response_addr: []string{addr11},
 		},
 		{
 			desc: "First - Unbonding",
@@ -126,7 +131,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				RollappId: rollappId,
 				Status:    types.Unbonding,
 			},
-			response_addr: []string{addr2_1},
+			response_addr: []string{addr21},
 		},
 		{
 			desc: "First - Unbonded",
@@ -142,7 +147,7 @@ func (suite *SequencerTestSuite) TestSequencersByRollappByStatusQuery() {
 				RollappId: rollappId2,
 				Status:    types.Bonded,
 			},
-			response_addr: []string{addr1_2, addr2_2},
+			response_addr: []string{addr12, addr22},
 		},
 		{
 			desc: "KeyNotFound",

@@ -82,15 +82,9 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update types.UpdateRollappInfo
 		return current, types.ErrRollappFrozen
 	}
 
-	if update.UpdatingImutableValues() {
-		// initial sequencer address cannot be updated after the initial sequencer has bonded
-		if k.sequencerKeeper.IsSequencerBonded(ctx, current.InitialSequencerAddress) {
-			return current, types.ErrImmutableFieldUpdateAfterInitialSequencerBonded
-		}
-		// initial sequencer address cannot be updated after the first state update
-		if _, hasState := k.GetLatestStateInfoIndex(ctx, current.RollappId); hasState {
-			return current, types.ErrImmutableFieldUpdateAfterState
-		}
+	// immutable values cannot be updated when the rollapp is sealed
+	if update.UpdatingImutableValues() && current.Sealed {
+		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
 	var err error
@@ -196,6 +190,22 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 	), []byte(rollapp.RollappId))
 }
 
+func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
+	rollapp, found := k.GetRollapp(ctx, rollappId)
+	if !found {
+		return types.ErrNotFound
+	}
+
+	if rollapp.GenesisChecksum == "" || rollapp.Alias == "" || rollapp.InitialSequencerAddress == "" {
+		return types.ErrSealWithImmutableFieldsNotSet
+	}
+
+	rollapp.Sealed = true
+	k.SetRollapp(ctx, rollapp)
+
+	return nil
+}
+
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
 func (k Keeper) GetRollappByEIP155(ctx sdk.Context, eip155 uint64) (val types.Rollapp, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
@@ -278,4 +288,9 @@ func (k Keeper) GetAllRollapps(ctx sdk.Context) (list []types.Rollapp) {
 func (k Keeper) IsRollappStarted(ctx sdk.Context, rollappId string) bool {
 	_, found := k.GetLatestStateInfoIndex(ctx, rollappId)
 	return found
+}
+
+func (k Keeper) IsRollappSealed(ctx sdk.Context, rollappId string) bool {
+	rollapp, found := k.GetRollapp(ctx, rollappId)
+	return found && rollapp.Sealed
 }
