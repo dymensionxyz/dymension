@@ -29,14 +29,15 @@ func (m MsgServer) Vote(goCtx context.Context, msg *types.MsgVote) (*types.MsgVo
 	// Don't check the error since it's part of validation
 	voter := sdk.MustAccAddressFromBech32(msg.Voter)
 
-	vote, err := m.k.Vote(ctx, voter, msg.Weights)
+	vote, distr, err := m.k.Vote(ctx, voter, msg.Weights)
 	if err != nil {
 		return nil, err
 	}
 
 	err = ctx.EventManager().EmitTypedEvent(&types.EventVote{
-		Voter: msg.Voter,
-		Vote:  vote,
+		Voter:        msg.Voter,
+		Vote:         vote,
+		Distribution: distr,
 	})
 	if err != nil {
 		return nil, err
@@ -55,13 +56,14 @@ func (m MsgServer) RevokeVote(goCtx context.Context, msg *types.MsgRevokeVote) (
 	// Don't check the error since it's part of validation
 	voter := sdk.MustAccAddressFromBech32(msg.Voter)
 
-	err = m.k.RevokeVote(ctx, voter)
+	distr, err := m.k.RevokeVote(ctx, voter)
 	if err != nil {
 		return nil, err
 	}
 
 	err = ctx.EventManager().EmitTypedEvent(&types.EventRevokeVote{
-		Voter: msg.Voter,
+		Voter:        msg.Voter,
+		Distribution: distr,
 	})
 	if err != nil {
 		return nil, err

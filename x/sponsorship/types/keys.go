@@ -12,10 +12,10 @@ const (
 )
 
 const (
-	ParamsByte uint8 = iota
-	DistributionByte
-	VotedDelegationsByte
-	VoteByte
+	ParamsByte                  uint8 = iota // Module params: Params
+	DistributionByte                         // Current distribution: Distribution
+	DelegatorValidatorPowerByte              // Delegator voting power by the validator: math.Int
+	VoteByte                                 // User's vote: Vote
 )
 
 func ParamsKey() []byte {
@@ -26,18 +26,18 @@ func DistributionKey() []byte {
 	return []byte{DistributionByte}
 }
 
-func VotedDelegationKey(valAddr sdk.ValAddress, voterAddr sdk.AccAddress) []byte {
+func DelegatorValidatorPowerKey(voterAddr sdk.AccAddress, valAddr sdk.ValAddress) []byte {
 	key := make([]byte, 0, 1+len(voterAddr)+len(valAddr))
-	key = append(key, VotedDelegationsByte)
-	key = append(key, valAddr.Bytes()...)
+	key = append(key, DelegatorValidatorPowerByte)
 	key = append(key, voterAddr.Bytes()...)
+	key = append(key, valAddr.Bytes()...)
 	return key
 }
 
-func VotedDelegationsByValidatorKey(valAddr sdk.ValAddress) []byte {
-	key := make([]byte, 0, 1+len(valAddr))
-	key = append(key, VotedDelegationsByte)
-	key = append(key, valAddr.Bytes()...)
+func DelegatorPowerKey(voterAddr sdk.AccAddress) []byte {
+	key := make([]byte, 0, 1+len(voterAddr))
+	key = append(key, DelegatorValidatorPowerByte)
+	key = append(key, voterAddr.Bytes()...)
 	return key
 }
 

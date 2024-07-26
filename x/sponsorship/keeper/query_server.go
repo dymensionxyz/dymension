@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -26,10 +27,17 @@ func (q QueryServer) Params(goCtx context.Context, _ *types.QueryParamsRequest) 
 
 func (q QueryServer) Vote(goCtx context.Context, request *types.QueryVoteRequest) (*types.QueryVoteResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	vote, err := q.k.GetVote(ctx, request.GetVoter())
+
+	voter, err := sdk.AccAddressFromBech32(request.GetVoter())
+	if err != nil {
+		return nil, fmt.Errorf("invalid voter address: %w", err)
+	}
+
+	vote, err := q.k.GetVote(ctx, voter)
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.QueryVoteResponse{Vote: vote}, nil
 }
 

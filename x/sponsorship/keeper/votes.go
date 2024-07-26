@@ -10,124 +10,113 @@ import (
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 
-func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.GaugeWeight) (types.Vote, error) {
+func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.GaugeWeight) (types.Vote, types.Distribution, error) {
 	params := k.GetParams(ctx)
 
-	// Validate that no gauge got less than MinAllocationWeight and all of them are perpetual
-	for _, weight := range weights {
-		if weight.Weight.LT(params.MinAllocationWeight) {
-			return types.Vote{}, fmt.Errorf("gauge weight '%d' is less than min allocation weight '%d'", weight.Weight.Int64(), params.MinAllocationWeight.Int64())
-		}
-
-		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
-		if err != nil {
-			return types.Vote{}, fmt.Errorf("failed to get gauge by id '%d': %w", weight.GaugeId, err)
-		}
-
-		if !gauge.IsPerpetual {
-			return types.Vote{}, fmt.Errorf("gauge '%d' is not perpetual", weight.GaugeId)
-		}
+	err := k.validateWeights(ctx, weights, params.MinAllocationWeight)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("error validating weights: %w", err)
 	}
 
 	// Get the user’s total voting power from the x/staking
-	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
+	vpBreakdown, err := k.getValidatorBreakdown(ctx, voter)
 	if err != nil {
-		return types.Vote{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
 	}
 
-	// Validate that the user is bonded (power > MinVotingPower)
+	// Validate that the user has min voting power
 	if vpBreakdown.TotalPower.LT(params.MinVotingPower) {
-		return types.Vote{}, fmt.Errorf("voting power '%d' is less than min voting power expected '%d'", vpBreakdown.TotalPower.Int64(), params.MinVotingPower.Int64())
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("voting power '%d' is less than min voting power expected '%d'", vpBreakdown.TotalPower.Int64(), params.MinVotingPower.Int64())
 	}
 
+	// Apply the vote weights to the power -> get a distribution update in absolute values
+	update := types.ApplyWeights(vpBreakdown.TotalPower, weights)
+
+	// Update the current distribution
+	distr, err := k.UpdateDistribution(ctx, update.Merge)
+	if err != nil {
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
+	}
+
+	// Save the user's vote
 	vote := types.Vote{
 		VotingPower: vpBreakdown.TotalPower,
 		Weights:     weights,
 	}
-
-	// Apply the weights to the voting power -> now the weights are in absolute values
-	update := vote.ToDistribution()
-
-	// Get the current plan from the state
-	current, err := k.GetDistribution(ctx)
-	if err != nil {
-		return types.Vote{}, fmt.Errorf("failed to get distribution: %w", err)
-	}
-
-	// Apply the user weights to the current plan
-	result := current.Merge(update)
-
-	// Save the user's vote
 	err = k.SaveVote(ctx, voter, vote)
 	if err != nil {
-		return types.Vote{}, fmt.Errorf("failed to save vote: %w", err)
+		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to save vote: %w", err)
 	}
 
 	// Save the user's voting power breakdown
 	for _, valPower := range vpBreakdown.Breakdown {
-		err = k.SaveVotedDelegation(ctx, valPower.ValAddr, voter, valPower.Power)
+		err = k.SaveDelegatorValidatorPower(ctx, voter, valPower.ValAddr, valPower.Power)
 		if err != nil {
-			return types.Vote{}, fmt.Errorf("failed to save voting power: %w", err)
+			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to save voting power: %w", err)
 		}
 	}
 
-	// Save the updated distribution
-	err = k.SaveDistribution(ctx, result)
-	if err != nil {
-		return types.Vote{}, fmt.Errorf("failed to save distribution: %w", err)
-	}
-
-	return vote, nil
+	return vote, distr, nil
 }
 
-func (k Keeper) RevokeVote(ctx sdk.Context, voter sdk.AccAddress) error {
-	// Get the user’s vote from the state
+func (k Keeper) RevokeVote(ctx sdk.Context, voter sdk.AccAddress) (types.Distribution, error) {
 	vote, err := k.GetVote(ctx, voter)
 	if err != nil {
-		return fmt.Errorf("failed to get vote: %w", err)
+		return types.Distribution{}, fmt.Errorf("failed to get vote: %w", err)
 	}
+	return k.revokeVote(ctx, voter, vote)
+}
 
+// revokeVote revokes a vote by applying the negative user's vote to the current distribution.
+// It updates the distribution and prunes the vote and voting power of the voter.
+func (k Keeper) revokeVote(ctx sdk.Context, voter sdk.AccAddress, vote types.Vote) (types.Distribution, error) {
 	// Apply the weights to the user’s voting power -> now the weights are in absolute values
-	update := vote.ToDistribution()
+	update := vote.ToDistribution().Negate()
 
-	// Get the current plan from the state
-	current, err := k.GetDistribution(ctx)
+	// Update the current distribution
+	d, err := k.UpdateDistribution(ctx, update.Merge)
 	if err != nil {
-		return fmt.Errorf("failed to get distribution: %w", err)
-	}
-
-	// result = current - update
-	result := current.Merge(update.Negate())
-
-	// Save the updated distribution
-	err = k.SaveDistribution(ctx, result)
-	if err != nil {
-		return fmt.Errorf("failed to save distribution: %w", err)
+		return types.Distribution{}, fmt.Errorf("failed to update distribution: %w", err)
 	}
 
 	// Prune the user’s vote and voting power
 	k.DeleteVote(ctx, voter)
-	k.DeleteVotedDelegationsForValidator(ctx, voter) // TODO!
+	k.DeleteDelegatorPower(ctx, voter)
 
-	return nil
+	return d, nil
 }
 
-func (k Keeper) UpdateVotingPower(ctx sdk.Context, voter sdk.AccAddress, power math.Int) error {
-	panic("not implemented")
+// validateWeights validates that no gauge got less than MinAllocationWeight and all of them are perpetual
+func (k Keeper) validateWeights(ctx sdk.Context, weights []types.GaugeWeight, minAllocationWeight math.Int) error {
+	for _, weight := range weights {
+		if weight.Weight.LT(minAllocationWeight) {
+			return fmt.Errorf("gauge weight '%d' is less than min allocation weight '%d'", weight.Weight.Int64(), minAllocationWeight.Int64())
+		}
+
+		gauge, err := k.incentivesKeeper.GetGaugeByID(ctx, weight.GaugeId)
+		if err != nil {
+			return fmt.Errorf("failed to get gauge by id '%d': %w", weight.GaugeId, err)
+		}
+
+		if !gauge.IsPerpetual {
+			return fmt.Errorf("gauge '%d' is not perpetual", weight.GaugeId)
+		}
+	}
+	return nil
 }
 
 type ValidatorPower struct {
 	ValAddr sdk.ValAddress // Address of the validator.
-	Power   math.Int       // If the validator is not bonded, then Power is math.ZeroInt.
+	Power   math.Int       // Voting power the user gets from this validator.
 }
 
 type ValidatorBreakdown struct {
-	TotalPower math.Int // Total power of the breakdown. Only bonded validators are count.
+	TotalPower math.Int // Total power of the breakdown.
 	Breakdown  []ValidatorPower
 }
 
-// GetValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
-func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
+// getValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
+func (k Keeper) getValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
 	var err error
 	totalPower := math.ZeroInt()
 	breakdown := make([]ValidatorPower, 0)
@@ -142,13 +131,9 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 			return Break
 		}
 
-		var votingPower = math.ZeroInt()
-
-		if v.IsBonded() {
-			// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
-			votingPower = v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
-			totalPower = totalPower.Add(votingPower)
-		}
+		// VotingPower = Ceil(DelegationShares * BondedTokens / TotalShares)
+		votingPower := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
+		totalPower = totalPower.Add(votingPower)
 
 		breakdown = append(breakdown, ValidatorPower{
 			ValAddr: d.GetValidatorAddr(),
@@ -164,5 +149,5 @@ func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (Va
 	return ValidatorBreakdown{
 		TotalPower: totalPower,
 		Breakdown:  breakdown,
-	}, err
+	}, nil
 }

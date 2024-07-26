@@ -67,14 +67,16 @@ func NewDistribution() Distribution {
 }
 
 // Merge is a binary associative and commutative operation over Distribution. It takes two
-// distributions and applies one to another. Example:
+// distributions and applies one to another.
+// O(n+m) solution based on modified https://leetcode.com/problems/merge-sorted-array.
 func (d Distribution) Merge(d1 Distribution) Distribution {
-	// O(n+m) solution based on modified https://leetcode.com/problems/merge-sorted-array.
-	gauges := make(Gauges, 0, len(d.Gauges)+len(d1.Gauges))
-	var i = 0           // first iterator
-	var j = 0           // second iterator
-	var lhs = d.Gauges  // alias
-	var rhs = d1.Gauges // alias
+	var (
+		gauges = make(Gauges, 0, len(d.Gauges)+len(d1.Gauges))
+		i      = 0         // first iterator
+		j      = 0         // second iterator
+		lhs    = d.Gauges  // alias
+		rhs    = d1.Gauges // alias
+	)
 
 	for i < len(lhs) && j < len(rhs) {
 		var gauge Gauge
