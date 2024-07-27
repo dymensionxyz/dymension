@@ -18,7 +18,10 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata *SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
+	if metadata == nil {
+		return nil, ErrInvalidRequest
+	}
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -31,7 +34,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 		Creator:      creator,
 		DymintPubKey: pkAny,
 		RollappId:    rollappId,
-		Metadata:     metadata,
+		Metadata:     *metadata,
 		Bond:         bond,
 	}, nil
 }

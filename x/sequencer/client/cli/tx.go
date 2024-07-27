@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -11,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -40,10 +40,10 @@ func CmdCreateSequencer() *cobra.Command {
 			argPubkey := args[0]
 			argRollappId := args[1]
 			bond := args[3]
-			argMetadata := types.SequencerMetadata{}
-			err = json.Unmarshal([]byte(args[2]), &argMetadata)
-			if err != nil {
-				return err
+
+			metadata := new(types.SequencerMetadata)
+			if err = utils.ParseJsonFromFile(args[2], metadata); err != nil {
+				return
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -66,7 +66,7 @@ func CmdCreateSequencer() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				pk,
 				argRollappId,
-				argMetadata,
+				metadata,
 				bondCoin,
 			)
 			if err != nil {
@@ -89,10 +89,10 @@ func CmdUpdateSequencer() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
-			argMetadata := types.SequencerMetadata{}
 
-			if err = json.Unmarshal([]byte(args[2]), &argMetadata); err != nil {
-				return err
+			metadata := new(types.SequencerMetadata)
+			if err = utils.ParseJsonFromFile(args[1], metadata); err != nil {
+				return
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -103,7 +103,7 @@ func CmdUpdateSequencer() *cobra.Command {
 			msg, err := types.NewMsgUpdateSequencerInformation(
 				clientCtx.GetFromAddress().String(),
 				argRollappId,
-				argMetadata,
+				metadata,
 			)
 			if err != nil {
 				return err
@@ -121,7 +121,7 @@ func CmdUpdateSequencer() *cobra.Command {
 func CmdUnbond() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "unbond",
-		Short: "Create a new sequencer for a rollapp",
+		Short: "Unbond the sequencer",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)

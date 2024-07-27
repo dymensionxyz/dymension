@@ -101,7 +101,7 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		current.GenesisChecksum = update.GenesisChecksum
 	}
 
-	if update.Metadata != nil {
+	if update.Metadata != nil && !update.Metadata.IsEmpty() {
 		current.Metadata = update.Metadata
 	}
 
@@ -126,6 +126,8 @@ func (k Keeper) canUpdateAlias(
 	return updateAlias, nil
 }
 
+// checkIfRollappExists checks if a rollapp with the same ID, EIP155ID (if supported) or alias already exists in the store.
+// An exception is made for EIP155ID when the rollapp is frozen, in which case it is allowed to replace the existing rollapp.
 func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
 	rollappId, err := types.NewChainID(id)
 	if err != nil {

@@ -3,6 +3,7 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
 	"github.com/dymensionxyz/dymension/v3/utils"
@@ -18,22 +19,22 @@ func CmdUpdateRollapp() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argRollappId := args[0]
 
-			initSequencerAddress, err := cmd.Flags().GetString("init-sequencer")
+			initSequencerAddress, err := cmd.Flags().GetString(FlagInitSequencer)
 			if err != nil {
 				return
 			}
 
-			genesisChecksum, err := cmd.Flags().GetString("genesis-checksum")
+			genesisChecksum, err := cmd.Flags().GetString(FlagGenesisChecksum)
 			if err != nil {
 				return
 			}
 
-			alias, err := cmd.Flags().GetString("alias")
+			alias, err := cmd.Flags().GetString(FlagAlias)
 			if err != nil {
 				return
 			}
 
-			metadataFlag, err := cmd.Flags().GetString("metadata")
+			metadataFlag, err := cmd.Flags().GetString(FlagMetadata)
 			if err != nil {
 				return
 			}

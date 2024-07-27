@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"gopkg.in/yaml.v2"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -94,11 +96,11 @@ func validateRegistrationFee(v interface{}) error {
 	}
 
 	if !registrationFee.IsValid() {
-		return fmt.Errorf("invalid registration fee: %s", registrationFee)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee: %s", registrationFee)
 	}
 
 	if registrationFee.Denom != appparams.BaseDenom {
-		return fmt.Errorf("invalid registration fee denom: %s", registrationFee.Denom)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee denom: %s", registrationFee)
 	}
 
 	return nil

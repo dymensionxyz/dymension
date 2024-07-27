@@ -15,11 +15,14 @@ var (
 	_ codectypes.UnpackInterfacesMessage = (*MsgUpdateSequencerInformation)(nil)
 )
 
-func NewMsgUpdateSequencerInformation(creator string, rollappId string, metadata SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
+func NewMsgUpdateSequencerInformation(creator string, rollappId string, metadata *SequencerMetadata) (*MsgUpdateSequencerInformation, error) {
+	if metadata == nil {
+		return nil, ErrInvalidRequest
+	}
 	return &MsgUpdateSequencerInformation{
 		Creator:   creator,
 		RollappId: rollappId,
-		Metadata:  metadata,
+		Metadata:  *metadata,
 	}, nil
 }
 

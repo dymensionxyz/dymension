@@ -28,9 +28,9 @@ func ParseJsonFromFile[T any](path string, result T) error {
 	// #nosec G304
 	contents, err := os.ReadFile(path)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	err = json.Unmarshal(contents, result)
-	return nil
+	return err
 }

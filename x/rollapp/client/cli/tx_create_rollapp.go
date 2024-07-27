@@ -1,11 +1,12 @@
 package cli
 
 import (
-	"github.com/cometbft/cometbft/libs/json"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
 
+	"github.com/dymensionxyz/dymension/v3/utils"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -17,7 +18,7 @@ func CmdCreateRollapp() *cobra.Command {
 		Args:    cobra.MinimumNArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// nolint:gofumpt
-			argRollappId, argBech32Prefix, alias := args[0], args[1], args[2]
+			argRollappId, alias, argBech32Prefix := args[0], args[1], args[2]
 
 			var genesisChecksum, argInitSequencerAddress string
 			if len(args) > 3 {
@@ -29,7 +30,7 @@ func CmdCreateRollapp() *cobra.Command {
 
 			metadata := new(types.RollappMetadata)
 			if len(args) > 5 {
-				if err := json.Unmarshal([]byte(args[5]), metadata); err != nil {
+				if err := utils.ParseJsonFromFile(args[5], metadata); err != nil {
 					return err
 				}
 			}
