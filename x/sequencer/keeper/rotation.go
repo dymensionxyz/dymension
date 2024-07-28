@@ -23,6 +23,7 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
+			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
 			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeq.SequencerAddress),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),

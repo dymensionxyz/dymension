@@ -3,18 +3,31 @@ package types
 // Incentive module event types.
 const (
 	// EventTypeCreateSequencer is emitted when a sequencer is created
+	// Attributes:
+	// - AttributeKeyRollappId
+	// - AttributeKeySequencer
+	// - AttributeKeyBond
+	// - AttributeKeyProposer
 	EventTypeCreateSequencer = "create_sequencer"
 
-	// EventTypeNoBondedSequencer is emitted when no bonded sequencer is found for a rollapp
-	EventTypeNoBondedSequencer = "no_bonded_sequencer"
-
 	// EventTypeRotationStarted is emitted when a rotation is started (after notice period)
+	// Attributes:
+	// - AttributeKeyRollappId
+	// - AttributeKeyNextProposer
 	EventTypeRotationStarted = "rotation_started"
 
 	// EventTypeProposerRotated is emitted when a proposer is rotated
+	// Attributes:
+	// - AttributeKeyRollappId
+	// - AttributeKeySequencer
 	EventTypeProposerRotated = "proposer_rotated"
 
 	// EventTypeNoticePeriodStarted is emitted when a sequencer's notice period starts
+	// Attributes:
+	// - AttributeKeyRollappId
+	// - AttributeKeySequencer
+	// - AttributeNextProposer
+	// - AttributeKeyCompletionTime
 	EventTypeNoticePeriodStarted = "notice_period_started"
 
 	// EventTypeUnbonding is emitted when a sequencer is unbonding
