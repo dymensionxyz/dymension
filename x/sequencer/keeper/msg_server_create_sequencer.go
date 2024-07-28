@@ -84,10 +84,21 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
+
 	// if this is the first sequencer, make it a PROPOSER
 	proposer := len(bondedSequencers) == 0
 	if proposer {
 		k.SetProposer(ctx, sequencer.RollappId, sequencer.SequencerAddress)
+	}
+
+	// edge case handling:
+	// if we're in the **middle of rotation**, and **nextProposer is empty**, the rollapp will halt as expected
+	// This newly created sequencer expected to be the proposer after the rotation
+	// currently, we require this sequencer to register after rotation completes
+	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).SequencerAddress == ""
+	if nextProposer {
+		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
+		return nil, types.ErrRotationInProgress
 	}
 
 	k.SetSequencer(ctx, sequencer)

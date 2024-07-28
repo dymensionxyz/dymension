@@ -28,5 +28,6 @@ var (
 	ErrInvalidType              = errorsmod.Register(ModuleName, 1016, "invalid type")
 	ErrUnknownRequest           = errorsmod.Register(ModuleName, 1017, "unknown request")
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
+	ErrRotationInProgress       = errorsmod.Register(ModuleName, 1019, "sequencer rotation in progress")
 	ErrNoProposer               = errorsmod.Wrap(gerrc.ErrNotFound, "proposer")
 )
