@@ -10,13 +10,12 @@ import (
 
 // ValidateBasic performs basic validation of the sequencer object
 func (seq Sequencer) ValidateBasic() error {
-	// unbonding must have a UnbondRequestHeight
-	if seq.Status == Unbonding && seq.UnbondRequestHeight == 0 {
+	if seq.Status == Unbonding && (seq.UnbondRequestHeight == 0 || seq.UnbondTime.IsZero()) {
 		return ErrInvalidSequencerStatus
 	}
 
-	// if UnbondRequestHeight is set, UnbondTime must be set
-	if seq.UnbondRequestHeight != 0 && seq.UnbondTime.IsZero() {
+	// validate notice period
+	if seq.IsNoticePeriodInProgress() && seq.NoticePeriodTime.IsZero() {
 		return ErrInvalidSequencerStatus
 	}
 

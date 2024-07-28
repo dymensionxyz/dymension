@@ -160,14 +160,14 @@ func (k Keeper) AddSequencerToNoticePeriodQueue(ctx sdk.Context, sequencer types
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&sequencer)
 
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.NoticePeriodTime)
 	store.Set(noticePeriodKey, b)
 }
 
 // remove sequencer from notice period queue
 func (k Keeper) removeNoticePeriodSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 	store := ctx.KVStore(k.storeKey)
-	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.UnbondTime)
+	noticePeriodKey := types.NoticePeriodSequencerKey(sequencer.SequencerAddress, sequencer.NoticePeriodTime)
 	store.Delete(noticePeriodKey)
 }
 

@@ -10,7 +10,7 @@ import (
 
 func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.NoticePeriod(ctx))
-	seq.UnbondTime = completionTime
+	seq.NoticePeriodTime = completionTime
 
 	k.UpdateSequencer(ctx, *seq)
 	k.AddSequencerToNoticePeriodQueue(ctx, *seq)

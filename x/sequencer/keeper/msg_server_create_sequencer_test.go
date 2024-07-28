@@ -575,5 +575,8 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 	if !s1.UnbondTime.Equal(s2.UnbondTime) {
 		return false
 	}
+	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
+		return false
+	}
 	return true
 }

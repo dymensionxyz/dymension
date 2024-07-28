@@ -64,11 +64,11 @@ func (suite *SequencerTestSuite) TestStartRotation() {
 	suite.Equal(addr1, p.SequencerAddress)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
-	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(-10*time.Second))
+	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(-10*time.Second))
 	suite.Require().Len(m, 0)
-	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 	suite.Require().Len(m, 1)
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 
 	// validate nextProposer is set
 	n, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
@@ -154,7 +154,7 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	suite.Equal(addr1, p.SequencerAddress)
 	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 	suite.Require().True(suite.App.SequencerKeeper.IsRotating(suite.Ctx, rollappId))
 
 	n, ok := suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
@@ -187,7 +187,7 @@ func (suite *SequencerTestSuite) TestStartRotationTwice() {
 	suite.Require().False(ok)
 
 	// mature notice period for addr2
-	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.UnbondTime.Add(10*time.Second))
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, p.NoticePeriodTime.Add(10*time.Second))
 	// validate nextProposer is set
 	n, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
 	suite.Require().True(ok)

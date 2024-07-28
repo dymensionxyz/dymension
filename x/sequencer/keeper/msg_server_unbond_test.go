@@ -66,9 +66,9 @@ func (suite *SequencerTestSuite) TestUnbondingProposer() {
 	suite.Require().False(ok)
 
 	// check notice period queue
-	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(-1*time.Second))
+	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(-1*time.Second))
 	suite.Require().Len(m, 0)
-	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.UnbondTime.Add(1*time.Second))
+	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(1*time.Second))
 	suite.Require().Len(m, 1)
 }
 

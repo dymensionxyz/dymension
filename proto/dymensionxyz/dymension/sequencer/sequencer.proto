@@ -50,4 +50,8 @@ message Sequencer {
   // complete unbonding.
   google.protobuf.Timestamp unbond_time = 10
       [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
+
+  // notice_period_time defines the time when the sequencer will finish it's notice period if started
+  google.protobuf.Timestamp notice_period_time = 11
+      [ (gogoproto.nullable) = false, (gogoproto.stdtime) = true ];
 }

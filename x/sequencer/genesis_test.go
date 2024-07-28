@@ -73,7 +73,7 @@ func TestInitGenesis(t *testing.T) {
 				Status:              types.Bonded,
 				Tokens:              sdk.Coins(nil),
 				UnbondRequestHeight: 20,
-				UnbondTime:          timeToTest,
+				NoticePeriodTime:    timeToTest,
 			},
 		},
 		GenesisProposers: []types.GenesisProposer{
