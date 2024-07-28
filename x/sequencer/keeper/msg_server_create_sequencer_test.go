@@ -178,9 +178,6 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			suite.Require().Nil(err)
 			equalSequencer(suite, &sequencerExpect, &queryResponse.Sequencer)
 
-			// set the sequencer as proposer if it is the first sequencer created
-			suite.App.SequencerKeeper.SetProposerIfMissing(suite.Ctx)
-
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
 

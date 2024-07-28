@@ -67,13 +67,10 @@ func (s *KeeperTestHelper) CreateSequencerWithBond(ctx sdk.Context, rollappId st
 		RollappId:    rollappId,
 		Description:  sequencertypes.Description{},
 	}
+
 	msgServer := sequencerkeeper.NewMsgServerImpl(s.App.SequencerKeeper)
 	_, err = msgServer.CreateSequencer(ctx, &sequencerMsg1)
 	s.Require().Nil(err)
-
-	// set the sequencer as proposer if it is the first sequencer created
-	s.App.SequencerKeeper.SetProposerIfMissing(ctx)
-
 	return addr1.String()
 }
 

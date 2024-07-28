@@ -133,33 +133,3 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 		),
 	)
 }
-
-// SetProposerIfMissing sets a proposer for a rollapp if the rollapp has no proposer but has bonded sequencers
-// if found, set the sequencer as the proposer
-func (k Keeper) SetProposerIfMissing(ctx sdk.Context) {
-	for _, rollapp := range k.rollappKeeper.GetAllRollapps(ctx) {
-		if k.HasProposer(ctx, rollapp.RollappId) {
-			continue
-		}
-
-		if rollapp.Frozen {
-			continue
-		}
-
-		// take the next bonded sequencer to be the proposer
-		seq := k.ExpectedNextProposer(ctx, rollapp.RollappId)
-		if seq.SequencerAddress == "" {
-			continue
-		}
-
-		k.SetProposer(ctx, rollapp.RollappId, seq.SequencerAddress)
-
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeProposerRotated,
-				sdk.NewAttribute(types.AttributeKeyRollappId, rollapp.RollappId),
-				sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
-			),
-		)
-	}
-}
