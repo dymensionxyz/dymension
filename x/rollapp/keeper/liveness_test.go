@@ -9,8 +9,11 @@ import (
 )
 
 func TestNextSlashOrJailHeightExample(t *testing.T) {
-	for hHub := range int64(30000) {
-		h, jail := NextSlashOrJailHeight(
+	hHub := int64(0)
+	jail := false
+	for !jail {
+		last := hHub
+		hHub, jail = NextSlashOrJailHeight(
 			types.DefaultHubExpectedBlockTime,
 			types.DefaultLivenessSlashTime,
 			types.DefaultLivenessSlashInterval,
@@ -18,12 +21,10 @@ func TestNextSlashOrJailHeightExample(t *testing.T) {
 			hHub,
 			0,
 		)
-		if h == hHub {
-			elapsed := time.Duration(hHub) * types.DefaultHubExpectedBlockTime
-			t.Log(fmt.Sprintf("hub height: %d, elapsed %s, jail: %t", hHub, elapsed, jail))
-		}
-		if jail {
-			break
+		elapsed := time.Duration(hHub) * types.DefaultHubExpectedBlockTime
+		t.Log(fmt.Sprintf("hub height: %d, elapsed %s, jail: %t", hHub, elapsed, jail))
+		if last == hHub {
+			hHub++
 		}
 	}
 }
