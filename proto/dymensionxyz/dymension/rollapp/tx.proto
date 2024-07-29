@@ -14,7 +14,6 @@ import "gogoproto/gogo.proto";
 service Msg {
   rpc CreateRollapp(MsgCreateRollapp) returns (MsgCreateRollappResponse);
   rpc UpdateState(MsgUpdateState) returns (MsgUpdateStateResponse);
-  rpc LivenessSlash(MsgLivenessSlash) returns (MsgLivenessSlashResponse);
 }
 
 // MsgCreateRollapp creates a new rollapp chain on the hub.
@@ -63,23 +62,4 @@ message MsgUpdateState {
 }
 
 message MsgUpdateStateResponse {
-}
-
-// MsgSlashLiveness checks to see if the sequencer of the rollapp has been
-// submitting updates. If he has not, he will be slashed and a portion of slashed
-// funds will be allocated to the creator of this transaction. At least gas cost
-// will always be refunded.
-message MsgLivenessSlash {
-  option (cosmos.msg.v1.signer) = "signer";
-  // Signer is the bech32-encoded address of the person sending the tx
-  string signer = 1;
-  // RollappId of the rollapp who is suspected to be down (not live)
-  string rollapp_id = 2;
-  // RewardAddr receives a portion of the slashed funds. If absent, signer is used.
-  optional string reward_addr = 3;
-}
-
-message MsgLivenessSlashResponse {
-  // Slashed is true if the sequencer of the rollapp was slashed for liveness
-  bool slashed = 1;
 }

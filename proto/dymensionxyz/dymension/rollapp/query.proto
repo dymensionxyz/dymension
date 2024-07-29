@@ -53,12 +53,6 @@ service Query {
     option (google.api.http).get =
         "/dymensionxyz/dymension/rollapp/state_info/{rollappId}/{index}";
   }
-
-  // Queries if the rollapp is live (if the sequencer has posted updates in timely manner).
-  rpc Liveness(QueryGetLivenessRequest) returns (QueryGetLivenessResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/rollapp/liveness/{rollappId}";
-  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -119,17 +113,4 @@ message QueryGetStateInfoRequest {
 
 message QueryGetStateInfoResponse {
   StateInfo stateInfo = 1 [ (gogoproto.nullable) = false ];
-}
-
-message QueryGetLivenessRequest {
-  string rollappId = 1;
-}
-
-message QueryGetLivenessResponse {
-  // Live is whether the sequencer of the rollapp has passed a deadline for updating state. If it is not
-  // live it does not mean the sequencer is slashable, if it was slashed recently.
-  bool live = 1;
-  // Slashable is whether a MsgLivenessSlash is likely to succeed in slashing. Note, it's not always
-  // guaranteed even if this value is true, because another slash tx might race ahead.
-  bool slashable = 2;
 }
