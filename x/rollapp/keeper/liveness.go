@@ -69,8 +69,8 @@ func (k Keeper) getLivenessEvents(ctx sdk.Context, height *int64) []types.Livene
 	return ret
 }
 
-// SetLivenessEvent returns all scheduled events (for genesis export)
-func (k Keeper) SetLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
+// PutLivenessEvent puts a new event in the queue
+func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKey(e.HubHeight, e.RollappId)
 	val := types.LivenessEventQueueSlash
@@ -78,4 +78,11 @@ func (k Keeper) SetLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 		val = types.LivenessEventQueueJail
 	}
 	store.Set(key, val)
+}
+
+// DelLivenessEvent deletes an event from the queue
+func (k Keeper) DelLivenessEvent(ctx sdk.Context, height int64, rollappID string) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.LivenessEventQueueKey(height, rollappID)
+	store.Delete(key)
 }

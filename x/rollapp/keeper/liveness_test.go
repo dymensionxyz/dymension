@@ -2,12 +2,17 @@ package keeper
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
+	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"pgregory.net/rapid"
 )
+
+// TODO: I need to rethink, because you can have more tha one event for a rollapp at a given height
 
 // An example, not intended to be run regularly
 func TestNextSlashOrJailHeightExample(t *testing.T) {
@@ -123,4 +128,48 @@ func testWithRapid(t *rapid.T) {
 	}
 
 	t.Repeat(ops)
+}
+
+// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=30000
+func TestLivenessEventsStorage(t *testing.T) {
+	k, ctx := keepertest.RollappKeeper(t)
+	rollapps := rapid.SampledFrom([]string{"a", "b", "c"})
+	heights := rapid.Int64Range(0, 10)
+	isJail := rapid.Bool()
+
+	model := make(map[int64][]types.LivenessEvent)
+
+	f := func(r *rapid.T) {
+		ops := map[string]func(r *rapid.T){
+			"put": func(r *rapid.T) {
+				e := types.LivenessEvent{
+					RollappId: rollapps.Draw(r, "rollapp"),
+					HubHeight: heights.Draw(r, "h"),
+					IsJail:    isJail.Draw(r, "jail"),
+				}
+				k.PutLivenessEvent(ctx, e)
+				model[e.HubHeight] = append(model[e.HubHeight], e)
+				slices.SortStableFunc(model[e.HubHeight], func(a, b types.LivenessEvent) int {
+					if a.HubHeight != b.HubHeight {
+						return int(a.HubHeight - b.HubHeight)
+					}
+					return strings.Compare(a.RollappId, b.RollappId)
+				})
+			},
+			"delete": func(r *rapid.T) {
+				h :=heights.Draw(r, "h")
+				ra := rollapps.Draw(r, "rollapp")
+				k.DelLivenessEvent(ctx, h, ra)
+				for _, e := range model[h] {
+					if e.RollappId ==
+				}
+			},
+			"iterHeight": func(r *rapid.T) {
+			},
+			"iterAll": func(r *rapid.T) {
+			},
+		}
+		r.Repeat(ops)
+	}
+	rapid.Check(t, f)
 }
