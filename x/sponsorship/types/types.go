@@ -7,32 +7,56 @@ import (
 	"cosmossdk.io/math"
 )
 
+func (d Distribution) Validate() error {
+	total := math.ZeroInt()
+	gaugeIDs := make(map[uint64]struct{}, len(d.Gauges)) // this map helps check for duplicates
+	for _, g := range d.Gauges {
+		if _, ok := gaugeIDs[g.GaugeId]; ok {
+			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
+		}
+		gaugeIDs[g.GaugeId] = struct{}{}
+		total = total.Add(g.Power)
+	}
+	if !total.Equal(d.VotingPower) {
+		return ErrInvalidDistribution.Wrapf("voting power mismatch: voting power %s, total gauges power %s", d.VotingPower, total)
+	}
+	return nil
+}
+
+func (v Vote) Validate() error {
+	err := ValidateGaugeWeights(v.Weights)
+	if err != nil {
+		return ErrInvalidVote.Wrap(err.Error())
+	}
+	return nil
+}
+
 func ValidateGaugeWeights(w []GaugeWeight) error {
 	total := math.ZeroInt()
 	gaugeIDs := make(map[uint64]struct{}, len(w)) // this map helps check for duplicates
 	for _, g := range w {
 		err := g.Validate()
 		if err != nil {
-			return ErrInvalidDistribution.Wrap(err.Error())
+			return ErrInvalidGaugeWeight.Wrap(err.Error())
 		}
 		if _, ok := gaugeIDs[g.GaugeId]; ok {
-			return ErrInvalidDistribution.Wrapf("duplicated gauge id: %d", g.GaugeId)
+			return ErrInvalidGaugeWeight.Wrapf("duplicated gauge id: %d", g.GaugeId)
 		}
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
 	if !total.Equal(hundred) {
-		return ErrInvalidDistribution.Wrapf("total weight must equal 100, got %d", total.Int64())
+		return ErrInvalidGaugeWeight.Wrapf("total weight must equal 100, got %s", total)
 	}
 	return nil
 }
 
 func (g GaugeWeight) Validate() error {
 	if !g.Weight.IsPositive() {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be > 0, got %d", g.Weight.Int64())
+		return ErrInvalidGaugeWeight.Wrapf("weight must be > 0, got %s", g.Weight)
 	}
 	if g.Weight.GT(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100, got %d", g.Weight.Int64())
+		return ErrInvalidGaugeWeight.Wrapf("weight must be <= 100, got %s", g.Weight)
 	}
 	return nil
 }

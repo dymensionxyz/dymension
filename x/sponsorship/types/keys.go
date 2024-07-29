@@ -34,6 +34,13 @@ func DelegatorValidatorPowerKey(voterAddr sdk.AccAddress, valAddr sdk.ValAddress
 	return key
 }
 
+func AllDelegatorValidatorPowersKey(voterAddr sdk.AccAddress) []byte {
+	key := make([]byte, 0, 1+len(voterAddr))
+	key = append(key, DelegatorValidatorPowerByte)
+	key = append(key, voterAddr.Bytes()...)
+	return key
+}
+
 func DelegatorPowerKey(voterAddr sdk.AccAddress) []byte {
 	key := make([]byte, 0, 1+len(voterAddr))
 	key = append(key, DelegatorValidatorPowerByte)

@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"sort"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -18,7 +19,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 		errorContains string
 	}{
 		{
-			name: "Valid input",
+			name: "Valid",
 			input: []types.GaugeWeight{
 				{GaugeId: 15, Weight: math.NewInt(60)},
 				{GaugeId: 10, Weight: math.NewInt(30)},
@@ -34,7 +35,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 10, Weight: math.NewInt(30)},
 				{GaugeId: 12, Weight: math.NewInt(10)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "weight must be <= 100",
 		},
 		{
@@ -44,7 +45,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 10, Weight: math.NewInt(30)},
 				{GaugeId: 12, Weight: math.NewInt(10)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "weight must be > 0",
 		},
 		{
@@ -54,7 +55,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 10, Weight: math.NewInt(30)},
 				{GaugeId: 12, Weight: math.NewInt(10)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "weight must be > 0",
 		},
 		{
@@ -64,7 +65,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 10, Weight: math.NewInt(30)},
 				{GaugeId: 12, Weight: math.NewInt(20)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "total weight must equal 100",
 		},
 		{
@@ -74,13 +75,13 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 10, Weight: math.NewInt(20)},
 				{GaugeId: 12, Weight: math.NewInt(10)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "total weight must equal 100",
 		},
 		{
 			name:          "Empty input",
 			input:         []types.GaugeWeight{},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "total weight must equal 100",
 		},
 		{
@@ -90,7 +91,7 @@ func TestValidateGaugeWeights(t *testing.T) {
 				{GaugeId: 15, Weight: math.NewInt(20)},
 				{GaugeId: 12, Weight: math.NewInt(20)},
 			},
-			errorIs:       types.ErrInvalidDistribution,
+			errorIs:       types.ErrInvalidGaugeWeight,
 			errorContains: "duplicated gauge id: 15",
 		},
 	}
@@ -108,6 +109,192 @@ func TestValidateGaugeWeights(t *testing.T) {
 			case false:
 				require.NoError(t, err)
 			}
+		})
+	}
+}
+
+func TestValidateDistribution(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         types.Distribution
+		errorIs       error
+		errorContains string
+	}{
+		{
+			name: "Valid",
+			input: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 15, Power: math.NewInt(600)},
+					{GaugeId: 10, Power: math.NewInt(300)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+				},
+			},
+			errorIs:       nil,
+			errorContains: "",
+		},
+		{
+			name: "Duplicated gauges",
+			input: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 15, Power: math.NewInt(600)},
+					{GaugeId: 15, Power: math.NewInt(300)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+				},
+			},
+			errorIs:       types.ErrInvalidDistribution,
+			errorContains: "duplicated gauge id: 15",
+		},
+		{
+			name: "Voting power mismatch",
+			input: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 15, Power: math.NewInt(500)},
+					{GaugeId: 10, Power: math.NewInt(300)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+				},
+			},
+			errorIs:       types.ErrInvalidDistribution,
+			errorContains: "voting power mismatch: voting power 1000, total gauges power 900",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.input.Validate()
+
+			expectError := tt.errorIs != nil
+			switch expectError {
+			case true:
+				require.Error(t, err)
+				require.ErrorIs(t, err, tt.errorIs)
+				require.Contains(t, err.Error(), tt.errorContains)
+			case false:
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateVote(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         types.Vote
+		errorIs       error
+		errorContains string
+	}{
+		{
+			name: "Valid",
+			input: types.Vote{
+				VotingPower: math.NewInt(1000),
+				Weights: []types.GaugeWeight{
+					{GaugeId: 15, Weight: math.NewInt(60)},
+					{GaugeId: 10, Weight: math.NewInt(30)},
+					{GaugeId: 12, Weight: math.NewInt(10)},
+				},
+			},
+			errorIs:       nil,
+			errorContains: "",
+		},
+		{
+			name: "Invalid weights: weight > 100",
+			input: types.Vote{
+				VotingPower: math.NewInt(1000),
+				Weights: []types.GaugeWeight{
+					{GaugeId: 15, Weight: math.NewInt(101)},
+					{GaugeId: 10, Weight: math.NewInt(30)},
+					{GaugeId: 12, Weight: math.NewInt(10)},
+				},
+			},
+			errorIs:       types.ErrInvalidVote,
+			errorContains: "weight must be <= 100",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.input.Validate()
+
+			expectError := tt.errorIs != nil
+			switch expectError {
+			case true:
+				require.Error(t, err)
+				require.ErrorIs(t, err, tt.errorIs)
+				require.Contains(t, err.Error(), tt.errorContains)
+			case false:
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestApplyWeights(t *testing.T) {
+	tests := []struct {
+		name     string
+		power    math.Int
+		weights  []types.GaugeWeight
+		expected types.Distribution
+	}{
+		{
+			name:  "Positive power, sum weights == 1",
+			power: math.NewInt(1000),
+			weights: []types.GaugeWeight{
+				{GaugeId: 15, Weight: math.NewInt(60)},
+				{GaugeId: 10, Weight: math.NewInt(30)},
+				{GaugeId: 12, Weight: math.NewInt(10)},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 10, Power: math.NewInt(300)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+					{GaugeId: 15, Power: math.NewInt(600)},
+				},
+			},
+		},
+		{
+			name:  "Positive power, sum weights < 1",
+			power: math.NewInt(1000),
+			weights: []types.GaugeWeight{
+				{GaugeId: 15, Weight: math.NewInt(30)},
+				{GaugeId: 10, Weight: math.NewInt(20)},
+				{GaugeId: 12, Weight: math.NewInt(10)},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 10, Power: math.NewInt(200)},
+					{GaugeId: 12, Power: math.NewInt(100)},
+					{GaugeId: 15, Power: math.NewInt(300)},
+				},
+			},
+		},
+		{
+			name:  "Negative power, sum weights == 1",
+			power: math.NewInt(-1000),
+			weights: []types.GaugeWeight{
+				{GaugeId: 15, Weight: math.NewInt(60)},
+				{GaugeId: 10, Weight: math.NewInt(30)},
+				{GaugeId: 12, Weight: math.NewInt(10)},
+			},
+			expected: types.Distribution{
+				VotingPower: math.NewInt(-1000),
+				Gauges: []types.Gauge{
+					{GaugeId: 10, Power: math.NewInt(-300)},
+					{GaugeId: 12, Power: math.NewInt(-100)},
+					{GaugeId: 15, Power: math.NewInt(-600)},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := types.ApplyWeights(tt.power, tt.weights)
+
+			require.True(t, actual.Equal(tt.expected))
+			require.True(t, sort.IsSorted(types.Gauges(actual.Gauges)))
 		})
 	}
 }

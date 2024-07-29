@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -107,6 +108,37 @@ func (k Keeper) GetDelegatorValidatorPower(ctx sdk.Context, voterAddr sdk.AccAdd
 	return v.Int, nil
 }
 
+func (k Keeper) IterateDelegatorValidatorPower(
+	ctx sdk.Context,
+	voterAddr sdk.AccAddress,
+	fn func(valAddr sdk.ValAddress, power math.Int) (stop bool, err error),
+) error {
+	store := ctx.KVStore(k.storeKey)
+	iterKey := types.AllDelegatorValidatorPowersKey(voterAddr)
+	iterator := store.Iterator(iterKey, storetypes.PrefixEndBytes(iterKey))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var power sdk.IntProto
+		err := k.cdc.Unmarshal(iterator.Value(), &power)
+		if err != nil {
+			return fmt.Errorf("can't unmarshal value: %s", err.Error())
+		}
+
+		validator := iterator.Key()
+
+		stop, err := fn(validator, power.Int)
+		if err != nil {
+			return err
+		}
+		if stop {
+			return nil
+		}
+	}
+
+	return nil
+}
+
 func (k Keeper) DeleteDelegatorValidatorPower(ctx sdk.Context, voterAddr sdk.AccAddress, valAddr sdk.ValAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.DelegatorValidatorPowerKey(voterAddr, valAddr))
@@ -154,4 +186,34 @@ func (k Keeper) Voted(ctx sdk.Context, voterAddr sdk.AccAddress) bool {
 func (k Keeper) DeleteVote(ctx sdk.Context, voterAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.VoteKey(voterAddr))
+}
+
+func (k Keeper) IterateVotes(
+	ctx sdk.Context,
+	fn func(voter sdk.AccAddress, vote types.Vote) (stop bool, err error),
+) error {
+	store := ctx.KVStore(k.storeKey)
+	voteByte := []byte{types.VoteByte}
+	iterator := store.Iterator(voteByte, storetypes.PrefixEndBytes(voteByte))
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var vote types.Vote
+		err := k.cdc.Unmarshal(iterator.Value(), &vote)
+		if err != nil {
+			return fmt.Errorf("can't unmarshal value: %s", err.Error())
+		}
+
+		voter := iterator.Key()
+
+		stop, err := fn(voter, vote)
+		if err != nil {
+			return err
+		}
+		if stop {
+			return nil
+		}
+	}
+
+	return nil
 }
