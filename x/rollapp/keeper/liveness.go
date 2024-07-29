@@ -20,7 +20,8 @@ func NextSlashOrJailHeight(
 	if downTime <= slashTimeNoUpdate {
 		targetDuration = slashTimeNoUpdate
 	} else {
-		targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate+slashInterval-1)/slashInterval)*slashInterval
+		// targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate+slashInterval-1)/slashInterval)*slashInterval
+		targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate)/slashInterval+1)*slashInterval
 	}
 	heightEvent = heightLastRollappUpdate + int64((targetDuration+hubBlockInterval-1)/hubBlockInterval)
 	isJail = jailTime <= targetDuration
