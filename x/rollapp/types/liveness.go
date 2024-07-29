@@ -27,17 +27,24 @@ var (
 	LivenessEventQueueJail      = []byte("j")
 )
 
-func LivenessEventQueueKey(height int64, rollappID string) []byte {
-	return createLivenessEventQueueKey(&height, &rollappID)
+func LivenessEventQueueKey(e LivenessEvent) []byte {
+	v := LivenessEventQueueSlash
+	if e.IsJail {
+		v = LivenessEventQueueJail
+	}
+	return createLivenessEventQueueKey(&e.HubHeight, v, &e.RollappId)
 }
 
 func LivenessEventQueueIterKey(height *int64) []byte {
-	return createLivenessEventQueueKey(height, nil)
+	return createLivenessEventQueueKey(height, nil, nil)
 }
 
-func createLivenessEventQueueKey(height *int64, rollappID *string) []byte {
-	if rollappID != nil && height == nil {
-		panic("must provide height with rollapp id")
+// can be called with no arguments to retrieve all items
+// can be called with only a height, to iterate all events for a height
+// otherwise must have all three arguments, for put/del ops
+func createLivenessEventQueueKey(height *int64, kind []byte, rollappID *string) []byte {
+	if height == nil && (0 < len(kind) || rollappID != nil) {
+		panic("must provide a height")
 	}
 	var key []byte
 	key = append(key, LivenessEventQueueKeyPrefix...)
@@ -46,6 +53,10 @@ func createLivenessEventQueueKey(height *int64, rollappID *string) []byte {
 		binary.BigEndian.PutUint64(hBz, uint64(*height))
 		key = append(key, hBz...)
 	}
+	if len(kind) != 0 {
+		key = append(key, []byte("/")...)
+		key = append(key, kind...)
+	}
 	if rollappID != nil {
 		key = append(key, []byte("/")...)
 		key = append(key, []byte(*rollappID)...)
@@ -53,16 +64,19 @@ func createLivenessEventQueueKey(height *int64, rollappID *string) []byte {
 	return key
 }
 
-// LivenessEventQueueItemToEvent converts store key and value to an event
+// LivenessEventQueueKeyToEvent converts store key
 // Assumes the key is well-formed (contains both height and rollapp id)
-func LivenessEventQueueItemToEvent(k, v []byte) LivenessEvent {
+func LivenessEventQueueKeyToEvent(k []byte) LivenessEvent {
 	ret := LivenessEvent{}
-	ret.IsJail = bytes.Equal(v, LivenessEventQueueJail)
-	// key is like 'foo/height/rollapp'
-	//                  i      j
+	// key is like 'prefix/height/kind/rollapp'
+	//                     i      j    l
 	i := len(LivenessEventQueueKeyPrefix) + 1
 	j := i + 8 + 1
+	l := j + 1 + 1
 	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : j-1]))
-	ret.RollappId = string(k[j:])
+	if bytes.Equal(k[j:l-1], LivenessEventQueueJail) {
+		ret.IsJail = true
+	}
+	ret.RollappId = string(k[l:])
 	return ret
 }

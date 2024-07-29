@@ -7,6 +7,7 @@ import (
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
 )
 
@@ -128,14 +129,14 @@ func testWithRapid(t *rapid.T) {
 	t.Repeat(ops)
 }
 
-// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=30000
+// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
 func TestLivenessEventsStorage(t *testing.T) {
 	k, ctx := keepertest.RollappKeeper(t)
 	rollapps := rapid.SampledFrom([]string{"a", "b", "c"})
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
 
-	model := make(map[string]struct{})
+	model := make(map[string]types.LivenessEvent)
 	modelKey := func(e types.LivenessEvent) string {
 		return fmt.Sprintf("%+v", e)
 	}
@@ -149,7 +150,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 					IsJail:    isJail.Draw(r, "jail"),
 				}
 				k.PutLivenessEvent(ctx, e)
-				model[modelKey(e)] = struct{}{}
+				model[modelKey(e)] = e
 			},
 			"deleteForRollapp": func(r *rapid.T) {
 				e := types.LivenessEvent{
@@ -162,8 +163,33 @@ func TestLivenessEventsStorage(t *testing.T) {
 				delete(model, modelKey(e))
 			},
 			"iterHeight": func(r *rapid.T) {
+				h := heights.Draw(r, "h")
+				events := k.GetLivenessEvents(ctx, &h)
+				for _, modelE := range model {
+					if modelE.HubHeight == h && !slices.Contains(events, modelE) {
+						r.Fatal("event in model but not store")
+					}
+				}
+				for _, e := range events {
+					_, ok := model[modelKey(e)]
+					if !ok {
+						r.Fatal("event in store but not model")
+					}
+				}
 			},
 			"iterAll": func(r *rapid.T) {
+				events := k.GetLivenessEvents(ctx, nil)
+				for _, modelE := range model {
+					if !slices.Contains(events, modelE) {
+						r.Fatal("event in model but not store")
+					}
+				}
+				for _, e := range events {
+					_, ok := model[modelKey(e)]
+					if !ok {
+						r.Fatal("event in store but not model")
+					}
+				}
 			},
 		}
 		r.Repeat(ops)

@@ -30,7 +30,8 @@ func NextSlashOrJailHeight(
 // CheckLiveness will slash or jail any sequencers for whom their rollapp has been down
 // and a slash or jail event is due
 func (k Keeper) CheckLiveness(ctx sdk.Context) {
-	evts := k.GetLivenessEvents(ctx)
+	h := ctx.BlockHeight()
+	evts := k.GetLivenessEvents(ctx, &h)
 	for _, evt := range evts {
 		if !evt.IsJail {
 			// TODO: slash
@@ -41,26 +42,15 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	}
 }
 
-// GetLivenessEvents returns all scheduled events for the current block height
-func (k Keeper) GetLivenessEvents(ctx sdk.Context) []types.LivenessEvent {
-	h := ctx.BlockHeight()
-	return k.getLivenessEvents(ctx, &h)
-}
-
-// GetAllLivenessEvents returns all scheduled events (for genesis export)
-func (k Keeper) GetAllLivenessEvents(ctx sdk.Context) []types.LivenessEvent {
-	return k.getLivenessEvents(ctx, nil)
-}
-
-// getLivenessEvents returns events. If a height is specified, only for that height.
-func (k Keeper) getLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
+// GetLivenessEvents returns events. If a height is specified, only for that height.
+func (k Keeper) GetLivenessEvents(ctx sdk.Context, height *int64) []types.LivenessEvent {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.LivenessEventQueueIterKey(height))
 	defer iterator.Close() // nolint: errcheck
 
 	ret := []types.LivenessEvent{}
 	for ; iterator.Valid(); iterator.Next() {
-		e := types.LivenessEventQueueItemToEvent(iterator.Key(), iterator.Value())
+		e := types.LivenessEventQueueKeyToEvent(iterator.Key())
 		if height != nil && *height < e.HubHeight {
 			break
 		}
@@ -72,12 +62,8 @@ func (k Keeper) getLivenessEvents(ctx sdk.Context, height *int64) []types.Livene
 // PutLivenessEvent puts a new event in the queue
 func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(e.HubHeight, e.RollappId)
-	val := types.LivenessEventQueueSlash
-	if e.IsJail {
-		val = types.LivenessEventQueueJail
-	}
-	store.Set(key, val)
+	key := types.LivenessEventQueueKey(e)
+	store.Set(key, []byte{})
 }
 
 // DelLivenessEvents deletes all liveness events for the rollapp from the queue
@@ -97,6 +83,6 @@ func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID strin
 // DelLivenessEvent deletes all liveness events for the rollapp from the queue
 func (k Keeper) DelLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.LivenessEventQueueKey(height, rollappID)
+	key := types.LivenessEventQueueKey(e)
 	store.Delete(key)
 }
