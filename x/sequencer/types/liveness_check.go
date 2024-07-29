@@ -2,38 +2,16 @@ package types
 
 import (
 	"time"
-
-	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-type LivenessSlashAndJailArgs struct {
-	HHub                      int64
-	HNoticeExpired            *int64
-	HUpdate                   int64
-	HubBlockTime              time.Duration
-	SlashTimeNoUpdate         time.Duration
-	SlashTimeNoTerminalUpdate time.Duration
-	SlashInterval             time.Duration
-	SlashMultiplier           sdk.Dec
-	JailTime                  time.Duration
-	Balance                   sdk.Coins
-	MinBond                   sdk.Coins
-}
-
-func (a LivenessSlashAndJailArgs) Calculate() (slashAmt sdk.Coins, jail bool) {
-	// TODO:
-	return sdk.Coins{}, false
-}
-
-type LivenessSlashAndJailResult struct {
-	Slashed                    sdk.Coins
-	Jailed                     bool
-	TimeUntilNextSlashPossible time.Time
-	FundsReceived              sdk.Coins
-}
-
-type LivenessSlashAndJailFundsRecipient struct {
-	Multiplier math.LegacyDec // multiplier for slashed funds to send
-	Addr       sdk.AccAddress // recipient of reward
-}
+type CalculateNextSlashOrJailHeight func(
+	HubBlockInterval time.Duration, // average time between hub blocks
+	SlashTimeNoUpdate time.Duration, // time until first slash if not updating
+	SlashInterval time.Duration, // gap between slash if still not updating
+	JailTime time.Duration, // time until jail if not updating
+	HubHeight int64, // current hub height
+	LastRollappUpdateHeight int64, // when was the rollapp last updated
+) (
+	hubHeight int64, // height to schedule event
+	isJail bool, // is it a jail event? (false -> slash)
+)
