@@ -17,13 +17,14 @@ func NextSlashOrJailHeight(
 	downTime := time.Duration(heightHub-heightLastRollappUpdate) * hubBlockInterval
 	// when should we schedule the next slash/jail, in terms of down time duration?
 	var targetDuration time.Duration
-	if downTime <= slashTimeNoUpdate {
+	if downTime < slashTimeNoUpdate {
 		targetDuration = slashTimeNoUpdate
 	} else {
-		// targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate+slashInterval-1)/slashInterval)*slashInterval
-		targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate)/slashInterval+1)*slashInterval
+		targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate+slashInterval-1)/slashInterval)*slashInterval
+		// targetDuration = slashTimeNoUpdate + ((downTime-slashTimeNoUpdate)/slashInterval+1)*slashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64((targetDuration+hubBlockInterval-1)/hubBlockInterval)
+	heightEvent = heightLastRollappUpdate + int64((targetDuration+hubBlockInterval-1)/hubBlockInterval) // doesn't work
+	// heightEvent = heightLastRollappUpdate + int64(targetDuration/hubBlockInterval) + 1                  // works but wrong
 	isJail = jailTime <= targetDuration
 	return
 }
