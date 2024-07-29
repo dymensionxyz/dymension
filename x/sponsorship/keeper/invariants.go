@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterInvariants(ir sdk.InvariantRegistry, keeper Keeper) {
-	ir.RegisterRoute(types.ModuleName, "streams-count", GaugeWeightsInvariant(keeper))
+	ir.RegisterRoute(types.ModuleName, "gauge-weights", GaugeWeightsInvariant(keeper))
 }
 
 func GaugeWeightsInvariant(Keeper) sdk.Invariant {
@@ -16,6 +16,6 @@ func GaugeWeightsInvariant(Keeper) sdk.Invariant {
 		var broken bool
 		var msg string
 
-		return sdk.FormatInvariant(types.ModuleName, "streamer-balance", msg), broken
+		return sdk.FormatInvariant(types.ModuleName, "gauge-weights", msg), broken
 	}
 }

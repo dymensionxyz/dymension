@@ -78,44 +78,30 @@ func TestMsgVote(t *testing.T) {
 	}
 }
 
-func TestMsgUpdateParams(t *testing.T) {
+func TestMsgRevokeVote(t *testing.T) {
 	addrs := sample.GenerateAddresses(1)
 
 	tests := []struct {
 		name          string
-		input         types.MsgUpdateParams
+		input         types.MsgRevokeVote
 		errorIs       error
 		errorContains string
 	}{
 		{
 			name: "Valid input",
-			input: types.MsgUpdateParams{
-				Authority: addrs[0],
-				NewParams: types.DefaultParams(),
+			input: types.MsgRevokeVote{
+				Voter: addrs[0],
 			},
 			errorIs:       nil,
 			errorContains: "",
 		},
 		{
 			name: "Invalid signer",
-			input: types.MsgUpdateParams{
-				Authority: "123123",
-				NewParams: types.DefaultParams(),
+			input: types.MsgRevokeVote{
+				Voter: "123123",
 			},
 			errorIs:       sdkerrors.ErrInvalidAddress,
-			errorContains: "authority '123123' must be a valid bech32 address",
-		},
-		{
-			name: "Invalid params, MinAllocationWeight < 0",
-			input: types.MsgUpdateParams{
-				Authority: addrs[0],
-				NewParams: types.Params{
-					MinAllocationWeight: math.NewInt(-20),
-					MinVotingPower:      math.NewInt(20),
-				},
-			},
-			errorIs:       types.ErrInvalidParams,
-			errorContains: "MinAllocationWeight must be >= 0",
+			errorContains: "voter '123123' must be a valid bech32 address",
 		},
 	}
 

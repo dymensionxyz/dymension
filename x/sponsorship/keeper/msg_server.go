@@ -16,11 +16,6 @@ func NewMsgServer(k Keeper) MsgServer {
 	return MsgServer{k: k}
 }
 
-func (m MsgServer) UpdateParams(ctx context.Context, params *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
-	// TODO implement me
-	panic("implement me")
-}
-
 func (m MsgServer) Vote(ctx context.Context, vote *types.MsgVote) (*types.MsgVoteResponse, error) {
 	// TODO implement me
 	panic("implement me")

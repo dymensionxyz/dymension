@@ -80,7 +80,7 @@ func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *r
 
 // GetTxCmd returns the module's root tx command.
 func (AppModuleBasic) GetTxCmd() *cobra.Command {
-	return nil
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns the module's root query command.
@@ -119,6 +119,7 @@ func (am AppModule) Name() string {
 
 // RegisterServices registers the module's services.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServer(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServer(am.keeper))
 }
 

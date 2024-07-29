@@ -9,14 +9,17 @@ import (
 
 // RegisterCodec registers the necessary x/streamer interfaces and concrete types on the provided
 // LegacyAmino codec. These types are used for Amino JSON serialization.
-func RegisterCodec(*codec.LegacyAmino) {}
+func RegisterCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&MsgVote{}, "sponsorship/Vote", nil)
+	cdc.RegisterConcrete(&MsgRevokeVote{}, "sponsorship/RevokeVote", nil)
+}
 
 // RegisterInterfaces registers interfaces types with the interface registry.
 func RegisterInterfaces(reg types.InterfaceRegistry) {
 	reg.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&MsgUpdateParams{},
 		&MsgVote{},
+		&MsgRevokeVote{},
 	)
 	msgservice.RegisterMsgServiceDesc(reg, &_Msg_serviceDesc)
 }
