@@ -1,6 +1,10 @@
 package keeper
 
-import "time"
+import (
+	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
 func NextSlashOrJailHeight(
 	hubBlockInterval time.Duration, // average time between hub blocks
@@ -20,4 +24,9 @@ func NextSlashOrJailHeight(
 	heightEvent = heightLastRollappUpdate + int64((targetDuration+hubBlockInterval-1)/hubBlockInterval)
 	isJail = jailTime <= targetDuration
 	return
+}
+
+// CheckLiveness will slash or jail any sequencers for whom their rollapp has been down
+// and a slash or jail event is due
+func (k Keeper) CheckLiveness(ctx sdk.Context) {
 }

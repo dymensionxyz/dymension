@@ -168,5 +168,6 @@ func (am AppModule) GetHooks() []types.RollappHooks {
 // returns no validator updates.
 func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	am.keeper.FinalizeRollappStates(ctx)
+
 	return []abci.ValidatorUpdate{}
 }
