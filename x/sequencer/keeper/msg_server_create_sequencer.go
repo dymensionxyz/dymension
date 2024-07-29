@@ -47,7 +47,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			return nil, err
 		}
 	} else if !rollapp.Sealed {
-		return nil, types.ErrRollappNotSealed
+		return nil, types.ErrNotInitialSequencer
 	}
 
 	bond := sdk.Coins{}

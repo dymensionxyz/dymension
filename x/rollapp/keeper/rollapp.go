@@ -18,7 +18,8 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	if err := k.checkIfRollappExists(ctx, rollapp.RollappId, rollapp.Alias); err != nil {
+	rollappId, _ := types.NewChainID(rollapp.RollappId)
+	if err := k.checkIfRollappExists(ctx, rollappId, rollapp.Alias); err != nil {
 		return err
 	}
 
@@ -41,10 +42,6 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return fmt.Errorf("rollapp created hook: %w", err)
 	}
 
-	if err := ctx.EventManager().EmitTypedEvent(&rollapp); err != nil {
-		return fmt.Errorf("emit event: %w", err)
-	}
-
 	return nil
 }
 
@@ -59,11 +56,6 @@ func (k Keeper) UpdateRollapp(ctx sdk.Context, msg *types.MsgUpdateRollappInform
 	}
 
 	k.SetRollapp(ctx, updated)
-
-	// Emit event
-	if err = ctx.EventManager().EmitTypedEvent(&updated); err != nil {
-		return fmt.Errorf("emit event: %w", err)
-	}
 
 	return nil
 }
@@ -128,11 +120,7 @@ func (k Keeper) canUpdateAlias(
 
 // checkIfRollappExists checks if a rollapp with the same ID, EIP155ID (if supported) or alias already exists in the store.
 // An exception is made for EIP155ID when the rollapp is frozen, in which case it is allowed to replace the existing rollapp.
-func (k Keeper) checkIfRollappExists(ctx sdk.Context, id, alias string) error {
-	rollappId, err := types.NewChainID(id)
-	if err != nil {
-		return err
-	}
+func (k Keeper) checkIfRollappExists(ctx sdk.Context, rollappId types.ChainID, alias string) error {
 	// check to see if the RollappId has been registered before
 	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
 		return types.ErrRollappIDExists
@@ -197,7 +185,7 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 func (k Keeper) SealRollapp(ctx sdk.Context, rollappId string) error {
 	rollapp, found := k.GetRollapp(ctx, rollappId)
 	if !found {
-		return types.ErrNotFound
+		return gerrc.ErrNotFound
 	}
 
 	if rollapp.GenesisChecksum == "" || rollapp.Alias == "" || rollapp.InitialSequencerAddress == "" {

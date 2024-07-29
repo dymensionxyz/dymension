@@ -253,7 +253,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerInitialSequencerAsFirstPropo
 		RollappId:    rollappId,
 		Metadata:     types.SequencerMetadata{},
 	})
-	suite.Require().ErrorIs(err, types.ErrRollappNotSealed)
+	suite.Require().ErrorIs(err, types.ErrNotInitialSequencer)
 
 	// 3. create initial sequencer
 	initSeqPKAny, err := codectypes.NewAnyWithValue(initSeqPubkey)

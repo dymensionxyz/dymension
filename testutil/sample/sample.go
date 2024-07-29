@@ -15,3 +15,13 @@ func Acc() sdk.AccAddress {
 	addr := pk.Address()
 	return sdk.AccAddress(addr)
 }
+
+func AccAddressFromSecret(secret string) string {
+	return AccFromSecret(secret).String()
+}
+
+func AccFromSecret(secret string) sdk.AccAddress {
+	pk := ed25519.GenPrivKeyFromSecret([]byte(secret)).PubKey()
+	addr := pk.Address()
+	return sdk.AccAddress(addr)
+}

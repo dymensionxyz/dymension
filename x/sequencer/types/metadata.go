@@ -10,9 +10,6 @@ const (
 	MaxExtraDataLength    = 280
 )
 
-// DoNotModifyDesc constant is used in flags to indicate that the metadata field should not be updated
-const DoNotModifyDesc = "[do-not-modify]"
-
 // UpdateSequencerMetadata updates the fields of a given metadata. An error is
 // returned if the resulting metadata contains an invalid length.
 // TODO: add more length checks
@@ -30,32 +27,6 @@ func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (Sequen
 		ExtraData:      d2.ExtraData,
 		Snapshots:      d2.Snapshots,
 		GasPrice:       d2.GasPrice,
-	}
-
-	if d.Moniker != DoNotModifyDesc {
-		metadata.Moniker = d2.Moniker
-	}
-
-	if d.Details != DoNotModifyDesc {
-		metadata.Details = d2.Details
-	}
-
-	if string(d.ExtraData) != DoNotModifyDesc {
-		metadata.ExtraData = d2.ExtraData
-	}
-
-	if d.ContactDetails != nil {
-		metadata.ContactDetails = &ContactDetails{}
-
-		if d.ContactDetails.Website != DoNotModifyDesc {
-			metadata.ContactDetails.Website = d2.ContactDetails.Website
-		}
-		if d.ContactDetails.Telegram != DoNotModifyDesc {
-			metadata.ContactDetails.Telegram = d2.ContactDetails.Telegram
-		}
-		if d.ContactDetails.X != DoNotModifyDesc {
-			metadata.ContactDetails.X = d2.ContactDetails.X
-		}
 	}
 
 	return metadata.EnsureLength()

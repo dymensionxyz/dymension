@@ -29,27 +29,29 @@ message Rollapp {
   string rollapp_id = 1;
   // creator is the bech32-encoded address of the rollapp creator.
   string creator = 2;
-  // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 3;
+  // field numbers not to be reused
+  reserved 3 to 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
-  RollappGenesisState genesis_state = 4 [(gogoproto.nullable) = false];
-  // initial_sequencer_address is a bech32-encoded address of the
-  // sequencer that is allowed to initially serve this rollappId.
-  string initial_sequencer_address = 5;
+  RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
-  string channel_id = 6;
+  string channel_id = 8;
   // frozen is a boolean that indicates if the rollapp is frozen.
-  bool frozen = 7;
+  bool frozen = 9;
+  // registeredDenoms is a list of registered denom bases on this rollapp
+  repeated string registeredDenoms = 10;
   // unique bech32 prefix
-  string bech32_prefix = 8;
+  string bech32_prefix = 11;
   // alias is the chain alias used for display and namespace system
-  string alias = 9;
-  // registered_denoms is a list of registered denom bases on this rollapp
-  repeated string registered_denoms = 10;
+  string alias = 12;
+  // checksum used to verify integrity of the genesis file
+  string genesis_checksum = 13;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 11;
+  RollappMetadata metadata = 14;
+  // initial_sequencer_address is a bech32-encoded address of the
+  // sequencer that is allowed to initially register and serve for this rollapp.
+  string initial_sequencer_address = 15;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 12;
+  bool sealed = 16;
 }
 
 // Rollapp summary is a compact representation of Rollapp

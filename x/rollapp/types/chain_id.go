@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/tendermint/tendermint/types"
 )
 
 var (
@@ -38,7 +39,7 @@ func NewChainID(id string) (ChainID, error) {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "empty")
 	}
 
-	if len(chainID) > 48 {
+	if len(chainID) > types.MaxChainIDLen {
 		return ChainID{}, errorsmod.Wrapf(ErrInvalidRollappID, "exceeds 48 chars: %s: len: %d", chainID, len(chainID))
 	}
 

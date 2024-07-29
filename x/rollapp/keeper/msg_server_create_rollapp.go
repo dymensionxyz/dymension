@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -17,6 +18,10 @@ func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRoll
 
 	if err := k.RegisterRollapp(ctx, msg.GetRollapp()); err != nil {
 		return nil, err
+	}
+
+	if err := ctx.EventManager().EmitTypedEvent(msg); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgCreateRollappResponse{}, nil

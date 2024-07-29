@@ -2,7 +2,6 @@ package upgrades
 
 import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -29,7 +28,6 @@ type Upgrade struct {
 	// CreateHandler defines the function that creates an upgrade handler
 	CreateHandler func(
 		mm *module.Manager,
-		appCodec codec.Codec,
 		configurator module.Configurator,
 		_ BaseAppParamManager,
 		appKeepers *keepers.AppKeepers,

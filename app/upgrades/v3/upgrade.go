@@ -3,7 +3,6 @@ package v3
 import (
 	"math/big"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -19,7 +18,6 @@ import (
 // CreateUpgradeHandler creates an SDK upgrade handler for v3
 func CreateUpgradeHandler(
 	mm *module.Manager,
-	_ codec.Codec,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
 	keepers *keepers.AppKeepers,

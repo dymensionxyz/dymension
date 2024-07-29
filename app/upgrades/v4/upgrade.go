@@ -1,14 +1,11 @@
 package v4
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -29,7 +26,6 @@ import (
 	// Ethermint modules
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades/v4/types"
 	delayedackkeeper "github.com/dymensionxyz/dymension/v3/x/delayedack/keeper"
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
@@ -41,7 +37,6 @@ import (
 // CreateUpgradeHandler creates an SDK upgrade handler for v4
 func CreateUpgradeHandler(
 	mm *module.Manager,
-	appCodec codec.Codec,
 	configurator module.Configurator,
 	_ upgrades.BaseAppParamManager,
 	keepers *keepers.AppKeepers,
@@ -52,10 +47,10 @@ func CreateUpgradeHandler(
 		migrateModuleParams(ctx, keepers)
 		migrateDelayedAckParams(ctx, keepers.DelayedAckKeeper)
 		migrateRollappParams(ctx, keepers.RollappKeeper)
-		if err := migrateRollapps(ctx, keepers.GetKey(rollapptypes.ModuleName), appCodec, keepers.RollappKeeper); err != nil {
+		if err := migrateRollapps(ctx, keepers.RollappKeeper); err != nil {
 			return nil, err
 		}
-		migrateSequencers(ctx, keepers.GetKey(sequencertypes.ModuleName), appCodec, keepers.SequencerKeeper)
+		migrateSequencers(ctx, keepers.SequencerKeeper)
 
 		// TODO: create rollapp gauges for each existing rollapp
 
@@ -65,33 +60,34 @@ func CreateUpgradeHandler(
 	}
 }
 
+//nolint:staticcheck
 func migrateModuleParams(ctx sdk.Context, keepers *keepers.AppKeepers) {
 	// Set param key table for params module migration
 	for _, subspace := range keepers.ParamsKeeper.GetSubspaces() {
 		var keyTable paramstypes.KeyTable
 		switch subspace.Name() {
 		case authtypes.ModuleName:
-			keyTable = authtypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = authtypes.ParamKeyTable()
 		case banktypes.ModuleName:
-			keyTable = banktypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = banktypes.ParamKeyTable()
 		case stakingtypes.ModuleName:
-			keyTable = stakingtypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = stakingtypes.ParamKeyTable()
 		case minttypes.ModuleName:
-			keyTable = minttypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = minttypes.ParamKeyTable()
 		case distrtypes.ModuleName:
-			keyTable = distrtypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = distrtypes.ParamKeyTable()
 		case slashingtypes.ModuleName:
-			keyTable = slashingtypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = slashingtypes.ParamKeyTable()
 		case govtypes.ModuleName:
-			keyTable = govv1.ParamKeyTable() //nolint:staticcheck
+			keyTable = govv1.ParamKeyTable()
 		case crisistypes.ModuleName:
-			keyTable = crisistypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = crisistypes.ParamKeyTable()
 
 		// Ethermint  modules
 		case evmtypes.ModuleName:
-			keyTable = evmtypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = evmtypes.ParamKeyTable()
 		case feemarkettypes.ModuleName:
-			keyTable = feemarkettypes.ParamKeyTable() //nolint:staticcheck
+			keyTable = feemarkettypes.ParamKeyTable()
 		default:
 			continue
 		}
@@ -118,8 +114,9 @@ func migrateRollappParams(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) 
 	rollappkeeper.SetParams(ctx, params)
 }
 
-func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, rollappkeeper *rollappkeeper.Keeper) error {
-	for _, oldRollapp := range getAllOldRollapps(ctx, rollappStoreKey, appCodec) {
+func migrateRollapps(ctx sdk.Context, rollappkeeper *rollappkeeper.Keeper) error {
+	list := rollappkeeper.GetAllRollapps(ctx)
+	for _, oldRollapp := range list {
 		newRollapp := ConvertOldRollappToNew(oldRollapp)
 		if err := newRollapp.ValidateBasic(); err != nil {
 			return err
@@ -129,29 +126,27 @@ func migrateRollapps(ctx sdk.Context, rollappStoreKey *storetypes.KVStoreKey, ap
 	return nil
 }
 
-func migrateSequencers(ctx sdk.Context, sequencerStoreKey *storetypes.KVStoreKey, appCodec codec.Codec, sequencerkeeper sequencerkeeper.Keeper) {
-	list := getAllOldSequencers(ctx, sequencerStoreKey, appCodec)
+func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) {
+	list := sequencerkeeper.GetAllSequencers(ctx)
 	for _, oldSequencer := range list {
 		newSequencer := ConvertOldSequencerToNew(oldSequencer)
 		sequencerkeeper.SetSequencer(ctx, newSequencer)
 	}
 }
 
-func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
+func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	bech32Prefix := oldRollapp.RollappId[:5]
+	alias := strings.Split(oldRollapp.RollappId, "_")[0]
 	return rollapptypes.Rollapp{
-		RollappId: oldRollapp.RollappId,
-		Creator:   oldRollapp.Creator,
-		GenesisState: rollapptypes.RollappGenesisState{
-			TransfersEnabled: oldRollapp.GenesisState.TransfersEnabled,
-		},
-		ChannelId:               oldRollapp.ChannelId,
-		Frozen:                  oldRollapp.Frozen,
-		RegisteredDenoms:        oldRollapp.RegisteredDenoms,
-		InitialSequencerAddress: oldRollapp.Creator,                                  // whatever, just to make test pass
-		Bech32Prefix:            bech32Prefix,                                        // whatever, just to make test pass
-		GenesisChecksum:         string(crypto.Sha256([]byte(oldRollapp.RollappId))), // whatever, just to make test pass
-		Alias:                   fmt.Sprintf("rol%s", bech32Prefix),                  // whatever, just to make test pass
+		RollappId:        oldRollapp.RollappId,
+		Creator:          oldRollapp.Creator,
+		GenesisState:     oldRollapp.GenesisState,
+		ChannelId:        oldRollapp.ChannelId,
+		Frozen:           oldRollapp.Frozen,
+		RegisteredDenoms: oldRollapp.RegisteredDenoms,
+		Bech32Prefix:     bech32Prefix,                                        // placeholder data
+		GenesisChecksum:  string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+		Alias:            alias,                                               // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:      "", // TODO
 			Description:  "", // TODO
@@ -165,63 +160,31 @@ func ConvertOldRollappToNew(oldRollapp types.Rollapp) rollapptypes.Rollapp {
 
 var defaultGasPrice, _ = sdk.NewIntFromString("10000000000")
 
-func ConvertOldSequencerToNew(old types.Sequencer) sequencertypes.Sequencer {
+func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Sequencer {
 	return sequencertypes.Sequencer{
-		Address:      old.SequencerAddress,
+		Address:      old.Address,
 		DymintPubKey: old.DymintPubKey,
 		RollappId:    old.RollappId,
-		Status:       sequencertypes.OperatingStatus(old.Status),
+		Status:       old.Status,
 		Proposer:     old.Proposer,
 		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
-			Moniker:     old.Description.Moniker,
-			Details:     old.Description.Details,
+			Moniker:     old.Metadata.Moniker,
+			Details:     old.Metadata.Details,
 			P2PSeeds:    nil,        // TODO
 			Rpcs:        nil,        // TODO
 			EvmRpcs:     nil,        // TODO
 			RestApiUrl:  "",         // TODO
 			ExplorerUrl: "",         // TODO
 			GenesisUrls: []string{}, // TODO
-			ContactDetails: &sequencertypes.ContactDetails{ // TODO
+			ContactDetails: &sequencertypes.ContactDetails{
 				Website:  "", // TODO
 				Telegram: "", // TODO
 				X:        "", // TODO
-			}, // TODO
+			},
 			ExtraData: nil,                              // TODO
 			Snapshots: []*sequencertypes.SnapshotInfo{}, // TODO
 			GasPrice:  &defaultGasPrice,
 		},
 	}
-}
-
-func getAllOldRollapps(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec) (list []types.Rollapp) {
-	store := prefix.NewStore(ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Rollapp
-		bz := iterator.Value()
-		appCodec.MustUnmarshalJSON(bz, &val)
-		list = append(list, val)
-	}
-
-	return
-}
-
-func getAllOldSequencers(ctx sdk.Context, storeKey *storetypes.KVStoreKey, appCodec codec.Codec) (list []types.Sequencer) {
-	store := prefix.NewStore(ctx.KVStore(storeKey), sequencertypes.SequencersKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close() // nolint: errcheck
-
-	for ; iterator.Valid(); iterator.Next() {
-		var val types.Sequencer
-		bz := iterator.Value()
-		appCodec.MustUnmarshalJSON(bz, &val)
-		list = append(list, val)
-	}
-
-	return
 }

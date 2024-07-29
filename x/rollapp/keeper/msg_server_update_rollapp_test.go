@@ -181,7 +181,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 2. try to register sequencer (not initial) - should fail because rollapp is not sealed
 	_, err = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	suite.Require().ErrorIs(err, sequencertypes.ErrRollappNotSealed)
+	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
 	// 3. update rollapp immutable fields, set InitialSequencerAddress, Alias and GenesisChecksum
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()

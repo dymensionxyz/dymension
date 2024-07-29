@@ -11,7 +11,6 @@ import (
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/stretchr/testify/suite"
@@ -19,7 +18,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	v4 "github.com/dymensionxyz/dymension/v3/app/upgrades/v4"
-	"github.com/dymensionxyz/dymension/v3/app/upgrades/v4/types"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -58,20 +56,21 @@ var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
 func (s *UpgradeTestSuite) TestUpgrade() {
 	testCases := []struct {
 		msg         string
-		preUpgrade  func() error
+		numRollapps int
+		preUpgrade  func(int) error
 		upgrade     func()
-		postUpgrade func() error
+		postUpgrade func(int) error
 		expPass     bool
 	}{
 		{
-			msg: "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
-			preUpgrade: func() error {
-				// Create and store old rollapps
-				numRollapps := 5
-				rollappIDs := s.createAndStoreOldRollapps(numRollapps)
+			msg:         "Test that upgrade does not panic and sets correct parameters and migrates rollapp module",
+			numRollapps: 5,
+			preUpgrade: func(numRollapps int) error {
+				// Create and store rollapps
+				s.seedAndStoreRollapps(numRollapps)
 
-				// Create and store old sequencers
-				s.createAndStoreOldSequencers(rollappIDs)
+				// Create and store sequencers
+				s.seedAndStoreSequencers(numRollapps)
 				return nil
 			},
 			upgrade: func() {
@@ -95,7 +94,7 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 					s.App.BeginBlocker(s.Ctx, abci.RequestBeginBlock{})
 				})
 			},
-			postUpgrade: func() (err error) {
+			postUpgrade: func(numRollapps int) (err error) {
 				// Post-update validation to ensure values are correctly set
 
 				// Check Delayedack parameters
@@ -109,12 +108,12 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 				}
 
 				// Check Rollapps
-				if err = s.validateRollappsMigration(); err != nil {
+				if err = s.validateRollappsMigration(numRollapps); err != nil {
 					return
 				}
 
 				// Check Sequencers
-				if err = s.validateSequencersMigration(); err != nil {
+				if err = s.validateSequencersMigration(numRollapps); err != nil {
 					return
 				}
 
@@ -128,10 +127,10 @@ func (s *UpgradeTestSuite) TestUpgrade() {
 		s.Run(fmt.Sprintf("Case %s", tc.msg), func() {
 			s.SetupTest(s.T()) // Reset for each case
 
-			err := tc.preUpgrade()
+			err := tc.preUpgrade(tc.numRollapps)
 			s.Require().NoError(err)
 			tc.upgrade()
-			err = tc.postUpgrade()
+			err = tc.postUpgrade(tc.numRollapps)
 			if tc.expPass {
 				s.Require().NoError(err)
 			} else {
@@ -164,9 +163,13 @@ func (s *UpgradeTestSuite) validateRollappParamsMigration() error {
 	return nil
 }
 
-func (s *UpgradeTestSuite) validateRollappsMigration() error {
+func (s *UpgradeTestSuite) validateRollappsMigration(numRoll int) error {
+	expectRollapps := make([]rollapptypes.Rollapp, numRoll)
+	for i, rollapp := range s.seedRollapps(numRoll) {
+		expectRollapps[i] = v4.ConvertOldRollappToNew(rollapp)
+	}
 	rollapps := s.App.RollappKeeper.GetAllRollapps(s.Ctx)
-	s.Require().Len(rollapps, len(newRollapps))
+	s.Require().Len(rollapps, len(expectRollapps))
 
 	for _, rollapp := range rollapps {
 		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
@@ -176,19 +179,19 @@ func (s *UpgradeTestSuite) validateRollappsMigration() error {
 		}
 	}
 
-	if len(rollapps) != len(newRollapps) {
-		return fmt.Errorf("rollapps length not equal")
-	}
-
-	if !reflect.DeepEqual(rollapps, newRollapps) {
+	if !reflect.DeepEqual(rollapps, expectRollapps) {
 		return fmt.Errorf("rollapps do not match")
 	}
 	return nil
 }
 
-func (s *UpgradeTestSuite) validateSequencersMigration() error {
+func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
+	expectSequencers := make([]sequencertypes.Sequencer, numSeq)
+	for i, sequencer := range s.seedSequencers(numSeq) {
+		expectSequencers[i] = v4.ConvertOldSequencerToNew(sequencer)
+	}
 	sequencers := s.App.SequencerKeeper.GetAllSequencers(s.Ctx)
-	s.Require().Len(sequencers, len(newSequencers))
+	s.Require().Len(sequencers, len(expectSequencers))
 
 	sort.Slice(sequencers, func(i, j int) bool {
 		return sequencers[i].Address < sequencers[j].Address
@@ -208,120 +211,64 @@ func (s *UpgradeTestSuite) validateSequencersMigration() error {
 		}
 
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
-		nSeq := s.App.AppCodec().MustMarshalJSON(&newSequencers[i])
+		nSeq := s.App.AppCodec().MustMarshalJSON(&sequencers[i])
 
 		s.Require().JSONEq(string(seq), string(nSeq))
 	}
 	return nil
 }
 
-var (
-	oldRollapps []types.Rollapp
-	newRollapps []rollapptypes.Rollapp
-)
-
-func (s *UpgradeTestSuite) createAndStoreOldRollapps(numRollapps int) (ids []string) {
-	// create 5 rollapps with the old proto version
-	storeKey := s.App.GetKey(rollapptypes.StoreKey)
-	store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappKeyPrefix))
-	eip155Store := prefix.NewStore(s.Ctx.KVStore(storeKey), rollapptypes.KeyPrefix(rollapptypes.RollappByEIP155KeyPrefix))
-	createMockOldAndNewRollapps(numRollapps)
-
-	for _, rollapp := range oldRollapps {
-		bz := s.App.AppCodec().MustMarshalJSON(&rollapp)
-		store.Set(rollapptypes.RollappKey(rollapp.RollappId), bz)
-
-		rollappID, _ := rollapptypes.NewChainID(rollapp.RollappId)
-		if !rollappID.IsEIP155() {
-			return
-		}
-
-		eip155Store.Set(rollapptypes.RollappByEIP155Key(
-			rollappID.GetEIP155ID(),
-		), []byte(rollapp.RollappId))
-		ids = append(ids, rollapp.RollappId)
+func (s *UpgradeTestSuite) seedAndStoreRollapps(numRollapps int) {
+	for _, rollapp := range s.seedRollapps(numRollapps) {
+		s.App.RollappKeeper.SetRollapp(s.Ctx, rollapp)
 	}
-	return
 }
 
-func createMockOldAndNewRollapps(nRollapps int) {
-	oldRollapps = make([]types.Rollapp, nRollapps)
-	newRollapps = make([]rollapptypes.Rollapp, nRollapps)
-
-	for i := range nRollapps {
-		oldRollapp := types.Rollapp{
-			RollappId:     fmt.Sprintf("roll%spp_123%d-1", string(rune(i+97)), i+1),
-			Creator:       sample.AccAddress(),
-			Version:       0,
-			MaxSequencers: 10,
-			PermissionedAddresses: []string{
-				sample.AccAddress(),
-				sample.AccAddress(),
-			},
-			GenesisState:     types.RollappGenesisState{},
+func (s *UpgradeTestSuite) seedRollapps(numRollapps int) []rollapptypes.Rollapp {
+	rollapps := make([]rollapptypes.Rollapp, numRollapps)
+	for i := range numRollapps {
+		rollappID := rollappIDFromIdx(i)
+		rollapp := rollapptypes.Rollapp{
+			RollappId:        rollappID,
+			Creator:          sample.AccAddressFromSecret(rollappID),
+			GenesisState:     rollapptypes.RollappGenesisState{},
 			ChannelId:        fmt.Sprintf("channel-%d", i),
 			RegisteredDenoms: []string{"denom1", "denom2"},
 		}
-		oldRollapps[i] = oldRollapp
-		newRollapps[i] = v4.ConvertOldRollappToNew(oldRollapp)
+		rollapps[i] = rollapp
+	}
+	return rollapps
+}
+
+func (s *UpgradeTestSuite) seedAndStoreSequencers(numRollapps int) {
+	for _, sequencer := range s.seedSequencers(numRollapps) {
+		s.App.SequencerKeeper.SetSequencer(s.Ctx, sequencer)
 	}
 }
 
-var (
-	oldSequencers []types.Sequencer
-	newSequencers []sequencertypes.Sequencer
-)
-
-func (s *UpgradeTestSuite) createAndStoreOldSequencers(rollappIDs []string) {
-	storeKey := s.App.GetKey(sequencertypes.StoreKey)
-	store := s.Ctx.KVStore(storeKey)
-	createMockOldAndNewSequencers(rollappIDs)
-
-	for _, sequencer := range oldSequencers {
-		bz := s.App.AppCodec().MustMarshalJSON(&sequencer)
-		store.Set(sequencertypes.SequencerKey(
-			sequencer.SequencerAddress,
-		), bz)
-
-		seqByRollappKey := sequencertypes.SequencerByRollappByStatusKey(
-			sequencer.RollappId,
-			sequencer.SequencerAddress,
-			sequencertypes.OperatingStatus(sequencer.Status),
-		)
-		store.Set(seqByRollappKey, bz)
-	}
-}
-
-func createMockOldAndNewSequencers(rollappIDs []string) {
-	numSeq := len(rollappIDs)
-	oldSequencers = make([]types.Sequencer, numSeq)
-	newSequencers = make([]sequencertypes.Sequencer, numSeq)
-
+func (s *UpgradeTestSuite) seedSequencers(numSeq int) []sequencertypes.Sequencer {
+	sequencers := make([]sequencertypes.Sequencer, numSeq)
 	for i := 0; i < numSeq; i++ {
-		pk := ed25519.GenPrivKey().PubKey()
+		rollappID := rollappIDFromIdx(i)
+		pk := ed25519.GenPrivKeyFromSecret([]byte(rollappID)).PubKey()
 		pkAny, _ := codectypes.NewAnyWithValue(pk)
-		oldSequencer := types.Sequencer{
-			SequencerAddress: sample.AccAddress(),
-			DymintPubKey:     pkAny,
-			RollappId:        rollappIDs[i],
-			Description: types.Description{
-				Moniker:         "moniker",
-				Identity:        "keybase:username",
-				Website:         "http://example.com",
-				SecurityContact: "security@example.com",
-				Details:         "Additional details about the validator.",
+		sequencer := sequencertypes.Sequencer{
+			Address:      sdk.AccAddress(pk.Address()).String(),
+			DymintPubKey: pkAny,
+			RollappId:    rollappID,
+			Metadata: sequencertypes.SequencerMetadata{
+				Moniker: fmt.Sprintf("sequencer-%d", i),
+				Details: fmt.Sprintf("Additional details about the sequencer-%d", i),
 			},
-			Status:   types.Bonded,
+			Status:   sequencertypes.Bonded,
 			Proposer: true,
 			Tokens:   sdk.NewCoins(sdk.NewInt64Coin("dym", 100)),
 		}
-		oldSequencers[i] = oldSequencer
-		newSequencers[i] = v4.ConvertOldSequencerToNew(oldSequencer)
+		sequencers[i] = sequencer
 	}
-	sort.Slice(oldSequencers, func(i, j int) bool {
-		return oldSequencers[i].SequencerAddress < oldSequencers[j].SequencerAddress
-	})
-	sort.Slice(newSequencers, func(i, j int) bool {
-		return newSequencers[i].Address < newSequencers[j].Address
-	})
+	return sequencers
+}
+
+func rollappIDFromIdx(idx int) string {
+	return fmt.Sprintf("roll%spp_123%d-1", string(rune(idx+'a')), idx+1)
 }
