@@ -80,8 +80,22 @@ func (k Keeper) PutLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store.Set(key, val)
 }
 
-// DelLivenessEvent deletes an event from the queue
-func (k Keeper) DelLivenessEvent(ctx sdk.Context, height int64, rollappID string) {
+// DelLivenessEvents deletes all liveness events for the rollapp from the queue
+func (k Keeper) DelLivenessEvents(ctx sdk.Context, height int64, rollappID string) {
+	k.DelLivenessEvent(ctx, types.LivenessEvent{
+		RollappId: rollappID,
+		HubHeight: height,
+		IsJail:    true,
+	})
+	k.DelLivenessEvent(ctx, types.LivenessEvent{
+		RollappId: rollappID,
+		HubHeight: height,
+		IsJail:    false,
+	})
+}
+
+// DelLivenessEvent deletes all liveness events for the rollapp from the queue
+func (k Keeper) DelLivenessEvent(ctx sdk.Context, e types.LivenessEvent) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.LivenessEventQueueKey(height, rollappID)
 	store.Delete(key)

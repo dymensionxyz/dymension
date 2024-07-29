@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"slices"
-	"strings"
 	"testing"
 	"time"
 
@@ -137,7 +135,10 @@ func TestLivenessEventsStorage(t *testing.T) {
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
 
-	model := make(map[int64][]types.LivenessEvent)
+	model := make(map[string]struct{})
+	modelKey := func(e types.LivenessEvent) string {
+		return fmt.Sprintf("%+v", e)
+	}
 
 	f := func(r *rapid.T) {
 		ops := map[string]func(r *rapid.T){
@@ -148,21 +149,13 @@ func TestLivenessEventsStorage(t *testing.T) {
 					IsJail:    isJail.Draw(r, "jail"),
 				}
 				k.PutLivenessEvent(ctx, e)
-				model[e.HubHeight] = append(model[e.HubHeight], e)
-				slices.SortStableFunc(model[e.HubHeight], func(a, b types.LivenessEvent) int {
-					if a.HubHeight != b.HubHeight {
-						return int(a.HubHeight - b.HubHeight)
-					}
-					return strings.Compare(a.RollappId, b.RollappId)
-				})
+				model[modelKey(e)] = struct{}{}
 			},
 			"delete": func(r *rapid.T) {
-				h :=heights.Draw(r, "h")
+				h := heights.Draw(r, "h")
 				ra := rollapps.Draw(r, "rollapp")
 				k.DelLivenessEvent(ctx, h, ra)
-				for _, e := range model[h] {
-					if e.RollappId ==
-				}
+				delete(model, modelKey(e))
 			},
 			"iterHeight": func(r *rapid.T) {
 			},
