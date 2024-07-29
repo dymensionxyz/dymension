@@ -81,9 +81,45 @@ var xxx_messageInfo_Params proto.InternalMessageInfo
 //
 // where
 // a, b, c, i, e : Distribution type,
-// + : Merge operation
-// i : inverse of a,
-// e : identity element (zero).
+// + : Merge operation (Merge method)
+// i : inverse of a (Negate method),
+// e : identity element (zero, NewDistribution method).
+//
+// Example 1:
+//
+//	a     : [100, 1] [50, 2] [0, 3] power 100
+//	b     : [160, 1] [40, 2] [5, 3] power 200
+//	a + b : [260, 1] [90, 2] [5, 3] power 300
+//
+// Example 2:
+//
+//	a     : [100, 1] [50, 2] [0, 3] power 100
+//	b     : [160, 1]                power 200
+//	a + b : [260, 1] [50, 2] [0, 3] power 300
+//
+// Example 3:
+//
+//	a     : [100, 1] [50, 2] [0, 3]          power 100
+//	b     :                         [160, 4] power 200
+//	a + b : [100, 1] [50, 2] [0, 3] [160, 4] power 300
+//
+// Example 4:
+//
+//	a     : [210, 1] [180, 2] [210, 3] power 600
+//	-b    : [-40, 1] [-10, 2]          power -50
+//	a - b : [170, 1] [180, 2] [210, 3] power 550
+//
+// Example 5:
+//
+//	a         : [210, 1] [180, 2] [210, 3] power 600
+//	e         :                            power 0
+//	a + e = a : [210, 1] [180, 2] [210, 3] power 600
+//
+// Example 6:
+//
+//	a         : [ 210, 1] [ 180, 2] [ 210, 3] power  600
+//	i = -a    : [-210, 1] [-180, 2] [-210, 3] power -600
+//	a + i = e :                               power 0
 //
 // CONTRACT: Gauges are sorted by the gauge ID.
 // CONTRACT: Gauges hold gauges only with non-vero power.

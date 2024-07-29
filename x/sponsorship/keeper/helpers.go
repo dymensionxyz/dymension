@@ -116,7 +116,7 @@ func (k Keeper) IterateDelegatorValidatorPower(
 	store := ctx.KVStore(k.storeKey)
 	iterKey := types.AllDelegatorValidatorPowersKey(voterAddr)
 	iterator := store.Iterator(iterKey, storetypes.PrefixEndBytes(iterKey))
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var power sdk.IntProto
@@ -195,7 +195,7 @@ func (k Keeper) IterateVotes(
 	store := ctx.KVStore(k.storeKey)
 	voteByte := []byte{types.VoteByte}
 	iterator := store.Iterator(voteByte, storetypes.PrefixEndBytes(voteByte))
-	defer iterator.Close()
+	defer iterator.Close() // nolint: errcheck
 
 	for ; iterator.Valid(); iterator.Next() {
 		var vote types.Vote
