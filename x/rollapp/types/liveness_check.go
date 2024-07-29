@@ -2,13 +2,12 @@ package types
 
 import (
 	"time"
-
-	"cosmossdk.io/math"
 )
 
 // LivenessCheckParams are the params needed to do a liveness check
 // This is a utility struct to make dealing with these params which are commonly used together
 // easier.
+// TODO: do I really need this?
 type LivenessCheckParams struct {
 	// HubExpectedBlockTime	is how long it typically takes to produce a Hub block (e.g. 6 secs). Used to calculate length of time based on height.
 	HubExpectedBlockTime time.Duration
@@ -18,8 +17,4 @@ type LivenessCheckParams struct {
 	SlashInterval time.Duration
 	// JailTime	is the time a sequencer can be down after which he will be jailed rather than slashed
 	JailTime time.Duration
-	// SlashMultiplier is a multiplier with the sequencer balance to calculate the slash amountr
-	SlashMultiplier math.LegacyDec
-	// SlashRewardMultiplier is a multiplier for the slashed amount to be sent to the successful slash TX reward addr
-	SlashRewardMultiplier math.LegacyDec
 }

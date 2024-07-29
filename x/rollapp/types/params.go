@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -21,23 +20,19 @@ var (
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 
-	KeyHubExpectedBlockTime          = []byte("HubExpectedBlockTime")
-	KeyLivenessSlashTime             = []byte("LivenessSlashTime")
-	KeyLivenessSlashInterval         = []byte("LivenessSlashInterval")
-	KeyLivenessJailTime              = []byte("LivenessJailTime")
-	KeyLivenessSlashRewardMultiplier = []byte("LivenessSlashRewardMultiplier")
-	KeyLivenessSlashMultiplier       = []byte("LivenessSlashMultiplier")
+	KeyHubExpectedBlockTime  = []byte("HubExpectedBlockTime")
+	KeyLivenessSlashTime     = []byte("LivenessSlashTime")
+	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
+	KeyLivenessJailTime      = []byte("LivenessJailTime")
 
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 
-	DefaultHubExpectedBlockTime          = time.Second * 6
-	DefaultLivenessSlashTime             = time.Hour * 12
-	DefaultLivenessSlashInterval         = time.Hour
-	DefaultLivenessJailTime              = time.Hour * 48
-	DefaultLivenessSlashMultiplier       = math.LegacyMustNewDecFromStr("0.01907") // roughly 2%
-	DefaultLivenessSlashRewardMultiplier = math.LegacyMustNewDecFromStr("0.5")
+	DefaultHubExpectedBlockTime  = time.Second * 6
+	DefaultLivenessSlashTime     = time.Hour * 12
+	DefaultLivenessSlashInterval = time.Hour
+	DefaultLivenessJailTime      = time.Hour * 48
 )
 
 // ParamKeyTable the param key table for launch module
@@ -53,15 +48,13 @@ func NewParams(
 	livenessCheck LivenessCheckParams,
 ) Params {
 	return Params{
-		DisputePeriodInBlocks:         disputePeriodInBlocks,
-		DeployerWhitelist:             deployerWhitelist,
-		RollappsEnabled:               enabled,
-		HubExpectedBlockTime:          livenessCheck.HubExpectedBlockTime,
-		LivenessSlashTime:             livenessCheck.SlashTime,
-		LivenessSlashInterval:         livenessCheck.SlashInterval,
-		LivenessJailTime:              livenessCheck.JailTime,
-		LivenessSlashMultiplier:       livenessCheck.SlashMultiplier,
-		LivenessSlashRewardMultiplier: livenessCheck.SlashRewardMultiplier,
+		DisputePeriodInBlocks: disputePeriodInBlocks,
+		DeployerWhitelist:     deployerWhitelist,
+		RollappsEnabled:       enabled,
+		HubExpectedBlockTime:  livenessCheck.HubExpectedBlockTime,
+		LivenessSlashTime:     livenessCheck.SlashTime,
+		LivenessSlashInterval: livenessCheck.SlashInterval,
+		LivenessJailTime:      livenessCheck.JailTime,
 	}
 }
 
@@ -76,8 +69,6 @@ func DefaultParams() Params {
 			DefaultLivenessSlashTime,
 			DefaultLivenessSlashInterval,
 			DefaultLivenessJailTime,
-			DefaultLivenessSlashMultiplier,
-			DefaultLivenessSlashRewardMultiplier,
 		},
 	)
 }
@@ -155,7 +146,5 @@ func (p Params) Liveness() LivenessCheckParams {
 		p.LivenessSlashTime,
 		p.LivenessSlashInterval,
 		p.LivenessJailTime,
-		p.LivenessSlashMultiplier,
-		p.LivenessSlashRewardMultiplier,
 	}
 }

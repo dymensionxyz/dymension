@@ -43,8 +43,6 @@ func (k Keeper) LivenessCheckParams(ctx sdk.Context) (res types.LivenessCheckPar
 	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.SlashTime)
 	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.SlashInterval)
 	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res.JailTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashRewardMultiplier, &res.SlashRewardMultiplier)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashMultiplier, &res.SlashMultiplier)
 	return
 }
 

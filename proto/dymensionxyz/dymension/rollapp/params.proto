@@ -40,8 +40,4 @@ message Params {
   google.protobuf.Duration liveness_slash_interval = 6 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
   // The time a sequencer can be down after which he will be jailed rather than slashed
   google.protobuf.Duration liveness_jail_time = 7 [(gogoproto.moretags) = "yaml:\"liveness_jail_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  // A multiplier for the slashed amount to be sent to the successful slash TX reward addr
-  string liveness_slash_reward_multiplier = 8 [(gogoproto.moretags) = "yaml:\"liveness_slash_reward_multiplier\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  // A multiplier with the sequencer balance to calculate the slash amount
-  string liveness_slash_multiplier = 9 [(gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
 }
