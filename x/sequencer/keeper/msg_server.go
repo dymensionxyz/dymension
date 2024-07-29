@@ -1,11 +1,18 @@
 package keeper
 
 import (
+	"context"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 type msgServer struct {
 	Keeper
+}
+
+// IncreaseBond implements types.MsgServer.
+func (k msgServer) IncreaseBond(context.Context, *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
+	panic("unimplemented")
 }
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
