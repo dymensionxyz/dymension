@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"time"
 )
 
@@ -75,9 +74,6 @@ func LivenessEventQueueKeyToEvent(k []byte) LivenessEvent {
 	i := len(LivenessEventQueueKeyPrefix) + 1
 	j := i + 8 + 1
 	l := j + 1 + 1
-	for i, b := range k {
-		fmt.Printf("%d: %s\n", i, string(b))
-	}
 	ret.HubHeight = int64(binary.BigEndian.Uint64(k[i : i+8]))
 	if bytes.Equal(k[j:j+1], LivenessEventQueueJail) {
 		ret.IsJail = true
