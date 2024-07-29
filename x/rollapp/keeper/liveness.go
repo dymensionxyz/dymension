@@ -2,14 +2,16 @@ package keeper
 
 import "time"
 
-type CalculateNextSlashOrJailHeight func(
-	HubBlockInterval time.Duration, // average time between hub blocks
-	SlashTimeNoUpdate time.Duration, // time until first slash if not updating
-	SlashInterval time.Duration, // gap between slash if still not updating
-	JailTime time.Duration, // time until jail if not updating
-	HubHeight int64, // current hub height
-	LastRollappUpdateHeight int64, // when was the rollapp last updated
+func NextSlashOrJailHeight(
+	hubBlockInterval time.Duration, // average time between hub blocks
+	slashTimeNoUpdate time.Duration, // time until first slash if not updating
+	slashInterval time.Duration, // gap between slash if still not updating
+	jailTime time.Duration, // time until jail if not updating
+	heightHub int64, // current hub height
+	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
-	hubHeight int64, // height to schedule event
+	heightEvent int64, // hub height to schedule event
 	isJail bool, // is it a jail event? (false -> slash)
-)
+) {
+	downTime := time.Duration(heightHub-heightLastRollappUpdate) * hubBlockInterval
+}
