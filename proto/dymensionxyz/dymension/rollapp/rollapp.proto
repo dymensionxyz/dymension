@@ -42,6 +42,8 @@ message Rollapp {
   bool frozen = 9;
   // registeredDenoms is a list of registered denom bases on this rollapp
   repeated string registeredDenoms = 10;
+  // LivenessEventHeight is the height of an upcoming liveness event (slash or jail)
+  optional int64 liveness_event_height = 11;
 }
 
 // Rollapp summary is a compact representation of Rollapp

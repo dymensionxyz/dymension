@@ -30,3 +30,6 @@ func NextSlashOrJailHeight(
 // and a slash or jail event is due
 func (k Keeper) CheckLiveness(ctx sdk.Context) {
 }
+
+func (k Keeper) GetScheduledLivenessEvents(ctx sdk.Context) {
+}
