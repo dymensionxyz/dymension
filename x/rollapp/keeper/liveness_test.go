@@ -151,10 +151,14 @@ func TestLivenessEventsStorage(t *testing.T) {
 				k.PutLivenessEvent(ctx, e)
 				model[modelKey(e)] = struct{}{}
 			},
-			"delete": func(r *rapid.T) {
-				h := heights.Draw(r, "h")
-				ra := rollapps.Draw(r, "rollapp")
-				k.DelLivenessEvent(ctx, h, ra)
+			"deleteForRollapp": func(r *rapid.T) {
+				e := types.LivenessEvent{
+					RollappId: rollapps.Draw(r, "rollapp"),
+					HubHeight: heights.Draw(r, "h"),
+				}
+				k.DelLivenessEvents(ctx, e.HubHeight, e.RollappId)
+				delete(model, modelKey(e))
+				e.IsJail = true
 				delete(model, modelKey(e))
 			},
 			"iterHeight": func(r *rapid.T) {
