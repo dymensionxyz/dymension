@@ -11,7 +11,7 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
+	_, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(found)
 	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, sdk.MustAccAddressFromBech32(seqAddr), sdk.NewCoins(bondAmount))
@@ -25,7 +25,7 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 
 	suite.Require().NoError(err)
 	expectedBond := types.DefaultParams().MinBond.Add(bondAmount)
-	seq, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
+	seq, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().Equal(expectedBond, seq.Tokens[0])
 }
 
