@@ -1,4 +1,4 @@
-package keeper
+package keeper_test
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
@@ -20,7 +21,7 @@ func TestNextSlashOrJailHeightExample(t *testing.T) {
 	jail := false
 	for !jail {
 		last := hHub
-		hHub, jail = NextSlashOrJailHeight(
+		hHub, jail = keeper.NextSlashOrJailHeight(
 			types.DefaultHubExpectedBlockTime,
 			types.DefaultLivenessSlashTime,
 			types.DefaultLivenessSlashInterval,
@@ -104,7 +105,7 @@ func testWithRapid(t *rapid.T) {
 					}
 					hubBlockTimeLastSlash = hubBlockTime
 					numSlashes += 1
-					nextEventHeight, nextEventIsJail = NextSlashOrJailHeight(
+					nextEventHeight, nextEventIsJail = keeper.NextSlashOrJailHeight(
 						hubBlockInterval,
 						slashTimeNoUpdate,
 						slashInterval,
@@ -136,12 +137,11 @@ func TestLivenessEventsStorage(t *testing.T) {
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
 
-	model := make(map[string]types.LivenessEvent)
-	modelKey := func(e types.LivenessEvent) string {
-		return fmt.Sprintf("%+v", e)
-	}
-
 	f := func(r *rapid.T) {
+		model := make(map[string]types.LivenessEvent)
+		modelKey := func(e types.LivenessEvent) string {
+			return fmt.Sprintf("%+v", e)
+		}
 		ops := map[string]func(r *rapid.T){
 			"put": func(r *rapid.T) {
 				e := types.LivenessEvent{
