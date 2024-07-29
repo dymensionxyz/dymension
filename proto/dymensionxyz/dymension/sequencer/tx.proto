@@ -22,6 +22,9 @@ service Msg {
   
   // Unbond defines a method for removing coins from sequencer's bond
   rpc Unbond (MsgUnbond) returns (MsgUnbondResponse);
+
+  // DecreaseBond defines a method for decreasing the bond of a sequencer.
+  rpc DecreaseBond (MsgDecreaseBond) returns (MsgDecreaseBondResponse);
 }
 // MsgCreateSequencer defines a SDK message for creating a new sequencer.
 message MsgCreateSequencer {
@@ -52,5 +55,20 @@ message MsgUnbond {
 
 // MsgUnbondResponse defines the Msg/Unbond response type.
 message MsgUnbondResponse {
+  google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
+
+// MsgDecreaseBond defines a SDK message for decreasing the bond of a sequencer.
+message MsgDecreaseBond {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  
+  // amount is the amount of coins to decrease the bond by.
+  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
+message MsgDecreaseBondResponse {
   google.protobuf.Timestamp completion_time = 1 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
