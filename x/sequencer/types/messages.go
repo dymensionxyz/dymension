@@ -11,11 +11,13 @@ import (
 const (
 	TypeMsgCreateSequencer = "create_sequencer"
 	TypeMsgUnbond          = "unbond"
+	TypeMsgIncreaseBond    = "increase_bond"
 )
 
 var (
 	_ sdk.Msg                            = &MsgCreateSequencer{}
 	_ sdk.Msg                            = &MsgUnbond{}
+	_ sdk.Msg                            = &MsgIncreaseBond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
@@ -120,6 +122,35 @@ func (msg *MsgUnbond) ValidateBasic() error {
 }
 
 func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+/* ---------------------------- MsgIncreaseBond ---------------------------- */
+func NewMsgIncreaseBond(creator string, amount sdk.Coin) *MsgIncreaseBond {
+	return &MsgIncreaseBond{
+		Creator: creator,
+		Amount:  amount,
+	}
+}
+
+func (msg *MsgIncreaseBond) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if !msg.Amount.IsValid() {
+		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Amount.String())
+	}
+
+	return nil
+}
+
+func (msg *MsgIncreaseBond) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)
