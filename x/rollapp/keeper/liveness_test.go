@@ -8,6 +8,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
 )
@@ -128,6 +129,20 @@ func testWithRapid(t *rapid.T) {
 	}
 
 	t.Repeat(ops)
+}
+
+func TestLivenessEventsStorageDebug(t *testing.T) {
+	k, ctx := keepertest.RollappKeeper(t)
+	e := types.LivenessEvent{
+		RollappId: "a",
+		HubHeight: 47,
+		IsJail:    false,
+	}
+	k.PutLivenessEvent(ctx, e)
+	all := k.GetLivenessEvents(ctx, nil)
+	require.Equal(t, 1, len(all))
+	got := all[0]
+	require.Equal(t, e, got)
 }
 
 // go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
