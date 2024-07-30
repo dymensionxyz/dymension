@@ -9,6 +9,8 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
+// NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
+// It will respect all parameters passed in.
 func NextSlashOrJailHeight(
 	hubBlockInterval time.Duration, // average time between hub blocks
 	slashTimeNoUpdate time.Duration, // time until first slash if not updating
@@ -89,6 +91,7 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 		ctx.BlockHeight(),
 		ra.LastStateUpdateHeight,
 	)
+	nextH = max(nextH, ctx.BlockHeight()+1)
 	ra.LivenessEventHeight = nextH
 	k.PutLivenessEvent(ctx, types.LivenessEvent{
 		RollappId: ra.RollappId,

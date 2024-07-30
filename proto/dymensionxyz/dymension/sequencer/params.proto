@@ -21,6 +21,7 @@ message Params {
   // unbonding_time is the time duration of unbonding.
   google.protobuf.Duration unbonding_time = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
 
+  // LivenessSlashMultiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
   string liveness_slash_multiplier = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.moretags) = "yaml:\"liveness_slash_multiplier\"",

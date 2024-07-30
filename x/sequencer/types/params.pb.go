@@ -33,7 +33,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
 	// unbonding_time is the time duration of unbonding.
-	UnbondingTime           time.Duration                          `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
+	UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
+	// LivenessSlashMultiplier multiplies with the tokens of the slashed sequencer to compute the burn amount.
 	LivenessSlashMultiplier github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=liveness_slash_multiplier,json=livenessSlashMultiplier,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"liveness_slash_multiplier" yaml:"liveness_slash_multiplier"`
 }
 
