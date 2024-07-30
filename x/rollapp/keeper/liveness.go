@@ -32,7 +32,6 @@ func NextSlashOrJailHeight(
 func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	h := ctx.BlockHeight()
 	events := k.GetLivenessEvents(ctx, &h)
-	params := k.GetParams(ctx).Liveness()
 	for _, e := range events {
 		if e.IsJail {
 			// TODO: jail
@@ -46,15 +45,21 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 				Leaning towards (b)
 		*/
 		ra := k.MustGetRollapp(ctx, e.RollappId)
-		nextH, isJail := NextSlashOrJailHeight(
-			params.HubExpectedBlockTime,
-			params.SlashTime,
-			params.SlashInterval,
-			params.JailTime,
-			h,
-		)
-		ra.GenesisState
+		k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
+		k.ScheduleLivenessEvent(ctx, ra)
 	}
+}
+
+func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra types.Rollapp) {
+	params := k.GetParams(ctx).Liveness()
+	nextH, isJail := NextSlashOrJailHeight(
+		params.HubExpectedBlockTime,
+		params.SlashTime,
+		params.SlashInterval,
+		params.JailTime,
+		h,
+	)
+	ra.GenesisState
 }
 
 // GetLivenessEvents returns events. If a height is specified, only for that height.

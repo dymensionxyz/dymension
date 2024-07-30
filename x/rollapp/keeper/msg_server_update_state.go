@@ -101,6 +101,9 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 		FinalizationQueue: newFinalizationQueue,
 	})
 
+	k.DelLivenessEvents(ctx, rollapp.LivenessEventHeight, rollapp.RollappId)
+	k.ScheduleLivenessEvent(ctx, rollapp)
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
 			stateInfo.GetEvents()...,
