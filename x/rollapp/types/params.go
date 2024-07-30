@@ -80,6 +80,10 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
 		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
 		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
+		paramtypes.NewParamSetPair(KeyHubExpectedBlockTime, &p.HubExpectedBlockTime, validateHubExpectedBlockTime),
+		paramtypes.NewParamSetPair(KeyLivenessSlashTime, &p.LivenessSlashTime, validateLivenessSlashTime),
+		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
+		paramtypes.NewParamSetPair(KeyLivenessJailTime, &p.LivenessJailTime, validateLivenessJailTime),
 		// TODO: impl
 	}
 }
@@ -87,6 +91,19 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
+		return err
+	}
+
+	if err := validateHubExpectedBlockTime(p.HubExpectedBlockTime); err != nil {
+		return err
+	}
+	if err := validateLivenessSlashTime(p.LivenessSlashTime); err != nil {
+		return err
+	}
+	if err := validateLivenessSlashInterval(p.LivenessSlashInterval); err != nil {
+		return err
+	}
+	if err := validateLivenessJailTime(p.LivenessJailTime); err != nil {
 		return err
 	}
 
@@ -99,6 +116,26 @@ func (p Params) Validate() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func validateHubExpectedBlockTime(v interface{}) error {
+	// TODO:
+	return nil
+}
+
+func validateLivenessSlashTime(v interface{}) error {
+	// TODO:
+	return nil
+}
+
+func validateLivenessSlashInterval(v interface{}) error {
+	// TODO:
+	return nil
+}
+
+func validateLivenessJailTime(v interface{}) error {
+	// TODO:
+	return nil
 }
 
 // validateDisputePeriodInBlocks validates the DisputePeriodInBlocks param
