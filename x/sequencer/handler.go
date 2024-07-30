@@ -23,6 +23,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgUnbond:
 			res, err := msgServer.Unbond(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgDecreaseBond:
+			res, err := msgServer.DecreaseBond(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, errorsmod.Wrap(types.ErrUnknownRequest, errMsg)
