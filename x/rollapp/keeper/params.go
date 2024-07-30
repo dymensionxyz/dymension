@@ -38,7 +38,6 @@ func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 }
 
 func (k Keeper) LivenessCheckParams(ctx sdk.Context) (res types.LivenessCheckParams) {
-	k.paramstore.Get(ctx, types.KeyRollappsEnabled, &res)
 	k.paramstore.Get(ctx, types.KeyHubExpectedBlockTime, &res.HubExpectedBlockTime)
 	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.SlashTime)
 	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.SlashInterval)
