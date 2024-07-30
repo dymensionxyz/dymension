@@ -37,9 +37,9 @@ func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID str
 	return nil
 }
 
-func (l livenessMockSequencerKeeper) clear() {
-	l.slashes = make(map[string]int)
-	l.jails = make(map[string]int)
+func (l livenessMockSequencerKeeper) clear(rollappID string) {
+	delete(l.slashes, rollappID)
+	delete(l.jails, rollappID)
 }
 
 // The protocol works.
@@ -77,6 +77,10 @@ func TestLivenessFlow(t *testing.T) {
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
+				// 1. check registered invariant
+				msg, ok := keeper.LivenessEventInvariant(*s.keeper())(s.Ctx)
+				require.True(t, ok, msg)
+				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
 					lastUpdate, ok := hLastUpdate[ra]
@@ -93,17 +97,18 @@ func TestLivenessFlow(t *testing.T) {
 						t.Log("check jail")
 					}
 					if elapsedTime <= p.LivenessSlashTime {
-						require.Zero(r, tracker.slashes[ra], "expect not slashed")
+						l := tracker.slashes[ra]
+						require.Zero(r, l, "expect not slashed")
 					} else {
 						t.Log("check slash")
 						expectedSlashes := int((elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval) + 1
-						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed")
+						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed", "rollapp", ra)
 					}
 				}
 			},
-			"toggle sequencer status": func(r *rapid.T) {
+			"set sequencer status": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
-				rollappIsDown[raID] = !rollappIsDown[raID]
+				rollappIsDown[raID] = rapid.Bool().Draw(r, "down")
 			},
 			"state update": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
@@ -112,7 +117,7 @@ func TestLivenessFlow(t *testing.T) {
 					s.keeper().IndicateLiveness(s.Ctx, &ra)
 					s.keeper().SetRollapp(s.Ctx, ra)
 					hLastUpdate[raID] = s.Ctx.BlockHeight()
-					tracker.clear()
+					tracker.clear(raID)
 				}
 			},
 			"hub end block": func(r *rapid.T) {

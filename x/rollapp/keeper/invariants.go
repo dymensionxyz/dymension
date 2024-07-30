@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"golang.org/x/exp/slices"
 )
 
 // RegisterInvariants registers the bank module invariants
@@ -17,7 +18,7 @@ func RegisterInvariants(ir sdk.InvariantRegistry, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "rollapp-finalized-state", RollappFinalizedStateInvariant(k))
 }
 
-// AllInvariants runs all invariants of the X/bank module.
+// AllInvariants runs all invariants of the module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		res, stop := RollappLatestStateIndexInvariant(k)(ctx)
@@ -37,6 +38,10 @@ func AllInvariants(k Keeper) sdk.Invariant {
 			return res, stop
 		}
 		res, stop = RollappFinalizedStateInvariant(k)(ctx)
+		if stop {
+			return res, stop
+		}
+		res, stop = LivenessEventInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -252,6 +257,48 @@ func RollappFinalizedStateInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "rollapp-finalized-state",
+			msg,
+		), broken
+	}
+}
+
+// LivenessEventInvariant checks for all rollapps that the liveness event height, if any, is accurate,
+// in that there is actually an event stored at that height. Moreover, there should not be any events
+// stored which don't correspond to a liveness event height.
+func LivenessEventInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			broken bool
+			msg    string
+		)
+		rollapps := k.GetAllRollapps(ctx)
+		for _, ra := range rollapps {
+			events := k.GetLivenessEvents(ctx, &ra.LivenessEventHeight)
+			if !slices.ContainsFunc(events, func(e types.LivenessEvent) bool {
+				return e.RollappId == ra.RollappId
+			}) {
+				broken = true
+				msg += fmt.Sprintf("rollapp stored event but it was not found in queue: rollapp: %s: event height: %d", ra.RollappId, ra.LivenessEventHeight)
+			}
+		}
+		for _, e := range k.GetLivenessEvents(ctx, nil) {
+			ra, ok := k.GetRollapp(ctx, e.RollappId)
+			if !ok {
+				broken = true
+				msg += fmt.Sprintf("event stored but rollapp not found: rollapp id: %s", e.RollappId)
+				continue
+			}
+			if ra.LivenessEventHeight != e.HubHeight {
+				broken = true
+				msg += fmt.Sprintf("event stored but rollapp has a different liveness event height: rollapp: %s"+
+					"height stored on rollapp: %d: height on event: %d", e.RollappId, ra.LivenessEventHeight, e.HubHeight,
+				)
+			}
+
+		}
+
+		return sdk.FormatInvariant(
+			types.ModuleName, "liveness-event",
 			msg,
 		), broken
 	}

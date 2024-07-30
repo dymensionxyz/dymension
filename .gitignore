@@ -8,3 +8,4 @@ build/
 .DS_Store
 proposal.json
 .go-version
+**/testdata/rapid/
