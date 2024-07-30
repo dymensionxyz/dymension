@@ -75,7 +75,6 @@ func TestLivenessFlow(t *testing.T) {
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
-				t.Log("check general", "h", s.Ctx.BlockHeight(), "ha", hLastUpdate["a"], "hb", hLastUpdate["b"])
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
 					elapsed := h - hLastUpdate[ra]
@@ -101,8 +100,6 @@ func TestLivenessFlow(t *testing.T) {
 				rollappIsDown[raID] = !rollappIsDown[raID]
 			},
 			"state update": func(r *rapid.T) {
-				// if rapid.IntRange(0, 10).Draw(r, "up") < 1 {
-				// if rapid.Bool().Draw(r, "sequencer is up")
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				if !rollappIsDown[raID] {
 					ra := s.keeper().MustGetRollapp(s.Ctx, raID)
