@@ -45,6 +45,8 @@ message Rollapp {
   // LivenessEventHeight is the height of an upcoming liveness event (slash or jail)
   // 0 means not set
   int64 liveness_event_height = 11;
+  // The HUB height when the last state update was received
+  int64 last_state_update_height = 12;
 }
 
 // Rollapp summary is a compact representation of Rollapp

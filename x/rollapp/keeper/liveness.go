@@ -46,20 +46,40 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 		*/
 		ra := k.MustGetRollapp(ctx, e.RollappId)
 		k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
-		k.ScheduleLivenessEvent(ctx, ra)
+		k.ScheduleLivenessEvent(ctx, &ra)
 	}
 }
 
-func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra types.Rollapp) {
+// IndicateLiveness will reschedule pending liveness events to a later date.
+// Modifies the passed in rollapp object.
+func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
+	ra.LastStateUpdateHeight = ctx.BlockHeight()
+	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
+	k.ScheduleLivenessEvent(ctx, ra)
+}
+
+// ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not
+// already exist for the rollapp. Assumes the rollapp has had at least one state update already.
+// Modifies the passed in rollapp object.
+func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
+	if ra.LastStateUpdateHeight == 0 {
+		panic("last state update height is not set")
+	}
 	params := k.GetParams(ctx).Liveness()
 	nextH, isJail := NextSlashOrJailHeight(
 		params.HubExpectedBlockTime,
 		params.SlashTime,
 		params.SlashInterval,
 		params.JailTime,
-		h,
+		ctx.BlockHeight(),
+		ra.LastStateUpdateHeight,
 	)
-	ra.GenesisState
+	ra.LivenessEventHeight = nextH
+	k.PutLivenessEvent(ctx, types.LivenessEvent{
+		RollappId: ra.RollappId,
+		HubHeight: nextH,
+		IsJail:    isJail,
+	})
 }
 
 // GetLivenessEvents returns events. If a height is specified, only for that height.
