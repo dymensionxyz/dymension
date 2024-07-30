@@ -49,9 +49,16 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	if err != nil {
 		return err
 	}
-	amt := sdk.Coins{}
+	mul := k.GetParams(ctx).LivenessSlashMultiplier
+	tokens := seq.Tokens
+	amt := MulCoinsDec(tokens, mul)
 	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
 	return k.Slash(ctx, seq, amt, nil)
+}
+
+func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
+	// TODO: use it
+	return sdk.Coins{}
 }
 
 func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {
@@ -67,11 +74,6 @@ func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (type
 	// TODO: find the sequencer who is currently responsible for ensuring liveness
 	//  https://github.com/dymensionxyz/dymension/issues/1018
 	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "currently there is no liable sequencer")
-}
-
-func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
-	// TODO: use it
-	return sdk.Coins{}
 }
 
 func (k Keeper) Slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coins, recipientAddr *sdk.AccAddress) error {
