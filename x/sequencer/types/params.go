@@ -94,7 +94,13 @@ func validateMinBond(i interface{}) error {
 }
 
 func validateLivenessSlashMultiplier(i interface{}) error {
-	// TODO:
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() || v.IsNegative() {
+		return fmt.Errorf("must be positive: %s", v)
+	}
 	return nil
 }
 

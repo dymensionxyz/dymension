@@ -118,23 +118,47 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validateHubExpectedBlockTime(v interface{}) error {
-	// TODO:
+func validateHubExpectedBlockTime(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v <= 0 {
+		return fmt.Errorf("must be positive: %s", v)
+	}
 	return nil
 }
 
-func validateLivenessSlashTime(v interface{}) error {
-	// TODO:
+func validateLivenessSlashTime(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v <= 0 {
+		return fmt.Errorf("must be positive: %s", v)
+	}
 	return nil
 }
 
-func validateLivenessSlashInterval(v interface{}) error {
-	// TODO:
+func validateLivenessSlashInterval(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v <= 0 {
+		return fmt.Errorf("must be positive: %s", v)
+	}
 	return nil
 }
 
-func validateLivenessJailTime(v interface{}) error {
-	// TODO:
+func validateLivenessJailTime(i interface{}) error {
+	v, ok := i.(time.Duration)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v <= 0 {
+		return fmt.Errorf("must be positive: %s", v)
+	}
 	return nil
 }
 
