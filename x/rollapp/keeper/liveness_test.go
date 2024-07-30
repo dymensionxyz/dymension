@@ -42,13 +42,19 @@ func (l livenessMockSequencerKeeper) clear() {
 }
 
 // The protocol works.
-// go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=1000
+// go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=300
 func TestLivenessFlow(t *testing.T) {
 	rapid.Check(t, func(r *rapid.T) {
 		s := new(RollappTestSuite)
 		s.SetT(t)
 		s.SetS(s)
 		s.SetupTest()
+		p := s.keeper().GetParams(s.Ctx)
+		// adjust params to be more amenable to testing without needing thousands of hub blocks
+		p.HubExpectedBlockTime = time.Minute * 20
+		s.keeper().SetParams(s.Ctx, p)
+
+		rollapps := []string{"a", "b"}
 		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
 			if rapid.Bool().Draw(t, "hub is down") {
 				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
@@ -57,18 +63,19 @@ func TestLivenessFlow(t *testing.T) {
 				return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
 			}
 		})
+
 		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
-		rollapps := []string{"a", "b"}
-		rollapp := rapid.SampledFrom(rollapps)
 		for _, ra := range rollapps {
 			s.keeper().SetRollapp(s.Ctx, types.Rollapp{RollappId: ra})
 		}
 
 		hLastUpdate := map[string]int64{}
+		rollappIsDown := map[string]bool{}
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
+				t.Log("check general", "h", s.Ctx.BlockHeight(), "ha", hLastUpdate["a"], "hb", hLastUpdate["b"])
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
 					elapsed := h - hLastUpdate[ra]
@@ -78,22 +85,32 @@ func TestLivenessFlow(t *testing.T) {
 						require.Zero(r, tracker.jails[ra])
 					} else {
 						require.NotZero(r, tracker.jails[ra])
+						t.Log("check jail")
 					}
 					if elapsedTime <= p.LivenessSlashTime {
 						require.Zero(r, tracker.slashes[ra])
 					} else {
+						t.Log("check slash")
 						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
 						require.Equal(r, expectedSlashes, tracker.slashes[ra])
 					}
 				}
 			},
+			"toggle status": func(r *rapid.T) {
+				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
+				rollappIsDown[raID] = !rollappIsDown[raID]
+			},
 			"state update": func(r *rapid.T) {
-				raID := rollapp.Draw(r, "rollapp")
-				ra := s.keeper().MustGetRollapp(s.Ctx, raID)
-				s.keeper().IndicateLiveness(s.Ctx, &ra)
-				s.keeper().SetRollapp(s.Ctx, ra)
-				hLastUpdate[raID] = s.Ctx.BlockHeight()
-				tracker.clear()
+				// if rapid.IntRange(0, 10).Draw(r, "up") < 1 {
+				// if rapid.Bool().Draw(r, "sequencer is up")
+				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
+				if !rollappIsDown[raID] {
+					ra := s.keeper().MustGetRollapp(s.Ctx, raID)
+					s.keeper().IndicateLiveness(s.Ctx, &ra)
+					s.keeper().SetRollapp(s.Ctx, ra)
+					hLastUpdate[raID] = s.Ctx.BlockHeight()
+					tracker.clear()
+				}
 			},
 			"hub end block": func(r *rapid.T) {
 				dt := hubBlockGap.Draw(r, "dt")
