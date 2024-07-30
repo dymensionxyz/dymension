@@ -132,7 +132,7 @@ func testWithRapid(t *rapid.T) {
 
 // go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
 func TestLivenessEventsStorage(t *testing.T) {
-	rollapps := rapid.SampledFrom([]string{"a", "b", "c"})
+	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
 
