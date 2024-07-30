@@ -17,7 +17,7 @@ type Hooks struct {
 	k Keeper
 }
 
-func NewHooks(k Keeper) Hooks {
+func (k Keeper) Hooks() Hooks {
 	return Hooks{k: k}
 }
 
