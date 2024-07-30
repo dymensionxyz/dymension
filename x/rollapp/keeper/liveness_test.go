@@ -9,6 +9,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	flag "github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
@@ -42,8 +43,9 @@ func (l livenessMockSequencerKeeper) clear() {
 }
 
 // The protocol works.
-// go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=300
 func TestLivenessFlow(t *testing.T) {
+	_ = flag.Set("rapid.checks", "300")
+	_ = flag.Set("rapid.steps", "300")
 	rapid.Check(t, func(r *rapid.T) {
 		s := new(RollappTestSuite)
 		s.SetT(t)
@@ -51,7 +53,7 @@ func TestLivenessFlow(t *testing.T) {
 		s.SetupTest()
 		p := s.keeper().GetParams(s.Ctx)
 		// adjust params to be more amenable to testing without needing thousands of hub blocks
-		p.HubExpectedBlockTime = time.Minute * 20
+		p.HubExpectedBlockTime = time.Minute * 25
 		s.keeper().SetParams(s.Ctx, p)
 
 		rollapps := []string{"a", "b"}
@@ -81,21 +83,21 @@ func TestLivenessFlow(t *testing.T) {
 					p := s.keeper().GetParams(s.Ctx)
 					elapsedTime := time.Duration(elapsed) * p.HubExpectedBlockTime
 					if elapsedTime <= p.LivenessJailTime {
-						require.Zero(r, tracker.jails[ra])
+						require.Zero(r, tracker.jails[ra], "expect not jailed")
 					} else {
-						require.NotZero(r, tracker.jails[ra])
+						require.NotZerof(r, tracker.jails[ra], "expect jailed")
 						t.Log("check jail")
 					}
 					if elapsedTime <= p.LivenessSlashTime {
-						require.Zero(r, tracker.slashes[ra])
+						require.Zero(r, tracker.slashes[ra], "expect not slashed")
 					} else {
 						t.Log("check slash")
 						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
-						require.Equal(r, expectedSlashes, tracker.slashes[ra])
+						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed")
 					}
 				}
 			},
-			"toggle status": func(r *rapid.T) {
+			"toggle sequencer status": func(r *rapid.T) {
 				raID := rapid.SampledFrom(rollapps).Draw(r, "rollapp")
 				rollappIsDown[raID] = !rollappIsDown[raID]
 			},
@@ -119,8 +121,10 @@ func TestLivenessFlow(t *testing.T) {
 }
 
 // Correct calculation of the next slash or jail event, based on downtime and parameters
-// go test -run=TestNextSlashOrJailHeightRapid -rapid.checks=100 -rapid.steps=30000
 func TestNextSlashOrJailHeightRapid(t *testing.T) {
+	_ = flag.Set("rapid.checks", "100")
+	_ = flag.Set("rapid.steps", "30000")
+
 	hubBlockInterval := 6 * time.Second
 	slashTimeNoUpdate := 12 * time.Hour
 	slashInterval := 1 * time.Hour
@@ -188,8 +192,10 @@ func TestNextSlashOrJailHeightRapid(t *testing.T) {
 }
 
 // Storage and query operations work for the event queue
-// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=100
 func TestLivenessEventsStorage(t *testing.T) {
+	_ = flag.Set("rapid.checks", "50")
+	_ = flag.Set("rapid.steps", "50")
+
 	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
