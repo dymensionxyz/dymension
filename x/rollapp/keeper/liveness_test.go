@@ -26,12 +26,18 @@ func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID str
 }
 
 func (s *RollappTestSuite) TestLivenessEvents() {
-	ctx := &s.Ctx
+	ctx := s.Ctx
 	k := s.App.RollappKeeper
 	m := livenessMockSequencerKeeper{}
 	k.SetSequencerKeeper(m)
-	_ = ctx
-	_ = k
+	rollappID := "foo"
+	k.SetRollapp(ctx, types.Rollapp{RollappId: rollappID})
+	ctx.BlockHeight()
+
+	/*
+		What to test?
+
+	*/
 }
 
 // Correct calculation of the next slash or jail event, based on downtime and parameters

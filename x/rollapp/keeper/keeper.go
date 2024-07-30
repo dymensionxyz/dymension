@@ -60,6 +60,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
+// SetSequencerKeeper is intended for testing
 func (k *Keeper) SetSequencerKeeper(sk types.SequencerKeeper) {
 	k.sequencerKeeper = sk
 }
