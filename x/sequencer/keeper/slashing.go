@@ -87,8 +87,6 @@ func (k Keeper) Slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coins) error
 }
 
 func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
-	// TODO: check contents of this, since it was copied
-
 	oldStatus := seq.Status
 	wasProposer := seq.Proposer
 	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
