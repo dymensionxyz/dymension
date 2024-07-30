@@ -98,7 +98,10 @@ func TestLivenessFlow(t *testing.T) {
 						}
 					}
 					if p.LivenessSlashTime <= elapsedTime {
-						expectedSlashes := elapsedTime - p.LivenessSlashTime
+						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
+						if tracker.slashes[ra] != int(expectedSlashes) {
+							r.Fatal("wrong number of slashes")
+						}
 					} else {
 						if tracker.slashes[ra] != 0 {
 							r.Fatal("expect not be slashed")
