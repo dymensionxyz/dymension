@@ -24,7 +24,7 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 
 	tokens := seq.Tokens
 
-	if err := k.Slash(ctx, seq, tokens); err != nil {
+	if err := k.Slash(ctx, &seq, tokens); err != nil {
 		return err // TODO:
 	}
 
@@ -53,9 +53,10 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	tokens := seq.Tokens
 	amt := MulCoinsDec(tokens, mul)
 	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
-	return k.Slash(ctx, seq, amt)
+	return k.Slash(ctx, &seq, amt)
 }
 
+// MulCoinsDec .. TODO: move to sdk-utils package
 func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
 	// TODO: use it
 	return sdk.Coins{}
@@ -76,13 +77,12 @@ func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (type
 	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "currently there is no liable sequencer")
 }
 
-func (k Keeper) Slash(ctx sdk.Context, seq types.Sequencer, amt sdk.Coins) error {
-	seq.Tokens.Sub(amt...)
+func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) error {
+	seq.Tokens = seq.Tokens.Sub(amt...)
 	err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, amt)
 	if err != nil {
 		return errorsmod.Wrap(err, "burn coins")
 	}
-	// TODO: write back sequencer?
 	return nil
 }
 

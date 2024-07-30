@@ -65,9 +65,6 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 // already exist for the rollapp. Assumes the rollapp has had at least one state update already.
 // Modifies the passed in rollapp object.
 func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
-	if ra.LastStateUpdateHeight == 0 {
-		panic("last state update height is not set")
-	}
 	params := k.GetParams(ctx)
 	nextH, isJail := NextSlashOrJailHeight(
 		params.HubExpectedBlockTime,

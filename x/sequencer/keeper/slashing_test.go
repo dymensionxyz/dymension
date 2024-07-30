@@ -79,7 +79,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	suite.assertSlashed(seqAddr)
 }
 
-func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
+func (suite *SequencerTestSuite) TestSlashingProposerSequencer() {
 	suite.SetupTest()
 	keeper := suite.App.SequencerKeeper
 
