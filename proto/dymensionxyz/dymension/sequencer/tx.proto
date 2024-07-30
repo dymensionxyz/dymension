@@ -64,8 +64,8 @@ message MsgIncreaseBond {
   // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   
-  // amount is the amount of coins to be added to the sequencer's bond.
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  // add_amount is the amount of coins to be added to the sequencer's bond.
+  cosmos.base.v1beta1.Coin add_amount = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgIncreaseBondResponse defines the Msg/IncreaseBond response type.

@@ -18,8 +18,8 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 	suite.Require().NoError(err)
 
 	msg := types.MsgIncreaseBond{
-		Creator: seqAddr,
-		Amount:  bondAmount,
+		Creator:   seqAddr,
+		AddAmount: bondAmount,
 	}
 	_, err = suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 
@@ -36,8 +36,8 @@ func (suite *SequencerTestSuite) TestIncreaseBondInvalidSequencer() {
 	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
 
 	msg := types.MsgIncreaseBond{
-		Creator: addr.String(),
-		Amount:  bondAmount,
+		Creator:   addr.String(),
+		AddAmount: bondAmount,
 	}
 	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 
@@ -54,8 +54,8 @@ func (suite *SequencerTestSuite) TestIncreaseBondInvalidSequencerStatus() {
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, seq, seq.Status)
 
 	msg := types.MsgIncreaseBond{
-		Creator: seqAddr,
-		Amount:  sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
+		Creator:   seqAddr,
+		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
 	}
 	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 
@@ -72,8 +72,8 @@ func (suite *SequencerTestSuite) TestIncreaseBondSequencerJailed() {
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, seq, seq.Status)
 
 	msg := types.MsgIncreaseBond{
-		Creator: seqAddr,
-		Amount:  sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
+		Creator:   seqAddr,
+		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
 	}
 	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 
@@ -88,8 +88,8 @@ func (suite *SequencerTestSuite) TestIncreaseBondInsufficientBalance() {
 	suite.Require().True(found)
 
 	msg := types.MsgIncreaseBond{
-		Creator: seqAddr,
-		Amount:  sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
+		Creator:   seqAddr,
+		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
 	}
 	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 

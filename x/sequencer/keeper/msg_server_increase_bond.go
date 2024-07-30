@@ -11,44 +11,49 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	sequencer, allowed, err := k.bondUpdateAllowed(ctx, msg)
+	if !allowed {
+		return nil, err
+	}
+
+	// transfer the bond from the sequencer to the module account
+	seqAcc := sdk.MustAccAddressFromBech32(msg.Creator)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.AddAmount))
+	if err != nil {
+		return nil, err
+	}
+
+	// update the sequencers bond amount in state
+	sequencer.Tokens = sequencer.Tokens.Add(msg.AddAmount)
+	k.UpdateSequencer(ctx, sequencer, sequencer.Status)
+
+	// emit a typed event which includes the added amount and the active bond amount
+	ctx.EventManager().EmitTypedEvent(
+		&types.EventIncreasedBond{
+			Sequencer:   msg.Creator,
+			Bond:        sequencer.Tokens,
+			AddedAmount: msg.AddAmount,
+		},
+	)
+
+	return &types.MsgIncreaseBondResponse{}, nil
+}
+
+func (k msgServer) bondUpdateAllowed(ctx sdk.Context, msg *types.MsgIncreaseBond) (types.Sequencer, bool, error) {
 	// check if the sequencer already exists
 	sequencer, found := k.GetSequencer(ctx, msg.Creator)
 	if !found {
-		return nil, types.ErrUnknownSequencer
+		return types.Sequencer{}, true, types.ErrUnknownSequencer
 	}
 
 	// check if the sequencer is bonded
 	if !sequencer.IsBonded() {
-		return nil, types.ErrInvalidSequencerStatus
+		return types.Sequencer{}, true, types.ErrInvalidSequencerStatus
 	}
 
 	// check if sequencer is currently jailed
 	if sequencer.Jailed {
-		return nil, types.ErrSequencerJailed
+		return types.Sequencer{}, true, types.ErrSequencerJailed
 	}
-
-	// transfer the bond from the sequencer to the module account
-	seqAcc, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Amount))
-	if err != nil {
-		return nil, err
-	}
-
-	// update the sequencers bond amount
-	sequencer.Tokens = sequencer.Tokens.Add(msg.Amount)
-	k.UpdateSequencer(ctx, sequencer, sequencer.Status)
-
-	// emit an event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeBondIncreased,
-			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
-			sdk.NewAttribute(types.AttributeKeyBond, sequencer.Tokens.String()),
-		),
-	)
-
-	return &types.MsgIncreaseBondResponse{}, nil
+	return sequencer, false, nil
 }

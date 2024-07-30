@@ -130,10 +130,10 @@ func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
 }
 
 /* ---------------------------- MsgIncreaseBond ---------------------------- */
-func NewMsgIncreaseBond(creator string, amount sdk.Coin) *MsgIncreaseBond {
+func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
 	return &MsgIncreaseBond{
-		Creator: creator,
-		Amount:  amount,
+		Creator:   creator,
+		AddAmount: addAmount,
 	}
 }
 
@@ -143,8 +143,8 @@ func (msg *MsgIncreaseBond) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if !msg.Amount.IsValid() {
-		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Amount.String())
+	if !msg.AddAmount.IsValid() {
+		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.AddAmount.String())
 	}
 
 	return nil

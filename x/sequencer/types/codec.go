@@ -11,7 +11,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreateSequencer{}, "sequencer/CreateSequencer", nil)
 	cdc.RegisterConcrete(&MsgUnbond{}, "sequencer/Unbond", nil)
 	cdc.RegisterConcrete(&MsgIncreaseBond{}, "sequencer/IncreaseBond", nil)
-	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -20,7 +19,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgUnbond{},
 		&MsgIncreaseBond{},
 	)
-	// this line is used by starport scaffolding # 3
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
