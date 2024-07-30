@@ -68,12 +68,12 @@ func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	if ra.LastStateUpdateHeight == 0 {
 		panic("last state update height is not set")
 	}
-	params := k.GetParams(ctx).Liveness()
+	params := k.GetParams(ctx)
 	nextH, isJail := NextSlashOrJailHeight(
 		params.HubExpectedBlockTime,
-		params.SlashTime,
-		params.SlashInterval,
-		params.JailTime,
+		params.LivenessSlashTime,
+		params.LivenessSlashInterval,
+		params.LivenessJailTime,
 		ctx.BlockHeight(),
 		ra.LastStateUpdateHeight,
 	)

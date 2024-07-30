@@ -45,16 +45,19 @@ func NewParams(
 	enabled bool,
 	disputePeriodInBlocks uint64,
 	deployerWhitelist []DeployerParams,
-	livenessCheck LivenessCheckParams,
+	hubExpectedBlockTime time.Duration,
+	livenessSlashTime time.Duration,
+	livenessSlashInterval time.Duration,
+	livenessJailTime time.Duration,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		DeployerWhitelist:     deployerWhitelist,
 		RollappsEnabled:       enabled,
-		HubExpectedBlockTime:  livenessCheck.HubExpectedBlockTime,
-		LivenessSlashTime:     livenessCheck.SlashTime,
-		LivenessSlashInterval: livenessCheck.SlashInterval,
-		LivenessJailTime:      livenessCheck.JailTime,
+		HubExpectedBlockTime:  hubExpectedBlockTime,
+		LivenessSlashTime:     livenessSlashTime,
+		LivenessSlashInterval: livenessSlashInterval,
+		LivenessJailTime:      livenessJailTime,
 	}
 }
 
@@ -64,12 +67,10 @@ func DefaultParams() Params {
 		true,
 		DefaultDisputePeriodInBlocks,
 		[]DeployerParams{},
-		LivenessCheckParams{
-			DefaultHubExpectedBlockTime,
-			DefaultLivenessSlashTime,
-			DefaultLivenessSlashInterval,
-			DefaultLivenessJailTime,
-		},
+		DefaultHubExpectedBlockTime,
+		DefaultLivenessSlashTime,
+		DefaultLivenessSlashInterval,
+		DefaultLivenessJailTime,
 	)
 }
 
@@ -138,13 +139,4 @@ func validateDeployerWhitelist(v interface{}) error {
 	}
 
 	return nil
-}
-
-func (p Params) Liveness() LivenessCheckParams {
-	return LivenessCheckParams{
-		p.HubExpectedBlockTime,
-		p.LivenessSlashTime,
-		p.LivenessSlashInterval,
-		p.LivenessJailTime,
-	}
 }

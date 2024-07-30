@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -11,7 +13,10 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.RollappsEnabled(ctx),
 		k.DisputePeriodInBlocks(ctx),
 		k.DeployerWhitelist(ctx),
-		k.LivenessCheckParams(ctx),
+		k.HubExpectedBlockTime(ctx),
+		k.LivenessSlashTime(ctx),
+		k.LivenessSlashInterval(ctx),
+		k.LivenessJailTime(ctx),
 	)
 }
 
@@ -37,11 +42,23 @@ func (k Keeper) RollappsEnabled(ctx sdk.Context) (res bool) {
 	return
 }
 
-func (k Keeper) LivenessCheckParams(ctx sdk.Context) (res types.LivenessCheckParams) {
-	k.paramstore.Get(ctx, types.KeyHubExpectedBlockTime, &res.HubExpectedBlockTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res.SlashTime)
-	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res.SlashInterval)
-	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res.JailTime)
+func (k Keeper) HubExpectedBlockTime(ctx sdk.Context) (res time.Duration) {
+	k.paramstore.Get(ctx, types.KeyHubExpectedBlockTime, &res)
+	return
+}
+
+func (k Keeper) LivenessSlashTime(ctx sdk.Context) (res time.Duration) {
+	k.paramstore.Get(ctx, types.KeyLivenessSlashTime, &res)
+	return
+}
+
+func (k Keeper) LivenessSlashInterval(ctx sdk.Context) (res time.Duration) {
+	k.paramstore.Get(ctx, types.KeyLivenessSlashInterval, &res)
+	return
+}
+
+func (k Keeper) LivenessJailTime(ctx sdk.Context) (res time.Duration) {
+	k.paramstore.Get(ctx, types.KeyLivenessJailTime, &res)
 	return
 }
 

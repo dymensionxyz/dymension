@@ -341,6 +341,7 @@ func (a *AppKeepers) InitKeepers(
 		a.GetSubspace(rollappmoduletypes.ModuleName),
 		a.IBCKeeper.ChannelKeeper,
 		a.IBCKeeper.ClientKeeper,
+		a.SequencerKeeper, // TODO: check for instantiation ordering problems
 	)
 
 	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
