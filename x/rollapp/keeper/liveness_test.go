@@ -35,6 +35,11 @@ func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID str
 	return nil
 }
 
+func (l livenessMockSequencerKeeper) clear() {
+	l.slashes = make(map[string]int)
+	l.jails = make(map[string]int)
+}
+
 func (s *RollappTestSuite) TestLivenessEvents() {
 	ctx := s.Ctx
 	k := s.App.RollappKeeper
@@ -66,31 +71,53 @@ func TestLivenessFlow(t *testing.T) {
 				return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
 			}
 		})
-		m := livenessMockSequencerKeeper{}
-		s.keeper().SetSequencerKeeper(m)
+		tracker := livenessMockSequencerKeeper{}
+		s.keeper().SetSequencerKeeper(tracker)
 		rollapps := []string{"a", "b"}
 		rollapp := rapid.SampledFrom(rollapps)
 		for _, ra := range rollapps {
 			s.keeper().SetRollapp(s.Ctx, types.Rollapp{RollappId: ra})
 		}
 
-		hLastUpdate := int64(0)
+		hLastUpdate := map[string]int64{}
 
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
-				//
+				for _, ra := range rollapps {
+					h := s.Ctx.BlockHeight()
+					elapsed := h - hLastUpdate[ra]
+					p := s.keeper().GetParams(s.Ctx)
+					elapsedTime := time.Duration(elapsed) * p.HubExpectedBlockTime
+					if elapsedTime <= p.LivenessJailTime {
+						if tracker.jails[ra] == 0 {
+							r.Fatal("expect to be jailed")
+						}
+					} else {
+						if tracker.jails[ra] != 0 {
+							r.Fatal("expect not be jailed")
+						}
+					}
+					if p.LivenessSlashTime <= elapsedTime {
+						expectedSlashes := elapsedTime - p.LivenessSlashTime
+					} else {
+						if tracker.slashes[ra] != 0 {
+							r.Fatal("expect not be slashed")
+						}
+					}
+				}
 			},
 			"state update": func(r *rapid.T) {
 				raID := rollapp.Draw(r, "rollapp")
 				ra := s.keeper().MustGetRollapp(s.Ctx, raID)
 				s.keeper().IndicateLiveness(s.Ctx, &ra)
 				s.keeper().SetRollapp(s.Ctx, ra)
-				hLastUpdate = s.Ctx.BlockHeight()
+				hLastUpdate[raID] = s.Ctx.BlockHeight()
+				tracker.clear()
 			},
 			"hub end block": func(r *rapid.T) {
 				dt := hubBlockGap.Draw(r, "dt")
-				s.keeper().CheckLiveness(s.Ctx)
 				s.nextBlock(dt)
+				s.keeper().CheckLiveness(s.Ctx)
 			},
 		})
 	})
