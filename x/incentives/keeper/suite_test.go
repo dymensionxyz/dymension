@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	tmrand "github.com/cometbft/cometbft/libs/rand"
+	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -205,11 +205,11 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
-	alice := sdk.AccAddress([]byte("addr1---------------"))
+	alice := sdk.AccAddress("addr1---------------")
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:       alice.String(),
-		RollappId:     tmrand.Str(8),
+		RollappId:     apptesting.GenerateRollappID(),
 		MaxSequencers: 1,
 	}
 

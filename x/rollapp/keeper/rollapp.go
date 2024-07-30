@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
@@ -18,15 +19,12 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 
 	// check if chain-id is EVM compatible. no err check as rollapp is already validated
 	rollappID, _ := types.NewChainID(rollapp.RollappId)
-	if !rollappID.IsEIP155() {
-		return
-	}
 
 	// In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
 	store.Set(types.RollappByEIP155Key(
 		rollappID.GetEIP155ID(),
-	), b)
+	), []byte(rollapp.RollappId))
 }
 
 // GetRollappByEIP155 returns a rollapp from its EIP155 id (https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md)  for EVM compatible rollapps
@@ -43,8 +41,7 @@ func (k Keeper) GetRollappByEIP155(
 		return val, false
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	return k.GetRollapp(ctx, string(b))
 }
 
 // GetRollapp returns a rollapp from its chain name
@@ -62,6 +59,24 @@ func (k Keeper) GetRollapp(
 	}
 
 	k.cdc.MustUnmarshal(b, &val)
+	return val, true
+}
+
+func (k Keeper) FindRollappByName(
+	ctx sdk.Context,
+	name string,
+) (val types.Rollapp, found bool) {
+	name = name + "_"
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte(name))
+
+	defer iterator.Close() // nolint: errcheck
+
+	if !iterator.Valid() {
+		return val, false
+	}
+
+	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	return val, true
 }
 

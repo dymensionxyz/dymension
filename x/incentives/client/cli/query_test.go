@@ -6,20 +6,15 @@ import (
 	"time"
 
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-
-	tmrand "github.com/cometbft/cometbft/libs/rand"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
-
-	"github.com/cosmos/cosmos-sdk/baseapp"
-
 	rollapp "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type QueryTestSuite struct {
@@ -29,11 +24,11 @@ type QueryTestSuite struct {
 
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *QueryTestSuite) CreateDefaultRollapp() string {
-	alice := sdk.AccAddress([]byte("addr1---------------"))
+	alice := sdk.AccAddress("addr1---------------")
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:       alice.String(),
-		RollappId:     tmrand.Str(8),
+		RollappId:     apptesting.GenerateRollappID(),
 		MaxSequencers: 1,
 	}
 

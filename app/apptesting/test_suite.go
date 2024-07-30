@@ -1,6 +1,8 @@
 package apptesting
 
 import (
+	"fmt"
+
 	"github.com/cometbft/cometbft/libs/rand"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -30,7 +32,7 @@ type KeeperTestHelper struct {
 }
 
 func (s *KeeperTestHelper) CreateDefaultRollapp() string {
-	return s.CreateRollappWithName(rand.Str(8))
+	return s.CreateRollappWithName(GenerateRollappID())
 }
 
 func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
@@ -42,7 +44,7 @@ func (s *KeeperTestHelper) CreateRollappWithName(name string) string {
 
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(s.Ctx, &msgCreateRollapp)
-	s.Require().NoError(err)
+	s.Require().NoErrorf(err, "failed to create rollapp %s", name)
 	return name
 }
 
@@ -98,15 +100,23 @@ func (s *KeeperTestHelper) FundAcc(acc sdk.AccAddress, amounts sdk.Coins) {
 }
 
 // FundModuleAcc funds target modules with specified amount.
-func (suite *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
-	err := bankutil.FundModuleAccount(suite.App.BankKeeper, suite.Ctx, moduleName, amounts)
-	suite.Require().NoError(err)
+func (s *KeeperTestHelper) FundModuleAcc(moduleName string, amounts sdk.Coins) {
+	err := bankutil.FundModuleAccount(s.App.BankKeeper, s.Ctx, moduleName, amounts)
+	s.Require().NoError(err)
 }
 
 // StateNotAltered validates that app state is not altered. Fails if it is.
-func (suite *KeeperTestHelper) StateNotAltered() {
-	oldState := suite.App.ExportState(suite.Ctx)
-	suite.App.Commit()
-	newState := suite.App.ExportState(suite.Ctx)
-	suite.Require().Equal(oldState, newState)
+func (s *KeeperTestHelper) StateNotAltered() {
+	oldState := s.App.ExportState(s.Ctx)
+	s.App.Commit()
+	newState := s.App.ExportState(s.Ctx)
+	s.Require().Equal(oldState, newState)
+}
+
+func GenerateRollappID() string {
+	name := make([]byte, 8)
+	for i := range name {
+		name[i] = byte(rand.Intn('z'-'a'+1) + 'a')
+	}
+	return fmt.Sprintf("%s_%d-1", string(name), rand.Int63())
 }
