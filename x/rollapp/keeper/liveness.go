@@ -31,14 +31,21 @@ func NextSlashOrJailHeight(
 // and a slash or jail event is due
 func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	h := ctx.BlockHeight()
-	evts := k.GetLivenessEvents(ctx, &h)
-	for _, evt := range evts {
-		if !evt.IsJail {
-			// TODO: slash
-		} else {
+	events := k.GetLivenessEvents(ctx, &h)
+	for _, e := range events {
+		if e.IsJail {
 			// TODO: jail
+		} else {
+			// TODO: slash
 		}
-		// TODO: check if jailed, if he is not then schedule another event
+		/*
+			TODO: need to decide approach when rollapp does not have a sequencer, we can either
+				a) not schedule the event
+				b) schedule it but do the check when it occurs instead
+				Leaning towards (b)
+		*/
+		ra := k.MustGetRollapp(ctx, e.RollappId)
+		ra.XLivenessEventHeight
 	}
 }
 
