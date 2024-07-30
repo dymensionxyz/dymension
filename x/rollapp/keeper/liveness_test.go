@@ -53,29 +53,19 @@ func TestLivenessEventsStorage(t *testing.T) {
 				h := heights.Draw(r, "h")
 				events := k.GetLivenessEvents(ctx, &h)
 				for _, modelE := range model {
-					if modelE.HubHeight == h && !slices.Contains(events, modelE) {
-						r.Fatal("event in model but not store")
-					}
+					require.False(r, modelE.HubHeight == h && !slices.Contains(events, modelE), "event in model but not store")
 				}
 				for _, e := range events {
-					_, ok := model[modelKey(e)]
-					if !ok {
-						r.Fatal("event in store but not model")
-					}
+					require.Contains(r, model, modelKey(e), "event in store but not model")
 				}
 			},
 			"iterAll": func(r *rapid.T) {
 				events := k.GetLivenessEvents(ctx, nil)
 				for _, modelE := range model {
-					if !slices.Contains(events, modelE) {
-						r.Fatal("event in model but not store")
-					}
+					require.Contains(r, events, modelE, "event in model but not store")
 				}
 				for _, e := range events {
-					_, ok := model[modelKey(e)]
-					if !ok {
-						r.Fatal("event in store but not model")
-					}
+					require.Contains(r, model, modelKey(e), "event in store but not model")
 				}
 			},
 		})
