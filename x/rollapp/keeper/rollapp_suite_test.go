@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,6 +73,16 @@ func (suite *RollappTestSuite) SetupTest(deployerWhitelist ...types.DeployerPara
 	suite.msgServer = keeper.NewMsgServerImpl(*app.RollappKeeper)
 	suite.Ctx = ctx
 	suite.queryClient = queryClient
+}
+
+func (s *RollappTestSuite) keeper() *keeper.Keeper {
+	return s.App.RollappKeeper
+}
+
+func (s *RollappTestSuite) nextBlock(dt time.Duration) {
+	h := s.Ctx.BlockHeight()
+	t := s.Ctx.BlockTime()
+	s.Ctx = s.Ctx.WithBlockHeight(h + 1).WithBlockTime(t.Add(dt))
 }
 
 func TestRollappKeeperTestSuite(t *testing.T) {

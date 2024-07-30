@@ -31,7 +31,7 @@ func (suite *RollappTestSuite) TestGetAllFinalizationQueueUntilHeight() {
 	// Create 2 state updates
 	_, err := suite.PostStateUpdate(*ctx, rollapp, proposer, 1, uint64(10))
 	suite.Require().Nil(err)
-	suite.Ctx = suite.Ctx.WithBlockHeight(int64(initialHeight + 1))
+	suite.nextBlock(0)
 	_, err = suite.PostStateUpdate(*ctx, rollapp, proposer, 11, uint64(10))
 	suite.Require().Nil(err)
 

@@ -13,16 +13,26 @@ import (
 	"pgregory.net/rapid"
 )
 
-type livenessMockSequencerKeeper struct{}
+type livenessMockSequencerKeeper struct {
+	slashes map[string]int
+	jails   map[string]int
+}
+
+func newLivenessMockSequencerKeeper() livenessMockSequencerKeeper {
+	return livenessMockSequencerKeeper{
+		make(map[string]int),
+		make(map[string]int),
+	}
+}
 
 func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
-	// TODO implement me
-	panic("implement me")
+	l.slashes[rollappID]++
+	return nil
 }
 
 func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID string) error {
-	// TODO implement me
-	panic("implement me")
+	l.jails[rollappID]++
+	return nil
 }
 
 func (s *RollappTestSuite) TestLivenessEvents() {
@@ -38,6 +48,52 @@ func (s *RollappTestSuite) TestLivenessEvents() {
 		What to test?
 
 	*/
+}
+
+// The protocol works end-to-end.
+// go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=1000
+func TestLivenessFlow(t *testing.T) {
+	rapid.Check(t, func(r *rapid.T) {
+		s := new(RollappTestSuite)
+		s.SetT(t)
+		s.SetS(s)
+		s.SetupTest()
+		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
+			if rapid.Bool().Draw(t, "hub is down") {
+				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
+				return time.Duration(dt)
+			} else {
+				return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
+			}
+		})
+		m := livenessMockSequencerKeeper{}
+		s.keeper().SetSequencerKeeper(m)
+		rollapps := []string{"a", "b"}
+		rollapp := rapid.SampledFrom(rollapps)
+		for _, ra := range rollapps {
+			s.keeper().SetRollapp(s.Ctx, types.Rollapp{RollappId: ra})
+		}
+
+		hLastUpdate := int64(0)
+
+		r.Repeat(map[string]func(r *rapid.T){
+			"": func(r *rapid.T) { // check
+				//
+			},
+			"state update": func(r *rapid.T) {
+				raID := rollapp.Draw(r, "rollapp")
+				ra := s.keeper().MustGetRollapp(s.Ctx, raID)
+				s.keeper().IndicateLiveness(s.Ctx, &ra)
+				s.keeper().SetRollapp(s.Ctx, ra)
+				hLastUpdate = s.Ctx.BlockHeight()
+			},
+			"hub end block": func(r *rapid.T) {
+				dt := hubBlockGap.Draw(r, "dt")
+				s.keeper().CheckLiveness(s.Ctx)
+				s.nextBlock(dt)
+			},
+		})
+	})
 }
 
 // Correct calculation of the next slash or jail event, based on downtime and parameters
@@ -74,6 +130,12 @@ func TestNextSlashOrJailHeightRapid(t *testing.T) {
 			},
 			// TODO: add operation for params change
 			// TODO: add more invariants
+			"update rollapp": func(r *rapid.T) {
+				lastUpdateHeight = hubHeight
+				// delete the scheduled event from the 'queue'
+				nextEventHeight = -1
+				nextEventIsJail = false
+			},
 			"hub end block": func(r *rapid.T) {
 				if hubHeight == nextEventHeight {
 					if nextEventIsJail {
@@ -99,18 +161,12 @@ func TestNextSlashOrJailHeightRapid(t *testing.T) {
 				hubHeight += 1
 				hubBlockTime.Add(hubBlockGap.Draw(r, "hub time increase"))
 			},
-			"update rollapp": func(r *rapid.T) {
-				lastUpdateHeight = hubHeight
-				// delete the scheduled event from the 'queue'
-				nextEventHeight = -1
-				nextEventIsJail = false
-			},
 		})
 	})
 }
 
 // Storage and query operations work for the event queue
-// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
+// go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=100
 func TestLivenessEventsStorage(t *testing.T) {
 	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
 	heights := rapid.Int64Range(0, 10)
