@@ -5,15 +5,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	lastStateUpdateHeightSentinel = -1 // means value is absent
+)
+
 func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {
 	ret := Rollapp{
 		RollappId:             rollappId,
 		Creator:               creator,
 		MaxSequencers:         maxSequencers,
 		PermissionedAddresses: permissionedAddresses,
+		LastStateUpdateHeight: lastStateUpdateHeightSentinel,
 	}
 	ret.GenesisState.TransfersEnabled = transfersEnabled
 	return ret
+}
+
+func (r Rollapp) LastStateUpdateHeightIsSet() bool {
+	return r.LastStateUpdateHeight != lastStateUpdateHeightSentinel
 }
 
 func (r Rollapp) ValidateBasic() error {

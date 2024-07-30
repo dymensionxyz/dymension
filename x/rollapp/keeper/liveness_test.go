@@ -109,7 +109,7 @@ func TestLivenessFlow(t *testing.T) {
 		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
 		for _, ra := range rollapps {
-			s.keeper().SetRollapp(s.Ctx, types.Rollapp{RollappId: ra})
+			s.keeper().SetRollapp(s.Ctx, types.NewRollapp("", ra, 0, nil, false))
 		}
 
 		hLastUpdate := map[string]int64{}
@@ -118,8 +118,8 @@ func TestLivenessFlow(t *testing.T) {
 		r.Repeat(map[string]func(r *rapid.T){
 			"": func(r *rapid.T) { // check
 				// 1. check registered invariant
-				msg, ok := keeper.LivenessEventInvariant(*s.keeper())(s.Ctx)
-				require.True(t, ok, msg)
+				msg, notOk := keeper.LivenessEventInvariant(*s.keeper())(s.Ctx)
+				require.False(r, notOk, msg)
 				// 2. check the right amount of slashing occurred
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
