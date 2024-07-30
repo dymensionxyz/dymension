@@ -44,7 +44,7 @@ func (l livenessMockSequencerKeeper) clear() {
 
 // The protocol works.
 func TestLivenessFlow(t *testing.T) {
-	_ = flag.Set("rapid.checks", "300")
+	_ = flag.Set("rapid.checks", "500")
 	_ = flag.Set("rapid.steps", "300")
 	rapid.Check(t, func(r *rapid.T) {
 		s := new(RollappTestSuite)
@@ -79,7 +79,11 @@ func TestLivenessFlow(t *testing.T) {
 			"": func(r *rapid.T) { // check
 				for _, ra := range rollapps {
 					h := s.Ctx.BlockHeight()
-					elapsed := h - hLastUpdate[ra]
+					lastUpdate, ok := hLastUpdate[ra]
+					if !ok {
+						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
+					}
+					elapsed := h - lastUpdate
 					p := s.keeper().GetParams(s.Ctx)
 					elapsedTime := time.Duration(elapsed) * p.HubExpectedBlockTime
 					if elapsedTime <= p.LivenessJailTime {
@@ -92,7 +96,7 @@ func TestLivenessFlow(t *testing.T) {
 						require.Zero(r, tracker.slashes[ra], "expect not slashed")
 					} else {
 						t.Log("check slash")
-						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
+						expectedSlashes := int((elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval) + 1
 						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed")
 					}
 				}
