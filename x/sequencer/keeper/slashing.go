@@ -3,6 +3,7 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/utils/ucoin"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
@@ -44,12 +45,6 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 	return nil
 }
 
-// MulCoinsDec .. TODO: move to sdk-utils package
-func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
-	// TODO: use it
-	return sdk.Coins{}
-}
-
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
 	if err != nil {
@@ -57,7 +52,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	}
 	mul := k.GetParams(ctx).LivenessSlashMultiplier
 	tokens := seq.Tokens
-	amt := MulCoinsDec(tokens, mul)
+	amt := ucoin.MulDec(mul, tokens...)
 	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
 	return k.Slash(ctx, &seq, amt)
 }
