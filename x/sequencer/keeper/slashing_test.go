@@ -26,7 +26,7 @@ func (suite *SequencerTestSuite) TestSlashingUnknownSequencer() {
 	_ = suite.CreateDefaultRollapp()
 	keeper := suite.App.SequencerKeeper
 
-	err := keeper.Slashing(suite.Ctx, "unknown_sequencer")
+	err := keeper.SlashFraud(suite.Ctx, "unknown_sequencer")
 	suite.ErrorIs(err, types.ErrUnknownSequencer)
 }
 
@@ -52,7 +52,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondedSequencer() {
 
 	suite.Equal(seq.SequencerAddress, seqAddr)
 	suite.Equal(seq.Status, types.Unbonded)
-	err = keeper.Slashing(suite.Ctx, seqAddr)
+	err = keeper.SlashFraud(suite.Ctx, seqAddr)
 	suite.ErrorIs(err, types.ErrInvalidSequencerStatus)
 }
 
@@ -73,7 +73,7 @@ func (suite *SequencerTestSuite) TestSlashingUnbondingSequencer() {
 	seq, ok := keeper.GetSequencer(suite.Ctx, seqAddr)
 	suite.Require().True(ok)
 	suite.Equal(seq.Status, types.Unbonding)
-	err = keeper.Slashing(suite.Ctx, seqAddr)
+	err = keeper.SlashFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
 	suite.assertSlashed(seqAddr)
@@ -100,7 +100,7 @@ func (suite *SequencerTestSuite) TestSlashingPropserSequencer() {
 	suite.Equal(seq2.Status, types.Bonded)
 	suite.False(seq2.Proposer)
 
-	err := keeper.Slashing(suite.Ctx, seqAddr)
+	err := keeper.SlashFraud(suite.Ctx, seqAddr)
 	suite.NoError(err)
 
 	suite.assertSlashed(seqAddr)

@@ -34,18 +34,21 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	events := k.GetLivenessEvents(ctx, &h)
 	for _, e := range events {
 		if e.IsJail {
-			// TODO: jail
+			err := k.sequencerKeeper.JailLiveness(ctx, e.RollappId)
+			_ = err // TODO:
 		} else {
-			// TODO: slash
+			err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
+			_ = err // TODO:
 		}
+
+		ra := k.MustGetRollapp(ctx, e.RollappId)
+		k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 		/*
 			TODO: need to decide approach when rollapp does not have a sequencer, we can either
 				a) not schedule the event
 				b) schedule it but do the check when it occurs instead
 				Leaning towards (b)
 		*/
-		ra := k.MustGetRollapp(ctx, e.RollappId)
-		k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 		k.ScheduleLivenessEvent(ctx, &ra)
 	}
 }

@@ -4,11 +4,12 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// Slashing slashes the sequencer for misbehaviour
-// Slashing can occur on both Bonded and Unbonding sequencers
-func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
+// SlashFraud slashes the sequencer for misbehaviour other than liveness issues
+// Can occur on both Bonded and Unbonding sequencers
+func (k Keeper) SlashFraud(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
 		return types.ErrUnknownSequencer
@@ -41,6 +42,31 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	)
 
 	return nil
+}
+
+func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
+	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
+	if err != nil {
+		return err
+	}
+	amt := sdk.Coins{}
+	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
+	return k.Slash(ctx, seq, amt, nil)
+}
+
+func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {
+	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
+	if err != nil {
+		return err
+	}
+	return k.Jail(ctx, seq)
+}
+
+// LivenessLiableSequencer returns the sequencer who is responsible for ensuring liveness
+func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (types.Sequencer, error) {
+	// TODO: find the sequencer who is currently responsible for ensuring liveness
+	//  https://github.com/dymensionxyz/dymension/issues/1018
+	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "currently there is no liable sequencer")
 }
 
 func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
