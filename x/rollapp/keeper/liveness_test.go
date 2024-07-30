@@ -41,21 +41,6 @@ func (l livenessMockSequencerKeeper) clear() {
 	l.jails = make(map[string]int)
 }
 
-func (s *RollappTestSuite) TestLivenessEvents() {
-	ctx := s.Ctx
-	k := s.App.RollappKeeper
-	m := livenessMockSequencerKeeper{}
-	k.SetSequencerKeeper(m)
-	rollappID := "foo"
-	k.SetRollapp(ctx, types.Rollapp{RollappId: rollappID})
-	ctx.BlockHeight()
-
-	/*
-		What to test?
-
-	*/
-}
-
 // The protocol works.
 // go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=1000
 func TestLivenessFlow(t *testing.T) {
