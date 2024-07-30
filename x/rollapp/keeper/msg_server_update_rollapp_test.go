@@ -31,7 +31,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Creator:                 alice,
 				RollappId:               rollappId,
 				InitialSequencerAddress: initialSequencerAddress,
-				Alias:                   "rolly",
 				GenesisChecksum:         "new_checksum",
 				Metadata:                &mockRollappMetadata,
 			},
@@ -42,7 +41,7 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				InitialSequencerAddress: initialSequencerAddress,
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "new_checksum",
-				Alias:                   "rolly",
+				Alias:                   "Rollapp2",
 				Metadata:                &mockRollappMetadata,
 			},
 		}, {
@@ -76,15 +75,6 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Creator:                 alice,
 				RollappId:               rollappId,
 				InitialSequencerAddress: initialSequencerAddress,
-			},
-			sealed:   true,
-			expError: types.ErrImmutableFieldUpdateAfterSealed,
-		}, {
-			name: "Update rollapp: fail - try to update alias when sealed",
-			update: &types.MsgUpdateRollappInformation{
-				Creator:   alice,
-				RollappId: rollappId,
-				Alias:     "rolly",
 			},
 			sealed:   true,
 			expError: types.ErrImmutableFieldUpdateAfterSealed,
@@ -183,7 +173,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 	_, err = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 	suite.Require().ErrorIs(err, sequencertypes.ErrNotInitialSequencer)
 
-	// 3. update rollapp immutable fields, set InitialSequencerAddress, Alias and GenesisChecksum
+	// 3. update rollapp immutable fields, set InitialSequencerAddress and GenesisChecksum
 	initSeqPubKey := ed25519.GenPrivKey().PubKey()
 	addrInit := sdk.AccAddress(initSeqPubKey.Address()).String()
 
@@ -192,7 +182,6 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		RollappId:               rollappId,
 		InitialSequencerAddress: addrInit,
 		GenesisChecksum:         "checksum1",
-		Alias:                   "alias",
 	})
 	suite.Require().NoError(err)
 
@@ -209,9 +198,9 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 
 	// 5. try to update rollapp immutable fields - should fail because rollapp is sealed
 	err = suite.App.RollappKeeper.UpdateRollapp(suite.Ctx, &types.MsgUpdateRollappInformation{
-		Creator:   alice,
-		RollappId: rollappId,
-		Alias:     "rolly",
+		Creator:         alice,
+		RollappId:       rollappId,
+		GenesisChecksum: "checksum2",
 	})
 	suite.Require().ErrorIs(err, types.ErrImmutableFieldUpdateAfterSealed)
 

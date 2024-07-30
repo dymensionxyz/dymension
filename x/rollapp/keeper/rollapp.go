@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -24,9 +25,11 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 	}
 
 	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
-	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
+	registrationFee := sdk.NewCoins(k.GetPriceForAlias(ctx, rollapp.Alias))
 
 	if !registrationFee.IsZero() {
+		bal := k.bankKeeper.(bankkeeper.Keeper).SpendableCoins(ctx, creator).String()
+		fmt.Println("Balance: ", bal)
 		if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, registrationFee); err != nil {
 			return errors.Join(types.ErrFeePayment, err)
 		}
@@ -79,12 +82,6 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		return current, types.ErrImmutableFieldUpdateAfterSealed
 	}
 
-	var err error
-	current.Alias, err = k.canUpdateAlias(ctx, current.Alias, update.Alias)
-	if err != nil {
-		return current, err
-	}
-
 	if update.InitialSequencerAddress != "" {
 		current.InitialSequencerAddress = update.InitialSequencerAddress
 	}
@@ -97,25 +94,11 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		current.Metadata = update.Metadata
 	}
 
-	if err = current.ValidateBasic(); err != nil {
+	if err := current.ValidateBasic(); err != nil {
 		return current, fmt.Errorf("validate rollapp: %w", err)
 	}
 
 	return current, nil
-}
-
-func (k Keeper) canUpdateAlias(
-	ctx sdk.Context,
-	currentAlias, updateAlias string,
-) (string, error) {
-	if updateAlias == "" || currentAlias == updateAlias {
-		return currentAlias, nil
-	}
-
-	if _, isFound := k.GetRollappByAlias(ctx, updateAlias); isFound {
-		return "", gerrc.ErrAlreadyExists
-	}
-	return updateAlias, nil
 }
 
 // checkIfRollappExists checks if a rollapp with the same ID, EIP155ID (if supported) or alias already exists in the store.

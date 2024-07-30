@@ -47,10 +47,12 @@ const (
 	expectDelayedackEpochIdentifier               = "hour"
 
 	expectDisputePeriodInBlocks = 3
-	expectRegistrationFee       = "10000000000000000000adym"
 )
 
-var expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
+var (
+	expectDelayedackBridgingFee = sdk.NewDecWithPrec(1, 3)
+	expectAliasFeeTable         = rollapptypes.DefaultAliasFeeTable
+)
 
 // TestUpgrade is a method of UpgradeTestSuite to test the upgrade process.
 func (s *UpgradeTestSuite) TestUpgrade() {
@@ -155,7 +157,7 @@ func (s *UpgradeTestSuite) validateDelayedAckParamsMigration() error {
 func (s *UpgradeTestSuite) validateRollappParamsMigration() error {
 	rollappParams := s.App.RollappKeeper.GetParams(s.Ctx)
 	cond := rollappParams.DisputePeriodInBlocks == expectDisputePeriodInBlocks &&
-		rollappParams.RegistrationFee.String() == expectRegistrationFee
+		reflect.DeepEqual(rollappParams.AliasFeeTable, expectAliasFeeTable)
 
 	if !cond {
 		return fmt.Errorf("rollapp parameters not set correctly")

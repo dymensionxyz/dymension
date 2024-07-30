@@ -7,6 +7,7 @@ import (
 	"github.com/cometbft/cometbft/libs/rand"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
@@ -39,6 +40,41 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrRollappIDExists)
+}
+
+func (suite *RollappTestSuite) TestCreateRollappNotEnoughFundsForAlias() {
+	rollapp := types.MsgCreateRollapp{
+		Creator:                 alice, // alice has funds for 3 or more character long aliases
+		RollappId:               "rollapp",
+		InitialSequencerAddress: sample.AccAddress(),
+		Bech32Prefix:            "rol",
+		GenesisChecksum:         "checksum",
+		Alias:                   "ro",
+	}
+	twoLetterFee := types.DefaultAliasFeeTable["2"]
+	threeLetterFee := types.DefaultAliasFeeTable["3"]
+
+	// setup account with funds for 3 character long alias
+	suite.SetupTest(
+		withAccount(rollapp.Creator),
+		withAccountFund(threeLetterFee),
+	)
+	goCtx := sdk.WrapSDKContext(suite.Ctx)
+
+	// fail to create rollapp with funds for a 2 character long alias - not enough funds
+	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().Error(err)
+
+	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
+	balance := suite.App.BankKeeper.SpendableCoin(suite.Ctx, creator, threeLetterFee.Denom)
+
+	// fund account with the difference between 3 and 2 character long alias fees
+	diff := twoLetterFee.Amount.Sub(balance.Amount)
+	apptesting.FundAccount(suite.App, suite.Ctx, creator, sdk.NewCoins(sdk.NewCoin(threeLetterFee.Denom, diff)))
+
+	// create rollapp with funds for a 2 character long alias
+	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
+	suite.Require().NoError(err)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {

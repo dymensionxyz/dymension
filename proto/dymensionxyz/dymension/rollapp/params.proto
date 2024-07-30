@@ -16,7 +16,7 @@ message Params {
   uint64 dispute_period_in_blocks = 1
       [ (gogoproto.moretags) = "yaml:\"dispute_period_in_blocks\"" ];
 
-  // registration_fee is the fee that is required to register a rollapp
-  cosmos.base.v1beta1.Coin registration_fee = 2
-      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"registration_fee\"" ];
+  // alias_fee_table is a map of alias to pricing table, which is a map of character length to price.
+  map<string, cosmos.base.v1beta1.Coin> alias_fee_table = 3
+      [ (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"alias_fee_table\"" ];
 }

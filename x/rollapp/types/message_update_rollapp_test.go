@@ -22,7 +22,6 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				RollappId:               "dym_100-1",
 				InitialSequencerAddress: sample.AccAddress(),
 				GenesisChecksum:         "checksum",
-				Alias:                   "Rollapp",
 				Metadata: &RollappMetadata{
 					Website:      "https://dymension.xyz",
 					Description:  "Sample description",
@@ -40,20 +39,8 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				InitialSequencerAddress: "invalid_address",
 				RollappId:               "dym_100-1",
 				GenesisChecksum:         "checksum",
-				Alias:                   "Rollapp",
 			},
 			err: ErrInvalidInitialSequencerAddress,
-		},
-		{
-			name: "invalid alias: too long",
-			msg: MsgUpdateRollappInformation{
-				Creator:                 sample.AccAddress(),
-				InitialSequencerAddress: sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         "checksum",
-				Alias:                   strings.Repeat("a", maxAliasLength+1),
-			},
-			err: ErrInvalidAlias,
 		},
 		{
 			name: "invalid metadata: invalid logo data uri",
@@ -62,7 +49,6 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
 				GenesisChecksum:         "checksum",
-				Alias:                   "alias",
 				Metadata: &RollappMetadata{
 					Website:     "https://dymension.xyz",
 					Description: "Sample description",
@@ -78,7 +64,6 @@ func TestMsgUpdateRollappInformation_ValidateBasic(t *testing.T) {
 				InitialSequencerAddress: sample.AccAddress(),
 				RollappId:               "dym_100-1",
 				GenesisChecksum:         strings.Repeat("a", maxGenesisChecksumLength+1),
-				Alias:                   "alias",
 			},
 			err: ErrInvalidGenesisChecksum,
 		},

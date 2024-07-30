@@ -25,7 +25,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
+					AliasFeeTable:         aliasFeeTable,
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -73,7 +73,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
+					AliasFeeTable:         aliasFeeTable,
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -87,7 +87,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
+					AliasFeeTable:         aliasFeeTable,
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -134,7 +134,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("cosmos", sdk.NewInt(0)),
+					AliasFeeTable:         map[string]sdk.Coin{"1": sdk.NewCoin("cosmos", sdk.NewInt(0))},
 				},
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
@@ -154,3 +154,5 @@ func TestGenesisState_Validate(t *testing.T) {
 		})
 	}
 }
+
+var aliasFeeTable = map[string]sdk.Coin{"1": sdk.NewCoin("adym", sdk.NewInt(1000))}

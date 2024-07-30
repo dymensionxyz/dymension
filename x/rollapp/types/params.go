@@ -4,11 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 	"gopkg.in/yaml.v2"
 
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
@@ -17,12 +16,21 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// KeyRegistrationFee is store's key for RegistrationFee Params
-	KeyRegistrationFee = []byte("RegistrationFee")
+	// KeyAliasFeeTable is store's key for AliasFeeTable Params
+	KeyAliasFeeTable = []byte("AliasFeeTable")
 	// DYM is the integer representation of 1 DYM
 	DYM = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	// DefaultRegistrationFee is the default registration fee
-	DefaultRegistrationFee = sdk.NewCoin(appparams.BaseDenom, DYM.Mul(sdk.NewInt(10))) // 10DYM
+	// DefaultAliasFeeTable is the default registration fee
+	// only string keys allowed for params map
+	DefaultAliasFeeTable = map[string]sdk.Coin{
+		"7": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(5)),
+		"6": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(10)),
+		"5": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(25)),
+		"4": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(100)),
+		"3": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(250)),
+		"2": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(1000)),
+		"1": sdk.NewCoin(appparams.BaseDenom, DYM.MulRaw(5000)),
+	}
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks            = []byte("DisputePeriodInBlocks")
 	DefaultDisputePeriodInBlocks uint64 = 3
@@ -38,24 +46,24 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	disputePeriodInBlocks uint64,
-	registrationFee sdk.Coin,
+	aliasFeePricingTable map[string]sdk.Coin,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
-		RegistrationFee:       registrationFee,
+		AliasFeeTable:         aliasFeePricingTable,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDisputePeriodInBlocks, DefaultRegistrationFee)
+	return NewParams(DefaultDisputePeriodInBlocks, DefaultAliasFeeTable)
 }
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
-		paramtypes.NewParamSetPair(KeyRegistrationFee, &p.RegistrationFee, validateRegistrationFee),
+		paramtypes.NewParamSetPair(KeyAliasFeeTable, &p.AliasFeeTable, validateAliasFeeTable),
 	}
 }
 
@@ -65,7 +73,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	return validateRegistrationFee(p.RegistrationFee)
+	return validateAliasFeeTable(p.AliasFeeTable)
 }
 
 // String implements the Stringer interface.
@@ -88,20 +96,44 @@ func validateDisputePeriodInBlocks(v interface{}) error {
 	return nil
 }
 
-// validateRegistrationFee validates the RegistrationFee param
-func validateRegistrationFee(v interface{}) error {
-	registrationFee, ok := v.(sdk.Coin)
+// validateAliasFeeTable validates the AliasFeeTable param
+func validateAliasFeeTable(v interface{}) error {
+	aliasPricingTable, ok := v.(map[string]sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if !registrationFee.IsValid() {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee: %s", registrationFee)
+	if err := checkIfConsecutiveAliasLengths(aliasPricingTable); err != nil {
+		return err
 	}
 
-	if registrationFee.Denom != appparams.BaseDenom {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "registration fee denom: %s", registrationFee)
+	for aliasLengthStr, fee := range aliasPricingTable {
+		aliasLength, err := strconv.ParseInt(aliasLengthStr, 10, 32)
+		if err != nil {
+			return fmt.Errorf("invalid alias length: %s", aliasLengthStr)
+		}
+
+		if aliasLength < 1 {
+			return errors.New("alias length must be at least 1")
+		}
+
+		if !fee.IsValid() {
+			return errors.New("invalid fee")
+		}
+
+		if fee.Denom != appparams.BaseDenom {
+			return errors.New("fee denom must be DYM")
+		}
 	}
 
+	return nil
+}
+
+func checkIfConsecutiveAliasLengths(aliasPricingTable map[string]sdk.Coin) error {
+	for i := 1; i <= len(aliasPricingTable); i++ {
+		if _, ok := aliasPricingTable[fmt.Sprint(i)]; !ok {
+			return fmt.Errorf("missing alias length: %d", i)
+		}
+	}
 	return nil
 }

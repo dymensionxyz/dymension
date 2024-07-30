@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -31,7 +32,6 @@ type QueryTestSuite struct {
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
-	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:      alice.String(),
@@ -39,6 +39,7 @@ func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
 		Alias:        strings.ToLower(tmrand.Str(3)),
 	}
+	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultAliasFeeTable[fmt.Sprint(len(msgCreateRollapp.Alias))]))
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)

@@ -22,9 +22,8 @@ import (
 var _ = strconv.IntSize
 
 const (
-	alice           = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
-	bob             = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
-	registrationFee = "1000000000000000000adym"
+	alice = "dym1wg8p6j0pxpnsvhkwfu54ql62cnrumf0v634mft"
+	bob   = "dym1d0wlmz987qlurs6e3kc6zd25z6wsdmnwx8tafy"
 )
 
 type RollappTestSuite struct {
@@ -34,7 +33,36 @@ type RollappTestSuite struct {
 	queryClient  types.QueryClient
 }
 
-func (suite *RollappTestSuite) SetupTest() {
+type setupOptions struct {
+	accountFund sdk.Coin
+	account     string
+}
+
+type setupOption func(*setupOptions)
+
+func withAccountFund(accountFund sdk.Coin) setupOption {
+	return func(options *setupOptions) {
+		options.accountFund = accountFund
+	}
+}
+
+func withAccount(account string) setupOption {
+	return func(options *setupOptions) {
+		options.account = account
+	}
+}
+
+func (suite *RollappTestSuite) SetupTest(opts ...setupOption) {
+	params := types.DefaultParams()
+	options := setupOptions{
+		accountFund: params.AliasFeeTable["3"],
+		account:     alice,
+	}
+
+	for _, opt := range opts {
+		opt(&options)
+	}
+
 	app := apptesting.Setup(suite.T(), false)
 	ctx := app.GetBaseApp().NewContext(false, cometbftproto.Header{})
 
@@ -42,11 +70,9 @@ func (suite *RollappTestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	err = app.BankKeeper.SetParams(ctx, banktypes.DefaultParams())
 	suite.Require().NoError(err)
-	regFee, _ := sdk.ParseCoinNormalized(registrationFee)
-	app.RollappKeeper.SetParams(ctx, types.NewParams(2, regFee))
+	app.RollappKeeper.SetParams(ctx, params)
 
-	aliceBal := sdk.NewCoins(regFee.AddAmount(regFee.Amount.Mul(sdk.NewInt(10))))
-	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
+	apptesting.FundAccount(app, ctx, sdk.MustAccAddressFromBech32(options.account), sdk.NewCoins(options.accountFund))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, app.RollappKeeper)

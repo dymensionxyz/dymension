@@ -7,7 +7,6 @@ import (
 const (
 	FlagInitSequencer   = "init-sequencer"
 	FlagGenesisChecksum = "genesis-checksum"
-	FlagAlias           = "alias"
 	FlagMetadata        = "metadata"
 	FlagByAlias         = "by-alias"
 )
@@ -25,7 +24,6 @@ func FlagSetUpdateRollapp() *flag.FlagSet {
 
 	fs.String(FlagInitSequencer, "", "The address of the sequencer that will be used to initialize the rollapp")
 	fs.String(FlagGenesisChecksum, "", "The checksum of the genesis file of the rollapp")
-	fs.String(FlagAlias, "", "The alias of the rollapp")
 	fs.String(FlagMetadata, "", "The metadata of the rollapp")
 
 	return fs

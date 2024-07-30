@@ -196,7 +196,7 @@ func (suite *KeeperTestSuite) SetupManyLocks(numLocks int, liquidBalance sdk.Coi
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddress, uint64, sdk.Coins, time.Time) {
 	// create a gauge and locks
-	lockOwner := sdk.AccAddress([]byte("addr1---------------"))
+	lockOwner := sdk.AccAddress("addr1---------------")
 	suite.LockTokens(lockOwner, sdk.Coins{sdk.NewInt64Coin("lptoken", 10)}, time.Second)
 
 	// create gauge
@@ -207,8 +207,6 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
-	suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
-
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:                 addr.String(),
 		RollappId:               tmrand.Str(8),
@@ -217,6 +215,7 @@ func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
 		InitialSequencerAddress: addr.String(),
 		Alias:                   "alias",
 	}
+	suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultAliasFeeTable[fmt.Sprint(len(msgCreateRollapp.Alias))]))
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)
 	_, err := msgServer.CreateRollapp(suite.Ctx, &msgCreateRollapp)

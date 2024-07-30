@@ -110,7 +110,9 @@ func (s *utilSuite) SetupTest() {
 }
 
 func (s *utilSuite) fundSenderAccount() {
-	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
+	// no need to fund for less than 3 character long alias
+	amount := sdk.NewCoins(rollapptypes.DefaultAliasFeeTable["3"])
+	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), amount)
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:

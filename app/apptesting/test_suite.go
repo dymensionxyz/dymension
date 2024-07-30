@@ -56,7 +56,7 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 		},
 	}
 
-	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetParams(s.Ctx).RegistrationFee)
+	aliceBal := sdk.NewCoins(s.App.RollappKeeper.GetPriceForAlias(s.Ctx, alias))
 	FundAccount(s.App, s.Ctx, sdk.MustAccAddressFromBech32(alice), aliceBal)
 
 	msgServer := rollappkeeper.NewMsgServerImpl(*s.App.RollappKeeper)

@@ -17,15 +17,16 @@ func TestGetParams(t *testing.T) {
 	k.SetParams(ctx, params)
 
 	require.EqualValues(t, params.DisputePeriodInBlocks, k.DisputePeriodInBlocks(ctx))
-	require.EqualValues(t, params.RegistrationFee, k.RegistrationFee(ctx))
+	require.EqualValues(t, params.AliasFeeTable, k.AliasFeeTable(ctx))
 }
 
-func TestGetParamsWithRegistrationFee(t *testing.T) {
+func TestGetParamsWithAliasFeeTable(t *testing.T) {
 	k, ctx := testkeeper.RollappKeeper(t)
 	params := types.DefaultParams()
 
-	params.RegistrationFee, _ = sdk.ParseCoinNormalized(registrationFee)
+	regFee, _ := sdk.ParseCoinNormalized("1000dym")
+	params.AliasFeeTable = map[string]sdk.Coin{"1": regFee}
 	k.SetParams(ctx, params)
 
-	require.EqualValues(t, params.RegistrationFee, k.RegistrationFee(ctx))
+	require.EqualValues(t, params.AliasFeeTable, k.AliasFeeTable(ctx))
 }

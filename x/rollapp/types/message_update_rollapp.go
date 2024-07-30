@@ -13,8 +13,7 @@ func NewMsgUpdateRollappInformation(
 	creator,
 	rollappId,
 	initSequencerAddress,
-	genesisChecksum,
-	alias string,
+	genesisChecksum string,
 	metadata *RollappMetadata,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
@@ -22,7 +21,6 @@ func NewMsgUpdateRollappInformation(
 		RollappId:               rollappId,
 		InitialSequencerAddress: initSequencerAddress,
 		GenesisChecksum:         genesisChecksum,
-		Alias:                   alias,
 		Metadata:                metadata,
 	}
 }
@@ -56,10 +54,6 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 		}
 	}
 
-	if err := validateAlias(msg.Alias); err != nil {
-		return err
-	}
-
 	if len(msg.GenesisChecksum) > maxGenesisChecksumLength {
 		return ErrInvalidGenesisChecksum
 	}
@@ -72,5 +66,5 @@ func (msg *MsgUpdateRollappInformation) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateRollappInformation) UpdatingImmutableValues() bool {
-	return msg.InitialSequencerAddress != "" || msg.GenesisChecksum != "" || msg.Alias != ""
+	return msg.InitialSequencerAddress != "" || msg.GenesisChecksum != ""
 }

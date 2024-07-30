@@ -77,10 +77,6 @@ func (r Rollapp) ValidateBasic() error {
 		return errorsmod.Wrap(ErrInvalidGenesisChecksum, "GenesisChecksum")
 	}
 
-	if len(r.Alias) == 0 {
-		return ErrInvalidAlias
-	}
-
 	if err = validateAlias(r.Alias); err != nil {
 		return ErrInvalidAlias
 	}
@@ -93,7 +89,7 @@ func (r Rollapp) ValidateBasic() error {
 }
 
 func validateAlias(alias string) error {
-	if len(alias) > maxAliasLength {
+	if l := len(alias); l == 0 || l > maxAliasLength {
 		return ErrInvalidAlias
 	}
 	// only allow alphanumeric characters and underscores
