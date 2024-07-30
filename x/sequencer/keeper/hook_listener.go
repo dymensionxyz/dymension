@@ -32,11 +32,6 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		return types.ErrSequencerRollappMismatch
 	}
 
-	// check to see if the sequencer is active and can make the update
-	if sequencer.Status != types.Bonded {
-		return types.ErrInvalidSequencerStatus
-	}
-
 	seq, ok := hook.k.GetProposer(ctx, rollappId)
 	if !ok {
 		return types.ErrNoProposer
