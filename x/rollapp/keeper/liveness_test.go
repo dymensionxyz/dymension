@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -12,9 +13,23 @@ import (
 	"pgregory.net/rapid"
 )
 
+type livenessMockSequencerKeeper struct{}
+
+func (l livenessMockSequencerKeeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (l livenessMockSequencerKeeper) JailLiveness(ctx sdk.Context, rollappID string) error {
+	// TODO implement me
+	panic("implement me")
+}
+
 func (s *RollappTestSuite) TestLivenessEvents() {
 	ctx := &s.Ctx
 	k := s.App.RollappKeeper
+	m := livenessMockSequencerKeeper{}
+	k.SetSequencerKeeper(m)
 	_ = ctx
 	_ = k
 }
