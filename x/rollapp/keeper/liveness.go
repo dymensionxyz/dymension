@@ -38,7 +38,7 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	events := k.GetLivenessEvents(ctx, &h)
 	for _, e := range events {
 		err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
-			return k.CheckLivenessEvent(ctx, e)
+			return k.HandleLivenessEvent(ctx, e)
 		})
 		if err != nil {
 			k.Logger(ctx).Error(
@@ -50,7 +50,8 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	}
 }
 
-func (k Keeper) CheckLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
+// HandleLivenessEvent will slash or jail and then schedule a new event in the future.
+func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
 	if e.IsJail {
 		err := k.sequencerKeeper.JailLiveness(ctx, e.RollappId)
 		if err != nil {
