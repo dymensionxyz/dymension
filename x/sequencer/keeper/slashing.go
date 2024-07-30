@@ -44,6 +44,12 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 	return nil
 }
 
+// MulCoinsDec .. TODO: move to sdk-utils package
+func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
+	// TODO: use it
+	return sdk.Coins{}
+}
+
 func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
 	if err != nil {
@@ -54,12 +60,6 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 	amt := MulCoinsDec(tokens, mul)
 	// TODO: make sure to be correct wrt. min bond, see https://github.com/dymensionxyz/dymension/issues/1019
 	return k.Slash(ctx, &seq, amt)
-}
-
-// MulCoinsDec .. TODO: move to sdk-utils package
-func MulCoinsDec(coins sdk.Coins, dec sdk.Dec) sdk.Coins {
-	// TODO: use it
-	return sdk.Coins{}
 }
 
 func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {

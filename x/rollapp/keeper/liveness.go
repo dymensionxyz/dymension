@@ -3,8 +3,10 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
 func NextSlashOrJailHeight(
@@ -33,24 +35,36 @@ func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	h := ctx.BlockHeight()
 	events := k.GetLivenessEvents(ctx, &h)
 	for _, e := range events {
-		if e.IsJail {
-			err := k.sequencerKeeper.JailLiveness(ctx, e.RollappId)
-			_ = err // TODO:
-		} else {
-			err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
-			_ = err // TODO:
+		err := osmoutils.ApplyFuncIfNoError(ctx, func(ctx sdk.Context) error {
+			return k.CheckLivenessEvent(ctx, e)
+		})
+		if err != nil {
+			k.Logger(ctx).Error(
+				"Check liveness event",
+				"event", e,
+				"err", err,
+			)
 		}
-
-		ra := k.MustGetRollapp(ctx, e.RollappId)
-		k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
-		/*
-			TODO: need to decide approach when rollapp does not have a sequencer, we can either
-				a) not schedule the event
-				b) schedule it but do the check when it occurs instead
-				Leaning towards (b)
-		*/
-		k.ScheduleLivenessEvent(ctx, &ra)
 	}
+}
+
+func (k Keeper) CheckLivenessEvent(ctx sdk.Context, e types.LivenessEvent) error {
+	if e.IsJail {
+		err := k.sequencerKeeper.JailLiveness(ctx, e.RollappId)
+		if err != nil {
+			return errorsmod.Wrap(err, "jail liveness")
+		}
+	} else {
+		err := k.sequencerKeeper.SlashLiveness(ctx, e.RollappId)
+		if err != nil {
+			return errorsmod.Wrap(err, "slash liveness")
+		}
+	}
+
+	ra := k.MustGetRollapp(ctx, e.RollappId)
+	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
+	k.ScheduleLivenessEvent(ctx, &ra)
+	return nil
 }
 
 // IndicateLiveness will reschedule pending liveness events to a later date.
