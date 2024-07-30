@@ -9,6 +9,7 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/exp/slices"
 	"pgregory.net/rapid"
 )
@@ -55,7 +56,7 @@ func (s *RollappTestSuite) TestLivenessEvents() {
 	*/
 }
 
-// The protocol works end-to-end.
+// The protocol works.
 // go test -run=TestLivenessFlow -rapid.checks=1000 -rapid.steps=1000
 func TestLivenessFlow(t *testing.T) {
 	rapid.Check(t, func(r *rapid.T) {
@@ -71,7 +72,7 @@ func TestLivenessFlow(t *testing.T) {
 				return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
 			}
 		})
-		tracker := livenessMockSequencerKeeper{}
+		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
 		rollapps := []string{"a", "b"}
 		rollapp := rapid.SampledFrom(rollapps)
@@ -89,23 +90,15 @@ func TestLivenessFlow(t *testing.T) {
 					p := s.keeper().GetParams(s.Ctx)
 					elapsedTime := time.Duration(elapsed) * p.HubExpectedBlockTime
 					if elapsedTime <= p.LivenessJailTime {
-						if tracker.jails[ra] == 0 {
-							r.Fatal("expect to be jailed")
-						}
+						require.Zero(r, tracker.jails[ra])
 					} else {
-						if tracker.jails[ra] != 0 {
-							r.Fatal("expect not be jailed")
-						}
+						require.NotZero(r, tracker.jails[ra])
 					}
-					if p.LivenessSlashTime <= elapsedTime {
-						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
-						if tracker.slashes[ra] != int(expectedSlashes) {
-							r.Fatal("wrong number of slashes")
-						}
+					if elapsedTime <= p.LivenessSlashTime {
+						require.Zero(r, tracker.slashes[ra])
 					} else {
-						if tracker.slashes[ra] != 0 {
-							r.Fatal("expect not be slashed")
-						}
+						expectedSlashes := (elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval + 1
+						require.Equal(r, expectedSlashes, tracker.slashes[ra])
 					}
 				}
 			},
