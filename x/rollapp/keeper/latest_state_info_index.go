@@ -17,6 +17,9 @@ func (k Keeper) SetLatestStateInfoIndex(ctx sdk.Context, latestStateInfoIndex ty
 	), b)
 }
 
+func (k Keeper) GetLatestBlockHeight(ctx sdk.Context) (blockHeight int64) {
+}
+
 // GetLatestStateInfoIndex returns a latestStateInfoIndex from its index
 func (k Keeper) GetLatestStateInfoIndex(
 	ctx sdk.Context,
