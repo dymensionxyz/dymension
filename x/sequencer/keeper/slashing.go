@@ -7,9 +7,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// SlashFraud slashes the sequencer for misbehaviour other than liveness issues
+// SlashAndJailFraud slashes the sequencer for misbehaviour other than liveness issues
 // Can occur on both Bonded and Unbonding sequencers
-func (k Keeper) SlashFraud(ctx sdk.Context, seqAddr string) error {
+func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
 		return types.ErrUnknownSequencer
