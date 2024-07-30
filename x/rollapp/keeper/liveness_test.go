@@ -12,8 +12,6 @@ import (
 	"pgregory.net/rapid"
 )
 
-// TODO: I need to rethink, because you can have more tha one event for a rollapp at a given height
-
 // An example, not intended to be run regularly
 func TestNextSlashOrJailHeightExample(t *testing.T) {
 	t.Skip()
@@ -39,37 +37,6 @@ func TestNextSlashOrJailHeightExample(t *testing.T) {
 
 // go test -run=TestNextSlashOrJailHeightRapid -rapid.checks=100 -rapid.steps=30000
 func TestNextSlashOrJailHeightRapid(t *testing.T) {
-	/*
-	  -rapid.checks int
-	    	rapid: number of checks to perform (default 100)
-	  -rapid.debug
-	    	rapid: debugging output
-	  -rapid.debugvis
-	    	rapid: debugging visualization
-	  -rapid.failfile string
-	    	rapid: fail file to use to reproduce test failure
-	  -rapid.log
-	    	rapid: eager verbose output to stdout (to aid with unrecoverable test failures)
-	  -rapid.nofailfile
-	    	rapid: do not write fail files on test failures
-	  -rapid.seed uint
-	    	rapid: PRNG seed to start with (0 to use a random one)
-	  -rapid.shrinktime duration
-	    	rapid: maximum time to spend on test case minimization (default 30s)
-	  -rapid.steps int
-	    	rapid: average number of Repeat actions to execute (default 30)
-	  -rapid.v
-	    	rapid: verbose output
-	*/
-	rapid.Check(t, testWithRapid)
-}
-
-func testWithRapid(t *rapid.T) {
-	hubHeight := int64(0)
-	hubBlockTime := time.Time{}
-	lastUpdateHeight := int64(0)
-	nextEventHeight := int64(-1)
-	nextEventIsJail := false
 	hubBlockInterval := 6 * time.Second
 	slashTimeNoUpdate := 12 * time.Hour
 	slashInterval := 1 * time.Hour
@@ -84,50 +51,56 @@ func testWithRapid(t *rapid.T) {
 		}
 	})
 
-	// used for invariants
-	jailed := false
-	numSlashes := 0
-	hubBlockTimeLastSlash := time.Time{}
+	rapid.Check(t, func(r *rapid.T) {
+		// model data
+		hubHeight := int64(0)
+		hubBlockTime := time.Time{}
+		lastUpdateHeight := int64(0)
+		nextEventHeight := int64(-1) // 'queue'
+		nextEventIsJail := false     // 'queue'
 
-	ops := map[string]func(*rapid.T){
-		"": func(t *rapid.T) { // Check
-		},
-		"hub end block": func(t *rapid.T) {
-			if hubHeight == nextEventHeight {
-				if nextEventIsJail {
-					if jailed {
-						t.Fatal("jailed already")
+		// for invariants
+		jailed := false
+		hubBlockTimeLastSlash := time.Time{}
+
+		r.Repeat(map[string]func(*rapid.T){
+			"": func(r *rapid.T) { // Check
+			},
+			// TODO: add operation for params change
+			// TODO: add more invariants
+			"hub end block": func(r *rapid.T) {
+				if hubHeight == nextEventHeight {
+					if nextEventIsJail {
+						if jailed {
+							r.Fatal("jailed already")
+						}
+						jailed = true
+					} else {
+						if !hubBlockTimeLastSlash.IsZero() && hubBlockTime.Sub(hubBlockTimeLastSlash) < slashInterval {
+							r.Fatalf("slashed too frequently")
+						}
+						hubBlockTimeLastSlash = hubBlockTime
+						nextEventHeight, nextEventIsJail = keeper.NextSlashOrJailHeight(
+							hubBlockInterval,
+							slashTimeNoUpdate,
+							slashInterval,
+							jailTime,
+							hubHeight,
+							lastUpdateHeight,
+						)
 					}
-					jailed = true
-				} else {
-					if !hubBlockTimeLastSlash.IsZero() && hubBlockTime.Sub(hubBlockTimeLastSlash) < slashInterval {
-						t.Fatalf("slashed too frequently")
-					}
-					hubBlockTimeLastSlash = hubBlockTime
-					numSlashes += 1
-					nextEventHeight, nextEventIsJail = keeper.NextSlashOrJailHeight(
-						hubBlockInterval,
-						slashTimeNoUpdate,
-						slashInterval,
-						jailTime,
-						hubHeight,
-						lastUpdateHeight,
-					)
 				}
-			}
-			hubHeight += 1
-			hubBlockTime.Add(hubBlockGap.Draw(t, "hub time increase"))
-		},
-		"update rollapp": func(t *rapid.T) {
-			lastUpdateHeight = hubHeight
-			// delete the scheduled event from the 'queue'
-			nextEventHeight = -1
-			nextEventIsJail = false
-		},
-		// TODO: add capability to change params on the fly
-	}
-
-	t.Repeat(ops)
+				hubHeight += 1
+				hubBlockTime.Add(hubBlockGap.Draw(r, "hub time increase"))
+			},
+			"update rollapp": func(r *rapid.T) {
+				lastUpdateHeight = hubHeight
+				// delete the scheduled event from the 'queue'
+				nextEventHeight = -1
+				nextEventIsJail = false
+			},
+		})
+	})
 }
 
 // go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
@@ -135,14 +108,13 @@ func TestLivenessEventsStorage(t *testing.T) {
 	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
 	heights := rapid.Int64Range(0, 10)
 	isJail := rapid.Bool()
-
-	f := func(r *rapid.T) {
+	rapid.Check(t, func(r *rapid.T) {
 		k, ctx := keepertest.RollappKeeper(t)
 		model := make(map[string]types.LivenessEvent)
 		modelKey := func(e types.LivenessEvent) string {
 			return fmt.Sprintf("%+v", e)
 		}
-		ops := map[string]func(r *rapid.T){
+		r.Repeat(map[string]func(r *rapid.T){
 			"put": func(r *rapid.T) {
 				e := types.LivenessEvent{
 					RollappId: rollapps.Draw(r, "rollapp"),
@@ -191,8 +163,6 @@ func TestLivenessEventsStorage(t *testing.T) {
 					}
 				}
 			},
-		}
-		r.Repeat(ops)
-	}
-	rapid.Check(t, f)
+		})
+	})
 }
