@@ -12,29 +12,7 @@ import (
 	"pgregory.net/rapid"
 )
 
-// An example, not intended to be run regularly
-func TestNextSlashOrJailHeightExample(t *testing.T) {
-	t.Skip()
-	hHub := int64(0)
-	jail := false
-	for !jail {
-		last := hHub
-		hHub, jail = keeper.NextSlashOrJailHeight(
-			types.DefaultHubExpectedBlockTime,
-			types.DefaultLivenessSlashTime,
-			types.DefaultLivenessSlashInterval,
-			types.DefaultLivenessJailTime,
-			hHub,
-			0,
-		)
-		elapsed := time.Duration(hHub) * types.DefaultHubExpectedBlockTime
-		t.Log(fmt.Sprintf("hub height: %d, elapsed %s, jail: %t", hHub, elapsed, jail))
-		if last == hHub {
-			hHub++
-		}
-	}
-}
-
+// Correct calculation of the next slash or jail event, based on downtime and parameters
 // go test -run=TestNextSlashOrJailHeightRapid -rapid.checks=100 -rapid.steps=30000
 func TestNextSlashOrJailHeightRapid(t *testing.T) {
 	hubBlockInterval := 6 * time.Second
@@ -103,6 +81,7 @@ func TestNextSlashOrJailHeightRapid(t *testing.T) {
 	})
 }
 
+// Storage and query operations work for the event queue
 // go test -run=TestLivenessEventsStorage -rapid.checks=100 -rapid.steps=10
 func TestLivenessEventsStorage(t *testing.T) {
 	rollapps := rapid.StringMatching("^[a-zA-Z0-9]{1,10}$")
@@ -165,4 +144,27 @@ func TestLivenessEventsStorage(t *testing.T) {
 			},
 		})
 	})
+}
+
+// An example, not intended to be run regularly, but rather for debugging
+func TestNextSlashOrJailHeightExample(t *testing.T) {
+	t.Skip()
+	hHub := int64(0)
+	jail := false
+	for !jail {
+		last := hHub
+		hHub, jail = keeper.NextSlashOrJailHeight(
+			types.DefaultHubExpectedBlockTime,
+			types.DefaultLivenessSlashTime,
+			types.DefaultLivenessSlashInterval,
+			types.DefaultLivenessJailTime,
+			hHub,
+			0,
+		)
+		elapsed := time.Duration(hHub) * types.DefaultHubExpectedBlockTime
+		t.Log(fmt.Sprintf("hub height: %d, elapsed %s, jail: %t", hHub, elapsed, jail))
+		if last == hHub {
+			hHub++
+		}
+	}
 }
