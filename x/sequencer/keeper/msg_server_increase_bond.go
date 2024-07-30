@@ -43,17 +43,17 @@ func (k msgServer) bondUpdateAllowed(ctx sdk.Context, msg *types.MsgIncreaseBond
 	// check if the sequencer already exists
 	sequencer, found := k.GetSequencer(ctx, msg.Creator)
 	if !found {
-		return types.Sequencer{}, true, types.ErrUnknownSequencer
+		return types.Sequencer{}, false, types.ErrUnknownSequencer
 	}
 
 	// check if the sequencer is bonded
 	if !sequencer.IsBonded() {
-		return types.Sequencer{}, true, types.ErrInvalidSequencerStatus
+		return types.Sequencer{}, false, types.ErrInvalidSequencerStatus
 	}
 
 	// check if sequencer is currently jailed
 	if sequencer.Jailed {
-		return types.Sequencer{}, true, types.ErrSequencerJailed
+		return types.Sequencer{}, false, types.ErrSequencerJailed
 	}
-	return sequencer, false, nil
+	return sequencer, true, nil
 }

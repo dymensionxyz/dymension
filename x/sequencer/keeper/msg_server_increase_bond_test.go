@@ -1,97 +1,95 @@
 package keeper_test
 
 import (
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestIncreaseBond() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
+	// setup a default sequencer
+	defaultSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	// setup an unbonded sequencer
+	unbondedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
+	unbondedSequencer.Status = types.Unbonded
+	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, unbondedSequencer, unbondedSequencer.Status)
+	// setup a jailed sequencer
+	jailedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
+	jailedSequencer.Jailed = true
+	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, jailedSequencer, jailedSequencer.Status)
+	// fund all the sequencers which have been setup
 	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
-	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, sdk.MustAccAddressFromBech32(seqAddr), sdk.NewCoins(bondAmount))
+	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, sdk.MustAccAddressFromBech32(defaultSequencerAddress), sdk.NewCoins(bondAmount))
+	suite.Require().NoError(err)
+	err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, sdk.MustAccAddressFromBech32(unbondedSequencerAddress), sdk.NewCoins(bondAmount))
+	suite.Require().NoError(err)
+	err = bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, sdk.MustAccAddressFromBech32(jailedSequencerAddress), sdk.NewCoins(bondAmount))
 	suite.Require().NoError(err)
 
-	msg := types.MsgIncreaseBond{
-		Creator:   seqAddr,
-		AddAmount: bondAmount,
+	testCase := []struct {
+		name        string
+		msg         types.MsgIncreaseBond
+		expectedErr error
+	}{
+		{
+			name: "valid",
+			msg: types.MsgIncreaseBond{
+				Creator:   defaultSequencerAddress,
+				AddAmount: bondAmount,
+			},
+			expectedErr: nil,
+		},
+		{
+			name: "invalid sequencer",
+			msg: types.MsgIncreaseBond{
+				Creator:   sample.AccAddress(), // a random address which is not a registered sequencer
+				AddAmount: bondAmount,
+			},
+			expectedErr: types.ErrUnknownSequencer,
+		},
+		{
+			name: "invalid sequencer status",
+			msg: types.MsgIncreaseBond{
+				Creator:   unbondedSequencerAddress,
+				AddAmount: bondAmount,
+			},
+			expectedErr: types.ErrInvalidSequencerStatus,
+		},
+		{
+			name: "jailed sequencer",
+			msg: types.MsgIncreaseBond{
+				Creator:   jailedSequencerAddress,
+				AddAmount: bondAmount,
+			},
+			expectedErr: types.ErrSequencerJailed,
+		},
+		{
+			name: "sequencer dosent have enough balance",
+			msg: types.MsgIncreaseBond{
+				Creator:   defaultSequencerAddress,
+				AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 99999999), // very high amount which sequencer doesn't have
+			},
+			expectedErr: sdkerrors.ErrInsufficientFunds,
+		},
 	}
-	_, err = suite.msgServer.IncreaseBond(suite.Ctx, &msg)
 
-	suite.Require().NoError(err)
-	expectedBond := types.DefaultParams().MinBond.Add(bondAmount)
-	seq, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().Equal(expectedBond, seq.Tokens[0])
-}
-
-func (suite *SequencerTestSuite) TestIncreaseBondInvalidSequencer() {
-	suite.SetupTest()
-	pubkey1 := secp256k1.GenPrivKey().PubKey()
-	addr := sdk.AccAddress(pubkey1.Address())
-	bondAmount := sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100)
-
-	msg := types.MsgIncreaseBond{
-		Creator:   addr.String(),
-		AddAmount: bondAmount,
+	for _, tc := range testCase {
+		suite.Run(tc.name, func() {
+			_, err := suite.msgServer.IncreaseBond(suite.Ctx, &tc.msg)
+			if tc.expectedErr != nil {
+				suite.Require().ErrorIs(err, tc.expectedErr)
+			} else {
+				suite.Require().NoError(err)
+				expectedBond := types.DefaultParams().MinBond.Add(bondAmount)
+				seq, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, defaultSequencerAddress)
+				suite.Require().Equal(expectedBond, seq.Tokens[0])
+			}
+		})
 	}
-	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
-
-	suite.Require().ErrorIs(types.ErrUnknownSequencer, err)
-}
-
-func (suite *SequencerTestSuite) TestIncreaseBondInvalidSequencerStatus() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
-	seq.Status = types.Unbonded
-	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, seq, seq.Status)
-
-	msg := types.MsgIncreaseBond{
-		Creator:   seqAddr,
-		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
-	}
-	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
-
-	suite.Require().ErrorIs(types.ErrInvalidSequencerStatus, err)
-}
-
-func (suite *SequencerTestSuite) TestIncreaseBondSequencerJailed() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
-	seq.Jailed = true
-	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, seq, seq.Status)
-
-	msg := types.MsgIncreaseBond{
-		Creator:   seqAddr,
-		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
-	}
-	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
-
-	suite.Require().ErrorIs(types.ErrSequencerJailed, err)
-}
-
-func (suite *SequencerTestSuite) TestIncreaseBondInsufficientBalance() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	seqAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	_, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddr)
-	suite.Require().True(found)
-
-	msg := types.MsgIncreaseBond{
-		Creator:   seqAddr,
-		AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 100),
-	}
-	_, err := suite.msgServer.IncreaseBond(suite.Ctx, &msg)
-
-	suite.Require().ErrorContains(err, "insufficient funds")
 }
