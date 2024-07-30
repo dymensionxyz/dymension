@@ -12,6 +12,13 @@ import (
 	"pgregory.net/rapid"
 )
 
+func (s *RollappTestSuite) TestLivenessEvents() {
+	ctx := &s.Ctx
+	k := s.App.RollappKeeper
+	_ = ctx
+	_ = k
+}
+
 // Correct calculation of the next slash or jail event, based on downtime and parameters
 // go test -run=TestNextSlashOrJailHeightRapid -rapid.checks=100 -rapid.steps=30000
 func TestNextSlashOrJailHeightRapid(t *testing.T) {
