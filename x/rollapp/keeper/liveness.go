@@ -9,6 +9,12 @@ import (
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
 )
 
+/*
+This file has the logic for slashing rollapps based on liveness requirements (time since last update).
+It will trigger slash/jail operations through the x/sequencers module, at intervals decided by parameters.
+See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-Slash-Phase-1-5131b4d557e34f4498855831f439d218
+*/
+
 // NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 func NextSlashOrJailHeight(
