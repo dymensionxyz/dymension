@@ -45,3 +45,12 @@ message Sequencer {
 
 }
 
+// BondReduction defines an object which holds the information about the sequencer and its queued unbonding amount
+message BondReduction {
+  // sequencerAddress is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
+  string sequencerAddress = 1;
+  // unbondAmount is the amount of tokens to be unbonded.
+  cosmos.base.v1beta1.Coin unbond_amount = 2 [(gogoproto.nullable) = false];
+  // unbond_time defines, if unbonding, the min time for the sequencer to complete unbonding.
+  google.protobuf.Timestamp unbond_time = 3 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+}
