@@ -143,7 +143,7 @@ func (msg *MsgIncreaseBond) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if !msg.AddAmount.IsValid() {
+	if !(msg.AddAmount.IsValid() && msg.AddAmount.IsPositive()) {
 		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.AddAmount.String())
 	}
 

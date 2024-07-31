@@ -11,8 +11,8 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, allowed, err := k.bondUpdateAllowed(ctx, msg)
-	if !allowed {
+	sequencer, err := k.bondUpdateAllowed(ctx, msg)
+	if err != nil {
 		return nil, err
 	}
 
@@ -39,21 +39,21 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	return &types.MsgIncreaseBondResponse{}, err
 }
 
-func (k msgServer) bondUpdateAllowed(ctx sdk.Context, msg *types.MsgIncreaseBond) (types.Sequencer, bool, error) {
+func (k msgServer) bondUpdateAllowed(ctx sdk.Context, msg *types.MsgIncreaseBond) (types.Sequencer, error) {
 	// check if the sequencer already exists
 	sequencer, found := k.GetSequencer(ctx, msg.Creator)
 	if !found {
-		return types.Sequencer{}, false, types.ErrUnknownSequencer
+		return types.Sequencer{}, types.ErrUnknownSequencer
 	}
 
 	// check if the sequencer is bonded
 	if !sequencer.IsBonded() {
-		return types.Sequencer{}, false, types.ErrInvalidSequencerStatus
+		return types.Sequencer{}, types.ErrInvalidSequencerStatus
 	}
 
 	// check if sequencer is currently jailed
 	if sequencer.Jailed {
-		return types.Sequencer{}, false, types.ErrSequencerJailed
+		return types.Sequencer{}, types.ErrSequencerJailed
 	}
-	return sequencer, true, nil
+	return sequencer, nil
 }

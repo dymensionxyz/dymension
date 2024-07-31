@@ -70,7 +70,7 @@ func (suite *SequencerTestSuite) TestIncreaseBond() {
 			expectedErr: types.ErrSequencerJailed,
 		},
 		{
-			name: "sequencer dosent have enough balance",
+			name: "sequencer doesn't have enough balance",
 			msg: types.MsgIncreaseBond{
 				Creator:   defaultSequencerAddress,
 				AddAmount: sdk.NewInt64Coin(types.DefaultParams().MinBond.Denom, 99999999), // very high amount which sequencer doesn't have
