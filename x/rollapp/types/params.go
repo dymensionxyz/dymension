@@ -85,7 +85,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyLivenessSlashTime, &p.LivenessSlashTime, validateLivenessSlashTime),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
 		paramtypes.NewParamSetPair(KeyLivenessJailTime, &p.LivenessJailTime, validateLivenessJailTime),
-		// TODO: impl
 	}
 }
 

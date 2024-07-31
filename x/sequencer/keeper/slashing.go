@@ -25,12 +25,13 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 
 	tokens := seq.Tokens
 
+	// slash 100% of tokens
 	if err := k.Slash(ctx, &seq, tokens); err != nil {
-		return err // TODO:
+		return errorsmod.Wrap(err, "slash")
 	}
 
 	if err := k.Jail(ctx, seq); err != nil {
-		return err // TODO:
+		return errorsmod.Wrap(err, "jail")
 	}
 
 	// emit event
@@ -60,7 +61,7 @@ func (k Keeper) SlashLiveness(ctx sdk.Context, rollappID string) error {
 func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {
 	seq, err := k.LivenessLiableSequencer(ctx, rollappID)
 	if err != nil {
-		return err
+		return errorsmod.Wrap(err, "liveness liable sequencer")
 	}
 	return k.Jail(ctx, seq)
 }
@@ -69,7 +70,7 @@ func (k Keeper) JailLiveness(ctx sdk.Context, rollappID string) error {
 func (k Keeper) LivenessLiableSequencer(ctx sdk.Context, rollappID string) (types.Sequencer, error) {
 	// TODO: find the sequencer who is currently responsible for ensuring liveness
 	//  https://github.com/dymensionxyz/dymension/issues/1018
-	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "currently there is no liable sequencer")
+	return types.Sequencer{}, errorsmod.Wrap(gerrc.ErrNotFound, "not implemented")
 }
 
 func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) error {
