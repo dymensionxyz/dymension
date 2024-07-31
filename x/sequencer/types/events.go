@@ -24,4 +24,6 @@ const (
 
 	// EventTypeSlashed is emitted when a sequencer is slashed
 	EventTypeSlashed = "slashed"
+	// EventTypeJailed is emitted when a sequencer is jailed
+	EventTypeJailed = "jailed"
 )

@@ -34,14 +34,6 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 		return errorsmod.Wrap(err, "jail")
 	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeSlashed,
-			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, tokens.String()),
-		),
-	)
-
 	return nil
 }
 
@@ -78,6 +70,13 @@ func (k Keeper) Slash(ctx sdk.Context, seq *types.Sequencer, amt sdk.Coins) erro
 	if err != nil {
 		return errorsmod.Wrap(err, "burn coins")
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeSlashed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+			sdk.NewAttribute(types.AttributeKeyBond, amt.String()),
+		),
+	)
 	return nil
 }
 
@@ -100,6 +99,13 @@ func (k Keeper) Jail(ctx sdk.Context, seq types.Sequencer) error {
 	if wasProposer {
 		k.RotateProposer(ctx, seq.RollappId)
 	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeJailed,
+			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
+		),
+	)
 
 	return nil
 }
