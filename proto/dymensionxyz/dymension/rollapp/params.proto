@@ -32,12 +32,10 @@ message Params {
   bool rollapps_enabled = 3
   [(gogoproto.moretags) = "yaml:\"rollapps_enabled\""];
 
-  // How long it typically takes to produce a Hub block (e.g. 6 secs). Used to calculate length of time based on height.
-  google.protobuf.Duration hub_expected_block_time = 4 [(gogoproto.moretags) = "yaml:\"hub_expected_block_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  // The time a sequencer has to post a block, before he will be slashed
-  google.protobuf.Duration liveness_slash_time = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  // The min gap between a sequence of slashes if the sequencer continues to be down
-  google.protobuf.Duration liveness_slash_interval = 6 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  // The time a sequencer can be down after which he will be jailed rather than slashed
-  google.protobuf.Duration liveness_jail_time = 7 [(gogoproto.moretags) = "yaml:\"liveness_jail_time\"", (gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  // The time (num hub blocks) a sequencer has to post a block, before he will be slashed
+  uint64 liveness_slash_blocks = 4 [(gogoproto.moretags) = "yaml:\"liveness_slash_blocks\""];
+  // The min gap (num hub blocks) between a sequence of slashes if the sequencer continues to be down
+  uint64 liveness_slash_interval = 5 [(gogoproto.moretags) = "yaml:\"liveness_slash_interval\""];
+  // The time (num hub blocks) a sequencer can be down after which he will be jailed rather than slashed
+  uint64 liveness_jail_blocks = 6 [(gogoproto.moretags) = "yaml:\"liveness_jail_blocks\""];
 }
