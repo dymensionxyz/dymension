@@ -130,10 +130,10 @@ func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
 }
 
 /* ---------------------------- MsgDecreaseBond ---------------------------- */
-func NewMsgDecreaseBond(creator string, amount sdk.Coin) *MsgDecreaseBond {
+func NewMsgDecreaseBond(creator string, decreaseBond sdk.Coin) *MsgDecreaseBond {
 	return &MsgDecreaseBond{
-		Creator: creator,
-		Amount:  amount,
+		Creator:        creator,
+		DecreaseAmount: decreaseBond,
 	}
 }
 
@@ -143,8 +143,8 @@ func (msg *MsgDecreaseBond) ValidateBasic() error {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if !msg.Amount.IsValid() {
-		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.Amount.String())
+	if !(msg.DecreaseAmount.IsValid() && msg.DecreaseAmount.IsPositive()) {
+		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.DecreaseAmount.String())
 	}
 
 	return nil

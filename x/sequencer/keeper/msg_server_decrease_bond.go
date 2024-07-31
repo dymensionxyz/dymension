@@ -30,7 +30,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	// Check if the bond reduction will make the sequencer's bond less than the minimum bond value
 	minBondValue := k.GetParams(ctx).MinBond
 	if !minBondValue.IsNil() && !minBondValue.IsZero() {
-		decreasedBondValue := sequencer.Tokens.Sub(msg.Amount)
+		decreasedBondValue := sequencer.Tokens.Sub(msg.DecreaseAmount)
 		if decreasedBondValue.IsAllLT(sdk.NewCoins(minBondValue)) {
 			return nil, types.ErrInsufficientBond
 		}
@@ -38,7 +38,7 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
 	k.setDecreasingBondQueue(ctx, types.BondReduction{
 		SequencerAddress: msg.Creator,
-		UnbondAmount:     msg.Amount,
+		UnbondAmount:     msg.DecreaseAmount,
 		UnbondTime:       completionTime,
 	})
 

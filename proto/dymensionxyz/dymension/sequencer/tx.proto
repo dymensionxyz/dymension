@@ -64,8 +64,8 @@ message MsgDecreaseBond {
   // creator is the bech32-encoded address of the sequencer account which is the account that the message was sent from.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   
-  // amount is the amount of coins to decrease the bond by.
-  cosmos.base.v1beta1.Coin amount = 2 [(gogoproto.nullable) = false];
+  // decrease_amount is the amount of coins to decrease the bond by.
+  cosmos.base.v1beta1.Coin decrease_amount = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgDecreaseBondResponse defines the Msg/DecreaseBond response type.
