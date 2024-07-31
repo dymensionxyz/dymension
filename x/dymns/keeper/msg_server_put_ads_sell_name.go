@@ -25,11 +25,7 @@ func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutA
 		panic(errors.Wrap(err, "un-expected invalid state of created SO"))
 	}
 
-	prohibitSellingAfterEpoch := time.Unix(dymName.ExpireAt, 0).Add(
-		-1 * params.Misc.ProhibitSellDuration,
-	).Unix()
-
-	if so.ExpireAt > prohibitSellingAfterEpoch {
+	if dymName.IsProhibitedTradingAt(time.Unix(so.ExpireAt, 0), params.Misc.ProhibitSellDuration) {
 		return nil, sdkerrors.ErrInvalidRequest.Wrapf(
 			"%s before Dym-Name expiry, can not sell",
 			params.Misc.ProhibitSellDuration,

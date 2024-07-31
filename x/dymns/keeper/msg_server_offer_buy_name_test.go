@@ -58,7 +58,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		Name:       name,
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   now.Unix() + 1,
+		ExpireAt:   now.Add(9 * 365 * 24 * time.Hour).Unix(),
 	}
 
 	tests := []struct {
@@ -296,6 +296,28 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:   minOfferPrice,
 			wantErr:                true,
 			wantErrContains:        "cannot buy own Dym-Name",
+			wantLaterModuleBalance: 1,
+			wantLaterBuyerBalance:  minOfferPrice,
+			wantMinConsumeGas:      1,
+			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+			},
+		},
+		{
+			name: "fail - reject Dym-Name that almost expired",
+			existingDymName: &dymnstypes.DymName{
+				Name:       dymName.Name,
+				Owner:      dymName.Owner,
+				Controller: dymName.Owner,
+				ExpireAt:   now.Add(1 * time.Second).Unix(),
+			},
+			dymName:                name,
+			buyer:                  buyer,
+			offer:                  dymnsutils.TestCoin(minOfferPrice),
+			originalModuleBalance:  1,
+			originalBuyerBalance:   minOfferPrice,
+			wantErr:                true,
+			wantErrContains:        "before Dym-Name expiry, can not trade",
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,

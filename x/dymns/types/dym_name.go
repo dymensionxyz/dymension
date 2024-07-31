@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -109,6 +110,14 @@ func (m DymName) IsExpiredAtContext(ctx sdk.Context) bool {
 
 func (m DymName) IsExpiredAtEpoch(epochUTC int64) bool {
 	return m.ExpireAt < epochUTC
+}
+
+func (m DymName) IsProhibitedTradingAt(anchor time.Time, prohibitSellDuration time.Duration) bool {
+	prohibitSellingAfterEpoch := time.Unix(m.ExpireAt, 0).UTC().Add(
+		-1 * prohibitSellDuration,
+	).Unix()
+
+	return prohibitSellingAfterEpoch < anchor.Unix()
 }
 
 func (m DymName) GetSdkEvent() sdk.Event {

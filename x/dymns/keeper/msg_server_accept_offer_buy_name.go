@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -81,11 +80,7 @@ func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAccep
 
 	params := k.GetParams(ctx)
 
-	prohibitSellingAfterEpoch := time.Unix(dymName.ExpireAt, 0).Add(
-		-1 * params.Misc.ProhibitSellDuration,
-	).Unix()
-
-	if prohibitSellingAfterEpoch < nowEpochUTC {
+	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), params.Misc.ProhibitSellDuration) {
 		return nil, nil, sdkerrors.ErrInvalidRequest.Wrapf(
 			"%s before Dym-Name expiry, can not sell",
 			params.Misc.ProhibitSellDuration,

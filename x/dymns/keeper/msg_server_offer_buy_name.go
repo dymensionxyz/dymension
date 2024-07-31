@@ -92,6 +92,13 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyNam
 	}
 
 	params := k.GetParams(ctx)
+	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), k.GetParams(ctx).Misc.ProhibitSellDuration) {
+		err = sdkerrors.ErrInvalidRequest.Wrapf(
+			"%s before Dym-Name expiry, can not trade",
+			params.Misc.ProhibitSellDuration,
+		)
+		return
+	}
 
 	if msg.Offer.Denom != params.Price.PriceDenom {
 		err = sdkerrors.ErrInvalidRequest.Wrapf(
