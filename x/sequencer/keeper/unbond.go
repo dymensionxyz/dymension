@@ -38,7 +38,7 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	sequencers := k.GetMatureUnbondingSequencers(ctx, currTime)
 	for _, seq := range sequencers {
 		wrapFn := func(ctx sdk.Context) error {
-			return k.unbondUnbondingSequencer(ctx, seq.SequencerAddress)
+			return k.unbondSequencer(ctx, seq.SequencerAddress)
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
@@ -48,20 +48,21 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	}
 }
 
-// unbondUnbondingSequencer unbonds a sequencer that currently unbonding
-func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error {
+func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
 		return types.ErrUnknownSequencer
 	}
 
-	if seq.Status != types.Unbonding {
+	if seq.Status == types.Unbonded {
 		return errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
-			"sequencer status is not unbonding: got %s",
-			seq.Status.String(),
+			"sequencer status is already unbonded",
 		)
 	}
+
+	oldStatus := seq.Status
+
 	seqTokens := seq.Tokens
 	if !seqTokens.Empty() {
 		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
@@ -77,12 +78,19 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
 	}
 
-	// set the status to unbonded and remove from the unbonding queue
+	// set the status to unbonded and remove from the unbonding queue if needed
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coins{}
 
-	k.UpdateSequencer(ctx, seq, types.Unbonding)
-	k.removeUnbondingSequencer(ctx, seq)
+	k.UpdateSequencer(ctx, seq, oldStatus)
+
+	if oldStatus == types.Unbonding {
+		k.removeUnbondingSequencer(ctx, seq)
+	}
+
+	if seq.IsNoticePeriodInProgress() {
+		k.removeNoticePeriodSequencer(ctx, seq)
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

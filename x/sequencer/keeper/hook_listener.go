@@ -74,10 +74,14 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 		return err
 	}
 
-	// unbond all other bonded sequencers
-	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	for _, sequencer := range sequencers {
-		hook.k.startUnbondingPeriodForSequencer(ctx, &sequencer)
+	// unbond all other sequencers
+	bonded := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
+	unbonding := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
+	for _, sequencer := range append(bonded, unbonding...) {
+		err := hook.k.unbondSequencer(ctx, sequencer.SequencerAddress)
+		if err != nil {
+			return err
+		}
 	}
 
 	// clear the proposer and next proposer
