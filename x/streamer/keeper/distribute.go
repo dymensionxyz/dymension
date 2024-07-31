@@ -96,7 +96,7 @@ func (k Keeper) distributeStream(ctx sdk.Context, stream types.Stream) (sdk.Coin
 	if stream.Sponsored {
 		distr, err := k.sk.GetDistribution(ctx)
 		if err != nil {
-			return sdk.Coins{}, err
+			return sdk.Coins{}, fmt.Errorf("failed to get sponsorship distribution: %w", err)
 		}
 		// Update stream distr info
 		stream.DistributeTo = types.DistrInfoFromDistribution(distr)

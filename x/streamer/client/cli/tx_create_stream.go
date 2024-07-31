@@ -34,9 +34,20 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			records, err := parseRecords(args[0], args[1])
+
+			sponsoredInt, err := cmd.Flags().GetCount(FlagSponsored)
 			if err != nil {
 				return err
+			}
+			sponsored := sponsoredInt > 0
+
+			var records []types.DistrRecord
+			// Ignore records is the stream is sponsored
+			if !sponsored {
+				records, err = parseRecords(args[0], args[1])
+				if err != nil {
+					return err
+				}
 			}
 
 			coins, err := sdk.ParseCoinsNormalized(args[2])
@@ -68,12 +79,6 @@ func NewCmdSubmitCreateStreamProposal() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			sponsoredInt, err := cmd.Flags().GetCount(FlagSponsored)
-			if err != nil {
-				return err
-			}
-			sponsored := sponsoredInt > 0
 
 			content := types.NewCreateStreamProposal(proposal.Title, proposal.Description, coins, records, startTime, epochIdentifier, epochs, sponsored)
 			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, clientCtx.GetFromAddress())

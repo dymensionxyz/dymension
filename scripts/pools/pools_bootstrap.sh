@@ -26,6 +26,8 @@ multi_hop_swap() {
 echo "Creating pools"
 echo "Creating adym/uatom pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolA.json"
+sleep 7
+
 echo "Creating adym/uusd pool"
 create_asset_pool "$(dirname "$0")/nativeDenomPoolB.json"
 

@@ -55,9 +55,19 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		return 0, fmt.Errorf("all coins %s must be positive", coins)
 	}
 
-	distrInfo, err := k.NewDistrInfo(ctx, records)
-	if err != nil {
-		return 0, err
+	var distrInfo *types.DistrInfo
+	if sponsored {
+		distr, err := k.sk.GetDistribution(ctx)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get sponsorship distribution: %w", err)
+		}
+		distrInfo = types.DistrInfoFromDistribution(distr)
+	} else {
+		distr, err := k.NewDistrInfo(ctx, records)
+		if err != nil {
+			return 0, err
+		}
+		distrInfo = distr
 	}
 
 	moduleBalance := k.bk.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
@@ -90,7 +100,7 @@ func (k Keeper) CreateStream(ctx sdk.Context, coins sdk.Coins, records []types.D
 		sponsored,
 	)
 
-	err = k.setStream(ctx, &stream)
+	err := k.setStream(ctx, &stream)
 	if err != nil {
 		return 0, err
 	}

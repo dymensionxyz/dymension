@@ -42,7 +42,7 @@ func DistrInfoFromDistribution(d sponsorshiptypes.Distribution) *DistrInfo {
 	totalWeight := math.ZeroInt()
 	records := make([]DistrRecord, 0, len(d.Gauges))
 	for _, g := range d.Gauges {
-		weight := g.Power.Quo(d.VotingPower).Mul(hundred)
+		weight := g.Power.Mul(hundred).Quo(d.VotingPower)
 
 		totalWeight = totalWeight.Add(weight)
 		records = append(records, DistrRecord{

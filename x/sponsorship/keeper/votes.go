@@ -11,6 +11,14 @@ import (
 )
 
 func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.GaugeWeight) (types.Vote, types.Distribution, error) {
+	// If the user has already voted, then revoke their vote first
+	if k.Voted(ctx, voter) {
+		_, err := k.RevokeVote(ctx, voter)
+		if err != nil {
+			return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to revoke previous vote: %w", err)
+		}
+	}
+
 	params := k.GetParams(ctx)
 
 	err := k.validateWeights(ctx, weights, params.MinAllocationWeight)

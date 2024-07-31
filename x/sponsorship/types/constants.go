@@ -7,6 +7,6 @@ import (
 var (
 	hundred = math.NewInt(100)
 
-	DefaultMinAllocationWeight = math.NewInt(10) // 10%
-	DefaultMinVotingPower      = math.NewInt(1)
+	DefaultMinAllocationWeight = math.NewInt(1) // 1%
+	DefaultMinVotingPower      = math.NewInt(1) // 1 DYM
 )

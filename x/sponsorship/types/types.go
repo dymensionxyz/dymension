@@ -17,8 +17,8 @@ func (d Distribution) Validate() error {
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Power)
 	}
-	if !total.Equal(d.VotingPower) {
-		return ErrInvalidDistribution.Wrapf("voting power mismatch: voting power %s, total gauges power %s", d.VotingPower, total)
+	if total.GT(d.VotingPower) {
+		return ErrInvalidDistribution.Wrapf("voting power mismatch: sum of gauge powers %s is greater than the total voting power %s", total, d.VotingPower)
 	}
 	return nil
 }
@@ -45,8 +45,8 @@ func ValidateGaugeWeights(w []GaugeWeight) error {
 		gaugeIDs[g.GaugeId] = struct{}{}
 		total = total.Add(g.Weight)
 	}
-	if !total.Equal(hundred) {
-		return ErrInvalidGaugeWeight.Wrapf("total weight must equal 100, got %s", total)
+	if total.GT(hundred) {
+		return ErrInvalidGaugeWeight.Wrapf("total weight must be less than 100, got %s", total)
 	}
 	return nil
 }
