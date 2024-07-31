@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"testing"
+	"time"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -102,6 +103,7 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnskeeper.BankKeeper, roll
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+	ctx = ctx.WithBlockTime(time.Now().UTC())
 
 	// Initialize params
 	moduleParams := dymnstypes.DefaultParams()

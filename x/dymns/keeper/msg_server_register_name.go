@@ -161,8 +161,6 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 }
 
 func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.DymName, *dymnstypes.Params, error) {
-	curTime := ctx.BlockTime()
-
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err
 	}
@@ -174,7 +172,7 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 		if dymName.Owner == msg.Owner {
 			// just renew or extends
 		} else {
-			if !dymName.IsExpiredAtEpoch(curTime.Unix()) {
+			if !dymName.IsExpiredAtContext(ctx) {
 				return nil, nil, sdkerrors.ErrUnauthorized
 			}
 
@@ -197,7 +195,7 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 		}
 	}
 
-	if params.PreservedRegistration.IsDuringWhitelistRegistrationPeriod(curTime.Unix()) {
+	if params.PreservedRegistration.IsDuringWhitelistRegistrationPeriod(ctx) {
 		if len(params.PreservedRegistration.PreservedDymNames) > 0 {
 			whitelistedAddresses := make(map[string]bool)
 			// Describe usage of Go Map: only used for validation

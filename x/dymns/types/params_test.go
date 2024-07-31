@@ -759,14 +759,21 @@ func TestPreservedRegistrationParams_IsDuringWhitelistRegistrationPeriod(t *test
 	params := PreservedRegistrationParams{
 		ExpirationEpoch: 100,
 	}
-	require.True(t, params.IsDuringWhitelistRegistrationPeriod(99))
-	require.True(t, params.IsDuringWhitelistRegistrationPeriod(100))
-	require.False(t, params.IsDuringWhitelistRegistrationPeriod(101))
+
+	ctxAtEpoch := func(epoch int64) sdk.Context {
+		ctx := sdk.Context{}
+		ctx = ctx.WithBlockTime(time.Unix(epoch, 0))
+		return ctx
+	}
+
+	require.True(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(99)))
+	require.True(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(100)))
+	require.False(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(101)))
 
 	params = PreservedRegistrationParams{
 		ExpirationEpoch: 0,
 	}
-	require.False(t, params.IsDuringWhitelistRegistrationPeriod(1))
+	require.False(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(1)))
 }
 
 func Test_validateEpochIdentifier(t *testing.T) {

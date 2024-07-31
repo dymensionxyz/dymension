@@ -207,8 +207,8 @@ func (m PreservedRegistrationParams) Validate() error {
 	return validatePreservedRegistrationParams(m)
 }
 
-func (m PreservedRegistrationParams) IsDuringWhitelistRegistrationPeriod(epochNow int64) bool {
-	return m.ExpirationEpoch >= epochNow
+func (m PreservedRegistrationParams) IsDuringWhitelistRegistrationPeriod(ctx sdk.Context) bool {
+	return m.ExpirationEpoch >= ctx.BlockTime().Unix()
 }
 
 func validateEpochIdentifier(i interface{}) error {
