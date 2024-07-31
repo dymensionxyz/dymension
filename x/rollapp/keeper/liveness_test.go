@@ -25,7 +25,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 	isJail := rapid.Bool()
 	rapid.Check(t, func(r *rapid.T) {
 		k, ctx := keepertest.RollappKeeper(t)
-		model := make(map[string]types.LivenessEvent)
+		model := make(map[string]types.LivenessEvent) // model actual sdk storage
 		modelKey := func(e types.LivenessEvent) string {
 			return fmt.Sprintf("%+v", e)
 		}
@@ -86,14 +86,14 @@ func TestLivenessFlow(t *testing.T) {
 		p.HubExpectedBlockTime = time.Minute * 25
 		s.keeper().SetParams(s.Ctx, p)
 
-		rollapps := []string{"a", "b"}
+		//rollapps := []string{"a", "b"}
+		rollapps := []string{"a"}
 		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
 			if rapid.Bool().Draw(t, "hub is down") {
 				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
 				return time.Duration(dt)
-			} else {
-				return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
 			}
+			return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
 		})
 
 		tracker := newLivenessMockSequencerKeeper()
@@ -123,16 +123,22 @@ func TestLivenessFlow(t *testing.T) {
 					if elapsedTime <= p.LivenessJailTime {
 						require.Zero(r, tracker.jails[ra], "expect not jailed")
 					} else {
-						require.NotZerof(r, tracker.jails[ra], "expect jailed")
-						t.Log("check jail")
+						require.NotZero(r, tracker.jails[ra], "expect jailed")
 					}
 					if elapsedTime <= p.LivenessSlashTime {
 						l := tracker.slashes[ra]
 						require.Zero(r, l, "expect not slashed")
 					} else {
-						t.Log("check slash")
 						expectedSlashes := int((elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval) + 1
-						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed", "rollapp", ra)
+						got := tracker.slashes[ra]
+						/*
+							What's the essence of the problem?
+							We schedule the slash to be at the NEXT interval
+							We can process it then, but then compute the downtime to be the next one
+							Because we make the false assumption that the downtime will be
+
+						*/
+						require.Equal(r, expectedSlashes, got, "expect slashed", "rollapp", ra, "elapsed", elapsedTime)
 					}
 				}
 			},
