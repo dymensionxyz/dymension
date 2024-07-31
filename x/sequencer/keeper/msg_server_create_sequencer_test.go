@@ -118,12 +118,12 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			Alias:           "Rollapp",
 			Sealed:          true,
 			Metadata: &rollapptypes.RollappMetadata{
-				Website:      "https://dymension.xyz",
-				Description:  "Sample description",
-				LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-				TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-				Telegram:     "rolly",
-				X:            "rolly",
+				Website:          "https://dymension.xyz",
+				Description:      "Sample description",
+				LogoDataUri:      "data:image/png;base64,c2lzZQ==",
+				TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
+				Telegram:         "rolly",
+				X:                "rolly",
 			},
 		}
 		suite.App.RollappKeeper.SetRollapp(suite.Ctx, rollapp)

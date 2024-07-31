@@ -66,7 +66,7 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 					P2PSeeds:    []string{"seed1", "seed2"},
 					Rpcs:        []string{"rpc1", "rpc2"},
 					EvmRpcs:     []string{"evm1", "evm2"},
-					RestApiUrl:  "rest_api_url",
+					RestApiUrls: []string{"rest_api_url"},
 					ExplorerUrl: "explorer_url",
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ContactDetails: &ContactDetails{

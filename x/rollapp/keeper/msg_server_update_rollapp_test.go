@@ -139,12 +139,12 @@ func (suite *RollappTestSuite) TestUpdateRollapp() {
 				Alias:                   "Rollapp2",
 				RegisteredDenoms:        nil,
 				Metadata: &types.RollappMetadata{
-					Website:      "",
-					Description:  "",
-					LogoDataUri:  "",
-					TokenLogoUri: "",
-					Telegram:     "",
-					X:            "",
+					Website:          "",
+					Description:      "",
+					LogoDataUri:      "",
+					TokenLogoDataUri: "",
+					Telegram:         "",
+					X:                "",
 				},
 			}
 
@@ -235,7 +235,7 @@ func (suite *RollappTestSuite) TestCreateAndUpdateRollapp() {
 		P2PSeeds:    []string{"seed1", "seed2"},
 		Rpcs:        []string{"rpc1", "rpc2"},
 		EvmRpcs:     []string{"evm1", "evm2"},
-		RestApiUrl:  "http://localhost:1317",
+		RestApiUrls: []string{"http://localhost:1317"},
 		ExplorerUrl: "http://localhost:8000",
 		GenesisUrls: []string{"http://localhost:26657"},
 		ContactDetails: &sequencertypes.ContactDetails{

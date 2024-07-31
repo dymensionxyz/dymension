@@ -47,12 +47,12 @@ func (s *KeeperTestHelper) CreateRollappWithNameWithProposer(name string) (strin
 		GenesisChecksum:         "1234567890abcdefg",
 		Alias:                   alias,
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:      "https://dymension.xyz",
-			Description:  "Sample description",
-			LogoDataUri:  "data:image/png;base64,c2lzZQ==",
-			TokenLogoUri: "data:image/png;base64,ZHVwZQ==",
-			Telegram:     "rolly",
-			X:            "rolly",
+			Website:          "https://dymension.xyz",
+			Description:      "Sample description",
+			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
+			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
+			Telegram:         "rolly",
+			X:                "rolly",
 		},
 	}
 

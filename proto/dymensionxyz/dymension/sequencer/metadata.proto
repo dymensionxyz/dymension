@@ -19,8 +19,8 @@ message SequencerMetadata {
   repeated string rpcs = 7;
   // evm RPCs list
   repeated string evm_rpcs = 8;
-  // REST API URL
-  string rest_api_url = 9;
+  // REST API URLs
+  repeated string rest_api_urls = 9;
   // block explorer URL
   string explorer_url = 10;
   // genesis URLs
@@ -38,9 +38,9 @@ message SequencerMetadata {
 message ContactDetails {
   // website URL
   string website = 11;
-  // telegram handle
+  // telegram link
   string telegram = 1;
-  // twitter handle
+  // twitter link
   string x = 2;
 }
 

@@ -26,4 +26,5 @@ var (
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
 	ErrSequencerJailed          = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "sequencer is jailed")
 	ErrNotInitialSequencer      = errorsmod.Wrap(gerrc.ErrFailedPrecondition, "not the initial sequencer")
+	ErrInvalidURL               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 )

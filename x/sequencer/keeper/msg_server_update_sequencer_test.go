@@ -36,7 +36,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					P2PSeeds:    []string{"seed1", "seed2"},
 					Rpcs:        []string{"rpc1", "rpc2"},
 					EvmRpcs:     []string{"evm1", "evm2"},
-					RestApiUrl:  "rest1",
+					RestApiUrls: []string{"http://localhost:1317"},
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{
@@ -66,7 +66,7 @@ func (suite *SequencerTestSuite) TestUpdateSequencer() {
 					P2PSeeds:    []string{"seed1", "seed2"},
 					Rpcs:        []string{"rpc1", "rpc2"},
 					EvmRpcs:     []string{"evm1", "evm2"},
-					RestApiUrl:  "rest1",
+					RestApiUrls: []string{"http://localhost:1317"},
 					GenesisUrls: []string{"genesis1", "genesis2"},
 					ExplorerUrl: "explorer",
 					ContactDetails: &types.ContactDetails{

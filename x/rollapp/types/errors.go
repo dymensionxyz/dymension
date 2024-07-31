@@ -32,7 +32,7 @@ var (
 	ErrLogic                           = errorsmod.Register(ModuleName, 1038, "internal logic error")
 	ErrInvalidAddress                  = errorsmod.Register(ModuleName, 1040, "invalid address")
 	ErrInvalidAlias                    = errorsmod.Wrap(gerrc.ErrInvalidArgument, "alias")
-	ErrInvalidWebsiteURL               = errorsmod.Wrap(gerrc.ErrInvalidArgument, "website url")
+	ErrInvalidURL                      = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid url")
 	ErrInvalidDescription              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "description")
 	ErrInvalidLogoURI                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "logo uri")
 	ErrInvalidTokenLogoURI             = errorsmod.Wrap(gerrc.ErrInvalidArgument, "token logo uri")

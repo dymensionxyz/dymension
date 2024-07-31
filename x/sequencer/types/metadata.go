@@ -1,6 +1,11 @@
 package types
 
-import errorsmod "cosmossdk.io/errors"
+import (
+	"fmt"
+	"net/url"
+
+	errorsmod "cosmossdk.io/errors"
+)
 
 // constant for maximum string length of the SequencerMetadata fields
 const (
@@ -8,6 +13,7 @@ const (
 	MaxContactFieldLength = 140
 	MaxDetailsLength      = 280
 	MaxExtraDataLength    = 280
+	maxURLLength          = 256
 )
 
 // UpdateSequencerMetadata updates the fields of a given metadata. An error is
@@ -20,7 +26,7 @@ func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (Sequen
 		P2PSeeds:       d2.P2PSeeds,
 		Rpcs:           d2.Rpcs,
 		EvmRpcs:        d2.EvmRpcs,
-		RestApiUrl:     d2.RestApiUrl,
+		RestApiUrls:    d2.RestApiUrls,
 		ExplorerUrl:    d2.ExplorerUrl,
 		GenesisUrls:    d2.GenesisUrls,
 		ContactDetails: d2.ContactDetails,
@@ -30,6 +36,51 @@ func (d SequencerMetadata) UpdateSequencerMetadata(d2 SequencerMetadata) (Sequen
 	}
 
 	return metadata.EnsureLength()
+}
+
+func (d SequencerMetadata) Validate() error {
+	_, err := d.EnsureLength()
+	if err != nil {
+		return err
+	}
+
+	if err = d.ContactDetails.Validate(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (cd ContactDetails) Validate() error {
+	if err := validateURL(cd.Website); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if err := validateURL(cd.Telegram); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	if err := validateURL(cd.X); err != nil {
+		return errorsmod.Wrap(ErrInvalidURL, err.Error())
+	}
+
+	return nil
+}
+
+func validateURL(urlStr string) error {
+	if urlStr == "" {
+		return nil
+	}
+
+	if len(urlStr) > maxURLLength {
+		return fmt.Errorf("URL exceeds maximum length")
+	}
+
+	if _, err := url.Parse(urlStr); err != nil {
+		return fmt.Errorf("invalid URL: %w", err)
+	}
+
+	return nil
 }
 
 // EnsureLength ensures the length of a sequencer's metadata.

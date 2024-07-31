@@ -148,12 +148,12 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		GenesisChecksum:  string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
 		Alias:            alias,                                               // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:      "", // TODO
-			Description:  "", // TODO
-			LogoDataUri:  "", // TODO
-			TokenLogoUri: "", // TODO
-			Telegram:     "", // TODO
-			X:            "", // TODO
+			Website:          "", // TODO
+			Description:      "", // TODO
+			LogoDataUri:      "", // TODO
+			TokenLogoDataUri: "", // TODO
+			Telegram:         "", // TODO
+			X:                "", // TODO
 		},
 	}
 }
@@ -174,7 +174,7 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 			P2PSeeds:    nil,        // TODO
 			Rpcs:        nil,        // TODO
 			EvmRpcs:     nil,        // TODO
-			RestApiUrl:  "",         // TODO
+			RestApiUrls: []string{}, // TODO
 			ExplorerUrl: "",         // TODO
 			GenesisUrls: []string{}, // TODO
 			ContactDetails: &sequencertypes.ContactDetails{
