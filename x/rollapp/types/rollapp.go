@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	lastStateUpdateHeightSentinel = -1 // means value is absent
+	lastStateUpdateHeightSentinel = 0 // means value is absent
 )
 
 func NewRollapp(creator string, rollappId string, maxSequencers uint64, permissionedAddresses []string, transfersEnabled bool) Rollapp {

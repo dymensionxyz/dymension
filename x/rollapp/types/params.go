@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -88,26 +89,29 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
+func (p Params) WithDeployerWhitelist(l []DeployerParams) Params {
+	p.DeployerWhitelist = l
+	return p
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {
-		return err
+		return errorsmod.Wrap(err, "dispute period")
 	}
 
 	if err := validateHubExpectedBlockTime(p.HubExpectedBlockTime); err != nil {
-		return err
+		return errorsmod.Wrap(err, "hub expected block time")
 	}
 	if err := validateLivenessSlashTime(p.LivenessSlashTime); err != nil {
-		return err
+		return errorsmod.Wrap(err, "liveness slash time")
 	}
 	if err := validateLivenessSlashInterval(p.LivenessSlashInterval); err != nil {
-		return err
+		return errorsmod.Wrap(err, "liveness slash interval")
 	}
 	if err := validateLivenessJailTime(p.LivenessJailTime); err != nil {
-		return err
+		return errorsmod.Wrap(err, "liveness jail time")
 	}
-
-	// TODO: impl
 
 	return validateDeployerWhitelist(p.DeployerWhitelist)
 }

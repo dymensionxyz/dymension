@@ -74,7 +74,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 
 // The protocol works.
 func TestLivenessFlow(t *testing.T) {
-	_ = flag.Set("rapid.checks", "500")
+	_ = flag.Set("rapid.checks", "1000")
 	_ = flag.Set("rapid.steps", "300")
 	rapid.Check(t, func(r *rapid.T) {
 		s := new(RollappTestSuite)

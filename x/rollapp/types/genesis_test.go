@@ -27,10 +27,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state with empty DeployerWhitelist",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params: types.DefaultParams().WithDeployerWhitelist([]types.DeployerParams{}),
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
