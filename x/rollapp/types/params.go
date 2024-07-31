@@ -94,6 +94,11 @@ func (p Params) WithDeployerWhitelist(l []DeployerParams) Params {
 	return p
 }
 
+func (p Params) WithDisputePeriodInBlocks(x uint64) Params {
+	p.DisputePeriodInBlocks = x
+	return p
+}
+
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateDisputePeriodInBlocks(p.DisputePeriodInBlocks); err != nil {

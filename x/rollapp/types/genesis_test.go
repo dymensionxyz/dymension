@@ -73,10 +73,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state with DeployerWhitelist",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr2}},
-				},
+				Params: types.DefaultParams().WithDeployerWhitelist([]types.DeployerParams{{deployerAddr1}, {deployerAddr2}}),
 				RollappList: []types.Rollapp{
 					{
 						RollappId: "0",
@@ -122,10 +119,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated deployer in whitelist",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{deployerAddr1}, {deployerAddr1}},
-				},
+				Params:                             types.DefaultParams().WithDeployerWhitelist([]types.DeployerParams{{deployerAddr1}, {deployerAddr1}}),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -136,10 +130,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated rollapp",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -150,10 +141,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DisputePeriodInBlocks",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					DeployerWhitelist:     []types.DeployerParams{},
-				},
+				Params:                             types.DefaultParams().WithDisputePeriodInBlocks(types.MinDisputePeriodInBlocks - 1),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -164,10 +152,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid DeployerWhitelist",
 			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks,
-					DeployerWhitelist:     []types.DeployerParams{{"asdad"}},
-				},
+				Params:                             types.DefaultParams().WithDeployerWhitelist([]types.DeployerParams{{"asdad"}}),
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -178,7 +163,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated stateInfo",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{{StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}, {StateInfoIndex: types.StateInfoIndex{RollappId: "0", Index: 0}}},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
@@ -189,7 +174,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated latestStateInfoIndex",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{{RollappId: "0"}, {RollappId: "0"}},
@@ -200,7 +185,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated blockHeightToFinalizationQueue",
 			genState: &types.GenesisState{
-				Params:                             types.Params{},
+				Params:                             types.DefaultParams(),
 				RollappList:                        []types.Rollapp{},
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
