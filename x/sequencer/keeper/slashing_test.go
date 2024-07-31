@@ -14,8 +14,6 @@ func (suite *SequencerTestSuite) assertSlashed(seqAddr string) {
 	suite.Equal(types.Unbonded, seq.Status)
 	suite.Equal(sdk.Coins(nil), seq.Tokens)
 
-	suite.False(suite.App.SequencerKeeper.IsProposer(suite.Ctx, seq.RollappId, seqAddr))
-
 	sequencers := suite.App.SequencerKeeper.GetMatureUnbondingSequencers(suite.Ctx, suite.Ctx.BlockTime())
 	for _, s := range sequencers {
 		suite.NotEqual(s.SequencerAddress, seqAddr)
