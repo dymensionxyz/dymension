@@ -86,8 +86,7 @@ func TestLivenessFlow(t *testing.T) {
 		p.HubExpectedBlockTime = time.Minute * 25
 		s.keeper().SetParams(s.Ctx, p)
 
-		//rollapps := []string{"a", "b"}
-		rollapps := []string{"a"}
+		rollapps := []string{"a", "b"}
 		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
 			if rapid.Bool().Draw(t, "hub is down") {
 				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
