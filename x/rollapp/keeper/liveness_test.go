@@ -146,7 +146,6 @@ func TestLivenessFlow(t *testing.T) {
 				if !rollappIsDown[raID] {
 					ra := s.keeper().MustGetRollapp(s.Ctx, raID)
 					s.keeper().IndicateLiveness(s.Ctx, &ra)
-					s.keeper().SetRollapp(s.Ctx, ra)
 					hLastUpdate[raID] = s.Ctx.BlockHeight()
 					tracker.clear(raID)
 				}

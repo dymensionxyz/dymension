@@ -72,9 +72,7 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 	}
 
 	ra := k.MustGetRollapp(ctx, e.RollappId)
-	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
-	k.ScheduleLivenessEvent(ctx, &ra)
-	k.SetRollapp(ctx, ra)
+	k.RescheduleLivenessEvent(ctx, &ra)
 	return nil
 }
 
@@ -82,6 +80,10 @@ func (k Keeper) HandleLivenessEvent(ctx sdk.Context, e types.LivenessEvent) erro
 // Modifies the passed in rollapp object.
 func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 	ra.LastStateUpdateHeight = ctx.BlockHeight()
+	k.RescheduleLivenessEvent(ctx, ra)
+}
+
+func (k Keeper) RescheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 	k.ScheduleLivenessEvent(ctx, ra)
 	k.SetRollapp(ctx, *ra)
