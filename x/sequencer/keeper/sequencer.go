@@ -176,7 +176,7 @@ func (k Keeper) removeUnbondingSequencer(ctx sdk.Context, sequencer types.Sequen
 /*                          Decreasing Bond Queue                             */
 /* -------------------------------------------------------------------------- */
 
-// GetMatureDecreasingBondSequencers returns all decreasing bond sequencers
+// GetMatureDecreasingBondSequencers returns all decreasing bond items for the given time
 func (k Keeper) GetMatureDecreasingBondSequencers(ctx sdk.Context, endTime time.Time) (unbondings []types.BondReduction) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := store.Iterator(types.DecreasingBondQueueKey, sdk.PrefixEndBytes(types.DecreasingBondQueueByTimeKey(endTime)))
@@ -189,7 +189,7 @@ func (k Keeper) GetMatureDecreasingBondSequencers(ctx sdk.Context, endTime time.
 	return
 }
 
-// setDecreasingBondQueue sets the sequencer in the decreasing bond queue
+// setDecreasingBondQueue sets the bond reduction item in the decreasing bond queue
 func (k Keeper) setDecreasingBondQueue(ctx sdk.Context, bondReduction types.BondReduction) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshal(&bondReduction)
@@ -198,12 +198,9 @@ func (k Keeper) setDecreasingBondQueue(ctx sdk.Context, bondReduction types.Bond
 	store.Set(unbondingQueueKey, b)
 }
 
-// removeDecreasingBondQueue removes the sequencer from the decreasing bond queue
-func (k Keeper) removeDecreasingBondQueue(ctx sdk.Context, sequencer types.Sequencer) {
-
-}
-
-// updateDecreasingBondQueue updates the sequencer in the decreasing bond queue
-func (k Keeper) updateDecreasingBondQueue(ctx sdk.Context, sequencer types.Sequencer) {
-
+// removeDecreasingBondQueue removes the bond reduction item from the decreasing bond queue
+func (k Keeper) removeDecreasingBondQueue(ctx sdk.Context, bondReduction types.BondReduction) {
+	store := ctx.KVStore(k.storeKey)
+	unbondingQueueKey := types.GetDecreasingBondQueueKey(bondReduction.SequencerAddress, bondReduction.GetUnbondTime())
+	store.Delete(unbondingQueueKey)
 }

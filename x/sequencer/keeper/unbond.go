@@ -25,6 +25,20 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	}
 }
 
+func (k Keeper) HandleBondReduction(ctx sdk.Context, currTime time.Time) {
+	unbondings := k.GetMatureDecreasingBondSequencers(ctx, currTime)
+	for _, unbonding := range unbondings {
+		wrapFn := func(ctx sdk.Context) error {
+			return k.completeBondReduction(ctx, unbonding)
+		}
+		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
+		if err != nil {
+			k.Logger(ctx).Error("reducing sequencer bond", "error", err, "sequencer", unbonding.SequencerAddress)
+			continue
+		}
+	}
+}
+
 func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -120,6 +134,33 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),
 	)
+
+	return nil
+}
+
+func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduction) error {
+	seq, found := k.GetSequencer(ctx, reduction.SequencerAddress)
+	if !found {
+		return types.ErrUnknownSequencer
+	}
+
+	if seq.Tokens.IsAllLT(sdk.NewCoins(reduction.UnbondAmount)) {
+		return errorsmod.Wrapf(
+			types.ErrInsufficientBond,
+			"sequencer does not have enough bond to reduce insufficient bond: got %s, reducing by %s",
+			seq.Tokens.String(),
+			reduction.UnbondAmount.String(),
+		)
+	}
+	seqAddr := sdk.MustAccAddressFromBech32(reduction.SequencerAddress)
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAddr, sdk.NewCoins(reduction.UnbondAmount))
+	if err != nil {
+		return err
+	}
+	seq.Tokens = seq.Tokens.Sub(reduction.UnbondAmount)
+
+	k.SetSequencer(ctx, seq)
+	k.removeDecreasingBondQueue(ctx, reduction)
 
 	return nil
 }

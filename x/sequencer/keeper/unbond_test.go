@@ -120,3 +120,27 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	suite.Equal(types.Unbonding, sequencer2.Status)
 	suite.False(sequencer2.Tokens.IsZero())
 }
+
+func (suite *SequencerTestSuite) TestHandleBondReduction() {
+	suite.SetupTest()
+	bondDenom := types.DefaultParams().MinBond.Denom
+	rollappId := suite.CreateDefaultRollapp()
+	// Create a sequencer with bond amount of minBond + 100
+	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(100)))
+	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
+		Creator:        defaultSequencerAddress,
+		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 50),
+	})
+	suite.Require().NoError(err)
+	expectedCompletionTime := suite.Ctx.BlockHeader().Time.Add(suite.App.SequencerKeeper.UnbondingTime(suite.Ctx))
+	suite.Require().Equal(expectedCompletionTime, resp.CompletionTime)
+	//Execute HandleBondReduction
+	suite.Ctx = suite.Ctx.WithBlockTime(expectedCompletionTime)
+	suite.App.SequencerKeeper.HandleBondReduction(suite.Ctx, suite.Ctx.BlockHeader().Time)
+	//Check if the bond has been reduced
+	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, defaultSequencerAddress)
+	suite.Require().Equal(bond.AddAmount(sdk.NewInt(50)), sequencer.Tokens[0])
+	// ensure the bond decresing queue is empty
+	reds := suite.App.SequencerKeeper.GetMatureDecreasingBondSequencers(suite.Ctx, expectedCompletionTime)
+	suite.Require().Len(reds, 0)
+}
