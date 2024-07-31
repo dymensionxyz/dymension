@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -180,9 +179,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	const chainId = "dymension_1100-1"
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: now,
-	}).WithChainID(chainId)
+	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
@@ -302,9 +299,7 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 	const chainId = "dymension_1100-1"
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: now,
-	}).WithChainID(chainId)
+	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
@@ -382,9 +377,7 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	const chainId = "dymension_1100-1"
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: now,
-	}).WithChainID(chainId)
+	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
@@ -450,9 +443,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	const chainId = "dymension_1100-1"
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: now,
-	}).WithChainID(chainId)
+	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
@@ -545,7 +536,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 
 //goland:noinspection SpellCheckingInspection
 func Test_queryServer_EstimateRegisterName(t *testing.T) {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	const denom = "atom"
 	const price1L int64 = 9
@@ -557,9 +548,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		params := dymnstypes.DefaultParams()
 		params.Price.PriceDenom = denom
@@ -996,9 +985,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		}).WithChainID(chainId)
+		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		moduleParams := dk.GetParams(ctx)
 		moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
@@ -1480,9 +1467,7 @@ func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		}).WithChainID(chainId)
+		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		moduleParams := dk.GetParams(ctx)
 		for chainIdHasAlias, alias := range registeredAlias {
@@ -1568,9 +1553,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, ctx
 	}
@@ -1724,9 +1707,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, ctx
 	}
@@ -1923,9 +1904,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, ctx
 	}
@@ -2169,9 +2148,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, ctx
 	}

@@ -122,14 +122,14 @@ func (k Keeper) GetDymName(ctx sdk.Context, name string) *dymnstypes.DymName {
 
 // GetDymNameWithExpirationCheck returns a Dym-Name from the KVStore, if the Dym-Name is not expired.
 // Returns nil if Dym-Name does not exist or is expired.
-func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string, nowEpoch int64) *dymnstypes.DymName {
+func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string) *dymnstypes.DymName {
 	// Legacy TODO DymNS: always use this on queries
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
 		return nil
 	}
 
-	if dymName.IsExpiredAtEpoch(nowEpoch) {
+	if dymName.IsExpiredAtContext(ctx) {
 		return nil
 	}
 
@@ -152,7 +152,7 @@ func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {
 	return nil
 }
 
-func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context, nowEpoch int64) (list []dymnstypes.DymName) {
+func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
 	iterator := sdk.KVStorePrefixIterator(store, dymnstypes.KeyPrefixDymName)
@@ -164,9 +164,10 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context, nowEpoch int64) (list 
 		var dymName dymnstypes.DymName
 		k.cdc.MustUnmarshal(iterator.Value(), &dymName)
 
-		if dymName.ExpireAt < nowEpoch {
+		if dymName.IsExpiredAtContext(ctx) {
 			continue
 		}
+
 		list = append(list, dymName)
 	}
 
@@ -205,7 +206,7 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 		return
 	}
 
-	dymName := k.GetDymNameWithExpirationCheck(ctx, name, ctx.BlockTime().Unix())
+	dymName := k.GetDymNameWithExpirationCheck(ctx, name)
 	if dymName == nil {
 		err = dymnstypes.ErrDymNameNotFound.Wrap(name)
 
@@ -511,7 +512,6 @@ func ParseDymNameAddress(
 
 func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, workingChainId string) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
 	inputAddress = strings.ToLower(inputAddress)
-	nowEpochUTC := ctx.BlockTime().Unix()
 
 	isBech32Addr := dymnsutils.IsValidBech32AccountAddress(inputAddress, false)
 	is0xAddr := dymnsutils.IsValidHexAddress(inputAddress)
@@ -597,7 +597,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 			// found bech32 prefix configured for this chain-id
 
 			bech32Addr := sdk.MustBech32ifyAddressBytes(bech32Hrp, bzAddr)
-			dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr, nowEpochUTC)
+			dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
 			if err1 != nil {
 				return nil, err1
 			}
@@ -622,7 +622,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		}
 
 		// we are going to do a fallback lookup
-		dymNames, err2 := k.GetDymNamesContainsHexAddress(ctx, bzAddr, nowEpochUTC)
+		dymNames, err2 := k.GetDymNamesContainsHexAddress(ctx, bzAddr)
 		if err2 != nil {
 			return nil, err2
 		}
@@ -640,7 +640,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 	bech32Addr := inputAddress
 
-	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr, nowEpochUTC)
+	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
 	if err1 != nil {
 		return nil, err1
 	}
@@ -672,7 +672,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return nil, sdkerrors.ErrInvalidRequest.Wrapf("failed to decode bech32 address %s: %v", bech32Addr, err2)
 	}
 
-	dymNames, err3 := k.GetDymNamesContainsHexAddress(ctx, bzHexAddr, nowEpochUTC)
+	dymNames, err3 := k.GetDymNamesContainsHexAddress(ctx, bzHexAddr)
 	if err3 != nil {
 		return nil, err3
 	}

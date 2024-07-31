@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -24,10 +23,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		params := dk.GetParams(ctx)
 		params.Misc.PreservedClosedSellOrderDuration = daysKeepHistorical * 24 * time.Hour
@@ -708,10 +704,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, bk, ctx
 	}
@@ -849,7 +842,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 	}
 
 	requireConfiguredAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr, 0)
+		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -869,7 +862,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		_, bz, err := bech32.DecodeAndConvert(bech32Addr)
 		require.NoError(ts.t, err)
 
-		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz, 0)
+		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)

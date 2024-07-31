@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -21,9 +20,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, bk, ctx
 	}
@@ -485,11 +482,11 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(owner), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyer), params.BaseDenom)
 			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidder), params.BaseDenom)
-			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, owner, now.Unix())
+			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, owner)
 			require.NoError(t, err)
-			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyer, now.Unix())
+			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyer)
 			require.NoError(t, err)
-			laterDymNamesOwnedByPreviousBidder, err := dk.GetDymNamesOwnedBy(ctx, previousBidder, now.Unix())
+			laterDymNamesOwnedByPreviousBidder, err := dk.GetDymNamesOwnedBy(ctx, previousBidder)
 			require.NoError(t, err)
 
 			require.Equal(t, tt.wantOwnerBalanceLater, laterOwnerBalance.Amount.Int64(), "owner balance mis-match")

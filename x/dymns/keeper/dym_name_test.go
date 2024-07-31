@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -82,15 +81,15 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 		})
 
 		t.Run("reverse mapping should be deleted, check by get", func(t *testing.T) {
-			ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner, 0)
+			ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
 			require.NoError(t, err)
 			require.Empty(t, ownedBy, "reverse mapping should be removed")
 
-			dymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, owner, 0)
+			dymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, owner)
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 
-			dymNames, err = dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(owner).Bytes(), 0)
+			dymNames, err = dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(owner).Bytes())
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 		})
@@ -130,7 +129,7 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   1,
+		ExpireAt:   time.Now().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
@@ -143,13 +142,13 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 
 		setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
-		owned, err := dk.GetDymNamesOwnedBy(ctx, owner, 0)
+		owned, err := dk.GetDymNamesOwnedBy(ctx, owner)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 
 		require.NoError(t, dk.BeforeDymNameOwnerChanged(ctx, dymName.Name))
 
-		owned, err = dk.GetDymNamesOwnedBy(ctx, owner, 0)
+		owned, err = dk.GetDymNamesOwnedBy(ctx, owner)
 		require.NoError(t, err)
 		require.Empty(t, owned)
 	})
@@ -169,13 +168,13 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 
 		require.NoError(t, dk.SetDymName(ctx, dymName))
 
-		owned, err := dk.GetDymNamesOwnedBy(ctx, owner, 0)
+		owned, err := dk.GetDymNamesOwnedBy(ctx, owner)
 		require.NoError(t, err)
 		require.Empty(t, owned)
 
 		require.NoError(t, dk.AfterDymNameOwnerChanged(ctx, dymName.Name))
 
-		owned, err = dk.GetDymNamesOwnedBy(ctx, owner, 0)
+		owned, err = dk.GetDymNamesOwnedBy(ctx, owner)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 	})
@@ -216,39 +215,41 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: controller,
-		ExpireAt:   1,
-		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
-			Path:  "controller",
-			Value: controller,
-		}, {
-			Type:  dymnstypes.DymNameConfigType_NAME,
-			Path:  "ica",
-			Value: ica,
-		}},
+		ExpireAt:   time.Now().Add(time.Hour).Unix(),
+		Configs: []dymnstypes.DymNameConfig{
+			{
+				Type:  dymnstypes.DymNameConfigType_NAME,
+				Path:  "controller",
+				Value: controller,
+			}, {
+				Type:  dymnstypes.DymNameConfigType_NAME,
+				Path:  "ica",
+				Value: ica,
+			},
+		},
 	}
 
 	requireConfiguredAddressMappedNoDymName := func(bech32Addr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr, 0)
+		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
 		require.NoError(t, err)
 		require.Empty(t, names)
 	}
 
 	requireConfiguredAddressMappedDymName := func(bech32Addr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr, 0)
+		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 		require.Equal(t, dymName.Name, names[0].Name)
 	}
 
 	requireHexAddressMappedNoDymName := func(addr []byte, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr, 0)
+		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
 		require.NoError(t, err)
 		require.Empty(t, names)
 	}
 
 	requireHexAddressMappedDymName := func(addr []byte, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr, 0)
+		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 		require.Equal(t, dymName.Name, names[0].Name)
@@ -328,14 +329,13 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 }
 
 func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	now := time.Now().UTC()
 
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: time.Now().UTC(),
-	})
+	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithBlockTime(now)
 
 	t.Run("returns nil if not exists", func(t *testing.T) {
-		require.Nil(t, dk.GetDymNameWithExpirationCheck(ctx, "non-exists", 0))
+		require.Nil(t, dk.GetDymNameWithExpirationCheck(ctx, "non-exists"))
 	})
 
 	//goland:noinspection SpellCheckingInspection
@@ -345,7 +345,7 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   ctx.BlockTime().Unix() + 1000,
+		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
@@ -357,13 +357,15 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("returns if not expired", func(t *testing.T) {
-		require.NotNil(t, dk.GetDymNameWithExpirationCheck(ctx, dymName.Name, ctx.BlockTime().Unix()))
+		require.NotNil(t, dk.GetDymNameWithExpirationCheck(ctx, dymName.Name))
 	})
 
 	t.Run("returns nil if expired", func(t *testing.T) {
 		dymName.ExpireAt = ctx.BlockTime().Unix() - 1000
 		require.NoError(t, dk.SetDymName(ctx, dymName))
-		require.Nil(t, dk.GetDymNameWithExpirationCheck(ctx, dymName.Name, ctx.BlockTime().Unix()))
+		require.Nil(t, dk.GetDymNameWithExpirationCheck(
+			ctx.WithBlockTime(time.Unix(dymName.ExpireAt+1, 0)), dymName.Name,
+		))
 	})
 }
 
@@ -412,7 +414,7 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName3))
 
-	list := dk.GetAllNonExpiredDymNames(ctx, time.Now().Unix())
+	list := dk.GetAllNonExpiredDymNames(ctx)
 	require.Len(t, list, 2)
 	require.Contains(t, list, dymName1)
 	require.Contains(t, list, dymName2)
@@ -421,17 +423,18 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 
 //goland:noinspection SpellCheckingInspection
 func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {
+	now := time.Now().UTC()
+
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithBlockTime(now)
 
 	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-
-	anchorEpoch := time.Now().UTC()
 
 	dymName1 := dymnstypes.DymName{
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   anchorEpoch.Add(time.Hour).Unix(),
+		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
 	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
 
@@ -439,7 +442,7 @@ func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {
 		Name:       "a",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   anchorEpoch.Add(-time.Hour).Unix(),
+		ExpireAt:   now.Add(-time.Hour).Unix(),
 	}
 	setDymNameWithFunctionsAfter(ctx, dymName2, t, dk)
 
@@ -447,20 +450,12 @@ func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {
 		Name:       "b",
 		Owner:      "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
 		Controller: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
-		ExpireAt:   anchorEpoch.Add(time.Hour).Unix(),
+		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
 	setDymNameWithFunctionsAfter(ctx, dymName3, t, dk)
 
-	t.Run("returns owned Dym-Names", func(t *testing.T) {
-		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner, 0)
-		require.NoError(t, err)
-		require.Len(t, ownedBy, 2)
-		require.Equal(t, owner, ownedBy[0].Owner)
-		require.Equal(t, owner, ownedBy[1].Owner)
-	})
-
 	t.Run("returns owned Dym-Names with filtered expiration", func(t *testing.T) {
-		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner, anchorEpoch.Unix())
+		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
 		require.NoError(t, err)
 		require.Len(t, ownedBy, 1)
 		require.Equal(t, owner, ownedBy[0].Owner)
@@ -469,12 +464,10 @@ func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {
 }
 
 func TestKeeper_PruneDymName(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	now := time.Now().UTC()
 
-	// setting block time
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: time.Now().UTC(),
-	})
+	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithBlockTime(now)
 
 	require.NoError(t, dk.PruneDymName(ctx, "non-exists"))
 
@@ -485,7 +478,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
+		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
 	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
 	require.NotNil(t, dk.GetDymName(ctx, dymName1.Name))
@@ -497,7 +490,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 
 	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
 	require.NotNil(t, dk.GetDymName(ctx, dymName1.Name))
-	owned, err := dk.GetDymNamesOwnedBy(ctx, dymName1.Owner, ctx.BlockTime().Unix())
+	owned, err := dk.GetDymNamesOwnedBy(ctx, dymName1.Owner)
 	require.NoError(t, err)
 	require.Len(t, owned, 1)
 
@@ -520,7 +513,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	// setup active SO
 	so := dymnstypes.SellOrder{
 		Name:     dymName1.Name,
-		ExpireAt: time.Now().UTC().Add(time.Hour).Unix(),
+		ExpireAt: now.Add(time.Hour).Unix(),
 		MinPrice: dymnsutils.TestCoin(100),
 	}
 	err = dk.SetSellOrder(ctx, so)
@@ -533,7 +526,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 
 	require.Nil(t, dk.GetDymName(ctx, dymName1.Name), "Dym-Name should be removed")
 
-	owned, err = dk.GetDymNamesOwnedBy(ctx, dymName1.Owner, ctx.BlockTime().Unix())
+	owned, err = dk.GetDymNamesOwnedBy(ctx, dymName1.Owner)
 	require.NoError(t, err)
 	require.Empty(t, owned, "reserve mapping should be removed")
 
@@ -556,9 +549,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, rollappkeeper.Keeper, sdk.Context) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		}).WithChainID(chainId)
+		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		return dk, rk, ctx
 	}
@@ -2239,9 +2230,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, rollappkeeper.Keeper, sdk.Context) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		}).WithChainID(chainId)
+		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		rk.SetRollapp(ctx, rollapptypes.Rollapp{
 			RollappId: rollAppId1,

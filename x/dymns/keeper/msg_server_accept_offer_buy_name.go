@@ -57,8 +57,6 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 }
 
 func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.OfferToBuy, *dymnstypes.DymName, error) {
-	nowEpochUTC := ctx.BlockTime().Unix()
-
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, nil, err
@@ -69,7 +67,7 @@ func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAccep
 		return nil, nil, dymnstypes.ErrOfferToBuyNotFound.Wrap(msg.OfferId)
 	}
 
-	dymName := k.GetDymNameWithExpirationCheck(ctx, offer.Name, nowEpochUTC)
+	dymName := k.GetDymNameWithExpirationCheck(ctx, offer.Name)
 	if dymName == nil {
 		return nil, nil, dymnstypes.ErrDymNameNotFound.Wrap(offer.Name)
 	}

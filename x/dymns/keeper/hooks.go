@@ -163,6 +163,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 
 		for i, record := range aope.Records {
 			if record.ExpireAt > nowEpochUTC {
+				// skip not expired ones
 				continue
 			}
 

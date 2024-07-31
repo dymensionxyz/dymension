@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -37,9 +36,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		moduleParams := dk.GetParams(ctx)
 		// price
@@ -778,17 +775,16 @@ func Test_msgServer_RegisterName(t *testing.T) {
 					require.Empty(t, dk.GetHistoricalSellOrders(ctx, useRecordName), "historical data must be pruned")
 
 					if tt.existingDymName.Owner != laterDymName.Owner {
-						ownedByPreviousOwner, err := dk.GetDymNamesOwnedBy(ctx, tt.existingDymName.Owner, now.Unix())
+						ownedByPreviousOwner, err := dk.GetDymNamesOwnedBy(ctx, tt.existingDymName.Owner)
 						require.NoError(t, err)
 						require.Empty(t, ownedByPreviousOwner, "reverse mapping should be removed")
 
-						mappedDymNamesByPreviousOwner, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.existingDymName.Owner, now.Unix())
+						mappedDymNamesByPreviousOwner, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.existingDymName.Owner)
 						require.NoError(t, err)
 						require.Empty(t, mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
 
 						mappedDymNamesByPreviousOwner, err = dk.GetDymNamesContainsHexAddress(ctx,
 							sdk.MustAccAddressFromBech32(tt.existingDymName.Owner).Bytes(),
-							now.Unix(),
 						)
 						require.NoError(t, err)
 						require.Empty(t, mappedDymNamesByPreviousOwner, "reverse mapping should be removed")
@@ -801,19 +797,18 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				require.False(t, tt.wantPruneHistoricalData, "bad setup testcase")
 			}
 
-			ownedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, tt.buyer, now.Unix())
+			ownedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, tt.buyer)
 			require.NoError(t, err)
 			require.Len(t, ownedByBuyer, 1, "reverse mapping should be set")
 			require.Equal(t, useRecordName, ownedByBuyer[0].Name)
 
-			mappedDymNamesByBuyer, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.buyer, now.Unix())
+			mappedDymNamesByBuyer, err := dk.GetDymNamesContainsConfiguredAddress(ctx, tt.buyer)
 			require.NoError(t, err)
 			require.Len(t, mappedDymNamesByBuyer, 1, "reverse mapping should be set")
 			require.Equal(t, useRecordName, mappedDymNamesByBuyer[0].Name)
 
 			mappedDymNamesByBuyer, err = dk.GetDymNamesContainsHexAddress(ctx,
 				sdk.MustAccAddressFromBech32(tt.buyer).Bytes(),
-				now.Unix(),
 			)
 			require.NoError(t, err)
 			require.Len(t, mappedDymNamesByBuyer, 1, "reverse mapping should be set")

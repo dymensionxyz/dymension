@@ -21,7 +21,7 @@ func TestKeeper_GetAddReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		"should not allow invalid owner address",
 	)
 
-	_, err := dk.GetDymNamesOwnedBy(ctx, "0x", 0)
+	_, err := dk.GetDymNamesOwnedBy(ctx, "0x")
 	require.Error(
 		t,
 		err,
@@ -75,16 +75,16 @@ func TestKeeper_GetAddReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		}
 	})
 
-	ownedBy1, err1 := dk.GetDymNamesOwnedBy(ctx, owner1, 0)
+	ownedBy1, err1 := dk.GetDymNamesOwnedBy(ctx, owner1)
 	require.NoError(t, err1)
 	require.Len(t, ownedBy1, 1)
 
-	ownedBy2, err2 := dk.GetDymNamesOwnedBy(ctx, owner2, 0)
+	ownedBy2, err2 := dk.GetDymNamesOwnedBy(ctx, owner2)
 	require.NoError(t, err2)
 	require.NotEqual(t, 3, len(ownedBy2), "should not include non-existing dym-name")
 	require.Len(t, ownedBy2, 2)
 
-	ownedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96", 0)
+	ownedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96")
 	require.NoError(t, err3)
 	require.Len(t, ownedByNonExists, 0)
 
@@ -93,7 +93,7 @@ func TestKeeper_GetAddReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, dymName1.Name),
 		"no error if dym-name owned by another owner",
 	)
-	ownedBy2, err2 = dk.GetDymNamesOwnedBy(ctx, owner2, 0)
+	ownedBy2, err2 = dk.GetDymNamesOwnedBy(ctx, owner2)
 	require.NoError(t, err2)
 	require.Len(t, ownedBy2, 2, "should not include dym-name owned by another owner")
 }
@@ -137,7 +137,7 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, "aaaaa"),
 		"no error if not owned dym-name",
 	)
-	ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner, 0)
+	ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
 	require.NoError(t, err)
 	require.Len(t, ownedBy, 2, "existing data must be kept")
 
@@ -146,7 +146,7 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, "not-exists"),
 		"no error if not-exists dym-name",
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner, 0)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
 	require.NoError(t, err)
 	require.Len(t, ownedBy, 2, "existing data must be kept")
 
@@ -154,7 +154,7 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		t,
 		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, dymName1.Name),
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner, 0)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
 	require.NoError(t, err)
 	require.Len(t, ownedBy, 1)
 
@@ -162,7 +162,7 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		t,
 		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, dymName2.Name),
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner, 0)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
 	require.NoError(t, err)
 	require.Len(t, ownedBy, 0)
 }
@@ -177,7 +177,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		"should not allow blank address",
 	)
 
-	_, err := dk.GetDymNamesContainsConfiguredAddress(ctx, " ", 0)
+	_, err := dk.GetDymNamesContainsConfiguredAddress(ctx, " ")
 	require.Error(
 		t,
 		err,
@@ -241,7 +241,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		}
 	})
 
-	linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount, 0)
+	linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
 	require.NoError(t, err1)
 	require.Len(t, linked1, 2)
 	requireEqualsStrings(t,
@@ -249,7 +249,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		[]string{linked1[0].Name, linked1[1].Name},
 	)
 
-	linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, owner2, 0)
+	linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, owner2)
 	require.NoError(t, err2)
 	require.NotEqual(t, 2, len(linked2), "should not include non-existing dym-name")
 	require.Len(t, linked2, 1)
@@ -258,7 +258,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		[]string{linked2[0].Name},
 	)
 
-	linkedByNotExists, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96", 0)
+	linkedByNotExists, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96")
 	require.NoError(t, err3)
 	require.Len(t, linkedByNotExists, 0)
 
@@ -268,7 +268,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			dk.AddReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount, 0)
+		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 		require.Equal(t, dymName1.Name, linked3[0].Name)
@@ -323,7 +323,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		"no error if record not exists",
 	)
 
-	linked, err := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount, 0)
+	linked, err := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
 	require.NoError(t, err)
 	require.Len(t, linked, 2, "existing data must be kept")
 
@@ -332,7 +332,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			t,
 			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, "aaaaa"),
 		)
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount, 0)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
 		require.NoError(t, err)
 		require.Len(t, linked, 2, "existing data must be kept")
 	})
@@ -343,7 +343,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount, 0)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
 		require.NoError(t, err)
 		require.Len(t, linked, 1)
 		require.Equal(t, dymName2.Name, linked[0].Name)
@@ -353,7 +353,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName2.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount, 0)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -364,7 +364,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			dk.AddReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount, 0)
+		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 
@@ -373,7 +373,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount, 0)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -396,7 +396,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 			"should not allow %d bytes address", size,
 		)
 
-		_, err := dk.GetDymNamesContainsHexAddress(ctx, addr, 0)
+		_, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
 		require.Errorf(
 			t,
 			err,
@@ -471,7 +471,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		}
 	})
 
-	linked1, err1 := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr, 0)
+	linked1, err1 := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
 	require.NoError(t, err1)
 	require.Len(t, linked1, 2)
 	requireEqualsStrings(t,
@@ -479,7 +479,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		[]string{linked1[0].Name, linked1[1].Name},
 	)
 
-	linked2, err2 := dk.GetDymNamesContainsHexAddress(ctx, owner2AccAddr, 0)
+	linked2, err2 := dk.GetDymNamesContainsHexAddress(ctx, owner2AccAddr)
 	require.NoError(t, err2)
 	require.NotEqual(t, 2, len(linked2), "should not include non-existing dym-name")
 	require.Len(t, linked2, 1)
@@ -491,7 +491,6 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 	linkedByNotExists, err3 := dk.GetDymNamesContainsHexAddress(
 		ctx,
 		make([]byte, 20),
-		0,
 	)
 	require.NoError(t, err3)
 	require.Len(t, linkedByNotExists, 0)
@@ -502,7 +501,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 			dk.AddReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr.Bytes(), dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr.Bytes(), 0)
+		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr.Bytes())
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 		require.Equal(t, dymName1.Name, linked3[0].Name)
@@ -572,7 +571,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 		"no error if record not exists",
 	)
 
-	linked, err := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr, 0)
+	linked, err := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
 	require.NoError(t, err)
 	require.Len(t, linked, 2, "existing data must be kept")
 
@@ -581,7 +580,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			t,
 			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, "aaaaa"),
 		)
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr, 0)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
 		require.NoError(t, err)
 		require.Len(t, linked, 2, "existing data must be kept")
 	})
@@ -592,7 +591,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr, 0)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
 		require.NoError(t, err)
 		require.Len(t, linked, 1)
 		require.Equal(t, dymName2.Name, linked[0].Name)
@@ -602,7 +601,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName2.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr, 0)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -613,7 +612,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			dk.AddReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr, dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr, 0)
+		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr)
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 
@@ -621,7 +620,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			t,
 			dk.RemoveReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr, dymName1.Name),
 		)
-		linked3, err = dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr, 0)
+		linked3, err = dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr)
 		require.NoError(t, err)
 		require.Empty(t, linked3)
 	})

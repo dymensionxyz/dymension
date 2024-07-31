@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -24,9 +23,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		moduleParams := dk.GetParams(ctx)
 		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour

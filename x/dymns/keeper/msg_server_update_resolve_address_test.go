@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -24,10 +23,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
-		ctx = ctx.WithChainID(chainId)
+		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
 		return dk, ctx
 	}
@@ -53,7 +49,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	}
 
 	requireConfiguredAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr, 0)
+		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -73,7 +69,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		_, bz, err := bech32.DecodeAndConvert(bech32Addr)
 		require.NoError(ts.t, err)
 
-		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz, 0)
+		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -159,9 +155,9 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() - 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, owner)
 				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
+				require0xMappedNoDymName(ts, owner)
 				require0xMappedNoDymName(ts, controller)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
@@ -176,9 +172,9 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() - 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, owner)
 				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
+				require0xMappedNoDymName(ts, owner)
 				require0xMappedNoDymName(ts, controller)
 			},
 		},
@@ -1196,9 +1192,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				if tt.wantDymName != nil {
 					require.Equal(t, *tt.wantDymName, *laterDymName)
 
-					owned, err := dk.GetDymNamesOwnedBy(ctx, laterDymName.Owner, 0)
+					owned, err := dk.GetDymNamesOwnedBy(ctx, laterDymName.Owner)
 					require.NoError(t, err)
-					require.Len(t, owned, 1)
+					if laterDymName.ExpireAt >= now.Unix() {
+						require.Len(t, owned, 1)
+					} else {
+						require.Empty(t, owned)
+					}
 				} else {
 					require.Nil(t, laterDymName)
 				}

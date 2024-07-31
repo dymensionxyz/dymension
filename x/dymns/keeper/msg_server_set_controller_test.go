@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -19,9 +18,7 @@ func Test_msgServer_SetController(t *testing.T) {
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-		ctx = ctx.WithBlockHeader(tmproto.Header{
-			Time: now,
-		})
+		ctx = ctx.WithBlockTime(now)
 
 		return dk, ctx
 	}

@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -15,15 +14,12 @@ import (
 
 //goland:noinspection SpellCheckingInspection
 func Test_msgServer_CancelAdsSellName(t *testing.T) {
+	now := time.Now().UTC()
+
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithBlockTime(now)
+
 	msgServer := dymnskeeper.NewMsgServerImpl(dk)
-
-	// setting block time
-	ctx = ctx.WithBlockHeader(tmproto.Header{
-		Time: time.Now().UTC(),
-	})
-
-	futureEpoch := ctx.BlockTime().Add(time.Hour).Unix()
 
 	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	const bidder = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
@@ -32,7 +28,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		Name:       "bonded-pool",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   futureEpoch,
+		ExpireAt:   now.Unix() + 1,
 	}
 	err := dk.SetDymName(ctx, dymName1)
 	require.NoError(t, err)
@@ -41,12 +37,12 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		Name:       "owned-by-1",
 		Owner:      owner,
 		Controller: owner,
-		ExpireAt:   futureEpoch,
+		ExpireAt:   now.Unix() + 1,
 	}
 	err = dk.SetDymName(ctx, dymName2)
 	require.NoError(t, err)
 
-	dymNames := dk.GetAllNonExpiredDymNames(ctx, time.Now().Unix())
+	dymNames := dk.GetAllNonExpiredDymNames(ctx)
 	require.Len(t, dymNames, 2)
 
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
@@ -75,7 +71,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	t.Run("do not process that owner does not match", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:      dymName1.Name,
-			ExpireAt:  futureEpoch,
+			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
 		}
@@ -131,7 +127,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	t.Run("can not cancel once bid placed", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
-			ExpireAt: futureEpoch,
+			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
 				Bidder: bidder,
@@ -159,7 +155,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
-			ExpireAt: futureEpoch,
+			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so11)
@@ -168,7 +164,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		so12 := dymnstypes.SellOrder{
 			Name:     dymName2.Name,
-			ExpireAt: futureEpoch,
+			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so12)
@@ -205,7 +201,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	t.Run("can cancel if statisfied conditions", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
-			ExpireAt: futureEpoch,
+			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so11)
@@ -213,7 +209,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		so12 := dymnstypes.SellOrder{
 			Name:     dymName2.Name,
-			ExpireAt: futureEpoch,
+			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
 		err = dk.SetSellOrder(ctx, so12)

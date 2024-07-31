@@ -15,9 +15,10 @@ import (
 
 //goland:noinspection SpellCheckingInspection
 func TestExportThenInitGenesis(t *testing.T) {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	oldKeeper, _, _, oldCtx := testkeeper.DymNSKeeper(t)
+	oldCtx = oldCtx.WithBlockTime(now)
 
 	// Setup genesis state
 	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
@@ -156,6 +157,8 @@ func TestExportThenInitGenesis(t *testing.T) {
 	genState.Params.PreservedRegistration.ExpirationEpoch = 8888
 
 	newDymNsKeeper, newBankKeeper, _, newCtx := testkeeper.DymNSKeeper(t)
+	newCtx = newCtx.WithBlockTime(now)
+
 	dymns.InitGenesis(newCtx, newDymNsKeeper, *genState)
 
 	t.Run("params should be imported correctly", func(t *testing.T) {
@@ -166,9 +169,9 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.Equal(t, int64(8888), importedParams.PreservedRegistration.ExpirationEpoch)
 	})
 
-	t.Run("dym-names should be imported correctly", func(t *testing.T) {
+	t.Run("Dym-Names should be imported correctly", func(t *testing.T) {
 		require.Len(t,
-			newDymNsKeeper.GetAllNonExpiredDymNames(newCtx, now.Unix()),
+			newDymNsKeeper.GetAllNonExpiredDymNames(newCtx),
 			2,
 			"expired dym-name should not be imported",
 		)
@@ -182,35 +185,35 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 
 	t.Run("reverse lookup should be created correctly", func(t *testing.T) {
-		owned, err := newDymNsKeeper.GetDymNamesOwnedBy(newCtx, owner1, now.Unix())
+		owned, err := newDymNsKeeper.GetDymNamesOwnedBy(newCtx, owner1)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 
-		owned, err = newDymNsKeeper.GetDymNamesOwnedBy(newCtx, owner2, now.Unix())
+		owned, err = newDymNsKeeper.GetDymNamesOwnedBy(newCtx, owner2)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 
-		names, err := newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, owner1, now.Unix())
+		names, err := newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, owner1)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, owner2, now.Unix())
+		names, err = newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, owner2)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, anotherAccount, now.Unix())
+		names, err = newDymNsKeeper.GetDymNamesContainsConfiguredAddress(newCtx, anotherAccount)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner1).Bytes(), now.Unix())
+		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner1).Bytes())
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner2).Bytes(), now.Unix())
+		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner2).Bytes())
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(anotherAccount).Bytes(), now.Unix())
+		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(anotherAccount).Bytes())
 		require.NoError(t, err)
 		require.Empty(t, names, 0)
 	})

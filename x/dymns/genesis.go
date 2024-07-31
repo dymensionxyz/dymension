@@ -38,7 +38,9 @@ func InitGenesis(ctx sdk.Context, k dymnskeeper.Keeper, genState dymnstypes.Gene
 
 // ExportGenesis returns the module's exported genesis
 func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisState {
-	epochUtcNow := time.Now().Unix()
+	if ctx.BlockTime().Unix() == 0 {
+		ctx = ctx.WithBlockTime(time.Now().UTC())
+	}
 
 	var nonRefundedBids []dymnstypes.SellOrderBid
 	for _, bid := range k.GetAllSellOrders(ctx) {
@@ -58,7 +60,7 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 
 	return &dymnstypes.GenesisState{
 		Params:        k.GetParams(ctx),
-		DymNames:      k.GetAllNonExpiredDymNames(ctx, epochUtcNow),
+		DymNames:      k.GetAllNonExpiredDymNames(ctx),
 		SellOrderBids: nonRefundedBids,
 		OffersToBuy:   nonRefundedOffersToBuy,
 	}

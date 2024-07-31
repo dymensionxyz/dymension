@@ -23,7 +23,7 @@ func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, nam
 
 // GetDymNamesOwnedBy returns all Dym-Names owned by the account address.
 func (k Keeper) GetDymNamesOwnedBy(
-	ctx sdk.Context, owner string, nowEpoch int64,
+	ctx sdk.Context, owner string,
 ) ([]dymnstypes.DymName, error) {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
 	if err != nil {
@@ -36,9 +36,9 @@ func (k Keeper) GetDymNamesOwnedBy(
 
 	var dymNames []dymnstypes.DymName
 	for _, owned := range existingOwnedDymNames.DymNames {
-		dymName := k.GetDymNameWithExpirationCheck(ctx, owned, nowEpoch)
+		dymName := k.GetDymNameWithExpirationCheck(ctx, owned)
 		if dymName == nil {
-			// dym-name not found, skip
+			// dym-name not found or expired, skip
 			continue
 		}
 		if dymName.Owner != owner {
@@ -79,7 +79,7 @@ func (k Keeper) AddReverseMappingConfiguredAddressToDymName(ctx sdk.Context, con
 
 // GetDymNamesContainsConfiguredAddress returns all Dym-Names that contains the configured address.
 func (k Keeper) GetDymNamesContainsConfiguredAddress(
-	ctx sdk.Context, configuredAddress string, nowEpoch int64,
+	ctx sdk.Context, configuredAddress string,
 ) ([]dymnstypes.DymName, error) {
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
@@ -92,7 +92,7 @@ func (k Keeper) GetDymNamesContainsConfiguredAddress(
 
 	var dymNames []dymnstypes.DymName
 	for _, name := range currentDymNamesContainsConfiguredAddress.DymNames {
-		dymName := k.GetDymNameWithExpirationCheck(ctx, name, nowEpoch)
+		dymName := k.GetDymNameWithExpirationCheck(ctx, name)
 		if dymName == nil {
 			// dym-name not found, skip
 			continue
@@ -146,7 +146,7 @@ func (k Keeper) AddReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAddr 
 // GetDymNamesContainsHexAddress returns all Dym-Names
 // that contains the hex address (coin-type 60, secp256k1, ethereum address).
 func (k Keeper) GetDymNamesContainsHexAddress(
-	ctx sdk.Context, bzHexAddr []byte, nowEpoch int64,
+	ctx sdk.Context, bzHexAddr []byte,
 ) ([]dymnstypes.DymName, error) {
 	if err := validateHexAddressForReverseMapping(bzHexAddr); err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (k Keeper) GetDymNamesContainsHexAddress(
 
 	var dymNames []dymnstypes.DymName
 	for _, name := range currentDymNamesContainsHexAddress.DymNames {
-		dymName := k.GetDymNameWithExpirationCheck(ctx, name, nowEpoch)
+		dymName := k.GetDymNameWithExpirationCheck(ctx, name)
 		if dymName == nil {
 			// dym-name not found, skip
 			continue

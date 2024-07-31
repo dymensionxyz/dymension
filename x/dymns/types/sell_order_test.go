@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -36,7 +35,7 @@ func TestSellOrder_HasSetSellPrice(t *testing.T) {
 
 func TestSellOrder_HasExpiredAtCtx(t *testing.T) {
 	const epoch int64 = 2
-	ctx := sdk.Context{}.WithBlockHeader(tmproto.Header{Time: time.Unix(2, 0)})
+	ctx := sdk.Context{}.WithBlockTime(time.Unix(2, 0))
 	require.True(t, (&SellOrder{
 		ExpireAt: epoch - 1,
 	}).HasExpiredAtCtx(ctx))
@@ -66,7 +65,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 	threeCoin := dymnsutils.TestCoin(3)
 	zeroCoin := dymnsutils.TestCoin(0)
 
-	nowEpoch := time.Now().Unix()
+	now := time.Now().UTC()
 
 	tests := []struct {
 		name       string
@@ -77,28 +76,28 @@ func TestSellOrder_HasFinished(t *testing.T) {
 	}{
 		{
 			name:       "expired, without sell-price, without bid",
-			expireAt:   nowEpoch - 1,
+			expireAt:   now.Unix() - 1,
 			sellPrice:  &zeroCoin,
 			highestBid: nil,
 			want:       true,
 		},
 		{
 			name:       "expired, without sell-price, without bid",
-			expireAt:   nowEpoch - 1,
+			expireAt:   now.Unix() - 1,
 			sellPrice:  nil,
 			highestBid: nil,
 			want:       true,
 		},
 		{
 			name:       "expired, + sell-price, without bid",
-			expireAt:   nowEpoch - 1,
+			expireAt:   now.Unix() - 1,
 			sellPrice:  &threeCoin,
 			highestBid: nil,
 			want:       true,
 		},
 		{
 			name:      "expired, + sell-price, + bid (under sell-price)",
-			expireAt:  nowEpoch - 1,
+			expireAt:  now.Unix() - 1,
 			sellPrice: &threeCoin,
 			highestBid: &SellOrderBid{
 				Bidder: "x",
@@ -108,7 +107,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 		},
 		{
 			name:      "expired, + sell-price, + bid (= sell-price)",
-			expireAt:  nowEpoch - 1,
+			expireAt:  now.Unix() - 1,
 			sellPrice: &threeCoin,
 			highestBid: &SellOrderBid{
 				Bidder: "x",
@@ -118,28 +117,28 @@ func TestSellOrder_HasFinished(t *testing.T) {
 		},
 		{
 			name:       "not expired, without sell-price, without bid",
-			expireAt:   nowEpoch + 1,
+			expireAt:   now.Unix() + 1,
 			sellPrice:  &zeroCoin,
 			highestBid: nil,
 			want:       false,
 		},
 		{
 			name:       "not expired, without sell-price, without bid",
-			expireAt:   nowEpoch + 1,
+			expireAt:   now.Unix() + 1,
 			sellPrice:  nil,
 			highestBid: nil,
 			want:       false,
 		},
 		{
 			name:       "not expired, + sell-price, without bid",
-			expireAt:   nowEpoch + 1,
+			expireAt:   now.Unix() + 1,
 			sellPrice:  &threeCoin,
 			highestBid: nil,
 			want:       false,
 		},
 		{
 			name:      "not expired, + sell-price, + bid (under sell-price)",
-			expireAt:  nowEpoch + 1,
+			expireAt:  now.Unix() + 1,
 			sellPrice: &threeCoin,
 			highestBid: &SellOrderBid{
 				Bidder: "x",
@@ -149,7 +148,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 		},
 		{
 			name:      "not expired, + sell-price, + bid (= sell-price)",
-			expireAt:  nowEpoch + 1,
+			expireAt:  now.Unix() + 1,
 			sellPrice: &threeCoin,
 			highestBid: &SellOrderBid{
 				Bidder: "x",
@@ -169,14 +168,9 @@ func TestSellOrder_HasFinished(t *testing.T) {
 			}
 
 			require.Equal(t, tt.want, m.HasFinishedAtCtx(
-				sdk.Context{}.
-					WithBlockHeader(
-						tmproto.Header{
-							Time: time.Unix(nowEpoch, 0),
-						},
-					)),
-			)
-			require.Equal(t, tt.want, m.HasFinished(nowEpoch))
+				sdk.Context{}.WithBlockTime(now),
+			))
+			require.Equal(t, tt.want, m.HasFinished(now.Unix()))
 		})
 	}
 }

@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -37,7 +35,7 @@ func (q queryServer) DymName(goCtx context.Context, req *dymnstypes.QueryDymName
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	dymName := q.GetDymNameWithExpirationCheck(ctx, req.DymName, addNowTimeIfMissing(ctx).BlockTime().Unix())
+	dymName := q.GetDymNameWithExpirationCheck(ctx, req.DymName)
 
 	return &dymnstypes.QueryDymNameResponse{DymName: dymName}, nil
 }
@@ -82,7 +80,7 @@ func (q queryServer) DymNamesOwnedByAccount(goCtx context.Context, req *dymnstyp
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	dymNames, err := q.GetDymNamesOwnedBy(ctx, req.Owner, addNowTimeIfMissing(ctx).BlockTime().Unix())
+	dymNames, err := q.GetDymNamesOwnedBy(ctx, req.Owner)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -143,12 +141,13 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	params := q.GetParams(ctx)
 	existingDymNameRecord := q.GetDymName(ctx, req.Name) // can be nil if not registered before
 
 	if existingDymNameRecord != nil && existingDymNameRecord.Owner != req.Owner {
 		// check take-over permission
-		if !existingDymNameRecord.IsExpiredAtContext(addNowTimeIfMissing(ctx)) {
+		if !existingDymNameRecord.IsExpiredAtContext(ctx) {
 			return nil, status.Errorf(
 				codes.PermissionDenied,
 				"you are not the owner of '%s'", req.Name,
@@ -309,7 +308,7 @@ func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, 
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownedDymNames, err := q.GetDymNamesOwnedBy(ctx, req.Account, addNowTimeIfMissing(ctx).BlockTime().Unix())
+	ownedDymNames, err := q.GetDymNamesOwnedBy(ctx, req.Account)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -327,14 +326,4 @@ func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, 
 	return &dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountResponse{
 		Offers: offers,
 	}, nil
-}
-
-// addNowTimeIfMissing returns new context with current time if the context's block time is zero.
-// Note: for query purpose only.
-func addNowTimeIfMissing(ctx sdk.Context) sdk.Context {
-	if ctx.BlockTime().IsZero() {
-		ctx = ctx.WithBlockTime(time.Now())
-	}
-
-	return ctx
 }

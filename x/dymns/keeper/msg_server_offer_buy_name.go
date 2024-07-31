@@ -81,7 +81,7 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyNam
 		return
 	}
 
-	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.Name, ctx.BlockTime().Unix())
+	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.Name)
 	if dymName == nil {
 		err = dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
 		return

@@ -92,7 +92,7 @@ func TestKeeper_GetAddReverseMappingBuyerToPlacedOfferToBuy(t *testing.T) {
 	require.NotEqual(t, 3, len(placedBy2), "should not include non-existing offers")
 	require.Len(t, placedBy2, 2)
 
-	placedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96", 0)
+	placedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96")
 	require.NoError(t, err3)
 	require.Len(t, placedByNonExists, 0)
 

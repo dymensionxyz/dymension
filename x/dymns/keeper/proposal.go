@@ -96,7 +96,7 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNewChainId map[string]string) error {
 	// We only migrate for Dym-Names that not expired to reduce IO needed.
 
-	nonExpiredDymNames := k.GetAllNonExpiredDymNames(ctx, ctx.BlockTime().Unix())
+	nonExpiredDymNames := k.GetAllNonExpiredDymNames(ctx)
 	if len(nonExpiredDymNames) < 1 {
 		return nil
 	}
