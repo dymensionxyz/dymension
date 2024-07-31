@@ -18,10 +18,9 @@ See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-S
 // NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 func NextSlashOrJailHeight(
-	hubBlockInterval time.Duration, // average time between hub blocks
-	slashTimeNoUpdate time.Duration, // time until first slash if not updating
-	slashInterval time.Duration, // gap between slash if still not updating
-	jailTime time.Duration, // time until jail if not updating
+	slashTimeNoUpdate uint64, // time until first slash if not updating
+	slashInterval uint64, // gap between slash if still not updating
+	jailTime uint64, // time until jail if not updating
 	heightHub int64, // current hub height
 	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
@@ -95,10 +94,9 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 func (k Keeper) ScheduleLivenessEvent(ctx sdk.Context, ra *types.Rollapp) {
 	params := k.GetParams(ctx)
 	nextH, isJail := NextSlashOrJailHeight(
-		params.HubExpectedBlockTime,
-		params.LivenessSlashTime,
+		params.LivenessSlashBlocks,
 		params.LivenessSlashInterval,
-		params.LivenessJailTime,
+		params.LivenessJailBlocks,
 		ctx.BlockHeight(),
 		ra.LastStateUpdateHeight,
 	)

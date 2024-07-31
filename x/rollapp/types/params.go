@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,19 +20,19 @@ var (
 	// KeyDisputePeriodInBlocks is store's key for DisputePeriodInBlocks Params
 	KeyDisputePeriodInBlocks = []byte("DisputePeriodInBlocks")
 
-	KeyHubExpectedBlockTime  = []byte("HubExpectedBlockTime")
-	KeyLivenessSlashTime     = []byte("LivenessSlashTime")
+	KeyLivenessSlashBlocks   = []byte("LivenessSlashBlocks")
 	KeyLivenessSlashInterval = []byte("LivenessSlashInterval")
-	KeyLivenessJailTime      = []byte("LivenessJailTime")
+	KeyLivenessJailBlocks    = []byte("LivenessJailBlocks")
+)
 
+const (
 	DefaultDisputePeriodInBlocks uint64 = 3
 	// MinDisputePeriodInBlocks is the minimum number of blocks for dispute period
 	MinDisputePeriodInBlocks uint64 = 1
 
-	DefaultHubExpectedBlockTime  = time.Second * 6
-	DefaultLivenessSlashTime     = time.Hour * 12
-	DefaultLivenessSlashInterval = time.Hour
-	DefaultLivenessJailTime      = time.Hour * 48
+	DefaultLivenessSlashBlocks   = uint64(7200)  // 12 hours at 6 blocks per second
+	DefaultLivenessSlashInterval = uint64(3600)  // 1 hour at 6 blocks per second
+	DefaultLivenessJailBlocks    = uint64(28800) // 48 hours at 6 blocks per second
 )
 
 // ParamKeyTable the param key table for launch module
@@ -46,19 +45,17 @@ func NewParams(
 	enabled bool,
 	disputePeriodInBlocks uint64,
 	deployerWhitelist []DeployerParams,
-	hubExpectedBlockTime time.Duration,
-	livenessSlashTime time.Duration,
-	livenessSlashInterval time.Duration,
-	livenessJailTime time.Duration,
+	livenessSlashBlocks uint64,
+	livenessSlashInterval uint64,
+	livenessJailBlocks uint64,
 ) Params {
 	return Params{
 		DisputePeriodInBlocks: disputePeriodInBlocks,
 		DeployerWhitelist:     deployerWhitelist,
 		RollappsEnabled:       enabled,
-		HubExpectedBlockTime:  hubExpectedBlockTime,
-		LivenessSlashTime:     livenessSlashTime,
+		LivenessSlashBlocks:   livenessSlashBlocks,
 		LivenessSlashInterval: livenessSlashInterval,
-		LivenessJailTime:      livenessJailTime,
+		LivenessJailBlocks:    livenessJailBlocks,
 	}
 }
 
@@ -68,10 +65,9 @@ func DefaultParams() Params {
 		true,
 		DefaultDisputePeriodInBlocks,
 		[]DeployerParams{},
-		DefaultHubExpectedBlockTime,
-		DefaultLivenessSlashTime,
+		DefaultLivenessSlashBlocks,
 		DefaultLivenessSlashInterval,
-		DefaultLivenessJailTime,
+		DefaultLivenessJailBlocks,
 	)
 }
 
@@ -81,10 +77,9 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDisputePeriodInBlocks, &p.DisputePeriodInBlocks, validateDisputePeriodInBlocks),
 		paramtypes.NewParamSetPair(KeyDeployerWhitelist, &p.DeployerWhitelist, validateDeployerWhitelist),
 		paramtypes.NewParamSetPair(KeyRollappsEnabled, &p.RollappsEnabled, func(_ interface{}) error { return nil }),
-		paramtypes.NewParamSetPair(KeyHubExpectedBlockTime, &p.HubExpectedBlockTime, validateHubExpectedBlockTime),
-		paramtypes.NewParamSetPair(KeyLivenessSlashTime, &p.LivenessSlashTime, validateLivenessSlashTime),
+		paramtypes.NewParamSetPair(KeyLivenessSlashBlocks, &p.LivenessSlashBlocks, validateLivenessSlashBlocks),
 		paramtypes.NewParamSetPair(KeyLivenessSlashInterval, &p.LivenessSlashInterval, validateLivenessSlashInterval),
-		paramtypes.NewParamSetPair(KeyLivenessJailTime, &p.LivenessJailTime, validateLivenessJailTime),
+		paramtypes.NewParamSetPair(KeyLivenessJailBlocks, &p.LivenessJailBlocks, validateLivenessJailBlocks),
 	}
 }
 
@@ -104,17 +99,14 @@ func (p Params) Validate() error {
 		return errorsmod.Wrap(err, "dispute period")
 	}
 
-	if err := validateHubExpectedBlockTime(p.HubExpectedBlockTime); err != nil {
-		return errorsmod.Wrap(err, "hub expected block time")
-	}
-	if err := validateLivenessSlashTime(p.LivenessSlashTime); err != nil {
-		return errorsmod.Wrap(err, "liveness slash time")
+	if err := validateLivenessSlashBlocks(p.LivenessSlashBlocks); err != nil {
+		return errorsmod.Wrap(err, "liveness slash blocks")
 	}
 	if err := validateLivenessSlashInterval(p.LivenessSlashInterval); err != nil {
 		return errorsmod.Wrap(err, "liveness slash interval")
 	}
-	if err := validateLivenessJailTime(p.LivenessJailTime); err != nil {
-		return errorsmod.Wrap(err, "liveness jail time")
+	if err := validateLivenessJailBlocks(p.LivenessJailBlocks); err != nil {
+		return errorsmod.Wrap(err, "liveness jail blocks")
 	}
 
 	return validateDeployerWhitelist(p.DeployerWhitelist)
@@ -126,46 +118,35 @@ func (p Params) String() string {
 	return string(out)
 }
 
-func validateHubExpectedBlockTime(i interface{}) error {
-	v, ok := i.(time.Duration)
+func validateLivenessSlashBlocks(i interface{}) error {
+	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v <= 0 {
-		return fmt.Errorf("must be positive: %s", v)
-	}
-	return nil
-}
-
-func validateLivenessSlashTime(i interface{}) error {
-	v, ok := i.(time.Duration)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v <= 0 {
-		return fmt.Errorf("must be positive: %s", v)
+		return fmt.Errorf("must be positive: %d", v)
 	}
 	return nil
 }
 
 func validateLivenessSlashInterval(i interface{}) error {
-	v, ok := i.(time.Duration)
+	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v <= 0 {
-		return fmt.Errorf("must be positive: %s", v)
+		return fmt.Errorf("must be positive: %d", v)
 	}
 	return nil
 }
 
-func validateLivenessJailTime(i interface{}) error {
-	v, ok := i.(time.Duration)
+func validateLivenessJailBlocks(i interface{}) error {
+	v, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v <= 0 {
-		return fmt.Errorf("must be positive: %s", v)
+		return fmt.Errorf("must be positive: %d", v)
 	}
 	return nil
 }
