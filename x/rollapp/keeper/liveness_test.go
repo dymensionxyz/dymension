@@ -113,19 +113,18 @@ func TestLivenessFlow(t *testing.T) {
 					if !ok {
 						continue // we can freely assume we will not need to slash a rollapp if it has NEVER had an update
 					}
-					elapsed := h - lastUpdate
+					elapsed := uint64(h - lastUpdate)
 					p := s.keeper().GetParams(s.Ctx)
-					elapsedTime := time.Duration(elapsed) * p.H
-					if elapsedTime <= p.LivenessJailTime {
+					if elapsed <= p.LivenessJailBlocks {
 						require.Zero(r, tracker.jails[ra], "expect not jailed")
 					} else {
 						require.NotZero(r, tracker.jails[ra], "expect jailed")
 					}
-					if elapsedTime <= p.LivenessSlashTime {
+					if elapsed <= p.LivenessSlashBlocks {
 						l := tracker.slashes[ra]
 						require.Zero(r, l, "expect not slashed")
 					} else {
-						expectedSlashes := int((elapsedTime-p.LivenessSlashTime)/p.LivenessSlashInterval) + 1
+						expectedSlashes := int((elapsed-p.LivenessSlashBlocks)/p.LivenessSlashInterval) + 1
 						got := tracker.slashes[ra]
 						/*
 							What's the essence of the problem?
@@ -134,7 +133,7 @@ func TestLivenessFlow(t *testing.T) {
 							Because we make the false assumption that the downtime will be
 
 						*/
-						require.Equal(r, expectedSlashes, got, "expect slashed", "rollapp", ra, "elapsed", elapsedTime)
+						require.Equal(r, expectedSlashes, got, "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
 					}
 				}
 			},
