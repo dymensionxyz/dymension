@@ -41,7 +41,7 @@ func NextSlashOrJailHeight(
 }
 
 // CheckLiveness will slash or jail any sequencers for whom their rollapp has been down
-// and a slash or jail event is due
+// and a slash or jail event is due. Run in end block.
 func (k Keeper) CheckLiveness(ctx sdk.Context) {
 	h := ctx.BlockHeight()
 	events := k.GetLivenessEvents(ctx, &h)
@@ -86,6 +86,7 @@ func (k Keeper) IndicateLiveness(ctx sdk.Context, ra *types.Rollapp) {
 	ra.LastStateUpdateHeight = ctx.BlockHeight()
 	k.DelLivenessEvents(ctx, ra.LivenessEventHeight, ra.RollappId)
 	k.ScheduleLivenessEvent(ctx, ra)
+	k.SetRollapp(ctx, *ra)
 }
 
 // ScheduleLivenessEvent schedules a new liveness event. Assumes an event does not

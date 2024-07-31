@@ -34,7 +34,6 @@ func (k Keeper) SlashAndJailFraud(ctx sdk.Context, seqAddr string) error {
 		return errorsmod.Wrap(err, "jail")
 	}
 
-	// emit event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,

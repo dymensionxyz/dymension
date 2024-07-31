@@ -102,7 +102,6 @@ func (k msgServer) UpdateState(goCtx context.Context, msg *types.MsgUpdateState)
 	})
 
 	k.IndicateLiveness(ctx, &rollapp)
-	k.SetRollapp(ctx, rollapp)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(types.EventTypeStateUpdate,
