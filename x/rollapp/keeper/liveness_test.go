@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"flag"
 	"fmt"
 	"slices"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	keepertest "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	flag "github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 	"pgregory.net/rapid"
 )
@@ -74,7 +74,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 
 // The protocol works.
 func TestLivenessFlow(t *testing.T) {
-	_ = flag.Set("rapid.checks", "1000")
+	_ = flag.Set("rapid.checks", "500")
 	_ = flag.Set("rapid.steps", "300")
 	rapid.Check(t, func(r *rapid.T) {
 		s := new(RollappTestSuite)
