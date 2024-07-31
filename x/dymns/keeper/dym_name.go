@@ -129,7 +129,7 @@ func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string, nowE
 		return nil
 	}
 
-	if dymName.ExpireAt < nowEpoch {
+	if dymName.IsExpiredAtEpoch(nowEpoch) {
 		return nil
 	}
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -488,21 +489,44 @@ func TestReverseLookupDymNames_Validate(t *testing.T) {
 }
 
 func TestDymName_IsExpiredAt(t *testing.T) {
-	require.False(t, DymName{
-		ExpireAt: time.Now().Unix(),
-	}.IsExpiredAt(time.Now().UTC().Add(-time.Second)))
-	require.True(t, DymName{
-		ExpireAt: time.Now().Unix(),
-	}.IsExpiredAt(time.Now().UTC().Add(time.Second)))
-}
-
-func TestDymName_IsExpiredAtEpoch(t *testing.T) {
-	require.False(t, DymName{
-		ExpireAt: time.Now().Unix(),
-	}.IsExpiredAtEpoch(time.Now().UTC().Add(-time.Second).Unix()))
-	require.True(t, DymName{
-		ExpireAt: time.Now().Unix(),
-	}.IsExpiredAtEpoch(time.Now().UTC().Add(time.Second).Unix()))
+	now := time.Now()
+	tests := []struct {
+		name        string
+		contextTime time.Time
+		wantExpired bool
+	}{
+		{
+			name:        "future",
+			contextTime: now.Add(-time.Second),
+			wantExpired: false,
+		},
+		{
+			name:        "past",
+			contextTime: now.Add(+time.Second),
+			wantExpired: true,
+		},
+		{
+			name:        "present",
+			contextTime: now,
+			wantExpired: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.wantExpired, DymName{
+				ExpireAt: now.Unix(),
+			}.IsExpiredAtContext(sdk.Context{}.WithBlockTime(tt.contextTime)))
+			require.Equal(t, tt.wantExpired, DymName{
+				ExpireAt: now.Unix(),
+			}.IsExpiredAtEpoch(tt.contextTime.Unix()))
+			require.Equal(t, tt.wantExpired, DymName{
+				ExpireAt: now.Unix(),
+			}.IsExpiredAtEpoch(tt.contextTime.UTC().Unix()))
+			require.Equal(t, tt.wantExpired, DymName{
+				ExpireAt: now.UTC().Unix(),
+			}.IsExpiredAtEpoch(tt.contextTime.Unix()))
+		})
+	}
 }
 
 func TestDymName_GetSdkEvent(t *testing.T) {

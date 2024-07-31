@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -104,8 +103,8 @@ func (m *ReverseLookupDymNames) Validate() error {
 	return nil
 }
 
-func (m DymName) IsExpiredAt(anchor time.Time) bool {
-	return m.IsExpiredAtEpoch(anchor.UTC().Unix())
+func (m DymName) IsExpiredAtContext(ctx sdk.Context) bool {
+	return m.IsExpiredAtEpoch(ctx.BlockTime().Unix())
 }
 
 func (m DymName) IsExpiredAtEpoch(epochUTC int64) bool {

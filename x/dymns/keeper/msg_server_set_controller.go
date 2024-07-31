@@ -38,7 +38,7 @@ func (k msgServer) validateSetController(ctx sdk.Context, msg *dymnstypes.MsgSet
 		return nil, sdkerrors.ErrUnauthorized.Wrap("not the owner of the dym name")
 	}
 
-	if dymName.IsExpiredAt(ctx.BlockTime()) {
+	if dymName.IsExpiredAtContext(ctx) {
 		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
 	}
 
