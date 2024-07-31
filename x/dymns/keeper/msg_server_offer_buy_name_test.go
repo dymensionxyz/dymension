@@ -128,8 +128,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				Buyer:      buyer,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
-			wantLaterModuleBalance: 0 + 1,
-			wantLaterBuyerBalance:  1 - 1,
+			wantLaterModuleBalance: 1,
+			wantLaterBuyerBalance:  0,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
 		},
 		{
@@ -682,8 +682,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				Buyer:      buyer,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
-			wantLaterModuleBalance: 0 + 1,
-			wantLaterBuyerBalance:  1 - 1,
+			wantLaterModuleBalance: 1,
+			wantLaterBuyerBalance:  0,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				key := dymnstypes.DymNameToOfferIdsRvlKey(name)

@@ -233,7 +233,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:                  "pass - (negotation) when price not match offer price, raise the counterparty offer price",
+			name:                  "pass - (negotiation) when price not match offer price, raise the counterparty offer price",
 			existingDymName:       dymName,
 			existingOffer:         offer,
 			offerId:               offer.Id,
@@ -259,7 +259,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
 		},
 		{
-			name:                  "pass - after put negotation price, reverse records of the offer are preserved",
+			name:                  "pass - after put negotiation price, reverse records of the offer are preserved",
 			existingDymName:       dymName,
 			existingOffer:         offer,
 			offerId:               offer.Id,
@@ -301,7 +301,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:                  "pass - after put negotation price, reverse records of the Dym-Name are preserved",
+			name:                  "pass - after put negotiation price, reverse records of the Dym-Name are preserved",
 			existingDymName:       dymName,
 			existingOffer:         offer,
 			offerId:               offer.Id,

@@ -153,6 +153,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 				require.Len(t, offerIds, 1)
 
 				offerIds, err = dk.GetOffersToBuyOfDymName(ctx, offer.Name)
+				require.NoError(t, err)
 				require.Len(t, offerIds, 1)
 			},
 			wantErr:                false,
@@ -166,6 +167,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 				require.Empty(t, offerIds)
 
 				offerIds, err = dk.GetOffersToBuyOfDymName(ctx, offer.Name)
+				require.NoError(t, err)
 				require.Empty(t, offerIds)
 			},
 		},
