@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/types"
 )
 
 var (
