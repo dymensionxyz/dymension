@@ -150,3 +150,45 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestNewMsgDecreaseBond_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgDecreaseBond
+		err  error
+	}{
+		{
+			name: "invalid address",
+			msg: MsgDecreaseBond{
+				Creator:        "invalid_address",
+				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
+			},
+			err: ErrInvalidAddress,
+		},
+		{
+			name: "invalid bond amount",
+			msg: MsgDecreaseBond{
+				Creator:        sample.AccAddress(),
+				DecreaseAmount: sdk.NewInt64Coin("stake", 0),
+			},
+			err: ErrInvalidCoins,
+		},
+		{
+			name: "valid",
+			msg: MsgDecreaseBond{
+				Creator:        sample.AccAddress(),
+				DecreaseAmount: sdk.NewInt64Coin("stake", 100),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
