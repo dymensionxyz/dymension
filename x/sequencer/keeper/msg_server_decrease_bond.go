@@ -35,9 +35,12 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 			return nil, types.ErrInsufficientBond
 		}
 	}
-
-	//k.setdecreasingbondsequencerqueue(ctx, sequencer, msg.Amount)
 	completionTime := ctx.BlockHeader().Time.Add(k.UnbondingTime(ctx))
+	k.setDecreasingBondQueue(ctx, types.BondReduction{
+		SequencerAddress: msg.Creator,
+		UnbondAmount:     msg.Amount,
+		UnbondTime:       completionTime,
+	})
 
 	return &types.MsgDecreaseBondResponse{
 		CompletionTime: completionTime,
