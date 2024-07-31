@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}
@@ -20,7 +23,13 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	}
 }
 
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateOfSequencer bool) error {
+// BeforeUpdateState checks various conditions before updating the state.
+// It verifies if the sequencer has been registered, if the rollappId matches the one of the sequencer,
+// if there is a proposer for the given rollappId, and if the sequencer is the active one.
+// If the lastStateUpdateBySequencer flag is true, it also checks if the rollappId is rotating and
+// performs a rotation of the proposer.
+// Returns an error if any of the checks fail, otherwise returns nil.
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -34,13 +43,13 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 
 	seq, ok := hook.k.GetProposer(ctx, rollappId)
 	if !ok {
-		return types.ErrNoProposer
+		return errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
 	}
 	if sequencer.SequencerAddress != seq.SequencerAddress {
 		return types.ErrNotActiveSequencer
 	}
 
-	if lastStateOfSequencer {
+	if lastStateUpdateBySequencer {
 		if !hook.k.IsRotating(ctx, rollappId) {
 			return types.ErrInvalidRequest
 		}

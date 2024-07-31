@@ -34,7 +34,7 @@ func (k msgServer) Unbond(goCtx context.Context, msg *types.MsgUnbond) (*types.M
 	}
 	seq.UnbondRequestHeight = ctx.BlockHeight()
 
-	// check if sequencer required for a notice period before unbonding
+	// check if the sequencer is required for a notice period before unbonding
 	if k.IsNoticePeriodRequired(ctx, seq) {
 		completionTime := k.startNoticePeriodForSequencer(ctx, &seq)
 		return &types.MsgUnbondResponse{

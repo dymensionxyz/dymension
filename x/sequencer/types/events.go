@@ -14,7 +14,7 @@ const (
 	// Attributes:
 	// - AttributeKeyRollappId
 	// - AttributeKeyNextProposer
-	EventTypeRotationStarted = "rotation_started"
+	EventTypeRotationStarted = "proposer_rotation_started"
 
 	// EventTypeProposerRotated is emitted when a proposer is rotated
 	// Attributes:

@@ -15,17 +15,11 @@ func (k Keeper) startNoticePeriodForSequencer(ctx sdk.Context, seq *types.Sequen
 	k.UpdateSequencer(ctx, *seq)
 	k.AddSequencerToNoticePeriodQueue(ctx, *seq)
 
-	nextSeq := k.ExpectedNextProposer(ctx, seq.RollappId)
-	if nextSeq.SequencerAddress == "" {
-		k.Logger(ctx).Debug("rollapp will be left with no proposer after notice period", "rollappId", seq.RollappId, "sequencer", seq.SequencerAddress)
-	}
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeNoticePeriodStarted,
 			sdk.NewAttribute(types.AttributeKeyRollappId, seq.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, seq.SequencerAddress),
-			sdk.NewAttribute(types.AttributeKeyNextProposer, nextSeq.SequencerAddress),
 			sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.String()),
 		),
 	)
@@ -46,7 +40,8 @@ func (k Keeper) MatureSequencersWithNoticePeriod(ctx sdk.Context, currTime time.
 	}
 }
 
-// IsRotating returns true if the rollapp is currently rotating proposers
+// IsRotating returns true if the rollapp is currently in the process of rotation.
+// A process of rotation is defined by the time between when the proposer notice period is over till the proposer sends his last batch.
 func (k Keeper) IsRotating(ctx sdk.Context, rollappId string) bool {
 	return k.HasNextProposer(ctx, rollappId)
 }
@@ -76,9 +71,9 @@ func (k Keeper) ExpectedNextProposer(ctx sdk.Context, rollappId string) types.Se
 	})
 
 	// return the first sequencer that is not the proposer
-	active, _ := k.GetProposer(ctx, rollappId)
+	proposer, _ := k.GetProposer(ctx, rollappId)
 	for _, s := range seqs {
-		if s.SequencerAddress != active.SequencerAddress {
+		if s.SequencerAddress != proposer.SequencerAddress {
 			return s
 		}
 	}
@@ -117,13 +112,10 @@ func (k Keeper) RotateProposer(ctx sdk.Context, rollappId string) {
 
 	nextProposer, _ := k.GetNextProposer(ctx, rollappId) // nextProposer is guaranteed to exist by caller
 	k.RemoveNextProposer(ctx, rollappId)
+	k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
 
 	if nextProposer.SequencerAddress == "" {
 		k.Logger(ctx).Info("rollapp left with no proposer", "rollappId", rollappId)
-		k.RemoveProposer(ctx, rollappId)
-		// in case of new sequencers bonding, the proposer is checked and set on BeginBlock
-	} else {
-		k.SetProposer(ctx, rollappId, nextProposer.SequencerAddress)
 	}
 
 	ctx.EventManager().EmitEvent(

@@ -3,7 +3,8 @@ package keeper
 import (
 	"context"
 
-	errorsmod "cosmossdk.io/errors"
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -16,7 +17,7 @@ func (k Keeper) SequencersByRollapp(c context.Context, req *types.QueryGetSequen
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, errorsmod.Wrap(gerrc.ErrNotFound, types.ErrUnknownRollappID.Error())
+		return nil, errors.Join(gerrc.ErrNotFound, types.ErrUnknownRollappID)
 	}
 
 	sequencers := k.GetSequencersByRollapp(ctx, req.RollappId)
@@ -32,7 +33,7 @@ func (k Keeper) SequencersByRollappByStatus(c context.Context, req *types.QueryG
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if _, ok := k.rollappKeeper.GetRollapp(ctx, req.RollappId); !ok {
-		return nil, errorsmod.Wrap(gerrc.ErrNotFound, types.ErrUnknownRollappID.Error())
+		return nil, errors.Join(gerrc.ErrNotFound, types.ErrUnknownRollappID)
 	}
 
 	sequencers := k.GetSequencersByRollappByStatus(
@@ -55,7 +56,7 @@ func (k Keeper) GetProposerByRollapp(c context.Context, req *types.QueryGetPropo
 
 	seq, ok := k.GetProposer(ctx, req.RollappId)
 	if !ok {
-		return nil, errorsmod.Wrap(gerrc.ErrNotFound, types.ErrNoProposer.Error())
+		return nil, errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
 	}
 
 	return &types.QueryGetProposerByRollappResponse{

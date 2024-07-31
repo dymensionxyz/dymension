@@ -17,7 +17,7 @@ func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Seq
 	seq.UnbondTime = completionTime
 
 	seq.Status = types.Unbonding
-	k.UpdateSequencerWithStateChange(ctx, *seq, types.Bonded)
+	k.UpdateSequencer(ctx, *seq, types.Bonded)
 	k.AddSequencerToUnbondingQueue(ctx, *seq)
 
 	ctx.EventManager().EmitEvent(
@@ -81,7 +81,7 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 	seq.Status = types.Unbonded
 	seq.Tokens = sdk.Coins{}
 
-	k.UpdateSequencerWithStateChange(ctx, seq, types.Unbonding)
+	k.UpdateSequencer(ctx, seq, types.Unbonding)
 	k.removeUnbondingSequencer(ctx, seq)
 
 	ctx.EventManager().EmitEvent(
