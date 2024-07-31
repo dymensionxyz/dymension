@@ -80,7 +80,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
-	var originalModuleBalance int64 = 88
+	const originalModuleBalance int64 = 88
 
 	tests := []struct {
 		name                    string

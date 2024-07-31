@@ -502,8 +502,8 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		requireErrorContains(t, dk.CompleteSellOrder(ctx, dymName.Name), "Sell-Order has not finished yet")
 	})
 
-	var ownerOriginalBalance int64 = 1000
-	var buyerOriginalBalance int64 = 500
+	const ownerOriginalBalance int64 = 1000
+	const buyerOriginalBalance int64 = 500
 	tests := []struct {
 		name                  string
 		expiredSO             bool

@@ -35,7 +35,7 @@ func TestSellOrder_HasSetSellPrice(t *testing.T) {
 }
 
 func TestSellOrder_HasExpiredAtCtx(t *testing.T) {
-	var epoch int64 = 2
+	const epoch int64 = 2
 	ctx := sdk.Context{}.WithBlockHeader(tmproto.Header{Time: time.Unix(2, 0)})
 	require.True(t, (&SellOrder{
 		ExpireAt: epoch - 1,
@@ -49,7 +49,7 @@ func TestSellOrder_HasExpiredAtCtx(t *testing.T) {
 }
 
 func TestSellOrder_HasExpired(t *testing.T) {
-	var epoch int64 = 2
+	const epoch int64 = 2
 	require.True(t, (&SellOrder{
 		ExpireAt: epoch - 1,
 	}).HasExpired(epoch))

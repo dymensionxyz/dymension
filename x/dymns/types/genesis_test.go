@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/dymension/v3/app/params"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -34,7 +36,18 @@ func TestGenesisState_Validate(t *testing.T) {
 				{
 					Bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					Price: sdk.Coin{
-						Denom:  "adym",
+						Denom:  params.BaseDenom,
+						Amount: sdk.OneInt(),
+					},
+				},
+			},
+			OffersToBuy: []OfferToBuy{
+				{
+					Id:    "1",
+					Name:  "a",
+					Buyer: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					OfferPrice: sdk.Coin{
+						Denom:  params.BaseDenom,
 						Amount: sdk.OneInt(),
 					},
 				},

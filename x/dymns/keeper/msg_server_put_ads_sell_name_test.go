@@ -46,6 +46,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
+	const name = "bonded-pool"
 	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
 	coin100 := dymnsutils.TestCoin(100)
 	coin200 := dymnsutils.TestCoin(200)
@@ -147,7 +148,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		},
 		{
 			name:                    "can not sell Dym-Name that almost expired",
-			dymNameExpiryOffsetDays: daysProhibitSell + daysSellOrderDuration/2,
+			dymNameExpiryOffsetDays: daysProhibitSell - 1,
 			minPrice:                coin100,
 			wantErr:                 true,
 			wantErrContains:         "before Dym-Name expiry, can not sell",
@@ -181,8 +182,6 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dk, _, ctx := setupTest()
 
-			recordName := "bonded-pool"
-
 			useDymNameOwner := owner
 			if tt.customDymNameOwner != "" {
 				useDymNameOwner = tt.customDymNameOwner
@@ -193,7 +192,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 
 			if !tt.withoutDymName {
 				dymName := dymnstypes.DymName{
-					Name:       recordName,
+					Name:       name,
 					Owner:      useDymNameOwner,
 					Controller: useDymNameOwner,
 					ExpireAt:   useDymNameExpiry,
@@ -203,7 +202,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			}
 
 			if tt.existingSo != nil {
-				tt.existingSo.Name = recordName
+				tt.existingSo.Name = name
 				err := dk.SetSellOrder(ctx, *tt.existingSo)
 				require.NoError(t, err)
 			}
@@ -213,7 +212,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 				useOwner = tt.customOwner
 			}
 			msg := &dymnstypes.MsgPutAdsSellName{
-				Name:      recordName,
+				Name:      name,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
@@ -222,7 +221,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			moduleParams := dk.GetParams(ctx)
 
 			defer func() {
-				laterDymName := dk.GetDymName(ctx, recordName)
+				laterDymName := dk.GetDymName(ctx, name)
 				if tt.withoutDymName {
 					require.Nil(t, laterDymName)
 					return
@@ -230,7 +229,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 
 				require.NotNil(t, laterDymName)
 				require.Equal(t, dymnstypes.DymName{
-					Name:       recordName,
+					Name:       name,
 					Owner:      useDymNameOwner,
 					Controller: useDymNameOwner,
 					ExpireAt:   useDymNameExpiry,
@@ -244,7 +243,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				so := dk.GetSellOrder(ctx, recordName)
+				so := dk.GetSellOrder(ctx, name)
 				if tt.existingSo != nil {
 					require.NotNil(t, so)
 					require.Equal(t, *tt.existingSo, *so)
@@ -262,11 +261,11 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			so := dk.GetSellOrder(ctx, recordName)
+			so := dk.GetSellOrder(ctx, name)
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
-				Name:       recordName,
+				Name:       name,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,
@@ -289,7 +288,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 
 			var found bool
 			for _, record := range apoe.Records {
-				if record.Name == recordName {
+				if record.Name == name {
 					found = true
 					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)
 					break

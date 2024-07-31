@@ -49,10 +49,10 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 		ExpireAt:   originalDymNameExpiry,
 	}
 
-	var ownerOriginalBalance int64 = 1000
-	var buyerOriginalBalance int64 = 500
-	var previousBidderOriginalBalance int64 = 400
-	var minPrice int64 = 100
+	const ownerOriginalBalance int64 = 1000
+	const buyerOriginalBalance int64 = 500
+	const previousBidderOriginalBalance int64 = 400
+	const minPrice int64 = 100
 	tests := []struct {
 		name                           string
 		withoutDymName                 bool
