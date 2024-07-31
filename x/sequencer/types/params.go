@@ -101,6 +101,9 @@ func validateLivenessSlashMultiplier(i interface{}) error {
 	if v.IsNil() || v.IsNegative() {
 		return fmt.Errorf("must be positive: %s", v)
 	}
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("cannot exceed 1: %s", v)
+	}
 	return nil
 }
 
