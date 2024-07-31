@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -18,9 +16,9 @@ See ADR for more info https://www.notion.so/dymension/ADR-x-Sequencer-Liveness-S
 // NextSlashOrJailHeight returns the next height on the HUB to slash or jail the rollapp
 // It will respect all parameters passed in.
 func NextSlashOrJailHeight(
-	slashTimeNoUpdate uint64, // time until first slash if not updating
-	slashInterval uint64, // gap between slash if still not updating
-	jailTime uint64, // time until jail if not updating
+	blocksSlashNoUpdate uint64, // time until first slash if not updating
+	blocksSlashInterval uint64, // gap between slash if still not updating
+	blocksJail uint64, // time until jail if not updating
 	heightHub int64, // current hub height
 	heightLastRollappUpdate int64, // when was the rollapp last updated
 ) (
@@ -28,14 +26,15 @@ func NextSlashOrJailHeight(
 	isJail bool, // is it a jail event? (false -> slash)
 ) {
 	// how long has the rollapp been down already?
-	downTime := time.Duration(heightHub-heightLastRollappUpdate) * hubBlockInterval
+	down := uint64(heightHub - heightLastRollappUpdate)
 	// when should we schedule the next slash/jail, in terms of down time duration?
-	targetDuration := slashTimeNoUpdate
-	if slashTimeNoUpdate < downTime {
-		targetDuration += ((downTime-slashTimeNoUpdate)/slashInterval + 1) * slashInterval
+	targetInterval := blocksSlashNoUpdate
+	if blocksSlashNoUpdate < down {
+		// round up to next slash interval
+		targetInterval += ((down-blocksSlashNoUpdate)/blocksSlashInterval + 1) * blocksSlashInterval
 	}
-	heightEvent = heightLastRollappUpdate + int64((targetDuration+hubBlockInterval-1)/hubBlockInterval)
-	isJail = jailTime <= targetDuration
+	heightEvent = heightLastRollappUpdate + int64(targetInterval)
+	isJail = blocksJail <= targetInterval
 	return
 }
 

@@ -81,10 +81,7 @@ func TestLivenessFlow(t *testing.T) {
 		s.SetT(t)
 		s.SetS(s)
 		s.SetupTest()
-		p := s.keeper().GetParams(s.Ctx)
-		// adjust params to be more amenable to testing without needing thousands of hub blocks
-		p.HubExpectedBlockTime = time.Minute * 25
-		s.keeper().SetParams(s.Ctx, p)
+		hubBlockTime := 6 * time.Second
 
 		rollapps := []string{"a", "b"}
 		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
@@ -92,7 +89,7 @@ func TestLivenessFlow(t *testing.T) {
 				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
 				return time.Duration(dt)
 			}
-			return s.keeper().GetParams(s.Ctx).HubExpectedBlockTime
+			return hubBlockTime
 		})
 
 		tracker := newLivenessMockSequencerKeeper()
@@ -118,7 +115,7 @@ func TestLivenessFlow(t *testing.T) {
 					}
 					elapsed := h - lastUpdate
 					p := s.keeper().GetParams(s.Ctx)
-					elapsedTime := time.Duration(elapsed) * p.HubExpectedBlockTime
+					elapsedTime := time.Duration(elapsed) * p.H
 					if elapsedTime <= p.LivenessJailTime {
 						require.Zero(r, tracker.jails[ra], "expect not jailed")
 					} else {
