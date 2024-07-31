@@ -981,7 +981,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 	t.Run("reject nil request", func(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
-		resp, err := queryServer.HistoricalSellOrder(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.EstimateRegisterName(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})

@@ -23,5 +23,11 @@ func (m GenesisState) Validate() error {
 		}
 	}
 
+	for _, otb := range m.OffersToBuy {
+		if err := otb.Validate(); err != nil {
+			return ErrValidationFailed.Wrapf("offer to buy by '%s': %v", otb.Buyer, err)
+		}
+	}
+
 	return nil
 }

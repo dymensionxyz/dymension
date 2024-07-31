@@ -83,4 +83,15 @@ func TestGenesisState_Validate(t *testing.T) {
 			},
 		}).Validate())
 	})
+
+	t.Run("invalid offer-to-buy", func(t *testing.T) {
+		require.Error(t, (GenesisState{
+			Params: DefaultParams(),
+			OffersToBuy: []OfferToBuy{
+				{
+					Buyer: "",
+				},
+			},
+		}).Validate())
+	})
 }
