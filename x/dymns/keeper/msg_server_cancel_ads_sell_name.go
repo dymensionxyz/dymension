@@ -1,0 +1,59 @@
+package keeper
+
+import (
+	"context"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+)
+
+func (k msgServer) CancelAdsSellName(goCtx context.Context, msg *dymnstypes.MsgCancelAdsSellName) (*dymnstypes.MsgCancelAdsSellNameResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if err := k.validateCancelAdsSellName(ctx, msg); err != nil {
+		return nil, err
+	}
+
+	k.DeleteSellOrder(ctx, msg.Name)
+
+	apoe := k.GetActiveSellOrdersExpiration(ctx)
+	apoe.Remove(msg.Name)
+	if err := k.SetActiveSellOrdersExpiration(ctx, apoe); err != nil {
+		return nil, err
+	}
+
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseAds, "CancelAdsSellName")
+
+	return &dymnstypes.MsgCancelAdsSellNameResponse{}, nil
+}
+
+func (k msgServer) validateCancelAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgCancelAdsSellName) error {
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
+	dymName := k.GetDymName(ctx, msg.Name)
+	if dymName == nil {
+		return dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+	}
+
+	if dymName.Owner != msg.Owner {
+		return sdkerrors.ErrUnauthorized.Wrap("not the owner of the dym name")
+	}
+
+	so := k.GetSellOrder(ctx, msg.Name)
+	if so == nil {
+		return dymnstypes.ErrSellOrderNotFound.Wrap(msg.Name)
+	}
+
+	if so.HasExpiredAtCtx(ctx) {
+		return dymnstypes.ErrInvalidState.Wrap("cannot cancel an expired order")
+	}
+
+	if so.HighestBid != nil {
+		return dymnstypes.ErrInvalidState.Wrap("cannot cancel once bid placed")
+	}
+
+	return nil
+}

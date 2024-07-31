@@ -1,0 +1,54 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+message DymName {
+  string name = 1;
+
+  // Account address of the owner of the Dym-Name. Owner has permission to transfer ownership.
+  string owner = 2;
+
+  // Account address of the controller of the Dym-Name. Controller has permission to update resolve and contact for the Dym-Name.
+  string controller = 3;
+
+  // The last effective date of the Dym-Name, after which the Dym-Name is no longer valid.
+  // NOTE: Expired Dym-Names are not deleted from the store
+  // because iterating through store is very expensive because expiry date must be checked every use.
+  int64 expire_at = 4;
+
+  // Configurations for the Dym-Name.
+  repeated DymNameConfig configs = 5 [(gogoproto.nullable) = false];
+
+  // The optional contact information for the Dym-Name.
+  string contact = 6;
+}
+
+enum DymNameConfigType {
+  UNKNOWN = 0;
+  NAME = 1;
+}
+
+message DymNameConfig {
+  // The type of the Dym-Name configuration (equals to Type in DNS).
+  DymNameConfigType type = 1;
+
+  // The chain ID of the Dym-Name configuration (equals to top-level-domain).
+  // If empty, the configuration is for host chain aka Dymension Hub.
+  string chain_id = 2;
+
+  // The path of the Dym-Name configuration (equals to Host in DNS).
+  // If not empty, is sub-path configuration.
+  string path = 3;
+
+  // The value of the Dym-Name configuration (equals to Value in DNS).
+  string value = 4;
+}
+
+// ReverseLookupDymNames contains a list of Dym-Names for reverse lookup.
+message ReverseLookupDymNames {
+  repeated string dym_names = 1;
+}

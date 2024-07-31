@@ -1,0 +1,56 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
+// After expiry date, if no one has placed a bid, this SO will be closed, no change.
+// If there is a bid, the highest bid will win.
+// SO will be moved to historical records after completed, no matter reason.
+message SellOrder {
+  // The name of the Dym-Name being opened to be sold.
+  string name = 1;
+
+  // The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+  int64 expire_at = 2;
+
+  // The minimum price that the owner is willing to accept for the Dym-Name.
+  cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];
+
+  // The price that the owner is willing to sell the Dym-Name for, the SO will be closed when the price is met.
+  // If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bid win.
+  cosmos.base.v1beta1.Coin sell_price = 5;
+
+  // The highest bid on the SO, if any. Price must be greater than or equal to the min_price.
+  SellOrderBid highest_bid = 6;
+}
+
+// ActiveSellOrdersExpiration contains list of active SOs, store expiration date mapped by Dym-Name.
+// Used by hook to find out expired SO instead of iterating through all records.
+message ActiveSellOrdersExpiration {
+  repeated ActiveSellOrdersExpirationRecord records = 1 [(gogoproto.nullable) = false];
+}
+
+message ActiveSellOrdersExpirationRecord {
+  // The name of the Dym-Name being opened to be sold.
+  string name = 1;
+
+  // The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+  int64 expire_at = 2;
+}
+
+message SellOrderBid {
+  // The address of the account which placed the bid.
+  string bidder = 1;
+
+  // The price set by the bidder.
+  cosmos.base.v1beta1.Coin price = 2 [(gogoproto.nullable) = false];
+}
+
+message HistoricalSellOrders {
+  // List of closed SOs of the same Dym-Name.
+  repeated SellOrder sell_orders = 1 [(gogoproto.nullable) = false];
+}

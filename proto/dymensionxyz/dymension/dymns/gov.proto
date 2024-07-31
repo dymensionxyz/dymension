@@ -1,0 +1,33 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// MigrateChainIdsProposal defines a proposal to migrate replace chain-id,
+// used when chain-id of a connected network is changed.
+// This gov will lookup and replace in params and all configurations of all non-expired Dym-Names.
+message MigrateChainIdsProposal {
+  string title = 1;
+  string description = 2;
+  repeated MigrateChainId replacement = 3 [(gogoproto.nullable) = false];
+}
+
+message MigrateChainId {
+  string previous_chain_id = 1;
+  string new_chain_id = 2;
+}
+
+// UpdateAliasesProposal defines a proposal to update aliases of chain-ids.
+message UpdateAliasesProposal {
+  string title = 1;
+  string description = 2;
+  repeated UpdateAlias add = 3 [(gogoproto.nullable) = false];
+  repeated UpdateAlias remove = 4 [(gogoproto.nullable) = false];
+}
+
+message UpdateAlias {
+  string chain_id = 1;
+  string alias = 2;
+}

@@ -1,0 +1,33 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
+// Buyer will need to deposit the offer amount to the module account.
+message OfferToBuy {
+  // The unique identifier of the offer.
+  string id = 1;
+
+  // The name of the Dym-Name willing to buy.
+  string name = 2;
+
+  // The bech32 address of the account which placed the offer.
+  string buyer = 3;
+
+  // The amount of coins willing to pay for the Dym-Name.
+  // This amount is deposited to the module account.
+  cosmos.base.v1beta1.Coin offer_price = 4 [(gogoproto.nullable) = false];
+
+  // The price that the Dym-Name owner is willing to sell the Dym-Name for.
+  // When this price matches offer_price, the transaction done.
+  cosmos.base.v1beta1.Coin counterparty_offer_price = 5;
+}
+
+// ReverseLookupOfferIds defines a message to reverse lookup offer Ids.
+message ReverseLookupOfferIds {
+  repeated string offer_ids = 1;
+}

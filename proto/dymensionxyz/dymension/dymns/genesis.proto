@@ -1,0 +1,23 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
+import "dymensionxyz/dymension/dymns/dym_name.proto";
+import "dymensionxyz/dymension/dymns/sell_order.proto";
+import "dymensionxyz/dymension/dymns/offer_to_buy.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// GenesisState defines the DymNS module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated DymName dym_names = 2 [(gogoproto.nullable) = false];
+
+  // used to refund the bid amount to the bidder of the SO which was not finished during genesis export
+  repeated SellOrderBid sell_order_bids = 3 [(gogoproto.nullable) = false];
+
+  // used to refund the bid amount to the bidder of the OTB which was not finished during genesis export
+  repeated OfferToBuy offers_to_buy = 4 [(gogoproto.nullable) = false];
+}

@@ -1,0 +1,262 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "dymensionxyz/dymension/dymns/params.proto";
+import "dymensionxyz/dymension/dymns/dym_name.proto";
+import "dymensionxyz/dymension/dymns/sell_order.proto";
+import "dymensionxyz/dymension/dymns/offer_to_buy.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/params";
+  }
+
+  // DymName queries a Dym-Name by its name.
+  rpc DymName(QueryDymNameRequest) returns (QueryDymNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/dym_name/{dym_name}";
+  }
+
+  // ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account addresses.
+  rpc ResolveDymNameAddresses(QueryResolveDymNameAddressesRequest) returns (QueryResolveDymNameAddressesResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/resolve";
+  }
+
+  // DymNamesOwnedByAccount queries the Dym-Names owned by an account.
+  rpc DymNamesOwnedByAccount(QueryDymNamesOwnedByAccountRequest) returns (QueryDymNamesOwnedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/owned_by/{owner}";
+  }
+
+  // SellOrder queries the active SO of a Dym-Name.
+  rpc SellOrder(QuerySellOrderRequest) returns (QuerySellOrderResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/sell_order/{dym_name}";
+  }
+
+  // HistoricalSellOrder queries the historical SOs of a Dym-Name.
+  rpc HistoricalSellOrder(QueryHistoricalSellOrderRequest) returns (QueryHistoricalSellOrderResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/historical_sell_order/{dym_name}";
+  }
+
+  // EstimateRegisterName estimates the cost to register a Dym-Name.
+  rpc EstimateRegisterName(QueryEstimateRegisterNameRequest) returns (QueryEstimateRegisterNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/estimate_register_name/{name}/{duration}";
+  }
+
+  // ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses.
+  rpc ReverseResolveAddress(QueryReverseResolveAddressRequest) returns (QueryReverseResolveAddressResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/reverse_resolve";
+  }
+
+  // TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
+  // If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
+  rpc TranslateAliasOrChainIdToChainId(QueryTranslateAliasOrChainIdToChainIdRequest) returns (QueryTranslateAliasOrChainIdToChainIdResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/translate_alias/{alias_or_chain_id}";
+  }
+
+  // OfferToBuyById queries an offer to buy by its id.
+  rpc OfferToBuyById(QueryOfferToBuyByIdRequest) returns (QueryOfferToBuyByIdResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offer_to_buy/{id}";
+  }
+
+  // OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
+  rpc OffersToBuyPlacedByAccount(QueryOffersToBuyPlacedByAccountRequest) returns (QueryOffersToBuyPlacedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_placed_by_account/{account}";
+  }
+
+  // OffersToBuyByDymName queries the offers to buy by a Dym-Name.
+  rpc OffersToBuyByDymName(QueryOffersToBuyByDymNameRequest) returns (QueryOffersToBuyByDymNameResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_by_dym_name/{name}";
+  }
+
+  // OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
+  rpc OffersToBuyOfDymNamesOwnedByAccount(QueryOffersToBuyOfDymNamesOwnedByAccountRequest) returns (QueryOffersToBuyOfDymNamesOwnedByAccountResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_of_dym_names_owned_by_account/{account}";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDymNameRequest is the request type for the Query/DymName RPC method.
+message QueryDymNameRequest {
+  option (gogoproto.equal)           = false;
+
+  string dym_name = 1;
+}
+
+// QueryDymNameResponse is the response type for the Query/DymName RPC method.
+message QueryDymNameResponse {
+  DymName dym_name = 1;
+}
+
+// QueryResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
+message QueryResolveDymNameAddressesRequest {
+  option (gogoproto.equal)           = false;
+
+  repeated string addresses = 1;
+}
+
+message ResultDymNameAddress {
+  string address = 1;
+  string resolved_address = 2;
+  string error = 3;
+}
+
+// QueryResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
+message QueryResolveDymNameAddressesResponse {
+  repeated ResultDymNameAddress resolved_addresses = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDymNamesOwnedByAccountRequest is the request type for the Query/DymNamesOwnedByAccount RPC method.
+message QueryDymNamesOwnedByAccountRequest {
+  option (gogoproto.equal)           = false;
+
+  // owner defines the address of the owner of the Dym-Names to query for.
+  string owner = 1;
+}
+
+//  QueryDymNamesOwnedByAccountResponse is the response type for the Query/DymNamesOwnedByAccount RPC method.
+message QueryDymNamesOwnedByAccountResponse {
+  // dym_names defines the Dym-Names owned by the account.
+  repeated DymName dym_names = 1 [(gogoproto.nullable) = false];
+}
+
+// QuerySellOrderRequest is the request type for the Query/SellOrder RPC method.
+message QuerySellOrderRequest {
+  option (gogoproto.equal)           = false;
+
+  // dym_name is the Dym-Name to query the active SO for.
+  string dym_name = 1;
+}
+
+// QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
+message QuerySellOrderResponse {
+  // result is the active SO for the Dym-Name.
+  SellOrder result = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryHistoricalSellOrderRequest is the request type for the Query/HistoricalSellOrder RPC method.
+message QueryHistoricalSellOrderRequest {
+  option (gogoproto.equal)           = false;
+
+  // dym_name is the Dym-Name to query the historical SO for.
+  string dym_name = 1;
+}
+
+// QueryHistoricalSellOrderResponse is the response type for the Query/HistoricalSellOrder RPC method.
+message QueryHistoricalSellOrderResponse {
+  // result defines the historical SOs of the Dym-Name.
+  repeated SellOrder result = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryEstimateRegisterNameRequest is the request type for the Query/EstimateRegisterName RPC method.
+message QueryEstimateRegisterNameRequest {
+  option (gogoproto.equal)           = false;
+
+  // name is the Dym-Name to be registered.
+  string name = 1;
+
+  // duration is the number of years the Dym-Name will be registered for.
+  int64 duration = 2;
+
+  // owner is the bech32-encoded address of the account which owns the order.
+  string owner = 3;
+}
+
+// QueryEstimateRegisterNameResponse is the response type for the Query/EstimateRegisterName RPC method.
+message QueryEstimateRegisterNameResponse {
+  // first_year_price is the price to register the Dym-Name for the first year.
+  cosmos.base.v1beta1.Coin first_year_price = 1 [(gogoproto.nullable) = false];
+
+  // extend_price is the price to extend the Dym-Name registration for another year.
+  cosmos.base.v1beta1.Coin extend_price = 2 [(gogoproto.nullable) = false];
+
+  // total_price is the total price to register the Dym-Name for the specified duration.
+  cosmos.base.v1beta1.Coin total_price = 3 [(gogoproto.nullable) = false];
+}
+
+// QueryReverseResolveAddressRequest is the request type for the Query/ReverseResolveAddress RPC method.
+message QueryReverseResolveAddressRequest {
+  // addresses defines the addresses to reverse resolve. Can be both bech32 and hex addresses.
+  repeated string addresses = 1;
+
+  // working_chain_id defines the chain id to use for the reverse resolution.
+  // Leave empty to use the host chain id.
+  string working_chain_id = 2;
+}
+
+// QueryReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
+message QueryReverseResolveAddressResponse {
+  // resolved_addresses defines the resolved addresses.
+  map<string, ReverseResolveAddressResult> result = 1 [(gogoproto.nullable) = false];
+
+  // working_chain_id is the chain id used for the reverse resolution.
+  string working_chain_id = 2;
+}
+
+message ReverseResolveAddressResult {
+  repeated string candidates = 1;
+  string error = 2;
+}
+
+// QueryTranslateAliasOrChainIdToChainIdRequest is the request type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+message QueryTranslateAliasOrChainIdToChainIdRequest {
+  string alias_or_chain_id = 1;
+}
+
+// QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the Query/TranslateAliasOrChainIdToChainId RPC method.
+message QueryTranslateAliasOrChainIdToChainIdResponse {
+  string chain_id = 1;
+}
+
+// QueryOfferToBuyByIdRequest is the request type for the Query/OfferToBuyById RPC method.
+message QueryOfferToBuyByIdRequest {
+  string id = 1;
+}
+
+// QueryOfferToBuyByIdResponse is the response type for the Query/OfferToBuyById RPC method.
+message QueryOfferToBuyByIdResponse {
+  OfferToBuy offer = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryOffersToBuyByAccountRequest is the request type for the Query/OffersToBuyPlacedByAccount RPC method.
+message QueryOffersToBuyPlacedByAccountRequest {
+  string account = 1;
+}
+
+// QueryOffersToBuyByAccountResponse is the response type for the Query/OffersToBuyPlacedByAccount RPC method.
+message QueryOffersToBuyPlacedByAccountResponse {
+  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryOffersToBuyByDymNameRequest is the request type for the Query/OffersToBuyByDymName RPC method.
+message QueryOffersToBuyByDymNameRequest {
+  string name = 1;
+}
+
+// QueryOffersToBuyByDymNameResponse is the response type for the Query/OffersToBuyByDymName RPC method.
+message QueryOffersToBuyByDymNameResponse {
+  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryOffersToBuyOfDymNamesOwnedByAccountRequest is the request type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
+message QueryOffersToBuyOfDymNamesOwnedByAccountRequest {
+  string account = 1;
+}
+
+// QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
+message QueryOffersToBuyOfDymNamesOwnedByAccountResponse {
+  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+}

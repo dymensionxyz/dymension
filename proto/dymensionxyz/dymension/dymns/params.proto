@@ -1,0 +1,190 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// Params defines the parameters for the module.
+message Params {
+  // Price of Dym-Name and related parameters.
+  PriceParams price = 1 [
+    (gogoproto.moretags) = "yaml:\"price\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Chains related parameters.
+  ChainsParams chains = 2 [
+    (gogoproto.moretags) = "yaml:\"chains\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Misc parameters.
+  MiscParams misc = 3 [
+    (gogoproto.moretags) = "yaml:\"misc\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Preserved registration parameters.
+  PreservedRegistrationParams preserved_registration = 4 [
+    (gogoproto.moretags) = "yaml:\"preserved_registration\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message PriceParams {
+  // Price of 1 letter Dym-Name, apply to first year
+  string price_1_letter = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_1_letter\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 2 letters Dym-Name, apply to first year
+  string price_2_letters = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_2_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 3 letters Dym-Name, apply to first year
+  string price_3_letters = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_3_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 4 letters Dym-Name, apply to first year
+  string price_4_letters = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_4_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 5+ letters Dym-Name, apply to first year
+  string price_5plus_letters = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_5plus_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price extends yearly, after first year
+  string price_extends = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"price_extends\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Denom of the price setup
+  string price_denom = 7 [
+    (gogoproto.moretags) = "yaml:\"price_denom\""
+  ];
+
+  // Minimum price of an offer.
+  // Mostly used to prevent spamming and abusing store with low price offers,
+  // so the value should not be so low.
+  string min_offer_price = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"min_offer_price\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message ChainsParams {
+  // Chain-IDs and their aliases, used for UX improvement, used in front-end.
+  repeated AliasesOfChainId aliases_of_chain_ids = 1 [
+    (gogoproto.moretags) = "yaml:\"aliases_of_chain_ids\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Chain-IDs that are using coin-type 60. Used to ensure address conversion.
+  repeated string coin_type_60_chain_ids = 2 [
+    (gogoproto.customname) = "CoinType60ChainIds",
+    (gogoproto.moretags) = "yaml:\"coin_type_60_chain_ids\""
+  ];
+}
+
+// AliasesOfChainId defines the multiple-aliases of a chain id.
+message AliasesOfChainId {
+  // Chain-ID which owned the aliases.
+  string chain_id = 1 [
+    (gogoproto.moretags) = "yaml:\"chain_id\""
+  ];
+
+  // Multiple aliases of the chain id for UX improvement, used in front-end.
+  repeated string aliases = 2 [
+    (gogoproto.moretags) = "yaml:\"aliases\""
+  ];
+}
+
+message MiscParams {
+  // Identifier of the begin epoch hook.
+  string begin_epoch_hook_identifier = 1 [
+    (gogoproto.moretags) = "yaml:\"begin_epoch_hook_identifier\""
+  ];
+
+  // Identifier of the end epoch hook.
+  string end_epoch_hook_identifier = 2 [
+    (gogoproto.moretags) = "yaml:\"end_epoch_hook_identifier\""
+  ];
+
+  // Amount of time that the former owner of an expired Dym-Name can renew it before completely lost.
+  google.protobuf.Duration grace_period_duration = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"grace_period_duration\""
+  ];
+
+  // Amount of time of a Sell-Order from created to expired.
+  google.protobuf.Duration sell_order_duration = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"sell_order_duration\""
+  ];
+
+  // Amount of time to keep history version of closed SO before it is deleted,
+  // based on expiry date and block time.
+  google.protobuf.Duration preserved_closed_sell_order_duration = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"preserved_closed_sell_order_duration\""
+  ];
+
+  // Amount of time, if the SO expiry date enter the range before expiry of Dym-Name, the SO can not be placed.
+  // This help reduce the risk of new owner of Dym-Name not able to renew it on time.
+  google.protobuf.Duration prohibit_sell_duration = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.moretags) = "yaml:\"prohibit_sell_duration\""
+  ];
+}
+
+// PreservedRegistrationParams contains list of preserved registration Dym-Names,
+// allow to be registered by specific account within a short period of time.
+message PreservedRegistrationParams {
+  // expiration_epoch is the epoch that the preserved registration will be expired.
+  int64 expiration_epoch = 1 [
+    (gogoproto.moretags) = "yaml:\"expiration_epoch\""
+  ];
+
+  // preserved_dym_names is the list of preserved dym-names.
+  // This list will be cleared after the expiration epoch to save space.
+  repeated PreservedDymName preserved_dym_names = 2 [
+    (gogoproto.moretags) = "yaml:\"preserved_dym_names\"",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message PreservedDymName {
+  // dym_name is the preserved dym-name.
+  string dym_name = 1 [
+    (gogoproto.moretags) = "yaml:\"dym_name\""
+  ];
+
+  // whitelisted_address is the only address that can register the preserved dym-name.
+  string whitelisted_address = 2 [
+    (gogoproto.moretags) = "yaml:\"whitelisted_address\""
+  ];
+}
