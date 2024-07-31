@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -42,6 +43,9 @@ func NewAcceptOfferToBuyDymNameTxCmd() *cobra.Command {
 			amount, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil || amount < 1 {
 				return fmt.Errorf("amount must be a positive number")
+			}
+			if amount > math.MaxInt64 {
+				return fmt.Errorf("invalid amount")
 			}
 
 			denom := args[2]
