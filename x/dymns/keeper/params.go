@@ -85,13 +85,13 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 	params := k.GetParams(ctx)
 
 	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
-		if aliasesOfChainId.ChainId == aliasCandidate {
+		if aliasCandidate == aliasesOfChainId.ChainId {
 			can = false
 			return
 		}
 
 		for _, alias := range aliasesOfChainId.Aliases {
-			if alias == alias {
+			if aliasCandidate == alias {
 				can = false
 				return
 			}
@@ -99,7 +99,7 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 	}
 
 	for _, chainId := range params.Chains.CoinType60ChainIds {
-		if chainId == aliasCandidate {
+		if aliasCandidate == chainId {
 			can = false
 			return
 		}
