@@ -37,6 +37,13 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	// in case we are slashing an unbonding sequencer, we need to remove it from the unbonding queue
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
+	} else {
+		// in case the sequences is currently reducing its bond, then we need to remove it from the decreasing bond queue
+		// all the tokens are burned, so we don't need to reduce the bond anymore
+		bondReduce, isDecreasingBond := k.getSequencerDecreasingBond(ctx, seq.SequencerAddress)
+		if isDecreasingBond {
+			k.removeDecreasingBondQueue(ctx, bondReduce)
+		}
 	}
 
 	// set the status to unbonded
