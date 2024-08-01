@@ -105,14 +105,6 @@ func DefaultChainsParams() ChainsParams {
 				Aliases: []string{"evmos"},
 			},
 			{
-				ChainId: "nim_1122-1",
-				Aliases: []string{"nim"},
-			},
-			{
-				ChainId: "mande_18071918-1",
-				Aliases: []string{"mande"},
-			},
-			{
 				ChainId: "dymension_100-1",
 				Aliases: []string{"test"},
 			},
