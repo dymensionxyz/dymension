@@ -11,21 +11,10 @@ import (
 func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBond) (*types.MsgDecreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// Get the sequencer from the store
-	sequencer, found := k.GetSequencer(ctx, msg.Creator)
-	if !found {
-		return nil, types.ErrUnknownSequencer
+	sequencer, err := k.bondUpdateAllowed(ctx, msg.GetCreator())
+	if err != nil {
+		return nil, err
 	}
-
-	// Check if the sequencer is currently bonded
-	if !sequencer.IsBonded() {
-		return nil, types.ErrInvalidSequencerStatus
-	}
-
-	// // check if sequencer is currently jailed
-	// if sequencer.Jailed {
-	// 	return nil, types.ErrSequencerJailed
-	// }
 
 	// Check if the bond reduction will make the sequencer's bond less than the minimum bond value
 	minBondValue := k.GetParams(ctx).MinBond

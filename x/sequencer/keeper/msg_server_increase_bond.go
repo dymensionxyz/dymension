@@ -11,7 +11,7 @@ import (
 func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBond) (*types.MsgIncreaseBondResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sequencer, err := k.bondUpdateAllowed(ctx, msg)
+	sequencer, err := k.bondUpdateAllowed(ctx, msg.GetCreator())
 	if err != nil {
 		return nil, err
 	}
@@ -39,9 +39,9 @@ func (k msgServer) IncreaseBond(goCtx context.Context, msg *types.MsgIncreaseBon
 	return &types.MsgIncreaseBondResponse{}, err
 }
 
-func (k msgServer) bondUpdateAllowed(ctx sdk.Context, msg *types.MsgIncreaseBond) (types.Sequencer, error) {
+func (k msgServer) bondUpdateAllowed(ctx sdk.Context, senderAddress string) (types.Sequencer, error) {
 	// check if the sequencer already exists
-	sequencer, found := k.GetSequencer(ctx, msg.Creator)
+	sequencer, found := k.GetSequencer(ctx, senderAddress)
 	if !found {
 		return types.Sequencer{}, types.ErrUnknownSequencer
 	}
