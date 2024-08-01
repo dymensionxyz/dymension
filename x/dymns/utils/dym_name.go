@@ -33,24 +33,6 @@ func IsValidDymName(dymName string) bool {
 		}
 	}
 
-	/*
-		// The following checks are not necessary for the current implementation because
-		// the length is limited to 20 characters, so I just leave the code here for future if something changed.
-		// Because there is a feature that support switching bech32 prefix, which support the following patterns:
-		// - 0x1234...6789@nim => nim1...
-		// - dym1...@nim => nim1...
-		// So Dym-Name can not be hex or bech32 address
-		if regexp.MustCompile(`^0x[a-f\d]+$`).MatchString(dymName) {
-			if len(dymName) > 20 {
-				return false
-			}
-		}
-
-		if _, _, err := bech32.DecodeAndConvert(dymName); err == nil {
-			return false
-		}
-	*/
-
 	return true
 }
 
