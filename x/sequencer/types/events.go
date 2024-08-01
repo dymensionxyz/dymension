@@ -26,4 +26,6 @@ const (
 	EventTypeSlashed = "slashed"
 	// EventTypeJailed is emitted when a sequencer is jailed
 	EventTypeJailed = "jailed"
+	// EventTypeBondIncreased is emitted when a sequencer's bond is increased
+	EventTypeBondIncreased = "bond_increased"
 )
