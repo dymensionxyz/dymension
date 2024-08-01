@@ -25,7 +25,7 @@ func CmdCreateRollapp() *cobra.Command {
 				argInitSequencerAddress = args[3]
 			}
 			if len(args) > 4 {
-				genesisChecksum = args[5]
+				genesisChecksum = args[4]
 			}
 
 			metadata := new(types.RollappMetadata)

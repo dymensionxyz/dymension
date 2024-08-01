@@ -144,16 +144,17 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		ChannelId:        oldRollapp.ChannelId,
 		Frozen:           oldRollapp.Frozen,
 		RegisteredDenoms: oldRollapp.RegisteredDenoms,
-		Bech32Prefix:     bech32Prefix,                                        // placeholder data
-		GenesisChecksum:  string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-		Alias:            alias,                                               // placeholder data
+		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
+		Bech32Prefix:    bech32Prefix,                                        // placeholder data
+		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
+		Alias:           alias,                                               // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
-			Website:          "", // TODO
-			Description:      "", // TODO
-			LogoDataUri:      "", // TODO
-			TokenLogoDataUri: "", // TODO
-			Telegram:         "", // TODO
-			X:                "", // TODO
+			Website:          "",
+			Description:      "",
+			LogoDataUri:      "",
+			TokenLogoDataUri: "",
+			Telegram:         "",
+			X:                "",
 		},
 	}
 }
@@ -169,21 +170,22 @@ func ConvertOldSequencerToNew(old sequencertypes.Sequencer) sequencertypes.Seque
 		Proposer:     old.Proposer,
 		Tokens:       old.Tokens,
 		Metadata: sequencertypes.SequencerMetadata{
-			Moniker:     old.Metadata.Moniker,
-			Details:     old.Metadata.Details,
-			P2PSeeds:    nil,        // TODO
-			Rpcs:        nil,        // TODO
-			EvmRpcs:     nil,        // TODO
-			RestApiUrls: []string{}, // TODO
-			ExplorerUrl: "",         // TODO
-			GenesisUrls: []string{}, // TODO
+			Moniker: old.Metadata.Moniker,
+			Details: old.Metadata.Details,
+			// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/987
+			P2PSeeds:    nil,
+			Rpcs:        nil,
+			EvmRpcs:     nil,
+			RestApiUrls: []string{},
+			ExplorerUrl: "",
+			GenesisUrls: []string{},
 			ContactDetails: &sequencertypes.ContactDetails{
-				Website:  "", // TODO
-				Telegram: "", // TODO
-				X:        "", // TODO
+				Website:  "",
+				Telegram: "",
+				X:        "",
 			},
-			ExtraData: nil,                              // TODO
-			Snapshots: []*sequencertypes.SnapshotInfo{}, // TODO
+			ExtraData: nil,
+			Snapshots: []*sequencertypes.SnapshotInfo{},
 			GasPrice:  &defaultGasPrice,
 		},
 	}
