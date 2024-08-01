@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -20,11 +21,18 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	// create 5 sequencers for rollapp1
 	seqAddrs := make([]string, numOfSequencers)
 	for i := 0; i < numOfSequencers; i++ {
-		seqAddrs[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)))
 	}
 	proposer := seqAddrs[0]
 
-	err := keeper.RollappHooks().FraudSubmitted(suite.Ctx, rollappId, 0, proposer)
+	// queue the third sequencer to reduce bond
+	unbondMsg := types.MsgDecreaseBond{Creator: seqAddrs[2], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
+	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &unbondMsg)
+	suite.Require().NoError(err)
+	bds := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bds, 1)
+
+	err = keeper.RollappHooks().FraudSubmitted(suite.Ctx, rollappId, 0, proposer)
 	suite.Require().NoError(err)
 
 	// check if proposer is slashed
@@ -40,4 +48,8 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 		suite.Require().False(sequencer.Proposer)
 		suite.Require().Equal(sequencer.Status, types.Unbonded)
 	}
+
+	// check if bond reduction queue is pruned
+	bds = keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())
+	suite.Require().Len(bds, 0)
 }
