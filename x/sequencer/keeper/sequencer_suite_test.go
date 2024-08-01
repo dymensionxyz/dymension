@@ -79,6 +79,6 @@ func (suite *SequencerTestSuite) CreateSequencerWithBond(ctx sdk.Context, rollap
 		Metadata:     types.SequencerMetadata{},
 	}
 	_, err = suite.msgServer.CreateSequencer(ctx, &sequencerMsg1)
-	suite.Require().Nil(err)
+	suite.Require().NoError(err)
 	return addr.String()
 }
