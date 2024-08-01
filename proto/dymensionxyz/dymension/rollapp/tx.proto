@@ -26,17 +26,18 @@ message MsgCreateRollapp {
   // rollappId is the unique identifier of the rollapp chain.
   // The rollapp_id follows the same standard as cosmos chain_id
   string rollapp_id = 2;
+  reserved 3 to 10;
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially serve this rollappId.
-  string initial_sequencer_address = 3;
+  string initial_sequencer_address = 11;
   // the unique rollapp address bech32 prefix.
-  string bech32_prefix = 4;
+  string bech32_prefix = 12;
   // alias is the chain alias used for display and namespace system
-  string alias = 5;
+  string alias = 13;
   // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 6;
+  string genesis_checksum = 14;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 7;
+  RollappMetadata metadata = 15;
 }
 
 message MsgCreateRollappResponse {
@@ -78,9 +79,11 @@ message MsgUpdateState {
   uint64 numBlocks = 4;
   // DAPath is the description of the location on the DA layer
   string DAPath = 5;
+
+  reserved 6;
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
-  BlockDescriptors BDs = 6 [(gogoproto.nullable) = false];
+  BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
 }
 
 message MsgUpdateStateResponse {

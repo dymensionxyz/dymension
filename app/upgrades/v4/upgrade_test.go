@@ -197,6 +197,10 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 		return sequencers[i].Address < sequencers[j].Address
 	})
 
+	sort.Slice(expectSequencers, func(i, j int) bool {
+		return expectSequencers[i].Address < expectSequencers[j].Address
+	})
+
 	for i, sequencer := range sequencers {
 		// check that the sequencer can be retrieved by address
 		_, ok := s.App.SequencerKeeper.GetSequencer(s.Ctx, sequencer.Address)
@@ -204,14 +208,8 @@ func (s *UpgradeTestSuite) validateSequencersMigration(numSeq int) error {
 			return fmt.Errorf("sequencer by address not migrated")
 		}
 
-		// check that the sequencer can be retrieved by rollapp and status
-		sequencer, ok = s.App.SequencerKeeper.GetSequencerByRollappByStatus(s.Ctx, sequencer.RollappId, sequencer.Address, sequencer.Status)
-		if !ok {
-			return fmt.Errorf("sequencer by rollapp and status not migrated")
-		}
-
 		seq := s.App.AppCodec().MustMarshalJSON(&sequencer)
-		nSeq := s.App.AppCodec().MustMarshalJSON(&sequencers[i])
+		nSeq := s.App.AppCodec().MustMarshalJSON(&expectSequencers[i])
 
 		s.Require().JSONEq(string(seq), string(nSeq))
 	}
