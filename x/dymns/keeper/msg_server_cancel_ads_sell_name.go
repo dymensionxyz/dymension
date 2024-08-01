@@ -17,9 +17,9 @@ func (k msgServer) CancelAdsSellName(goCtx context.Context, msg *dymnstypes.MsgC
 
 	k.DeleteSellOrder(ctx, msg.Name)
 
-	apoe := k.GetActiveSellOrdersExpiration(ctx)
-	apoe.Remove(msg.Name)
-	if err := k.SetActiveSellOrdersExpiration(ctx, apoe); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx)
+	aSoe.Remove(msg.Name)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
 		return nil, err
 	}
 

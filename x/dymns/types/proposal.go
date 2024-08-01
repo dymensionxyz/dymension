@@ -2,7 +2,7 @@ package types
 
 import (
 	govcdc "github.com/cosmos/cosmos-sdk/x/gov/codec"
-	v1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // constants

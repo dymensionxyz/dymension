@@ -155,13 +155,13 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 
-	aope := dk.GetActiveSellOrdersExpiration(ctx)
+	aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 	nowEpochUTC := ctx.BlockTime().Unix()
 	var finishedSOs []dymnstypes.SellOrder
-	if len(aope.Records) > 0 {
+	if len(aSoe.Records) > 0 {
 		invalidRecordsToRemove := make([]string, 0)
 
-		for i, record := range aope.Records {
+		for i, record := range aSoe.Records {
 			if record.ExpireAt > nowEpochUTC {
 				// skip not expired ones
 				continue
@@ -183,7 +183,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 					"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 				)
 
-				aope.Records[i].ExpireAt = so.ExpireAt // correct it
+				aSoe.Records[i].ExpireAt = so.ExpireAt // correct it
 				continue
 			}
 
@@ -191,7 +191,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 		}
 
 		for _, name := range invalidRecordsToRemove {
-			aope.Remove(name)
+			aSoe.Remove(name)
 		}
 	}
 
@@ -210,7 +210,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 	)
 
 	for _, so := range finishedSOs {
-		aope.Remove(so.Name)
+		aSoe.Remove(so.Name)
 
 		if so.HighestBid != nil {
 			if err := dk.CompleteSellOrder(ctx, so.Name); err != nil {
@@ -238,7 +238,7 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 		}
 	}
 
-	if err := dk.SetActiveSellOrdersExpiration(ctx, aope); err != nil {
+	if err := dk.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
 		dk.Logger(ctx).Error(
 			"DymNS hook After-Epoch-End: failed to update active SO expiry",
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,

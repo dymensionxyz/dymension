@@ -20,27 +20,27 @@ func (k Keeper) SetParams(ctx sdk.Context, params dymnstypes.Params) error {
 	if err := params.Validate(); err != nil {
 		return err
 	}
-	k.paramstore.SetParamSet(ctx, &params)
+	k.paramStore.SetParamSet(ctx, &params)
 	return nil
 }
 
 func (k Keeper) PriceParams(ctx sdk.Context) (res dymnstypes.PriceParams) {
-	k.paramstore.Get(ctx, dymnstypes.KeyPriceParams, &res)
+	k.paramStore.Get(ctx, dymnstypes.KeyPriceParams, &res)
 	return
 }
 
 func (k Keeper) ChainsParams(ctx sdk.Context) (res dymnstypes.ChainsParams) {
-	k.paramstore.Get(ctx, dymnstypes.KeyChainsParams, &res)
+	k.paramStore.Get(ctx, dymnstypes.KeyChainsParams, &res)
 	return
 }
 
 func (k Keeper) MiscParams(ctx sdk.Context) (res dymnstypes.MiscParams) {
-	k.paramstore.Get(ctx, dymnstypes.KeyMiscParams, &res)
+	k.paramStore.Get(ctx, dymnstypes.KeyMiscParams, &res)
 	return
 }
 
 func (k Keeper) PreservedRegistrationParams(ctx sdk.Context) (res dymnstypes.PreservedRegistrationParams) {
-	k.paramstore.Get(ctx, dymnstypes.KeyPreservedRegistrationParams, &res)
+	k.paramStore.Get(ctx, dymnstypes.KeyPreservedRegistrationParams, &res)
 	return
 }
 

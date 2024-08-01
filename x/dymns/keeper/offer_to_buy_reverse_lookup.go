@@ -8,7 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
-// AddReverseMappingBuyerToOfferToBuyRecord stores a reverse mapping from buyer to Offer-To-Buy Id into the KVStore.
+// AddReverseMappingBuyerToOfferToBuyRecord stores a reverse mapping from buyer to Offer-To-Buy-Id into the KVStore.
 func (k Keeper) AddReverseMappingBuyerToOfferToBuyRecord(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
@@ -54,7 +54,7 @@ func (k Keeper) GetOfferToBuyByBuyer(
 	return offers, nil
 }
 
-// RemoveReverseMappingBuyerToOfferToBuy removes a reverse mapping from buyer to Offer-To-Buy Id from the KVStore.
+// RemoveReverseMappingBuyerToOfferToBuy removes a reverse mapping from buyer to Offer-To-Buy-Id from the KVStore.
 func (k Keeper) RemoveReverseMappingBuyerToOfferToBuy(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {

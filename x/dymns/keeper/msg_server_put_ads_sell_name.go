@@ -36,9 +36,9 @@ func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutA
 		return nil, err
 	}
 
-	apoe := k.GetActiveSellOrdersExpiration(ctx)
-	apoe.Add(so.Name, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, apoe); err != nil {
+	aSoe := k.GetActiveSellOrdersExpiration(ctx)
+	aSoe.Add(so.Name, so.ExpireAt)
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
 		return nil, err
 	}
 
