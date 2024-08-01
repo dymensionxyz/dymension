@@ -191,7 +191,7 @@ func (suite *RollappTestSuite) TestUpdateStateUnknownRollappId() {
 	suite.EqualError(err, types.ErrUnknownRollappID.Error())
 }
 
-// FIXME: need to add sequncer to rollapp to test this scenario
+// FIXME: need to add sequencer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
@@ -220,7 +220,7 @@ func (suite *RollappTestSuite) TestUpdateStateVersionMismatch() {
 	suite.ErrorIs(err, types.ErrVersionMismatch)
 }
 
-// FIXME: need to add sequncer to rollapp to test this scenario
+// FIXME: need to add sequencer to rollapp to test this scenario
 func (suite *RollappTestSuite) TestUpdateStateUnknownSequencer() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)

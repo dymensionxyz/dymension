@@ -187,7 +187,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			// verify that query all contains all the sequencers that were created
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
-			// add the sequencer to the list of spesific rollapp
+			// add the sequencer to the list of specific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
 		}
 	}
@@ -327,7 +327,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 
 	rollappId := rollapp.GetRollappId()
 
-	// TODO: cahnge with common func
+	// TODO: change with common func
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
