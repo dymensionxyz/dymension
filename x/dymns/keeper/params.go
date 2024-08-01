@@ -3,6 +3,8 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // GetParams get all parameters as types.Params
@@ -62,4 +64,59 @@ func (k Keeper) CheckChainIsCoinType60ByChainId(ctx sdk.Context, chainId string)
 	}
 
 	return false
+}
+
+// CanUseAliasForNewRegistration checks if the alias can be used for a new alias registration.
+//
+// It returns False when
+//   - The format is invalid.
+//   - The alias is exists in the params, mapped by a chain-id or registered to a Roll-App.
+//   - The alias is equals to a known chain-id, from the params.
+func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate string) (can bool, err error) {
+	// TODO DymNS: write tests for this function
+
+	// TODO DymNS: use this in RollApp registration
+
+	if !dymnsutils.IsValidAlias(aliasCandidate) {
+		err = gerrc.ErrInvalidArgument.Wrap("alias candidate")
+		return
+	}
+
+	params := k.GetParams(ctx)
+
+	for _, aliasesOfChainId := range params.Chains.AliasesOfChainIds {
+		if aliasesOfChainId.ChainId == aliasCandidate {
+			can = false
+			return
+		}
+
+		for _, alias := range aliasesOfChainId.Aliases {
+			if alias == alias {
+				can = false
+				return
+			}
+		}
+	}
+
+	for _, chainId := range params.Chains.CoinType60ChainIds {
+		if chainId == aliasCandidate {
+			can = false
+			return
+		}
+	}
+
+	if isRollAppId := k.IsRollAppId(ctx, aliasCandidate); isRollAppId {
+		can = false
+		return
+	}
+
+	// TODO DymNS: check directly in params after implementing the feature
+	_, found := k.GetRollAppIdByAlias(ctx, aliasCandidate)
+	if found {
+		can = false
+		return
+	}
+
+	can = true
+	return
 }
