@@ -129,7 +129,7 @@ func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string) *dym
 		return nil
 	}
 
-	if dymName.IsExpiredAtContext(ctx) {
+	if dymName.IsExpiredAtCtx(ctx) {
 		return nil
 	}
 
@@ -164,7 +164,7 @@ func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.Dym
 		var dymName dymnstypes.DymName
 		k.cdc.MustUnmarshal(iterator.Value(), &dymName)
 
-		if dymName.IsExpiredAtContext(ctx) {
+		if dymName.IsExpiredAtCtx(ctx) {
 			continue
 		}
 

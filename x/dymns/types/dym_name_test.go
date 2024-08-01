@@ -513,18 +513,10 @@ func TestDymName_IsExpiredAt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := sdk.Context{}.WithBlockTime(tt.contextTime)
 			require.Equal(t, tt.wantExpired, DymName{
 				ExpireAt: now.Unix(),
-			}.IsExpiredAtContext(sdk.Context{}.WithBlockTime(tt.contextTime)))
-			require.Equal(t, tt.wantExpired, DymName{
-				ExpireAt: now.Unix(),
-			}.IsExpiredAtEpoch(tt.contextTime.Unix()))
-			require.Equal(t, tt.wantExpired, DymName{
-				ExpireAt: now.Unix(),
-			}.IsExpiredAtEpoch(tt.contextTime.UTC().Unix()))
-			require.Equal(t, tt.wantExpired, DymName{
-				ExpireAt: now.UTC().Unix(),
-			}.IsExpiredAtEpoch(tt.contextTime.Unix()))
+			}.IsExpiredAtCtx(ctx))
 		})
 	}
 }

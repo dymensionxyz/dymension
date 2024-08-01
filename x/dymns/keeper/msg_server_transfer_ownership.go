@@ -37,7 +37,7 @@ func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.Ms
 		return nil, sdkerrors.ErrUnauthorized
 	}
 
-	if dymName.IsExpiredAtContext(ctx) {
+	if dymName.IsExpiredAtCtx(ctx) {
 		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
 	}
 

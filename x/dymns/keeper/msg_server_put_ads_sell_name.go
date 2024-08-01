@@ -61,7 +61,7 @@ func (k msgServer) validatePutAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgPu
 		return nil, nil, sdkerrors.ErrUnauthorized
 	}
 
-	if dymName.IsExpiredAtContext(ctx) {
+	if dymName.IsExpiredAtCtx(ctx) {
 		return nil, nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
 	}
 

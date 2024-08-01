@@ -60,7 +60,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 			),
 		)
 	} else if dymName.Owner == msg.Owner {
-		if dymName.IsExpiredAtContext(ctx) {
+		if dymName.IsExpiredAtCtx(ctx) {
 			// renew
 			pruneAnyHistoricalData = true
 
@@ -172,7 +172,7 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 		if dymName.Owner == msg.Owner {
 			// just renew or extends
 		} else {
-			if !dymName.IsExpiredAtContext(ctx) {
+			if !dymName.IsExpiredAtCtx(ctx) {
 				return nil, nil, sdkerrors.ErrUnauthorized
 			}
 

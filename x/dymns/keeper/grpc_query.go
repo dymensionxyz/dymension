@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -147,7 +148,7 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 
 	if existingDymNameRecord != nil && existingDymNameRecord.Owner != req.Owner {
 		// check take-over permission
-		if !existingDymNameRecord.IsExpiredAtContext(ctx) {
+		if !existingDymNameRecord.IsExpiredAtCtx(ctx) {
 			return nil, status.Errorf(
 				codes.PermissionDenied,
 				"you are not the owner of '%s'", req.Name,

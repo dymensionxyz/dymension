@@ -66,7 +66,7 @@ func (k msgServer) validateUpdateDetails(ctx sdk.Context, msg *dymnstypes.MsgUpd
 		return nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
 	}
 
-	if dymName.IsExpiredAtContext(ctx) {
+	if dymName.IsExpiredAtCtx(ctx) {
 		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
 	}
 

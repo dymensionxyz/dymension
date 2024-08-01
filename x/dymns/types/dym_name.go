@@ -104,12 +104,8 @@ func (m *ReverseLookupDymNames) Validate() error {
 	return nil
 }
 
-func (m DymName) IsExpiredAtContext(ctx sdk.Context) bool {
-	return m.IsExpiredAtEpoch(ctx.BlockTime().Unix())
-}
-
-func (m DymName) IsExpiredAtEpoch(epochUTC int64) bool {
-	return m.ExpireAt < epochUTC
+func (m DymName) IsExpiredAtCtx(ctx sdk.Context) bool {
+	return m.ExpireAt < ctx.BlockTime().Unix()
 }
 
 func (m DymName) IsProhibitedTradingAt(anchor time.Time, prohibitSellDuration time.Duration) bool {
