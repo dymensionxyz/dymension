@@ -489,6 +489,194 @@ func (m *QueryGetSequencersByRollappByStatusResponse) GetSequencers() []Sequence
 	return nil
 }
 
+// Request type for the GetProposerByRollapp RPC method.
+type QueryGetProposerByRollappRequest struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *QueryGetProposerByRollappRequest) Reset()         { *m = QueryGetProposerByRollappRequest{} }
+func (m *QueryGetProposerByRollappRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetProposerByRollappRequest) ProtoMessage()    {}
+func (*QueryGetProposerByRollappRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c6af1252721903a2, []int{10}
+}
+func (m *QueryGetProposerByRollappRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetProposerByRollappRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetProposerByRollappRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetProposerByRollappRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetProposerByRollappRequest.Merge(m, src)
+}
+func (m *QueryGetProposerByRollappRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetProposerByRollappRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetProposerByRollappRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetProposerByRollappRequest proto.InternalMessageInfo
+
+func (m *QueryGetProposerByRollappRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+// Response type for the GetProposerByRollapp RPC method.
+type QueryGetProposerByRollappResponse struct {
+	ProposerAddr string `protobuf:"bytes,1,opt,name=proposerAddr,proto3" json:"proposerAddr,omitempty"`
+}
+
+func (m *QueryGetProposerByRollappResponse) Reset()         { *m = QueryGetProposerByRollappResponse{} }
+func (m *QueryGetProposerByRollappResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetProposerByRollappResponse) ProtoMessage()    {}
+func (*QueryGetProposerByRollappResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c6af1252721903a2, []int{11}
+}
+func (m *QueryGetProposerByRollappResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetProposerByRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetProposerByRollappResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetProposerByRollappResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetProposerByRollappResponse.Merge(m, src)
+}
+func (m *QueryGetProposerByRollappResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetProposerByRollappResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetProposerByRollappResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetProposerByRollappResponse proto.InternalMessageInfo
+
+func (m *QueryGetProposerByRollappResponse) GetProposerAddr() string {
+	if m != nil {
+		return m.ProposerAddr
+	}
+	return ""
+}
+
+// Request type for the GetNextProposerByRollapp RPC method.
+type QueryGetNextProposerByRollappRequest struct {
+	RollappId string `protobuf:"bytes,1,opt,name=rollappId,proto3" json:"rollappId,omitempty"`
+}
+
+func (m *QueryGetNextProposerByRollappRequest) Reset()         { *m = QueryGetNextProposerByRollappRequest{} }
+func (m *QueryGetNextProposerByRollappRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGetNextProposerByRollappRequest) ProtoMessage()    {}
+func (*QueryGetNextProposerByRollappRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c6af1252721903a2, []int{12}
+}
+func (m *QueryGetNextProposerByRollappRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetNextProposerByRollappRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetNextProposerByRollappRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetNextProposerByRollappRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetNextProposerByRollappRequest.Merge(m, src)
+}
+func (m *QueryGetNextProposerByRollappRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetNextProposerByRollappRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetNextProposerByRollappRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetNextProposerByRollappRequest proto.InternalMessageInfo
+
+func (m *QueryGetNextProposerByRollappRequest) GetRollappId() string {
+	if m != nil {
+		return m.RollappId
+	}
+	return ""
+}
+
+// Response type for the GetNextProposerByRollapp RPC method.
+type QueryGetNextProposerByRollappResponse struct {
+	NextProposerAddr   string `protobuf:"bytes,1,opt,name=nextProposerAddr,proto3" json:"nextProposerAddr,omitempty"`
+	RotationInProgress bool   `protobuf:"varint,2,opt,name=rotationInProgress,proto3" json:"rotationInProgress,omitempty"`
+}
+
+func (m *QueryGetNextProposerByRollappResponse) Reset()         { *m = QueryGetNextProposerByRollappResponse{} }
+func (m *QueryGetNextProposerByRollappResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGetNextProposerByRollappResponse) ProtoMessage()    {}
+func (*QueryGetNextProposerByRollappResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c6af1252721903a2, []int{13}
+}
+func (m *QueryGetNextProposerByRollappResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGetNextProposerByRollappResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGetNextProposerByRollappResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGetNextProposerByRollappResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGetNextProposerByRollappResponse.Merge(m, src)
+}
+func (m *QueryGetNextProposerByRollappResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGetNextProposerByRollappResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGetNextProposerByRollappResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGetNextProposerByRollappResponse proto.InternalMessageInfo
+
+func (m *QueryGetNextProposerByRollappResponse) GetNextProposerAddr() string {
+	if m != nil {
+		return m.NextProposerAddr
+	}
+	return ""
+}
+
+func (m *QueryGetNextProposerByRollappResponse) GetRotationInProgress() bool {
+	if m != nil {
+		return m.RotationInProgress
+	}
+	return false
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "dymensionxyz.dymension.sequencer.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "dymensionxyz.dymension.sequencer.QueryParamsResponse")
@@ -500,6 +688,10 @@ func init() {
 	proto.RegisterType((*QueryGetSequencersByRollappResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappResponse")
 	proto.RegisterType((*QueryGetSequencersByRollappByStatusRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappByStatusRequest")
 	proto.RegisterType((*QueryGetSequencersByRollappByStatusResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetSequencersByRollappByStatusResponse")
+	proto.RegisterType((*QueryGetProposerByRollappRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetProposerByRollappRequest")
+	proto.RegisterType((*QueryGetProposerByRollappResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetProposerByRollappResponse")
+	proto.RegisterType((*QueryGetNextProposerByRollappRequest)(nil), "dymensionxyz.dymension.sequencer.QueryGetNextProposerByRollappRequest")
+	proto.RegisterType((*QueryGetNextProposerByRollappResponse)(nil), "dymensionxyz.dymension.sequencer.QueryGetNextProposerByRollappResponse")
 }
 
 func init() {
@@ -507,51 +699,60 @@ func init() {
 }
 
 var fileDescriptor_c6af1252721903a2 = []byte{
-	// 695 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4d, 0x4f, 0x13, 0x4f,
-	0x18, 0xef, 0xf0, 0xff, 0xdb, 0xd8, 0xc7, 0xc4, 0x98, 0x81, 0x28, 0xae, 0xa4, 0x92, 0x35, 0x51,
-	0x52, 0x64, 0x87, 0x17, 0xdf, 0x4d, 0x8c, 0x56, 0x29, 0x21, 0xa2, 0x40, 0xf1, 0x64, 0x62, 0x70,
-	0x4a, 0x27, 0xeb, 0x26, 0xed, 0xce, 0xb2, 0xb3, 0x25, 0xac, 0x84, 0xc4, 0xf8, 0x09, 0x48, 0x8c,
-	0x9f, 0xc1, 0x4f, 0xa0, 0x47, 0xcf, 0x1c, 0x3c, 0x90, 0x78, 0xf1, 0x64, 0x0c, 0x78, 0xf7, 0x2b,
-	0x98, 0xce, 0x4c, 0xb7, 0x85, 0x45, 0x76, 0x29, 0x70, 0xeb, 0x0e, 0xcf, 0xf3, 0x7b, 0x9b, 0x79,
-	0x9e, 0x00, 0xd7, 0xab, 0x61, 0x9d, 0xb9, 0xc2, 0xe1, 0xee, 0x6a, 0xf8, 0x96, 0x44, 0x1f, 0x44,
-	0xb0, 0xe5, 0x06, 0x73, 0x97, 0x98, 0x4f, 0x96, 0x1b, 0xcc, 0x0f, 0x2d, 0xcf, 0xe7, 0x01, 0xc7,
-	0x83, 0x9d, 0xd5, 0x56, 0xf4, 0x61, 0x45, 0xd5, 0x46, 0x9f, 0xcd, 0x6d, 0x2e, 0x8b, 0x49, 0xf3,
-	0x97, 0xea, 0x33, 0x06, 0x6c, 0xce, 0xed, 0x1a, 0x23, 0xd4, 0x73, 0x08, 0x75, 0x5d, 0x1e, 0xd0,
-	0xc0, 0xe1, 0xae, 0xd0, 0x7f, 0x2d, 0x2c, 0x71, 0x51, 0xe7, 0x82, 0x54, 0xa8, 0x60, 0x8a, 0x8e,
-	0xac, 0x8c, 0x55, 0x58, 0x40, 0xc7, 0x88, 0x47, 0x6d, 0xc7, 0x95, 0xc5, 0xba, 0x76, 0x24, 0x51,
-	0xaf, 0x47, 0x7d, 0x5a, 0x6f, 0x41, 0x8f, 0x26, 0x96, 0x47, 0xbf, 0x74, 0xc7, 0xed, 0xc4, 0x0e,
-	0xee, 0x31, 0x9f, 0x06, 0x8e, 0x6b, 0x2f, 0x8a, 0x80, 0x06, 0x0d, 0x4d, 0x65, 0xf6, 0x01, 0x9e,
-	0x6f, 0x6a, 0x9f, 0x93, 0xfc, 0xe5, 0x66, 0xb9, 0x08, 0xcc, 0x57, 0xd0, 0xbb, 0xeb, 0x54, 0x78,
-	0xdc, 0x15, 0x0c, 0x97, 0x20, 0xab, 0x74, 0xf6, 0xa3, 0x41, 0x34, 0x74, 0x66, 0x7c, 0xc8, 0x4a,
-	0x4a, 0xd6, 0x52, 0x08, 0xc5, 0xff, 0x37, 0x7f, 0x5e, 0xce, 0x94, 0x75, 0xb7, 0x59, 0x82, 0x7e,
-	0x09, 0x3f, 0xc5, 0x82, 0x85, 0x56, 0xa5, 0xa6, 0xc6, 0x05, 0x38, 0x17, 0x75, 0x3f, 0xaa, 0x56,
-	0x7d, 0x26, 0x14, 0x5b, 0xae, 0x1c, 0x3b, 0x37, 0x6b, 0x70, 0x71, 0x1f, 0x1c, 0x2d, 0x76, 0x16,
-	0x72, 0x51, 0x83, 0xd6, 0x3b, 0x9c, 0xac, 0x37, 0xc2, 0xd1, 0x92, 0xdb, 0x18, 0xe6, 0x6b, 0x38,
-	0x2f, 0xd9, 0xa2, 0x92, 0x56, 0x5c, 0xb8, 0x04, 0xd0, 0xbe, 0x72, 0xcd, 0x75, 0xd5, 0x52, 0xef,
-	0xc3, 0x6a, 0xbe, 0x0f, 0x4b, 0x3d, 0x47, 0xfd, 0x3e, 0xac, 0x39, 0x6a, 0x33, 0xdd, 0x5b, 0xee,
-	0xe8, 0x34, 0x3f, 0x23, 0xb8, 0x10, 0xa3, 0xd0, 0x76, 0xe6, 0x01, 0x22, 0x29, 0xcd, 0x44, 0xfe,
-	0xeb, 0xce, 0x4f, 0x07, 0x08, 0x9e, 0xda, 0x25, 0xbb, 0x47, 0xca, 0xbe, 0x96, 0x28, 0x5b, 0xe9,
-	0xd9, 0xa5, 0xbb, 0x08, 0x66, 0xec, 0x1e, 0x44, 0x31, 0x2c, 0xf3, 0x5a, 0x8d, 0x7a, 0x5e, 0x2b,
-	0xa5, 0x01, 0xc8, 0xf9, 0xea, 0x64, 0xba, 0xaa, 0xaf, 0xb4, 0x7d, 0x60, 0xae, 0xc2, 0x95, 0x03,
-	0x31, 0x4e, 0x2c, 0x06, 0xf3, 0x23, 0x82, 0xc2, 0x01, 0xd4, 0xc5, 0x70, 0x41, 0x0e, 0x4c, 0x2a,
-	0x1b, 0x78, 0x1a, 0xb2, 0x6a, 0xbe, 0x64, 0x9e, 0x67, 0xc7, 0xc7, 0x92, 0xb5, 0xcd, 0xb6, 0x26,
-	0x53, 0xf3, 0x68, 0x00, 0xf3, 0x1d, 0x82, 0xe1, 0x54, 0xba, 0x4e, 0x2c, 0x9a, 0xf1, 0xaf, 0xa7,
-	0xe1, 0x94, 0x94, 0x80, 0x3f, 0x21, 0xc8, 0xaa, 0x59, 0xc6, 0x37, 0x92, 0x31, 0xe3, 0x2b, 0xc5,
-	0xb8, 0x79, 0xc8, 0x2e, 0x65, 0xca, 0x1c, 0x7d, 0xff, 0xfd, 0xf7, 0x87, 0x9e, 0x02, 0x1e, 0x22,
-	0x29, 0x57, 0x28, 0xfe, 0x86, 0x20, 0x17, 0x79, 0xc2, 0xf7, 0x52, 0xd2, 0xee, 0xb3, 0x8a, 0x8c,
-	0xfb, 0x5d, 0xf5, 0x6a, 0xe1, 0x25, 0x29, 0xfc, 0x21, 0x7e, 0x40, 0xd2, 0x2f, 0x73, 0xb2, 0xb6,
-	0x77, 0xc5, 0xad, 0xe3, 0x2f, 0x08, 0xa0, 0x7d, 0xfb, 0xf8, 0x4e, 0x4a, 0x4d, 0xb1, 0x25, 0x65,
-	0xdc, 0xed, 0xa2, 0x53, 0x7b, 0x99, 0x90, 0x5e, 0x46, 0xf0, 0xf0, 0x21, 0xbc, 0xe0, 0x3f, 0x08,
-	0x7a, 0xf7, 0x79, 0xb6, 0xf8, 0x49, 0x17, 0xa9, 0xc6, 0x96, 0x89, 0x31, 0x79, 0x44, 0x14, 0xed,
-	0xec, 0xa9, 0x74, 0x36, 0x89, 0x1f, 0x1f, 0xc2, 0x99, 0x58, 0xac, 0x84, 0x8b, 0x7a, 0xe2, 0xc9,
-	0x5a, 0x34, 0xfa, 0xeb, 0x78, 0xa3, 0x07, 0x2e, 0x1d, 0x30, 0xa8, 0x78, 0xe6, 0x48, 0x9a, 0xf7,
-	0xec, 0x21, 0xe3, 0xd9, 0x31, 0xa1, 0xe9, 0x24, 0x5e, 0xc8, 0x24, 0x9e, 0xe3, 0x99, 0x63, 0x48,
-	0x82, 0xac, 0xa9, 0x15, 0xb6, 0x5e, 0x9c, 0xdb, 0xdc, 0xce, 0xa3, 0xad, 0xed, 0x3c, 0xfa, 0xb5,
-	0x9d, 0x47, 0x1b, 0x3b, 0xf9, 0xcc, 0xd6, 0x4e, 0x3e, 0xf3, 0x63, 0x27, 0x9f, 0x79, 0x79, 0xcb,
-	0x76, 0x82, 0x37, 0x8d, 0x8a, 0xb5, 0xc4, 0xeb, 0xff, 0x62, 0x5c, 0x99, 0x20, 0xab, 0x1d, 0xb4,
-	0x41, 0xe8, 0x31, 0x51, 0xc9, 0xca, 0xff, 0x5b, 0x26, 0xfe, 0x06, 0x00, 0x00, 0xff, 0xff, 0x31,
-	0x06, 0xc4, 0x66, 0x03, 0x0a, 0x00, 0x00,
+	// 846 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xdd, 0x4e, 0xdb, 0x48,
+	0x14, 0x8e, 0xd9, 0xdd, 0x68, 0x73, 0x16, 0xad, 0xd0, 0x80, 0x76, 0x59, 0x2f, 0xca, 0xb2, 0xee,
+	0x1f, 0x0a, 0xc5, 0xc3, 0x4f, 0x4b, 0x69, 0x51, 0x11, 0x0d, 0x90, 0x08, 0x95, 0x42, 0x08, 0xbd,
+	0xaa, 0x54, 0xa5, 0x0e, 0x19, 0xb9, 0x91, 0x12, 0x8f, 0xf1, 0x38, 0x28, 0x29, 0x42, 0xaa, 0xda,
+	0x17, 0x40, 0x42, 0x7d, 0x86, 0x3e, 0x41, 0xfb, 0x0c, 0x5c, 0xf4, 0x02, 0xa9, 0x37, 0xbd, 0x6a,
+	0x2b, 0xe8, 0x7d, 0xfb, 0x08, 0x95, 0xc7, 0x13, 0x27, 0x21, 0x21, 0x76, 0x12, 0xb8, 0x8b, 0x67,
+	0xce, 0xf9, 0xce, 0xf7, 0x9d, 0x99, 0xf9, 0x4e, 0xe0, 0x66, 0xae, 0x52, 0x24, 0x06, 0xcb, 0x53,
+	0xa3, 0x5c, 0x79, 0x81, 0xbd, 0x0f, 0xcc, 0xc8, 0x4e, 0x89, 0x18, 0xdb, 0xc4, 0xc2, 0x3b, 0x25,
+	0x62, 0x55, 0x54, 0xd3, 0xa2, 0x36, 0x45, 0xa3, 0xf5, 0xd1, 0xaa, 0xf7, 0xa1, 0x7a, 0xd1, 0xf2,
+	0x90, 0x4e, 0x75, 0xca, 0x83, 0xb1, 0xf3, 0xcb, 0xcd, 0x93, 0x47, 0x74, 0x4a, 0xf5, 0x02, 0xc1,
+	0x9a, 0x99, 0xc7, 0x9a, 0x61, 0x50, 0x5b, 0xb3, 0xf3, 0xd4, 0x60, 0x62, 0x37, 0xb6, 0x4d, 0x59,
+	0x91, 0x32, 0x9c, 0xd5, 0x18, 0x71, 0xcb, 0xe1, 0xdd, 0xa9, 0x2c, 0xb1, 0xb5, 0x29, 0x6c, 0x6a,
+	0x7a, 0xde, 0xe0, 0xc1, 0x22, 0x76, 0xc2, 0x97, 0xaf, 0xa9, 0x59, 0x5a, 0xb1, 0x0a, 0x3d, 0xe9,
+	0x1b, 0xee, 0xfd, 0x12, 0x19, 0x77, 0x7c, 0x33, 0xa8, 0x49, 0x2c, 0xcd, 0xce, 0x1b, 0x7a, 0x86,
+	0xd9, 0x9a, 0x5d, 0x12, 0xa5, 0x94, 0x21, 0x40, 0x9b, 0x0e, 0xf7, 0x14, 0xaf, 0x9f, 0x76, 0xc2,
+	0x99, 0xad, 0x3c, 0x85, 0xc1, 0x86, 0x55, 0x66, 0x52, 0x83, 0x11, 0x94, 0x80, 0xb0, 0xcb, 0x73,
+	0x58, 0x1a, 0x95, 0xc6, 0xfe, 0x98, 0x1e, 0x53, 0xfd, 0x3a, 0xab, 0xba, 0x08, 0xf1, 0x5f, 0x8f,
+	0x3e, 0xff, 0x17, 0x4a, 0x8b, 0x6c, 0x25, 0x01, 0xc3, 0x1c, 0x3e, 0x49, 0xec, 0xad, 0x6a, 0xa4,
+	0x28, 0x8d, 0x62, 0x30, 0xe0, 0x65, 0x3f, 0xc8, 0xe5, 0x2c, 0xc2, 0xdc, 0x6a, 0x91, 0x74, 0xd3,
+	0xba, 0x52, 0x80, 0x7f, 0x5a, 0xe0, 0x08, 0xb2, 0x1b, 0x10, 0xf1, 0x12, 0x04, 0xdf, 0x71, 0x7f,
+	0xbe, 0x1e, 0x8e, 0xa0, 0x5c, 0xc3, 0x50, 0x9e, 0xc1, 0x5f, 0xbc, 0x9a, 0x17, 0x52, 0x6d, 0x17,
+	0x4a, 0x00, 0xd4, 0x8e, 0x5c, 0xd4, 0xba, 0xae, 0xba, 0xf7, 0x43, 0x75, 0xee, 0x87, 0xea, 0x5e,
+	0x47, 0x71, 0x3f, 0xd4, 0x94, 0xa6, 0x13, 0x91, 0x9b, 0xae, 0xcb, 0x54, 0xde, 0x49, 0xf0, 0x77,
+	0x53, 0x09, 0x21, 0x67, 0x13, 0xc0, 0xa3, 0xe2, 0x74, 0xe4, 0x97, 0xee, 0xf4, 0xd4, 0x81, 0xa0,
+	0x64, 0x03, 0xed, 0x3e, 0x4e, 0xfb, 0x86, 0x2f, 0x6d, 0x97, 0x4f, 0x03, 0xef, 0x38, 0x28, 0x4d,
+	0xe7, 0xc0, 0xe2, 0x95, 0x34, 0x2d, 0x14, 0x34, 0xd3, 0xac, 0x76, 0x69, 0x04, 0x22, 0x96, 0xbb,
+	0xb2, 0x9a, 0x13, 0x47, 0x5a, 0x5b, 0x50, 0xca, 0x70, 0xa5, 0x2d, 0xc6, 0xa5, 0xb5, 0x41, 0x79,
+	0x23, 0x41, 0xac, 0x4d, 0xe9, 0x78, 0x65, 0x8b, 0x3f, 0x98, 0x40, 0x32, 0xd0, 0x2a, 0x84, 0xdd,
+	0xf7, 0xc5, 0xfb, 0xf9, 0xe7, 0xf4, 0x94, 0x3f, 0xb7, 0x8d, 0xea, 0xcb, 0x14, 0x75, 0x04, 0x80,
+	0xf2, 0x52, 0x82, 0xf1, 0x40, 0xbc, 0x2e, 0xaf, 0x35, 0x8b, 0x30, 0x5a, 0x65, 0x90, 0xb2, 0xa8,
+	0x49, 0x19, 0xb1, 0x3a, 0x3c, 0xd6, 0x24, 0xfc, 0xdf, 0x06, 0x41, 0x30, 0x57, 0xa0, 0xdf, 0x14,
+	0x9b, 0xce, 0xd3, 0x16, 0x28, 0x0d, 0x6b, 0xca, 0x32, 0x5c, 0xad, 0x02, 0xad, 0x93, 0x72, 0xb7,
+	0x74, 0x5e, 0x4b, 0x70, 0xcd, 0x07, 0x46, 0x70, 0x8a, 0xc1, 0x80, 0x51, 0x17, 0x50, 0xc7, 0xab,
+	0x69, 0x1d, 0xa9, 0x80, 0x2c, 0x31, 0x1d, 0x56, 0x8d, 0x94, 0x45, 0x75, 0xee, 0x5a, 0xce, 0x05,
+	0xf8, 0x3d, 0xdd, 0x62, 0x67, 0xfa, 0xb0, 0x1f, 0x7e, 0xe3, 0x2c, 0xd0, 0x5b, 0x09, 0xc2, 0xae,
+	0x45, 0xa2, 0x5b, 0xfe, 0x47, 0xd5, 0xec, 0xd4, 0xf2, 0xed, 0x0e, 0xb3, 0x5c, 0x75, 0xca, 0xe4,
+	0xab, 0x8f, 0xdf, 0x0e, 0xfb, 0x62, 0x68, 0x0c, 0x07, 0x9c, 0x4c, 0xe8, 0x83, 0x04, 0x11, 0xef,
+	0xaa, 0xa0, 0x7b, 0x01, 0xcb, 0xb6, 0x70, 0x78, 0x79, 0xbe, 0xab, 0x5c, 0x41, 0x3c, 0xc1, 0x89,
+	0x2f, 0xa2, 0x05, 0x1c, 0x7c, 0x46, 0xe2, 0xbd, 0xb3, 0x93, 0x63, 0x1f, 0xbd, 0x97, 0x00, 0x6a,
+	0x8f, 0x0a, 0xcd, 0x05, 0xe4, 0xd4, 0xe4, 0xfd, 0xf2, 0xdd, 0x2e, 0x32, 0x85, 0x96, 0x19, 0xae,
+	0x65, 0x02, 0x8d, 0x77, 0xa0, 0x05, 0x7d, 0x97, 0x60, 0xb0, 0x85, 0x1b, 0xa0, 0xe5, 0x2e, 0xba,
+	0xda, 0xe4, 0xd1, 0xf2, 0x4a, 0x8f, 0x28, 0x42, 0xd9, 0x43, 0xae, 0x6c, 0x05, 0x2d, 0x75, 0xa0,
+	0x8c, 0x65, 0xb2, 0x95, 0x8c, 0x78, 0xa9, 0x78, 0xcf, 0x7b, 0xb2, 0xfb, 0xe8, 0xa0, 0x0f, 0xfe,
+	0x6d, 0xe3, 0x7f, 0x68, 0xad, 0x27, 0xce, 0x67, 0xec, 0x5d, 0x7e, 0x74, 0x41, 0x68, 0xa2, 0x13,
+	0x8f, 0x79, 0x27, 0xd6, 0xd1, 0xda, 0x05, 0x74, 0x02, 0xef, 0xb9, 0x93, 0x61, 0x1f, 0x7d, 0x91,
+	0x60, 0xa8, 0x95, 0xa3, 0xa2, 0x78, 0x70, 0xf6, 0xe7, 0x39, 0xa8, 0xbc, 0xd4, 0x13, 0x86, 0xd0,
+	0xbd, 0xc0, 0x75, 0xcf, 0xa1, 0xd9, 0x00, 0x06, 0x23, 0x40, 0x1a, 0x0e, 0xfd, 0x87, 0x04, 0xc3,
+	0xe7, 0x79, 0x34, 0x4a, 0x04, 0x67, 0xd8, 0x6e, 0x56, 0xc8, 0xc9, 0x9e, 0x71, 0x84, 0xda, 0x25,
+	0xae, 0xf6, 0x3e, 0x9a, 0xf7, 0x57, 0xeb, 0x0c, 0x8f, 0x4c, 0x2b, 0xc9, 0xf1, 0xd4, 0xd1, 0x49,
+	0x54, 0x3a, 0x3e, 0x89, 0x4a, 0x5f, 0x4f, 0xa2, 0xd2, 0xc1, 0x69, 0x34, 0x74, 0x7c, 0x1a, 0x0d,
+	0x7d, 0x3a, 0x8d, 0x86, 0x9e, 0xcc, 0xea, 0x79, 0xfb, 0x79, 0x29, 0xab, 0x6e, 0xd3, 0xe2, 0x79,
+	0x05, 0x76, 0x67, 0x70, 0xb9, 0xae, 0x8a, 0x5d, 0x31, 0x09, 0xcb, 0x86, 0xf9, 0x7f, 0xfc, 0x99,
+	0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x7a, 0x51, 0xb4, 0xed, 0x2f, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -576,6 +777,10 @@ type QueryClient interface {
 	SequencersByRollapp(ctx context.Context, in *QueryGetSequencersByRollappRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappResponse, error)
 	// Queries a SequencersByRollappByStatus
 	SequencersByRollappByStatus(ctx context.Context, in *QueryGetSequencersByRollappByStatusRequest, opts ...grpc.CallOption) (*QueryGetSequencersByRollappByStatusResponse, error)
+	// Queries the current proposer by rollappId.
+	GetProposerByRollapp(ctx context.Context, in *QueryGetProposerByRollappRequest, opts ...grpc.CallOption) (*QueryGetProposerByRollappResponse, error)
+	// Queries the next proposer by rollappId.
+	GetNextProposerByRollapp(ctx context.Context, in *QueryGetNextProposerByRollappRequest, opts ...grpc.CallOption) (*QueryGetNextProposerByRollappResponse, error)
 }
 
 type queryClient struct {
@@ -631,6 +836,24 @@ func (c *queryClient) SequencersByRollappByStatus(ctx context.Context, in *Query
 	return out, nil
 }
 
+func (c *queryClient) GetProposerByRollapp(ctx context.Context, in *QueryGetProposerByRollappRequest, opts ...grpc.CallOption) (*QueryGetProposerByRollappResponse, error) {
+	out := new(QueryGetProposerByRollappResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/GetProposerByRollapp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) GetNextProposerByRollapp(ctx context.Context, in *QueryGetNextProposerByRollappRequest, opts ...grpc.CallOption) (*QueryGetNextProposerByRollappResponse, error) {
+	out := new(QueryGetNextProposerByRollappResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.sequencer.Query/GetNextProposerByRollapp", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -643,6 +866,10 @@ type QueryServer interface {
 	SequencersByRollapp(context.Context, *QueryGetSequencersByRollappRequest) (*QueryGetSequencersByRollappResponse, error)
 	// Queries a SequencersByRollappByStatus
 	SequencersByRollappByStatus(context.Context, *QueryGetSequencersByRollappByStatusRequest) (*QueryGetSequencersByRollappByStatusResponse, error)
+	// Queries the current proposer by rollappId.
+	GetProposerByRollapp(context.Context, *QueryGetProposerByRollappRequest) (*QueryGetProposerByRollappResponse, error)
+	// Queries the next proposer by rollappId.
+	GetNextProposerByRollapp(context.Context, *QueryGetNextProposerByRollappRequest) (*QueryGetNextProposerByRollappResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -663,6 +890,12 @@ func (*UnimplementedQueryServer) SequencersByRollapp(ctx context.Context, req *Q
 }
 func (*UnimplementedQueryServer) SequencersByRollappByStatus(ctx context.Context, req *QueryGetSequencersByRollappByStatusRequest) (*QueryGetSequencersByRollappByStatusResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SequencersByRollappByStatus not implemented")
+}
+func (*UnimplementedQueryServer) GetProposerByRollapp(ctx context.Context, req *QueryGetProposerByRollappRequest) (*QueryGetProposerByRollappResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProposerByRollapp not implemented")
+}
+func (*UnimplementedQueryServer) GetNextProposerByRollapp(ctx context.Context, req *QueryGetNextProposerByRollappRequest) (*QueryGetNextProposerByRollappResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNextProposerByRollapp not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -759,6 +992,42 @@ func _Query_SequencersByRollappByStatus_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_GetProposerByRollapp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetProposerByRollappRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).GetProposerByRollapp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Query/GetProposerByRollapp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).GetProposerByRollapp(ctx, req.(*QueryGetProposerByRollappRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_GetNextProposerByRollapp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGetNextProposerByRollappRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).GetNextProposerByRollapp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/dymensionxyz.dymension.sequencer.Query/GetNextProposerByRollapp",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).GetNextProposerByRollapp(ctx, req.(*QueryGetNextProposerByRollappRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "dymensionxyz.dymension.sequencer.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -782,6 +1051,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SequencersByRollappByStatus",
 			Handler:    _Query_SequencersByRollappByStatus_Handler,
+		},
+		{
+			MethodName: "GetProposerByRollapp",
+			Handler:    _Query_GetProposerByRollapp_Handler,
+		},
+		{
+			MethodName: "GetNextProposerByRollapp",
+			Handler:    _Query_GetNextProposerByRollapp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1130,6 +1407,136 @@ func (m *QueryGetSequencersByRollappByStatusResponse) MarshalToSizedBuffer(dAtA 
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGetProposerByRollappRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetProposerByRollappRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetProposerByRollappRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetProposerByRollappResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetProposerByRollappResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetProposerByRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.ProposerAddr) > 0 {
+		i -= len(m.ProposerAddr)
+		copy(dAtA[i:], m.ProposerAddr)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.ProposerAddr)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetNextProposerByRollappRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetNextProposerByRollappRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetNextProposerByRollappRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.RollappId) > 0 {
+		i -= len(m.RollappId)
+		copy(dAtA[i:], m.RollappId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.RollappId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGetNextProposerByRollappResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGetNextProposerByRollappResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGetNextProposerByRollappResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.RotationInProgress {
+		i--
+		if m.RotationInProgress {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.NextProposerAddr) > 0 {
+		i -= len(m.NextProposerAddr)
+		copy(dAtA[i:], m.NextProposerAddr)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.NextProposerAddr)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1272,6 +1679,61 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	return n
+}
+
+func (m *QueryGetProposerByRollappRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetProposerByRollappResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ProposerAddr)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetNextProposerByRollappRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.RollappId)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGetNextProposerByRollappResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.NextProposerAddr)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.RotationInProgress {
+		n += 2
 	}
 	return n
 }
@@ -2116,6 +2578,354 @@ func (m *QueryGetSequencersByRollappByStatusResponse) Unmarshal(dAtA []byte) err
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetProposerByRollappRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetProposerByRollappRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetProposerByRollappRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetProposerByRollappResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetProposerByRollappResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetProposerByRollappResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProposerAddr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProposerAddr = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetNextProposerByRollappRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetNextProposerByRollappRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetNextProposerByRollappRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RollappId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RollappId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGetNextProposerByRollappResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGetNextProposerByRollappResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGetNextProposerByRollappResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NextProposerAddr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NextProposerAddr = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RotationInProgress", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.RotationInProgress = bool(v != 0)
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

@@ -1,92 +1,104 @@
 package keeper_test
 
 import (
-	"sort"
 	"time"
 
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
-func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
+func (suite *SequencerTestSuite) TestUnbondingNonProposer() {
 	suite.SetupTest()
 	rollappId := suite.CreateDefaultRollapp()
 
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddrs := make([]string, 2)
-	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	// sort the  non proposer sequencers by address
-	sort.Strings(seqAddrs)
-	addr2 := seqAddrs[0]
-	addr3 := seqAddrs[1]
+	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	bondedAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	suite.Require().NotEqual(proposerAddr, bondedAddr)
 
-	/* ----------------------------- unbond proposer ---------------------------- */
-	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	proposer, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(proposerAddr, proposer.SequencerAddress)
+
+	/* ------------------------- unbond non proposer sequencer ------------------------ */
+	bondedSeq, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, bondedAddr)
 	suite.Require().True(found)
-	suite.Equal(types.Bonded, sequencer.Status)
-	suite.True(sequencer.Proposer)
+	suite.Equal(types.Bonded, bondedSeq.Status)
 
-	sequencer2, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Require().True(found)
-	suite.Equal(types.Bonded, sequencer2.Status)
-	suite.False(sequencer2.Proposer)
-
-	unbondMsg := types.MsgUnbond{Creator: addr1}
+	unbondMsg := types.MsgUnbond{Creator: bondedAddr}
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	// check proposer rotation
-	sequencer2, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Equal(types.Bonded, sequencer2.Status)
-	suite.True(sequencer2.Proposer)
-
 	// check sequencer operating status
-	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Equal(types.Unbonding, sequencer.Status)
-	suite.False(sequencer.Proposer)
-
-	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
-
-	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Equal(types.Unbonded, sequencer.Status)
-
-	/* ------------------------- unbond non proposer sequencer ------------------------ */
-	sequencer3, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
+	bondedSeq, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, bondedAddr)
 	suite.Require().True(found)
-	suite.Equal(types.Bonded, sequencer3.Status)
-	suite.False(sequencer3.Proposer)
+	suite.Equal(types.Unbonding, bondedSeq.Status)
 
-	unbondMsg = types.MsgUnbond{Creator: addr3}
-	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, bondedSeq.UnbondTime.Add(10*time.Second))
+	bondedSeq, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, bondedAddr)
+	suite.Require().True(found)
+	suite.Equal(types.Unbonded, bondedSeq.Status)
+
+	// check proposer not changed
+	proposer, ok = suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(proposerAddr, proposer.SequencerAddress)
+}
+
+func (suite *SequencerTestSuite) TestUnbondingProposer() {
+	suite.SetupTest()
+	rollappId := suite.CreateDefaultRollapp()
+
+	proposerAddr := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+
+	/* ----------------------------- unbond proposer ---------------------------- */
+	unbondMsg := types.MsgUnbond{Creator: proposerAddr}
+	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	// check sequencer operating status
-	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
-	suite.Require().True(found)
-	suite.Equal(types.Unbonding, sequencer3.Status)
+	// check proposer still bonded and notice period started
+	p, ok := suite.App.SequencerKeeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().True(ok)
+	suite.Equal(proposerAddr, p.SequencerAddress)
+	suite.Equal(suite.Ctx.BlockHeight(), p.UnbondRequestHeight)
 
-	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer3.UnbondTime.Add(10*time.Second))
+	// next proposer should not be set yet
+	_, ok = suite.App.SequencerKeeper.GetNextProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
 
-	sequencer3, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr3)
-	suite.Require().True(found)
-	suite.Equal(types.Unbonded, sequencer3.Status)
+	// check notice period queue
+	m := suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(-1*time.Second))
+	suite.Require().Len(m, 0)
+	m = suite.App.SequencerKeeper.GetMatureNoticePeriodSequencers(suite.Ctx, p.NoticePeriodTime.Add(1*time.Second))
+	suite.Require().Len(m, 1)
 }
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
 	suite.SetupTest()
+	suite.Ctx = suite.Ctx.WithBlockHeight(10)
+
 	rollappId := suite.CreateDefaultRollapp()
 	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
-	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	res, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 
-	// already unbonding, we expect error
+	// unbonding again, we expect error as sequencer is in notice period
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
 	suite.Require().Error(err)
 
+	suite.App.SequencerKeeper.MatureSequencersWithNoticePeriod(suite.Ctx, res.GetNoticePeriodCompletionTime().Add(10*time.Second))
+	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)
+	suite.Require().Error(err)
+
+	// complete rotation
+	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
 	sequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	suite.Require().Equal(types.Unbonding, sequencer.Status)
+
 	suite.App.SequencerKeeper.UnbondAllMatureSequencers(suite.Ctx, sequencer.UnbondTime.Add(10*time.Second))
+	sequencer, _ = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
+	suite.Require().Equal(types.Unbonded, sequencer.Status)
 
 	// already unbonded, we expect error
 	_, err = suite.msgServer.Unbond(suite.Ctx, &unbondMsg)

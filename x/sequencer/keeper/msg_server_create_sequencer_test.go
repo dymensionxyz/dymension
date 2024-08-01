@@ -73,6 +73,7 @@ func (suite *SequencerTestSuite) TestMinBond() {
 		seqParams := types.Params{
 			MinBond:       tc.requiredBond,
 			UnbondingTime: 100,
+			NoticePeriod:  10,
 		}
 		suite.App.SequencerKeeper.SetParams(suite.Ctx, seqParams)
 
@@ -124,6 +125,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 		rollappId, sequencerAddress string
 	}
 	rollappSequencersExpect := make(map[rollappSequencersExpectKey]string)
+	rollappExpectedProposers := make(map[string]string)
 
 	// for 3 rollapps, test 10 sequencers creations
 	for j := 0; j < 3; j++ {
@@ -163,10 +165,7 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				Tokens:           sdk.NewCoins(bond),
 				Description:      sequencerMsg.GetDescription(),
 			}
-			if i == 0 {
-				sequencerExpect.Status = types.Bonded
-				sequencerExpect.Proposer = true
-			}
+
 			// create sequencer
 			createResponse, err := suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 			suite.Require().Nil(err)
@@ -182,12 +181,16 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			// add the sequencer to the list of get all expected list
 			sequencersExpect = append(sequencersExpect, &sequencerExpect)
 
+			if i == 0 {
+				rollappExpectedProposers[rollappId] = sequencerExpect.SequencerAddress
+			}
+
 			sequencersRes, totalRes := getAll(suite)
 			suite.Require().EqualValues(len(sequencersExpect), totalRes)
 			// verify that query all contains all the sequencers that were created
 			verifyAll(suite, sequencersExpect, sequencersRes)
 
-			// add the sequencer to the list of spesific rollapp
+			// add the sequencer to the list of specific rollapp
 			rollappSequencersExpect[rollappSequencersExpectKey{rollappId, sequencerExpect.SequencerAddress}] = sequencerExpect.SequencerAddress
 		}
 	}
@@ -205,16 +208,22 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 				sequencer.SequencerAddress)
 		}
 		totalFound += len(queryAllResponse.Sequencers)
+
+		// check that the first sequencer created is the active sequencer
+		proposer, err := suite.queryClient.GetProposerByRollapp(goCtx,
+			&types.QueryGetProposerByRollappRequest{RollappId: rollappId})
+		suite.Require().Nil(err)
+		suite.Require().EqualValues(proposer.ProposerAddr, rollappExpectedProposers[rollappId])
 	}
 	suite.Require().EqualValues(totalFound, len(rollappSequencersExpect))
 }
 
-// TODO: test with different sequencer status
 func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	suite.SetupTest()
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollappId := suite.CreateDefaultRollapp()
+	_ = suite.CreateDefaultSequencer(suite.Ctx, rollappId) // proposer
 
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
@@ -233,6 +242,15 @@ func (suite *SequencerTestSuite) TestCreateSequencerAlreadyExists() {
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.Require().Nil(err)
 
+	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
+	suite.EqualError(err, types.ErrSequencerExists.Error())
+
+	// unbond the sequencer
+	unbondMsg := types.MsgUnbond{Creator: addr.String()}
+	_, err = suite.msgServer.Unbond(goCtx, &unbondMsg)
+	suite.Require().NoError(err)
+
+	// create the sequencer again, expect to fail anyway
 	_, err = suite.msgServer.CreateSequencer(goCtx, &sequencerMsg)
 	suite.EqualError(err, types.ErrSequencerExists.Error())
 }
@@ -304,7 +322,6 @@ func (suite *SequencerTestSuite) TestCreatePermissionedSequencer() {
 		SequencerAddress: sequencerMsg.GetCreator(),
 		DymintPubKey:     sequencerMsg.GetDymintPubKey(),
 		Status:           types.Bonded,
-		Proposer:         true,
 		RollappId:        rollappId,
 		Description:      sequencerMsg.GetDescription(),
 		Tokens:           sdk.NewCoins(bond),
@@ -327,7 +344,7 @@ func (suite *SequencerTestSuite) TestCreateSequencerNotPermissioned() {
 
 	rollappId := rollapp.GetRollappId()
 
-	// TODO: cahnge with common func
+	// TODO: use common func (CreateSequencerWithBond)
 	pubkey := secp256k1.GenPrivKey().PubKey()
 	addr := sdk.AccAddress(pubkey.Address())
 	err := bankutil.FundAccount(suite.App.BankKeeper, suite.Ctx, addr, sdk.NewCoins(bond))
@@ -469,30 +486,6 @@ func (suite *SequencerTestSuite) TestMaxSequencersNotSet() {
 	}
 }
 
-func (suite *SequencerTestSuite) TestUpdateStateSecondSeqErrNotActiveSequencer() {
-	suite.SetupTest()
-
-	rollappId := suite.CreateDefaultRollapp()
-
-	// create first sequencer
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-
-	// create second sequencer
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-
-	// check scheduler operating status
-	scheduler, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.True(scheduler.Proposer)
-
-	// check scheduler operating status
-	scheduler, found = suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
-	suite.Require().True(found)
-	suite.EqualValues(scheduler.Status, types.Bonded)
-	suite.False(scheduler.Proposer)
-}
-
 // ---------------------------------------
 // verifyAll receives a list of expected results and a map of sequencerAddress->sequencer
 // the function verifies that the map contains all the sequencers that are in the list and only them
@@ -576,10 +569,13 @@ func CompareSequencers(s1, s2 *types.Sequencer) bool {
 		return false
 	}
 
-	if s1.UnbondingHeight != s2.UnbondingHeight {
+	if s1.UnbondRequestHeight != s2.UnbondRequestHeight {
 		return false
 	}
 	if !s1.UnbondTime.Equal(s2.UnbondTime) {
+		return false
+	}
+	if !s1.NoticePeriodTime.Equal(s2.NoticePeriodTime) {
 		return false
 	}
 	return true

@@ -74,7 +74,6 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 		RollappId:        msg.RollappId,
 		Description:      msg.Description,
 		Status:           types.Bonded,
-		Proposer:         false,
 		Tokens:           bond,
 	}
 
@@ -85,9 +84,21 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
 		return nil, types.ErrMaxSequencersLimit
 	}
-	// this is the first sequencer, make it a PROPOSER
-	if len(bondedSequencers) == 0 {
-		sequencer.Proposer = true
+
+	// if this is the first sequencer, make it a PROPOSER
+	proposer := len(bondedSequencers) == 0
+	if proposer {
+		k.SetProposer(ctx, sequencer.RollappId, sequencer.SequencerAddress)
+	}
+
+	// edge case handling:
+	// if we're in the **middle of rotation**, and **nextProposer is empty**, the rollapp will halt as expected
+	// This newly created sequencer expected to be the proposer after the rotation
+	// currently, we require this sequencer to register after rotation completes
+	nextProposer := k.IsRotating(ctx, sequencer.RollappId) && k.ExpectedNextProposer(ctx, sequencer.RollappId).SequencerAddress == ""
+	if nextProposer {
+		k.Logger(ctx).Info("rotation in progress. sequencer registration disabled", "rollappId", sequencer.RollappId)
+		return nil, types.ErrRotationInProgress
 	}
 
 	k.SetSequencer(ctx, sequencer)
@@ -98,7 +109,7 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			sdk.NewAttribute(types.AttributeKeyRollappId, msg.RollappId),
 			sdk.NewAttribute(types.AttributeKeySequencer, msg.Creator),
 			sdk.NewAttribute(types.AttributeKeyBond, msg.Bond.String()),
-			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(sequencer.Proposer)),
+			sdk.NewAttribute(types.AttributeKeyProposer, strconv.FormatBool(proposer)),
 		),
 	)
 

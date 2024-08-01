@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ rollapptypes.RollappHooks = rollappHook{}
@@ -20,7 +23,13 @@ func (k Keeper) RollappHooks() rollapptypes.RollappHooks {
 	}
 }
 
-func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+// BeforeUpdateState checks various conditions before updating the state.
+// It verifies if the sequencer has been registered, if the rollappId matches the one of the sequencer,
+// if there is a proposer for the given rollappId, and if the sequencer is the active one.
+// If the lastStateUpdateBySequencer flag is true, it also checks if the rollappId is rotating and
+// performs a rotation of the proposer.
+// Returns an error if any of the checks fail, otherwise returns nil.
+func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, lastStateUpdateBySequencer bool) error {
 	// check to see if the sequencer has been registered before
 	sequencer, found := hook.k.GetSequencer(ctx, seqAddr)
 	if !found {
@@ -32,14 +41,24 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr string, rolla
 		return types.ErrSequencerRollappMismatch
 	}
 
-	// check to see if the sequencer is active and can make the update
-	if sequencer.Status != types.Bonded {
-		return types.ErrInvalidSequencerStatus
+	seq, ok := hook.k.GetProposer(ctx, rollappId)
+	if !ok {
+		return errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
 	}
-
-	if !sequencer.Proposer {
+	if sequencer.SequencerAddress != seq.SequencerAddress {
 		return types.ErrNotActiveSequencer
 	}
+
+	if lastStateUpdateBySequencer {
+		if !hook.k.IsRotating(ctx, rollappId) {
+			return types.ErrInvalidRequest
+		}
+		// TODO: the hub should probably validate the lastBlock in the lastBatch,
+		// to make sure the sequencer is passing the correct nextSequencer on the L2
+
+		hook.k.RotateProposer(ctx, rollappId)
+	}
+
 	return nil
 }
 
@@ -55,14 +74,19 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 		return err
 	}
 
-	// unbond all other bonded sequencers
-	sequencers := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	for _, sequencer := range sequencers {
-		err := hook.k.forceUnbondSequencer(ctx, sequencer.SequencerAddress)
+	// unbond all other sequencers
+	bonded := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
+	unbonding := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
+	for _, sequencer := range append(bonded, unbonding...) {
+		err := hook.k.unbondSequencer(ctx, sequencer.SequencerAddress)
 		if err != nil {
 			return err
 		}
 	}
+
+	// clear the proposer and next proposer
+	hook.k.removeProposer(ctx, rollappID)
+	hook.k.removeNextProposer(ctx, rollappID)
 
 	return nil
 }

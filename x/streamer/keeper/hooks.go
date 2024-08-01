@@ -113,7 +113,7 @@ func (h Hooks) AfterStateFinalized(ctx sdk.Context, rollappID string, stateInfo 
 }
 
 // BeforeUpdateState implements types.RollappHooks.
-func (h Hooks) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (h Hooks) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, _ bool) error {
 	return nil
 }
 

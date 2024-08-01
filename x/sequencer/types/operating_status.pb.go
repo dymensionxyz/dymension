@@ -25,11 +25,13 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type OperatingStatus int32
 
 const (
-	// OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't be scheduled
+	// OPERATING_STATUS_UNBONDED defines a sequencer that is not active and won't
+	// be scheduled
 	Unbonded OperatingStatus = 0
 	// UNBONDING defines a sequencer that is currently unbonding.
 	Unbonding OperatingStatus = 1
-	// OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be scheduled
+	// OPERATING_STATUS_BONDED defines a sequencer that is bonded and can be
+	// scheduled
 	Bonded OperatingStatus = 2
 )
 

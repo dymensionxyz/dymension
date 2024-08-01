@@ -53,5 +53,5 @@ type RollappKeeper interface {
 }
 
 type SequencerKeeper interface {
-	GetSequencersByRollapp(ctx sdk.Context, rollappId string) []seqtypes.Sequencer
+	GetProposer(ctx sdk.Context, rollappId string) (seqtypes.Sequencer, bool)
 }

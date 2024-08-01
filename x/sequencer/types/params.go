@@ -19,11 +19,15 @@ var (
 	DefaultMinBond uint64 = 1000000
 	// UnbondingTime is the time duration for unbonding
 	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
+	// DefaultNoticePeriod is the time duration for notice period
+	DefaultNoticePeriod time.Duration = time.Hour * 24 * 7 // 1 week
 
 	// KeyMinBond is store's key for MinBond Params
 	KeyMinBond = []byte("MinBond")
 	// KeyUnbondingTime is store's key for UnbondingTime Params
 	KeyUnbondingTime = []byte("UnbondingTime")
+	// KeyNoticePeriod is store's key for NoticePeriod Params
+	KeyNoticePeriod = []byte("NoticePeriod")
 )
 
 // ParamKeyTable the param key table for launch module
@@ -32,10 +36,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(minBond sdk.Coin, unbondingPeriod time.Duration) Params {
+func NewParams(minBond sdk.Coin, unbondingPeriod, noticePeriod time.Duration) Params {
 	return Params{
 		MinBond:       minBond,
 		UnbondingTime: unbondingPeriod,
+		NoticePeriod:  noticePeriod,
 	}
 }
 
@@ -47,7 +52,7 @@ func DefaultParams() Params {
 	}
 	minBond := sdk.NewCoin(denom, sdk.NewIntFromUint64(DefaultMinBond))
 	return NewParams(
-		minBond, DefaultUnbondingTime,
+		minBond, DefaultUnbondingTime, DefaultNoticePeriod,
 	)
 }
 
@@ -55,11 +60,12 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMinBond, &p.MinBond, validateMinBond),
-		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateUnbondingTime),
+		paramtypes.NewParamSetPair(KeyUnbondingTime, &p.UnbondingTime, validateTime),
+		paramtypes.NewParamSetPair(KeyNoticePeriod, &p.NoticePeriod, validateTime),
 	}
 }
 
-func validateUnbondingTime(i interface{}) error {
+func validateTime(i interface{}) error {
 	v, ok := i.(time.Duration)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
@@ -94,7 +100,11 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateUnbondingTime(p.UnbondingTime); err != nil {
+	if err := validateTime(p.UnbondingTime); err != nil {
+		return err
+	}
+
+	if err := validateTime(p.NoticePeriod); err != nil {
 		return err
 	}
 

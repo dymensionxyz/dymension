@@ -28,4 +28,6 @@ var (
 	ErrUnknownRequest           = errorsmod.Register(ModuleName, 1017, "unknown request")
 	ErrInvalidRequest           = errorsmod.Register(ModuleName, 1018, "invalid request")
 	ErrSequencerJailed          = errorsmod.Register(ModuleName, 1019, "sequencer is jailed")
+	ErrRotationInProgress       = errorsmod.Register(ModuleName, 1020, "sequencer rotation in progress")
+	ErrNoProposer               = errorsmod.Register(ModuleName, 1021, "no proposer")
 )

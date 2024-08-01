@@ -41,24 +41,13 @@ func (k Keeper) CreateRollappGauge(ctx sdk.Context, rollappId string) (uint64, e
 }
 
 func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (totalDistrCoins sdk.Coins, err error) {
-	seqs := k.sq.GetSequencersByRollapp(ctx, gauge.GetRollapp().RollappId)
-	if len(seqs) == 0 {
-		k.Logger(ctx).Error(fmt.Sprintf("no sequencers found for rollapp %s", gauge.GetRollapp().RollappId))
-		return sdk.Coins{}, nil
-	}
-
-	var addr sdk.AccAddress
-	for _, seq := range seqs {
-		if seq.Proposer {
-			addr, _ = sdk.AccAddressFromBech32(seq.SequencerAddress)
-			break
-		}
-	}
-
-	if addr.Empty() {
+	proposer, ok := k.sq.GetProposer(ctx, gauge.GetRollapp().RollappId)
+	if !ok {
 		k.Logger(ctx).Error(fmt.Sprintf("no active sequencer found for rollapp %s", gauge.GetRollapp().RollappId))
 		return sdk.Coins{}, nil
 	}
+
+	addr := sdk.MustAccAddressFromBech32(proposer.SequencerAddress)
 
 	totalDistrCoins = gauge.Coins.Sub(gauge.DistributedCoins...)
 	if totalDistrCoins.Empty() {

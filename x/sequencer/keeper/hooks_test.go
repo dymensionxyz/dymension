@@ -37,7 +37,10 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 	for i := 1; i < numOfSequencers; i++ {
 		sequencer, found := keeper.GetSequencer(suite.Ctx, seqAddrs[i])
 		suite.Require().True(found)
-		suite.Require().False(sequencer.Proposer)
 		suite.Require().Equal(sequencer.Status, types.Unbonded)
 	}
+
+	// check no proposer is set for the rollapp
+	_, ok := keeper.GetProposer(suite.Ctx, rollappId)
+	suite.Require().False(ok)
 }

@@ -8,7 +8,7 @@ import (
 
 var _ rollapptypes.RollappHooks = &IBCMiddleware{}
 
-func (w IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr string, rollappId string) error {
+func (w IBCMiddleware) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId string, _ bool) error {
 	return nil
 }
 

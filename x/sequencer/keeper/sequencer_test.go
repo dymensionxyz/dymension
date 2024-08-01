@@ -67,31 +67,3 @@ func TestSequencersByRollappGet(t *testing.T) {
 		nullify.Fill(rst),
 	)
 }
-
-func (suite *SequencerTestSuite) TestRotatingSequencerByBond() {
-	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-
-	numOfSequencers := 5
-
-	// create sequencers
-	seqAddrs := make([]string, numOfSequencers)
-	for j := 0; j < len(seqAddrs)-1; j++ {
-		seqAddrs[j] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	}
-	// last one with high bond is the expected new proposer
-	seqAddrs[len(seqAddrs)-1] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, sdk.NewCoin(bond.Denom, bond.Amount.MulRaw(2)))
-	expecetedProposer := seqAddrs[len(seqAddrs)-1]
-
-	// check starting proposer and unbond
-	sequencer, found := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, seqAddrs[0])
-	suite.Require().True(found)
-	suite.Require().True(sequencer.Proposer)
-
-	suite.App.SequencerKeeper.RotateProposer(suite.Ctx, rollappId)
-
-	// check proposer rotation
-	newProposer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, expecetedProposer)
-	suite.Equal(types.Bonded, newProposer.Status)
-	suite.True(newProposer.Proposer)
-}
