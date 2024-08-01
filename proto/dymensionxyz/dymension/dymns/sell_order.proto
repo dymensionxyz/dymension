@@ -7,24 +7,27 @@ import "cosmos/base/v1beta1/coin.proto";
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
 // SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
-// After expiry date, if no one has placed a bid, this SO will be closed, no change.
-// If there is a bid, the highest bid will win.
-// SO will be moved to historical records after completed, no matter reason.
+// Sell-Order has an expiry date.
+// After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
+// If there is a bid, the highest bid will win, and the Dym-Name ownership will be transferred to the winner.
+// If the bid matches the sell price, the Dym-Name ownership will be transferred to the bidder immediately.
+// SO will be moved to historical records after completion/expiry.
 message SellOrder {
-  // The name of the Dym-Name being opened to be sold.
+  // name of the Dym-Name being opened to be sold.
   string name = 1;
 
-  // The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+  // expire_at is the last effective date of this SO
   int64 expire_at = 2;
 
-  // The minimum price that the owner is willing to accept for the Dym-Name.
+  // min_price is the minimum price that the owner is willing to accept for the Dym-Name.
   cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];
 
-  // The price that the owner is willing to sell the Dym-Name for, the SO will be closed when the price is met.
-  // If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bid win.
+  // sell_price is the price that the owner is willing to sell the Dym-Name for,
+  // the SO will be closed when the price is met.
+  // If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
   cosmos.base.v1beta1.Coin sell_price = 5;
 
-  // The highest bid on the SO, if any. Price must be greater than or equal to the min_price.
+  // highest_bid is the highest bid on the SO, if any. Price must be greater than or equal to the min_price.
   SellOrderBid highest_bid = 6;
 }
 
@@ -34,23 +37,26 @@ message ActiveSellOrdersExpiration {
   repeated ActiveSellOrdersExpirationRecord records = 1 [(gogoproto.nullable) = false];
 }
 
+// ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
 message ActiveSellOrdersExpirationRecord {
-  // The name of the Dym-Name being opened to be sold.
+  // name of the Dym-Name being opened to be sold.
   string name = 1;
 
-  // The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+  // expire_at is the last effective date of this Sell-Order.
   int64 expire_at = 2;
 }
 
+// SellOrderBid defines a bid placed by an account on a Sell-Order.
 message SellOrderBid {
-  // The address of the account which placed the bid.
+  // bidder is the account address of the account which placed the bid.
   string bidder = 1;
 
-  // The price set by the bidder.
+  // price is the amount of coin offered by the bidder.
   cosmos.base.v1beta1.Coin price = 2 [(gogoproto.nullable) = false];
 }
 
+// HistoricalSellOrders contains list of closed Sell-Orders of the same Dym-Name.
 message HistoricalSellOrders {
-  // List of closed SOs of the same Dym-Name.
+  // sell_orders is list of closed Sell-Orders of the same Dym-Name.
   repeated SellOrder sell_orders = 1 [(gogoproto.nullable) = false];
 }

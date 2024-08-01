@@ -9,31 +9,36 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
 // Params defines the parameters for the module.
 message Params {
-  // Price of Dym-Name and related parameters.
+  // price defines setting for pricing of Dym-Name and price-related parameters.
   PriceParams price = 1 [
     (gogoproto.moretags) = "yaml:\"price\"",
     (gogoproto.nullable) = false
   ];
 
-  // Chains related parameters.
+  // chains defines setting for aliases mapping, and list of chain-ids that are using coin-type 60.
   ChainsParams chains = 2 [
     (gogoproto.moretags) = "yaml:\"chains\"",
     (gogoproto.nullable) = false
   ];
 
-  // Misc parameters.
+  // misc is group of miscellaneous parameters.
   MiscParams misc = 3 [
     (gogoproto.moretags) = "yaml:\"misc\"",
     (gogoproto.nullable) = false
   ];
 
-  // Preserved registration parameters.
+  // preserved_registration contains setting for preserved registration Dym-Names,
+  // allow to be registered by specific account within a short period of time.
+  // This list will be cleared after the expiration epoch to save space.
+  // This is useful as when go-live, the team can reserve some Dym-Names for specific purpose
+  // and for well-known entities, not to be registered/stolen by others.
   PreservedRegistrationParams preserved_registration = 4 [
     (gogoproto.moretags) = "yaml:\"preserved_registration\"",
     (gogoproto.nullable) = false
   ];
 }
 
+// PriceParams defines the pricing of Dym-Name and price-related parameters.
 message PriceParams {
   // Price of 1 letter Dym-Name, apply to first year
   string price_1_letter = 1 [
@@ -92,14 +97,21 @@ message PriceParams {
   ];
 }
 
+// ChainsParams defines setting for aliases mapping, and list of chain-ids that are using coin-type 60.
 message ChainsParams {
-  // Chain-IDs and their aliases, used for UX improvement, used in front-end.
+  // aliases_of_chain_ids is set of chain-ids and their corresponding aliases,
+  // used for UX improvement like we can do my-name@cosmos instead of my-name@cosmoshub-4.
+  //
+  // This list is prioritized over Roll-App aliases
+  // the reason is to allow the community able to have control to fixes the potential problems with the aliases.
   repeated AliasesOfChainId aliases_of_chain_ids = 1 [
     (gogoproto.moretags) = "yaml:\"aliases_of_chain_ids\"",
     (gogoproto.nullable) = false
   ];
 
-  // Chain-IDs that are using coin-type 60. Used to ensure address conversion.
+  // coin_type_60_chain_ids is set of chain-ids that are using coin-type 60.
+  // Used to ensure address conversion.
+  // Chains that are not Coin-Type 60 will be limited in cross-chain address conversion to reduce risk.
   repeated string coin_type_60_chain_ids = 2 [
     (gogoproto.customname) = "CoinType60ChainIds",
     (gogoproto.moretags) = "yaml:\"coin_type_60_chain_ids\""
@@ -108,43 +120,47 @@ message ChainsParams {
 
 // AliasesOfChainId defines the multiple-aliases of a chain id.
 message AliasesOfChainId {
-  // Chain-ID which owned the aliases.
+  // chain_id which owned the aliases.
   string chain_id = 1 [
     (gogoproto.moretags) = "yaml:\"chain_id\""
   ];
 
-  // Multiple aliases of the chain id for UX improvement, used in front-end.
+  // aliases is set of aliases of the chain id for UX improvement,
+  // like we can do my-name@cosmos instead of my-name@cosmoshub-4
   repeated string aliases = 2 [
     (gogoproto.moretags) = "yaml:\"aliases\""
   ];
 }
 
+// MiscParams defines group of miscellaneous parameters.
 message MiscParams {
-  // Identifier of the begin epoch hook.
+  // begin_epoch_hook_identifier is the identifier of the begin epoch hook.
   string begin_epoch_hook_identifier = 1 [
     (gogoproto.moretags) = "yaml:\"begin_epoch_hook_identifier\""
   ];
 
-  // Identifier of the end epoch hook.
+  // end_epoch_hook_identifier is the identifier of the end epoch hook.
   string end_epoch_hook_identifier = 2 [
     (gogoproto.moretags) = "yaml:\"end_epoch_hook_identifier\""
   ];
 
-  // Amount of time that the former owner of an expired Dym-Name can renew it before completely lost.
+  // grace_period_duration is the amount of time that the former owner of an expired Dym-Name
+  // can renew it before completely lost.
   google.protobuf.Duration grace_period_duration = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"grace_period_duration\""
   ];
 
-  // Amount of time of a Sell-Order from created to expired.
+  // sell_order_duration is the amount of time of a Sell-Order from created to expired.
   google.protobuf.Duration sell_order_duration = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.moretags) = "yaml:\"sell_order_duration\""
   ];
 
-  // Amount of time to keep history version of closed SO before it is deleted,
+  // preserved_closed_sell_order_duration is the amount of time
+  // to keep closed Sell-Orders as historical records before it is deleted,
   // based on expiry date and block time.
   google.protobuf.Duration preserved_closed_sell_order_duration = 5 [
     (gogoproto.nullable) = false,
@@ -152,8 +168,11 @@ message MiscParams {
     (gogoproto.moretags) = "yaml:\"preserved_closed_sell_order_duration\""
   ];
 
-  // Amount of time, if the SO expiry date enter the range before expiry of Dym-Name, the SO can not be placed.
-  // This help reduce the risk of new owner of Dym-Name not able to renew it on time.
+  // prohibit_sell_duration is the amount of time,
+  // if the Sell-Order expiration date enters the range before expiry of Dym-Name, the Sell-Order can not be placed.
+  // The logic also applies when the owner accepts an Offer-To-Buy, the Dym-Name can not be sold.
+  // This is to prevent the new owner of Dym-Name to sell it before the Dym-Name expires,
+  // therefore help reduce the risk of new owner of Dym-Name not able to renew it on time.
   google.protobuf.Duration prohibit_sell_duration = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
@@ -161,15 +180,20 @@ message MiscParams {
   ];
 }
 
-// PreservedRegistrationParams contains list of preserved registration Dym-Names,
+// PreservedRegistrationParams contains setting for preserved registration Dym-Names,
 // allow to be registered by specific account within a short period of time.
+// This list will be cleared after the expiration epoch to save space.
+// This is useful as when go-live, the team can reserve some Dym-Names for specific purpose
+// and for well-known entities, not to be registered/stolen by others.
 message PreservedRegistrationParams {
-  // expiration_epoch is the epoch that the preserved registration will be expired.
+  // expiration_epoch is the epoch that the preserved registration period will be expired.
   int64 expiration_epoch = 1 [
     (gogoproto.moretags) = "yaml:\"expiration_epoch\""
   ];
 
   // preserved_dym_names is the list of preserved dym-names.
+  // It defines the Dym-Name and the whitelisted address that can register the preserved Dym-Name.
+  // It is allowed for one Dym-Name to have multiple whitelisted addresses and vice versa.
   // This list will be cleared after the expiration epoch to save space.
   repeated PreservedDymName preserved_dym_names = 2 [
     (gogoproto.moretags) = "yaml:\"preserved_dym_names\"",
@@ -177,13 +201,16 @@ message PreservedRegistrationParams {
   ];
 }
 
+// PreservedDymName defines one preserved Dym-Name and the whitelisted address that can register the preserved dym-name.
+// If want to reserve a Dym-Name for multiple addresses, add multiple PreservedDymName with the same Dym-Name.
+// If want to reserve multiple Dym-Names for one address, add multiple PreservedDymName with the same address.
 message PreservedDymName {
-  // dym_name is the preserved dym-name.
+  // dym_name is name of the preserved Dym-Name that enable whitelisted for.
   string dym_name = 1 [
     (gogoproto.moretags) = "yaml:\"dym_name\""
   ];
 
-  // whitelisted_address is the only address that can register the preserved dym-name.
+  // whitelisted_address is the only address that can register the preserved Dym-Name.
   string whitelisted_address = 2 [
     (gogoproto.moretags) = "yaml:\"whitelisted_address\""
   ];

@@ -9,18 +9,42 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
 // Msg defines the Msg service.
 service Msg {
+    // RegisterName is message handler, handles registration of a new Dym-Name
+    // or extends the ownership duration of an existing Dym-Name.
     rpc RegisterName(MsgRegisterName) returns (MsgRegisterNameResponse) {}
+    // TransferOwnership is message handler,
+    // handles transfer of ownership of a Dym-Name, performed by the owner.
     rpc TransferOwnership(MsgTransferOwnership) returns (MsgTransferOwnershipResponse) {}
+    // SetController is message handler,
+    // handles setting a controller for a Dym-Name, performed by the owner.
     rpc SetController(MsgSetController) returns (MsgSetControllerResponse) {}
+    // UpdateResolveAddress is message handler,
+    // handles updating Dym-Name-Address resolution configuration, performed by the controller.
     rpc UpdateResolveAddress(MsgUpdateResolveAddress) returns (MsgUpdateResolveAddressResponse) {}
+    // UpdateDetails is message handler,
+    // handles updating Dym-Name details, performed by the controller.
     rpc UpdateDetails(MsgUpdateDetails) returns (MsgUpdateDetailsResponse) {}
 
+    // PutAdsSellName is message handler,
+    // handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
     rpc PutAdsSellName(MsgPutAdsSellName) returns (MsgPutAdsSellNameResponse) {}
+    // CancelAdsSellName is message handler,
+    // handles canceling Sell-Order, performed by the owner.
+    // This will stop the advertisement and remove the Dym-Name from the market.
+    // Can only be performed if the Dym-Name is not in any offer.
     rpc CancelAdsSellName(MsgCancelAdsSellName) returns (MsgCancelAdsSellNameResponse) {}
+    // PurchaseName is message handler,
+    // handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
     rpc PurchaseName(MsgPurchaseName) returns (MsgPurchaseNameResponse) {}
 
+    // OfferBuyName is message handler,
+    // handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
     rpc OfferBuyName(MsgOfferBuyName) returns (MsgOfferBuyNameResponse) {}
+    // CancelOfferBuyName is message handler,
+    // handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
     rpc CancelOfferBuyName(MsgCancelOfferBuyName) returns (MsgCancelOfferBuyNameResponse) {}
+    // AcceptOfferBuyName is message handler,
+    // handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
     rpc AcceptOfferBuyName(MsgAcceptOfferBuyName) returns (MsgAcceptOfferBuyNameResponse) {}
 }
 
@@ -30,7 +54,7 @@ message MsgRegisterName {
     // name is the Dym-Name to be registered.
     string name = 1;
 
-    // owner is the bech32-encoded address of the account which owns the order.
+    // owner is the account address of the account which owns the order.
     string owner = 2;
 
     // duration is the number of years the Dym-Name will be registered for.
@@ -54,10 +78,10 @@ message MsgTransferOwnership {
     // name is the Dym-Name to be transferred ownership.
     string name = 1;
 
-    // owner is the bech32-encoded address of the account which is currently owner of the Dym-Name.
+    // owner is the account address of the account which is currently owner of the Dym-Name.
     string owner = 2;
 
-    // new_owner is the bech32-encoded address of the next account which will own the Dym-Name.
+    // new_owner is the account address of the next account which will own the Dym-Name.
     string new_owner = 3;
 }
 
@@ -71,10 +95,10 @@ message MsgSetController {
     // name is the Dym-Name to be updated controller.
     string name = 1;
 
-    // owner is the bech32-encoded address of the account which is currently owner of the Dym-Name.
+    // owner is the account address of the account which is currently owner of the Dym-Name.
     string owner = 2;
 
-    // controller is the bech32-encoded address of the account which will be the new controller of the Dym-Name.
+    // controller is the account address of the account which will be the new controller of the Dym-Name.
     string controller = 3;
 }
 
@@ -87,7 +111,7 @@ message MsgUpdateResolveAddress {
     // name is the Dym-Name to be updated controller.
     string name = 1;
 
-    // controller is the bech32-encoded address of the account which has permission to update configure of the Dym-Name.
+    // controller is the account address of the account which has permission to update configure of the Dym-Name.
     string controller = 2;
 
     // chain_id is an optional field, chain-based mapping
@@ -135,11 +159,11 @@ message MsgPutAdsSellName {
     string owner = 2;
 
     // min_price is the minimum price that buyer must pay for the Dym-Name.
-    // Note: even tho only DYM is allowed for payment, the min_price is still a Coin type to be able for future expansion.
     cosmos.base.v1beta1.Coin min_price = 3 [(gogoproto.nullable) = false];
 
     // sell_price is the price that buyer must pay for the Dym-Name to immediately own it.
-    // Setting this field to nil means the Dym-Name is not for immediate purchase and must wait until the order expired.
+    // Leaving this field empty/zero means
+    // the Dym-Name is not for immediate purchase and must wait until the Sell-Order expired.
     cosmos.base.v1beta1.Coin sell_price = 4;
 }
 
@@ -166,7 +190,7 @@ message MsgPurchaseName {
     // name is the Dym-Name to be purchased.
     string name = 1;
 
-    // buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+    // buyer is the account address of the account which is purchasing the Dym-Name.
     string buyer = 2;
 
     // offer is the price that buyer is willing to pay for the Dym-Name.
@@ -182,7 +206,7 @@ message MsgOfferBuyName {
     // name is the Dym-Name wishing to buy.
     string name = 1;
 
-    // buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+    // buyer is the account address of the account which is purchasing the Dym-Name.
     string buyer = 2;
 
     // continue_offer_id is the optional field, if the buyer wants to extends an existing offer.
@@ -204,7 +228,7 @@ message MsgCancelOfferBuyName {
     // offer_id is the unique identifier of the offer.
     string offer_id = 1;
 
-    // buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+    // buyer is the account address of the account which is purchasing the Dym-Name.
     string buyer = 2;
 }
 
@@ -218,7 +242,8 @@ message MsgAcceptOfferBuyName {
     // offer_id is the unique identifier of the offer.
     string offer_id = 1;
 
-    // owner is the bech32-encoded address of the account which owns the Dym-Name.
+    // owner is the account address of the account which owns the Dym-Name.
+    // And is the only one who can accept the offer.
     string owner = 2;
 
     // min_accept is the minimum price that the owner is willing to accept for the Dym-Name.

@@ -11,13 +11,17 @@ option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
 // GenesisState defines the DymNS module's genesis state.
 message GenesisState {
+  // params defines all the parameters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
 
+  // dym_names defines all the dym names in the genesis state.
   repeated DymName dym_names = 2 [(gogoproto.nullable) = false];
 
-  // used to refund the bid amount to the bidder of the SO which was not finished during genesis export
+  // sell_order_bids are records which used to refund the bid amount to the bidder
+  // of the Sell-Orders which was not finished during genesis export
   repeated SellOrderBid sell_order_bids = 3 [(gogoproto.nullable) = false];
 
-  // used to refund the bid amount to the bidder of the OTB which was not finished during genesis export
+  // offers_to_buy are records which used to refund the bid amount to the bidder
+  // of the Offer-To-Buy which was not finished during genesis export
   repeated OfferToBuy offers_to_buy = 4 [(gogoproto.nullable) = false];
 }

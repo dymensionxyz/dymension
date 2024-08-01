@@ -6,49 +6,64 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
+// DymName defines a Dym-Name, the mainly purpose is to stores ownership and resolution information.
+// Dym-Name is similar to DNS. It is a human-readable name that maps to a chain address.
+// One Dym-Name can have multiple configurations, each configuration is a resolution record.
+// Dym-Name is owned by an account, able to grant permission to another account to control the Dym-Name.
 message DymName {
+  // name is the human-readable name of the Dym-Name.
   string name = 1;
 
-  // Account address of the owner of the Dym-Name. Owner has permission to transfer ownership.
+  // owner is the account address that owns the Dym-Name. Owner has permission to transfer ownership.
   string owner = 2;
 
-  // Account address of the controller of the Dym-Name. Controller has permission to update resolve and contact for the Dym-Name.
+  // controller is the account address that have permission update configuration for the Dym-Name.
+  // Default is the owner. Able to transfer control to another account.
+  // Users can set Dym-Name owned by Cold-Wallet and controlled by Hot-Wallet.
   string controller = 3;
 
-  // The last effective date of the Dym-Name, after which the Dym-Name is no longer valid.
+  // expire_at is the UTC epoch represent the last effective date of the Dym-Name,
+  // after which the Dym-Name is no longer valid.
   // NOTE: Expired Dym-Names are not deleted from the store
   // because iterating through store is very expensive because expiry date must be checked every use.
   int64 expire_at = 4;
 
-  // Configurations for the Dym-Name.
+  // configs are configuration records for the Dym-Name.
   repeated DymNameConfig configs = 5 [(gogoproto.nullable) = false];
 
-  // The optional contact information for the Dym-Name.
+  // contact is an optional information for the Dym-Name.
+  // Convenient for retails users.
   string contact = 6;
 }
 
+// DymNameConfigType specifies the type of the Dym-Name configuration.
+// Currently only supports Name, similar to DNS.
 enum DymNameConfigType {
   UNKNOWN = 0;
   NAME = 1;
 }
 
+// DymNameConfig contains the resolution configuration for the Dym-Name.
+// Each record is a resolution record, similar to DNS.
 message DymNameConfig {
-  // The type of the Dym-Name configuration (equals to Type in DNS).
+  // type is the type of the Dym-Name configuration (equals to Type in DNS).
   DymNameConfigType type = 1;
 
-  // The chain ID of the Dym-Name configuration (equals to top-level-domain).
-  // If empty, the configuration is for host chain aka Dymension Hub.
+  // chain_id is the chain-id of the Dym-Name configuration (equals to top-level-domain).
+  // If empty, the configuration is for host chain (Dymension Hub).
   string chain_id = 2;
 
-  // The path of the Dym-Name configuration (equals to Host in DNS).
-  // If not empty, is sub-path configuration.
+  // path of the Dym-Name configuration (equals to Host in DNS).
+  // If the type of this config record is Name, it is the Sub-Name of the Dym-Name Address.
   string path = 3;
 
-  // The value of the Dym-Name configuration (equals to Value in DNS).
+  // value of the Dym-Name configuration resolves to (equals to Value in DNS).
+  // If the type of this config record is Name, it is the address which the Dym-Name Address resolves to.
   string value = 4;
 }
 
 // ReverseLookupDymNames contains a list of Dym-Names for reverse lookup.
 message ReverseLookupDymNames {
+  // dym_names is a list of name of the Dym-Names linked to the reverse-lookup record.
   repeated string dym_names = 1;
 }
