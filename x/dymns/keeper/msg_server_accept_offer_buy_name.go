@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// AcceptOfferBuyName is message handler,
+// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
 func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.MsgAcceptOfferBuyNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -56,6 +58,7 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 	}, nil
 }
 
+// validateAcceptOffer handles validation for the message handled by AcceptOfferBuyName
 func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.OfferToBuy, *dymnstypes.DymName, error) {
 	err := msg.ValidateBasic()
 	if err != nil {

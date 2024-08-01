@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgSetController{}
 
+// ValidateBasic performs basic validation for the MsgSetController.
 func (m *MsgSetController) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -23,6 +24,7 @@ func (m *MsgSetController) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgSetController.
 func (m *MsgSetController) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -31,14 +33,17 @@ func (m *MsgSetController) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
+// Route returns the message router key for the MsgSetController.
 func (m *MsgSetController) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgSetController.
 func (m *MsgSetController) Type() string {
 	return TypeMsgSetController
 }
 
+// GetSignBytes returns the raw bytes for the MsgSetController.
 func (m *MsgSetController) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

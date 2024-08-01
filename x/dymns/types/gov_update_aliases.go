@@ -8,6 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
+// ValidateBasic performs basic validation for the UpdateAliasesProposal.
 func (m *UpdateAliasesProposal) ValidateBasic() error {
 	if len(m.Add) == 0 && len(m.Remove) == 0 {
 		return govtypes.ErrInvalidProposalContent.Wrap("update list can not be empty")
@@ -31,6 +32,7 @@ func (m *UpdateAliasesProposal) ValidateBasic() error {
 	return v1beta1.ValidateAbstract(m)
 }
 
+// ValidateBasic performs basic validation for the UpdateAlias operation.
 func (m *UpdateAlias) ValidateBasic() error {
 	if m.ChainId == "" {
 		return govtypes.ErrInvalidProposalContent.Wrap("chain id cannot be empty")

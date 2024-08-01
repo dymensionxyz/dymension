@@ -15,7 +15,8 @@ const (
 	flagWorkingChainId = "working-chain-id"
 )
 
-//goland:noinspection SpellCheckingInspection
+// CmdQueryReverseResolveDymNameAddress is the CLI command for reverse-resolving Dym-Name-Address from an address.
+// Reverse resolving means: given an address, find the Dym-Name-Address that resolves to it.
 func CmdQueryReverseResolveDymNameAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "reverse-resolve-dym-name-address [Bech32 Address/0x Address]",

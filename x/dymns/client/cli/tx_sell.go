@@ -20,6 +20,7 @@ const (
 	flagImmediatelySellPrice = "immediately-sell-price"
 )
 
+// NewPutAdsSellDymNameTxCmd is the CLI command for creating a Sell-Order to sell a Dym-Name.
 func NewPutAdsSellDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sell [Dym-Name]",

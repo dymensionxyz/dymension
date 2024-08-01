@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewPlaceBidOnDymNameAdsTxCmd is the CLI command for placing a bid on a Dym-Name Sell-Order.
 func NewPlaceBidOnDymNameAdsTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("bid [Dym-Name] [amount] %s", params.DisplayDenom),

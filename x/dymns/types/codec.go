@@ -8,6 +8,7 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
+// RegisterCodec registers the necessary types and interfaces for the module
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgRegisterName{}, "dymns/RegisterName", nil)
 	cdc.RegisterConcrete(&MsgTransferOwnership{}, "dymns/TransferOwnership", nil)
@@ -19,6 +20,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgPurchaseName{}, "dymns/PurchaseName", nil)
 }
 
+// RegisterInterfaces registers implementations by its interface, for the module
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),

@@ -17,14 +17,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewMigrateChainIdsCmd implements the command to submit a proposal that update chain-id.
+// NewMigrateChainIdsCmd implements the command to submit a proposal that migrate chain-ids in module params
+// as well as Dym-Names configurations (of non-expired) those contain chain-ids.
 func NewMigrateChainIdsCmd() *cobra.Command {
 	cmdCode := "migrate-chain-id"
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("%s PROPOSAL_FILE", cmdCode),
 		Args:  cobra.ExactArgs(1),
-		Short: "Submit a proposal that update chain-id.",
-		Long:  `Submit a proposal that update chain-id. The proposal details must be provided via a JSON file.`,
+		Short: "Submit a proposal that migrate chain-ids in params and Dym-Names configurations.",
+		Long:  "Submit a proposal that migrate chain-ids in params and Dym-Names configurations. The proposal details must be provided via a JSON file.",
 		Example: fmt.Sprintf(`$ %s tx gov submit-legacy-proposal %s proposal_file.json --from=<key_or_address>
 
 Sample proposal file content:
@@ -201,7 +202,7 @@ Sample proposal file content:
 	return cmd
 }
 
-// parseMigrateChainIdsProposal reads and parses proposal from a JSON file.
+// parseMigrateChainIdsProposal reads and parses proposal for NewMigrateChainIdsCmd from a JSON file.
 func parseMigrateChainIdsProposal(cdc codec.JSONCodec, metadataFile string) (*dymnstypes.MigrateChainIdsProposal, error) {
 	proposal := dymnstypes.MigrateChainIdsProposal{}
 
@@ -217,7 +218,7 @@ func parseMigrateChainIdsProposal(cdc codec.JSONCodec, metadataFile string) (*dy
 	return &proposal, nil
 }
 
-// parseUpdateAliasesProposal reads and parses proposal from a JSON file.
+// parseUpdateAliasesProposal reads and parses proposal for NewUpdateAliasesCmd from a JSON file.
 func parseUpdateAliasesProposal(cdc codec.JSONCodec, metadataFile string) (*dymnstypes.UpdateAliasesProposal, error) {
 	proposal := dymnstypes.UpdateAliasesProposal{}
 

@@ -2,6 +2,8 @@ package types
 
 import "sort"
 
+// StringList is a list of strings.
+// Used to add some operations on the list.
 type StringList []string
 
 // Distinct returns a new list with duplicates removed.

@@ -6,8 +6,11 @@ import (
 	"strings"
 )
 
+// patternValidateDymNameStep1 is a regex pattern for validating Dym-Name in first step.
 var patternValidateDymNameStep1 = regexp.MustCompile(`^[a-z\d]+([a-z\d_-]*[a-z\d]+)?$`)
 
+// IsValidDymName returns true if the given string is a valid Dym-Name.
+// Read code and the comments for more details.
 func IsValidDymName(dymName string) bool {
 	if len(dymName) > 20 {
 		return false
@@ -36,6 +39,7 @@ func IsValidDymName(dymName string) bool {
 	return true
 }
 
+// IsValidSubDymName returns true if the given string is a valid Sub-Name of Dym-Name.
 func IsValidSubDymName(subDymName string) bool {
 	if subDymName == "" {
 		// allowed to be empty, means no sub name
@@ -64,8 +68,10 @@ func IsValidSubDymName(subDymName string) bool {
 	return true
 }
 
+// patternValidateAlias is a regex pattern for validating Alias (partially).
 var patternValidateAlias = regexp.MustCompile(`^[a-z\d]{1,10}$`)
 
+// IsValidAlias returns true if the given string is a valid Alias.
 func IsValidAlias(alias string) bool {
 	if alias == "" {
 		return false
@@ -78,6 +84,7 @@ func IsValidAlias(alias string) bool {
 	return patternValidateAlias.MatchString(alias)
 }
 
+// IsValidBuyNameOfferId returns true if the given string is a valid offer-id for Offer-To-Buy.
 func IsValidBuyNameOfferId(id string) bool {
 	ui, err := strconv.ParseUint(id, 10, 64)
 	return err == nil && ui > 0

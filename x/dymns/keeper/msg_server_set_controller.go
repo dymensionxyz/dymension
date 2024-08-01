@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// SetController is message handler,
+// handles setting a controller for a Dym-Name, performed by the owner.
 func (k msgServer) SetController(goCtx context.Context, msg *dymnstypes.MsgSetController) (*dymnstypes.MsgSetControllerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -24,6 +26,7 @@ func (k msgServer) SetController(goCtx context.Context, msg *dymnstypes.MsgSetCo
 	return &dymnstypes.MsgSetControllerResponse{}, nil
 }
 
+// validateSetController handles validation for message handled by SetController
 func (k msgServer) validateSetController(ctx sdk.Context, msg *dymnstypes.MsgSetController) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err

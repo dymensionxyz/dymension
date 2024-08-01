@@ -5,8 +5,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// GenesisRefundOffer refunds the offer-to-buy in genesis initialization.
+// GenesisRefundOffer refunds the Offer-To-Buy in genesis initialization.
 // This action will mint coins to the module account and send coins to the buyer.
+// The reason for minting is that the module account has no balance during genesis initialization.
 func (k Keeper) GenesisRefundOffer(ctx sdk.Context, offer dymnstypes.OfferToBuy) error {
 	return k.refundOffer(ctx, offer, true)
 }
@@ -17,6 +18,8 @@ func (k Keeper) RefundOffer(ctx sdk.Context, offer dymnstypes.OfferToBuy) error 
 	return k.refundOffer(ctx, offer, false)
 }
 
+// refundOffer refunds the offer-to-buy.
+// Depends on the genesis flag, this action will mint coins to the module account and send coins to the buyer.
 func (k Keeper) refundOffer(ctx sdk.Context, offer dymnstypes.OfferToBuy, genesis bool) error {
 	if err := offer.Validate(); err != nil {
 		return err

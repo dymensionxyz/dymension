@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgUpdateResolveAddress{}
 
+// ValidateBasic performs basic validation for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -38,6 +39,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 	return nil
 }
 
+// GetDymNameConfig casts MsgUpdateResolveAddress into DymNameConfig.
 func (m *MsgUpdateResolveAddress) GetDymNameConfig() (name string, config DymNameConfig) {
 	return m.Name, DymNameConfig{
 		Type:    DymNameConfigType_NAME,
@@ -47,6 +49,7 @@ func (m *MsgUpdateResolveAddress) GetDymNameConfig() (name string, config DymNam
 	}
 }
 
+// GetSigners returns the required signers for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) GetSigners() []sdk.AccAddress {
 	controller, err := sdk.AccAddressFromBech32(m.Controller)
 	if err != nil {
@@ -55,14 +58,17 @@ func (m *MsgUpdateResolveAddress) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{controller}
 }
 
+// Route returns the message router key for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) Type() string {
 	return TypeMsgUpdateResolveAddress
 }
 
+// GetSignBytes returns the raw bytes for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

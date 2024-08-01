@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgCancelOfferBuyName{}
 
+// ValidateBasic performs basic validation for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) ValidateBasic() error {
 	if !dymnsutils.IsValidBuyNameOfferId(m.OfferId) {
 		return ErrValidationFailed.Wrap("offer id is not a valid buy name offer id")
@@ -19,6 +20,7 @@ func (m *MsgCancelOfferBuyName) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) GetSigners() []sdk.AccAddress {
 	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
 	if err != nil {
@@ -27,14 +29,17 @@ func (m *MsgCancelOfferBuyName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{buyer}
 }
 
+// Route returns the message router key for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) Type() string {
 	return TypeMsgCancelOfferBuyName
 }
 
+// GetSignBytes returns the raw bytes for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

@@ -14,6 +14,7 @@ type epochHooks struct {
 	Keeper
 }
 
+// GetEpochHooks returns the epoch hooks for the module.
 func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 	return epochHooks{
 		Keeper: k,
@@ -21,7 +22,7 @@ func (k Keeper) GetEpochHooks() epochstypes.EpochHooks {
 }
 
 // BeforeEpochStart is the epoch start hook.
-// Business logic is to prune historical sell orders.
+// Business logic is to prune historical sell orders and clearing preserved registration.
 func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := e.GetParams(ctx)
 
@@ -46,6 +47,7 @@ func (e epochHooks) BeforeEpochStart(ctx sdk.Context, epochIdentifier string, ep
 	return nil
 }
 
+// processCleanupHistoricalSellOrders prunes historical Sell-Orders records store when reservation date passed.
 func (e epochHooks) processCleanupHistoricalSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) error {
 	dk := e.Keeper
 
@@ -120,9 +122,10 @@ func (e epochHooks) processCleanupHistoricalSellOrders(ctx sdk.Context, epochIde
 	return nil
 }
 
+// processCleanupPreservedRegistration clears preserved registration if it's expired.
 func (e epochHooks) processCleanupPreservedRegistration(ctx sdk.Context, epochIdentifier string, epochNumber int64, params dymnstypes.Params) (updatedParams dymnstypes.Params, updated bool) {
 	if params.PreservedRegistration.ExpirationEpoch >= ctx.BlockTime().Unix() {
-		return params, false
+		return
 	}
 
 	// expired, clear it
@@ -132,14 +135,17 @@ func (e epochHooks) processCleanupPreservedRegistration(ctx sdk.Context, epochId
 		"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 	)
 
-	params.PreservedRegistration = dymnstypes.PreservedRegistrationParams{}
+	updatedParams = params
 
-	return params, true
+	updatedParams.PreservedRegistration = dymnstypes.PreservedRegistrationParams{}
+	updated = true
+
+	return
 }
 
 // AfterEpochEnd is the epoch end hook.
-// Business logic is to move expired sell orders to historical
-// and if SO has a winner, complete the sell order.
+// Business logic is to move expired Sell-Orders to historical
+// and if Sell-Order has a winner, complete that SO.
 func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	params := e.GetParams(ctx)
 
@@ -152,6 +158,7 @@ func (e epochHooks) AfterEpochEnd(ctx sdk.Context, epochIdentifier string, epoch
 	return e.processActiveSellOrders(ctx, epochIdentifier, epochNumber)
 }
 
+// processActiveSellOrders moves expired Sell-Orders to historical and completes Sell-Orders with winners.
 func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier string, epochNumber int64) error {
 	dk := e.Keeper
 

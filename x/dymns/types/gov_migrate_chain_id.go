@@ -8,6 +8,7 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
+// ValidateBasic performs basic validation for the MigrateChainIdsProposal.
 func (m *MigrateChainIdsProposal) ValidateBasic() error {
 	if len(m.Replacement) == 0 {
 		return govtypes.ErrInvalidProposalContent.Wrap("replacement cannot be empty")
@@ -37,6 +38,7 @@ func (m *MigrateChainIdsProposal) ValidateBasic() error {
 	return v1beta1.ValidateAbstract(m)
 }
 
+// ValidateBasic performs basic validation for the MigrateChainId operation.
 func (m MigrateChainId) ValidateBasic() error {
 	if m.PreviousChainId == "" {
 		return govtypes.ErrInvalidProposalContent.Wrap("previous chain id cannot be empty")

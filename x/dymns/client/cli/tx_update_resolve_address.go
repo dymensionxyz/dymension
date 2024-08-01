@@ -17,6 +17,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewUpdateResolveDymNameAddressTxCmd returns the CLI command for
+// updating the address resolution configuration for a Dym-Name.
 func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
 	//goland:noinspection SpellCheckingInspection
 	cmd := &cobra.Command{

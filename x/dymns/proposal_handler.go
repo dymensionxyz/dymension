@@ -23,7 +23,8 @@ func NewDymNsProposalHandler(dk dymnskeeper.Keeper) govv1beta1.Handler {
 	}
 }
 
-// handleMigrateChainIdsProposal handles the proposal to migrate chain id
+// handleMigrateChainIdsProposal handles the proposal to migrate chain-ids in module params
+// as well as Dym-Names configurations (of non-expired) those contain chain-ids.
 func handleMigrateChainIdsProposal(
 	ctx sdk.Context,
 	dk dymnskeeper.Keeper,
@@ -41,7 +42,7 @@ func handleMigrateChainIdsProposal(
 	return nil
 }
 
-// handleUpdateAliasesProposal handles the proposal to update alias for chain-ids
+// handleUpdateAliasesProposal handles the proposal to update aliases of chain-ids in module params.
 func handleUpdateAliasesProposal(
 	ctx sdk.Context,
 	dk dymnskeeper.Keeper,

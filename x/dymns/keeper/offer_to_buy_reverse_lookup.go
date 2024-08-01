@@ -70,7 +70,7 @@ func (k Keeper) RemoveReverseMappingBuyerToOfferToBuy(ctx sdk.Context, buyer, of
 	return k.GenericRemoveReverseLookupOfferToBuyIdsRecord(ctx, key, offerId)
 }
 
-// AddReverseMappingDymNameToOfferToBuy stores a reverse mapping from configured address to Dym-Name which contains the configuration, into the KVStore.
+// AddReverseMappingDymNameToOfferToBuy add a reverse mapping from configured address to Dym-Name which contains the configuration, into the KVStore.
 func (k Keeper) AddReverseMappingDymNameToOfferToBuy(ctx sdk.Context, name, offerId string) error {
 	if !dymnsutils.IsValidDymName(name) {
 		return sdkerrors.ErrInvalidRequest.Wrap("invalid Dym-Name")

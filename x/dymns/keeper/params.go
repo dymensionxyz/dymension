@@ -24,26 +24,31 @@ func (k Keeper) SetParams(ctx sdk.Context, params dymnstypes.Params) error {
 	return nil
 }
 
+// PriceParams returns the price params
 func (k Keeper) PriceParams(ctx sdk.Context) (res dymnstypes.PriceParams) {
 	k.paramStore.Get(ctx, dymnstypes.KeyPriceParams, &res)
 	return
 }
 
+// ChainsParams returns the chains params
 func (k Keeper) ChainsParams(ctx sdk.Context) (res dymnstypes.ChainsParams) {
 	k.paramStore.Get(ctx, dymnstypes.KeyChainsParams, &res)
 	return
 }
 
+// MiscParams returns the miscellaneous params
 func (k Keeper) MiscParams(ctx sdk.Context) (res dymnstypes.MiscParams) {
 	k.paramStore.Get(ctx, dymnstypes.KeyMiscParams, &res)
 	return
 }
 
+// PreservedRegistrationParams returns the preserved registration params
 func (k Keeper) PreservedRegistrationParams(ctx sdk.Context) (res dymnstypes.PreservedRegistrationParams) {
 	k.paramStore.Get(ctx, dymnstypes.KeyPreservedRegistrationParams, &res)
 	return
 }
 
+// CheckChainIsCoinType60ByChainId checks if the chain-id is a CoinType60 chain-id, defined in the params.
 func (k Keeper) CheckChainIsCoinType60ByChainId(ctx sdk.Context, chainId string) bool {
 	if k.IsRollAppId(ctx, chainId) {
 		// all RollApps on Dymension use secp256k1

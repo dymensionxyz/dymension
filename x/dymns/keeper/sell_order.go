@@ -149,6 +149,7 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context, dymName string) error
 	return nil
 }
 
+// SetHistoricalSellOrders store the Historical Sell-Orders of the corresponding Dym-Name into the KVStore.
 func (k Keeper) SetHistoricalSellOrders(ctx sdk.Context, dymName string, hSo dymnstypes.HistoricalSellOrders) {
 	store := ctx.KVStore(k.storeKey)
 	hSoKey := dymnstypes.HistoricalSellOrdersKey(dymName)
@@ -260,6 +261,7 @@ func (k Keeper) CompleteSellOrder(ctx sdk.Context, name string) error {
 	return nil
 }
 
+// SetActiveSellOrdersExpiration stores the expiration of the active Sell-Orders records into the KVStore.
 func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context, so *dymnstypes.ActiveSellOrdersExpiration) error {
 	so.Sort()
 
@@ -274,6 +276,7 @@ func (k Keeper) SetActiveSellOrdersExpiration(ctx sdk.Context, so *dymnstypes.Ac
 	return nil
 }
 
+// GetActiveSellOrdersExpiration retrieves the expiration of the active Sell-Orders records from the KVStore.
 func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context) *dymnstypes.ActiveSellOrdersExpiration {
 	store := ctx.KVStore(k.storeKey)
 
@@ -291,6 +294,8 @@ func (k Keeper) GetActiveSellOrdersExpiration(ctx sdk.Context) *dymnstypes.Activ
 	return &record
 }
 
+// SetMinExpiryHistoricalSellOrder stores the minimum expiry
+// of all historical Sell-Orders by each Dym-Name into the KVStore.
 func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context, dymName string, minExpiry int64) {
 	store := ctx.KVStore(k.storeKey)
 	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(dymName)
@@ -301,6 +306,8 @@ func (k Keeper) SetMinExpiryHistoricalSellOrder(ctx sdk.Context, dymName string,
 	}
 }
 
+// GetMinExpiryHistoricalSellOrder retrieves the minimum expiry
+// of all historical Sell-Orders by the Dym-Name from the KVStore.
 func (k Keeper) GetMinExpiryHistoricalSellOrder(ctx sdk.Context, dymName string) (minExpiry int64, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := dymnstypes.MinExpiryHistoricalSellOrdersKey(dymName)
@@ -312,7 +319,8 @@ func (k Keeper) GetMinExpiryHistoricalSellOrder(ctx sdk.Context, dymName string)
 	return
 }
 
-// GetMinExpiryOfAllHistoricalSellOrders returns the minimum expiry of all historical sell orders by each Dym-Name.
+// GetMinExpiryOfAllHistoricalSellOrders returns the minimum expiry
+// of all historical Sell-Orders by each Dym-Name.
 func (k Keeper) GetMinExpiryOfAllHistoricalSellOrders(ctx sdk.Context) (minExpiryPerDymNameRecords []dymnstypes.HistoricalSellOrderMinExpiry) {
 	store := ctx.KVStore(k.storeKey)
 

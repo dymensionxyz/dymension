@@ -34,6 +34,7 @@ type AppModuleBasic struct {
 	cdc codec.BinaryCodec
 }
 
+// NewAppModuleBasic creates a new AppModuleBasic object
 func NewAppModuleBasic(cdc codec.BinaryCodec) AppModuleBasic {
 	return AppModuleBasic{cdc: cdc}
 }
@@ -93,6 +94,7 @@ type AppModule struct {
 	keeper dymnskeeper.Keeper
 }
 
+// NewAppModule creates a new AppModule object
 func NewAppModule(
 	cdc codec.Codec,
 	keeper dymnskeeper.Keeper,

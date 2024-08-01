@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// CancelOfferBuyName is message handler,
+// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
 func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.MsgCancelOfferBuyNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -29,6 +31,7 @@ func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 	return &dymnstypes.MsgCancelOfferBuyNameResponse{}, nil
 }
 
+// validateCancelOffer handles validation for the message handled by CancelOfferBuyName.
 func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.OfferToBuy, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
@@ -47,6 +50,7 @@ func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCance
 	return offer, nil
 }
 
+// removeOfferToBuy removes the Offer-To-Buy from the store and the reverse mappings.
 func (k msgServer) removeOfferToBuy(ctx sdk.Context, offer dymnstypes.OfferToBuy) error {
 	k.DeleteOfferToBuy(ctx, offer.Id)
 

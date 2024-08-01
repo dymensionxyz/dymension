@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// PurchaseName is message handler,
+// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
 func (k msgServer) PurchaseName(goCtx context.Context, msg *dymnstypes.MsgPurchaseName) (*dymnstypes.MsgPurchaseNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -57,6 +59,7 @@ func (k msgServer) PurchaseName(goCtx context.Context, msg *dymnstypes.MsgPurcha
 	return &dymnstypes.MsgPurchaseNameResponse{}, nil
 }
 
+// validatePurchase handles validation for the message handled by PurchaseName.
 func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchaseName) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err

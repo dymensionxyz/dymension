@@ -5,11 +5,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-// constants
-
 const (
+	// ProposalTypeMigrateChainIdsProposal defines the type for MigrateChainIdsProposal
 	ProposalTypeMigrateChainIdsProposal string = "MigrateChainIdsProposal"
-	ProposalTypeUpdateAliasesProposal   string = "UpdateAliasesProposal"
+	// ProposalTypeUpdateAliasesProposal defines the type for UpdateAliasesProposal
+	ProposalTypeUpdateAliasesProposal string = "UpdateAliasesProposal"
 )
 
 // Implements Proposal Interface
@@ -36,7 +36,9 @@ func NewMigrateChainIdsProposal(title, description string, replacement ...Migrat
 }
 
 // ProposalRoute returns router key for this proposal
-func (*MigrateChainIdsProposal) ProposalRoute() string { return RouterKey }
+func (*MigrateChainIdsProposal) ProposalRoute() string {
+	return RouterKey
+}
 
 // ProposalType returns proposal type for this proposal
 func (*MigrateChainIdsProposal) ProposalType() string {
@@ -54,7 +56,9 @@ func NewUpdateAliasesProposal(title, description string, add, remove []UpdateAli
 }
 
 // ProposalRoute returns router key for this proposal
-func (*UpdateAliasesProposal) ProposalRoute() string { return RouterKey }
+func (*UpdateAliasesProposal) ProposalRoute() string {
+	return RouterKey
+}
 
 // ProposalType returns proposal type for this proposal
 func (*UpdateAliasesProposal) ProposalType() string {

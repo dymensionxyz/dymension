@@ -9,6 +9,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// IsValidBech32AccountAddress returns true if the given string is a valid bech32 account address.
+// Depends on the flag, it will check the prefix of the bech32 account address
+// matches with host chain's account address prefix.
 func IsValidBech32AccountAddress(address string, matchAccountAddressBech32Prefix bool) bool {
 	hrp, bz, err := bech32.DecodeAndConvert(address)
 	if err != nil {
@@ -23,8 +26,13 @@ func IsValidBech32AccountAddress(address string, matchAccountAddressBech32Prefix
 	return !matchAccountAddressBech32Prefix || hrp == params.AccountAddressPrefix
 }
 
+// pattern0xHex is a regex pattern for 0x prefixed hex string.
+// Length check is omitted.
 var pattern0xHex = regexp.MustCompile(`^0x[a-f\d]+$`)
 
+// IsValidHexAddress returns true if the given string is a valid hex address.
+// It checks the length and the pattern of the hex address.
+// The hex address can be either 20 bytes presents for normal accounts or 32 bytes presents for Interchain Accounts.
 func IsValidHexAddress(address string) bool {
 	length := len(address)
 	if length != 42 && length != 66 /*32 bytes is interchain account*/ {
@@ -36,6 +44,7 @@ func IsValidHexAddress(address string) bool {
 	return pattern0xHex.MatchString(address)
 }
 
+// GetBytesFromHexAddress returns the bytes from the given hex address.
 func GetBytesFromHexAddress(address string) []byte {
 	if !IsValidHexAddress(address) {
 		panic("invalid hex address")
@@ -48,6 +57,7 @@ func GetBytesFromHexAddress(address string) []byte {
 	return common.HexToAddress(address).Bytes()
 }
 
+// GetHexAddressFromBytes returns the hex address from the given bytes.
 func GetHexAddressFromBytes(bytes []byte) string {
 	if len(bytes) == 32 {
 		return strings.ToLower(common.BytesToHash(bytes).Hex())

@@ -53,6 +53,7 @@ func (m *SellOrder) HasFinished(nowEpoch int64) bool {
 	return m.HighestBid.Price.IsGTE(*m.SellPrice)
 }
 
+// Validate performs basic validation for the SellOrder.
 func (m *SellOrder) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("SO is nil")
@@ -107,6 +108,7 @@ func (m *SellOrder) Validate() error {
 	return nil
 }
 
+// Validate performs basic validation for the SellOrderBid.
 func (m *SellOrderBid) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("SO bid is nil")
@@ -131,6 +133,7 @@ func (m *SellOrderBid) Validate() error {
 	return nil
 }
 
+// Validate performs basic validation for the HistoricalSellOrders.
 func (m *HistoricalSellOrders) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("historical SOs is nil")
@@ -159,6 +162,8 @@ func (m *HistoricalSellOrders) Validate() error {
 	return nil
 }
 
+// GetSdkEvent returns the sdk event contains information of Sell-Order record.
+// Fired when Sell-Order record is set into store.
 func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 	var sellPrice sdk.Coin
 	if m.HasSetSellPrice() {

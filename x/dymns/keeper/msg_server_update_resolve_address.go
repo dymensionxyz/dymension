@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// UpdateResolveAddress is message handler,
+// handles updating Dym-Name-Address resolution configuration, performed by the controller.
 func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.MsgUpdateResolveAddress) (*dymnstypes.MsgUpdateResolveAddressResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -85,6 +87,7 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 	return &dymnstypes.MsgUpdateResolveAddressResponse{}, nil
 }
 
+// validateUpdateResolveAddress handles validation for message handled by UpdateResolveAddress
 func (k msgServer) validateUpdateResolveAddress(ctx sdk.Context, msg *dymnstypes.MsgUpdateResolveAddress) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err

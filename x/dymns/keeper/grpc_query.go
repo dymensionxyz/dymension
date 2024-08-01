@@ -21,6 +21,7 @@ func NewQueryServerImpl(keeper Keeper) dymnstypes.QueryServer {
 	return &queryServer{Keeper: keeper}
 }
 
+// Params queries the parameters of the module.
 func (q queryServer) Params(goCtx context.Context, _ *dymnstypes.QueryParamsRequest) (*dymnstypes.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -29,6 +30,7 @@ func (q queryServer) Params(goCtx context.Context, _ *dymnstypes.QueryParamsRequ
 	return &dymnstypes.QueryParamsResponse{Params: params}, nil
 }
 
+// DymName queries a Dym-Name by its name.
 func (q queryServer) DymName(goCtx context.Context, req *dymnstypes.QueryDymNameRequest) (*dymnstypes.QueryDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -41,6 +43,14 @@ func (q queryServer) DymName(goCtx context.Context, req *dymnstypes.QueryDymName
 	return &dymnstypes.QueryDymNameResponse{DymName: dymName}, nil
 }
 
+// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+//
+// For example:
+//   - "my-name@dym" => "dym1a..."
+//   - "another.my-name@dym" => "dym1b..."
+//   - "my-name@nim" => "nim1..."
+//   - (extra format) "0x1234...6789@nim" => "nim1..."
+//   - (extra format) "dym1a...@nim" => "nim1..."
 func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnstypes.QueryResolveDymNameAddressesRequest) (*dymnstypes.QueryResolveDymNameAddressesResponse, error) {
 	if req == nil || len(req.Addresses) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -74,6 +84,7 @@ func (q queryServer) ResolveDymNameAddresses(goCtx context.Context, req *dymnsty
 	}, nil
 }
 
+// DymNamesOwnedByAccount queries the Dym-Names owned by an account.
 func (q queryServer) DymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryDymNamesOwnedByAccountRequest) (*dymnstypes.QueryDymNamesOwnedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -91,6 +102,7 @@ func (q queryServer) DymNamesOwnedByAccount(goCtx context.Context, req *dymnstyp
 	}, nil
 }
 
+// SellOrder queries the active SO of a Dym-Name.
 func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellOrderRequest) (*dymnstypes.QuerySellOrderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -111,6 +123,7 @@ func (q queryServer) SellOrder(goCtx context.Context, req *dymnstypes.QuerySellO
 	}, nil
 }
 
+// HistoricalSellOrder queries the historical SOs of a Dym-Name.
 func (q queryServer) HistoricalSellOrder(goCtx context.Context, req *dymnstypes.QueryHistoricalSellOrderRequest) (*dymnstypes.QueryHistoricalSellOrderResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -128,6 +141,7 @@ func (q queryServer) HistoricalSellOrder(goCtx context.Context, req *dymnstypes.
 	}, nil
 }
 
+// EstimateRegisterName estimates the cost to register a Dym-Name.
 func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes.QueryEstimateRegisterNameRequest) (*dymnstypes.QueryEstimateRegisterNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -168,6 +182,11 @@ func (q queryServer) EstimateRegisterName(goCtx context.Context, req *dymnstypes
 	return &estimation, nil
 }
 
+// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
+// This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+//
+// For example: when we have "my-name@dym" resolves to "dym1a..."
+// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstypes.QueryReverseResolveAddressRequest) (*dymnstypes.QueryReverseResolveAddressResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -226,6 +245,8 @@ func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstype
 	}, nil
 }
 
+// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
+// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
 func (q queryServer) TranslateAliasOrChainIdToChainId(goCtx context.Context, req *dymnstypes.QueryTranslateAliasOrChainIdToChainIdRequest) (*dymnstypes.QueryTranslateAliasOrChainIdToChainIdResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -247,6 +268,7 @@ func (q queryServer) TranslateAliasOrChainIdToChainId(goCtx context.Context, req
 	}, nil
 }
 
+// OfferToBuyById queries an offer to buy by its id.
 func (q queryServer) OfferToBuyById(goCtx context.Context, req *dymnstypes.QueryOfferToBuyByIdRequest) (*dymnstypes.QueryOfferToBuyByIdResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -268,6 +290,7 @@ func (q queryServer) OfferToBuyById(goCtx context.Context, req *dymnstypes.Query
 	}, nil
 }
 
+// OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
 func (q queryServer) OffersToBuyPlacedByAccount(goCtx context.Context, req *dymnstypes.QueryOffersToBuyPlacedByAccountRequest) (*dymnstypes.QueryOffersToBuyPlacedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -285,6 +308,7 @@ func (q queryServer) OffersToBuyPlacedByAccount(goCtx context.Context, req *dymn
 	}, nil
 }
 
+// OffersToBuyByDymName queries the offers to buy by a Dym-Name.
 func (q queryServer) OffersToBuyByDymName(goCtx context.Context, req *dymnstypes.QueryOffersToBuyByDymNameRequest) (*dymnstypes.QueryOffersToBuyByDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -302,6 +326,7 @@ func (q queryServer) OffersToBuyByDymName(goCtx context.Context, req *dymnstypes
 	}, nil
 }
 
+// OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
 func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountRequest) (*dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

@@ -42,10 +42,12 @@ func NewKeeper(
 	}
 }
 
+// Logger returns a module-specific logger.
 func (k *Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", dymnstypes.ModuleName))
 }
 
+// Codec exposes the Keeper's internal codec.
 func (k Keeper) Codec() codec.BinaryCodec {
 	return k.cdc
 }

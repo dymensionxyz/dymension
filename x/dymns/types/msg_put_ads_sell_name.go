@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgPutAdsSellName{}
 
+// ValidateBasic performs basic validation for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -29,6 +30,7 @@ func (m *MsgPutAdsSellName) ValidateBasic() error {
 	return nil
 }
 
+// ToSellOrder converts the MsgPutAdsSellName to a SellOrder.
 func (m *MsgPutAdsSellName) ToSellOrder() SellOrder {
 	so := SellOrder{
 		Name:      m.Name,
@@ -43,6 +45,7 @@ func (m *MsgPutAdsSellName) ToSellOrder() SellOrder {
 	return so
 }
 
+// GetSigners returns the required signers for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -51,14 +54,17 @@ func (m *MsgPutAdsSellName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
+// Route returns the message router key for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) Type() string {
 	return TypeMsgPutAdsSellName
 }
 
+// GetSignBytes returns the raw bytes for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

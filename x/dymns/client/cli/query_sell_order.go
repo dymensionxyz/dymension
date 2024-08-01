@@ -12,6 +12,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// CmdQuerySellOrder is the CLI command for querying the current active Sell Order of a Dym-Name
 func CmdQuerySellOrder() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "sell-order [Dym-Name]",

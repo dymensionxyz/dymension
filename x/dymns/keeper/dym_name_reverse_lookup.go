@@ -9,7 +9,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// AddReverseMappingOwnerToOwnedDymName stores a reverse mapping from owner to owned Dym-Name into the KVStore.
+// AddReverseMappingOwnerToOwnedDymName add a reverse mapping from owner to owned Dym-Name into the KVStore.
 func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
 	if err != nil {
@@ -22,6 +22,8 @@ func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, nam
 }
 
 // GetDymNamesOwnedBy returns all Dym-Names owned by the account address.
+// The action done by reverse mapping from owner to owned Dym-Name.
+// The Dym-Names are filtered by the owner and excluded expired Dym-Name using the time from context.
 func (k Keeper) GetDymNamesOwnedBy(
 	ctx sdk.Context, owner string,
 ) ([]dymnstypes.DymName, error) {
@@ -63,7 +65,8 @@ func (k Keeper) RemoveReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, 
 	return k.GenericRemoveReverseLookupDymNamesRecord(ctx, dymNamesOwnedByAccountKey, name)
 }
 
-// AddReverseMappingConfiguredAddressToDymName stores a reverse mapping from configured address to Dym-Name which contains the configuration, into the KVStore.
+// AddReverseMappingConfiguredAddressToDymName add a reverse mapping from configured address to Dym-Name
+// which contains the configuration, into the KVStore.
 func (k Keeper) AddReverseMappingConfiguredAddressToDymName(ctx sdk.Context, configuredAddress, name string) error {
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
@@ -78,6 +81,8 @@ func (k Keeper) AddReverseMappingConfiguredAddressToDymName(ctx sdk.Context, con
 }
 
 // GetDymNamesContainsConfiguredAddress returns all Dym-Names that contains the configured address.
+// The action done by reverse mapping from configured address to Dym-Name.
+// The Dym-Names are filtered by the configured address and excluded expired Dym-Name using the time from context.
 func (k Keeper) GetDymNamesContainsConfiguredAddress(
 	ctx sdk.Context, configuredAddress string,
 ) ([]dymnstypes.DymName, error) {
@@ -103,7 +108,8 @@ func (k Keeper) GetDymNamesContainsConfiguredAddress(
 	return dymNames, nil
 }
 
-// RemoveReverseMappingConfiguredAddressToDymName removes reverse mapping from configured address to Dym-Names which contains it from the KVStore.
+// RemoveReverseMappingConfiguredAddressToDymName removes reverse mapping from configured address
+// to Dym-Names which contains it from the KVStore.
 func (k Keeper) RemoveReverseMappingConfiguredAddressToDymName(ctx sdk.Context, configuredAddress, name string) error {
 	configuredAddress = normalizeConfiguredAddressForReverseMapping(configuredAddress)
 	if err := validateConfiguredAddressForReverseMapping(configuredAddress); err != nil {
@@ -117,6 +123,7 @@ func (k Keeper) RemoveReverseMappingConfiguredAddressToDymName(ctx sdk.Context, 
 	)
 }
 
+// validateConfiguredAddressForReverseMapping validates the configured address for reverse mapping.
 func validateConfiguredAddressForReverseMapping(configuredAddress string) error {
 	if configuredAddress == "" {
 		return sdkerrors.ErrInvalidRequest.Wrap("configured address cannot be blank")
@@ -124,11 +131,13 @@ func validateConfiguredAddressForReverseMapping(configuredAddress string) error 
 	return nil
 }
 
+// normalizeConfiguredAddressForReverseMapping normalizes the configured address for reverse mapping
+// before putting it into the KVStore.
 func normalizeConfiguredAddressForReverseMapping(configuredAddress string) string {
 	return strings.ToLower(strings.TrimSpace(configuredAddress))
 }
 
-// AddReverseMappingHexAddressToDymName stores a reverse mapping
+// AddReverseMappingHexAddressToDymName add a reverse mapping
 // from hex address (coin-type 60, secp256k1, ethereum address)
 // to Dym-Name which contains the hex address, into the KVStore.
 func (k Keeper) AddReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAddr []byte, name string) error {
@@ -145,6 +154,8 @@ func (k Keeper) AddReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAddr 
 
 // GetDymNamesContainsHexAddress returns all Dym-Names
 // that contains the hex address (coin-type 60, secp256k1, ethereum address).
+// The action done by reverse mapping from hex address to Dym-Name.
+// The Dym-Names are filtered by the hex address and excluded expired Dym-Name using the time from context.
 func (k Keeper) GetDymNamesContainsHexAddress(
 	ctx sdk.Context, bzHexAddr []byte,
 ) ([]dymnstypes.DymName, error) {
@@ -184,6 +195,7 @@ func (k Keeper) RemoveReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAd
 	)
 }
 
+// validateHexAddressForReverseMapping validates the hex address for reverse mapping.
 func validateHexAddressForReverseMapping(bzHexAddr []byte) error {
 	if length := len(bzHexAddr); length != 20 && length != 32 {
 		return sdkerrors.ErrInvalidRequest.Wrapf("hex address must be 20 or 32 bytes, got %d", length)

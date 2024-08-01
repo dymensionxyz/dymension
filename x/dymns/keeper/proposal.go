@@ -7,6 +7,8 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
+// MigrateChainIds called by GOV handler, migrate chain-ids in module params
+// as well as Dym-Names configurations (of non-expired) those contain chain-ids.
 func (k Keeper) MigrateChainIds(ctx sdk.Context, replacement []dymnstypes.MigrateChainId) error {
 	previousChainIdsToNewChainId := make(map[string]string)
 	// Describe usage of Go Map: only used for mapping previous chain id to new chain id
@@ -27,6 +29,7 @@ func (k Keeper) MigrateChainIds(ctx sdk.Context, replacement []dymnstypes.Migrat
 	return nil
 }
 
+// migrateChainIdsInParams migrates chain-ids in module params.
 func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewChainId map[string]string) error {
 	params := k.GetParams(ctx)
 
@@ -93,6 +96,7 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 	return nil
 }
 
+// migrateChainIdsInDymNames migrates chain-ids in non-expired Dym-Names configurations.
 func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNewChainId map[string]string) error {
 	// We only migrate for Dym-Names that not expired to reduce IO needed.
 
@@ -160,6 +164,7 @@ func (k Keeper) migrateChainIdsInDymNames(ctx sdk.Context, previousChainIdsToNew
 	return nil
 }
 
+// UpdateAliases called by GOV handler, update aliases of chain-ids in module params.
 func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAlias) error {
 	params := k.GetParams(ctx)
 

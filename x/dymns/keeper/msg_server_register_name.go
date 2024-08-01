@@ -10,6 +10,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// RegisterName is message handler, handles registration of a new Dym-Name
+// or extends the ownership duration of an existing Dym-Name.
 func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.MsgRegisterNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -160,6 +162,7 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	return &dymnstypes.MsgRegisterNameResponse{}, nil
 }
 
+// validateRegisterName handles validation for the message handled by RegisterName.
 func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegisterName) (*dymnstypes.DymName, *dymnstypes.Params, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err

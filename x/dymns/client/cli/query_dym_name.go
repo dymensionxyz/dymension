@@ -12,6 +12,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// CmdQueryDymName is the CLI command for querying Dym-Name information
 func CmdQueryDymName() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "dym-name [Dym-Name]",

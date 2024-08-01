@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// Validate checks if the DymName record is valid.
 func (m *DymName) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("dym name is nil")
@@ -58,6 +59,7 @@ func (m *DymName) Validate() error {
 	return nil
 }
 
+// Validate checks if the DymNameConfig record is valid.
 func (m *DymNameConfig) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("dym name config is nil")
@@ -90,6 +92,7 @@ func (m *DymNameConfig) Validate() error {
 	return nil
 }
 
+// Validate checks if the ReverseLookupDymNames record is valid.
 func (m *ReverseLookupDymNames) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("reverse lookup record is nil")
@@ -104,10 +107,15 @@ func (m *ReverseLookupDymNames) Validate() error {
 	return nil
 }
 
+// IsExpiredAtCtx returns true if the Dym-Name is expired at the given context.
+// It compares the expiry with the block time in context.
 func (m DymName) IsExpiredAtCtx(ctx sdk.Context) bool {
 	return m.ExpireAt < ctx.BlockTime().Unix()
 }
 
+// IsProhibitedTradingAt checks if the Dym-Name is prohibited from trading at the given anchor time.
+// The prohibition is based on the expiry time
+// and Dym-Name is prohibited from trading after the given duration before expiry.
 func (m DymName) IsProhibitedTradingAt(anchor time.Time, prohibitSellDuration time.Duration) bool {
 	prohibitSellingAfterEpoch := time.Unix(m.ExpireAt, 0).UTC().Add(
 		-1 * prohibitSellDuration,
@@ -116,6 +124,8 @@ func (m DymName) IsProhibitedTradingAt(anchor time.Time, prohibitSellDuration ti
 	return prohibitSellingAfterEpoch < anchor.Unix()
 }
 
+// GetSdkEvent returns the sdk event contains information of Dym-Name.
+// Fired when Dym-Name record is set into store.
 func (m DymName) GetSdkEvent() sdk.Event {
 	return sdk.NewEvent(
 		EventTypeSetDymName,
@@ -128,6 +138,8 @@ func (m DymName) GetSdkEvent() sdk.Event {
 	)
 }
 
+// GetIdentity returns the unique identity of the DymNameConfig record.
+// Used for uniqueness check.
 func (m DymNameConfig) GetIdentity() string {
 	return strings.ToLower(fmt.Sprintf("%s|%s|%s", m.Type, m.ChainId, m.Path))
 }
@@ -142,12 +154,19 @@ func (m DymNameConfig) IsDefaultNameConfig() bool {
 		m.Path == ""
 }
 
+// IsDelete checks if the config is a delete operation.
+// A delete operation is when the value is empty.
 func (m DymNameConfig) IsDelete() bool {
 	return m.Value == ""
 }
 
+// DymNameConfigs is a list of DymNameConfig records.
+// Used to add some operations on the list.
 type DymNameConfigs []DymNameConfig
 
+// DefaultNameConfigs returns a list of default name configs.
+// It returns a list instead of a single record with purpose is to negotiate case
+// where both add and delete operations are present.
 func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
 	var defaultConfigs DymNameConfigs
 	for _, config := range m {

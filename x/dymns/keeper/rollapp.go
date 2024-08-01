@@ -19,6 +19,7 @@ var mockRollAppsData = map[string]mockRollAppData{
 	},
 }
 
+// IsRollAppId checks if the chain-id is a RollApp-Id.
 func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 	_, found := k.rollappKeeper.GetRollapp(ctx, chainId)
 
@@ -29,6 +30,7 @@ func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 	return found
 }
 
+// GetRollAppIdByAlias returns the RollApp-Id by the alias.
 func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId string, found bool) {
 	// TODO DymNS: implement Get RollApp-Id By Alias
 
@@ -41,6 +43,7 @@ func (k Keeper) GetRollAppIdByAlias(ctx sdk.Context, alias string) (rollAppId st
 	return "", false
 }
 
+// GetAliasByRollAppId returns the alias by the RollApp-Id.
 func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias string, found bool) {
 	if data, found := mockRollAppsData[chainId]; found {
 		return data.alias, true
@@ -59,6 +62,7 @@ func (k Keeper) GetAliasByRollAppId(ctx sdk.Context, chainId string) (alias stri
 	*/
 }
 
+// GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.
 func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32Prefix string, found bool) {
 	if data, found := mockRollAppsData[chainId]; found {
 		return data.bech32, true

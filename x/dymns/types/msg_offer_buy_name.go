@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgOfferBuyName{}
 
+// ValidateBasic performs basic validation for the MsgOfferBuyName.
 func (m *MsgOfferBuyName) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -31,6 +32,7 @@ func (m *MsgOfferBuyName) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgOfferBuyName.
 func (m *MsgOfferBuyName) GetSigners() []sdk.AccAddress {
 	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
 	if err != nil {
@@ -39,14 +41,17 @@ func (m *MsgOfferBuyName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{buyer}
 }
 
+// Route returns the message router key for the MsgOfferBuyName.
 func (m *MsgOfferBuyName) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgOfferBuyName.
 func (m *MsgOfferBuyName) Type() string {
 	return TypeMsgOfferBuyName
 }
 
+// GetSignBytes returns the raw bytes for the MsgOfferBuyName.
 func (m *MsgOfferBuyName) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

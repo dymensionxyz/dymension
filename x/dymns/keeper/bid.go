@@ -7,6 +7,7 @@ import (
 
 // GenesisRefundBid refunds the bid in genesis initialization.
 // This action will mint coins to the module account and send coins to the bidder.
+// The reason for minting is that the module account has no balance during genesis initialization.
 func (k Keeper) GenesisRefundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid) error {
 	return k.refundBid(ctx, soBid, true)
 }
@@ -17,6 +18,8 @@ func (k Keeper) RefundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid) error 
 	return k.refundBid(ctx, soBid, false)
 }
 
+// refundBid refunds the bid.
+// Depends on the genesis flag, this action will mint coins to the module account and send coins to the bidder.
 func (k Keeper) refundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid, genesis bool) error {
 	if err := soBid.Validate(); err != nil {
 		return err

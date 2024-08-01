@@ -15,6 +15,7 @@ const (
 	flagClearConfigs = "clear-configs"
 )
 
+// NewUpdateDetailsTxCmd is the CLI command for updating the details of a Dym-Name.
 func NewUpdateDetailsTxCmd() *cobra.Command {
 	//goland:noinspection SpellCheckingInspection
 	cmd := &cobra.Command{

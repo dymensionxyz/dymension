@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// UpdateDetails is message handler,
+// handles updating Dym-Name details, performed by the controller.
 func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdateDetails) (*dymnstypes.MsgUpdateDetailsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -56,6 +58,7 @@ func (k msgServer) UpdateDetails(goCtx context.Context, msg *dymnstypes.MsgUpdat
 	return &dymnstypes.MsgUpdateDetailsResponse{}, nil
 }
 
+// validateUpdateDetails handles validation for message handled by UpdateDetails
 func (k msgServer) validateUpdateDetails(ctx sdk.Context, msg *dymnstypes.MsgUpdateDetails) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err

@@ -23,6 +23,7 @@ const (
 	flagContact        = "contact"
 )
 
+// NewRegisterDymNameTxCmd is the CLI command for registering a new Dym-Name or extending the duration of an owned Dym-Name.
 func NewRegisterDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "register [Dym-Name]",

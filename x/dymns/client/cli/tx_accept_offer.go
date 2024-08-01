@@ -18,6 +18,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewAcceptOfferToBuyDymNameTxCmd is the CLI command for accepting an Offer-To-Buy a Dym-Name
+// or offer-back to raise the price.
 func NewAcceptOfferToBuyDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("accept-offer [offer-id] [amount] %s", params.DisplayDenom),

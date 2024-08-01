@@ -21,6 +21,7 @@ const (
 	flagContinueOfferId = "continue-offer-id"
 )
 
+// NewOfferToBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
 func NewOfferToBuyDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("offer [Dym-Name] [amount] %s", params.DisplayDenom),

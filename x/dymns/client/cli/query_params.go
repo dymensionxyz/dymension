@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// CmdQueryParams is the CLI command for querying the parameters of the module
 func CmdQueryParams() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "params",

@@ -9,6 +9,7 @@ import (
 
 var _ sdk.Msg = &MsgTransferOwnership{}
 
+// ValidateBasic performs basic validation for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -29,6 +30,7 @@ func (m *MsgTransferOwnership) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -37,14 +39,17 @@ func (m *MsgTransferOwnership) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
+// Route returns the message router key for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) Type() string {
 	return TypeMsgTransferOwnership
 }
 
+// GetSignBytes returns the raw bytes for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

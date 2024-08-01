@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgUpdateDetails{}
 
+// ValidateBasic performs basic validation for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -29,6 +30,7 @@ func (m *MsgUpdateDetails) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) GetSigners() []sdk.AccAddress {
 	controller, err := sdk.AccAddressFromBech32(m.Controller)
 	if err != nil {
@@ -37,14 +39,17 @@ func (m *MsgUpdateDetails) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{controller}
 }
 
+// Route returns the message router key for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) Type() string {
 	return TypeMsgUpdateDetails
 }
 
+// GetSignBytes returns the raw bytes for the MsgUpdateDetails.
 func (m *MsgUpdateDetails) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

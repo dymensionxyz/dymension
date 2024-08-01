@@ -5,14 +5,19 @@ import (
 	"strings"
 )
 
+// ReverseResolvedDymNameAddress is a struct that contains the reverse-resolved Dym-Name-Address components.
 type ReverseResolvedDymNameAddress struct {
 	SubName        string
 	Name           string
 	ChainIdOrAlias string
 }
 
+// ReverseResolvedDymNameAddresses is a list of ReverseResolvedDymNameAddress.
+// Used to add some operations on the list.
 type ReverseResolvedDymNameAddresses []ReverseResolvedDymNameAddress
 
+// String returns the string representation of the ReverseResolvedDymNameAddress.
+// It returns the string in the format of "subname.name@chainIdOrAlias".
 func (m ReverseResolvedDymNameAddress) String() string {
 	var sb strings.Builder
 	if m.SubName != "" {
@@ -25,6 +30,7 @@ func (m ReverseResolvedDymNameAddress) String() string {
 	return sb.String()
 }
 
+// Sort sorts the ReverseResolvedDymNameAddress in the list.
 func (m ReverseResolvedDymNameAddresses) Sort() {
 	if len(m) > 0 {
 		sort.Slice(m, func(i, j int) bool {
@@ -44,6 +50,7 @@ func (m ReverseResolvedDymNameAddresses) Sort() {
 	}
 }
 
+// Distinct returns a new list of ReverseResolvedDymNameAddress with duplicates removed.
 func (m ReverseResolvedDymNameAddresses) Distinct() (distinct ReverseResolvedDymNameAddresses) {
 	if len(m) < 1 {
 		return m

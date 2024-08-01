@@ -11,6 +11,7 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// CmdQueryResolveDymNameAddress is the CLI command for resolving one or multiple Dym-Name-Addresss
 func CmdQueryResolveDymNameAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "resolve-dym-name-address [Dym-Name-Address...]",

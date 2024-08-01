@@ -18,7 +18,7 @@ const (
 	MemStoreKey = "mem_" + ModuleName
 )
 
-// prefix bytes for the DymNS persistent store
+// prefix bytes for the DymNS persistent store.
 const (
 	prefixDymName                               = iota + 1
 	prefixRvlDymNamesOwnedByAccount             // reverse lookup store

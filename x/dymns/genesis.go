@@ -42,6 +42,7 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 		ctx = ctx.WithBlockTime(time.Now().UTC())
 	}
 
+	// Collect bidders of active Sell-Orders so that we can refund them later.
 	var nonRefundedBids []dymnstypes.SellOrderBid
 	for _, bid := range k.GetAllSellOrders(ctx) {
 		if bid.HighestBid == nil {
@@ -51,6 +52,7 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 		nonRefundedBids = append(nonRefundedBids, *bid.HighestBid)
 	}
 
+	// Collect buyers of active Offers-To-Buy so that we can refund them later.
 	var nonRefundedOffersToBuy []dymnstypes.OfferToBuy
 	for _, offer := range k.GetAllOffersToBuy(ctx) {
 		truncatedOffer := offer

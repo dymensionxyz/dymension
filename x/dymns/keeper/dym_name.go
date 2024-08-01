@@ -12,7 +12,7 @@ import (
 
 // SetDymName stores a Dym-Name into the KVStore.
 //
-// Note:
+// Important Note:
 //  1. Must call BeforeDymNameOwnerChanged and AfterDymNameOwnerChanged before and after calling this function when updating owner.
 //  2. Must call BeforeDymNameConfigChanged and AfterDymNameConfigChanged before and after calling this function when updating configuration.
 func (k Keeper) SetDymName(ctx sdk.Context, dymName dymnstypes.DymName) error {
@@ -31,6 +31,7 @@ func (k Keeper) SetDymName(ctx sdk.Context, dymName dymnstypes.DymName) error {
 }
 
 // BeforeDymNameOwnerChanged must be called before updating the owner of a Dym-Name.
+// This function will remove the reverse mapping from the old owner to the Dym-Name.
 func (k Keeper) BeforeDymNameOwnerChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
@@ -45,6 +46,7 @@ func (k Keeper) BeforeDymNameOwnerChanged(ctx sdk.Context, name string) error {
 }
 
 // AfterDymNameOwnerChanged must be called after the owner of a Dym-Name is changed.
+// This function will add the reverse mapping from the new owner to the Dym-Name.
 func (k Keeper) AfterDymNameOwnerChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
@@ -59,6 +61,7 @@ func (k Keeper) AfterDymNameOwnerChanged(ctx sdk.Context, name string) error {
 }
 
 // BeforeDymNameConfigChanged must be called before updating the configuration of a Dym-Name.
+// This function will remove the reverse mapping from the configured addresses and hex addresses to the Dym-Name.
 func (k Keeper) BeforeDymNameConfigChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
@@ -82,6 +85,7 @@ func (k Keeper) BeforeDymNameConfigChanged(ctx sdk.Context, name string) error {
 }
 
 // AfterDymNameConfigChanged must be called after the configuration of a Dym-Name is changed.
+// This function will add the reverse mapping from the configured addresses and hex addresses to the Dym-Name.
 func (k Keeper) AfterDymNameConfigChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
@@ -136,6 +140,8 @@ func (k Keeper) GetDymNameWithExpirationCheck(ctx sdk.Context, name string) *dym
 	return dymName
 }
 
+// DeleteDymName removes a Dym-Name from the KVStore.
+// This function will remove the Dym-Name record as well as the reverse mappings records.
 func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {
 	if err := k.BeforeDymNameOwnerChanged(ctx, name); err != nil {
 		return err
@@ -152,6 +158,8 @@ func (k Keeper) DeleteDymName(ctx sdk.Context, name string) error {
 	return nil
 }
 
+// GetAllNonExpiredDymNames returns all non-expired Dym-Names from the KVStore.
+// This function will filter out all expired Dym-Names based on the time of the context.
 func (k Keeper) GetAllNonExpiredDymNames(ctx sdk.Context) (list []dymnstypes.DymName) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -198,6 +206,14 @@ func (k Keeper) PruneDymName(ctx sdk.Context, name string) error {
 	return k.DeleteDymName(ctx, name)
 }
 
+// ResolveByDymNameAddress resolves a Dym-Name-Address into an output address.
+//
+// For example:
+//   - "my-name@dym" => "dym1a..."
+//   - "another.my-name@dym" => "dym1b..."
+//   - "my-name@nim" => "nim1..."
+//   - (extra format) "0x1234...6789@nim" => "nim1..."
+//   - (extra format) "dym1a...@nim" => "nim1..."
 func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) (outputAddress string, err error) {
 	subName, name, chainIdOrAlias, parseErr := ParseDymNameAddress(dymNameAddress)
 	if parseErr != nil {
@@ -377,6 +393,7 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 	return
 }
 
+// ReplaceChainIdWithAliasIfPossible replaces the chain-id with alias if possible.
 func (k Keeper) tryResolveChainIdOrAliasToChainId(ctx sdk.Context, chainIdOrAlias string) (resolvedToChainId string, success bool) {
 	if chainIdOrAlias == ctx.ChainID() {
 		return chainIdOrAlias, true
@@ -409,6 +426,14 @@ func (k Keeper) tryResolveChainIdOrAliasToChainId(ctx sdk.Context, chainIdOrAlia
 	return
 }
 
+// ParseDymNameAddress parses a Dym-Name address into its components.
+//
+// The components are:
+//  1. Sub-Name is the part before the last '.' before the '@'.
+//  2. Dym-Name is the part before the last '@'.
+//  3. Chain-ID or Alias is the part after the last '@'.
+//
+// The '@' can replaced with '.'.
 func ParseDymNameAddress(
 	dymNameAddress string,
 ) (
@@ -510,6 +535,11 @@ func ParseDymNameAddress(
 	return
 }
 
+// ReverseResolveDymNameAddress resolves an address into a Dym-Name-Address which points to it.
+// This function may return multiple possible Dym-Name-Addresses those point to the input address.
+//
+// For example: when we have "my-name@dym" resolves to "dym1a..."
+// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, workingChainId string) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
 	inputAddress = strings.ToLower(inputAddress)
 
@@ -688,6 +718,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	return
 }
 
+// ReplaceChainIdWithAliasIfPossible replaces the chain-id with alias if possible for the reverse resolved records.
 func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolvedRecords dymnstypes.ReverseResolvedDymNameAddresses) []dymnstypes.ReverseResolvedDymNameAddress {
 	if len(reverseResolvedRecords) > 0 {
 		for i, reverseResolvedRecord := range reverseResolvedRecords {

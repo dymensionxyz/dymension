@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgCancelAdsSellName{}
 
+// ValidateBasic performs basic validation for the MsgCancelAdsSellName.
 func (m *MsgCancelAdsSellName) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return ErrValidationFailed.Wrap("name is not a valid dym name")
@@ -19,6 +20,7 @@ func (m *MsgCancelAdsSellName) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgCancelAdsSellName.
 func (m *MsgCancelAdsSellName) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -27,14 +29,17 @@ func (m *MsgCancelAdsSellName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
+// Route returns the message router key for the MsgCancelAdsSellName.
 func (m *MsgCancelAdsSellName) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgCancelAdsSellName.
 func (m *MsgCancelAdsSellName) Type() string {
 	return TypeMsgCancelAdsSellName
 }
 
+// GetSignBytes returns the raw bytes for the MsgCancelAdsSellName.
 func (m *MsgCancelAdsSellName) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

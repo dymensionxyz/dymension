@@ -10,7 +10,7 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	"github.com/ethereum/go-ethereum/common"
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -88,13 +88,7 @@ func (a ta) bech32C(customHrp string) string {
 }
 
 func (a ta) hexStr() string {
-	if len(a.bz) == 20 {
-		return common.BytesToAddress(a.bz).String()
-	} else if len(a.bz) == 32 {
-		return common.BytesToHash(a.bz).String()
-	} else {
-		panic("invalid length")
-	}
+	return dymnsutils.GetHexAddressFromBytes(a.bz)
 }
 
 type dymNameBuilder struct {

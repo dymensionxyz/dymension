@@ -22,11 +22,12 @@ const (
 	targetTypeDymName = "dym-name"
 )
 
+// CmdQueryOfferToBuy is the CLI command for querying Offers-To-Buy a Dym-Name
 func CmdQueryOfferToBuy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "offer-to-buy [Dym-Name]",
+		Use:     "offer-to-buy [target]",
 		Aliases: []string{"offer"},
-		Short:   "Get list of offers to buy a Dym-Name.",
+		Short:   "Get list of Offers-To-Buy corresponding to the target",
 		Example: fmt.Sprintf(
 			`%s q %s offer 1 --%s=%s
 %s q %s offer dym1buyer --%s=%s
@@ -94,6 +95,7 @@ func CmdQueryOfferToBuy() *cobra.Command {
 	return cmd
 }
 
+// queryOfferById fetches an Offer-To-Buy by its ID
 func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, offerId string) (*dymnstypes.OfferToBuy, error) {
 	if !dymnsutils.IsValidBuyNameOfferId(offerId) {
 		return nil, fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
@@ -109,6 +111,7 @@ func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, off
 	return &res.Offer, nil
 }
 
+// queryOffersPlacedByBuyer fetches Offers-To-Buy placed by a buyer
 func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Context, buyer string) ([]dymnstypes.OfferToBuy, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(buyer, true) {
 		return nil, fmt.Errorf("input buyer address '%s' is not a valid bech32 account address", buyer)
@@ -124,6 +127,7 @@ func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Co
 	return res.Offers, nil
 }
 
+// queryOffersOfDymNamesOwnedByOwner fetches all Offers-To-Buy of all Dym-Names owned by an owner
 func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx context.Context, owner string) ([]dymnstypes.OfferToBuy, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(owner, true) {
 		return nil, fmt.Errorf("input owner address '%s' is not a valid bech32 account address", owner)
@@ -139,6 +143,7 @@ func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx c
 	return res.Offers, nil
 }
 
+// queryOffersByDymName fetches all Offers-To-Buy of a Dym-Name
 func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Context, dymName string) ([]dymnstypes.OfferToBuy, error) {
 	if !dymnsutils.IsValidDymName(dymName) {
 		return nil, fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)

@@ -1,11 +1,13 @@
 package types
 
+// DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
 	return &GenesisState{
 		Params: DefaultParams(),
 	}
 }
 
+// Validate checks if the GenesisState is valid.
 func (m GenesisState) Validate() error {
 	if err := (&m.Params).Validate(); err != nil {
 		return ErrValidationFailed.Wrapf("params: %v", err)

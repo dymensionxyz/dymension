@@ -5,10 +5,12 @@ import (
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
+// HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
 func (m *OfferToBuy) HasCounterpartyOfferPrice() bool {
 	return m.CounterpartyOfferPrice != nil && !m.CounterpartyOfferPrice.Amount.IsNil() && !m.CounterpartyOfferPrice.IsZero()
 }
 
+// Validate performs basic validation for the OfferToBuy.
 func (m *OfferToBuy) Validate() error {
 	if m == nil {
 		return ErrValidationFailed.Wrap("offer is nil")
@@ -57,6 +59,8 @@ func (m *OfferToBuy) Validate() error {
 	return nil
 }
 
+// GetSdkEvent returns the sdk event contains information of Offer-To-Buy record.
+// Fired when Offer-To-Buy record is set into store.
 func (m OfferToBuy) GetSdkEvent(actionName string) sdk.Event {
 	var attrCounterpartyOfferPrice sdk.Attribute
 	if m.CounterpartyOfferPrice != nil {

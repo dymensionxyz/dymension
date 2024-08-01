@@ -1,5 +1,6 @@
 package types
 
+// Event to fire when a DymName is set into store.
 const (
 	EventTypeSetDymName                  = ModuleName + "_name"
 	AttributeKeyDymName                  = "name"
@@ -10,18 +11,21 @@ const (
 	AttributeKeyDymNameHasContactDetails = "has_contact"
 )
 
+// Event to fire when refunding a bid of a Sell-Order.
 const (
 	EventTypeDymNameRefundBid       = ModuleName + "_bid_refund"
 	AttributeKeyDymNameRefundBidder = "bidder"
 	AttributeKeyDymNameRefundAmount = "amount"
 )
 
+// Event to fire when refunding a bid of an Offer-To-Buy.
 const (
 	EventTypeOtbRefundOffer     = ModuleName + "_offer_refund"
 	AttributeKeyOtbRefundBuyer  = "buyer"
 	AttributeKeyOtbRefundAmount = "amount"
 )
 
+// Event to fire when a SellOrder is set into store.
 const (
 	EventTypeSellOrder            = ModuleName + "_so"
 	AttributeKeySoActionName      = "action"
@@ -33,11 +37,13 @@ const (
 	AttributeKeySoHighestBidPrice = "highest_bid_price"
 )
 
+// Event to fire corresponding to the action of CRUD a SellOrder.
 const (
 	AttributeKeyDymNameSoActionNameSet    = "set"
 	AttributeKeyDymNameSoActionNameDelete = "delete"
 )
 
+// Event to fire when an OfferToBuy is set into store.
 const (
 	EventTypeOfferToBuy                   = ModuleName + "_otb"
 	AttributeKeyOtbActionName             = "action"
@@ -47,6 +53,7 @@ const (
 	AttributeKeyOtbCounterpartyOfferPrice = "counterparty_offer_price"
 )
 
+// Event to fire corresponding to the action of CRUD a OfferToBuy.
 const (
 	AttributeKeyOtbActionNameSet    = "set"
 	AttributeKeyOtbActionNameDelete = "delete"

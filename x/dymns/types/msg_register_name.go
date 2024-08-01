@@ -7,6 +7,7 @@ import (
 
 var _ sdk.Msg = &MsgRegisterName{}
 
+// ValidateBasic performs basic validation for the MsgRegisterName.
 func (m *MsgRegisterName) ValidateBasic() error {
 	if len(m.Name) > MaxDymNameLength {
 		return ErrDymNameTooLong
@@ -37,6 +38,7 @@ func (m *MsgRegisterName) ValidateBasic() error {
 	return nil
 }
 
+// GetSigners returns the required signers for the MsgRegisterName.
 func (m *MsgRegisterName) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
@@ -45,14 +47,17 @@ func (m *MsgRegisterName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
+// Route returns the message router key for the MsgRegisterName.
 func (m *MsgRegisterName) Route() string {
 	return RouterKey
 }
 
+// Type returns the message type for the MsgRegisterName.
 func (m *MsgRegisterName) Type() string {
 	return TypeMsgRegisterName
 }
 
+// GetSignBytes returns the raw bytes for the MsgRegisterName.
 func (m *MsgRegisterName) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)

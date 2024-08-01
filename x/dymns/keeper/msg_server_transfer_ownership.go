@@ -8,6 +8,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// TransferOwnership is message handler,
+// handles transfer of ownership of a Dym-Name, performed by the owner.
 func (k msgServer) TransferOwnership(goCtx context.Context, msg *dymnstypes.MsgTransferOwnership) (*dymnstypes.MsgTransferOwnershipResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -23,6 +25,7 @@ func (k msgServer) TransferOwnership(goCtx context.Context, msg *dymnstypes.MsgT
 	return &dymnstypes.MsgTransferOwnershipResponse{}, nil
 }
 
+// validateTransferOwnership handles validation for message handled by TransferOwnership
 func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.MsgTransferOwnership) (*dymnstypes.DymName, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
@@ -51,6 +54,7 @@ func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.Ms
 	return dymName, nil
 }
 
+// transferOwnership transfers ownership of a Dym-Name to a new owner.
 func (k msgServer) transferOwnership(ctx sdk.Context, dymName dymnstypes.DymName, newOwner string) error {
 	if err := k.PruneDymName(ctx, dymName.Name); err != nil {
 		return err

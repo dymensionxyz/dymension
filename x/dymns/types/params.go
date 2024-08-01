@@ -153,6 +153,7 @@ func DefaultPreservedRegistrationParams() PreservedRegistrationParams {
 	}
 }
 
+// NewParams creates a new Params object from given parameters
 func NewParams(
 	price PriceParams, chains ChainsParams,
 	misc MiscParams, preservedRegistration PreservedRegistrationParams,
@@ -175,6 +176,7 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
+// Validate checks that the parameters have valid values.
 func (m *Params) Validate() error {
 	if err := m.Price.Validate(); err != nil {
 		return ErrValidationFailed.Wrapf("price params: %v", err)
@@ -191,26 +193,33 @@ func (m *Params) Validate() error {
 	return nil
 }
 
+// Validate checks that the PriceParams have valid values.
 func (m PriceParams) Validate() error {
 	return validatePriceParams(m)
 }
 
+// Validate checks that the ChainsParams have valid values.
 func (m ChainsParams) Validate() error {
 	return validateChainsParams(m)
 }
 
+// Validate checks that the MiscParams have valid values.
 func (m MiscParams) Validate() error {
 	return validateMiscParams(m)
 }
 
+// Validate checks that the PreservedRegistrationParams have valid values.
 func (m PreservedRegistrationParams) Validate() error {
 	return validatePreservedRegistrationParams(m)
 }
 
+// IsDuringWhitelistRegistrationPeriod returns true if still in the preserved registration period.
+// It checks if the current block time is less than the expiration epoch.
 func (m PreservedRegistrationParams) IsDuringWhitelistRegistrationPeriod(ctx sdk.Context) bool {
 	return m.ExpirationEpoch >= ctx.BlockTime().Unix()
 }
 
+// validateEpochIdentifier checks if the given epoch identifier is valid.
 func validateEpochIdentifier(i interface{}) error {
 	v, ok := i.(string)
 	if !ok {
@@ -227,6 +236,7 @@ func validateEpochIdentifier(i interface{}) error {
 	return nil
 }
 
+// validatePriceParams checks if the given PriceParams are valid.
 func validatePriceParams(i interface{}) error {
 	m, ok := i.(PriceParams)
 	if !ok {
@@ -306,6 +316,7 @@ func validatePriceParams(i interface{}) error {
 	return nil
 }
 
+// validateChainsParams checks if the given ChainsParams are valid.
 func validateChainsParams(i interface{}) error {
 	m, ok := i.(ChainsParams)
 	if !ok {
@@ -362,6 +373,7 @@ func validateChainsParams(i interface{}) error {
 	return nil
 }
 
+// validateMiscParams checks if the given MiscParams are valid.
 func validateMiscParams(i interface{}) error {
 	m, ok := i.(MiscParams)
 	if !ok {
@@ -395,6 +407,7 @@ func validateMiscParams(i interface{}) error {
 	return nil
 }
 
+// validatePreservedRegistrationParams checks if the given PreservedRegistrationParams are valid.
 func validatePreservedRegistrationParams(i interface{}) error {
 	m, ok := i.(PreservedRegistrationParams)
 	if !ok {

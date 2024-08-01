@@ -6,6 +6,9 @@ import (
 )
 
 var (
+	// MigrateChainIdsProposalHandler is the proposal handler for migrating chain-ids
+	// in module params and configurations of non-expired Dym-Names.
 	MigrateChainIdsProposalHandler = govclient.NewProposalHandler(cli.NewMigrateChainIdsCmd)
-	UpdateAliasesProposalHandler   = govclient.NewProposalHandler(cli.NewUpdateAliasesCmd)
+	// UpdateAliasesProposalHandler is the proposal handler for updating aliases of chain-ids.
+	UpdateAliasesProposalHandler = govclient.NewProposalHandler(cli.NewUpdateAliasesCmd)
 )

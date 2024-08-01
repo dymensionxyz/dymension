@@ -10,6 +10,8 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
+// PutAdsSellName is message handler,
+// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
 func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutAdsSellName) (*dymnstypes.MsgPutAdsSellNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -47,6 +49,7 @@ func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutA
 	return &dymnstypes.MsgPutAdsSellNameResponse{}, nil
 }
 
+// validatePutAdsSellName handles validation for message handled by PutAdsSellName
 func (k msgServer) validatePutAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgPutAdsSellName) (*dymnstypes.DymName, *dymnstypes.Params, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err
