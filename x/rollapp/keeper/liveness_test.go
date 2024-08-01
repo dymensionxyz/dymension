@@ -117,8 +117,7 @@ func TestLivenessFlow(t *testing.T) {
 						require.Zero(r, l, "expect not slashed")
 					} else {
 						expectedSlashes := int((elapsed-p.LivenessSlashBlocks)/p.LivenessSlashInterval) + 1
-						got := tracker.slashes[ra]
-						require.Equal(r, expectedSlashes, got, "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
+						require.Equal(r, expectedSlashes, tracker.slashes[ra], "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
 					}
 				}
 			},
