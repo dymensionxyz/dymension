@@ -57,6 +57,7 @@ func TestLivenessEventsStorage(t *testing.T) {
 				}
 				for _, e := range events {
 					require.Contains(r, model, modelKey(e), "event in store but not model")
+					require.Equal(r, h, e.HubHeight, "event from store has wrong height")
 				}
 			},
 			"iterAll": func(r *rapid.T) {
