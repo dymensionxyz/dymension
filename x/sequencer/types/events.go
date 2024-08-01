@@ -39,6 +39,9 @@ const (
 	// EventTypeSlashed is emitted when a sequencer is slashed
 	EventTypeSlashed = "slashed"
 
+	// EventTypeBondIncreased is emitted when a sequencer's bond is increased
+	EventTypeBondIncreased = "bond_increased"
+
 	AttributeKeyRollappId      = "rollapp_id"
 	AttributeKeySequencer      = "sequencer"
 	AttributeKeyBond           = "bond"
