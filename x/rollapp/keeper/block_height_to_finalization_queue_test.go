@@ -139,7 +139,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					}, {
 						rollappId: "rollapp2",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					},
 				},
 				finalizations: []blockEnd{
@@ -156,7 +157,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						rollappId: "rollapp1",
 						stateUpdates: []stateUpdate{{
-							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10}},
+							blockHeight: initialHeight, startHeight: 1, numOfBlocks: 10,
+						}},
 					}, {
 						rollappId: "rollapp2",
 						stateUpdates: []stateUpdate{{
@@ -171,7 +173,8 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 							rollappsLeft: []rollappQueue{{
 								rollappId: "rollapp2",
 								index:     1,
-							}}}},
+							}},
+						}},
 					},
 				},
 			},
@@ -217,21 +220,25 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 					{
 						// first finalization: 4 states finalized, 3 states left
 						wantNumFinalized: 4,
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     1,
-								}, {
-									rollappId: "rollapp5",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     1,
+									}, {
+										rollappId: "rollapp5",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// second finalization: 1 state finalized from first finalization, 2 states left
@@ -239,18 +246,22 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollapp4", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp5",
-									index:     1,
-								}}}, {
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp5",
+										index:     1,
+									},
 								},
-							}},
+							}, {
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
+								},
+							},
 						},
 					}, {
 						// third finalization: 1 state finalized from first finalization, 1 state left
@@ -258,13 +269,15 @@ func (suite *RollappTestSuite) TestFinalizeRollapps() {
 						recovers: map[types.StateInfoIndex]struct{}{
 							{RollappId: "rollapp5", Index: 1}: {},
 						},
-						wantQueue: []queue{{
-							rollappsLeft: []rollappQueue{
-								{
-									rollappId: "rollapp4",
-									index:     2,
+						wantQueue: []queue{
+							{
+								rollappsLeft: []rollappQueue{
+									{
+										rollappId: "rollapp4",
+										index:     2,
+									},
 								},
-							}},
+							},
 						},
 					}, {
 						// fourth finalization: 1 state finalized from first finalization, 0 states left
@@ -642,6 +655,6 @@ func (m mockRollappHooks) AfterStateFinalized(_ sdk.Context, _ string, stateInfo
 	}
 	return
 }
-func (m mockRollappHooks) BeforeUpdateState(sdk.Context, string, string) error      { return nil }
-func (m mockRollappHooks) FraudSubmitted(sdk.Context, string, uint64, string) error { return nil }
-func (m mockRollappHooks) RollappCreated(sdk.Context, string) error                 { return nil }
+func (m mockRollappHooks) BeforeUpdateState(sdk.Context, string, string, bool) error { return nil }
+func (m mockRollappHooks) FraudSubmitted(sdk.Context, string, uint64, string) error  { return nil }
+func (m mockRollappHooks) RollappCreated(sdk.Context, string) error                  { return nil }
