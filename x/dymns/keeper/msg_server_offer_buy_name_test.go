@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -14,18 +13,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_OfferBuyName(t *testing.T) {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
 	const minOfferPrice = 5
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const anotherBuyer = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	const owner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	dymNsModuleAccAddr := authtypes.NewModuleAddress(dymnstypes.ModuleName)
-	const name = "bonded-pool"
+	ownerA := testAddr(1).bech32()
+	buyerA := testAddr(2).bech32()
+	anotherBuyerA := testAddr(3).bech32()
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
@@ -52,9 +48,9 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 	})
 
 	dymName := &dymnstypes.DymName{
-		Name:       name,
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Add(9 * 365 * 24 * time.Hour).Unix(),
 	}
 
@@ -83,8 +79,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			name:                  "pass - can place offer",
 			existingDymName:       dymName,
 			existingOffer:         nil,
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice),
 			existingOfferId:       "",
 			originalModuleBalance: 5,
@@ -93,8 +89,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "1",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
@@ -106,13 +102,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "2",
 			originalModuleBalance: 0,
@@ -121,8 +117,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "2",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
 			wantLaterModuleBalance: 1,
@@ -134,13 +130,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "2",
 			originalModuleBalance: 1,
@@ -149,8 +145,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 1),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
@@ -163,13 +159,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 3),
 			existingOfferId:       "2",
 			originalModuleBalance: 1,
@@ -178,8 +174,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 3),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
@@ -192,13 +188,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 4),
 			existingOfferId:       "2",
 			originalModuleBalance: 1,
@@ -207,8 +203,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 4),
 				CounterpartyOfferPrice: dymnsutils.TestCoinP(minOfferPrice + 3),
 			},
@@ -221,13 +217,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 2),
 			existingOfferId:       "1",
 			originalModuleBalance: 5,
@@ -236,8 +232,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:           "1",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 			},
 			wantLaterModuleBalance: 5 + 2,
@@ -247,8 +243,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		{
 			name:                   "fail - reject offer for non-existing Dym-Name",
 			existingDymName:        nil,
-			dymName:                name,
-			buyer:                  buyer,
+			dymName:                "non-exists",
+			buyer:                  buyerA,
 			offer:                  dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
@@ -264,13 +260,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		{
 			name: "fail - reject offer for expired Dym-Name",
 			existingDymName: &dymnstypes.DymName{
-				Name:       name,
-				Owner:      owner,
-				Controller: owner,
+				Name:       "expired",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			dymName:                name,
-			buyer:                  buyer,
+			dymName:                "expired",
+			buyer:                  buyerA,
 			offer:                  dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
@@ -286,7 +282,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		{
 			name:                   "fail - can not offer own Dym-Name",
 			existingDymName:        dymName,
-			dymName:                name,
+			dymName:                dymName.Name,
 			buyer:                  dymName.Owner,
 			offer:                  dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
@@ -308,8 +304,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				Controller: dymName.Owner,
 				ExpireAt:   now.Add(1 * time.Second).Unix(),
 			},
-			dymName:                name,
-			buyer:                  buyer,
+			dymName:                dymName.Name,
+			buyer:                  buyerA,
 			offer:                  dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
@@ -325,8 +321,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		{
 			name:            "fail - offer denom must match params",
 			existingDymName: dymName,
-			dymName:         name,
-			buyer:           buyer,
+			dymName:         dymName.Name,
+			buyer:           buyerA,
 			offer: sdk.Coin{
 				Denom:  "u" + denom,
 				Amount: sdk.NewInt(minOfferPrice),
@@ -345,8 +341,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		{
 			name:                   "fail - offer price can not lower than min defined in params",
 			existingDymName:        dymName,
-			dymName:                name,
-			buyer:                  buyer,
+			dymName:                dymName.Name,
+			buyer:                  buyerA,
 			offer:                  dymnsutils.TestCoin(minOfferPrice - 1),
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
@@ -364,13 +360,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "",
 			originalModuleBalance: minOfferPrice,
@@ -382,8 +378,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId: "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "2",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
 			wantLaterModuleBalance: minOfferPrice + (minOfferPrice + 1),
@@ -391,17 +387,17 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      dymnstypes.OpGasPutOffer,
 		},
 		{
-			name:            "reject - continue a non-existing offer",
+			name:            "fail - continue a non-existing offer",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "2",
 			originalModuleBalance: 1,
@@ -413,8 +409,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantErrContains: dymnstypes.ErrOfferToBuyNotFound.Error(),
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
 			wantLaterModuleBalance: 1,
@@ -426,17 +422,17 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:            "reject - continue an existing offer but not yours",
+			name:            "fail - continue an existing offer but not yours",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  anotherBuyer, // not the buyer
+				Name:                   dymName.Name,
+				Buyer:                  anotherBuyerA, // not the buyer
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer, // not the existing offer's buyer
+			dymName:               dymName.Name,
+			buyer:                 buyerA, // not the existing offer's buyer
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "1",
 			originalModuleBalance: 1,
@@ -448,8 +444,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      anotherBuyer,
+				Name:       dymName.Name,
+				Buyer:      anotherBuyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
 			wantLaterModuleBalance: 1,
@@ -461,17 +457,17 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:            "reject - continue an existing offer but the Dym-Name mismatch",
+			name:            "fail - continue an existing offer but the Dym-Name mismatch",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
 				Name:                   "another-name",
-				Buyer:                  buyer,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "1",
 			originalModuleBalance: 1,
@@ -484,7 +480,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
 				Name:       "another-name",
-				Buyer:      buyer,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
 			wantLaterModuleBalance: 1,
@@ -496,20 +492,20 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:            "reject - continue an existing offer but mis-match offer denom",
+			name:            "fail - continue an existing offer but mis-match offer denom",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:    "1",
-				Name:  name,
-				Buyer: buyer,
+				Name:  dymName.Name,
+				Buyer: buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
 				},
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
 			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:       "1",
 			originalModuleBalance: 1,
@@ -521,8 +517,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantErrContains: "offer denomination mismatch with existing offer",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:    "1",
-				Name:  name,
-				Buyer: buyer,
+				Name:  dymName.Name,
+				Buyer: buyerA,
 				OfferPrice: sdk.Coin{
 					Denom:  "u" + denom,
 					Amount: sdk.NewInt(minOfferPrice),
@@ -537,18 +533,18 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:            "reject - continue an existing offer but new offer less than previous",
+			name:            "fail - continue an existing offer but new offer less than previous",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
-			offer:                 dymnsutils.TestCoin(minOfferPrice + 1),
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
+			offer:                 dymnsutils.TestCoin(minOfferPrice + 1), // less
 			existingOfferId:       "1",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
@@ -559,9 +555,9 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
-				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
+				Name:       dymName.Name,
+				Buyer:      buyerA,
+				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2), // keep
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice + 2,
@@ -572,18 +568,18 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:            "reject - continue an existing offer but new offer equals to previous",
+			name:            "fail - continue an existing offer but new offer equals to previous",
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "1",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice + 2),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:               name,
-			buyer:                 buyer,
-			offer:                 dymnsutils.TestCoin(minOfferPrice + 2),
+			dymName:               dymName.Name,
+			buyer:                 buyerA,
+			offer:                 dymnsutils.TestCoin(minOfferPrice + 2), // same
 			existingOfferId:       "1",
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
@@ -594,8 +590,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantErrContains: "offer price must be greater than existing offer price",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 			},
 			wantLaterModuleBalance: 1,
@@ -610,8 +606,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			name:                        "pass - reverse record added after successful offer",
 			existingDymName:             dymName,
 			existingOffer:               nil,
-			dymName:                     name,
-			buyer:                       buyer,
+			dymName:                     dymName.Name,
+			buyer:                       buyerA,
 			offer:                       dymnsutils.TestCoin(minOfferPrice),
 			existingOfferId:             "",
 			originalModuleBalance:       5,
@@ -621,48 +617,48 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantOfferId:                 "1",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
 			wantMinConsumeGas:      dymnstypes.OpGasPutOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.DymNameToOfferIdsRvlKey(name)
+				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
 				offerIds := dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
-				offers, err := dk.GetOffersToBuyOfDymName(ctx, name)
+				offers, err := dk.GetOffersToBuyOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "1", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
-				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyer)
+				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "1", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{
-					Name:  name,
-					Buyer: anotherBuyer,
+					Name:  dymName.Name,
+					Buyer: anotherBuyerA,
 					Offer: dymnsutils.TestCoin(minOfferPrice),
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				require.Equal(t, "2", resp.OfferId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
-				key = dymnstypes.DymNameToOfferIdsRvlKey(name)
+				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"1", "2"}, offerIds.OfferIds)
 			},
@@ -672,13 +668,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			existingDymName: dymName,
 			existingOffer: &dymnstypes.OfferToBuy{
 				Id:                     "2",
-				Name:                   name,
-				Buyer:                  buyer,
+				Name:                   dymName.Name,
+				Buyer:                  buyerA,
 				OfferPrice:             dymnsutils.TestCoin(minOfferPrice),
 				CounterpartyOfferPrice: nil,
 			},
-			dymName:                     name,
-			buyer:                       buyer,
+			dymName:                     dymName.Name,
+			buyer:                       buyerA,
 			offer:                       dymnsutils.TestCoin(minOfferPrice + 1),
 			existingOfferId:             "2",
 			originalModuleBalance:       0,
@@ -687,58 +683,58 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				dk.SetCountOfferToBuy(ctx, 2)
 
-				err := dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, buyer, "2")
+				err := dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, buyerA, "2")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, name, "2")
+				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, dymName.Name, "2")
 				require.NoError(t, err)
 			},
 			wantErr:     false,
 			wantOfferId: "2",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "2",
-				Name:       name,
-				Buyer:      buyer,
+				Name:       dymName.Name,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(minOfferPrice + 1),
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
 			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				key := dymnstypes.DymNameToOfferIdsRvlKey(name)
+				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
 				offerIds := dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				offers, err := dk.GetOffersToBuyOfDymName(ctx, name)
+				offers, err := dk.GetOffersToBuyOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "2", offers[0].Id)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyer)
+				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "2", offers[0].Id)
 
 				resp, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{
-					Name:  name,
-					Buyer: anotherBuyer,
+					Name:  dymName.Name,
+					Buyer: anotherBuyerA,
 					Offer: dymnsutils.TestCoin(minOfferPrice),
 				})
 				require.NoError(t, err)
 				require.NotNil(t, resp)
 				require.Equal(t, "3", resp.OfferId)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"3"}, offerIds.OfferIds)
 
-				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyer))
+				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				key = dymnstypes.DymNameToOfferIdsRvlKey(name)
+				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
 				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
 				require.Equal(t, []string{"2", "3"}, offerIds.OfferIds)
 			},
@@ -783,7 +779,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 
 				err = bk.SendCoinsFromModuleToAccount(
 					ctx,
-					dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(anotherBuyer),
+					dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(anotherBuyerA),
 					dymnsutils.TestCoins(tt.originalAnotherBuyerBalance),
 				)
 				require.NoError(t, err)

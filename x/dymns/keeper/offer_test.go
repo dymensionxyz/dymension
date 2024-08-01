@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -12,9 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_RefundOffer(t *testing.T) {
-	dymNsModuleAccAddr := authtypes.NewModuleAddress(dymnstypes.ModuleName)
+	buyerA := testAddr(1).bech32()
 
 	tests := []struct {
 		name                     string
@@ -26,16 +24,32 @@ func TestKeeper_RefundOffer(t *testing.T) {
 		wantErrContains          string
 	}{
 		{
-			name:            "refund offer normally but account has no balance",
-			refundToAccount: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			refundAmount:    dymnsutils.TestCoin(100),
-			genesis:         false,
-			wantErr:         true,
-			wantErrContains: "insufficient funds",
+			name:                     "pass - refund offer",
+			refundToAccount:          buyerA,
+			refundAmount:             dymnsutils.TestCoin(100),
+			fundModuleAccountBalance: dymnsutils.TestCoin(150),
+			genesis:                  false,
 		},
 		{
-			name:                     "refund offer normally but account does not have enough balance",
-			refundToAccount:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			name:                     "pass - refund offer genesis",
+			refundToAccount:          buyerA,
+			refundAmount:             dymnsutils.TestCoin(100),
+			fundModuleAccountBalance: dymnsutils.TestCoin(0), // no need balance, will mint
+			genesis:                  true,
+			wantErr:                  false,
+		},
+		{
+			name:                     "fail - refund offer normally but module account has no balance",
+			refundToAccount:          buyerA,
+			refundAmount:             dymnsutils.TestCoin(100),
+			fundModuleAccountBalance: dymnsutils.TestCoin(0),
+			genesis:                  false,
+			wantErr:                  true,
+			wantErrContains:          "insufficient funds",
+		},
+		{
+			name:                     "fail - refund offer normally but module account does not have enough balance",
+			refundToAccount:          buyerA,
 			refundAmount:             dymnsutils.TestCoin(100),
 			fundModuleAccountBalance: dymnsutils.TestCoin(50),
 			genesis:                  false,
@@ -43,22 +57,8 @@ func TestKeeper_RefundOffer(t *testing.T) {
 			wantErrContains:          "insufficient funds",
 		},
 		{
-			name:                     "refund offer normally",
-			refundToAccount:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			refundAmount:             dymnsutils.TestCoin(100),
-			fundModuleAccountBalance: dymnsutils.TestCoin(150),
-			genesis:                  false,
-		},
-		{
-			name:            "refund offer genesis",
-			refundToAccount: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			refundAmount:    dymnsutils.TestCoin(100),
-			genesis:         true,
-			wantErr:         false,
-		},
-		{
-			name:                     "bad offer buyer address",
-			refundToAccount:          "dym1fl48vsnmsdzcv85q5d",
+			name:                     "fail - bad offer buyer address",
+			refundToAccount:          "0x1",
 			refundAmount:             dymnsutils.TestCoin(100),
 			fundModuleAccountBalance: dymnsutils.TestCoin(100),
 			wantErr:                  true,

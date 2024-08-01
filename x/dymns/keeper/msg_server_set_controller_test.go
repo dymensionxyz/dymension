@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_SetController(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -32,70 +31,82 @@ func Test_msgServer_SetController(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const controller = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const recordName = "bonded-pool"
+	ownerA := testAddr(1).bech32()
+	controllerA := testAddr(2).bech32()
+	notOwnerA := testAddr(3).bech32()
 
 	tests := []struct {
 		name            string
 		dymName         *dymnstypes.DymName
+		recordName      string
 		wantErr         bool
 		wantErrContains string
 	}{
 		{
-			name:            "reject if Dym-Name not found",
+			name:            "fail - reject if Dym-Name not found",
+			recordName:      "a",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
 		},
 		{
-			name: "reject if not owned",
+			name: "fail - reject if not owned",
 			dymName: &dymnstypes.DymName{
-				Owner:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
-				Controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+				Name:       "a",
+				Owner:      notOwnerA,
+				Controller: notOwnerA,
 				ExpireAt:   now.Unix() + 1,
 			},
+			recordName:      "a",
 			wantErr:         true,
 			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
 		},
 		{
-			name: "reject if not new controller is the same as previous controller",
+			name: "fail - reject if not new controller is the same as previous controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
+			recordName:      "a",
 			wantErr:         true,
 			wantErrContains: "controller already set",
 		},
 		{
-			name: "reject if Dym-Name is already expired",
+			name: "fail - reject if Dym-Name is already expired",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() - 1,
 			},
+			recordName:      "a",
 			wantErr:         true,
 			wantErrContains: "Dym-Name is already expired",
 		},
 		{
-			name: "accept if new controller is different from previous controller",
+			name: "pass - accept if new controller is different from previous controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
+			recordName: "a",
 		},
 		{
-			name: "changing controller will not change configs",
+			name: "pass - changing controller will not change configs",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: owner,
+					Value: ownerA,
 				}},
 			},
+			recordName: "a",
 		},
 	}
 	for _, tt := range tests {
@@ -103,15 +114,14 @@ func Test_msgServer_SetController(t *testing.T) {
 			dk, ctx := setupTest()
 
 			if tt.dymName != nil {
-				tt.dymName.Name = recordName
 				err := dk.SetDymName(ctx, *tt.dymName)
 				require.NoError(t, err)
 			}
 
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{
-				Name:       "bonded-pool",
-				Controller: controller,
-				Owner:      owner,
+				Name:       tt.recordName,
+				Controller: controllerA,
+				Owner:      ownerA,
 			})
 			if tt.wantErr {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
@@ -120,7 +130,7 @@ func Test_msgServer_SetController(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				laterDymName := dk.GetDymName(ctx, recordName)
+				laterDymName := dk.GetDymName(ctx, tt.recordName)
 
 				if tt.dymName != nil {
 					require.Equal(t, *tt.dymName, *laterDymName)
@@ -137,11 +147,11 @@ func Test_msgServer_SetController(t *testing.T) {
 
 			require.NotNil(t, tt.dymName, "mis-configured test case")
 
-			laterDymName := dk.GetDymName(ctx, recordName)
+			laterDymName := dk.GetDymName(ctx, tt.recordName)
 			require.NotNil(t, laterDymName)
 
-			require.Equal(t, controller, laterDymName.Controller)
-			require.Equal(t, owner, laterDymName.Owner)
+			require.Equal(t, controllerA, laterDymName.Controller)
+			require.Equal(t, ownerA, laterDymName.Owner)
 
 			require.Equal(t, tt.dymName.ExpireAt, laterDymName.ExpireAt)
 			require.Equal(t, tt.dymName.Configs, laterDymName.Configs)

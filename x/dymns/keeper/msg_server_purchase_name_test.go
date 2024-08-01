@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_PurchaseName(t *testing.T) {
 	now := time.Now().UTC()
 	futureEpoch := now.Unix() + 1
@@ -34,15 +33,15 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const buyer = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const previousBidder = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	ownerA := testAddr(1).bech32()
+	buyerA := testAddr(2).bech32()
+	previousBidderA := testAddr(3).bech32()
 
 	originalDymNameExpiry := futureEpoch
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "my-name",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   originalDymNameExpiry,
 	}
 
@@ -104,7 +103,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 		},
 		{
 			name:                           "fail - self-purchase is not allowed",
-			customBuyer:                    owner,
+			customBuyer:                    ownerA,
 			newBid:                         100,
 			wantErr:                        true,
 			wantErrContains:                "cannot purchase your own dym name",
@@ -297,7 +296,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
 		},
 		{
-			name:                           "success - place bid, = min price, no previous bid, no sell price",
+			name:                           "pass - place bid, = min price, no previous bid, no sell price",
 			expiredSellOrder:               false,
 			newBid:                         minPrice,
 			wantOwnershipChanged:           false,
@@ -306,7 +305,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
 		},
 		{
-			name:                           "success - place bid, greater than previous bid, no sell price",
+			name:                           "pass - place bid, greater than previous bid, no sell price",
 			expiredSellOrder:               false,
 			previousBid:                    minPrice,
 			newBid:                         minPrice + 1,
@@ -341,7 +340,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
 		},
 		{
-			name:                           "success - place bid, greater than previous bid, under sell price",
+			name:                           "pass - place bid, greater than previous bid, under sell price",
 			expiredSellOrder:               false,
 			sellPrice:                      300,
 			previousBid:                    minPrice,
@@ -352,7 +351,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance + minPrice, // refund
 		},
 		{
-			name:                           "success - place bid, greater than previous bid, equals sell price, transfer ownership",
+			name:                           "pass - place bid, greater than previous bid, equals sell price, transfer ownership",
 			expiredSellOrder:               false,
 			sellPrice:                      300,
 			previousBid:                    minPrice,
@@ -363,7 +362,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance + minPrice, // refund
 		},
 		{
-			name:                           "refund previous bidder",
+			name:                           "pass - refund previous bidder",
 			expiredSellOrder:               false,
 			previousBid:                    minPrice,
 			newBid:                         200,
@@ -393,17 +392,17 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			)
 			require.NoError(t, err)
 			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(owner),
+				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(ownerA),
 				dymnsutils.TestCoins(useOwnerOriginalBalance),
 			)
 			require.NoError(t, err)
 			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(buyer),
+				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(buyerA),
 				dymnsutils.TestCoins(useBuyerOriginalBalance),
 			)
 			require.NoError(t, err)
 			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(previousBidder),
+				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(previousBidderA),
 				dymnsutils.TestCoins(usePreviousBidderOriginalBalance),
 			)
 			require.NoError(t, err)
@@ -411,7 +410,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			dymName.Configs = []dymnstypes.DymNameConfig{
 				{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: owner,
+					Value: ownerA,
 				},
 			}
 
@@ -438,7 +437,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			require.GreaterOrEqual(t, tt.previousBid, int64(0), "bad setup")
 			if tt.previousBid > 0 {
 				so.HighestBid = &dymnstypes.SellOrderBid{
-					Bidder: previousBidder,
+					Bidder: previousBidderA,
 					Price:  dymnsutils.TestCoin(tt.previousBid),
 				}
 
@@ -457,7 +456,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			// test
 
 			require.Greater(t, tt.newBid, int64(0), "mis-configured test case")
-			useBuyer := buyer
+			useBuyer := buyerA
 			if tt.customBuyer != "" {
 				useBuyer = tt.customBuyer
 			}
@@ -479,14 +478,14 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 
 			laterSo := dk.GetSellOrder(ctx, dymName.Name)
 			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name)
-			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(owner), params.BaseDenom)
-			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyer), params.BaseDenom)
-			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidder), params.BaseDenom)
-			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, owner)
+			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
+			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
+			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidderA), params.BaseDenom)
+			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
 			require.NoError(t, err)
-			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyer)
+			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyerA)
 			require.NoError(t, err)
-			laterDymNamesOwnedByPreviousBidder, err := dk.GetDymNamesOwnedBy(ctx, previousBidder)
+			laterDymNamesOwnedByPreviousBidder, err := dk.GetDymNamesOwnedBy(ctx, previousBidderA)
 			require.NoError(t, err)
 
 			require.Equal(t, tt.wantOwnerBalanceLater, laterOwnerBalance.Amount.Int64(), "owner balance mis-match")
@@ -530,8 +529,8 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 				require.Nil(t, laterSo, "SO should be deleted")
 				require.Len(t, historicalSo, 1, "SO should be moved to historical")
 
-				require.Equal(t, buyer, laterDymName.Owner, "ownership should be changed")
-				require.Equal(t, buyer, laterDymName.Controller, "controller should be changed")
+				require.Equal(t, buyerA, laterDymName.Owner, "ownership should be changed")
+				require.Equal(t, buyerA, laterDymName.Controller, "controller should be changed")
 				require.Empty(t, laterDymName.Configs, "configs should be cleared")
 				require.Empty(t, laterDymNamesOwnedByOwner, "reverse record should be removed")
 				require.Len(t, laterDymNamesOwnedByBuyer, 1, "reverse record should be added")
@@ -541,8 +540,8 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 					require.Empty(t, laterDymNamesOwnedByOwner)
 					require.Empty(t, laterDymNamesOwnedByBuyer)
 				} else {
-					require.Equal(t, owner, laterDymName.Owner, "ownership should not be changed")
-					require.Equal(t, owner, laterDymName.Controller, "controller should not be changed")
+					require.Equal(t, ownerA, laterDymName.Owner, "ownership should not be changed")
+					require.Equal(t, ownerA, laterDymName.Controller, "controller should not be changed")
 					require.NotEmpty(t, laterDymName.Configs, "configs should be kept")
 					require.Equal(t, dymName.Configs, laterDymName.Configs, "configs not be changed")
 					require.Len(t, laterDymNamesOwnedByOwner, 1, "reverse record should be kept")

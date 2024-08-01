@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -28,9 +27,11 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		return dk, ctx
 	}
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const controller = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const recordName = "bonded-pool"
+	ownerAcc := testAddr(1)
+	controllerAcc := testAddr(2)
+	anotherAcc := testAddr(3)
+
+	const recordName = "my-name"
 
 	params.SetAddressPrefixes()
 
@@ -86,1061 +87,1061 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                string
-		dymName             *dymnstypes.DymName
-		msg                 *dymnstypes.MsgUpdateResolveAddress
-		preTestFunc         func(ts testSuite)
-		wantErr             bool
-		wantErrContains     string
-		wantDymName         *dymnstypes.DymName
-		wantMinGasConsummed sdk.Gas
-		postTestFunc        func(ts testSuite)
+		name               string
+		dymName            *dymnstypes.DymName
+		msg                *dymnstypes.MsgUpdateResolveAddress
+		preTestFunc        func(ts testSuite)
+		wantErr            bool
+		wantErrContains    string
+		wantDymName        *dymnstypes.DymName
+		wantMinGasConsumed sdk.Gas
+		postTestFunc       func(ts testSuite)
 	}{
 		{
 			name: "fail - reject if message not pass validate basic",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name:    "fail - Dym-Name does not exists",
 			dymName: nil,
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
 			wantDymName:     nil,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if Dym-Name expired",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() - 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: "Dym-Name is already expired",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() - 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if sender is neither owner nor controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: anotherAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if sender is owner but not controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: owner,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: ownerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: "please use controller account",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if config is not valid",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "0x1",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if config is not valid. Only accept lowercase",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				SubName:    "AAAAA", // upcase is not accepted
-				ResolveTo:  owner,
-				Controller: controller,
+				SubName:    "SUB", // upper-case is not accepted
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - can update",
+			name: "pass - can update",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - add new record if not exists",
+			name: "pass - add new record if not exists",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - override record if exists",
+			name: "pass - override record if exists",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - remove record if new resolve to empty, single-config",
+			name: "pass - remove record if new resolve to empty, single-config",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
 				SubName:    "a",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs:    nil,
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - remove record if new resolve to empty, single-config, not match any",
+			name: "pass - remove record if new resolve to empty, single-config, not match any",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
 				SubName:    "non-exists",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - remove record if new resolve to empty, multi-config, first",
+			name: "pass - remove record if new resolve to empty, multi-config, first",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
 				SubName:    "a",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 		},
 		{
-			name: "success - remove record if new resolve to empty, multi-configs, last",
+			name: "pass - remove record if new resolve to empty, multi-configs, last",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - remove record if new resolve to empty, multi-config, not any of existing",
+			name: "pass - remove record if new resolve to empty, multi-config, not any of existing",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
 				SubName:    "non-exists",
-				Controller: controller,
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "a",
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: controller,
+						Value: controllerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
 			},
 		},
 		{
-			name: "success - expiry not changed",
+			name: "pass - expiry not changed",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 99,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: owner,
+						Value: ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - chain-id automatically removed from record if is host chain-id",
+			name: "pass - chain-id automatically removed from record if is host chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
 				SubName:    "a",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "", // empty
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - chain-id automatically removed from record if is host chain-id",
+			name: "pass - chain-id automatically removed from record if is host chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "", // originally empty
 						Path:    "a",
-						Value:   controller,
+						Value:   controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
 				SubName:    "a",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "", // empty
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - chain-id recorded if is NOT host chain-id",
+			name: "pass - chain-id recorded if is NOT host chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
 				SubName:    "a",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - do not override record with different chain-id",
+			name: "pass - do not override record with different chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
 				SubName:    "a",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - do not override record with different chain-id",
+			name: "pass - do not override record with different chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "a",
-						Value:   controller,
+						Value:   controllerAcc.bech32(),
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
-						Value:   controller,
+						Value:   controllerAcc.bech32(),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
 				SubName:    "a",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "a",
-						Value:   controller,
+						Value:   controllerAcc.bech32(),
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if address is not corresponding bech32 on host chain if target chain is host chain, case empty chain-id",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
 				SubName:    "a",
-				ResolveTo:  "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx", // owner but with nim prefix
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32C("nim"), // owner but with nim prefix
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: "resolve address must be a valid bech32 account address on host chain",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if address is not corresponding bech32 on host chain if target chain is host chain, case use chain-id in request",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
 				SubName:    "a",
-				ResolveTo:  "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx", // owner but with nim prefix
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32C("nim"), // owner but with nim prefix
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: "resolve address must be a valid bech32 account address on host chain",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				requireConfiguredAddressMappedNoDymName(ts, "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx")
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32C("nim"))
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
 			name: "fail - reject if address is not corresponding bech32 on host chain if target chain is host chain, case dym prefix but valoper, not acc addr",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
 				SubName:    "a",
-				ResolveTo:  "dymvaloper1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3ydetzr", // owner but with valoper prefix
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32Valoper(), // owner but with valoper prefix
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: "resolve address must be a valid bech32 account address on host chain",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				requireConfiguredAddressMappedNoDymName(ts, "dymvaloper1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3ydetzr")
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32Valoper())
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 		},
 		{
-			name: "success - reverse mapping record should be updated accordingly",
+			name: "pass - reverse mapping record should be updated accordingly",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "",
-						Value:   controller,
+						Value:   controllerAcc.bech32(),
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
-						Value:   "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
+						Value:   anotherAcc.bech32C("nim"),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				requireConfiguredAddressMappedDymNames(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
+				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
+				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
+				require0xMappedNoDymName(ts, ownerAcc.bech32())
+				require0xMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
 				SubName:    "",
-				ResolveTo:  owner,
-				Controller: controller,
+				ResolveTo:  ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "",
-						Value:   owner,
+						Value:   ownerAcc.bech32(),
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
-						Value:   "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
+						Value:   anotherAcc.bech32C("nim"),
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasConfig,
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				requireConfiguredAddressMappedDymNames(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", recordName)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
+				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
+				require0xMappedDymNames(ts, ownerAcc.bech32(), recordName)
+				require0xMappedNoDymName(ts, controllerAcc.bech32())
+				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 		},
 	}
@@ -1171,10 +1172,10 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			laterDymName := dk.GetDymName(ctx, tt.msg.Name)
 
 			defer func() {
-				if tt.wantMinGasConsummed > 0 {
+				if tt.wantMinGasConsumed > 0 {
 					require.GreaterOrEqual(t,
-						ctx.GasMeter().GasConsumed(), tt.wantMinGasConsummed,
-						"should consume at least %d gas", tt.wantMinGasConsummed,
+						ctx.GasMeter().GasConsumed(), tt.wantMinGasConsumed,
+						"should consume at least %d gas", tt.wantMinGasConsumed,
 					)
 				}
 

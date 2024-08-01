@@ -57,7 +57,7 @@ func TestReverseResolvedDymNameAddresses_Sort(t *testing.T) {
 
 	input := ReverseResolvedDymNameAddresses{
 		{
-			SubName: "aaaa",
+			SubName: "geek",
 			Name:    "aa",
 		},
 		{
@@ -100,7 +100,7 @@ func TestReverseResolvedDymNameAddresses_Sort(t *testing.T) {
 			Name:    "zz",
 		},
 		{
-			SubName: "aaaa",
+			SubName: "geek",
 			Name:    "aa",
 		},
 	}, output, "first by length, then by nature comparison")
@@ -150,7 +150,7 @@ func TestReverseResolvedDymNameAddresses_Distinct(t *testing.T) {
 	t.Run("sorted after distinct", func(t *testing.T) {
 		original := ReverseResolvedDymNameAddresses{
 			{
-				SubName: "aaaa",
+				SubName: "geek",
 				Name:    "aa",
 			},
 			{
@@ -194,7 +194,7 @@ func TestReverseResolvedDymNameAddresses_Distinct(t *testing.T) {
 				Name:    "zz",
 			},
 			{
-				SubName: "aaaa",
+				SubName: "geek",
 				Name:    "aa",
 			},
 		}, afterDistinct, "must be sorted after distinct")

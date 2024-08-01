@@ -33,7 +33,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	buyer3 := "dym1s62euc7nqg029m9v2rl77hf66u69pkuv2sg3uv"
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
+		Name:       "my-name",
 		Owner:      owner1,
 		Controller: owner1,
 		ExpireAt:   now.Add(time.Hour).Unix(),
@@ -48,7 +48,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName1))
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "not-bonded-pool",
+		Name:       "light",
 		Owner:      owner2,
 		Controller: owner2,
 		ExpireAt:   now.Add(time.Hour).Unix(),
@@ -56,7 +56,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName2))
 
 	dymName3Expired := dymnstypes.DymName{
-		Name:       "not-bonded-pool2",
+		Name:       "expired",
 		Owner:      owner2,
 		Controller: owner2,
 		ExpireAt:   now.Add(-time.Hour).Unix(),

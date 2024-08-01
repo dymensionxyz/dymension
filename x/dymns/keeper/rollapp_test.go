@@ -8,18 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_IsRollAppId(t *testing.T) {
 	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_1-1",
-		Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Creator:   testAddr(1).bech32(),
 	})
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rolling_2-2",
-		Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Creator:   testAddr(2).bech32(),
 	})
 
 	tests := []struct {

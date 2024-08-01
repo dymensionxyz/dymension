@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -13,18 +12,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
 	const minOfferPrice = 5
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const anotherBuyer = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	const owner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	dymNsModuleAccAddr := authtypes.NewModuleAddress(dymnstypes.ModuleName)
-	const name = "bonded-pool"
+	buyerA := testAddr(1).bech32()
+	anotherBuyerA := testAddr(2).bech32()
+	ownerA := testAddr(3).bech32()
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
@@ -51,23 +47,23 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 	})
 
 	dymName := &dymnstypes.DymName{
-		Name:       name,
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 
 	offer := &dymnstypes.OfferToBuy{
 		Id:         "1",
-		Name:       name,
-		Buyer:      buyer,
+		Name:       dymName.Name,
+		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
 	offerByAnother := &dymnstypes.OfferToBuy{
 		Id:         "999",
 		Name:       dymName.Name,
-		Buyer:      anotherBuyer,
+		Buyer:      anotherBuyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
@@ -169,11 +165,11 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:                   "reject - cannot cancel non-existing offer",
+			name:                   "fail - cannot cancel non-existing offer",
 			existingDymName:        dymName,
 			existingOffer:          nil,
 			offerId:                "2142142",
-			buyer:                  buyer,
+			buyer:                  buyerA,
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
@@ -184,7 +180,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - cannot cancel non-existing offer",
+			name:                   "fail - cannot cancel non-existing offer",
 			existingDymName:        dymName,
 			existingOffer:          offer,
 			offerId:                "2142142",
@@ -199,11 +195,11 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - cannot cancel offer with different buyer",
+			name:                   "fail - cannot cancel offer with different buyer",
 			existingDymName:        dymName,
 			existingOffer:          offerByAnother,
 			offerId:                "999",
-			buyer:                  buyer,
+			buyer:                  buyerA,
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
@@ -214,11 +210,11 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - can not cancel if module account does not have enough balance to refund",
+			name:                   "fail - can not cancel if module account does not have enough balance to refund",
 			existingDymName:        dymName,
 			existingOffer:          offer,
 			offerId:                offer.Id,
-			buyer:                  buyer,
+			buyer:                  buyerA,
 			originalModuleBalance:  0,
 			originalBuyerBalance:   2,
 			wantErr:                true,

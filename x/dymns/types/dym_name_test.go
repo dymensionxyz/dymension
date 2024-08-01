@@ -29,7 +29,7 @@ func TestDymName_Validate(t *testing.T) {
 	}{
 		{
 			name:       "valid dym name",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -91,7 +91,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "empty owner",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -112,7 +112,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "bad owner",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -133,7 +133,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "empty controller",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "",
 			expireAt:   time.Now().Unix(),
@@ -154,7 +154,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "bad controller",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5",
 			expireAt:   time.Now().Unix(),
@@ -175,7 +175,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "empty expire at",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   0,
@@ -196,14 +196,14 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "valid dym name without config",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
 		},
 		{
 			name:       "bad config",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -219,7 +219,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "duplicate config",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -240,7 +240,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "contact is optional, provided",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -248,7 +248,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:       "contact is optional, not provided",
-			dymName:    "bonded-pool",
+			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
@@ -256,7 +256,7 @@ func TestDymName_Validate(t *testing.T) {
 		},
 		{
 			name:            "bad contact, too long",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:        time.Now().Unix(),
@@ -451,7 +451,7 @@ func TestReverseLookupDymNames_Validate(t *testing.T) {
 	}{
 		{
 			name:     "valid reverse lookup record",
-			DymNames: []string{"bonded-pool", "not-bonded-pool"},
+			DymNames: []string{"my-name", "not-bonded-pool"},
 		},
 		{
 			name:     "allow empty",
@@ -459,7 +459,7 @@ func TestReverseLookupDymNames_Validate(t *testing.T) {
 		},
 		{
 			name:            "bad dym name",
-			DymNames:        []string{"bonded-pool", "-not-bonded-pool"},
+			DymNames:        []string{"my-name", "-not-bonded-pool"},
 			wantErr:         true,
 			wantErrContains: "invalid dym name:",
 		},
@@ -698,7 +698,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 			},
@@ -723,7 +723,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					{
 						Type:    DymNameConfigType_NAME,
 						ChainId: "",
-						Path:    "bonded-pool",
+						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 				},
@@ -751,7 +751,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 			},
@@ -768,7 +768,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					{
 						Type:    DymNameConfigType_NAME,
 						ChainId: "",
-						Path:    "bonded-pool",
+						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 				},
@@ -835,7 +835,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 				// not include default config
@@ -853,7 +853,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					{
 						Type:    DymNameConfigType_NAME,
 						ChainId: "",
-						Path:    "bonded-pool",
+						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 				},
@@ -1006,7 +1006,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 				{
@@ -1037,7 +1037,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					{
 						Type:    DymNameConfigType_NAME,
 						ChainId: "",
-						Path:    "bonded-pool",
+						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 					{
@@ -1122,7 +1122,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   "", // empty value
 				},
 			},
@@ -1224,7 +1224,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				{
 					Type:    DymNameConfigType_NAME,
 					ChainId: "",
-					Path:    "bonded-pool",
+					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 			},
@@ -1241,7 +1241,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					{
 						Type:    DymNameConfigType_NAME,
 						ChainId: "",
-						Path:    "bonded-pool",
+						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 				},

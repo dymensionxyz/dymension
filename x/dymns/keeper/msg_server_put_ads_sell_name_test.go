@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -14,18 +14,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_PutAdsSellName(t *testing.T) {
 	now := time.Now().UTC()
 
 	const daysProhibitSell = 30
 	const daysSellOrderDuration = 7
+	denom := dymnsutils.TestCoin(0).Denom
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now)
 
 		moduleParams := dk.GetParams(ctx)
+		moduleParams.Price.PriceDenom = denom
 		moduleParams.Misc.ProhibitSellDuration = daysProhibitSell * 24 * time.Hour
 		moduleParams.Misc.SellOrderDuration = daysSellOrderDuration * 24 * time.Hour
 		err := dk.SetParams(ctx, moduleParams)
@@ -43,8 +44,12 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
-	const name = "bonded-pool"
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	const name = "my-name"
+
+	ownerA := testAddr(1).bech32()
+	notOwnerA := testAddr(2).bech32()
+	bidderA := testAddr(3).bech32()
+
 	coin100 := dymnsutils.TestCoin(100)
 	coin200 := dymnsutils.TestCoin(200)
 	coin300 := dymnsutils.TestCoin(300)
@@ -62,22 +67,22 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		wantErrContains         string
 	}{
 		{
-			name:            "Dym-Name does not exists",
+			name:            "fail - Dym-Name does not exists",
 			withoutDymName:  true,
 			minPrice:        coin100,
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
 		},
 		{
-			name:               "wrong owner",
-			customOwner:        owner,
-			customDymNameOwner: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+			name:               "fail - wrong owner",
+			customOwner:        ownerA,
+			customDymNameOwner: notOwnerA,
 			minPrice:           coin100,
 			wantErr:            true,
 			wantErrContains:    sdkerrors.ErrUnauthorized.Error(),
 		},
 		{
-			name:                    "expired Dym-Name",
+			name:                    "fail - expired Dym-Name",
 			withoutDymName:          false,
 			existingSo:              nil,
 			dymNameExpiryOffsetDays: -1,
@@ -86,7 +91,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains:         "Dym-Name is already expired",
 		},
 		{
-			name: "existing active SO, not finished",
+			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
@@ -97,7 +102,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains: "an active Sell-Order already exists",
 		},
 		{
-			name: "existing active SO, expired",
+			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
@@ -108,13 +113,13 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains: "an active expired/completed Sell-Order already exists ",
 		},
 		{
-			name: "existing active SO, not expired, completed",
+			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
-					Bidder: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+					Bidder: bidderA,
 					Price:  coin200,
 				},
 			},
@@ -123,13 +128,13 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains: "an active expired/completed Sell-Order already exists ",
 		},
 		{
-			name: "existing active SO, expired, completed",
+			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
 				HighestBid: &dymnstypes.SellOrderBid{
-					Bidder: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+					Bidder: bidderA,
 					Price:  coin200,
 				},
 			},
@@ -138,38 +143,38 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains: "an active expired/completed Sell-Order already exists",
 		},
 		{
-			name:            "not allowed denom",
-			minPrice:        sdk.NewInt64Coin("u"+params.BaseDenom, 100),
+			name:            "fail - not allowed denom",
+			minPrice:        sdk.NewInt64Coin("u"+denom, 100),
 			wantErr:         true,
-			wantErrContains: "only adym is allowed as price",
+			wantErrContains: fmt.Sprintf("only %s is allowed as price", denom),
 		},
 		{
-			name:                    "can not sell Dym-Name that almost expired",
+			name:                    "fail - can not sell Dym-Name that almost expired",
 			dymNameExpiryOffsetDays: daysProhibitSell - 1,
 			minPrice:                coin100,
 			wantErr:                 true,
 			wantErrContains:         "before Dym-Name expiry, can not sell",
 		},
 		{
-			name:                    "successfully place ads for selling Dym-Name, without sell price",
+			name:                    "pass - successfully place ads for selling Dym-Name, without sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               nil,
 		},
 		{
-			name:                    "successfully place ads for selling Dym-Name, without sell price",
+			name:                    "pass - successfully place ads for selling Dym-Name, without sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               dymnsutils.TestCoinP(0),
 		},
 		{
-			name:                    "successfully place ads for selling Dym-Name, with sell price",
+			name:                    "pass - successfully place ads for selling Dym-Name, with sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               &coin300,
 		},
 		{
-			name:                    "successfully place ads for selling Dym-Name, with sell price equals to min-price",
+			name:                    "pass - successfully place ads for selling Dym-Name, with sell price equals to min-price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               &coin100,
@@ -179,7 +184,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			dk, _, ctx := setupTest()
 
-			useDymNameOwner := owner
+			useDymNameOwner := ownerA
 			if tt.customDymNameOwner != "" {
 				useDymNameOwner = tt.customDymNameOwner
 			}
@@ -204,7 +209,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			useOwner := owner
+			useOwner := ownerA
 			if tt.customOwner != "" {
 				useOwner = tt.customOwner
 			}
@@ -281,10 +286,10 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 				"should consume params gas",
 			)
 
-			apoe := dk.GetActiveSellOrdersExpiration(ctx)
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 
 			var found bool
-			for _, record := range apoe.Records {
+			for _, record := range aSoe.Records {
 				if record.Name == name {
 					found = true
 					require.Equal(t, expectedSo.ExpireAt, record.ExpireAt)

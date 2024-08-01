@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -13,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -21,11 +19,9 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 	const minOfferPrice = 5
 	const daysProhibitSell = 30
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const owner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const anotherOwner = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	dymNsModuleAccAddr := authtypes.NewModuleAddress(dymnstypes.ModuleName)
-	const name = "bonded-pool"
+	buyerA := testAddr(1).bech32()
+	ownerA := testAddr(2).bech32()
+	anotherOwnerA := testAddr(3).bech32()
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
@@ -54,23 +50,23 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 	})
 
 	dymName := &dymnstypes.DymName{
-		Name:       name,
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Add(daysProhibitSell * 24 * time.Hour).Add(time.Second).Unix(),
 	}
 
-	dymNameOwnedByAnother := &dymnstypes.DymName{
+	sameDymNameButOwnedByAnother := &dymnstypes.DymName{
 		Name:       dymName.Name,
-		Owner:      anotherOwner,
-		Controller: anotherOwner,
+		Owner:      anotherOwnerA,
+		Controller: anotherOwnerA,
 		ExpireAt:   dymName.ExpireAt,
 	}
 
 	offer := &dymnstypes.OfferToBuy{
 		Id:         "1",
-		Name:       name,
-		Buyer:      buyer,
+		Name:       dymName.Name,
+		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
@@ -372,11 +368,11 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			},
 		},
 		{
-			name:                   "reject - offer not found",
+			name:                   "fail - offer not found",
 			existingDymName:        dymName,
 			existingOffer:          nil,
 			offerId:                "1",
-			owner:                  owner,
+			owner:                  ownerA,
 			minAccept:              dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
@@ -389,11 +385,11 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - offer not found",
+			name:                   "fail - offer not found",
 			existingDymName:        dymName,
 			existingOffer:          offer,
 			offerId:                "673264823",
-			owner:                  owner,
+			owner:                  ownerA,
 			minAccept:              dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
@@ -406,11 +402,11 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - Dym-Name not found",
+			name:                   "fail - Dym-Name not found",
 			existingDymName:        nil,
 			existingOffer:          offer,
 			offerId:                offer.Id,
-			owner:                  owner,
+			owner:                  ownerA,
 			minAccept:              offer.OfferPrice,
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
@@ -423,7 +419,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name: "reject - expired Dym-Name",
+			name: "fail - expired Dym-Name",
 			existingDymName: func() *dymnstypes.DymName {
 				return &dymnstypes.DymName{
 					Name:       dymName.Name,
@@ -446,24 +442,24 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:                   "reject - can not accept offer of Dym-Name owned by another",
-			existingDymName:        dymNameOwnedByAnother,
+			name:                   "fail - can not accept offer of Dym-Name owned by another",
+			existingDymName:        sameDymNameButOwnedByAnother,
 			existingOffer:          offer,
 			offerId:                offer.Id,
-			owner:                  owner,
+			owner:                  ownerA,
 			minAccept:              offer.OfferPrice,
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
 			wantErrContains:        "not the owner of the Dym-Name",
-			wantLaterDymName:       dymNameOwnedByAnother,
+			wantLaterDymName:       sameDymNameButOwnedByAnother,
 			wantLaterOffer:         offer,
 			wantLaterModuleBalance: 1,
 			wantLaterOwnerBalance:  2,
 			wantMinConsumeGas:      1,
 		},
 		{
-			name: "reject - can not accept offer if Dym-Name expiration less than grace period",
+			name: "fail - can not accept offer if Dym-Name expiration less than grace period",
 			existingDymName: func() *dymnstypes.DymName {
 				return &dymnstypes.DymName{
 					Name:       dymName.Name,
@@ -474,7 +470,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			}(),
 			existingOffer:         offer,
 			offerId:               offer.Id,
-			owner:                 owner,
+			owner:                 ownerA,
 			minAccept:             offer.OfferPrice,
 			originalModuleBalance: 1,
 			originalOwnerBalance:  2,
@@ -494,18 +490,18 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:            "reject - can not accept own offer",
+			name:            "fail - can not accept own offer",
 			existingDymName: dymName,
 			existingOffer: func() *dymnstypes.OfferToBuy {
 				return &dymnstypes.OfferToBuy{
 					Id:         "1",
 					Name:       dymName.Name,
-					Buyer:      owner,
+					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 				}
 			}(),
 			offerId:               "1",
-			owner:                 owner,
+			owner:                 ownerA,
 			minAccept:             dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance: 1,
 			originalOwnerBalance:  2,
@@ -516,7 +512,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				return &dymnstypes.OfferToBuy{
 					Id:         "1",
 					Name:       dymName.Name,
-					Buyer:      owner,
+					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 				}
 			}(),
@@ -525,13 +521,13 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:            "reject - offer price denom != accept price denom",
+			name:            "fail - offer price denom != accept price denom",
 			existingDymName: dymName,
 			existingOffer: func() *dymnstypes.OfferToBuy {
 				return &dymnstypes.OfferToBuy{
 					Id:    "1",
 					Name:  dymName.Name,
-					Buyer: buyer,
+					Buyer: buyerA,
 					OfferPrice: sdk.Coin{
 						Denom:  denom,
 						Amount: sdk.NewInt(minOfferPrice),
@@ -539,7 +535,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				}
 			}(),
 			offerId: "1",
-			owner:   owner,
+			owner:   ownerA,
 			minAccept: sdk.Coin{
 				Denom:  "u" + denom,
 				Amount: sdk.NewInt(minOfferPrice),
@@ -553,7 +549,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				return &dymnstypes.OfferToBuy{
 					Id:    "1",
 					Name:  dymName.Name,
-					Buyer: buyer,
+					Buyer: buyerA,
 					OfferPrice: sdk.Coin{
 						Denom:  denom,
 						Amount: sdk.NewInt(minOfferPrice),
@@ -565,18 +561,18 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			wantMinConsumeGas:      1,
 		},
 		{
-			name:            "reject - accept price lower than offer price",
+			name:            "fail - accept price lower than offer price",
 			existingDymName: dymName,
 			existingOffer: func() *dymnstypes.OfferToBuy {
 				return &dymnstypes.OfferToBuy{
 					Id:         "1",
 					Name:       dymName.Name,
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 				}
 			}(),
 			offerId:               "1",
-			owner:                 owner,
+			owner:                 ownerA,
 			minAccept:             dymnsutils.TestCoin(minOfferPrice),
 			originalModuleBalance: 1,
 			originalOwnerBalance:  2,
@@ -587,7 +583,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				return &dymnstypes.OfferToBuy{
 					Id:         "1",
 					Name:       dymName.Name,
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(minOfferPrice + 2),
 				}
 			}(),

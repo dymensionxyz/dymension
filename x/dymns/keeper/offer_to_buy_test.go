@@ -41,8 +41,9 @@ func TestKeeper_IncreaseOfferToBuyCountAndGet(t *testing.T) {
 	}, "expect panic on overflow when increasing count of Offer-To-Buy greater than uint64")
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
+	buyerA := testAddr(1).bech32()
+
 	t.Run("get non-exists offer should returns nil", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -59,7 +60,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		err := dk.SetOfferToBuy(ctx, dymnstypes.OfferToBuy{
 			Id:         "",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		})
 		require.Error(t, err)
@@ -71,7 +72,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer := dymnstypes.OfferToBuy{
 			Id:         "1",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -91,7 +92,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 			_, _ = dk.InsertOfferToBuy(ctx, dymnstypes.OfferToBuy{
 				Id:         "1",
 				Name:       "a",
-				Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			})
 		})
@@ -103,7 +104,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer1 := dymnstypes.OfferToBuy{
 			Id:         "",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -127,7 +128,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		existing := dymnstypes.OfferToBuy{
 			Id:         nextId,
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -137,7 +138,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer := dymnstypes.OfferToBuy{
 			Id:         "",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -152,7 +153,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer1 := dymnstypes.OfferToBuy{
 			Id:         "",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -171,7 +172,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer2 := dymnstypes.OfferToBuy{
 			Id:         "",
 			Name:       "b",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 		offer, err = dk.InsertOfferToBuy(ctx, offer2)
@@ -193,7 +194,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer1 := dymnstypes.OfferToBuy{
 			Id:         "1",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 		err = dk.SetOfferToBuy(ctx, offer1)
@@ -202,7 +203,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer2 := dymnstypes.OfferToBuy{
 			Id:         "2",
 			Name:       "b",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(2),
 		}
 		err = dk.SetOfferToBuy(ctx, offer2)
@@ -211,7 +212,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer3 := dymnstypes.OfferToBuy{
 			Id:         "3",
 			Name:       "c",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(3),
 		}
 		err = dk.SetOfferToBuy(ctx, offer3)
@@ -220,7 +221,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer4 := dymnstypes.OfferToBuy{
 			Id:         "4",
 			Name:       "d",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(4),
 		}
 		err = dk.SetOfferToBuy(ctx, offer4)
@@ -261,7 +262,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 				offer: dymnstypes.OfferToBuy{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				setFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper, offer dymnstypes.OfferToBuy) {
@@ -309,7 +310,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 		offer := dymnstypes.OfferToBuy{
 			Id:         "1",
 			Name:       "a",
-			Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
 
@@ -346,14 +347,15 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetAllOffersToBuy(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+
+	buyerA := testAddr(1).bech32()
 
 	offer1 := dymnstypes.OfferToBuy{
 		Id:         "1",
 		Name:       "a",
-		Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
 	err := dk.SetOfferToBuy(ctx, offer1)
@@ -366,7 +368,7 @@ func TestKeeper_GetAllOffersToBuy(t *testing.T) {
 	offer2 := dymnstypes.OfferToBuy{
 		Id:         "2",
 		Name:       "a",
-		Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
 	err = dk.SetOfferToBuy(ctx, offer2)
@@ -379,7 +381,7 @@ func TestKeeper_GetAllOffersToBuy(t *testing.T) {
 	offer3 := dymnstypes.OfferToBuy{
 		Id:         "3",
 		Name:       "b",
-		Buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(3),
 	}
 	err = dk.SetOfferToBuy(ctx, offer3)

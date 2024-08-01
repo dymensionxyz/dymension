@@ -194,7 +194,7 @@ func TestSellOrder_Validate(t *testing.T) {
 	}{
 		{
 			name:      "valid sell order",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -205,14 +205,14 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:      "valid sell order without bid",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 		},
 		{
 			name:     "valid sell order without setting sell price",
-			dymName:  "bonded-pool",
+			dymName:  "my-name",
 			expireAt: time.Now().Unix(),
 			minPrice: dymnsutils.TestCoin(1),
 		},
@@ -234,7 +234,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "empty time",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        0,
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
@@ -242,7 +242,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "min price is zero",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(0),
 			wantErr:         true,
@@ -250,7 +250,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "min price is empty",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        sdk.Coin{},
 			wantErr:         true,
@@ -258,7 +258,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "min price is negative",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(-1),
 			wantErr:         true,
@@ -266,7 +266,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:     "min price is invalid",
-			dymName:  "bonded-pool",
+			dymName:  "my-name",
 			expireAt: time.Now().Unix(),
 			minPrice: sdk.Coin{
 				Denom:  "-",
@@ -277,7 +277,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "sell price is negative",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoinP(-1),
@@ -286,7 +286,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:     "sell price is invalid",
-			dymName:  "bonded-pool",
+			dymName:  "my-name",
 			expireAt: time.Now().Unix(),
 			minPrice: dymnsutils.TestCoin(1),
 			sellPrice: &sdk.Coin{
@@ -298,7 +298,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "sell price is less than min price",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoinP(1),
@@ -307,7 +307,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:            "sell price denom must match min price denom",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoin2P(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
@@ -316,7 +316,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:      "invalid highest bid",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -329,7 +329,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:      "highest bid < min price",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),
@@ -342,7 +342,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		},
 		{
 			name:      "highest bid > sell price",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),

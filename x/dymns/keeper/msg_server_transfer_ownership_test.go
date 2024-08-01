@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_TransferOwnership(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -33,10 +32,12 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		}, dymnstypes.ErrValidationFailed.Error())
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const newOwner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const anotherAcc = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	const recordName = "bonded-pool"
+	ownerA := testAddr(1).bech32()
+	newOwnerA := testAddr(2).bech32()
+	anotherA := testAddr(3).bech32()
+	bidderA := testAddr(4).bech32()
+
+	const recordName = "my-name"
 
 	tests := []struct {
 		name            string
@@ -55,8 +56,8 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if not owned",
 			dymName: &dymnstypes.DymName{
-				Owner:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
-				Controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+				Owner:      anotherA,
+				Controller: anotherA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			wantErr:         true,
@@ -65,8 +66,8 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if Dym-Name expired",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			wantErr:         true,
@@ -75,19 +76,19 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if new owner is the same as current owner",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			customNewOwner:  owner,
+			customNewOwner:  ownerA,
 			wantErr:         true,
 			wantErrContains: "new owner is same as current owner",
 		},
 		{
 			name: "fail - reject if Sell Order exists, expired SO",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
@@ -100,8 +101,8 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if Sell Order exists, not finished SO",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
@@ -114,15 +115,15 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if Sell Order exists, not finished SO",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
 				ExpireAt: now.Unix() + 1,
 				MinPrice: dymnsutils.TestCoin(100),
 				HighestBid: &dymnstypes.SellOrderBid{
-					Bidder: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+					Bidder: bidderA,
 					Price:  dymnsutils.TestCoin(200),
 				},
 			},
@@ -132,8 +133,8 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		{
 			name: "fail - reject if Sell Order exists, completed SO",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
@@ -141,7 +142,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				MinPrice:  dymnsutils.TestCoin(100),
 				SellPrice: dymnsutils.TestCoinP(200),
 				HighestBid: &dymnstypes.SellOrderBid{
-					Bidder: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+					Bidder: bidderA,
 					Price:  dymnsutils.TestCoin(200),
 				},
 			},
@@ -149,24 +150,24 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 			wantErrContains: "can not transfer ownership while there is an Sell Order",
 		},
 		{
-			name: "success - can transfer ownership",
+			name: "pass - can transfer ownership",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 		},
 		{
-			name: "success - can transfer ownership",
+			name: "pass - can transfer ownership",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: owner,
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "a",
-					Value:   anotherAcc,
+					Value:   anotherA,
 				}},
 			},
 		},
@@ -204,14 +205,14 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				require.NoError(t, dk.SetSellOrder(ctx, *tt.sellOrder))
 			}
 
-			useNewOwner := newOwner
+			useNewOwner := newOwnerA
 			if tt.customNewOwner != "" {
 				useNewOwner = tt.customNewOwner
 			}
 
 			msg := &dymnstypes.MsgTransferOwnership{
 				Name:     recordName,
-				Owner:    owner,
+				Owner:    ownerA,
 				NewOwner: useNewOwner,
 			}
 			resp, err := dymnskeeper.NewMsgServerImpl(dk).TransferOwnership(ctx, msg)
@@ -259,7 +260,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 
 			require.NotNil(t, resp)
 
-			previousOwner := owner
+			previousOwner := ownerA
 
 			require.NotNil(t, laterDymName)
 

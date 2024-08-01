@@ -6,7 +6,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -14,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_RegisterName(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -27,12 +25,14 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	const extendsPrice = 1
 	const gracePeriod = 30
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const previousOwner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
+	buyerA := testAddr(1).bech32()
+	previousOwnerA := testAddr(2).bech32()
+	anotherA := testAddr(3).bech32()
 
 	const preservedDymName = "preserved"
-	const preservedAddress1 = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	const preservedAddress2 = "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
+
+	preservedAddr1a := testAddr(4).bech32()
+	preservedAddr2a := testAddr(5).bech32()
 
 	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, sdk.Context) {
 		dk, bk, _, ctx := testkeeper.DymNSKeeper(t)
@@ -54,11 +54,11 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		moduleParams.PreservedRegistration.PreservedDymNames = []dymnstypes.PreservedDymName{
 			{
 				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddress1,
+				WhitelistedAddress: preservedAddr1a,
 			},
 			{
 				DymName:            preservedDymName,
-				WhitelistedAddress: preservedAddress2,
+				WhitelistedAddress: preservedAddr2a,
 			},
 		}
 		// submit
@@ -98,14 +98,14 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	}{
 		{
 			name:            "can register, new Dym-Name",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "contact@example.com",
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Contact:    "contact@example.com",
 			},
@@ -113,20 +113,20 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "not allow to takeover a non-expired Dym-Name",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "contact@example.com",
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Add(time.Hour).Unix(),
 				Contact:    "existing@example.com",
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Add(time.Hour).Unix(),
 				Contact:    "existing@example.com",
 			},
@@ -136,18 +136,18 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "not allow to takeover an expired Dym-Name which in grace period",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			wantErr:          true,
@@ -156,7 +156,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:             "not enough balance to pay for the Dym-Name",
-			buyer:            buyer,
+			buyer:            buyerA,
 			originalBalance:  1,
 			duration:         2,
 			confirmPayment:   dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
@@ -166,7 +166,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:             "mis-match confirm payment",
-			buyer:            buyer,
+			buyer:            buyerA,
 			originalBalance:  firstYearPrice5PlusL + extendsPrice + 3,
 			duration:         2,
 			confirmPayment:   dymnsutils.TestCoin(1),
@@ -176,184 +176,184 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 5+ letters, multiple years",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice*2 + 3,
 			duration:        3,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice*2),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*3,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 5+ letters, 1 year",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 4 letters, multiple years",
-			buyer:           buyer,
-			customDymName:   "abcd",
+			buyer:           buyerA,
+			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice4L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 4 letters, 1 year",
-			buyer:           buyer,
-			customDymName:   "abcd",
+			buyer:           buyerA,
+			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice4L),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 3 letters, multiple years",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice3L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 3 letters, 1 year",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice3L),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 2 letters, multiple years",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice2L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 2 letters, 1 year",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice2L),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 1 letter, multiple years",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice1L + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "deduct balance for new Dym-Name, 1 letter, 1 year",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice1L),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "can extend owned Dym-Name, not expired",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1 + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "when extend owned non-expired Dym-Name, keep config and historical data",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
 			},
 			setupHistoricalData: true,
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
 			},
@@ -362,29 +362,29 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "when extend owned non-expired Dym-Name, keep config and historical data, update contact if provided",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
 			},
 			setupHistoricalData: true,
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "new-contact@example.com",
 			},
@@ -393,37 +393,37 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "can renew owned Dym-Name, expired",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "can renew owned Dym-Name, expired, update contact if provided",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Contact:    "new-contact@example.com",
 			},
@@ -431,23 +431,23 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "when renew previously-owned expired Dym-Name, reset config",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   5,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 			},
 			setupHistoricalData: true,
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
@@ -456,24 +456,24 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "when renew previously-owned expired Dym-Name, reset config, update contact if provided",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(extendsPrice * 2),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   5,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 			},
 			setupHistoricalData: true,
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
@@ -483,41 +483,41 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "can take over an expired Dym-Name after grace period has passed",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   1,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "take over an expired when ownership changed, reset config",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "old-contact@example.com",
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Configs:    nil,
 			},
@@ -525,24 +525,24 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "take over an expired when ownership changed, reset config, update contact if provided",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			contact:         "new-contact@example.com",
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: buyer,
+					Value: buyerA,
 				}},
 				Contact: "old-contact@example.com",
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*2,
 				Configs:    nil,
 				Contact:    "new-contact@example.com",
@@ -551,18 +551,18 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "not enough balance to take over an expired Dym-Name after grace period has passed",
-			buyer:           buyer,
+			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			existingDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   3,
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   3,
 			},
 			wantErr:          true,
@@ -571,48 +571,48 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "address in the preserved Dym-Name list, can still buy other Dym-Names",
-			buyer:           preservedAddress1,
+			buyer:           preservedAddr1a,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddress1,
-				Controller: preservedAddress1,
+				Owner:      preservedAddr1a,
+				Controller: preservedAddr1a,
 				ExpireAt:   now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "only whitelisted address can buy preserved Dym-Name, addr 1",
-			buyer:           preservedAddress1,
+			buyer:           preservedAddr1a,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL + extendsPrice),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddress1,
-				Controller: preservedAddress1,
+				Owner:      preservedAddr1a,
+				Controller: preservedAddr1a,
 				ExpireAt:   now.Unix() + 86400*365*2,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:            "only whitelisted address can buy preserved Dym-Name, addr 2",
-			buyer:           preservedAddress2,
+			buyer:           preservedAddr2a,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
 			confirmPayment:  dymnsutils.TestCoin(firstYearPrice5PlusL),
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      preservedAddress2,
-				Controller: preservedAddress2,
+				Owner:      preservedAddr2a,
+				Controller: preservedAddr2a,
 				ExpireAt:   now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
 		},
 		{
 			name:             "only whitelisted address can buy preserved Dym-Name, reject others",
-			buyer:            buyer,
+			buyer:            buyerA,
 			customDymName:    preservedDymName,
 			originalBalance:  firstYearPrice5PlusL + 3,
 			duration:         1,
@@ -623,7 +623,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		},
 		{
 			name:            "after preserved expiration date, anyone can buy preserved Dym-Name",
-			buyer:           buyer,
+			buyer:           buyerA,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
@@ -635,8 +635,8 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				require.NoError(t, err)
 			},
 			wantLaterDymName: &dymnstypes.DymName{
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 86400*365*1,
 			},
 			wantLaterBalance: 3,
@@ -661,7 +661,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			useRecordName := "bonded-pool"
+			useRecordName := "my-name"
 			if tt.customDymName != "" {
 				useRecordName = tt.customDymName
 			}
@@ -689,7 +689,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 						MinPrice:  dymnsutils.TestCoin(1),
 						SellPrice: dymnsutils.TestCoinP(2),
 						HighestBid: &dymnstypes.SellOrderBid{
-							Bidder: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+							Bidder: anotherA,
 							Price:  dymnsutils.TestCoin(2),
 						},
 					}
@@ -733,7 +733,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				defer func() {
 					laterModuleBalance := bk.GetBalance(
 						ctx,
-						authtypes.NewModuleAddress(dymnstypes.ModuleName), denom,
+						dymNsModuleAccAddr, denom,
 					).Amount.Int64()
 					require.Equal(t, originalModuleBalance, laterModuleBalance, "module account balance should not be changed")
 				}()
@@ -760,7 +760,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			defer func() {
 				laterModuleBalance := bk.GetBalance(
 					ctx,
-					authtypes.NewModuleAddress(dymnstypes.ModuleName), denom,
+					dymNsModuleAccAddr, denom,
 				).Amount.Int64()
 				require.Equal(t, originalModuleBalance, laterModuleBalance, "token should be burned")
 			}()
@@ -817,7 +817,6 @@ func Test_msgServer_RegisterName(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestEstimateRegisterName(t *testing.T) {
 	now := time.Now()
 
@@ -838,8 +837,8 @@ func TestEstimateRegisterName(t *testing.T) {
 	params.Price.Price_5PlusLetters = sdk.NewInt(price5PlusL)
 	params.Price.PriceExtends = sdk.NewInt(extendsPrice)
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const previousOwner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
+	buyerA := testAddr(1).bech32()
+	previousOwnerA := testAddr(2).bech32()
 
 	tests := []struct {
 		name               string
@@ -854,7 +853,7 @@ func TestEstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, 1 year",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    0,
@@ -863,7 +862,7 @@ func TestEstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, 2 years",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice,
@@ -872,34 +871,34 @@ func TestEstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, N years",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice * (99 - 1),
 		},
 		{
 			name:               "new registration, 6 letters, 1 year",
-			dymName:            "abcdef",
+			dymName:            "bridge",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    0,
 		},
 		{
 			name:               "new registration, 6 letters, 2 years",
-			dymName:            "abcdef",
+			dymName:            "bridge",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice,
 		},
 		{
 			name:               "new registration, 5+ letters, N years",
-			dymName:            "abcdef",
+			dymName:            "central",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * (99 - 1),
@@ -909,11 +908,11 @@ func TestEstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice,
@@ -923,11 +922,11 @@ func TestEstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
@@ -937,67 +936,67 @@ func TestEstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
 			name:    "extends same owner, 6 letters, 1 year",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice,
 		},
 		{
 			name:    "extends same owner, 6 letters, 2 years",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:    "extends same owner, 5+ letters, N years",
-			dymName: "abcdef",
+			dymName: "central",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "central",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
 			name:    "extends expired, same owner, 5+ letters, 2 years",
-			dymName: "abcdef",
+			dymName: "central",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "central",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
@@ -1007,11 +1006,11 @@ func TestEstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    0,
@@ -1021,39 +1020,39 @@ func TestEstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:    "take-over, 6 letters, 1 year",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Name:       "bridge",
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    0,
 		},
 		{
 			name:    "take-over, 6 letters, 3 years",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Name:       "bridge",
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * 2,
@@ -1062,7 +1061,7 @@ func TestEstimateRegisterName(t *testing.T) {
 			name:               "new registration, 2 letters",
 			dymName:            "aa",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price2L,
 			wantExtendPrice:    extendsPrice * 2,
@@ -1071,25 +1070,25 @@ func TestEstimateRegisterName(t *testing.T) {
 			name:               "new registration, 3 letters",
 			dymName:            "aaa",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price3L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:               "new registration, 4 letters",
-			dymName:            "aaaa",
+			dymName:            "geek",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price4L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:               "new registration, 5 letters",
-			dymName:            "aaaaa",
+			dymName:            "human",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * 2,

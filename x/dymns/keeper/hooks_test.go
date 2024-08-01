@@ -7,7 +7,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -15,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	now := time.Now().UTC()
 	const daysKeepHistorical = 1
@@ -47,33 +45,33 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		require.Less(t, originalGas, ctx.GasMeter().GasConsumed(), "should do something")
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Add(365 * 24 * time.Hour).Unix(),
 	}
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix(),
 	}
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Add(-365 * 24 * time.Hour).Unix(),
 	}
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   1,
 	}
 
@@ -651,7 +649,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
-						WhitelistedAddress: owner,
+						WhitelistedAddress: ownerA,
 					},
 				},
 			},
@@ -667,7 +665,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
-						WhitelistedAddress: owner,
+						WhitelistedAddress: ownerA,
 					},
 				},
 			},
@@ -676,7 +674,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				PreservedDymNames: []dymnstypes.PreservedDymName{
 					{
 						DymName:            "preserved",
-						WhitelistedAddress: owner,
+						WhitelistedAddress: ownerA,
 					},
 				},
 			},
@@ -698,7 +696,6 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -723,35 +720,34 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		require.Less(t, originalGas, ctx.GasMeter().GasConsumed(), "should do something")
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const bidder = "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv"
-	dymNsModuleAccAddr := authtypes.NewModuleAddress(dymnstypes.ModuleName)
+	ownerA := testAddr(1).bech32()
+	bidderA := testAddr(2).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
-		Owner:      owner,
-		Controller: owner,
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 
@@ -904,10 +900,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			preMintModuleBalance: 200,
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
@@ -922,17 +918,17 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireAccountBalance(dymNameA.Owner, 0, ts)
 
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
 			name:     "simple process expired & completed SO",
 			dymNames: []dymnstypes.DymName{dymNameA},
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, &dymnstypes.SellOrderBid{
-				Bidder: bidder,
+				Bidder: bidderA,
 				Price:  coin200,
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -944,17 +940,17 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			preMintModuleBalance: 200,
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
 			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
-				requireOwnerChanged(dymNameA, bidder, ts)
+				requireOwnerChanged(dymNameA, bidderA, ts)
 				requireNoActiveSO(dymNameA, ts)
 				requireHistoricalSOs(dymNameA, 1, ts)
 
@@ -962,17 +958,17 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireAccountBalance(dymNameA.Owner, 200, ts) // previous owner should earn from bid
 
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, bidder, dymNameA.Name)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, bidder, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, bidderA, dymNameA.Name)
 			},
 		},
 		{
 			name:     "simple process expired & completed SO, match by min price",
 			dymNames: []dymnstypes.DymName{dymNameA},
 			sellOrders: []dymnstypes.SellOrder{genSo(dymNameA, soExpired, &coin200, &dymnstypes.SellOrderBid{
-				Bidder: bidder,
+				Bidder: bidderA,
 				Price:  coin100,
 			})},
 			expiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -984,17 +980,17 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			preMintModuleBalance: 250,
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
 			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
 
-				requireOwnerChanged(dymNameA, bidder, ts)
+				requireOwnerChanged(dymNameA, bidderA, ts)
 				requireNoActiveSO(dymNameA, ts)
 				requireHistoricalSOs(dymNameA, 1, ts)
 
@@ -1002,10 +998,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireAccountBalance(dymNameA.Owner, 100, ts) // previous owner should earn from bid
 
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, bidder, dymNameA.Name)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, bidder, dymNameA.Name)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, bidderA, dymNameA.Name)
 			},
 		},
 		{
@@ -1015,16 +1011,16 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				genSo(dymNameA, soExpired, nil, nil),
 				genSo(dymNameB, soNotExpired, &coin200, &dymnstypes.SellOrderBid{
 					// not completed
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin100,
 				}),
 				genSo(dymNameC, soExpired, &coin200, &dymnstypes.SellOrderBid{
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin200,
 				}),
 				genSo(dymNameD, soExpired, &coin200, &dymnstypes.SellOrderBid{
 					// completed by min price
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin100,
 				}),
 			},
@@ -1049,10 +1045,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			preMintModuleBalance: 450,
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1076,23 +1072,23 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				requireHistoricalSOs(dymNameB, 0, ts)
 
 				// SO for Dym-Name C is completed with winner
-				requireOwnerChanged(dymNameC, bidder, ts)
+				requireOwnerChanged(dymNameC, bidderA, ts)
 				requireNoActiveSO(dymNameC, ts)
 				requireHistoricalSOs(dymNameC, 1, ts)
 
 				// SO for Dym-Name D is completed with winner
-				requireOwnerChanged(dymNameD, bidder, ts)
+				requireOwnerChanged(dymNameD, bidderA, ts)
 				requireNoActiveSO(dymNameD, ts)
 				requireHistoricalSOs(dymNameD, 1, ts)
 
 				requireModuleBalance(150, ts)
 
-				requireAccountBalance(owner, 300, ts) // price from 2 completed SO
+				requireAccountBalance(ownerA, 300, ts) // price from 2 completed SO
 
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedDymNames(ts, bidder, dymNameC.Name, dymNameD.Name)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				require0xMappedDymNames(ts, bidder, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				require0xMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
 			},
 		},
 		{
@@ -1102,16 +1098,16 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				genSo(dymNameA, soExpired, nil, nil),
 				genSo(dymNameB, soNotExpired, &coin200, &dymnstypes.SellOrderBid{
 					// not completed
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin100,
 				}),
 				genSo(dymNameC, soExpired, &coin200, &dymnstypes.SellOrderBid{
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin200,
 				}),
 				genSo(dymNameD, soExpired, &coin200, &dymnstypes.SellOrderBid{
 					// completed by min price
-					Bidder: bidder,
+					Bidder: bidderA,
 					Price:  coin100,
 				}),
 			},
@@ -1137,10 +1133,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			customEpochIdentifier: "another",
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1171,12 +1167,12 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireModuleBalance(450, ts)
 
-				requireAccountBalance(owner, 0, ts)
+				requireAccountBalance(ownerA, 0, ts)
 
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
@@ -1199,10 +1195,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1211,10 +1207,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
@@ -1237,10 +1233,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			beforeHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1251,10 +1247,10 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			},
 			afterHookTestFunc: func(t *testing.T, dk dymnskeeper.Keeper, bk dymnskeeper.BankKeeper, ctx sdk.Context) {
 				ts := nts(t, dk, bk, ctx)
-				requireConfiguredAddressMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				requireConfiguredAddressMappedNoDymName(ts, bidder)
-				require0xMappedDymNames(ts, owner, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidder)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireConfiguredAddressMappedNoDymName(ts, bidderA)
+				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				require0xMappedNoDymName(ts, bidderA)
 			},
 		},
 	}
@@ -1302,11 +1298,11 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				tt.afterHookTestFunc(t, dk, bk, ctx)
 
-				aope := dk.GetActiveSellOrdersExpiration(ctx)
+				aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 				if len(tt.wantExpiryByDymName) == 0 {
-					require.Empty(t, aope.Records)
+					require.Empty(t, aSoe.Records)
 				} else {
-					require.Equal(t, tt.wantExpiryByDymName, aope.Records)
+					require.Equal(t, tt.wantExpiryByDymName, aSoe.Records)
 				}
 			}()
 

@@ -66,7 +66,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			counterpartyOfferPrice: nil,
 		},
 		{
-			name:            "reject - empty offer ID",
+			name:            "fail - empty offer ID",
 			offerId:         "",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -75,7 +75,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "ID of offer is empty",
 		},
 		{
-			name:            "reject - bad offer ID",
+			name:            "fail - bad offer ID",
 			offerId:         "@",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -84,7 +84,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "ID of offer is not a valid offer id",
 		},
 		{
-			name:            "reject - empty name",
+			name:            "fail - empty name",
 			offerId:         "1",
 			dymName:         "",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -93,7 +93,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name of offer is empty",
 		},
 		{
-			name:            "reject - bad name",
+			name:            "fail - bad name",
 			offerId:         "1",
 			dymName:         "@",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -102,7 +102,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name of offer is not a valid dym name",
 		},
 		{
-			name:            "reject - bad buyer",
+			name:            "fail - bad buyer",
 			offerId:         "1",
 			dymName:         "a",
 			buyer:           "0x1",
@@ -111,7 +111,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
 		{
-			name:            "reject - offer price is zero",
+			name:            "fail - offer price is zero",
 			offerId:         "1",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -120,7 +120,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "offer price is zero",
 		},
 		{
-			name:            "reject - offer price is empty",
+			name:            "fail - offer price is empty",
 			offerId:         "1",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -129,7 +129,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "offer price is zero",
 		},
 		{
-			name:            "reject - offer price is negative",
+			name:            "fail - offer price is negative",
 			offerId:         "1",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -138,7 +138,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains: "offer price is negative",
 		},
 		{
-			name:    "reject - offer price is invalid",
+			name:    "fail - offer price is invalid",
 			offerId: "1",
 			dymName: "a",
 			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -166,7 +166,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			counterpartyOfferPrice: &sdk.Coin{},
 		},
 		{
-			name:                   "reject - counter-party offer price is negative",
+			name:                   "fail - counter-party offer price is negative",
 			offerId:                "1",
 			dymName:                "a",
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -176,7 +176,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErrContains:        "counterparty offer price is negative",
 		},
 		{
-			name:       "reject - counter-party offer price is invalid",
+			name:       "fail - counter-party offer price is invalid",
 			offerId:    "1",
 			dymName:    "a",
 			buyer:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -216,7 +216,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 			wantErr:                false,
 		},
 		{
-			name:                   "reject - counterparty offer price denom must match offer price denom",
+			name:                   "fail - counterparty offer price denom must match offer price denom",
 			offerId:                "1",
 			dymName:                "a",
 			buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",

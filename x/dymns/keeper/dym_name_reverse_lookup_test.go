@@ -5,100 +5,127 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetAddReverseMappingOwnerToOwnedDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	require.Error(
-		t,
-		dk.AddReverseMappingOwnerToOwnedDymName(ctx, "0x", "a"),
-		"should not allow invalid owner address",
-	)
+	t.Run("should not allow invalid owner address", func(t *testing.T) {
+		require.Error(t, dk.AddReverseMappingOwnerToOwnedDymName(ctx, "0x", "a"))
 
-	_, err := dk.GetDymNamesOwnedBy(ctx, "0x")
-	require.Error(
-		t,
-		err,
-		"should not allow invalid owner address",
-	)
+		_, err := dk.GetDymNamesOwnedBy(ctx, "0x")
+		require.Error(t, err)
+	})
 
-	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	owner2 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	owner1a := testAddr(1).bech32()
+	owner2a := testAddr(2).bech32()
+	notOwnerA := testAddr(3).bech32()
 
-	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner1,
-		Controller: owner1,
+	dymName11 := dymnstypes.DymName{
+		Name:       "n11",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner1, dymName1.Name)
-	require.NoError(t, err)
+	require.NoError(t, dk.SetDymName(ctx, dymName11))
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "not-bonded-pool",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName21 := dymnstypes.DymName{
+		Name:       "n21",
+		Owner:      owner2a,
+		Controller: owner2a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName2))
-	err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, dymName2.Name)
-	require.NoError(t, err)
+	require.NoError(t, dk.SetDymName(ctx, dymName21))
 
-	dymName3 := dymnstypes.DymName{
-		Name:       "not-bonded-pool2",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName22 := dymnstypes.DymName{
+		Name:       "n22",
+		Owner:      owner2a,
+		Controller: owner2a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName3))
-	err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, dymName3.Name)
-	require.NoError(t, err)
+	require.NoError(t, dk.SetDymName(ctx, dymName22))
 
-	require.NoError(
-		t,
-		dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, "not-exists"),
-		"no check non-existing dym-name",
-	)
+	t.Run("can add", func(t *testing.T) {
+		var err error
 
-	t.Run("no error if duplicated name", func(t *testing.T) {
+		err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner1a, dymName11.Name)
+		require.NoError(t, err)
+
+		err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, dymName21.Name)
+		require.NoError(t, err)
+
+		err = dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, dymName22.Name)
+		require.NoError(t, err)
+	})
+
+	t.Run("can add non-existing dym-name", func(t *testing.T) {
+		err := dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, "not-exists")
+		require.NoError(t, err)
+	})
+
+	t.Run("no error when adding duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
-			require.NoError(t,
-				dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, dymName2.Name),
-			)
+			err := dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, dymName21.Name)
+			require.NoError(t, err)
 		}
 	})
 
-	ownedBy1, err1 := dk.GetDymNamesOwnedBy(ctx, owner1)
-	require.NoError(t, err1)
-	require.Len(t, ownedBy1, 1)
+	tests := []struct {
+		name   string
+		owner  string
+		preRun func()
+		want   []string
+	}{
+		{
+			name:  "get - returns correctly",
+			owner: owner1a,
+			want:  []string{dymName11.Name},
+		},
+		{
+			name:  "get - returns correctly",
+			owner: owner2a,
+			want:  []string{dymName21.Name, dymName22.Name},
+		},
+		{
+			name:  "get - returns empty if account not owned any Dym-Name",
+			owner: notOwnerA,
+			want:  nil,
+		},
+		{
+			name:  "get - result not include not-owned Dym-Name",
+			owner: owner2a,
+			preRun: func() {
+				require.NoError(
+					t,
+					dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, dymName11.Name),
+					"no error if dym-name owned by another owner",
+				)
+				require.NoError(
+					t,
+					dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2a, "non-existence"),
+					"no error if dym-name owned by another owner",
+				)
+			},
+			want: []string{dymName21.Name, dymName22.Name},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.preRun != nil {
+				tt.preRun()
+			}
 
-	ownedBy2, err2 := dk.GetDymNamesOwnedBy(ctx, owner2)
-	require.NoError(t, err2)
-	require.NotEqual(t, 3, len(ownedBy2), "should not include non-existing dym-name")
-	require.Len(t, ownedBy2, 2)
+			ownedDymNames, err := dk.GetDymNamesOwnedBy(ctx, tt.owner)
+			require.NoError(t, err)
 
-	ownedByNonExists, err3 := dk.GetDymNamesOwnedBy(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96")
-	require.NoError(t, err3)
-	require.Len(t, ownedByNonExists, 0)
-
-	require.NoError(
-		t,
-		dk.AddReverseMappingOwnerToOwnedDymName(ctx, owner2, dymName1.Name),
-		"no error if dym-name owned by another owner",
-	)
-	ownedBy2, err2 = dk.GetDymNamesOwnedBy(ctx, owner2)
-	require.NoError(t, err2)
-	require.Len(t, ownedBy2, 2, "should not include dym-name owned by another owner")
+			requireDymNameList(ownedDymNames, tt.want, t)
+		})
+	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -108,66 +135,75 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 		"should not allow invalid owner address",
 	)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	owner1a := testAddr(1).bech32()
+	owner2a := testAddr(2).bech32()
+	notOwnerA := testAddr(3).bech32()
 
-	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+	dymName11 := dymnstypes.DymName{
+		Name:       "n11",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
+	setDymNameWithFunctionsAfter(ctx, dymName11, t, dk)
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
+	dymName12 := dymnstypes.DymName{
+		Name:       "n12",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	setDymNameWithFunctionsAfter(ctx, dymName2, t, dk)
+	setDymNameWithFunctionsAfter(ctx, dymName12, t, dk)
+
+	dymName21 := dymnstypes.DymName{
+		Name:       "n21",
+		Owner:      owner2a,
+		Controller: owner2a,
+		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
+	}
+	setDymNameWithFunctionsAfter(ctx, dymName21, t, dk)
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4", "a"),
+		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, notOwnerA, dymName11.Name),
 		"no error if owner non-exists",
 	)
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, "aaaaa"),
+		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner1a, dymName21.Name),
 		"no error if not owned dym-name",
 	)
-	ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
+	ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner1a)
 	require.NoError(t, err)
-	require.Len(t, ownedBy, 2, "existing data must be kept")
+	requireDymNameList(ownedBy, []string{dymName11.Name, dymName12.Name}, t, "existing data must be kept")
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, "not-exists"),
+		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner1a, "not-exists"),
 		"no error if not-exists dym-name",
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner1a)
 	require.NoError(t, err)
-	require.Len(t, ownedBy, 2, "existing data must be kept")
+	requireDymNameList(ownedBy, []string{dymName11.Name, dymName12.Name}, t, "existing data must be kept")
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, dymName1.Name),
+		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner1a, dymName11.Name),
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner1a)
 	require.NoError(t, err)
-	require.Len(t, ownedBy, 1)
+	requireDymNameList(ownedBy, []string{dymName12.Name}, t)
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner, dymName2.Name),
+		dk.RemoveReverseMappingOwnerToOwnedDymName(ctx, owner1a, dymName12.Name),
 	)
-	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner)
+	ownedBy, err = dk.GetDymNamesOwnedBy(ctx, owner1a)
 	require.NoError(t, err)
 	require.Len(t, ownedBy, 0)
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -184,98 +220,98 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		"should not allow invalid blank address",
 	)
 
-	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	owner2 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	anotherAccount := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	interchainAccount := "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
+	owner1a := testAddr(1).bech32()
+	owner2a := testAddr(2).bech32()
+	anotherA := testAddr(3).bech32()
+	icaA := testICAddr(4).bech32()
+	someoneA := testAddr(5).bech32()
 
-	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner1,
-		Controller: owner1,
+	dymName11 := dymnstypes.DymName{
+		Name:       "n11",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherA,
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName1.Name)
+	require.NoError(t, dk.SetDymName(ctx, dymName11))
+	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName11.Name)
 	require.NoError(t, err)
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "not-bonded-pool",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName21 := dymnstypes.DymName{
+		Name:       "n21",
+		Owner:      owner2a,
+		Controller: owner2a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName2))
-	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner2, dymName2.Name)
+	require.NoError(t, dk.SetDymName(ctx, dymName21))
+	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner2a, dymName21.Name)
 	require.NoError(t, err)
 
-	dymName3 := dymnstypes.DymName{
-		Name:       "not-bonded-pool2",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName22 := dymnstypes.DymName{
+		Name:       "n22",
+		Owner:      owner2a,
+		Controller: owner2a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherA,
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName3))
-	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName3.Name)
+	require.NoError(t, dk.SetDymName(ctx, dymName22))
+	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName22.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, "not-exists"),
+		dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, "not-exists"),
 		"no check non-existing dym-name",
 	)
 
 	t.Run("no error if duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			require.NoError(t,
-				dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner2, dymName2.Name),
+				dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner2a, dymName21.Name),
 			)
 		}
 	})
 
-	linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
+	linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherA)
 	require.NoError(t, err1)
 	require.Len(t, linked1, 2)
 	requireEqualsStrings(t,
-		[]string{dymName1.Name, dymName3.Name},
+		[]string{dymName11.Name, dymName22.Name},
 		[]string{linked1[0].Name, linked1[1].Name},
 	)
 
-	linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, owner2)
+	linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, owner2a)
 	require.NoError(t, err2)
 	require.NotEqual(t, 2, len(linked2), "should not include non-existing dym-name")
 	require.Len(t, linked2, 1)
 	requireEqualsStrings(t,
-		[]string{dymName2.Name},
+		[]string{dymName21.Name},
 		[]string{linked2[0].Name},
 	)
 
-	linkedByNotExists, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96")
+	linkedByNotExists, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, someoneA)
 	require.NoError(t, err3)
 	require.Len(t, linkedByNotExists, 0)
 
 	t.Run("allow Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
+			dk.AddReverseMappingConfiguredAddressToDymName(ctx, icaA, dymName11.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
+		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, icaA)
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
-		require.Equal(t, dymName1.Name, linked3[0].Name)
+		require.Equal(t, dymName11.Name, linked3[0].Name)
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -285,54 +321,55 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		"should not allow blank address",
 	)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const anotherAccount = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const interchainAccount = "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
+	ownerA := testAddr(1).bech32()
+	anotherA := testAddr(2).bech32()
+	icaA := testICAddr(3).bech32()
+	someoneA := testAddr(4).bech32()
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherA,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName1.Name)
+	err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName1.Name)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherA,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
-	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName2.Name)
+	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName2.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d", "a"),
+		dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, someoneA, dymName2.Name),
 		"no error if record not exists",
 	)
 
-	linked, err := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
+	linked, err := dk.GetDymNamesContainsConfiguredAddress(ctx, anotherA)
 	require.NoError(t, err)
 	require.Len(t, linked, 2, "existing data must be kept")
 
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, "aaaaa"),
+			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherA, "not-exists"),
 		)
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherA)
 		require.NoError(t, err)
 		require.Len(t, linked, 2, "existing data must be kept")
 	})
@@ -340,20 +377,20 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	t.Run("remove correctly", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName1.Name),
+			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherA)
 		require.NoError(t, err)
 		require.Len(t, linked, 1)
 		require.Equal(t, dymName2.Name, linked[0].Name)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherAccount, dymName2.Name),
+			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName2.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherAccount)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, anotherA)
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -361,25 +398,24 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	t.Run("remove correctly with Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
+			dk.AddReverseMappingConfiguredAddressToDymName(ctx, icaA, dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
+		linked3, err := dk.GetDymNamesContainsConfiguredAddress(ctx, icaA)
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, interchainAccount, dymName1.Name),
+			dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, icaA, dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, interchainAccount)
+		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, icaA)
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -404,87 +440,81 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		)
 	}
 
-	owner1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	owner2 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	owner2AccAddr := sdk.MustAccAddressFromBech32(owner2)
-	anotherAccount := "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
-	anotherAcc0xAddr := sdk.MustAccAddressFromBech32(anotherAccount)
-	require.Len(t, anotherAcc0xAddr.Bytes(), 20)
+	owner1Acc := testAddr(1)
+	owner2Acc := testAddr(2)
+	anotherAcc := testAddr(3)
+	icaAcc := testICAddr(4)
 
-	interchainAccountBech32Addr := "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
-	interchainAccount0xAddr := sdk.MustAccAddressFromBech32(interchainAccountBech32Addr)
-	require.Len(t, interchainAccount0xAddr.Bytes(), 32)
-
-	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner1,
-		Controller: owner1,
+	dymName11 := dymnstypes.DymName{
+		Name:       "n11",
+		Owner:      owner1Acc.bech32(),
+		Controller: owner1Acc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherAcc.bech32(),
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName1.Name)
+	require.NoError(t, dk.SetDymName(ctx, dymName11))
+	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName11.Name)
 	require.NoError(t, err)
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "not-bonded-pool",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName21 := dymnstypes.DymName{
+		Name:       "n21",
+		Owner:      owner2Acc.bech32(),
+		Controller: owner2Acc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName2))
+	require.NoError(t, dk.SetDymName(ctx, dymName21))
 	err = dk.AddReverseMappingHexAddressToDymName(
 		ctx,
-		owner2AccAddr,
-		dymName2.Name,
+		owner2Acc.bytes(),
+		dymName21.Name,
 	)
 	require.NoError(t, err)
 
-	dymName3 := dymnstypes.DymName{
-		Name:       "not-bonded-pool2",
-		Owner:      owner2,
-		Controller: owner2,
+	dymName22 := dymnstypes.DymName{
+		Name:       "n22",
+		Owner:      owner2Acc.bech32(),
+		Controller: owner2Acc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherAcc.bech32(),
 		}},
 	}
-	require.NoError(t, dk.SetDymName(ctx, dymName3))
-	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName3.Name)
+	require.NoError(t, dk.SetDymName(ctx, dymName22))
+	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName22.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, "not-exists"),
+		dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), "not-exists"),
 		"no check non-existing dym-name",
 	)
 
 	t.Run("no error if duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			require.NoError(t,
-				dk.AddReverseMappingHexAddressToDymName(ctx, owner2AccAddr, dymName2.Name),
+				dk.AddReverseMappingHexAddressToDymName(ctx, owner2Acc.bytes(), dymName21.Name),
 			)
 		}
 	})
 
-	linked1, err1 := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
+	linked1, err1 := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
 	require.NoError(t, err1)
 	require.Len(t, linked1, 2)
 	requireEqualsStrings(t,
-		[]string{dymName1.Name, dymName3.Name},
+		[]string{dymName11.Name, dymName22.Name},
 		[]string{linked1[0].Name, linked1[1].Name},
 	)
 
-	linked2, err2 := dk.GetDymNamesContainsHexAddress(ctx, owner2AccAddr)
+	linked2, err2 := dk.GetDymNamesContainsHexAddress(ctx, owner2Acc.bytes())
 	require.NoError(t, err2)
 	require.NotEqual(t, 2, len(linked2), "should not include non-existing dym-name")
 	require.Len(t, linked2, 1)
 	requireEqualsStrings(t,
-		[]string{dymName2.Name},
+		[]string{dymName21.Name},
 		[]string{linked2[0].Name},
 	)
 
@@ -498,17 +528,16 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("allow Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr.Bytes(), dymName1.Name),
+			dk.AddReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName11.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr.Bytes())
+		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
-		require.Equal(t, dymName1.Name, linked3[0].Name)
+		require.Equal(t, dymName11.Name, linked3[0].Name)
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -526,61 +555,58 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 		)
 	}
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const anotherAccount = "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96"
-	anotherAcc0xAddr := sdk.MustAccAddressFromBech32(anotherAccount)
-
-	interchainAccountBech32Addr := "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
-	interchainAccount0xAddr := sdk.MustAccAddressFromBech32(interchainAccountBech32Addr)
-	require.Len(t, interchainAccount0xAddr.Bytes(), 32)
+	ownerAcc := testAddr(1)
+	anotherAcc := testAddr(2)
+	someoneAcc := testAddr(3)
+	icaAcc := testICAddr(4)
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerAcc.bech32(),
+		Controller: ownerAcc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherAcc.bech32(),
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName1.Name)
+	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerAcc.bech32(),
+		Controller: ownerAcc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: anotherAccount,
+			Value: anotherAcc.bech32(),
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
-	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName2.Name)
+	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
 		dk.RemoveReverseMappingHexAddressToDymName(ctx,
-			sdk.MustAccAddressFromBech32("dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"),
-			"a",
+			someoneAcc.bytes(),
+			dymName2.Name,
 		),
 		"no error if record not exists",
 	)
 
-	linked, err := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
+	linked, err := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
 	require.NoError(t, err)
 	require.Len(t, linked, 2, "existing data must be kept")
 
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, "aaaaa"),
+			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), "not-in-list"),
 		)
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked, 2, "existing data must be kept")
 	})
@@ -588,20 +614,20 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("remove correctly", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName1.Name),
+			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked, 1)
 		require.Equal(t, dymName2.Name, linked[0].Name)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc0xAddr, dymName2.Name),
+			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc0xAddr)
+		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -609,18 +635,18 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("allow Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr, dymName1.Name),
+			dk.AddReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr)
+		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, interchainAccount0xAddr, dymName1.Name),
+			dk.RemoveReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
 		)
-		linked3, err = dk.GetDymNamesContainsHexAddress(ctx, interchainAccount0xAddr)
+		linked3, err = dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Empty(t, linked3)
 	})

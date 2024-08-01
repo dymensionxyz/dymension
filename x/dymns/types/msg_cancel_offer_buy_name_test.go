@@ -22,14 +22,14 @@ func TestMsgCancelOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:            "reject - bad offer id",
+			name:            "fail - bad offer id",
 			offerId:         "@",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "offer id is not a valid buy name offer id",
 		},
 		{
-			name:            "reject - bad buyer",
+			name:            "fail - bad buyer",
 			offerId:         "1",
 			buyer:           "dym1fl48vsnmsdzcv85",
 			wantErr:         true,

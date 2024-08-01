@@ -1,13 +1,11 @@
 package keeper_test
 
 import (
-	"strings"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -18,21 +16,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: owner,
+			Value: ownerA,
 		}},
 	}
 
@@ -62,34 +59,34 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 
 		t.Run("reverse mapping should be deleted, check by key", func(t *testing.T) {
 			ownedBy := dk.GenericGetReverseLookupDymNamesRecord(ctx,
-				dymnstypes.DymNamesOwnedByAccountRvlKey(sdk.MustAccAddressFromBech32(owner)),
+				dymnstypes.DymNamesOwnedByAccountRvlKey(sdk.MustAccAddressFromBech32(ownerA)),
 			)
 			require.NoError(t, err)
 			require.Empty(t, ownedBy, "reverse mapping should be removed")
 
 			dymNames := dk.GenericGetReverseLookupDymNamesRecord(ctx,
-				dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(owner),
+				dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(ownerA),
 			)
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 
 			dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx,
-				dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(owner)),
+				dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(ownerA)),
 			)
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 		})
 
 		t.Run("reverse mapping should be deleted, check by get", func(t *testing.T) {
-			ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
+			ownedBy, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
 			require.NoError(t, err)
 			require.Empty(t, ownedBy, "reverse mapping should be removed")
 
-			dymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, owner)
+			dymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, ownerA)
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 
-			dymNames, err = dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(owner).Bytes())
+			dymNames, err = dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(ownerA).Bytes())
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 		})
@@ -109,7 +106,6 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 	t.Run("BeforeDymNameOwnerChanged can be called on non-existing Dym-Name without error", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
@@ -123,17 +119,17 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 		require.Contains(t, err.Error(), dymnstypes.ErrDymNameNotFound.Error())
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   time.Now().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: owner,
+			Value: ownerA,
 		}},
 	}
 
@@ -142,13 +138,13 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 
 		setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
-		owned, err := dk.GetDymNamesOwnedBy(ctx, owner)
+		owned, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 
 		require.NoError(t, dk.BeforeDymNameOwnerChanged(ctx, dymName.Name))
 
-		owned, err = dk.GetDymNamesOwnedBy(ctx, owner)
+		owned, err = dk.GetDymNamesOwnedBy(ctx, ownerA)
 		require.NoError(t, err)
 		require.Empty(t, owned)
 	})
@@ -168,13 +164,13 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 
 		require.NoError(t, dk.SetDymName(ctx, dymName))
 
-		owned, err := dk.GetDymNamesOwnedBy(ctx, owner)
+		owned, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
 		require.NoError(t, err)
 		require.Empty(t, owned)
 
 		require.NoError(t, dk.AfterDymNameOwnerChanged(ctx, dymName.Name))
 
-		owned, err = dk.GetDymNamesOwnedBy(ctx, owner)
+		owned, err = dk.GetDymNamesOwnedBy(ctx, ownerA)
 		require.NoError(t, err)
 		require.Len(t, owned, 1)
 	})
@@ -190,7 +186,6 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 	t.Run("BeforeDymNameConfigChanged can be called on non-existing Dym-Name without error", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
@@ -204,27 +199,24 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		require.Contains(t, err.Error(), dymnstypes.ErrDymNameNotFound.Error())
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	ownerHex := sdk.MustAccAddressFromBech32(owner).Bytes()
-	const controller = "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv"
-	controllerHex := sdk.MustAccAddressFromBech32(controller).Bytes()
-	const ica = "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
-	icaHex := sdk.MustAccAddressFromBech32(ica).Bytes()
+	ownerAcc := testAddr(1)
+	controllerAcc := testAddr(2)
+	icaAcc := testICAddr(3)
 
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: controller,
+		Name:       "a",
+		Owner:      ownerAcc.bech32(),
+		Controller: controllerAcc.bech32(),
 		ExpireAt:   time.Now().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{
 			{
 				Type:  dymnstypes.DymNameConfigType_NAME,
 				Path:  "controller",
-				Value: controller,
+				Value: controllerAcc.bech32(),
 			}, {
 				Type:  dymnstypes.DymNameConfigType_NAME,
 				Path:  "ica",
-				Value: ica,
+				Value: icaAcc.bech32(),
 			},
 		},
 	}
@@ -262,23 +254,23 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 
 		setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
-		requireConfiguredAddressMappedDymName(owner, ctx, dk)
-		requireConfiguredAddressMappedDymName(controller, ctx, dk)
-		requireConfiguredAddressMappedDymName(ica, ctx, dk)
-		requireHexAddressMappedDymName(ownerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(controllerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(icaHex, ctx, dk)
+		requireConfiguredAddressMappedDymName(ownerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedDymName(controllerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedDymName(icaAcc.bech32(), ctx, dk)
+		requireHexAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 
 		// do test
 
 		require.NoError(t, dk.BeforeDymNameConfigChanged(ctx, dymName.Name))
 
-		requireConfiguredAddressMappedNoDymName(owner, ctx, dk)
-		requireConfiguredAddressMappedNoDymName(controller, ctx, dk)
-		requireConfiguredAddressMappedNoDymName(ica, ctx, dk)
-		requireHexAddressMappedNoDymName(ownerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(controllerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(icaHex, ctx, dk)
+		requireConfiguredAddressMappedNoDymName(ownerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedNoDymName(controllerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedNoDymName(icaAcc.bech32(), ctx, dk)
+		requireHexAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 	})
 
 	t.Run("after run BeforeDymNameConfigChanged, Dym-Name must be kept", func(t *testing.T) {
@@ -298,23 +290,23 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 
 		require.NoError(t, dk.SetDymName(ctx, dymName))
 
-		requireConfiguredAddressMappedNoDymName(owner, ctx, dk)
-		requireConfiguredAddressMappedNoDymName(controller, ctx, dk)
-		requireConfiguredAddressMappedNoDymName(ica, ctx, dk)
-		requireHexAddressMappedNoDymName(ownerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(controllerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(icaHex, ctx, dk)
+		requireConfiguredAddressMappedNoDymName(ownerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedNoDymName(controllerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedNoDymName(icaAcc.bech32(), ctx, dk)
+		requireHexAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 
 		// do test
 
 		require.NoError(t, dk.AfterDymNameConfigChanged(ctx, dymName.Name))
 
-		requireConfiguredAddressMappedDymName(owner, ctx, dk)
-		requireConfiguredAddressMappedDymName(controller, ctx, dk)
-		requireConfiguredAddressMappedDymName(ica, ctx, dk)
-		requireHexAddressMappedDymName(ownerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(controllerHex, ctx, dk)
-		requireHexAddressMappedNoDymName(icaHex, ctx, dk)
+		requireConfiguredAddressMappedDymName(ownerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedDymName(controllerAcc.bech32(), ctx, dk)
+		requireConfiguredAddressMappedDymName(icaAcc.bech32(), ctx, dk)
+		requireHexAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 	})
 
 	t.Run("after run AfterDymNameConfigChanged, Dym-Name must be kept", func(t *testing.T) {
@@ -338,18 +330,17 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 		require.Nil(t, dk.GetDymNameWithExpirationCheck(ctx, "non-exists"))
 	})
 
-	//goland:noinspection SpellCheckingInspection
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: owner,
+			Value: ownerA,
 		}},
 	}
 
@@ -370,46 +361,50 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 }
 
 func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
-	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	now := time.Now().UTC()
 
-	//goland:noinspection SpellCheckingInspection
+	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithBlockTime(now)
+
+	owner1a := testAddr(1).bech32()
+	owner2a := testAddr(2).bech32()
+	owner3a := testAddr(3).bech32()
+
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-		Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
+		Name:       "a",
+		Owner:      owner1a,
+		Controller: owner1a,
+		ExpireAt:   now.Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Value: owner1a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
 
-	//goland:noinspection SpellCheckingInspection
 	dymName2 := dymnstypes.DymName{
-		Name:       "not-bonded-pool",
-		Owner:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
-		Controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
-		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
+		Name:       "b",
+		Owner:      owner2a,
+		Controller: owner2a,
+		ExpireAt:   now.Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+			Value: owner2a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
 
-	//goland:noinspection SpellCheckingInspection
 	dymName3 := dymnstypes.DymName{
-		Name:       "streamer",
-		Owner:      "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv",
-		Controller: "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv",
-		ExpireAt:   time.Now().UTC().Add(-time.Hour).Unix(),
+		Name:       "c",
+		Owner:      owner3a,
+		Controller: owner3a,
+		ExpireAt:   now.Add(-time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
 			Path:  "www",
-			Value: "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv",
+			Value: owner3a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName3))
@@ -421,45 +416,52 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 	require.NotContains(t, list, dymName3, "should not include expired Dym-Name")
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetDymNamesOwnedBy(t *testing.T) {
 	now := time.Now().UTC()
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	owner1a := testAddr(1).bech32()
+	owner2a := testAddr(2).bech32()
 
-	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+	dymName11 := dymnstypes.DymName{
+		Name:       "n11",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
-	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
+	setDymNameWithFunctionsAfter(ctx, dymName11, t, dk)
 
-	dymName2 := dymnstypes.DymName{
-		Name:       "a",
-		Owner:      owner,
-		Controller: owner,
-		ExpireAt:   now.Add(-time.Hour).Unix(),
-	}
-	setDymNameWithFunctionsAfter(ctx, dymName2, t, dk)
-
-	dymName3 := dymnstypes.DymName{
-		Name:       "b",
-		Owner:      "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
-		Controller: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+	dymName12 := dymnstypes.DymName{
+		Name:       "n12",
+		Owner:      owner1a,
+		Controller: owner1a,
 		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
-	setDymNameWithFunctionsAfter(ctx, dymName3, t, dk)
+	setDymNameWithFunctionsAfter(ctx, dymName12, t, dk)
+
+	dymName21 := dymnstypes.DymName{
+		Name:       "n21",
+		Owner:      owner2a,
+		Controller: owner2a,
+		ExpireAt:   now.Add(time.Hour).Unix(),
+	}
+	setDymNameWithFunctionsAfter(ctx, dymName21, t, dk)
+
+	t.Run("returns owned Dym-Names", func(t *testing.T) {
+		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner1a)
+		require.NoError(t, err)
+		requireDymNameList(ownedBy, []string{dymName11.Name, dymName12.Name}, t)
+	})
 
 	t.Run("returns owned Dym-Names with filtered expiration", func(t *testing.T) {
-		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner)
+		dymName12.ExpireAt = now.Add(-time.Hour).Unix()
+		setDymNameWithFunctionsAfter(ctx, dymName12, t, dk)
+
+		ownedBy, err := dk.GetDymNamesOwnedBy(ctx, owner1a)
 		require.NoError(t, err)
-		require.Len(t, ownedBy, 1)
-		require.Equal(t, owner, ownedBy[0].Owner)
-		require.Equal(t, dymName1, ownedBy[0])
+		requireDymNameList(ownedBy, []string{dymName11.Name}, t)
 	})
 }
 
@@ -469,25 +471,28 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now)
 
-	require.NoError(t, dk.PruneDymName(ctx, "non-exists"))
+	t.Run("prune non-exists Dym-Name should be ok", func(t *testing.T) {
+		require.NoError(t, dk.PruneDymName(ctx, "non-exists"))
+	})
 
-	//goland:noinspection SpellCheckingInspection
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Add(time.Hour).Unix(),
 	}
-	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
-	require.NotNil(t, dk.GetDymName(ctx, dymName1.Name))
 
 	t.Run("able to prune non-expired Dym-Name", func(t *testing.T) {
+		setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
+		require.NotNil(t, dk.GetDymName(ctx, dymName1.Name))
+
 		require.NoError(t, dk.PruneDymName(ctx, dymName1.Name))
 		require.Nil(t, dk.GetDymName(ctx, dymName1.Name))
 	})
 
+	// re-setup record
 	setDymNameWithFunctionsAfter(ctx, dymName1, t, dk)
 	require.NotNil(t, dk.GetDymName(ctx, dymName1.Name))
 	owned, err := dk.GetDymNamesOwnedBy(ctx, dymName1.Owner)
@@ -554,9 +559,9 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		return dk, rk, ctx
 	}
 
-	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	addr3 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	addr1a := testAddr(1).bech32()
+	addr2a := testAddr(2).bech32()
+	addr3a := testAddr(3).bech32()
 
 	generalSetupAlias := func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 		params := dk.GetParams(ctx)
@@ -596,268 +601,268 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "success, no sub name, chain-id",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "a.dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, no sub name, chain-id, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "a@dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, sub name, chain-id",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "b.a.dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, sub name, chain-id, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "b.a@dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, multi-sub name, chain-id",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "c.b.a.dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, multi-sub name, chain-id, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:    "c.b.a@dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, no sub name, alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "a.dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, no sub name, alias, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "a@dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, sub name, alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "b.a.dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, sub name, alias, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "b.a@dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, multi-sub name, alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a.dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, match multiple alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr2,
+					Value: addr2a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a.dymension",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "c.b.a.dym")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 			},
 		},
 		{
 			name: "success, multi-sub name, alias, @",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a@dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 		},
 		{
 			name: "success, multi-sub config, chain-id",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr2,
+					Value: addr2a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr1,
+					Value: addr1a,
 				}},
 			},
 			preSetup:          nil,
 			dymNameAddress:    "c.b.a.dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a@dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a@dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a@dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr1, outputAddr)
+				require.Equal(t, addr1a, outputAddr)
 
 				_, err = dk.ResolveByDymNameAddress(ctx, "a@dym")
 				require.Error(t, err)
@@ -872,49 +877,49 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "success, multi-sub config, alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr2,
+					Value: addr2a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr1,
+					Value: addr1a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a@dym",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a.dym")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a@dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.a@dym")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a@dym")
 				require.NoError(t, err)
-				require.Equal(t, addr1, outputAddr)
+				require.Equal(t, addr1a, outputAddr)
 
 				_, err = dk.ResolveByDymNameAddress(ctx, "non-exists.a@dym")
 				require.Error(t, err)
@@ -925,94 +930,94 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "lookup through multiple sub-domains",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "b",
-					Value: addr3,
+					Value: addr3a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				dymNameB := dymnstypes.DymName{
 					Name:       "b",
-					Owner:      addr1,
-					Controller: addr2,
+					Owner:      addr1a,
+					Controller: addr2a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "b",
-						Value: addr2,
+						Value: addr2a,
 					}, {
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "",
-						Value: addr2,
+						Value: addr2a,
 					}},
 				}
 				require.NoError(t, dk.SetDymName(ctx, dymNameB))
 			},
 			dymNameAddress:    "b.a.dymension_1100-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b@dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "b.b.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 			},
 		},
 		{
 			name: "matching by chain-id, no alias",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "b",
-					Value:   addr2,
+					Value:   addr2a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "",
-					Value:   addr2,
+					Value:   addr2a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
-					Value:   addr3,
+					Value:   addr3a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "",
-					Value:   addr3,
+					Value:   addr3a,
 				}},
 			},
 			dymNameAddress:    "a.blumbus_111-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.blumbus_111-1")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 
 				_, err = dk.ResolveByDymNameAddress(ctx, "a@bb")
 				require.Error(t, err)
@@ -1022,7 +1027,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				_, err = dk.ResolveByDymNameAddress(ctx, "a.dym")
 				require.Error(t, err)
@@ -1035,78 +1040,78 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "matching by chain-id",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "b",
-					Value:   addr2,
+					Value:   addr2a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "",
-					Value:   addr2,
+					Value:   addr2a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
-					Value:   addr3,
+					Value:   addr3a,
 				}, {
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "",
-					Value:   addr3,
+					Value:   addr3a,
 				}},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "a.blumbus_111-1",
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				var outputAddr string
 				var err error
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.blumbus_111-1")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a@bb")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a@blumbus")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.dymension_1100-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.dym")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a.dymension")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 			},
 		},
 		{
 			name: "not configured sub-name",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "c.b",
-					Value: addr3,
+					Value: addr3a,
 				}, {
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr2,
+					Value: addr2a,
 				}},
 			},
 			dymNameAddress:  "b.a.dymension_1100-1",
@@ -1117,13 +1122,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "when no Dym-Name does not exists",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:  "b@dym",
@@ -1134,44 +1139,44 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "resolve to owner when no Dym-Name config",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs:    nil,
 			},
 			dymNameAddress:    "a.dymension_1100-1",
 			wantError:         false,
-			wantOutputAddress: addr1,
+			wantOutputAddress: addr1a,
 		},
 		{
 			name: "resolve to owner when no default (without sub-name) Dym-Name config",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
 						Path:  "sub",
-						Value: addr3,
+						Value: addr3a,
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
-						Value:   addr2,
+						Value:   addr2a,
 					},
 				},
 			},
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "a.dymension_1100-1",
 			wantError:         false,
-			wantOutputAddress: addr1,
+			wantOutputAddress: addr1a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "sub.a.dym")
 				require.NoError(t, err)
-				require.Equal(t, addr3, outputAddr)
+				require.Equal(t, addr3a, outputAddr)
 
 				_, err = dk.ResolveByDymNameAddress(ctx, "non-exists.a.dym")
 				require.Error(t, err)
@@ -1179,15 +1184,15 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 				outputAddr, err = dk.ResolveByDymNameAddress(ctx, "a@bb")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 			},
 		},
 		{
 			name: "do not fallback for sub-name",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs:    nil,
 			},
@@ -1197,20 +1202,20 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "a.dymension_1100-1")
 				require.NoError(t, err, "should fallback if not sub-name")
-				require.Equal(t, addr1, outputAddr)
+				require.Equal(t, addr1a, outputAddr)
 			},
 		},
 		{
 			name: "should not resolve for expired Dym-Name",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:  "a.dymension_1100-1",
@@ -1221,13 +1226,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "should not resolve for expired Dym-Name",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:  "a.a.dymension_1100-1",
@@ -1238,13 +1243,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "should not resolve if input addr is invalid",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
 					Type:  dymnstypes.DymNameConfigType_NAME,
 					Path:  "",
-					Value: addr3,
+					Value: addr3a,
 				}},
 			},
 			dymNameAddress:  "a@a.dymension_1100-1",
@@ -1255,21 +1260,21 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "if alias collision with configured record, priority configuration",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr2,
+				Owner:      addr1a,
+				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
-						Value:   addr2,
+						Value:   addr2a,
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "blumbus",
 						Path:    "",
-						Value:   addr3,
+						Value:   addr3a,
 					},
 				},
 			},
@@ -1286,11 +1291,11 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:    "a.blumbus",
 			wantError:         false,
-			wantOutputAddress: addr3,
+			wantOutputAddress: addr3a,
 			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "a@blumbus_111-1")
 				require.NoError(t, err)
-				require.Equal(t, addr2, outputAddr)
+				require.Equal(t, addr2a, outputAddr)
 			},
 		},
 		{
@@ -1367,13 +1372,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			name: "FIXME * fallback resolve follow default config",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      addr1,
-				Controller: addr1,
+				Owner:      addr1a,
+				Controller: addr1a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: addr2,
+						Value: addr2a,
 					},
 				},
 			},
@@ -1381,7 +1386,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress: "a@nim",
 			wantError:      false,
 			wantOutputAddress: func() string {
-				_, bz, err := bech32.DecodeAndConvert(addr2)
+				_, bz, err := bech32.DecodeAndConvert(addr2a)
 				require.NoError(t, err)
 				addr2OnNim, err := bech32.ConvertAndEncode("nim", bz)
 				require.NoError(t, err)
@@ -1461,11 +1466,8 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 	t.Run("FIXME * mixed tests", func(t *testing.T) {
 		dk, rk, ctx := setupTest()
 
-		addr := func(no uint64) string {
-			bz1 := sdk.Uint64ToBigEndian(no)
-			bz2 := make([]byte, 20)
-			copy(bz2, bz1)
-			return sdk.MustBech32ifyAddressBytes(params.AccountAddressPrefix, bz2)
+		bech32Addr := func(no uint64) string {
+			return testAddr(no).bech32()
 		}
 
 		// setup alias
@@ -1493,57 +1495,57 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		// setup Dym-Names
 		dymName1 := dymnstypes.DymName{
 			Name:       "name1",
-			Owner:      addr(1),
-			Controller: addr(2),
+			Owner:      bech32Addr(1),
+			Controller: bech32Addr(2),
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s1",
-					Value:   addr(3),
+					Value:   bech32Addr(3),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s2",
-					Value:   addr(4),
+					Value:   bech32Addr(4),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "a.s5",
-					Value:   addr(5),
+					Value:   bech32Addr(5),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
-					Value:   addr(6),
+					Value:   bech32Addr(6),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
-					Value:   addr(7),
+					Value:   bech32Addr(7),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "",
-					Value:   addr(8),
+					Value:   bech32Addr(8),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
-					Value:   addr(9),
+					Value:   bech32Addr(9),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "cosmoshub-4",
 					Path:    "",
-					Value:   addr(10),
+					Value:   bech32Addr(10),
 				},
 			},
 		}
@@ -1551,57 +1553,57 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 		dymName2 := dymnstypes.DymName{
 			Name:       "name2",
-			Owner:      addr(100),
-			Controller: addr(101),
+			Owner:      bech32Addr(100),
+			Controller: bech32Addr(101),
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s1",
-					Value:   addr(103),
+					Value:   bech32Addr(103),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s2",
-					Value:   addr(104),
+					Value:   bech32Addr(104),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "a.s5",
-					Value:   addr(105),
+					Value:   bech32Addr(105),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
-					Value:   addr(106),
+					Value:   bech32Addr(106),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
-					Value:   addr(107),
+					Value:   bech32Addr(107),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "",
-					Value:   addr(108),
+					Value:   bech32Addr(108),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
-					Value:   addr(109),
+					Value:   bech32Addr(109),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "froopyland_100-1",
 					Path:    "a",
-					Value:   addr(110),
+					Value:   bech32Addr(110),
 				},
 			},
 		}
@@ -1609,63 +1611,63 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 		dymName3 := dymnstypes.DymName{
 			Name:       "name3",
-			Owner:      addr(200),
-			Controller: addr(201),
+			Owner:      bech32Addr(200),
+			Controller: bech32Addr(201),
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s1",
-					Value:   addr(203),
+					Value:   bech32Addr(203),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s2",
-					Value:   addr(204),
+					Value:   bech32Addr(204),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "a.s5",
-					Value:   addr(205),
+					Value:   bech32Addr(205),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
-					Value:   addr(206),
+					Value:   bech32Addr(206),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
-					Value:   addr(207),
+					Value:   bech32Addr(207),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "",
-					Value:   addr(208),
+					Value:   bech32Addr(208),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
-					Value:   addr(209),
+					Value:   bech32Addr(209),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "froopyland_100-1",
 					Path:    "a",
-					Value:   addr(210),
+					Value:   bech32Addr(210),
 				},
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "cosmoshub-4",
 					Path:    "a",
-					Value:   addr(211),
+					Value:   bech32Addr(211),
 				},
 			},
 		}
@@ -1674,14 +1676,14 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		dymName4 := dymnstypes.DymName{
 			Name:       "name4",
 			Owner:      "dym1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp7vezn",
-			Controller: addr(301),
+			Controller: bech32Addr(301),
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
 					Type:    dymnstypes.DymNameConfigType_NAME,
 					ChainId: "",
 					Path:    "s1",
-					Value:   addr(302),
+					Value:   bech32Addr(302),
 				},
 			},
 		}
@@ -1689,7 +1691,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 		rollAppNim := rollapptypes.Rollapp{
 			RollappId: "nim_1122-1",
-			Creator:   addr(1122),
+			Creator:   bech32Addr(1122),
 		}
 		rk.SetRollapp(ctx, rollAppNim)
 		rollAppNim, found := rk.GetRollapp(ctx, rollAppNim.RollappId)
@@ -1699,72 +1701,72 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			return newInputTestcase(name, chainIdOrAlias, ctx, dk, t)
 		}
 
-		tc("name1", chainId).WithSubName("s1").RequireResolveTo(addr(3))
-		tc("name1", "dym").WithSubName("s1").RequireResolveTo(addr(3))
-		tc("name1", chainId).WithSubName("s2").RequireResolveTo(addr(4))
-		tc("name1", "dym").WithSubName("s2").RequireResolveTo(addr(4))
-		tc("name1", chainId).WithSubName("a.s5").RequireResolveTo(addr(5))
-		tc("name1", "dym").WithSubName("a.s5").RequireResolveTo(addr(5))
+		tc("name1", chainId).WithSubName("s1").RequireResolveTo(bech32Addr(3))
+		tc("name1", "dym").WithSubName("s1").RequireResolveTo(bech32Addr(3))
+		tc("name1", chainId).WithSubName("s2").RequireResolveTo(bech32Addr(4))
+		tc("name1", "dym").WithSubName("s2").RequireResolveTo(bech32Addr(4))
+		tc("name1", chainId).WithSubName("a.s5").RequireResolveTo(bech32Addr(5))
+		tc("name1", "dym").WithSubName("a.s5").RequireResolveTo(bech32Addr(5))
 		tc("name1", chainId).WithSubName("none").RequireNotResolve()
 		tc("name1", "dym").WithSubName("none").RequireNotResolve()
-		tc("name1", "blumbus_111-1").WithSubName("b").RequireResolveTo(addr(6))
-		tc("name1", "bb").WithSubName("b").RequireResolveTo(addr(6))
-		tc("name1", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(addr(7))
-		tc("name1", "bb").WithSubName("c.b").RequireResolveTo(addr(7))
+		tc("name1", "blumbus_111-1").WithSubName("b").RequireResolveTo(bech32Addr(6))
+		tc("name1", "bb").WithSubName("b").RequireResolveTo(bech32Addr(6))
+		tc("name1", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(bech32Addr(7))
+		tc("name1", "bb").WithSubName("c.b").RequireResolveTo(bech32Addr(7))
 		tc("name1", "blumbus_111-1").WithSubName("none").RequireNotResolve()
 		tc("name1", "bb").WithSubName("none").RequireNotResolve()
-		tc("name1", "juno-1").RequireResolveTo(addr(8))
-		tc("name1", "juno-1").WithSubName("a.b.c").RequireResolveTo(addr(9))
+		tc("name1", "juno-1").RequireResolveTo(bech32Addr(8))
+		tc("name1", "juno-1").WithSubName("a.b.c").RequireResolveTo(bech32Addr(9))
 		tc("name1", "juno-1").WithSubName("none").RequireNotResolve()
-		tc("name1", "cosmoshub-4").RequireResolveTo(addr(10))
-		tc("name1", "cosmos").RequireResolveTo(addr(10))
+		tc("name1", "cosmoshub-4").RequireResolveTo(bech32Addr(10))
+		tc("name1", "cosmos").RequireResolveTo(bech32Addr(10))
 
-		tc("name2", chainId).WithSubName("s1").RequireResolveTo(addr(103))
-		tc("name2", "dym").WithSubName("s1").RequireResolveTo(addr(103))
-		tc("name2", chainId).WithSubName("s2").RequireResolveTo(addr(104))
-		tc("name2", "dym").WithSubName("s2").RequireResolveTo(addr(104))
-		tc("name2", chainId).WithSubName("a.s5").RequireResolveTo(addr(105))
-		tc("name2", "dym").WithSubName("a.s5").RequireResolveTo(addr(105))
+		tc("name2", chainId).WithSubName("s1").RequireResolveTo(bech32Addr(103))
+		tc("name2", "dym").WithSubName("s1").RequireResolveTo(bech32Addr(103))
+		tc("name2", chainId).WithSubName("s2").RequireResolveTo(bech32Addr(104))
+		tc("name2", "dym").WithSubName("s2").RequireResolveTo(bech32Addr(104))
+		tc("name2", chainId).WithSubName("a.s5").RequireResolveTo(bech32Addr(105))
+		tc("name2", "dym").WithSubName("a.s5").RequireResolveTo(bech32Addr(105))
 		tc("name2", chainId).WithSubName("none").RequireNotResolve()
 		tc("name2", "dym").WithSubName("none").RequireNotResolve()
-		tc("name2", "blumbus_111-1").WithSubName("b").RequireResolveTo(addr(106))
-		tc("name2", "bb").WithSubName("b").RequireResolveTo(addr(106))
-		tc("name2", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(addr(107))
-		tc("name2", "bb").WithSubName("c.b").RequireResolveTo(addr(107))
+		tc("name2", "blumbus_111-1").WithSubName("b").RequireResolveTo(bech32Addr(106))
+		tc("name2", "bb").WithSubName("b").RequireResolveTo(bech32Addr(106))
+		tc("name2", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(bech32Addr(107))
+		tc("name2", "bb").WithSubName("c.b").RequireResolveTo(bech32Addr(107))
 		tc("name2", "blumbus_111-1").WithSubName("none").RequireNotResolve()
 		tc("name2", "bb").WithSubName("none").RequireNotResolve()
-		tc("name2", "juno-1").RequireResolveTo(addr(108))
-		tc("name2", "juno-1").WithSubName("a.b.c").RequireResolveTo(addr(109))
+		tc("name2", "juno-1").RequireResolveTo(bech32Addr(108))
+		tc("name2", "juno-1").WithSubName("a.b.c").RequireResolveTo(bech32Addr(109))
 		tc("name2", "juno-1").WithSubName("none").RequireNotResolve()
-		tc("name2", "froopyland_100-1").WithSubName("a").RequireResolveTo(addr(110))
+		tc("name2", "froopyland_100-1").WithSubName("a").RequireResolveTo(bech32Addr(110))
 		tc("name2", "froopyland").WithSubName("a").RequireNotResolve()
 		tc("name2", "cosmoshub-4").RequireNotResolve()
 		tc("name2", "cosmoshub-4").WithSubName("a").RequireNotResolve()
 
-		tc("name3", chainId).WithSubName("s1").RequireResolveTo(addr(203))
-		tc("name3", "dym").WithSubName("s1").RequireResolveTo(addr(203))
-		tc("name3", chainId).WithSubName("s2").RequireResolveTo(addr(204))
-		tc("name3", "dym").WithSubName("s2").RequireResolveTo(addr(204))
-		tc("name3", chainId).WithSubName("a.s5").RequireResolveTo(addr(205))
-		tc("name3", "dym").WithSubName("a.s5").RequireResolveTo(addr(205))
+		tc("name3", chainId).WithSubName("s1").RequireResolveTo(bech32Addr(203))
+		tc("name3", "dym").WithSubName("s1").RequireResolveTo(bech32Addr(203))
+		tc("name3", chainId).WithSubName("s2").RequireResolveTo(bech32Addr(204))
+		tc("name3", "dym").WithSubName("s2").RequireResolveTo(bech32Addr(204))
+		tc("name3", chainId).WithSubName("a.s5").RequireResolveTo(bech32Addr(205))
+		tc("name3", "dym").WithSubName("a.s5").RequireResolveTo(bech32Addr(205))
 		tc("name3", chainId).WithSubName("none").RequireNotResolve()
 		tc("name3", "dym").WithSubName("none").RequireNotResolve()
-		tc("name3", "blumbus_111-1").WithSubName("b").RequireResolveTo(addr(206))
-		tc("name3", "bb").WithSubName("b").RequireResolveTo(addr(206))
-		tc("name3", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(addr(207))
-		tc("name3", "bb").WithSubName("c.b").RequireResolveTo(addr(207))
+		tc("name3", "blumbus_111-1").WithSubName("b").RequireResolveTo(bech32Addr(206))
+		tc("name3", "bb").WithSubName("b").RequireResolveTo(bech32Addr(206))
+		tc("name3", "blumbus_111-1").WithSubName("c.b").RequireResolveTo(bech32Addr(207))
+		tc("name3", "bb").WithSubName("c.b").RequireResolveTo(bech32Addr(207))
 		tc("name3", "blumbus_111-1").WithSubName("none").RequireNotResolve()
 		tc("name3", "bb").WithSubName("none").RequireNotResolve()
-		tc("name3", "juno-1").RequireResolveTo(addr(208))
-		tc("name3", "juno-1").WithSubName("a.b.c").RequireResolveTo(addr(209))
+		tc("name3", "juno-1").RequireResolveTo(bech32Addr(208))
+		tc("name3", "juno-1").WithSubName("a.b.c").RequireResolveTo(bech32Addr(209))
 		tc("name3", "juno-1").WithSubName("none").RequireNotResolve()
-		tc("name3", "froopyland_100-1").WithSubName("a").RequireResolveTo(addr(210))
+		tc("name3", "froopyland_100-1").WithSubName("a").RequireResolveTo(bech32Addr(210))
 		tc("name3", "froopyland").WithSubName("a").RequireNotResolve()
 		tc("name3", "cosmoshub-4").RequireNotResolve()
-		tc("name3", "cosmos").WithSubName("a").RequireResolveTo(addr(211))
+		tc("name3", "cosmos").WithSubName("a").RequireResolveTo(bech32Addr(211))
 
-		tc("name4", chainId).WithSubName("s1").RequireResolveTo(addr(302))
-		tc("name4", "dym").WithSubName("s1").RequireResolveTo(addr(302))
+		tc("name4", chainId).WithSubName("s1").RequireResolveTo(bech32Addr(302))
+		tc("name4", "dym").WithSubName("s1").RequireResolveTo(bech32Addr(302))
 		tc("name4", chainId).WithSubName("none").RequireNotResolve()
 		tc("name4", "dym").WithSubName("none").RequireNotResolve()
 		tc("name4", chainId).RequireResolveTo("dym1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp7vezn")
@@ -1843,279 +1845,279 @@ func Test_ParseDymNameAddress(t *testing.T) {
 		wantChainIdOrAlias string
 	}{
 		{
-			name:               "valid, no sub-name, chain-id, @",
+			name:               "pass - valid input, no sub-name, chain-id, @",
 			dymNameAddress:     "a@dymension_1100-1",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, no sub-name, chain-id",
+			name:               "pass - valid input, no sub-name, chain-id",
 			dymNameAddress:     "a.dymension_1100-1",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, no sub-name, alias, @",
+			name:               "pass - valid input, no sub-name, alias, @",
 			dymNameAddress:     "a@dym",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "valid, no sub-name, alias",
+			name:               "pass - valid input, no sub-name, alias",
 			dymNameAddress:     "a.dym",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "valid, sub-name, chain-id, @",
+			name:               "pass - valid input, sub-name, chain-id, @",
 			dymNameAddress:     "b.a@dymension_1100-1",
 			wantSubName:        "b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, sub-name, chain-id",
+			name:               "pass - valid input, sub-name, chain-id",
 			dymNameAddress:     "b.a.dymension_1100-1",
 			wantSubName:        "b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, sub-name, alias, @",
+			name:               "pass - valid input, sub-name, alias, @",
 			dymNameAddress:     "b.a@dym",
 			wantSubName:        "b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "valid, sub-name, alias",
+			name:               "pass - valid input, sub-name, alias",
 			dymNameAddress:     "b.a.dym",
 			wantSubName:        "b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "valid, multi-sub-name, chain-id, @",
+			name:               "pass - valid input, multi-sub-name, chain-id, @",
 			dymNameAddress:     "c.b.a@dymension_1100-1",
 			wantSubName:        "c.b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, multi-sub-name, chain-id",
+			name:               "pass - valid input, multi-sub-name, chain-id",
 			dymNameAddress:     "c.b.a.dymension_1100-1",
 			wantSubName:        "c.b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dymension_1100-1",
 		},
 		{
-			name:               "valid, multi-sub-name, alias, @",
+			name:               "pass - valid input, multi-sub-name, alias, @",
 			dymNameAddress:     "c.b.a@dym",
 			wantSubName:        "c.b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "valid, multi-sub-name, alias",
+			name:               "pass - valid input, multi-sub-name, alias",
 			dymNameAddress:     "c.b.a.dym",
 			wantSubName:        "c.b",
 			wantDymName:        "a",
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:            "invalid '.' after '@', no sub-name",
+			name:            "fail - invalid '.' after '@', no sub-name",
 			dymNameAddress:  "a@dymension_1100-1.dym",
 			wantErr:         true,
 			wantErrContains: "misplaced '.'",
 		},
 		{
-			name:            "invalid '.' after '@', sub-name",
+			name:            "fail - invalid '.' after '@', sub-name",
 			dymNameAddress:  "a.b@dymension_1100-1.dym",
 			wantErr:         true,
 			wantErrContains: "misplaced '.'",
 		},
 		{
-			name:            "invalid '.' after '@', multi-sub-name",
+			name:            "fail - invalid '.' after '@', multi-sub-name",
 			dymNameAddress:  "a.b.c@dymension_1100-1.dym",
 			wantErr:         true,
 			wantErrContains: "misplaced '.'",
 		},
 		{
-			name:            "missing chain-id/alias, @",
+			name:            "fail - missing chain-id/alias, @",
 			dymNameAddress:  "a@",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "missing chain-id/alias",
+			name:            "fail - missing chain-id/alias",
 			dymNameAddress:  "a",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "missing chain-id/alias",
+			name:            "fail - missing chain-id/alias",
 			dymNameAddress:  "a.",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "not accept space, no sub-name",
+			name:            "fail - not accept space, no sub-name",
 			dymNameAddress:  "a .dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "not accept space, sub-name",
+			name:            "fail - not accept space, sub-name",
 			dymNameAddress:  "b .a.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "not accept space, multi-sub-name",
+			name:            "fail - not accept space, multi-sub-name",
 			dymNameAddress:  "c.b .a.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "invalid chain-id/alias, @",
+			name:            "fail - invalid chain-id/alias, @",
 			dymNameAddress:  "a@-dym",
 			wantErr:         true,
 			wantErrContains: "chain-id/alias is not well-formed",
 		},
 		{
-			name:            "invalid chain-id/alias",
+			name:            "fail - invalid chain-id/alias",
 			dymNameAddress:  "a.-dym",
 			wantErr:         true,
 			wantErrContains: "chain-id/alias is not well-formed",
 		},
 		{
-			name:            "invalid Dym-Name, @",
+			name:            "fail - invalid Dym-Name, @",
 			dymNameAddress:  "-a@dym",
 			wantErr:         true,
 			wantErrContains: "Dym-Name is not well-formed",
 		},
 		{
-			name:            "invalid Dym-Name",
+			name:            "fail - invalid Dym-Name",
 			dymNameAddress:  "-a.dym",
 			wantErr:         true,
 			wantErrContains: "Dym-Name is not well-formed",
 		},
 		{
-			name:            "invalid sub-Dym-Name, @",
+			name:            "fail - invalid sub-Dym-Name, @",
 			dymNameAddress:  "-b.a@dym",
 			wantErr:         true,
 			wantErrContains: "sub-Dym-Name is not well-formed",
 		},
 		{
-			name:            "invalid sub-Dym-Name",
+			name:            "fail - invalid sub-Dym-Name",
 			dymNameAddress:  "-b.a.dym",
 			wantErr:         true,
 			wantErrContains: "sub-Dym-Name is not well-formed",
 		},
 		{
-			name:            "invalid multi-sub-Dym-Name, @",
+			name:            "fail - invalid multi-sub-Dym-Name, @",
 			dymNameAddress:  "c-.b.a@dym",
 			wantErr:         true,
 			wantErrContains: "sub-Dym-Name is not well-formed",
 		},
 		{
-			name:            "invalid multi-sub-Dym-Name",
+			name:            "fail - invalid multi-sub-Dym-Name",
 			dymNameAddress:  "c-.b.a.dym",
 			wantErr:         true,
 			wantErrContains: "sub-Dym-Name is not well-formed",
 		},
 		{
-			name:            "blank path",
+			name:            "fail - blank path",
 			dymNameAddress:  "b. .a.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "do not accept continuous dot",
+			name:            "fail - do not accept continuous dot",
 			dymNameAddress:  "b..a.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "do not accept continuous '@'",
+			name:            "fail - do not accept continuous '@'",
 			dymNameAddress:  "a@@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "do not accept continuous '@'",
+			name:            "fail - do not accept continuous '@'",
 			dymNameAddress:  "b.a@@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "do not accept multiple '@'",
+			name:            "fail - do not accept multiple '@'",
 			dymNameAddress:  "b@a@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "do not accept multiple '@'",
+			name:            "fail - do not accept multiple '@'",
 			dymNameAddress:  "@a@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "do not accept multiple '@'",
+			name:            "fail - do not accept multiple '@'",
 			dymNameAddress:  "@a.b@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "do not accept multiple '@'",
+			name:            "fail - do not accept multiple '@'",
 			dymNameAddress:  "a@b@dym",
 			wantErr:         true,
 			wantErrContains: "multiple '@' found",
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  "a.@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  "a.b.@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  "a.b@.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  "a.b.@.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  ".b.a.dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymNameAddress:  ".b.a@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "empty",
+			name:            "fail - empty input",
 			dymNameAddress:  "",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:               "allow hex address pattern",
+			name:               "pass - allow hex address pattern",
 			dymNameAddress:     "0x1234567890123456789012345678901234567890@dym",
 			wantErr:            false,
 			wantSubName:        "",
@@ -2123,7 +2125,7 @@ func Test_ParseDymNameAddress(t *testing.T) {
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "allow 32 bytes hex address pattern",
+			name:               "pass - allow 32 bytes hex address pattern",
 			dymNameAddress:     "0x1234567890123456789012345678901234567890123456789012345678901234@dym",
 			wantErr:            false,
 			wantSubName:        "",
@@ -2131,31 +2133,31 @@ func Test_ParseDymNameAddress(t *testing.T) {
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:            "reject non-20 or 32 bytes hex address pattern, case 19 bytes",
+			name:            "fail - reject non-20 or 32 bytes hex address pattern, case 19 bytes",
 			dymNameAddress:  "0x123456789012345678901234567890123456789@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "reject non-20 or 32 bytes hex address pattern, case 21 bytes",
+			name:            "fail - reject non-20 or 32 bytes hex address pattern, case 21 bytes",
 			dymNameAddress:  "0x12345678901234567890123456789012345678901@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "reject non-20 or 32 bytes hex address pattern, case 31 bytes",
+			name:            "fail - reject non-20 or 32 bytes hex address pattern, case 31 bytes",
 			dymNameAddress:  "0x123456789012345678901234567890123456789012345678901234567890123@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "reject non-20 or 32 bytes hex address pattern, case 33 bytes",
+			name:            "fail - reject non-20 or 32 bytes hex address pattern, case 33 bytes",
 			dymNameAddress:  "0x12345678901234567890123456789012345678901234567890123456789012345@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:               "allow valid bech32 address pattern",
+			name:               "pass - allow valid bech32 address pattern",
 			dymNameAddress:     "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96@dym",
 			wantErr:            false,
 			wantSubName:        "",
@@ -2163,7 +2165,7 @@ func Test_ParseDymNameAddress(t *testing.T) {
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:               "allow valid bech32 address pattern, Interchain Account",
+			name:               "pass - allow valid bech32 address pattern, Interchain Account",
 			dymNameAddress:     "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul@dym",
 			wantErr:            false,
 			wantSubName:        "",
@@ -2171,13 +2173,13 @@ func Test_ParseDymNameAddress(t *testing.T) {
 			wantChainIdOrAlias: "dym",
 		},
 		{
-			name:            "reject invalid bech32 address pattern",
+			name:            "fail - reject invalid bech32 address pattern",
 			dymNameAddress:  "dym1zzzzzzzzzz69v7yszg69v7yszg69v7ys8xdv96@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
 		},
 		{
-			name:            "reject invalid bech32 address pattern, Interchain Account",
+			name:            "fail - reject invalid bech32 address pattern, Interchain Account",
 			dymNameAddress:  "dym1zzzzzzzzzg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul@dym",
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrBadDymNameAddress.Error(),
@@ -2213,20 +2215,9 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 	const rollAppId1 = "rollapp_1-1"
 	const rollApp1Bech32 = "nim"
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	ownerHex := common.BytesToAddress(sdk.MustAccAddressFromBech32(owner)).Hex()
-	ownerWithRollApp1Bech32, err := bech32.ConvertAndEncode(rollApp1Bech32, sdk.MustAccAddressFromBech32(owner))
-	require.NoError(t, err)
-	const anotherAcc = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	anotherAccHex := common.BytesToAddress(sdk.MustAccAddressFromBech32(anotherAcc)).Hex()
-	const ica = "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
-	icaHex := common.BytesToHash(sdk.MustAccAddressFromBech32(ica)).Hex()
-	const rollAppAccBech32 = "nim1az0ze53xf8c3safe4x38yy8e6rnmlpxa225vf0"
-	_, bzRollAppAcc, err := bech32.DecodeAndConvert(rollAppAccBech32)
-	require.NoError(t, err)
-	rollAppAccHex := common.BytesToAddress(bzRollAppAcc).Hex()
-
-	require.False(t, strings.EqualFold(ownerHex, rollAppAccHex))
+	ownerAcc := testAddr(1)
+	anotherAcc := testAddr(2)
+	icaAcc := testICAddr(3)
 
 	setupTest := func() (dymnskeeper.Keeper, rollappkeeper.Keeper, sdk.Context) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
@@ -2234,7 +2225,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 
 		rk.SetRollapp(ctx, rollapptypes.Rollapp{
 			RollappId: rollAppId1,
-			Creator:   owner,
+			Creator:   ownerAcc.bech32(),
 		})
 
 		return dk, rk, ctx
@@ -2252,13 +2243,13 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 	}{
 		{
 			name: "pass - can resolve",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    owner,
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2276,14 +2267,14 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - can resolve ICA",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("", "ica", ica).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("", "ica", icaAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    ica,
+			inputAddress:    icaAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2296,13 +2287,13 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - only take records matching input chain-id",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    owner,
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  "blumbus_111-1",
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2315,24 +2306,24 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - if no result, return empty without error",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    anotherAcc,
+			inputAddress:    anotherAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want:            nil,
 		},
 		{
 			name: "pass - lookup by hex on host chain",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    ownerHex,
+			inputAddress:    ownerAcc.hexStr(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2350,14 +2341,14 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - lookup ICA by hex on host chain",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("", "ica", ica).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("", "ica", icaAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    icaHex,
+			inputAddress:    icaAcc.hexStr(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2370,17 +2361,17 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - lookup by hex on coin-type-60 chain-id without bech32 prefix mapped, should do fallback lookup",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				moduleParams := dk.GetParams(ctx)
 				moduleParams.Chains.CoinType60ChainIds = []string{"blumbus_111-1"}
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 			},
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: "blumbus_111-1",
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2395,13 +2386,13 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			// TODO DymNS FIXME: this test-case is failed because current x/rollapp implementation
 			//  does not support get bech32 of RollApp
 			name: "FIXME * pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, find out the matching configuration",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
-				cfgN(rollAppId1, "ra", rollAppAccBech32).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgN(rollAppId1, "ra", anotherAcc.bech32C(rollApp1Bech32)).
 				buildSlice(),
-			inputAddress:   rollAppAccHex,
+			inputAddress:   anotherAcc.hexStr(),
 			workingChainId: rollAppId1,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2418,12 +2409,12 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, but matching configuration of corresponding address so we do fallback lookup",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: rollAppId1,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2438,13 +2429,13 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			// TODO DymNS FIXME: this test-case is failed because current x/rollapp implementation
 			//  does not support get bech32 of RollApp
 			name: "FIXME * pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, find out the matching configuration",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
-				cfgN(rollAppId1, "ra", ownerWithRollApp1Bech32).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				cfgN(rollAppId1, "ra", ownerAcc.bech32C(rollApp1Bech32)).
 				buildSlice(),
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: rollAppId1,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2461,22 +2452,22 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - skip lookup by hex after first try (direct match) if working-chain-id is NOT recorgnized as a coin-type-60 chain, by bech32",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "", owner).
+				cfgN("", "", ownerAcc.bech32()).
 				buildSlice(),
-			inputAddress:   anotherAcc,
+			inputAddress:   anotherAcc.bech32(),
 			workingChainId: "cosmoshub-4",
 			wantErr:        false,
 			want:           nil,
 		},
 		{
 			name: "pass - skip lookup by hex if working-chain-id is NOT recorgnized as a coin-type-60 chain, by hex",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "", owner).
+				cfgN("", "", ownerAcc.bech32()).
 				buildSlice(),
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: "cosmoshub-4",
 			wantErr:        false,
 			want:           nil,
@@ -2484,16 +2475,16 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - find result from multiple Dym-Names matched, by bech32",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: nil,
-			inputAddress:    owner,
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2517,16 +2508,16 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - find result from multiple Dym-Names matched, by hex",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: nil,
-			inputAddress:    ownerHex,
+			inputAddress:    ownerAcc.hexStr(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2550,17 +2541,17 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - result is sorted",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
 			},
 			additionalSetup: nil,
-			inputAddress:    owner,
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2589,16 +2580,16 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - result not contains expired Dym-Name, by bech32",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, -1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: nil,
-			inputAddress:    owner,
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2612,16 +2603,16 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - result not contains expired Dym-Name, by hex",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, -1).
-					cfgN("", "b", owner).
+					cfgN("", "b", ownerAcc.bech32()).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: nil,
-			inputAddress:    ownerHex,
+			inputAddress:    ownerAcc.hexStr(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2634,7 +2625,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name:            "fail - reject empty input address",
-			dymNames:        newDN("a", owner).buildSlice(),
+			dymNames:        newDN("a", ownerAcc.bech32()).buildSlice(),
 			inputAddress:    "",
 			workingChainId:  chainId,
 			wantErr:         true,
@@ -2642,7 +2633,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name:            "fail - reject bad input address",
-			dymNames:        newDN("a", owner).buildSlice(),
+			dymNames:        newDN("a", ownerAcc.bech32()).buildSlice(),
 			inputAddress:    "0xdym1",
 			workingChainId:  chainId,
 			wantErr:         true,
@@ -2650,16 +2641,16 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name:            "fail - reject empty working-chain-id",
-			dymNames:        newDN("a", owner).buildSlice(),
-			inputAddress:    owner,
+			dymNames:        newDN("a", ownerAcc.bech32()).buildSlice(),
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  "",
 			wantErr:         true,
 			wantErrContains: "invalid chain-id format",
 		},
 		{
 			name:            "fail - reject bad working-chain-id",
-			dymNames:        newDN("a", owner).buildSlice(),
-			inputAddress:    owner,
+			dymNames:        newDN("a", ownerAcc.bech32()).buildSlice(),
+			inputAddress:    ownerAcc.bech32(),
 			workingChainId:  "@",
 			wantErr:         true,
 			wantErrContains: "invalid chain-id format",
@@ -2667,23 +2658,23 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - should not include the Dym-Name that mistakenly linked to Dym-Name that does not correct config relates to the account, by bech32",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
-				newDN("c", anotherAcc).
+				newDN("c", anotherAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner, "c")
+				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, ownerAcc.bech32(), "c")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerHex).Bytes(), "c")
+				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
 				require.NoError(t, err)
 			},
-			inputAddress:   owner,
+			inputAddress:   ownerAcc.bech32(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2702,23 +2693,23 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - should not include the Dym-Name that mistakenly linked to Dym-Name that does not correct config relates to the account, by hex",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
-				newDN("b", owner).
+				newDN("b", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
-				newDN("c", anotherAcc).
+				newDN("c", anotherAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, owner, "c")
+				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, ownerAcc.bech32(), "c")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerHex).Bytes(), "c")
+				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
 				require.NoError(t, err)
 			},
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2737,17 +2728,17 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - should not include the Dym-Name that mistakenly linked to Dym-Name that does not correct config relates to the account, by bech32",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc, "a")
+				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc.bech32(), "a")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAccHex).Bytes(), "a")
+				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
 				require.NoError(t, err)
 			},
-			inputAddress:   anotherAcc,
+			inputAddress:   anotherAcc.bech32(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want:           nil,
@@ -2755,28 +2746,28 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		{
 			name: "pass - should not include the Dym-Name that mistakenly linked to Dym-Name that does not correct config relates to the account, by hex",
 			dymNames: []dymnstypes.DymName{
-				newDN("a", owner).
+				newDN("a", ownerAcc.bech32()).
 					exp(now, +1).
 					build(),
 			},
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc, "a")
+				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc.bech32(), "a")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAccHex).Bytes(), "a")
+				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
 				require.NoError(t, err)
 			},
-			inputAddress:   anotherAccHex,
+			inputAddress:   anotherAcc.hexStr(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want:           nil,
 		},
 		{
 			name: "pass - matching by hex if bech32 is not found, on host chain",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    ownerWithRollApp1Bech32,
+			inputAddress:    ownerAcc.bech32C(rollApp1Bech32),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2789,11 +2780,11 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - matching by hex if bech32 is not found, on coin-type-60 chain",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    ownerWithRollApp1Bech32,
+			inputAddress:    ownerAcc.bech32C(rollApp1Bech32),
 			workingChainId:  rollAppId1,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2806,10 +2797,10 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - alias is used if available, by bech32",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				moduleParams := dk.GetParams(ctx)
@@ -2821,7 +2812,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 				}
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 			},
-			inputAddress:   owner,
+			inputAddress:   ownerAcc.bech32(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2839,10 +2830,10 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		},
 		{
 			name: "pass - alias is used if available, by hex",
-			dymNames: newDN("a", owner).
+			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
-				cfgN("", "b", owner).
-				cfgN("blumbus_111-1", "bb", owner).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				moduleParams := dk.GetParams(ctx)
@@ -2854,7 +2845,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 				}
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 			},
-			inputAddress:   ownerHex,
+			inputAddress:   ownerAcc.hexStr(),
 			workingChainId: chainId,
 			wantErr:        false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2899,7 +2890,6 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 
@@ -2933,17 +2923,17 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_1-1",
-		Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Creator:   testAddr(1).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_1-1"))
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_2-2",
-		Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Creator:   testAddr(2).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_2-2"))
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_3-3",
-		Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+		Creator:   testAddr(3).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_3-3"))
 

@@ -37,7 +37,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErr:         false,
 		},
 		{
-			name:            "reject - bad Dym-Name",
+			name:            "fail - bad Dym-Name",
 			dymName:         "@",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           dymnsutils.TestCoin(1),
@@ -45,7 +45,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "reject - bad buyer",
+			name:            "fail - bad buyer",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85",
 			offer:           dymnsutils.TestCoin(1),
@@ -53,7 +53,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
 		{
-			name:            "reject - offer ID",
+			name:            "fail - offer ID",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			continueOfferId: "@",
@@ -62,7 +62,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErrContains: "continue offer id is not a valid buy name offer id",
 		},
 		{
-			name:            "reject - empty offer",
+			name:            "fail - empty offer",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           sdk.Coin{},
@@ -70,7 +70,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErrContains: "invalid offer amount",
 		},
 		{
-			name:            "reject - zero offer",
+			name:            "fail - zero offer",
 			dymName:         "a",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer:           dymnsutils.TestCoin(0),
@@ -78,7 +78,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 			wantErrContains: "offer amount must be positive",
 		},
 		{
-			name:    "reject - negative offer",
+			name:    "fail - negative offer",
 			dymName: "a",
 			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			offer: sdk.Coin{

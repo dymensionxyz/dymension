@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_UpdateDetails(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -29,9 +28,12 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 		return dk, ctx
 	}
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const controller = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const recordName = "bonded-pool"
+	ownerA := testAddr(1).bech32()
+	controllerA := testAddr(2).bech32()
+
+	anotherAcc := testAddr(3)
+
+	const recordName = "my-name"
 
 	params.SetAddressPrefixes()
 
@@ -87,576 +89,574 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 	}
 
 	tests := []struct {
-		name                string
-		dymName             *dymnstypes.DymName
-		msg                 *dymnstypes.MsgUpdateDetails
-		preTestFunc         func(ts testSuite)
-		wantErr             bool
-		wantErrContains     string
-		wantDymName         *dymnstypes.DymName
-		wantMinGasConsummed sdk.Gas
-		postTestFunc        func(ts testSuite)
+		name               string
+		dymName            *dymnstypes.DymName
+		msg                *dymnstypes.MsgUpdateDetails
+		preTestFunc        func(ts testSuite)
+		wantErr            bool
+		wantErrContains    string
+		wantDymName        *dymnstypes.DymName
+		wantMinGasConsumed sdk.Gas
+		postTestFunc       func(ts testSuite)
 	}{
 		{
 			name: "fail - reject if message not pass validate basic",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			msg: &dymnstypes.MsgUpdateDetails{},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name:    "fail - Dym-Name does not exists",
 			dymName: nil,
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
 			wantDymName:     nil,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject if Dym-Name expired",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr:         true,
 			wantErrContains: "Dym-Name is already expired",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject if sender is neither owner nor controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
-				Controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
+				Controller: anotherAcc.bech32(),
 			},
 			wantErr:         true,
 			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject if sender is owner but not controller",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
-				Controller: owner,
+				Controller: ownerA,
 			},
 			wantErr:         true,
 			wantErrContains: "please use controller account",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject if contact is not valid",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901",
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr:         true,
 			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - can update contact",
+			name: "pass - can update contact",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "old-contact@example.com",
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "new-contact@example.com",
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "new-contact@example.com",
 			},
-			wantMinGasConsummed: dymnstypes.OpGasUpdateContact,
+			wantMinGasConsumed: dymnstypes.OpGasUpdateContact,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - can remove contact",
+			name: "pass - can remove contact",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "old-contact@example.com",
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "", // clear
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "", // cleared
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - can remove contact & configs",
+			name: "pass - can remove contact & configs",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: controller,
+						Value: controllerA,
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "",
 				ClearConfigs: true,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "",
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - can update contact & remove configs",
+			name: "pass - can update contact & remove configs",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "old-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: controller,
+						Value: controllerA,
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "new-contact@example.com",
 				ClearConfigs: true,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "new-contact@example.com",
 			},
-			wantMinGasConsummed: dymnstypes.OpGasUpdateContact,
+			wantMinGasConsumed: dymnstypes.OpGasUpdateContact,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - expiry not changed",
+			name: "pass - expiry not changed",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 99,
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
-				Controller: controller,
+				Controller: controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 99,
 				Contact:    "contact@example.com",
 			},
-			wantMinGasConsummed: dymnstypes.OpGasUpdateContact,
+			wantMinGasConsumed: dymnstypes.OpGasUpdateContact,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
-			name: "success - configs should not be changed when update contact and not clear config",
+			name: "pass - configs should not be changed when update contact and not clear config",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "old-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: controller,
+						Value: controllerA,
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "new-contact@example.com",
 				ClearConfigs: false,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "new-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: controller,
+						Value: controllerA,
 					},
 				},
 			},
-			wantMinGasConsummed: dymnstypes.OpGasUpdateContact,
+			wantMinGasConsumed: dymnstypes.OpGasUpdateContact,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
 			},
 		},
 		{
-			name: "success - reverse mapping record should be updated accordingly",
+			name: "pass - reverse mapping record should be updated accordingly",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "",
-						Value:   controller,
+						Value:   controllerA,
 					},
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
-						Value:   "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
+						Value:   anotherAcc.bech32C("nim"),
 					},
 				},
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				requireConfiguredAddressMappedDymNames(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				ClearConfigs: true,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				requireConfiguredAddressMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
+				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 		},
 		{
-			name: "success - when contact is [do-not-modify], do not update contact",
+			name: "pass - when contact is [do-not-modify], do not update contact",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: "",
 						Path:    "",
-						Value:   controller,
+						Value:   controllerA,
 					},
 				},
 				Contact: "contact@example.com",
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedNoDymName(ts, owner)
-				requireConfiguredAddressMappedDymNames(ts, controller, recordName)
-				require0xMappedNoDymName(ts, owner)
-				require0xMappedDymNames(ts, controller, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, ownerA)
+				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
+				require0xMappedNoDymName(ts, ownerA)
+				require0xMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
 				ClearConfigs: true,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com", // keep
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				requireConfiguredAddressMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
-				require0xMappedNoDymName(ts, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9")
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject message that neither update contact nor clear config",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com",
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
 				ClearConfigs: false,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr:         true,
 			wantErrContains: "message neither clears configs nor updates contact information",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com",
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
 			name: "fail - reject message that not update contact and clear config but no config to clear",
 			dymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com",
 			},
 			preTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
 				ClearConfigs: true,
-				Controller:   controller,
+				Controller:   controllerA,
 			},
 			wantErr:         true,
 			wantErrContains: "no existing config to clear",
 			wantDymName: &dymnstypes.DymName{
-				Owner:      owner,
-				Controller: controller,
+				Owner:      ownerA,
+				Controller: controllerA,
 				ExpireAt:   now.Unix() + 1,
 				Contact:    "contact@example.com",
 			},
-			wantMinGasConsummed: 1,
+			wantMinGasConsumed: 1,
 			postTestFunc: func(ts testSuite) {
-				requireConfiguredAddressMappedDymNames(ts, owner, recordName)
-				requireConfiguredAddressMappedNoDymName(ts, controller)
-				require0xMappedDymNames(ts, owner, recordName)
-				require0xMappedNoDymName(ts, controller)
+				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
+				requireConfiguredAddressMappedNoDymName(ts, controllerA)
+				require0xMappedDymNames(ts, ownerA, recordName)
+				require0xMappedNoDymName(ts, controllerA)
 			},
 		},
 	}
@@ -687,10 +687,10 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			laterDymName := dk.GetDymName(ctx, tt.msg.Name)
 
 			defer func() {
-				if tt.wantMinGasConsummed > 0 {
+				if tt.wantMinGasConsumed > 0 {
 					require.GreaterOrEqual(t,
-						ctx.GasMeter().GasConsumed(), tt.wantMinGasConsummed,
-						"should consume at least %d gas", tt.wantMinGasConsummed,
+						ctx.GasMeter().GasConsumed(), tt.wantMinGasConsumed,
+						"should consume at least %d gas", tt.wantMinGasConsumed,
 					)
 				}
 

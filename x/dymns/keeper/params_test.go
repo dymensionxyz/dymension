@@ -51,7 +51,6 @@ func TestGetSetParams(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_CheckChainIsCoinType60ByChainId(t *testing.T) {
 	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 
@@ -62,7 +61,7 @@ func TestKeeper_CheckChainIsCoinType60ByChainId(t *testing.T) {
 	t.Run("roll-app is coin-type 60", func(t *testing.T) {
 		rollApp1 := rollapptypes.Rollapp{
 			RollappId: "ra_1-1",
-			Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Creator:   testAddr(0).bech32(),
 		}
 		rk.SetRollapp(ctx, rollApp1)
 

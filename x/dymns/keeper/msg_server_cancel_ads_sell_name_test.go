@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -21,22 +20,23 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 	msgServer := dymnskeeper.NewMsgServerImpl(dk)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const bidder = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	ownerA := testAddr(1).bech32()
+	notOwnerA := testAddr(2).bech32()
+	bidderA := testAddr(3).bech32()
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err := dk.SetDymName(ctx, dymName1)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "owned-by-1",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err = dk.SetDymName(ctx, dymName2)
@@ -48,8 +48,8 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
-				Name:  "aaa",
-				Owner: "dym1xxx",
+				Name:  "abc",
+				Owner: "0x1", // invalid owner
 			})
 
 			require.Nil(t, resp)
@@ -60,8 +60,8 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 	t.Run("do not process message that refer to non-existing Dym-Name", func(t *testing.T) {
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
-			Name:  "aaa",
-			Owner: owner,
+			Name:  "not-exists",
+			Owner: ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -84,7 +84,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  so11.Name,
-			Owner: "dym1ysjlrjcankjpmpxxzk27mvzhv25e266r80p5pv",
+			Owner: notOwnerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -94,7 +94,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	t.Run("do not process for Dym-Name that does not have any SO", func(t *testing.T) {
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  dymName1.Name,
-			Owner: owner,
+			Owner: ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -117,7 +117,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  so11.Name,
-			Owner: owner,
+			Owner: ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -130,7 +130,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: bidder,
+				Bidder: bidderA,
 				Price:  dymnsutils.TestCoin(300),
 			},
 		}
@@ -143,7 +143,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  so11.Name,
-			Owner: owner,
+			Owner: ownerA,
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
@@ -151,7 +151,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	})
 
 	t.Run("can will remove the active SO expiration mapping record", func(t *testing.T) {
-		apoe := dk.GetActiveSellOrdersExpiration(ctx)
+		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
 
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
@@ -160,7 +160,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		}
 		err = dk.SetSellOrder(ctx, so11)
 		require.NoError(t, err)
-		apoe.Add(so11.Name, so11.ExpireAt)
+		aSoe.Add(so11.Name, so11.ExpireAt)
 
 		so12 := dymnstypes.SellOrder{
 			Name:     dymName2.Name,
@@ -169,9 +169,9 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		}
 		err = dk.SetSellOrder(ctx, so12)
 		require.NoError(t, err)
-		apoe.Add(so12.Name, so12.ExpireAt)
+		aSoe.Add(so12.Name, so12.ExpireAt)
 
-		err = dk.SetActiveSellOrdersExpiration(ctx, apoe)
+		err = dk.SetActiveSellOrdersExpiration(ctx, aSoe)
 		require.NoError(t, err)
 
 		defer func() {
@@ -181,24 +181,24 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  so11.Name,
-			Owner: owner,
+			Owner: ownerA,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
 		require.Nil(t, dk.GetSellOrder(ctx, so11.Name), "SO should be removed from active")
 
-		apoe = dk.GetActiveSellOrdersExpiration(ctx)
+		aSoe = dk.GetActiveSellOrdersExpiration(ctx)
 
 		allNames := make(map[string]bool)
-		for _, record := range apoe.Records {
+		for _, record := range aSoe.Records {
 			allNames[record.Name] = true
 		}
 		require.NotContains(t, allNames, so11.Name)
 		require.Contains(t, allNames, so12.Name)
 	})
 
-	t.Run("can cancel if statisfied conditions", func(t *testing.T) {
+	t.Run("can cancel if satisfied conditions", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
 			ExpireAt: now.Unix() + 1,
@@ -222,7 +222,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
 			Name:  so11.Name,
-			Owner: owner,
+			Owner: ownerA,
 		})
 		require.NoError(t, err)
 		require.NotNil(t, resp)

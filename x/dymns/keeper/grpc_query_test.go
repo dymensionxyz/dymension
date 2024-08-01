@@ -7,13 +7,11 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,9 +31,8 @@ func Test_queryServer_Params(t *testing.T) {
 	require.Equal(t, params, resp.Params)
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_DymName(t *testing.T) {
-	t.Run("dym name not found", func(t *testing.T) {
+	t.Run("Dym-Name not found", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
@@ -48,96 +45,75 @@ func Test_queryServer_DymName(t *testing.T) {
 
 	now := time.Now().UTC()
 
+	ownerA := testAddr(1).bech32()
+
 	tests := []struct {
-		name        string
-		dymName     *dymnstypes.DymName
-		queryName   string
-		wantDymName *dymnstypes.DymName
+		name       string
+		dymName    *dymnstypes.DymName
+		queryName  string
+		wantResult bool
 	}{
 		{
 			name: "correct record",
 			dymName: &dymnstypes.DymName{
-				Name:       "bonded-pool",
-				Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+						Value: ownerA,
 					},
 				},
 			},
-			queryName: "bonded-pool",
-			wantDymName: &dymnstypes.DymName{
-				Name:       "bonded-pool",
-				Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				ExpireAt:   now.Unix() + 1,
-				Configs: []dymnstypes.DymNameConfig{
-					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				},
-			},
+			queryName:  "a",
+			wantResult: true,
 		},
 		{
 			name: "NOT expired record only",
 			dymName: &dymnstypes.DymName{
-				Name:       "bonded-pool",
-				Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+						Value: ownerA,
 					},
 				},
 			},
-			queryName: "bonded-pool",
-			wantDymName: &dymnstypes.DymName{
-				Name:       "bonded-pool",
-				Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				ExpireAt:   now.Unix() + 99,
-				Configs: []dymnstypes.DymNameConfig{
-					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-					},
-				},
-			},
+			queryName:  "a",
+			wantResult: true,
 		},
 		{
 			name: "return nil for expired record",
 			dymName: &dymnstypes.DymName{
-				Name:       "bonded-pool",
-				Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+				Name:       "a",
+				Owner:      ownerA,
+				Controller: ownerA,
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+						Value: ownerA,
 					},
 				},
 			},
-			queryName:   "bonded-pool",
-			wantDymName: nil,
+			queryName:  "a",
+			wantResult: false,
 		},
 		{
-			name:        "return nil if not found",
-			dymName:     nil,
-			queryName:   "non-exists",
-			wantDymName: nil,
+			name:       "return nil if not found",
+			dymName:    nil,
+			queryName:  "non-exists",
+			wantResult: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			dk, _, _, ctx := testkeeper.DymNSKeeper(t)
-
 			ctx = ctx.WithBlockTime(now)
 
 			if tt.dymName != nil {
@@ -152,13 +128,13 @@ func Test_queryServer_DymName(t *testing.T) {
 			require.NoError(t, err, "should never returns error")
 			require.NotNil(t, resp, "should never returns nil response")
 
-			if tt.wantDymName == nil {
+			if !tt.wantResult {
 				require.Nil(t, resp.DymName)
 				return
 			}
 
 			require.NotNil(t, resp.DymName)
-			require.Equal(t, tt.wantDymName, resp.DymName)
+			require.Equal(t, *tt.dymName, *resp.DymName)
 		})
 	}
 
@@ -172,7 +148,6 @@ func Test_queryServer_DymName(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -181,62 +156,62 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
-	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	addr3 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	addr1a := testAddr(1).bech32()
+	addr2a := testAddr(2).bech32()
+	addr3a := testAddr(3).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: addr1,
+			Value: addr1a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: addr2,
+			Value: addr2a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
 
 	dymNameC := dymnstypes.DymName{
 		Name:       "c",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: addr3,
+			Value: addr3a,
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameC))
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{
 			{
 				Type:  dymnstypes.DymNameConfigType_NAME,
 				Path:  "sub",
-				Value: addr3,
+				Value: addr3a,
 			},
 			{
 				Type:    dymnstypes.DymNameConfigType_NAME,
 				ChainId: "blumbus_111-1",
 				Path:    "",
-				Value:   addr3,
+				Value:   addr3a,
 			},
 		},
 	}
@@ -256,9 +231,9 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 	require.NotNil(t, resp)
 	require.Len(t, resp.ResolvedAddresses, 4)
 
-	require.Equal(t, addr1, resp.ResolvedAddresses[0].ResolvedAddress)
-	require.Equal(t, addr2, resp.ResolvedAddresses[1].ResolvedAddress)
-	require.Equal(t, addr3, resp.ResolvedAddresses[2].ResolvedAddress)
+	require.Equal(t, addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
+	require.Equal(t, addr2a, resp.ResolvedAddresses[1].ResolvedAddress)
+	require.Equal(t, addr3a, resp.ResolvedAddresses[2].ResolvedAddress)
 	require.Empty(t, resp.ResolvedAddresses[3].ResolvedAddress)
 	require.NotEmpty(t, resp.ResolvedAddresses[3].Error)
 
@@ -287,12 +262,11 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		require.Len(t, resp.ResolvedAddresses, 2)
-		require.Equal(t, addr1, resp.ResolvedAddresses[0].ResolvedAddress)
-		require.Equal(t, addr3, resp.ResolvedAddresses[1].ResolvedAddress)
+		require.Equal(t, addr1a, resp.ResolvedAddresses[0].ResolvedAddress)
+		require.Equal(t, addr3a, resp.ResolvedAddresses[1].ResolvedAddress)
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -301,53 +275,53 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
-	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	addr3 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	addr1a := testAddr(1).bech32()
+	addr2a := testAddr(2).bech32()
+	addr3a := testAddr(3).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: addr1,
+			Value: addr1a,
 		}},
 	}
 	setDymNameWithFunctionsAfter(ctx, dymNameA, t, dk)
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 	}
 	setDymNameWithFunctionsAfter(ctx, dymNameB, t, dk)
 
 	dymNameCExpired := dymnstypes.DymName{
 		Name:       "c",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() - 1,
 		Configs: []dymnstypes.DymNameConfig{{
 			Type:  dymnstypes.DymNameConfigType_NAME,
-			Value: addr3,
+			Value: addr3a,
 		}},
 	}
 	setDymNameWithFunctionsAfter(ctx, dymNameCExpired, t, dk)
 
 	dymNameD := dymnstypes.DymName{
 		Name:       "d",
-		Owner:      addr3,
-		Controller: addr3,
+		Owner:      addr3a,
+		Controller: addr3a,
 		ExpireAt:   now.Unix() + 1,
 	}
 	setDymNameWithFunctionsAfter(ctx, dymNameD, t, dk)
 
 	queryServer := dymnskeeper.NewQueryServerImpl(dk)
 	resp, err := queryServer.DymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryDymNamesOwnedByAccountRequest{
-		Owner: addr1,
+		Owner: addr1a,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, resp)
@@ -370,7 +344,6 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_SellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -379,13 +352,13 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
-	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
+	addr1a := testAddr(1).bech32()
+	addr2a := testAddr(2).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
@@ -398,8 +371,8 @@ func Test_queryServer_SellOrder(t *testing.T) {
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
@@ -436,7 +409,6 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -445,14 +417,14 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
-	addr1 := "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	addr2 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	addr3 := "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	addr1a := testAddr(1).bech32()
+	addr2a := testAddr(2).bech32()
+	addr3a := testAddr(3).bech32()
 
 	dymNameA := dymnstypes.DymName{
 		Name:       "a",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 100,
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
@@ -463,7 +435,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(200),
 			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: addr3,
+				Bidder: addr3a,
 				Price:  dymnsutils.TestCoin(200),
 			},
 		})
@@ -474,8 +446,8 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 
 	dymNameB := dymnstypes.DymName{
 		Name:       "b",
-		Owner:      addr1,
-		Controller: addr2,
+		Owner:      addr1a,
+		Controller: addr2a,
 		ExpireAt:   now.Unix() + 100,
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymNameB))
@@ -486,7 +458,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
 			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: addr3,
+				Bidder: addr3a,
 				Price:  dymnsutils.TestCoin(300),
 			},
 		})
@@ -534,7 +506,6 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_EstimateRegisterName(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -565,8 +536,8 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 		return dk, ctx
 	}
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const previousOwner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
+	buyerA := testAddr(1).bech32()
+	previousOwnerA := testAddr(2).bech32()
 
 	tests := []struct {
 		name               string
@@ -583,7 +554,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, 1 year",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    0,
@@ -601,7 +572,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, 2 years",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice,
@@ -610,34 +581,34 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:               "new registration, 1 letter, N years",
 			dymName:            "a",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice * (99 - 1),
 		},
 		{
 			name:               "new registration, 6 letters, 1 year",
-			dymName:            "abcdef",
+			dymName:            "bridge",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    0,
 		},
 		{
 			name:               "new registration, 6 letters, 2 years",
-			dymName:            "abcdef",
+			dymName:            "bridge",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice,
 		},
 		{
 			name:               "new registration, 5+ letters, N years",
-			dymName:            "abcdef",
+			dymName:            "my-name",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * (99 - 1),
@@ -647,11 +618,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice,
@@ -661,11 +632,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
@@ -675,78 +646,78 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      buyer,
-				Controller: buyer,
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
 			name:    "extends same owner, 6 letters, 1 year",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice,
 		},
 		{
 			name:    "extends same owner, 6 letters, 2 years",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:    "extends same owner, 5+ letters, N years",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           99,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
 			name:    "extends expired, same owner, 5+ letters, 2 years",
-			dymName: "abcdef",
+			dymName: "my-name",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "my-name",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           2,
 			wantFirstYearPrice: 0,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:    "extends expired, empty buyer, treat as take over",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      buyer,
-				Controller: buyer,
+				Name:       "bridge",
+				Owner:      buyerA,
+				Controller: buyerA,
 				ExpireAt:   now.Unix() - 1,
 			},
 			newOwner:           "",
@@ -759,11 +730,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    0,
@@ -773,39 +744,39 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price1L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:    "take-over, 6 letters, 1 year",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Name:       "bridge",
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           1,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    0,
 		},
 		{
 			name:    "take-over, 6 letters, 3 years",
-			dymName: "abcdef",
+			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
-				Name:       "abcdef",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Name:       "bridge",
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1,
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * 2,
@@ -814,7 +785,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:               "new registration, 2 letters",
 			dymName:            "aa",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price2L,
 			wantExtendPrice:    extendsPrice * 2,
@@ -823,25 +794,25 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:               "new registration, 3 letters",
 			dymName:            "aaa",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price3L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:               "new registration, 4 letters",
-			dymName:            "aaaa",
+			dymName:            "less",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price4L,
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
 			name:               "new registration, 5 letters",
-			dymName:            "aaaaa",
+			dymName:            "angel",
 			existingDymName:    nil,
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantFirstYearPrice: price5PlusL,
 			wantExtendPrice:    extendsPrice * 2,
@@ -850,7 +821,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:            "reject invalid Dym-Name",
 			dymName:         "-a-",
 			existingDymName: nil,
-			newOwner:        buyer,
+			newOwner:        buyerA,
 			duration:        2,
 			wantErr:         true,
 			wantErrContains: "invalid dym name",
@@ -859,7 +830,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			name:            "reject invalid duration",
 			dymName:         "a",
 			existingDymName: nil,
-			newOwner:        buyer,
+			newOwner:        buyerA,
 			duration:        0,
 			wantErr:         true,
 			wantErrContains: "duration must be at least 1 year",
@@ -869,11 +840,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() + 1,
 			},
-			newOwner:        buyer,
+			newOwner:        buyerA,
 			duration:        1,
 			wantErr:         true,
 			wantErrContains: "you are not the owner",
@@ -883,8 +854,8 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() + 1,
 			},
 			newOwner:        "",
@@ -897,11 +868,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1, // still in grace period
 			},
-			newOwner:           buyer,
+			newOwner:           buyerA,
 			duration:           3,
 			wantErr:            false,
 			wantFirstYearPrice: price1L,
@@ -912,8 +883,8 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
-				Owner:      previousOwner,
-				Controller: previousOwner,
+				Owner:      previousOwnerA,
+				Controller: previousOwnerA,
 				ExpireAt:   now.Unix() - 1, // still in grace period
 			},
 			newOwner:           "",
@@ -976,7 +947,6 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1004,7 +974,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		// add rollapp to enable hex address reverse mapping for this chain
 		rk.SetRollapp(ctx, rollapptypes.Rollapp{
 			RollappId: nimChainId,
-			Creator:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Creator:   testAddr(0).bech32(),
 		})
 
 		return dk, ctx
@@ -1030,17 +1000,10 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	owner0x := common.BytesToAddress(sdk.MustAccAddressFromBech32(owner)).Hex()
-	const anotherAcc = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
-	anotherAcc0x := common.BytesToAddress(sdk.MustAccAddressFromBech32(anotherAcc)).Hex()
-	const ica = "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul"
-	ica0x := common.BytesToHash(sdk.MustAccAddressFromBech32(ica)).Hex()
-
-	const cosmosAcc = "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88yqg82a"
-	_, cosmosAcc0xBz, err := bech32.DecodeAndConvert(cosmosAcc)
-	require.NoError(t, err)
-	cosmosAcc0x := common.BytesToAddress(cosmosAcc0xBz).Hex()
+	ownerAcc := testAddr(1)
+	anotherAcc := testAddr(2)
+	icaAcc := testICAddr(3)
+	cosmosAcc := testAddr(4)
 
 	tests := []struct {
 		name               string
@@ -1057,18 +1020,18 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			addresses: []string{owner, owner0x},
+			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr()},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym"},
 				},
-				owner0x: {
+				ownerAcc.hexStr(): {
 					Candidates: []string{"a@dym"},
 				},
 			},
@@ -1079,18 +1042,18 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			addresses: []string{owner, owner0x, "0x123"},
+			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr(), "0x123"},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym"},
 				},
-				owner0x: {
+				ownerAcc.hexStr(): {
 					Candidates: []string{"a@dym"},
 				},
 			},
@@ -1099,10 +1062,10 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 		{
 			name:      "pass - working =-chain-id if empty is host-chain",
 			dymNames:  nil,
-			addresses: []string{owner},
+			addresses: []string{ownerAcc.bech32()},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{},
 				},
 			},
@@ -1113,40 +1076,40 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "another.account",
-							Value:   anotherAcc,
+							Value:   anotherAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
-							Value:   cosmosAcc,
+							Value:   cosmosAcc.bech32(),
 						},
 					},
 				},
 			},
 			addresses: []string{
-				owner,
-				anotherAcc,
-				cosmosAcc,
+				ownerAcc.bech32(),
+				anotherAcc.bech32(),
+				cosmosAcc.bech32(),
 			},
 			workingChainId: chainId,
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym"},
 				},
-				anotherAcc: {
+				anotherAcc.bech32(): {
 					Candidates: []string{"another.account.a@dym"},
 				},
-				cosmosAcc: {
+				cosmosAcc.bech32(): {
 					Candidates: []string{},
 				},
 			},
@@ -1157,40 +1120,40 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "another.account",
-							Value:   anotherAcc,
+							Value:   anotherAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
-							Value:   cosmosAcc,
+							Value:   cosmosAcc.bech32(),
 						},
 					},
 				},
 			},
 			addresses: []string{
-				owner,
-				anotherAcc,
-				cosmosAcc,
+				ownerAcc.bech32(),
+				anotherAcc.bech32(),
+				cosmosAcc.bech32(),
 			},
 			workingChainId: "cosmoshub-4",
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{},
 				},
-				anotherAcc: {
+				anotherAcc.bech32(): {
 					Candidates: []string{},
 				},
-				cosmosAcc: {
+				cosmosAcc.bech32(): {
 					Candidates: []string{"a@cosmoshub-4"},
 				},
 			},
@@ -1201,24 +1164,24 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "a.b.c.d",
-							Value:   owner,
+							Value:   ownerAcc.bech32(),
 						},
 					},
 				},
 			},
-			addresses:      []string{owner},
+			addresses:      []string{ownerAcc.bech32()},
 			workingChainId: chainId,
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym", "a.b.c.d.a@dym"},
 				},
 			},
@@ -1229,66 +1192,66 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "a.b.c.d",
-							Value:   owner,
+							Value:   ownerAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "another",
-							Value:   anotherAcc,
+							Value:   anotherAcc.bech32(),
 						},
 					},
 				},
 				{
 					Name:       "b",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "e.f.g.h",
-							Value:   owner,
+							Value:   ownerAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "another",
-							Value:   anotherAcc,
+							Value:   anotherAcc.bech32(),
 						},
 					},
 				},
 				{
 					Name:       "c",
-					Owner:      anotherAcc,
-					Controller: anotherAcc,
+					Owner:      anotherAcc.bech32(),
+					Controller: anotherAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "d",
-							Value:   owner,
+							Value:   ownerAcc.bech32(),
 						},
 					},
 				},
 			},
-			addresses: []string{owner, anotherAcc0x},
+			addresses: []string{ownerAcc.bech32(), anotherAcc.hexStr()},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{"a@dym", "b@dym", "d.c@dym", "a.b.c.d.a@dym", "e.f.g.h.b@dym"},
 				},
-				anotherAcc0x: {
+				anotherAcc.hexStr(): {
 					Candidates: []string{"c@dym", "another.a@dym", "another.b@dym"},
 				},
 			},
@@ -1299,33 +1262,33 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
-							Value:   cosmosAcc,
+							Value:   cosmosAcc.bech32(),
 						},
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: nimChainId,
 							Path:    "",
-							Value:   owner,
+							Value:   ownerAcc.bech32(),
 						},
 					},
 				},
 			},
-			addresses:      []string{cosmosAcc, owner},
+			addresses:      []string{cosmosAcc.bech32(), ownerAcc.bech32()},
 			workingChainId: "cosmoshub-4",
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				cosmosAcc: {
+				cosmosAcc.bech32(): {
 					Candidates: []string{"a@cosmoshub-4"},
 				},
-				owner: {
+				ownerAcc.bech32(): {
 					Candidates: []string{},
 				},
 			},
@@ -1336,32 +1299,32 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "",
 							Path:    "ica",
-							Value:   ica,
+							Value:   icaAcc.bech32(),
 						},
 					},
 				},
 				{
 					Name:       "ica",
-					Owner:      ica,
-					Controller: ica,
+					Owner:      icaAcc.bech32(),
+					Controller: icaAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			addresses: []string{ica, ica0x},
+			addresses: []string{icaAcc.bech32(), icaAcc.hexStr()},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				ica: {
+				icaAcc.bech32(): {
 					Candidates: []string{"ica@dym", "ica.a@dym"},
 				},
-				ica0x: {
+				icaAcc.hexStr(): {
 					Candidates: []string{"ica@dym", "ica.a@dym"},
 				},
 			},
@@ -1372,27 +1335,27 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
 							Type:    dymnstypes.DymNameConfigType_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
-							Value:   cosmosAcc,
+							Value:   cosmosAcc.bech32(),
 						},
 					},
 				},
 			},
-			addresses:      []string{cosmosAcc, cosmosAcc0x},
+			addresses:      []string{cosmosAcc.bech32(), cosmosAcc.hexStr()},
 			workingChainId: "cosmoshub-4",
 			wantErr:        false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				cosmosAcc: {
+				cosmosAcc.bech32(): {
 					Candidates: []string{"a@cosmoshub-4"},
 				},
-				cosmosAcc0x: {
+				cosmosAcc.hexStr(): {
 					Candidates: []string{},
 				},
 			},
@@ -1403,18 +1366,18 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			addresses: []string{anotherAcc, anotherAcc0x},
+			addresses: []string{anotherAcc.bech32(), anotherAcc.hexStr()},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
-				anotherAcc: {
+				anotherAcc.bech32(): {
 					Candidates: []string{},
 				},
-				anotherAcc0x: {
+				anotherAcc.hexStr(): {
 					Candidates: []string{},
 				},
 			},
@@ -1454,7 +1417,6 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1547,7 +1509,6 @@ func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_OfferToBuyById(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1567,7 +1528,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	buyerA := testAddr(1).bech32()
 
 	tests := []struct {
 		name      string
@@ -1582,7 +1543,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1591,7 +1552,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 			wantOffer: dymnstypes.OfferToBuy{
 				Id:         "1",
 				Name:       "a",
-				Buyer:      buyer,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			},
 		},
@@ -1601,19 +1562,19 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
@@ -1622,23 +1583,23 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 			wantOffer: dymnstypes.OfferToBuy{
 				Id:         "2",
 				Name:       "a",
-				Buyer:      buyer,
+				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(2),
 			},
 		},
 		{
-			name: "reject - return error if not found",
+			name: "fail - return error if not found",
 			offers: []dymnstypes.OfferToBuy{
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 			},
@@ -1651,7 +1612,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1664,7 +1625,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1701,7 +1662,6 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1721,8 +1681,8 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const another = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	buyerA := testAddr(1).bech32()
+	anotherA := testAddr(2).bech32()
 
 	tests := []struct {
 		name       string
@@ -1738,17 +1698,17 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			account: buyer,
+			account: buyerA,
 			wantErr: false,
 			wantOffers: []dymnstypes.OfferToBuy{
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1759,47 +1719,47 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "b",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "c",
-					Buyer:      another, // should excluce this
+					Buyer:      anotherA, // should exclude this
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "4",
 					Name:       "d",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
 			},
-			account: buyer,
+			account: buyerA,
 			wantErr: false,
 			wantOffers: []dymnstypes.OfferToBuy{
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "b",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "4",
 					Name:       "d",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
 			},
@@ -1810,17 +1770,17 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			account:    buyer,
+			account:    buyerA,
 			wantErr:    false,
 			wantOffers: nil,
 		},
@@ -1830,7 +1790,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1843,7 +1803,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1898,7 +1858,6 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1918,9 +1877,9 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const owner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const another = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	buyerA := testAddr(1).bech32()
+	ownerA := testAddr(2).bech32()
+	anotherA := testAddr(3).bech32()
 
 	tests := []struct {
 		name       string
@@ -1935,8 +1894,8 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -1944,7 +1903,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1954,7 +1913,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -1964,14 +1923,14 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 				{
 					Name:       "b",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -1979,19 +1938,19 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
@@ -2001,13 +1960,13 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 			},
@@ -2017,14 +1976,14 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 				{
 					Name:       "b",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2032,19 +1991,19 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
@@ -2057,8 +2016,8 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2066,7 +2025,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -2078,8 +2037,8 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2087,7 +2046,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -2142,7 +2101,6 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 	}
 }
 
-//goland:noinspection SpellCheckingInspection
 func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -2162,9 +2120,9 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 		require.Nil(t, resp)
 	})
 
-	const buyer = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const owner = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
-	const another = "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d"
+	buyerA := testAddr(1).bech32()
+	ownerA := testAddr(2).bech32()
+	anotherA := testAddr(3).bech32()
 
 	tests := []struct {
 		name       string
@@ -2179,8 +2137,8 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2188,17 +2146,17 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
-			owner:   owner,
+			owner:   ownerA,
 			wantErr: false,
 			wantOffers: []dymnstypes.OfferToBuy{
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -2208,20 +2166,20 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 				{
 					Name:       "b",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 				{
 					Name:       "c",
-					Owner:      another,
-					Controller: another,
+					Owner:      anotherA,
+					Controller: anotherA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2229,47 +2187,47 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "4",
 					Name:       "c",
-					Buyer:      owner,
+					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
-			owner:   owner,
+			owner:   ownerA,
 			wantErr: false,
 			wantOffers: []dymnstypes.OfferToBuy{
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
@@ -2279,14 +2237,14 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 				{
 					Name:       "b",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2294,23 +2252,23 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
-					Buyer:      another,
+					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 			},
-			owner:      another,
+			owner:      anotherA,
 			wantErr:    false,
 			wantOffers: []dymnstypes.OfferToBuy{},
 		},
@@ -2319,8 +2277,8 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2328,7 +2286,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},
@@ -2340,8 +2298,8 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
-					Owner:      owner,
-					Controller: owner,
+					Owner:      ownerA,
+					Controller: ownerA,
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
@@ -2349,7 +2307,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
-					Buyer:      buyer,
+					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 			},

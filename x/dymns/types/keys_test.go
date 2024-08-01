@@ -29,7 +29,7 @@ func TestStorePrefixes(t *testing.T) {
 
 //goland:noinspection SpellCheckingInspection
 func TestKeys(t *testing.T) {
-	for _, dymName := range []string{"a", "b", "bonded-pool"} {
+	for _, dymName := range []string{"a", "b", "my-name"} {
 		t.Run(dymName, func(t *testing.T) {
 			require.Equal(t, append(KeyPrefixDymName, []byte(dymName)...), DymNameKey(dymName))
 			require.Equal(t, append(KeyPrefixSellOrder, []byte(dymName)...), SellOrderKey(dymName))

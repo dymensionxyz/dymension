@@ -26,7 +26,7 @@ func TestGenesisState_Validate(t *testing.T) {
 			Params: DefaultParams(),
 			DymNames: []DymName{
 				{
-					Name:       "bonded-pool",
+					Name:       "my-name",
 					Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 					ExpireAt:   time.Now().Unix(),

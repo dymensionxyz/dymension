@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
+	bidderA := testAddr(2).bech32()
 
 	t.Run("reject invalid SO", func(t *testing.T) {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{})
@@ -25,18 +25,18 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   1,
 	}
 	err := dk.SetDymName(ctx, dymName1)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "name2",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   1,
 	}
 	err = dk.SetDymName(ctx, dymName2)
@@ -48,7 +48,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
 		HighestBid: &dymnstypes.SellOrderBid{
-			Bidder: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+			Bidder: bidderA,
 			Price:  dymnsutils.TestCoin(200),
 		},
 	}
@@ -154,28 +154,28 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	now := time.Now().UTC()
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now)
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
+	bidderA := testAddr(2).bech32()
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err := dk.SetDymName(ctx, dymName1)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "owned-by-1",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err = dk.SetDymName(ctx, dymName2)
@@ -266,7 +266,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	})
 
 	so12.HighestBid = &dymnstypes.SellOrderBid{
-		Bidder: "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
+		Bidder: bidderA,
 		Price:  dymnsutils.TestCoin(300),
 	}
 	err = dk.SetSellOrder(ctx, so12)
@@ -296,22 +296,21 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 	ctx = ctx.WithBlockTime(now)
 
-	//goland:noinspection SpellCheckingInspection
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	ownerA := testAddr(1).bech32()
 
 	dymName1 := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err := dk.SetDymName(ctx, dymName1)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
-		Name:       "owned-by-1",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "b",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 	}
 	err = dk.SetDymName(ctx, dymName2)
@@ -372,7 +371,6 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 	})
 }
 
-//goland:noinspection SpellCheckingInspection
 func TestKeeper_CompleteSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -383,14 +381,14 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		return dk, bk, ctx
 	}
 
-	const owner = "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
-	const buyer = "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
+	ownerA := testAddr(1).bech32()
+	buyerA := testAddr(2).bech32()
 	const contactEmail = "contact@example.com"
 
 	dymName := dymnstypes.DymName{
-		Name:       "bonded-pool",
-		Owner:      owner,
-		Controller: owner,
+		Name:       "a",
+		Owner:      ownerA,
+		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 		Contact:    contactEmail,
 	}
@@ -439,7 +437,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
 			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: buyer,
+				Bidder: buyerA,
 				Price:  dymnsutils.TestCoin(200), // lower than sell price
 			},
 		}
@@ -478,7 +476,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
-				Bidder: buyer,
+				Bidder: buyerA,
 				Price:  dymnsutils.TestCoin(200),
 			},
 		}
@@ -579,12 +577,12 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			)
 			require.NoError(t, err)
 			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(owner),
+				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(ownerA),
 				dymnsutils.TestCoins(ownerOriginalBalance),
 			)
 			require.NoError(t, err)
 			err = bk.SendCoinsFromModuleToAccount(ctx,
-				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(buyer),
+				dymnstypes.ModuleName, sdk.MustAccAddressFromBech32(buyerA),
 				dymnsutils.TestCoins(buyerOriginalBalance),
 			)
 			require.NoError(t, err)
@@ -592,7 +590,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			dymName.Configs = []dymnstypes.DymNameConfig{
 				{
 					Type:  dymnstypes.DymNameConfigType_NAME,
-					Value: owner,
+					Value: ownerA,
 				},
 			}
 			setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
@@ -614,7 +612,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			require.GreaterOrEqual(t, tt.bid, int64(0), "bad setup")
 			if tt.bid > 0 {
 				so.HighestBid = &dymnstypes.SellOrderBid{
-					Bidder: buyer,
+					Bidder: buyerA,
 					Price:  dymnsutils.TestCoin(tt.bid),
 				}
 
@@ -632,19 +630,19 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			require.NotNil(t, laterDymName)
 			laterSo := dk.GetSellOrder(ctx, dymName.Name)
 			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name)
-			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(owner), params.BaseDenom)
-			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyer), params.BaseDenom)
-			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, owner)
+			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
+			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
+			laterDymNamesOwnedByOwner, err := dk.GetDymNamesOwnedBy(ctx, ownerA)
 			require.NoError(t, err)
-			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyer)
+			laterDymNamesOwnedByBuyer, err := dk.GetDymNamesOwnedBy(ctx, buyerA)
 			require.NoError(t, err)
-			laterConfiguredAddressOwnerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, owner)
+			laterConfiguredAddressOwnerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, ownerA)
 			require.NoError(t, err)
-			laterConfiguredAddressBuyerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, buyer)
+			laterConfiguredAddressBuyerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, buyerA)
 			require.NoError(t, err)
-			laterHexAddressOwnerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(owner))
+			laterHexAddressOwnerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(ownerA))
 			require.NoError(t, err)
-			laterHexAddressBuyerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(buyer))
+			laterHexAddressBuyerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(buyerA))
 			require.NoError(t, err)
 
 			require.Equal(t, dymName.Name, laterDymName.Name, "name should not be changed")
@@ -658,8 +656,8 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 				require.NotNil(t, laterSo, "SO should not be deleted")
 				require.Empty(t, historicalSo, "SO should not be moved to historical")
 
-				require.Equal(t, owner, laterDymName.Owner, "ownership should not be changed")
-				require.Equal(t, owner, laterDymName.Controller, "controller should not be changed")
+				require.Equal(t, ownerA, laterDymName.Owner, "ownership should not be changed")
+				require.Equal(t, ownerA, laterDymName.Controller, "controller should not be changed")
 				require.NotEmpty(t, laterDymName.Configs, "configs should be kept")
 				require.Equal(t, dymName.Configs, laterDymName.Configs, "configs not be changed")
 				require.Equal(t, contactEmail, dymName.Contact, "contact should not be changed")
@@ -681,8 +679,8 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			require.Nil(t, laterSo, "SO should be deleted")
 			require.Len(t, historicalSo, 1, "SO should be moved to historical")
 
-			require.Equal(t, buyer, laterDymName.Owner, "ownership should be changed")
-			require.Equal(t, buyer, laterDymName.Controller, "controller should be changed")
+			require.Equal(t, buyerA, laterDymName.Owner, "ownership should be changed")
+			require.Equal(t, buyerA, laterDymName.Controller, "controller should be changed")
 			require.Empty(t, laterDymName.Configs, "configs should be cleared")
 			require.Empty(t, laterDymName.Contact, "contact should be cleared")
 			require.Empty(t, laterDymNamesOwnedByOwner, "reverse record should be removed")
@@ -702,13 +700,13 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	t.Run("get", func(t *testing.T) {
-		aope := dk.GetActiveSellOrdersExpiration(ctx)
-		require.Empty(t, aope.Records, "default list must be empty")
-		require.NotNil(t, aope.Records, "list must be initialized")
+		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
+		require.Empty(t, aSoe.Records, "default list must be empty")
+		require.NotNil(t, aSoe.Records, "list must be initialized")
 	})
 
 	t.Run("set", func(t *testing.T) {
-		aope := &dymnstypes.ActiveSellOrdersExpiration{
+		aSoe := &dymnstypes.ActiveSellOrdersExpiration{
 			Records: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				{
 					Name:     "hello",
@@ -720,15 +718,15 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 				},
 			},
 		}
-		err := dk.SetActiveSellOrdersExpiration(ctx, aope)
+		err := dk.SetActiveSellOrdersExpiration(ctx, aSoe)
 		require.NoError(t, err)
 
-		aope = dk.GetActiveSellOrdersExpiration(ctx)
-		require.Len(t, aope.Records, 2)
-		require.Equal(t, "hello", aope.Records[0].Name)
-		require.Equal(t, int64(123), aope.Records[0].ExpireAt)
-		require.Equal(t, "world", aope.Records[1].Name)
-		require.Equal(t, int64(456), aope.Records[1].ExpireAt)
+		aSoe = dk.GetActiveSellOrdersExpiration(ctx)
+		require.Len(t, aSoe.Records, 2)
+		require.Equal(t, "hello", aSoe.Records[0].Name)
+		require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
+		require.Equal(t, "world", aSoe.Records[1].Name)
+		require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
 	})
 
 	t.Run("must automatically sort when set", func(t *testing.T) {
@@ -746,13 +744,13 @@ func TestKeeper_GetSetActiveSellOrdersExpiration(t *testing.T) {
 		})
 		require.NoError(t, err)
 
-		aope := dk.GetActiveSellOrdersExpiration(ctx)
-		require.Len(t, aope.Records, 2)
+		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
+		require.Len(t, aSoe.Records, 2)
 
-		require.Equal(t, "a", aope.Records[0].Name)
-		require.Equal(t, int64(123), aope.Records[0].ExpireAt)
-		require.Equal(t, "b", aope.Records[1].Name)
-		require.Equal(t, int64(456), aope.Records[1].ExpireAt)
+		require.Equal(t, "a", aSoe.Records[0].Name)
+		require.Equal(t, int64(123), aSoe.Records[0].ExpireAt)
+		require.Equal(t, "b", aSoe.Records[1].Name)
+		require.Equal(t, int64(456), aSoe.Records[1].ExpireAt)
 	})
 
 	t.Run("can not set if set is not valid", func(t *testing.T) {
@@ -794,24 +792,24 @@ func TestKeeper_GetSetMinExpiryHistoricalSellOrder(t *testing.T) {
 	dk.SetMinExpiryHistoricalSellOrder(ctx, "hello", 123)
 	dk.SetMinExpiryHistoricalSellOrder(ctx, "world", 456)
 
-	min, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "hello")
+	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, "hello")
 	require.True(t, found)
-	require.Equal(t, int64(123), min)
+	require.Equal(t, int64(123), minExpiry)
 
-	min, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "world")
+	minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "world")
 	require.True(t, found)
-	require.Equal(t, int64(456), min)
+	require.Equal(t, int64(456), minExpiry)
 
-	min, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "non-exists")
+	minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "non-exists")
 	require.False(t, found)
-	require.Zero(t, min)
+	require.Zero(t, minExpiry)
 
 	t.Run("set zero means delete", func(t *testing.T) {
 		dk.SetMinExpiryHistoricalSellOrder(ctx, "hello", 0)
 
-		min, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "hello")
+		minExpiry, found = dk.GetMinExpiryHistoricalSellOrder(ctx, "hello")
 		require.False(t, found)
-		require.Zero(t, min)
+		require.Zero(t, minExpiry)
 	})
 }
 

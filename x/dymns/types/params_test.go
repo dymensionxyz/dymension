@@ -6,6 +6,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/stretchr/testify/require"
 )
 
@@ -15,12 +16,12 @@ func TestParamKeyTable(t *testing.T) {
 }
 
 func TestDefaultParams(t *testing.T) {
-	params := DefaultParams()
-	require.NoError(t, (&params).Validate())
+	moduleParams := DefaultParams()
+	require.NoError(t, (&moduleParams).Validate())
 }
 
 func TestNewParams(t *testing.T) {
-	params := NewParams(
+	moduleParams := NewParams(
 		PriceParams{
 			PriceDenom: "a",
 		},
@@ -55,22 +56,22 @@ func TestNewParams(t *testing.T) {
 			},
 		},
 	)
-	require.Equal(t, "a", params.Price.PriceDenom)
-	require.Len(t, params.Chains.AliasesOfChainIds, 1)
-	require.Equal(t, "dymension_1100-1", params.Chains.AliasesOfChainIds[0].ChainId)
-	require.Len(t, params.Chains.AliasesOfChainIds[0].Aliases, 2)
-	require.Len(t, params.Chains.CoinType60ChainIds, 1)
-	require.Equal(t, params.Chains.CoinType60ChainIds[0], "injective-1")
-	require.Equal(t, "b", params.Misc.BeginEpochHookIdentifier)
-	require.Equal(t, "c", params.Misc.EndEpochHookIdentifier)
-	require.Equal(t, 666.0, params.Misc.GracePeriodDuration.Hours())
-	require.Equal(t, 333.0, params.Misc.SellOrderDuration.Hours())
-	require.Equal(t, 222.0, params.Misc.PreservedClosedSellOrderDuration.Hours())
-	require.Equal(t, 9999.0, params.Misc.ProhibitSellDuration.Hours())
-	require.Equal(t, int64(888), params.PreservedRegistration.ExpirationEpoch)
-	require.Len(t, params.PreservedRegistration.PreservedDymNames, 2)
-	require.Equal(t, "an", params.PreservedRegistration.PreservedDymNames[0].DymName)
-	require.Equal(t, "aa", params.PreservedRegistration.PreservedDymNames[0].WhitelistedAddress)
+	require.Equal(t, "a", moduleParams.Price.PriceDenom)
+	require.Len(t, moduleParams.Chains.AliasesOfChainIds, 1)
+	require.Equal(t, "dymension_1100-1", moduleParams.Chains.AliasesOfChainIds[0].ChainId)
+	require.Len(t, moduleParams.Chains.AliasesOfChainIds[0].Aliases, 2)
+	require.Len(t, moduleParams.Chains.CoinType60ChainIds, 1)
+	require.Equal(t, moduleParams.Chains.CoinType60ChainIds[0], "injective-1")
+	require.Equal(t, "b", moduleParams.Misc.BeginEpochHookIdentifier)
+	require.Equal(t, "c", moduleParams.Misc.EndEpochHookIdentifier)
+	require.Equal(t, 666.0, moduleParams.Misc.GracePeriodDuration.Hours())
+	require.Equal(t, 333.0, moduleParams.Misc.SellOrderDuration.Hours())
+	require.Equal(t, 222.0, moduleParams.Misc.PreservedClosedSellOrderDuration.Hours())
+	require.Equal(t, 9999.0, moduleParams.Misc.ProhibitSellDuration.Hours())
+	require.Equal(t, int64(888), moduleParams.PreservedRegistration.ExpirationEpoch)
+	require.Len(t, moduleParams.PreservedRegistration.PreservedDymNames, 2)
+	require.Equal(t, "an", moduleParams.PreservedRegistration.PreservedDymNames[0].DymName)
+	require.Equal(t, "aa", moduleParams.PreservedRegistration.PreservedDymNames[0].WhitelistedAddress)
 }
 
 func TestDefaultPriceParams(t *testing.T) {
@@ -108,30 +109,30 @@ func TestDefaultPreservedRegistrationParams(t *testing.T) {
 }
 
 func TestParams_ParamSetPairs(t *testing.T) {
-	params := DefaultParams()
-	paramSetPairs := (&params).ParamSetPairs()
+	moduleParams := DefaultParams()
+	paramSetPairs := (&moduleParams).ParamSetPairs()
 	require.Len(t, paramSetPairs, 4)
 }
 
 func TestParams_Validate(t *testing.T) {
-	params := DefaultParams()
-	require.NoError(t, (&params).Validate())
+	moduleParams := DefaultParams()
+	require.NoError(t, (&moduleParams).Validate())
 
-	params = DefaultParams()
-	params.Price.Price_1Letter = sdk.ZeroInt()
-	require.Error(t, (&params).Validate())
+	moduleParams = DefaultParams()
+	moduleParams.Price.Price_1Letter = sdk.ZeroInt()
+	require.Error(t, (&moduleParams).Validate())
 
-	params = DefaultParams()
-	params.Chains.CoinType60ChainIds = []string{"invalid@"}
-	require.Error(t, (&params).Validate())
+	moduleParams = DefaultParams()
+	moduleParams.Chains.CoinType60ChainIds = []string{"invalid@"}
+	require.Error(t, (&moduleParams).Validate())
 
-	params = DefaultParams()
-	params.Misc.PreservedClosedSellOrderDuration = 0
-	require.Error(t, (&params).Validate())
+	moduleParams = DefaultParams()
+	moduleParams.Misc.PreservedClosedSellOrderDuration = 0
+	require.Error(t, (&moduleParams).Validate())
 
-	params = DefaultParams()
-	params.PreservedRegistration.ExpirationEpoch = -1
-	require.Error(t, (&params).Validate())
+	moduleParams = DefaultParams()
+	moduleParams.PreservedRegistration.ExpirationEpoch = -1
+	require.Error(t, (&moduleParams).Validate())
 }
 
 func TestPriceParams_Validate(t *testing.T) {
@@ -142,7 +143,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		Price_4Letters:     sdk.NewInt(3),
 		Price_5PlusLetters: sdk.NewInt(2),
 		PriceExtends:       sdk.NewInt(2),
-		PriceDenom:         "adym",
+		PriceDenom:         params.BaseDenom,
 		MinOfferPrice:      sdk.NewInt(7),
 	}
 
@@ -756,7 +757,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 }
 
 func TestPreservedRegistrationParams_IsDuringWhitelistRegistrationPeriod(t *testing.T) {
-	params := PreservedRegistrationParams{
+	moduleParams := PreservedRegistrationParams{
 		ExpirationEpoch: 100,
 	}
 
@@ -766,14 +767,14 @@ func TestPreservedRegistrationParams_IsDuringWhitelistRegistrationPeriod(t *test
 		return ctx
 	}
 
-	require.True(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(99)))
-	require.True(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(100)))
-	require.False(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(101)))
+	require.True(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(99)))
+	require.True(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(100)))
+	require.False(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(101)))
 
-	params = PreservedRegistrationParams{
+	moduleParams = PreservedRegistrationParams{
 		ExpirationEpoch: 0,
 	}
-	require.False(t, params.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(1)))
+	require.False(t, moduleParams.IsDuringWhitelistRegistrationPeriod(ctxAtEpoch(1)))
 }
 
 func Test_validateEpochIdentifier(t *testing.T) {

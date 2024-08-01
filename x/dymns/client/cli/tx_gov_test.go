@@ -9,6 +9,7 @@ import (
 )
 
 func Test_parseMigrateChainIdsProposal(t *testing.T) {
+	//goland:noinspection SpellCheckingInspection
 	testCases := []struct {
 		name         string
 		metadataFile string

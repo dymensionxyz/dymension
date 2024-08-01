@@ -22,21 +22,21 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:      "valid sell order",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:      "valid sell order without bid",
-			dymName:   "bonded-pool",
+			dymName:   "my-name",
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:     "valid sell order without setting sell price",
-			dymName:  "bonded-pool",
+			dymName:  "my-name",
 			minPrice: dymnsutils.TestCoin(1),
 			owner:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
@@ -58,7 +58,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "min price is zero",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(0),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -66,7 +66,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "min price is empty",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        sdk.Coin{},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
@@ -74,7 +74,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:    "min price is negative",
-			dymName: "bonded-pool",
+			dymName: "my-name",
 			minPrice: sdk.Coin{
 				Denom:  params.BaseDenom,
 				Amount: sdk.NewInt(-1),
@@ -85,7 +85,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:    "min price is invalid",
-			dymName: "bonded-pool",
+			dymName: "my-name",
 			minPrice: sdk.Coin{
 				Denom:  "-",
 				Amount: sdk.OneInt(),
@@ -96,7 +96,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "sell price is negative",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoinP(-1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -105,7 +105,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:     "sell price is invalid",
-			dymName:  "bonded-pool",
+			dymName:  "my-name",
 			minPrice: dymnsutils.TestCoin(1),
 			sellPrice: &sdk.Coin{
 				Denom:  "-",
@@ -117,7 +117,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "sell price is less than min price",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoinP(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -126,7 +126,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "sell price denom must match min price denom",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoin2P(sdk.NewCoin("u"+params.BaseDenom, sdk.OneInt())),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -135,7 +135,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "missing owner",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "",
 			wantErr:         true,
@@ -143,7 +143,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "invalid owner",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "dym1fl48vsnmsdzcv85",
 			wantErr:         true,
@@ -151,7 +151,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 		},
 		{
 			name:            "owner must be dym1",
-			dymName:         "bonded-pool",
+			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			wantErr:         true,
