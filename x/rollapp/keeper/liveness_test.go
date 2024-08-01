@@ -81,16 +81,8 @@ func TestLivenessFlow(t *testing.T) {
 		s.SetT(t)
 		s.SetS(s)
 		s.SetupTest()
-		hubBlockTime := 6 * time.Second
 
 		rollapps := []string{"a", "b"}
-		hubBlockGap := rapid.Custom[time.Duration](func(t *rapid.T) time.Duration {
-			if rapid.Bool().Draw(t, "hub is down") {
-				dt := rapid.IntRange(int(time.Hour), int(time.Hour*24*7)).Draw(t, "dt")
-				return time.Duration(dt)
-			}
-			return hubBlockTime
-		})
 
 		tracker := newLivenessMockSequencerKeeper()
 		s.keeper().SetSequencerKeeper(tracker)
@@ -126,13 +118,6 @@ func TestLivenessFlow(t *testing.T) {
 					} else {
 						expectedSlashes := int((elapsed-p.LivenessSlashBlocks)/p.LivenessSlashInterval) + 1
 						got := tracker.slashes[ra]
-						/*
-							What's the essence of the problem?
-							We schedule the slash to be at the NEXT interval
-							We can process it then, but then compute the downtime to be the next one
-							Because we make the false assumption that the downtime will be
-
-						*/
 						require.Equal(r, expectedSlashes, got, "expect slashed", "rollapp", ra, "elapsed blocks", elapsed)
 					}
 				}
@@ -150,10 +135,11 @@ func TestLivenessFlow(t *testing.T) {
 					tracker.clear(raID)
 				}
 			},
-			"hub end block": func(r *rapid.T) {
-				dt := hubBlockGap.Draw(r, "dt")
-				s.nextBlock(dt)
-				s.keeper().CheckLiveness(s.Ctx)
+			"hub end blocks": func(r *rapid.T) {
+				for range rapid.IntRange(0, 100).Draw(r, "num blocks") {
+					dt := rapid.IntRange(6, 60*60*24*7).Draw(r, "dt seconds")
+					s.nextBlock(time.Duration(dt))
+				}
 			},
 		})
 	})
