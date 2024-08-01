@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	commontypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
-	"golang.org/x/exp/slices"
 )
 
 // RegisterInvariants registers the bank module invariants
@@ -277,11 +276,15 @@ func LivenessEventInvariant(k Keeper) sdk.Invariant {
 				continue
 			}
 			events := k.GetLivenessEvents(ctx, &ra.LivenessEventHeight)
-			if !slices.ContainsFunc(events, func(e types.LivenessEvent) bool {
-				return e.RollappId == ra.RollappId
-			}) {
+			cnt := 0
+			for _, event := range events {
+				if event.RollappId == ra.RollappId {
+					cnt++
+				}
+			}
+			if cnt != 1 {
 				broken = true
-				msg += fmt.Sprintf("| rollapp stored event but it was not found in queue: rollapp: %s: event height: %d", ra.RollappId, ra.LivenessEventHeight)
+				msg += fmt.Sprintf("| rollapp stored event but wrong number found in queue: rollapp: %s: event height: %d: found: %d", ra.RollappId, ra.LivenessEventHeight, cnt)
 			}
 		}
 		for _, e := range k.GetLivenessEvents(ctx, nil) {
