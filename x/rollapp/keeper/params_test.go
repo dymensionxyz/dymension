@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
-	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
+	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func TestGetParams(t *testing.T) {
@@ -16,23 +17,15 @@ func TestGetParams(t *testing.T) {
 	k.SetParams(ctx, params)
 
 	require.EqualValues(t, params.DisputePeriodInBlocks, k.DisputePeriodInBlocks(ctx))
-	require.EqualValues(t, len(params.DeployerWhitelist), len(k.DeployerWhitelist(ctx)))
-	for i := range params.DeployerWhitelist {
-		require.EqualValues(t, params.DeployerWhitelist[i], k.DeployerWhitelist(ctx)[i])
-	}
+	require.EqualValues(t, params.RegistrationFee, k.RegistrationFee(ctx))
 }
 
-func TestGetParamsWithDeployerWhitelist(t *testing.T) {
+func TestGetParamsWithRegistrationFee(t *testing.T) {
 	k, ctx := testkeeper.RollappKeeper(t)
-
 	params := types.DefaultParams()
-	params.DeployerWhitelist = []types.DeployerParams{{Address: sample.AccAddress()}, {Address: sample.AccAddress()}}
 
+	params.RegistrationFee, _ = sdk.ParseCoinNormalized(registrationFee)
 	k.SetParams(ctx, params)
 
-	require.EqualValues(t, params.DisputePeriodInBlocks, k.DisputePeriodInBlocks(ctx))
-	require.EqualValues(t, len(params.DeployerWhitelist), len(k.DeployerWhitelist(ctx)))
-	for i := range params.DeployerWhitelist {
-		require.EqualValues(t, params.DeployerWhitelist[i], k.DeployerWhitelist(ctx)[i])
-	}
+	require.EqualValues(t, params.RegistrationFee, k.RegistrationFee(ctx))
 }

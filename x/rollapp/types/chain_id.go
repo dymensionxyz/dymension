@@ -46,7 +46,7 @@ func NewChainID(id string) (ChainID, error) {
 	matches := ethermintChainID.FindStringSubmatch(chainID)
 
 	if matches == nil || len(matches) != 4 || matches[1] == "" {
-		return ChainID{}, ErrRollappIDNotEIP155
+		return ChainID{}, ErrInvalidRollappID
 	}
 	// verify that the chain-id entered is a base 10 integer
 	chainIDInt, ok := new(big.Int).SetString(matches[2], 10)

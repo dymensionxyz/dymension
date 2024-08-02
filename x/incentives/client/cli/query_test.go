@@ -2,9 +2,11 @@ package cli_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,11 +27,13 @@ type QueryTestSuite struct {
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
+	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:       alice.String(),
-		RollappId:     apptesting.GenerateRollappID(),
-		MaxSequencers: 1,
+		Creator:      alice.String(),
+		RollappId:    apptesting.GenerateRollappID(),
+		Bech32Prefix: strings.ToLower(tmrand.Str(3)),
+		Alias:        strings.ToLower(tmrand.Str(3)),
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

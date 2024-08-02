@@ -11,11 +11,13 @@ import (
 const (
 	TypeMsgCreateSequencer = "create_sequencer"
 	TypeMsgUnbond          = "unbond"
+	TypeMsgIncreaseBond    = "increase_bond"
 )
 
 var (
 	_ sdk.Msg                            = &MsgCreateSequencer{}
 	_ sdk.Msg                            = &MsgUnbond{}
+	_ sdk.Msg                            = &MsgIncreaseBond{}
 	_ codectypes.UnpackInterfacesMessage = (*MsgCreateSequencer)(nil)
 )
 
@@ -26,7 +28,10 @@ func (msg MsgCreateSequencer) UnpackInterfaces(unpacker codectypes.AnyUnpacker) 
 }
 
 /* --------------------------- MsgCreateSequencer --------------------------- */
-func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, description *Description, bond sdk.Coin) (*MsgCreateSequencer, error) {
+func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId string, metadata *SequencerMetadata, bond sdk.Coin) (*MsgCreateSequencer, error) {
+	if metadata == nil {
+		return nil, ErrInvalidRequest
+	}
 	var pkAny *codectypes.Any
 	if pubkey != nil {
 		var err error
@@ -39,7 +44,7 @@ func NewMsgCreateSequencer(creator string, pubkey cryptotypes.PubKey, rollappId 
 		Creator:      creator,
 		DymintPubKey: pkAny,
 		RollappId:    rollappId,
-		Description:  *description,
+		Metadata:     *metadata,
 		Bond:         bond,
 	}, nil
 }
@@ -72,27 +77,28 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	}
 
 	// public key also checked by the application logic
-	if msg.DymintPubKey != nil {
-		// check it is a pubkey
-		if _, err = codectypes.NewAnyWithValue(msg.DymintPubKey); err != nil {
-			return errorsmod.Wrapf(ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
-		}
-
-		// cast to cryptotypes.PubKey type
-		pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
-		if !ok {
-			return errorsmod.Wrapf(ErrInvalidType, "Expecting cryptotypes.PubKey, got %T", pk)
-		}
-
-		_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
-		// err means the pubkey validation failed
-		if err != nil {
-			return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
-		}
-
+	if msg.DymintPubKey == nil {
+		return errorsmod.Wrap(ErrInvalidPubKey, "sequencer pubkey is required")
 	}
 
-	if _, err := msg.Description.EnsureLength(); err != nil {
+	// check it is a pubkey
+	if _, err = codectypes.NewAnyWithValue(msg.DymintPubKey); err != nil {
+		return errorsmod.Wrapf(ErrInvalidPubKey, "invalid sequencer pubkey(%s)", err)
+	}
+
+	// cast to cryptotypes.PubKey type
+	pk, ok := msg.DymintPubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return errorsmod.Wrapf(ErrInvalidType, "expecting cryptotypes.PubKey, got %T", pk)
+	}
+
+	_, err = edwards.ParsePubKey(edwards.Edwards(), pk.Bytes())
+	// err means the pubkey validation failed
+	if err != nil {
+		return errorsmod.Wrapf(ErrInvalidPubKey, "%s", err)
+	}
+
+	if _, err = msg.Metadata.UpdateSequencerMetadata(msg.Metadata); err != nil {
 		return err
 	}
 
@@ -103,23 +109,28 @@ func (msg *MsgCreateSequencer) ValidateBasic() error {
 	return nil
 }
 
-/* -------------------------------- MsgUnbond ------------------------------- */
-func NewMsgUnbond(creator string) *MsgUnbond {
-	return &MsgUnbond{
-		Creator: creator,
+/* ---------------------------- MsgIncreaseBond ---------------------------- */
+func NewMsgIncreaseBond(creator string, addAmount sdk.Coin) *MsgIncreaseBond {
+	return &MsgIncreaseBond{
+		Creator:   creator,
+		AddAmount: addAmount,
 	}
 }
 
-func (msg *MsgUnbond) ValidateBasic() error {
+func (msg *MsgIncreaseBond) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return errorsmod.Wrapf(ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if !(msg.AddAmount.IsValid() && msg.AddAmount.IsPositive()) {
+		return errorsmod.Wrapf(ErrInvalidCoins, "invalid bond amount: %s", msg.AddAmount.String())
+	}
+
 	return nil
 }
 
-func (msg *MsgUnbond) GetSigners() []sdk.AccAddress {
+func (msg *MsgIncreaseBond) GetSigners() []sdk.AccAddress {
 	creator, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		panic(err)

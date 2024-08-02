@@ -38,7 +38,7 @@ func RollappKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		"RollappParams",
 	)
-	k := keeper.NewKeeper(cdc, storeKey, paramsSubspace, nil, nil)
+	k := keeper.NewKeeper(cdc, storeKey, paramsSubspace, nil, nil, nil)
 
 	ctx := sdk.NewContext(stateStore, cometbftproto.Header{}, false, log.NewNopLogger())
 

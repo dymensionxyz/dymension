@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -73,12 +74,6 @@ func SequencersPerRollappInvariant(k Keeper) sdk.Invariant {
 		rollapps := k.rollappKeeper.GetAllRollapps(ctx)
 		for _, rollapp := range rollapps {
 			bonded := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Bonded)
-			unbonding := k.GetSequencersByRollappByStatus(ctx, rollapp.RollappId, types.Unbonding)
-
-			if rollapp.MaxSequencers > 0 && len(bonded)+len(unbonding) > int(rollapp.MaxSequencers) {
-				broken = true
-				msg += "too many sequencers for rollapp " + rollapp.RollappId + "\n"
-			}
 
 			if len(bonded) == 0 {
 				continue

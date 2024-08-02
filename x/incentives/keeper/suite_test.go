@@ -3,8 +3,10 @@ package keeper_test
 import (
 	"crypto/rand"
 	"fmt"
+	"strings"
 	"time"
 
+	tmrand "github.com/cometbft/cometbft/libs/rand"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -204,13 +206,16 @@ func (suite *KeeperTestSuite) SetupLockAndGauge(isPerpetual bool) (sdk.AccAddres
 }
 
 // SetupLockAndGauge creates both a lock and a gauge.
-func (suite *KeeperTestSuite) CreateDefaultRollapp() string {
-	alice := sdk.AccAddress("addr1---------------")
+func (suite *KeeperTestSuite) CreateDefaultRollapp(addr sdk.AccAddress) string {
+	suite.FundAcc(addr, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
-		Creator:       alice.String(),
-		RollappId:     apptesting.GenerateRollappID(),
-		MaxSequencers: 1,
+		Creator:                 addr.String(),
+		RollappId:               apptesting.GenerateRollappID(),
+		Bech32Prefix:            strings.ToLower(tmrand.Str(3)),
+		GenesisChecksum:         "checksum",
+		InitialSequencerAddress: addr.String(),
+		Alias:                   "alias",
 	}
 
 	msgServer := rollapp.NewMsgServerImpl(*suite.App.RollappKeeper)

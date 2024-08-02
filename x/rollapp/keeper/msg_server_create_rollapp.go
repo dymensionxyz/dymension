@@ -2,77 +2,27 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
+	if msg == nil {
+		return nil, types.ErrInvalidRequest
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	rollapp := msg.GetRollapp()
-	if err := rollapp.ValidateBasic(); err != nil {
+	if err := k.RegisterRollapp(ctx, msg.GetRollapp()); err != nil {
 		return nil, err
 	}
 
-	if !k.RollappsEnabled(ctx) {
-		return nil, types.ErrRollappsDisabled
-	}
-
-	err := k.checkIfRollappExists(ctx, msg)
-	if err != nil {
-		return nil, err
-	}
-
-	// check to see if there is an active whitelist
-	if whitelist := k.DeployerWhitelist(ctx); len(whitelist) > 0 {
-		if !k.IsAddressInDeployerWhiteList(ctx, msg.Creator) {
-			return nil, types.ErrUnauthorizedRollappCreator
-		}
-	}
-
-	// Write rollapp information to the store
-	k.SetRollapp(ctx, rollapp)
-
-	err = k.hooks.RollappCreated(ctx, rollapp.RollappId)
-	if err != nil {
-		return nil, err
+	if err := ctx.EventManager().EmitTypedEvent(msg); err != nil {
+		return nil, fmt.Errorf("emit event: %w", err)
 	}
 
 	return &types.MsgCreateRollappResponse{}, nil
-}
-
-func (k msgServer) checkIfRollappExists(ctx sdk.Context, msg *types.MsgCreateRollapp) error {
-	rollappId, _ := types.NewChainID(msg.RollappId)
-	// check to see if the RollappId has been registered before
-	if _, isFound := k.GetRollapp(ctx, rollappId.GetChainID()); isFound {
-		return types.ErrRollappExists
-	}
-
-	// check to see if the RollappId has been registered before with same EIP155 ID
-	existingRollapp, isFound := k.GetRollappByEIP155(ctx, rollappId.GetEIP155ID())
-	// allow replacing EIP155 only when forking (previous rollapp is frozen)
-	if !isFound {
-		// if not forking, check to see if the Rollapp has been registered before with same name
-		if _, isFound = k.FindRollappByName(ctx, rollappId.GetName()); isFound {
-			return types.ErrRollappExists
-		}
-		return nil
-	}
-	if !existingRollapp.Frozen {
-		return types.ErrRollappExists
-	}
-	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
-
-	if rollappId.GetName() != existingRollappChainId.GetName() {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
-	}
-
-	nextRevisionNumber := existingRollappChainId.GetRevisionNumber() + 1
-	if rollappId.GetRevisionNumber() != nextRevisionNumber {
-		return errorsmod.Wrapf(types.ErrInvalidRollappID, "revision number should be %d", nextRevisionNumber)
-	}
-	return nil
 }

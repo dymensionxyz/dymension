@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -17,12 +19,14 @@ func (suite *SequencerTestSuite) TestInvariants() {
 
 	// create rollapps and sequencers
 	for i := 0; i < numOfRollapps; i++ {
-		rollapp := suite.CreateDefaultRollapp()
+		rollapp, pk := suite.CreateDefaultRollapp()
 
 		// create sequencers
 		seqAddr := make([]string, numOfSequencers)
-		for j := 0; j < numOfSequencers; j++ {
-			seqAddr[j] = suite.CreateDefaultSequencer(suite.Ctx, rollapp)
+		seqAddr[0] = suite.CreateDefaultSequencer(suite.Ctx, rollapp, pk)
+		for j := 1; j < numOfSequencers; j++ {
+			pki := ed25519.GenPrivKey().PubKey()
+			seqAddr[j] = suite.CreateDefaultSequencer(suite.Ctx, rollapp, pki)
 		}
 
 		// unbonding some sequencers
@@ -46,8 +50,8 @@ func (suite *SequencerTestSuite) TestInvariants() {
 		suite.T().Fatal("Test setup failed")
 	}
 	// additional rollapp with no sequencers
-	_ = suite.CreateDefaultRollapp()
+	suite.CreateDefaultRollapp()
 
-	msg, bool := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
-	suite.Require().False(bool, msg)
+	msg, ok := keeper.AllInvariants(suite.App.SequencerKeeper)(suite.Ctx)
+	suite.Require().False(ok, msg)
 }
