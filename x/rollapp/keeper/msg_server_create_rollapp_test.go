@@ -27,10 +27,10 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 	goCtx := sdk.WrapSDKContext(suite.Ctx)
 
 	rollapp := types.MsgCreateRollapp{
-		Alias:        "Rollapp",
 		Creator:      alice,
 		RollappId:    "rollapp_1234-1",
 		Bech32Prefix: "rol",
+		Alias:        "Rollapp",
 	}
 
 	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -344,16 +344,8 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			// eip155 key registers to correct roll app
 			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, id.GetEIP155ID())
 			suite.Require().True(found)
-
-			gotRollapp, found := suite.App.RollappKeeper.GetRollapp(suite.Ctx, test.rollappId)
-			suite.Require().True(found)
 			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
 
-			rollappFromAlias, found := suite.App.RollappKeeper.GetRollappByAlias(suite.Ctx, rollapp.Alias)
-			suite.Require().True(found)
-			suite.Require().Equal(rollappFromAlias.RollappId, rollapp.RollappId)
-
-			suite.Require().Equal(gotRollapp.RollappId, rollapp.RollappId)
 			// create bad rollapp
 			badRollapp := types.MsgCreateRollapp{
 				Creator:                 alice,

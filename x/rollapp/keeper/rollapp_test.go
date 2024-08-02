@@ -86,7 +86,7 @@ func TestKeeper_FindRollappByName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, gotFound := k.FindRollappByName(ctx, tt.queryRollappName)
+			_, gotFound := k.GetRollappByName(ctx, tt.queryRollappName)
 			require.Equal(t, tt.wantFound, gotFound)
 		})
 	}

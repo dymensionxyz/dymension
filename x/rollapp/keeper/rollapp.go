@@ -18,7 +18,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return fmt.Errorf("validate rollapp: %w", err)
 	}
 
-	rollappId, _ := types.NewChainID(rollapp.RollappId)
+	rollappId := types.MustNewChainID(rollapp.RollappId)
 	if err := k.checkIfRollappExists(ctx, rollappId, rollapp.Alias); err != nil {
 		return err
 	}
@@ -135,7 +135,7 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, rollappId types.ChainID, a
 	// allow replacing EIP155 only when forking (previous rollapp is frozen)
 	if !isFound {
 		// if not forking, check to see if the Rollapp has been registered before with same name
-		if _, isFound = k.FindRollappByName(ctx, rollappId.GetName()); isFound {
+		if _, isFound = k.GetRollappByName(ctx, rollappId.GetName()); isFound {
 			return types.ErrRollappExists
 		}
 		return nil
@@ -143,7 +143,7 @@ func (k Keeper) checkIfRollappExists(ctx sdk.Context, rollappId types.ChainID, a
 	if !existingRollapp.Frozen {
 		return types.ErrRollappExists
 	}
-	existingRollappChainId, _ := types.NewChainID(existingRollapp.RollappId)
+	existingRollappChainId := types.MustNewChainID(existingRollapp.RollappId)
 
 	if rollappId.GetName() != existingRollappChainId.GetName() {
 		return errorsmod.Wrapf(types.ErrInvalidRollappID, "rollapp name should be %s", existingRollappChainId.GetName())
@@ -170,8 +170,8 @@ func (k Keeper) SetRollapp(ctx sdk.Context, rollapp types.Rollapp) {
 		rollapp.GetAlias(),
 	), []byte(rollapp.RollappId))
 
-	// check if chain-id is EVM compatible. no err check as rollapp is already validated
-	rollappID, _ := types.NewChainID(rollapp.RollappId)
+	// no err check as rollapp is already validated
+	rollappID := types.MustNewChainID(rollapp.RollappId)
 
 	// In case the chain id is EVM compatible, we store it by EIP155 id, to be retrievable by EIP155 id key
 	store = prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RollappByEIP155KeyPrefix))
@@ -239,7 +239,7 @@ func (k Keeper) GetRollapp(
 	return val, true
 }
 
-func (k Keeper) FindRollappByName(
+func (k Keeper) GetRollappByName(
 	ctx sdk.Context,
 	name string,
 ) (val types.Rollapp, found bool) {

@@ -67,6 +67,14 @@ func NewChainID(id string) (ChainID, error) {
 	}, nil
 }
 
+func MustNewChainID(id string) ChainID {
+	chainID, err := NewChainID(id)
+	if err != nil {
+		panic(err)
+	}
+	return chainID
+}
+
 func (c *ChainID) GetChainID() string {
 	return c.chainID
 }
