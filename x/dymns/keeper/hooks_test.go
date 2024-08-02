@@ -1372,7 +1372,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:                    "pass - register without problem",
 			addRollApps:             []string{"rollapp_1-1"},
-			preRunSetup:             nil,
 			originalCreatorBalance:  price5L + 2,
 			originalModuleBalance:   1,
 			rollAppId:               "rollapp_1-1",
@@ -1384,7 +1383,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:                   "pass - mapping RollApp ID <=> Alias should be set",
 			addRollApps:            []string{"rollapp_1-1"},
-			preRunSetup:            nil,
 			originalCreatorBalance: price5L,
 			rollAppId:              "rollapp_1-1",
 			alias:                  "alias",
@@ -1403,7 +1401,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:                    "pass - Alias cost subtracted from creator and burned",
 			addRollApps:             []string{"rollapp_1-1"},
-			preRunSetup:             nil,
 			originalCreatorBalance:  price5L + 10,
 			originalModuleBalance:   1,
 			rollAppId:               "rollapp_1-1",
@@ -1415,7 +1412,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:                    "pass - charges correct price for Alias based on length, 1 char",
 			addRollApps:             []string{"rollapp_1-1"},
-			preRunSetup:             nil,
 			originalCreatorBalance:  price1L + 10,
 			rollAppId:               "rollapp_1-1",
 			alias:                   "a",
@@ -1426,7 +1422,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 		{
 			name:                    "pass - charges correct price for Alias based on length, 2 chars",
 			addRollApps:             []string{"rollapp_1-1"},
-			preRunSetup:             nil,
 			originalCreatorBalance:  price2L + 10,
 			rollAppId:               "rollapp_1-1",
 			alias:                   "ab",
@@ -1504,6 +1499,24 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "not a RollApp chain-id",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: price1L,
+		},
+		{
+			name:                    "fail - mapping should not be created",
+			addRollApps:             nil,
+			originalCreatorBalance:  price1L,
+			rollAppId:               "nad_0-0",
+			alias:                   "alias",
+			wantErr:                 true,
+			wantErrContains:         "not",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				_, found := dk.GetAliasByRollAppId(ctx, "nad_0-0")
+				require.False(t, found)
+
+				_, found = dk.GetRollAppIdByAlias(ctx, "alias")
+				require.False(t, found)
+			},
 		},
 		{
 			name:                    "fail - reject bad alias",
@@ -1748,15 +1761,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			wantErrContains:         "insufficient funds",
 			wantSuccess:             false,
 			wantLaterCreatorBalance: 1,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
-
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
-			},
 		},
 		{
 			name:                   "pass - can resolve address using alias",
