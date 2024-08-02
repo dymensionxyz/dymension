@@ -1548,27 +1548,36 @@ paths:
             type: object
             properties:
               dym_name:
+                description: dym_name is the Dym-Name queried for.
                 type: object
                 properties:
                   name:
                     type: string
+                    description: name is the human-readable name of the Dym-Name.
                   owner:
                     type: string
                     description: >-
-                      Account address of the owner of the Dym-Name. Owner has
-                      permission to transfer ownership.
+                      owner is the account address that owns the Dym-Name. Owner
+                      has permission to transfer ownership.
                   controller:
                     type: string
                     description: >-
-                      Account address of the controller of the Dym-Name.
-                      Controller has permission to update resolve and contact
-                      for the Dym-Name.
+                      controller is the account address that have permission
+                      update configuration for the Dym-Name.
+
+                      Default is the owner. Able to transfer control to another
+                      account.
+
+                      Users can set Dym-Name owned by Cold-Wallet and controlled
+                      by Hot-Wallet.
                   expire_at:
                     type: string
                     format: int64
                     description: >-
-                      The last effective date of the Dym-Name, after which the
-                      Dym-Name is no longer valid.
+                      expire_at is the UTC epoch represent the last effective
+                      date of the Dym-Name,
+
+                      after which the Dym-Name is no longer valid.
 
                       NOTE: Expired Dym-Names are not deleted from the store
 
@@ -1581,8 +1590,8 @@ paths:
                       properties:
                         type:
                           description: >-
-                            The type of the Dym-Name configuration (equals to
-                            Type in DNS).
+                            type is the type of the Dym-Name configuration
+                            (equals to Type in DNS).
                           type: string
                           enum:
                             - UNKNOWN
@@ -1591,27 +1600,38 @@ paths:
                         chain_id:
                           type: string
                           description: >-
-                            The chain ID of the Dym-Name configuration (equals
-                            to top-level-domain).
+                            chain_id is the chain-id of the Dym-Name
+                            configuration (equals to top-level-domain).
 
-                            If empty, the configuration is for host chain aka
-                            Dymension Hub.
+                            If empty, the configuration is for host chain
+                            (Dymension Hub).
                         path:
                           type: string
                           description: >-
-                            The path of the Dym-Name configuration (equals to
-                            Host in DNS).
+                            path of the Dym-Name configuration (equals to Host
+                            in DNS).
 
-                            If not empty, is sub-path configuration.
+                            If the type of this config record is Name, it is the
+                            Sub-Name of the Dym-Name Address.
                         value:
                           type: string
                           description: >-
-                            The value of the Dym-Name configuration (equals to
-                            Value in DNS).
-                    description: Configurations for the Dym-Name.
+                            value of the Dym-Name configuration resolves to
+                            (equals to Value in DNS).
+
+                            If the type of this config record is Name, it is the
+                            address which the Dym-Name Address resolves to.
+                      description: >-
+                        DymNameConfig contains the resolution configuration for
+                        the Dym-Name.
+
+                        Each record is a resolution record, similar to DNS.
+                    description: configs are configuration records for the Dym-Name.
                   contact:
                     type: string
-                    description: The optional contact information for the Dym-Name.
+                    description: |-
+                      contact is an optional information for the Dym-Name.
+                      Convenient for retails users.
             description: >-
               QueryDymNameResponse is the response type for the Query/DymName
               RPC method.
@@ -1639,6 +1659,7 @@ paths:
                       format: byte
       parameters:
         - name: dym_name
+          description: dym_name is the name of the Dym-Name to query.
           in: path
           required: true
           type: string
@@ -1747,17 +1768,15 @@ paths:
                   properties:
                     name:
                       type: string
-                      description: The name of the Dym-Name being opened to be sold.
+                      description: name of the Dym-Name being opened to be sold.
                     expire_at:
                       type: string
                       format: int64
-                      description: >-
-                        The last effective date of this SO, after which the
-                        Dym-Name bid/buy is no longer valid.
+                      title: expire_at is the last effective date of this SO
                     min_price:
                       description: >-
-                        The minimum price that the owner is willing to accept
-                        for the Dym-Name.
+                        min_price is the minimum price that the owner is willing
+                        to accept for the Dym-Name.
                       type: object
                       properties:
                         denom:
@@ -1766,11 +1785,13 @@ paths:
                           type: string
                     sell_price:
                       description: >-
-                        The price that the owner is willing to sell the Dym-Name
-                        for, the SO will be closed when the price is met.
+                        sell_price is the price that the owner is willing to
+                        sell the Dym-Name for,
+
+                        the SO will be closed when the price is met.
 
                         If the sell price is zero, the SO will be closed when
-                        the expire_at is reached and the highest bid win.
+                        the expire_at is reached and the highest bidder wins.
                       type: object
                       properties:
                         denom:
@@ -1779,15 +1800,17 @@ paths:
                           type: string
                     highest_bid:
                       description: >-
-                        The highest bid on the SO, if any. Price must be greater
-                        than or equal to the min_price.
+                        highest_bid is the highest bid on the SO, if any. Price
+                        must be greater than or equal to the min_price.
                       type: object
                       properties:
                         bidder:
                           type: string
-                          description: The address of the account which placed the bid.
+                          description: >-
+                            bidder is the account address of the account which
+                            placed the bid.
                         price:
-                          description: The price set by the bidder.
+                          description: price is the amount of coin offered by the bidder.
                           type: object
                           properties:
                             denom:
@@ -1798,14 +1821,22 @@ paths:
                     SellOrder defines a sell order, placed by owner, to sell a
                     Dym-Name.
 
-                    After expiry date, if no one has placed a bid, this SO will
-                    be closed, no change.
+                    Sell-Order has an expiry date.
 
-                    If there is a bid, the highest bid will win.
+                    After expiry date, if no one has placed a bid, this
+                    Sell-Order will be closed, no change.
 
-                    SO will be moved to historical records after completed, no
-                    matter reason.
-                description: result defines the historical SOs of the Dym-Name.
+                    If there is a bid, the highest bid will win, and the
+                    Dym-Name ownership will be transferred to the winner.
+
+                    If the bid matches the sell price, the Dym-Name ownership
+                    will be transferred to the bidder immediately.
+
+                    SO will be moved to historical records after
+                    completion/expiry.
+                description: >-
+                  result defines the historical Sell-Orders of the Dym-Name
+                  queried.
             description: >-
               QueryHistoricalSellOrderResponse is the response type for the
               Query/HistoricalSellOrder RPC method.
@@ -1833,7 +1864,7 @@ paths:
                       format: byte
       parameters:
         - name: dym_name
-          description: dym_name is the Dym-Name to query the historical SO for.
+          description: dym_name is the Dym-Name to query the historical Sell-Orders for.
           in: path
           required: true
           type: string
@@ -1850,21 +1881,29 @@ paths:
             type: object
             properties:
               offer:
+                description: offer is the Offer-To-Buy record queried for.
                 type: object
                 properties:
                   id:
                     type: string
-                    description: The unique identifier of the offer.
+                    description: >-
+                      id is the unique identifier of the offer. Generated by the
+                      module.
                   name:
                     type: string
-                    description: The name of the Dym-Name willing to buy.
+                    description: name of the Dym-Name willing to buy.
                   buyer:
                     type: string
-                    description: The bech32 address of the account which placed the offer.
+                    description: >-
+                      buyer is bech32 address of the account which placed the
+                      offer.
                   offer_price:
-                    description: |-
-                      The amount of coins willing to pay for the Dym-Name.
-                      This amount is deposited to the module account.
+                    description: >-
+                      offer_price is the amount of coins that buyer willing to
+                      pay for the Dym-Name.
+
+                      This amount is deposited to the module account upon
+                      placing the offer.
                     type: object
                     properties:
                       denom:
@@ -1873,22 +1912,20 @@ paths:
                         type: string
                   counterparty_offer_price:
                     description: >-
-                      The price that the Dym-Name owner is willing to sell the
-                      Dym-Name for.
+                      counterparty_offer_price is the price that the Dym-Name
+                      owner is willing to sell the Dym-Name for.
 
-                      When this price matches offer_price, the transaction done.
+                      This is used for counterparty price negotiation and for
+                      information only.
+
+                      The transaction can only be executed when the owner
+                      accepts the offer with exact offer_price.
                     type: object
                     properties:
                       denom:
                         type: string
                       amount:
                         type: string
-                description: >-
-                  OfferToBuy defines an offer to buy a Dym-Name, placed by
-                  buyer.
-
-                  Buyer will need to deposit the offer amount to the module
-                  account.
             description: >-
               QueryOfferToBuyByIdResponse is the response type for the
               Query/OfferToBuyById RPC method.
@@ -1916,6 +1953,7 @@ paths:
                       format: byte
       parameters:
         - name: id
+          description: id is the id of the Offer-To-Buy record to query.
           in: path
           required: true
           type: string
@@ -1938,19 +1976,24 @@ paths:
                   properties:
                     id:
                       type: string
-                      description: The unique identifier of the offer.
+                      description: >-
+                        id is the unique identifier of the offer. Generated by
+                        the module.
                     name:
                       type: string
-                      description: The name of the Dym-Name willing to buy.
+                      description: name of the Dym-Name willing to buy.
                     buyer:
                       type: string
                       description: >-
-                        The bech32 address of the account which placed the
+                        buyer is bech32 address of the account which placed the
                         offer.
                     offer_price:
-                      description: |-
-                        The amount of coins willing to pay for the Dym-Name.
-                        This amount is deposited to the module account.
+                      description: >-
+                        offer_price is the amount of coins that buyer willing to
+                        pay for the Dym-Name.
+
+                        This amount is deposited to the module account upon
+                        placing the offer.
                       type: object
                       properties:
                         denom:
@@ -1959,11 +2002,14 @@ paths:
                           type: string
                     counterparty_offer_price:
                       description: >-
-                        The price that the Dym-Name owner is willing to sell the
-                        Dym-Name for.
+                        counterparty_offer_price is the price that the Dym-Name
+                        owner is willing to sell the Dym-Name for.
 
-                        When this price matches offer_price, the transaction
-                        done.
+                        This is used for counterparty price negotiation and for
+                        information only.
+
+                        The transaction can only be executed when the owner
+                        accepts the offer with exact offer_price.
                       type: object
                       properties:
                         denom:
@@ -1976,6 +2022,13 @@ paths:
 
                     Buyer will need to deposit the offer amount to the module
                     account.
+
+                    When the owner of the Dym-Name accepts the offer, deposited
+                    amount will be transferred to the owner.
+
+                    When the buyer cancels the offer, deposited amount will be
+                    refunded to the buyer.
+                description: offers are the Offers-To-Buy for the Dym-Name.
             description: >-
               QueryOffersToBuyByDymNameResponse is the response type for the
               Query/OffersToBuyByDymName RPC method.
@@ -2003,6 +2056,7 @@ paths:
                       format: byte
       parameters:
         - name: name
+          description: name is the Dym-Name to query the Offers-To-Buy for.
           in: path
           required: true
           type: string
@@ -2027,19 +2081,24 @@ paths:
                   properties:
                     id:
                       type: string
-                      description: The unique identifier of the offer.
+                      description: >-
+                        id is the unique identifier of the offer. Generated by
+                        the module.
                     name:
                       type: string
-                      description: The name of the Dym-Name willing to buy.
+                      description: name of the Dym-Name willing to buy.
                     buyer:
                       type: string
                       description: >-
-                        The bech32 address of the account which placed the
+                        buyer is bech32 address of the account which placed the
                         offer.
                     offer_price:
-                      description: |-
-                        The amount of coins willing to pay for the Dym-Name.
-                        This amount is deposited to the module account.
+                      description: >-
+                        offer_price is the amount of coins that buyer willing to
+                        pay for the Dym-Name.
+
+                        This amount is deposited to the module account upon
+                        placing the offer.
                       type: object
                       properties:
                         denom:
@@ -2048,11 +2107,14 @@ paths:
                           type: string
                     counterparty_offer_price:
                       description: >-
-                        The price that the Dym-Name owner is willing to sell the
-                        Dym-Name for.
+                        counterparty_offer_price is the price that the Dym-Name
+                        owner is willing to sell the Dym-Name for.
 
-                        When this price matches offer_price, the transaction
-                        done.
+                        This is used for counterparty price negotiation and for
+                        information only.
+
+                        The transaction can only be executed when the owner
+                        accepts the offer with exact offer_price.
                       type: object
                       properties:
                         denom:
@@ -2065,6 +2127,15 @@ paths:
 
                     Buyer will need to deposit the offer amount to the module
                     account.
+
+                    When the owner of the Dym-Name accepts the offer, deposited
+                    amount will be transferred to the owner.
+
+                    When the buyer cancels the offer, deposited amount will be
+                    refunded to the buyer.
+                description: >-
+                  offers are the Offers-To-Buy of the Dym-Names owned by the
+                  input account.
             description: >-
               QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response
               type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
@@ -2092,6 +2163,7 @@ paths:
                       format: byte
       parameters:
         - name: account
+          description: account is the account address to query the Offers-To-Buy for.
           in: path
           required: true
           type: string
@@ -2116,19 +2188,24 @@ paths:
                   properties:
                     id:
                       type: string
-                      description: The unique identifier of the offer.
+                      description: >-
+                        id is the unique identifier of the offer. Generated by
+                        the module.
                     name:
                       type: string
-                      description: The name of the Dym-Name willing to buy.
+                      description: name of the Dym-Name willing to buy.
                     buyer:
                       type: string
                       description: >-
-                        The bech32 address of the account which placed the
+                        buyer is bech32 address of the account which placed the
                         offer.
                     offer_price:
-                      description: |-
-                        The amount of coins willing to pay for the Dym-Name.
-                        This amount is deposited to the module account.
+                      description: >-
+                        offer_price is the amount of coins that buyer willing to
+                        pay for the Dym-Name.
+
+                        This amount is deposited to the module account upon
+                        placing the offer.
                       type: object
                       properties:
                         denom:
@@ -2137,11 +2214,14 @@ paths:
                           type: string
                     counterparty_offer_price:
                       description: >-
-                        The price that the Dym-Name owner is willing to sell the
-                        Dym-Name for.
+                        counterparty_offer_price is the price that the Dym-Name
+                        owner is willing to sell the Dym-Name for.
 
-                        When this price matches offer_price, the transaction
-                        done.
+                        This is used for counterparty price negotiation and for
+                        information only.
+
+                        The transaction can only be executed when the owner
+                        accepts the offer with exact offer_price.
                       type: object
                       properties:
                         denom:
@@ -2154,6 +2234,13 @@ paths:
 
                     Buyer will need to deposit the offer amount to the module
                     account.
+
+                    When the owner of the Dym-Name accepts the offer, deposited
+                    amount will be transferred to the owner.
+
+                    When the buyer cancels the offer, deposited amount will be
+                    refunded to the buyer.
+                description: offers are the Offers-To-Buy placed by the account.
             description: >-
               QueryOffersToBuyByAccountResponse is the response type for the
               Query/OffersToBuyPlacedByAccount RPC method.
@@ -2181,6 +2268,7 @@ paths:
                       format: byte
       parameters:
         - name: account
+          description: account is the account address to query the Offers-To-Buy for.
           in: path
           required: true
           type: string
@@ -2203,23 +2291,31 @@ paths:
                   properties:
                     name:
                       type: string
+                      description: name is the human-readable name of the Dym-Name.
                     owner:
                       type: string
                       description: >-
-                        Account address of the owner of the Dym-Name. Owner has
-                        permission to transfer ownership.
+                        owner is the account address that owns the Dym-Name.
+                        Owner has permission to transfer ownership.
                     controller:
                       type: string
                       description: >-
-                        Account address of the controller of the Dym-Name.
-                        Controller has permission to update resolve and contact
-                        for the Dym-Name.
+                        controller is the account address that have permission
+                        update configuration for the Dym-Name.
+
+                        Default is the owner. Able to transfer control to
+                        another account.
+
+                        Users can set Dym-Name owned by Cold-Wallet and
+                        controlled by Hot-Wallet.
                     expire_at:
                       type: string
                       format: int64
                       description: >-
-                        The last effective date of the Dym-Name, after which the
-                        Dym-Name is no longer valid.
+                        expire_at is the UTC epoch represent the last effective
+                        date of the Dym-Name,
+
+                        after which the Dym-Name is no longer valid.
 
                         NOTE: Expired Dym-Names are not deleted from the store
 
@@ -2232,8 +2328,8 @@ paths:
                         properties:
                           type:
                             description: >-
-                              The type of the Dym-Name configuration (equals to
-                              Type in DNS).
+                              type is the type of the Dym-Name configuration
+                              (equals to Type in DNS).
                             type: string
                             enum:
                               - UNKNOWN
@@ -2242,28 +2338,52 @@ paths:
                           chain_id:
                             type: string
                             description: >-
-                              The chain ID of the Dym-Name configuration (equals
-                              to top-level-domain).
+                              chain_id is the chain-id of the Dym-Name
+                              configuration (equals to top-level-domain).
 
-                              If empty, the configuration is for host chain aka
-                              Dymension Hub.
+                              If empty, the configuration is for host chain
+                              (Dymension Hub).
                           path:
                             type: string
                             description: >-
-                              The path of the Dym-Name configuration (equals to
-                              Host in DNS).
+                              path of the Dym-Name configuration (equals to Host
+                              in DNS).
 
-                              If not empty, is sub-path configuration.
+                              If the type of this config record is Name, it is
+                              the Sub-Name of the Dym-Name Address.
                           value:
                             type: string
                             description: >-
-                              The value of the Dym-Name configuration (equals to
-                              Value in DNS).
-                      description: Configurations for the Dym-Name.
+                              value of the Dym-Name configuration resolves to
+                              (equals to Value in DNS).
+
+                              If the type of this config record is Name, it is
+                              the address which the Dym-Name Address resolves
+                              to.
+                        description: >-
+                          DymNameConfig contains the resolution configuration
+                          for the Dym-Name.
+
+                          Each record is a resolution record, similar to DNS.
+                      description: configs are configuration records for the Dym-Name.
                     contact:
                       type: string
-                      description: The optional contact information for the Dym-Name.
-                description: dym_names defines the Dym-Names owned by the account.
+                      description: |-
+                        contact is an optional information for the Dym-Name.
+                        Convenient for retails users.
+                  description: >-
+                    DymName defines a Dym-Name, the mainly purpose is to stores
+                    ownership and resolution information.
+
+                    Dym-Name is similar to DNS. It is a human-readable name that
+                    maps to a chain address.
+
+                    One Dym-Name can have multiple configurations, each
+                    configuration is a resolution record.
+
+                    Dym-Name is owned by an account, able to grant permission to
+                    another account to control the Dym-Name.
+                description: dym_names defines the Dym-Names owned by the input account.
             description: >-
               QueryDymNamesOwnedByAccountResponse is the response type for the
               Query/DymNamesOwnedByAccount RPC method.
@@ -2301,7 +2421,7 @@ paths:
         - Query
   /dymensionxyz/dymension/dymns/params:
     get:
-      summary: Parameters queries the parameters of the module.
+      summary: Params queries the parameters of the module.
       operationId: DymNSParams
       responses:
         '200':
@@ -2314,27 +2434,50 @@ paths:
                 type: object
                 properties:
                   price:
-                    description: Price of Dym-Name and related parameters.
+                    description: >-
+                      price defines setting for pricing of Dym-Name and
+                      price-related parameters.
                     type: object
                     properties:
-                      price_1_letter:
+                      name_price_1_letter:
                         type: string
                         title: Price of 1 letter Dym-Name, apply to first year
-                      price_2_letters:
+                      name_price_2_letters:
                         type: string
                         title: Price of 2 letters Dym-Name, apply to first year
-                      price_3_letters:
+                      name_price_3_letters:
                         type: string
                         title: Price of 3 letters Dym-Name, apply to first year
-                      price_4_letters:
+                      name_price_4_letters:
                         type: string
                         title: Price of 4 letters Dym-Name, apply to first year
-                      price_5plus_letters:
+                      name_price_5plus_letters:
                         type: string
                         title: Price of 5+ letters Dym-Name, apply to first year
+                      alias_price_1_letter:
+                        type: string
+                        title: Price of 1 letter Alias, one off payment
+                      alias_price_2_letters:
+                        type: string
+                        title: Price of 2 letters Alias, one off payment
+                      alias_price_3_letters:
+                        type: string
+                        title: Price of 3 letters Alias, one off payment
+                      alias_price_4_letters:
+                        type: string
+                        title: Price of 4 letters Alias, one off payment
+                      alias_price_5_letters:
+                        type: string
+                        title: Price of 5 letters Alias, one off payment
+                      alias_price_6_letters:
+                        type: string
+                        title: Price of 6 letters Alias, one off payment
+                      alias_price_7plus_letters:
+                        type: string
+                        title: Price of 7+ letters Alias, one off payment
                       price_extends:
                         type: string
-                        title: Price extends yearly, after first year
+                        title: Price extends Dym-Name yearly, after first year
                       price_denom:
                         type: string
                         title: Denom of the price setup
@@ -2348,7 +2491,9 @@ paths:
 
                           so the value should not be so low.
                   chains:
-                    description: Chains related parameters.
+                    description: >-
+                      chains defines setting for aliases mapping, and list of
+                      chain-ids that are using coin-type 60.
                     type: object
                     properties:
                       aliases_of_chain_ids:
@@ -2358,64 +2503,114 @@ paths:
                           properties:
                             chain_id:
                               type: string
-                              description: Chain-ID which owned the aliases.
+                              description: chain_id which owned the aliases.
                             aliases:
                               type: array
                               items:
                                 type: string
-                              description: >-
-                                Multiple aliases of the chain id for UX
-                                improvement, used in front-end.
+                              title: >-
+                                aliases is set of aliases of the chain id for UX
+                                improvement,
+
+                                like we can do my-name@cosmos instead of
+                                my-name@cosmoshub-4
                           description: >-
                             AliasesOfChainId defines the multiple-aliases of a
                             chain id.
                         description: >-
-                          Chain-IDs and their aliases, used for UX improvement,
-                          used in front-end.
+                          aliases_of_chain_ids is set of chain-ids and their
+                          corresponding aliases,
+
+                          used for UX improvement like we can do my-name@cosmos
+                          instead of my-name@cosmoshub-4.
+
+
+                          This list is prioritized over Roll-App aliases
+
+                          the reason is to allow the community able to have
+                          control to fixes the potential problems with the
+                          aliases.
                       coin_type_60_chain_ids:
                         type: array
                         items:
                           type: string
                         description: >-
-                          Chain-IDs that are using coin-type 60. Used to ensure
-                          address conversion.
+                          coin_type_60_chain_ids is set of chain-ids that are
+                          using coin-type 60.
+
+                          Used to ensure address conversion.
+
+                          Chains that are not Coin-Type 60 will be limited in
+                          cross-chain address conversion to reduce risk.
                   misc:
-                    description: Misc parameters.
+                    description: misc is group of miscellaneous parameters.
                     type: object
                     properties:
                       begin_epoch_hook_identifier:
                         type: string
-                        description: Identifier of the begin epoch hook.
+                        description: >-
+                          begin_epoch_hook_identifier is the identifier of the
+                          begin epoch hook.
                       end_epoch_hook_identifier:
                         type: string
-                        description: Identifier of the end epoch hook.
+                        description: >-
+                          end_epoch_hook_identifier is the identifier of the end
+                          epoch hook.
                       grace_period_duration:
                         type: string
                         description: >-
-                          Amount of time that the former owner of an expired
-                          Dym-Name can renew it before completely lost.
+                          grace_period_duration is the amount of time that the
+                          former owner of an expired Dym-Name
+
+                          can renew it before completely lost.
                       sell_order_duration:
                         type: string
                         description: >-
-                          Amount of time of a Sell-Order from created to
-                          expired.
+                          sell_order_duration is the amount of time of a
+                          Sell-Order from created to expired.
                       preserved_closed_sell_order_duration:
                         type: string
                         description: >-
-                          Amount of time to keep history version of closed SO
+                          preserved_closed_sell_order_duration is the amount of
+                          time
+
+                          to keep closed Sell-Orders as historical records
                           before it is deleted,
 
                           based on expiry date and block time.
                       prohibit_sell_duration:
                         type: string
                         description: >-
-                          Amount of time, if the SO expiry date enter the range
-                          before expiry of Dym-Name, the SO can not be placed.
+                          prohibit_sell_duration is the amount of time,
 
-                          This help reduce the risk of new owner of Dym-Name not
-                          able to renew it on time.
+                          if the Sell-Order expiration date enters the range
+                          before expiry of Dym-Name, the Sell-Order can not be
+                          placed.
+
+                          The logic also applies when the owner accepts an
+                          Offer-To-Buy, the Dym-Name can not be sold.
+
+                          This is to prevent the new owner of Dym-Name to sell
+                          it before the Dym-Name expires,
+
+                          therefore help reduce the risk of new owner of
+                          Dym-Name not able to renew it on time.
                   preserved_registration:
-                    description: Preserved registration parameters.
+                    description: >-
+                      preserved_registration contains setting for preserved
+                      registration Dym-Names,
+
+                      allow to be registered by specific account within a short
+                      period of time.
+
+                      This list will be cleared after the expiration epoch to
+                      save space.
+
+                      This is useful as when go-live, the team can reserve some
+                      Dym-Names for specific purpose
+
+                      and for well-known entities, not to be registered/stolen
+                      by others.
                     type: object
                     properties:
                       expiration_epoch:
@@ -2423,7 +2618,7 @@ paths:
                         format: int64
                         description: >-
                           expiration_epoch is the epoch that the preserved
-                          registration will be expired.
+                          registration period will be expired.
                       preserved_dym_names:
                         type: array
                         items:
@@ -2431,15 +2626,35 @@ paths:
                           properties:
                             dym_name:
                               type: string
-                              description: dym_name is the preserved dym-name.
+                              description: >-
+                                dym_name is name of the preserved Dym-Name that
+                                enable whitelisted for.
                             whitelisted_address:
                               type: string
                               description: >-
                                 whitelisted_address is the only address that can
-                                register the preserved dym-name.
+                                register the preserved Dym-Name.
+                          description: >-
+                            PreservedDymName defines one preserved Dym-Name and
+                            the whitelisted address that can register the
+                            preserved dym-name.
+
+                            If want to reserve a Dym-Name for multiple
+                            addresses, add multiple PreservedDymName with the
+                            same Dym-Name.
+
+                            If want to reserve multiple Dym-Names for one
+                            address, add multiple PreservedDymName with the same
+                            address.
                         description: >-
                           preserved_dym_names is the list of preserved
                           dym-names.
+
+                          It defines the Dym-Name and the whitelisted address
+                          that can register the preserved Dym-Name.
+
+                          It is allowed for one Dym-Name to have multiple
+                          whitelisted addresses and vice versa.
 
                           This list will be cleared after the expiration epoch
                           to save space.
@@ -2474,7 +2689,14 @@ paths:
     get:
       summary: >-
         ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account
-        addresses.
+        address of each pointing to.
+      description: |-
+        For example:
+          - "my-name@dym" => "dym1a..."
+          - "another.my-name@dym" => "dym1b..."
+          - "my-name@nim" => "nim1..."
+          - (extra format) "0x1234...6789@nim" => "nim1..."
+          - (extra format) "dym1a...@nim" => "nim1..."
       operationId: ResolveDymNameAddresses
       responses:
         '200':
@@ -2489,10 +2711,19 @@ paths:
                   properties:
                     address:
                       type: string
+                      description: address is the input Dym-Name address to resolve.
                     resolved_address:
                       type: string
+                      description: resolved_address is the resolved account address.
                     error:
                       type: string
+                      description: error is the error that occurred during the resolution.
+                  description: >-
+                    ResultDymNameAddress defines the result of a single Dym-Name
+                    address resolution.
+                description: >-
+                  resolved_addresses defines the resolved addresses for each
+                  input Dym-Name address.
             description: >-
               QueryResolveDymNameAddressesResponse is the response type for the
               Query/ResolveDymNameAddresses RPC method.
@@ -2520,6 +2751,7 @@ paths:
                       format: byte
       parameters:
         - name: addresses
+          description: addresses defines the Dym-Name addresses to resolve.
           in: query
           required: false
           type: array
@@ -2532,7 +2764,13 @@ paths:
     get:
       summary: >-
         ReverseResolveAddress resolves multiple account addresses to Dym-Name
-        Addresses.
+        Addresses which point to each.
+
+        This function may return multiple possible Dym-Name-Addresses those
+        point to each of the input address.
+      description: |-
+        For example: when we have "my-name@dym" resolves to "dym1a..."
+        so reverse resolve will return "my-name@dym" when input is "dym1a..."
       operationId: ReverseResolveAddress
       responses:
         '200':
@@ -2549,9 +2787,15 @@ paths:
                       type: array
                       items:
                         type: string
+                      description: >-
+                        candidates are the Dym-Name addresses that the input
+                        address resolves to. Take one of them.
                     error:
                       type: string
-                description: resolved_addresses defines the resolved addresses.
+                      description: error is the error that occurred during the resolution.
+                description: >-
+                  result defines the reverse resolution result for each input
+                  address.
               working_chain_id:
                 type: string
                 description: >-
@@ -2619,17 +2863,15 @@ paths:
                 properties:
                   name:
                     type: string
-                    description: The name of the Dym-Name being opened to be sold.
+                    description: name of the Dym-Name being opened to be sold.
                   expire_at:
                     type: string
                     format: int64
-                    description: >-
-                      The last effective date of this SO, after which the
-                      Dym-Name bid/buy is no longer valid.
+                    title: expire_at is the last effective date of this SO
                   min_price:
                     description: >-
-                      The minimum price that the owner is willing to accept for
-                      the Dym-Name.
+                      min_price is the minimum price that the owner is willing
+                      to accept for the Dym-Name.
                     type: object
                     properties:
                       denom:
@@ -2638,11 +2880,13 @@ paths:
                         type: string
                   sell_price:
                     description: >-
-                      The price that the owner is willing to sell the Dym-Name
-                      for, the SO will be closed when the price is met.
+                      sell_price is the price that the owner is willing to sell
+                      the Dym-Name for,
+
+                      the SO will be closed when the price is met.
 
                       If the sell price is zero, the SO will be closed when the
-                      expire_at is reached and the highest bid win.
+                      expire_at is reached and the highest bidder wins.
                     type: object
                     properties:
                       denom:
@@ -2651,15 +2895,17 @@ paths:
                         type: string
                   highest_bid:
                     description: >-
-                      The highest bid on the SO, if any. Price must be greater
-                      than or equal to the min_price.
+                      highest_bid is the highest bid on the SO, if any. Price
+                      must be greater than or equal to the min_price.
                     type: object
                     properties:
                       bidder:
                         type: string
-                        description: The address of the account which placed the bid.
+                        description: >-
+                          bidder is the account address of the account which
+                          placed the bid.
                       price:
-                        description: The price set by the bidder.
+                        description: price is the amount of coin offered by the bidder.
                         type: object
                         properties:
                           denom:
@@ -2670,13 +2916,19 @@ paths:
                   SellOrder defines a sell order, placed by owner, to sell a
                   Dym-Name.
 
-                  After expiry date, if no one has placed a bid, this SO will be
-                  closed, no change.
+                  Sell-Order has an expiry date.
 
-                  If there is a bid, the highest bid will win.
+                  After expiry date, if no one has placed a bid, this Sell-Order
+                  will be closed, no change.
 
-                  SO will be moved to historical records after completed, no
-                  matter reason.
+                  If there is a bid, the highest bid will win, and the Dym-Name
+                  ownership will be transferred to the winner.
+
+                  If the bid matches the sell price, the Dym-Name ownership will
+                  be transferred to the bidder immediately.
+
+                  SO will be moved to historical records after
+                  completion/expiry.
             description: >-
               QuerySellOrderResponse is the response type for the
               Query/SellOrder RPC method.
@@ -2704,7 +2956,7 @@ paths:
                       format: byte
       parameters:
         - name: dym_name
-          description: dym_name is the Dym-Name to query the active SO for.
+          description: dym_name is the Dym-Name to query the active Sell-Order for.
           in: path
           required: true
           type: string
@@ -2727,6 +2979,9 @@ paths:
             properties:
               chain_id:
                 type: string
+                description: >-
+                  chain_id is the chain id that the alias or chain id translates
+                  to.
             description: >-
               QueryTranslateAliasOrChainIdToChainIdResponse is the response type
               for the Query/TranslateAliasOrChainIdToChainId RPC method.
@@ -2754,6 +3009,7 @@ paths:
                       format: byte
       parameters:
         - name: alias_or_chain_id
+          description: alias_or_chain_id is the alias or chain id to translate.
           in: path
           required: true
           type: string
@@ -57795,14 +58051,14 @@ definitions:
     properties:
       chain_id:
         type: string
-        description: Chain-ID which owned the aliases.
+        description: chain_id which owned the aliases.
       aliases:
         type: array
         items:
           type: string
-        description: >-
-          Multiple aliases of the chain id for UX improvement, used in
-          front-end.
+        title: |-
+          aliases is set of aliases of the chain id for UX improvement,
+          like we can do my-name@cosmos instead of my-name@cosmoshub-4
     description: AliasesOfChainId defines the multiple-aliases of a chain id.
   dymensionxyz.dymension.dymns.ChainsParams:
     type: object
@@ -57814,46 +58070,71 @@ definitions:
           properties:
             chain_id:
               type: string
-              description: Chain-ID which owned the aliases.
+              description: chain_id which owned the aliases.
             aliases:
               type: array
               items:
                 type: string
-              description: >-
-                Multiple aliases of the chain id for UX improvement, used in
-                front-end.
+              title: |-
+                aliases is set of aliases of the chain id for UX improvement,
+                like we can do my-name@cosmos instead of my-name@cosmoshub-4
           description: AliasesOfChainId defines the multiple-aliases of a chain id.
         description: >-
-          Chain-IDs and their aliases, used for UX improvement, used in
-          front-end.
+          aliases_of_chain_ids is set of chain-ids and their corresponding
+          aliases,
+
+          used for UX improvement like we can do my-name@cosmos instead of
+          my-name@cosmoshub-4.
+
+
+          This list is prioritized over Roll-App aliases
+
+          the reason is to allow the community able to have control to fixes the
+          potential problems with the aliases.
       coin_type_60_chain_ids:
         type: array
         items:
           type: string
         description: >-
-          Chain-IDs that are using coin-type 60. Used to ensure address
-          conversion.
+          coin_type_60_chain_ids is set of chain-ids that are using coin-type
+          60.
+
+          Used to ensure address conversion.
+
+          Chains that are not Coin-Type 60 will be limited in cross-chain
+          address conversion to reduce risk.
+    description: >-
+      ChainsParams defines setting for aliases mapping, and list of chain-ids
+      that are using coin-type 60.
   dymensionxyz.dymension.dymns.DymName:
     type: object
     properties:
       name:
         type: string
+        description: name is the human-readable name of the Dym-Name.
       owner:
         type: string
         description: >-
-          Account address of the owner of the Dym-Name. Owner has permission to
-          transfer ownership.
+          owner is the account address that owns the Dym-Name. Owner has
+          permission to transfer ownership.
       controller:
         type: string
         description: >-
-          Account address of the controller of the Dym-Name. Controller has
-          permission to update resolve and contact for the Dym-Name.
+          controller is the account address that have permission update
+          configuration for the Dym-Name.
+
+          Default is the owner. Able to transfer control to another account.
+
+          Users can set Dym-Name owned by Cold-Wallet and controlled by
+          Hot-Wallet.
       expire_at:
         type: string
         format: int64
         description: >-
-          The last effective date of the Dym-Name, after which the Dym-Name is
-          no longer valid.
+          expire_at is the UTC epoch represent the last effective date of the
+          Dym-Name,
+
+          after which the Dym-Name is no longer valid.
 
           NOTE: Expired Dym-Names are not deleted from the store
 
@@ -57865,7 +58146,9 @@ definitions:
           type: object
           properties:
             type:
-              description: The type of the Dym-Name configuration (equals to Type in DNS).
+              description: >-
+                type is the type of the Dym-Name configuration (equals to Type
+                in DNS).
               type: string
               enum:
                 - UNKNOWN
@@ -57874,29 +58157,55 @@ definitions:
             chain_id:
               type: string
               description: >-
-                The chain ID of the Dym-Name configuration (equals to
-                top-level-domain).
+                chain_id is the chain-id of the Dym-Name configuration (equals
+                to top-level-domain).
 
-                If empty, the configuration is for host chain aka Dymension Hub.
+                If empty, the configuration is for host chain (Dymension Hub).
             path:
               type: string
-              description: |-
-                The path of the Dym-Name configuration (equals to Host in DNS).
-                If not empty, is sub-path configuration.
+              description: >-
+                path of the Dym-Name configuration (equals to Host in DNS).
+
+                If the type of this config record is Name, it is the Sub-Name of
+                the Dym-Name Address.
             value:
               type: string
               description: >-
-                The value of the Dym-Name configuration (equals to Value in
-                DNS).
-        description: Configurations for the Dym-Name.
+                value of the Dym-Name configuration resolves to (equals to Value
+                in DNS).
+
+                If the type of this config record is Name, it is the address
+                which the Dym-Name Address resolves to.
+          description: >-
+            DymNameConfig contains the resolution configuration for the
+            Dym-Name.
+
+            Each record is a resolution record, similar to DNS.
+        description: configs are configuration records for the Dym-Name.
       contact:
         type: string
-        description: The optional contact information for the Dym-Name.
+        description: |-
+          contact is an optional information for the Dym-Name.
+          Convenient for retails users.
+    description: >-
+      DymName defines a Dym-Name, the mainly purpose is to stores ownership and
+      resolution information.
+
+      Dym-Name is similar to DNS. It is a human-readable name that maps to a
+      chain address.
+
+      One Dym-Name can have multiple configurations, each configuration is a
+      resolution record.
+
+      Dym-Name is owned by an account, able to grant permission to another
+      account to control the Dym-Name.
   dymensionxyz.dymension.dymns.DymNameConfig:
     type: object
     properties:
       type:
-        description: The type of the Dym-Name configuration (equals to Type in DNS).
+        description: >-
+          type is the type of the Dym-Name configuration (equals to Type in
+          DNS).
         type: string
         enum:
           - UNKNOWN
@@ -57905,72 +58214,99 @@ definitions:
       chain_id:
         type: string
         description: >-
-          The chain ID of the Dym-Name configuration (equals to
+          chain_id is the chain-id of the Dym-Name configuration (equals to
           top-level-domain).
 
-          If empty, the configuration is for host chain aka Dymension Hub.
+          If empty, the configuration is for host chain (Dymension Hub).
       path:
         type: string
-        description: |-
-          The path of the Dym-Name configuration (equals to Host in DNS).
-          If not empty, is sub-path configuration.
+        description: >-
+          path of the Dym-Name configuration (equals to Host in DNS).
+
+          If the type of this config record is Name, it is the Sub-Name of the
+          Dym-Name Address.
       value:
         type: string
-        description: The value of the Dym-Name configuration (equals to Value in DNS).
+        description: >-
+          value of the Dym-Name configuration resolves to (equals to Value in
+          DNS).
+
+          If the type of this config record is Name, it is the address which the
+          Dym-Name Address resolves to.
+    description: |-
+      DymNameConfig contains the resolution configuration for the Dym-Name.
+      Each record is a resolution record, similar to DNS.
   dymensionxyz.dymension.dymns.DymNameConfigType:
     type: string
     enum:
       - UNKNOWN
       - NAME
     default: UNKNOWN
+    description: |-
+      DymNameConfigType specifies the type of the Dym-Name configuration.
+      Currently only supports Name, similar to DNS.
   dymensionxyz.dymension.dymns.MiscParams:
     type: object
     properties:
       begin_epoch_hook_identifier:
         type: string
-        description: Identifier of the begin epoch hook.
+        description: begin_epoch_hook_identifier is the identifier of the begin epoch hook.
       end_epoch_hook_identifier:
         type: string
-        description: Identifier of the end epoch hook.
+        description: end_epoch_hook_identifier is the identifier of the end epoch hook.
       grace_period_duration:
         type: string
         description: >-
-          Amount of time that the former owner of an expired Dym-Name can renew
-          it before completely lost.
+          grace_period_duration is the amount of time that the former owner of
+          an expired Dym-Name
+
+          can renew it before completely lost.
       sell_order_duration:
         type: string
-        description: Amount of time of a Sell-Order from created to expired.
+        description: >-
+          sell_order_duration is the amount of time of a Sell-Order from created
+          to expired.
       preserved_closed_sell_order_duration:
         type: string
-        description: >-
-          Amount of time to keep history version of closed SO before it is
-          deleted,
-
+        description: |-
+          preserved_closed_sell_order_duration is the amount of time
+          to keep closed Sell-Orders as historical records before it is deleted,
           based on expiry date and block time.
       prohibit_sell_duration:
         type: string
         description: >-
-          Amount of time, if the SO expiry date enter the range before expiry of
-          Dym-Name, the SO can not be placed.
+          prohibit_sell_duration is the amount of time,
 
-          This help reduce the risk of new owner of Dym-Name not able to renew
-          it on time.
+          if the Sell-Order expiration date enters the range before expiry of
+          Dym-Name, the Sell-Order can not be placed.
+
+          The logic also applies when the owner accepts an Offer-To-Buy, the
+          Dym-Name can not be sold.
+
+          This is to prevent the new owner of Dym-Name to sell it before the
+          Dym-Name expires,
+
+          therefore help reduce the risk of new owner of Dym-Name not able to
+          renew it on time.
+    description: MiscParams defines group of miscellaneous parameters.
   dymensionxyz.dymension.dymns.OfferToBuy:
     type: object
     properties:
       id:
         type: string
-        description: The unique identifier of the offer.
+        description: id is the unique identifier of the offer. Generated by the module.
       name:
         type: string
-        description: The name of the Dym-Name willing to buy.
+        description: name of the Dym-Name willing to buy.
       buyer:
         type: string
-        description: The bech32 address of the account which placed the offer.
+        description: buyer is bech32 address of the account which placed the offer.
       offer_price:
-        description: |-
-          The amount of coins willing to pay for the Dym-Name.
-          This amount is deposited to the module account.
+        description: >-
+          offer_price is the amount of coins that buyer willing to pay for the
+          Dym-Name.
+
+          This amount is deposited to the module account upon placing the offer.
         type: object
         properties:
           denom:
@@ -57978,43 +58314,79 @@ definitions:
           amount:
             type: string
       counterparty_offer_price:
-        description: |-
-          The price that the Dym-Name owner is willing to sell the Dym-Name for.
-          When this price matches offer_price, the transaction done.
+        description: >-
+          counterparty_offer_price is the price that the Dym-Name owner is
+          willing to sell the Dym-Name for.
+
+          This is used for counterparty price negotiation and for information
+          only.
+
+          The transaction can only be executed when the owner accepts the offer
+          with exact offer_price.
         type: object
         properties:
           denom:
             type: string
           amount:
             type: string
-    description: |-
+    description: >-
       OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
+
       Buyer will need to deposit the offer amount to the module account.
+
+      When the owner of the Dym-Name accepts the offer, deposited amount will be
+      transferred to the owner.
+
+      When the buyer cancels the offer, deposited amount will be refunded to the
+      buyer.
   dymensionxyz.dymension.dymns.Params:
     type: object
     properties:
       price:
-        description: Price of Dym-Name and related parameters.
+        description: >-
+          price defines setting for pricing of Dym-Name and price-related
+          parameters.
         type: object
         properties:
-          price_1_letter:
+          name_price_1_letter:
             type: string
             title: Price of 1 letter Dym-Name, apply to first year
-          price_2_letters:
+          name_price_2_letters:
             type: string
             title: Price of 2 letters Dym-Name, apply to first year
-          price_3_letters:
+          name_price_3_letters:
             type: string
             title: Price of 3 letters Dym-Name, apply to first year
-          price_4_letters:
+          name_price_4_letters:
             type: string
             title: Price of 4 letters Dym-Name, apply to first year
-          price_5plus_letters:
+          name_price_5plus_letters:
             type: string
             title: Price of 5+ letters Dym-Name, apply to first year
+          alias_price_1_letter:
+            type: string
+            title: Price of 1 letter Alias, one off payment
+          alias_price_2_letters:
+            type: string
+            title: Price of 2 letters Alias, one off payment
+          alias_price_3_letters:
+            type: string
+            title: Price of 3 letters Alias, one off payment
+          alias_price_4_letters:
+            type: string
+            title: Price of 4 letters Alias, one off payment
+          alias_price_5_letters:
+            type: string
+            title: Price of 5 letters Alias, one off payment
+          alias_price_6_letters:
+            type: string
+            title: Price of 6 letters Alias, one off payment
+          alias_price_7plus_letters:
+            type: string
+            title: Price of 7+ letters Alias, one off payment
           price_extends:
             type: string
-            title: Price extends yearly, after first year
+            title: Price extends Dym-Name yearly, after first year
           price_denom:
             type: string
             title: Denom of the price setup
@@ -58028,7 +58400,9 @@ definitions:
 
               so the value should not be so low.
       chains:
-        description: Chains related parameters.
+        description: >-
+          chains defines setting for aliases mapping, and list of chain-ids that
+          are using coin-type 60.
         type: object
         properties:
           aliases_of_chain_ids:
@@ -58038,68 +58412,112 @@ definitions:
               properties:
                 chain_id:
                   type: string
-                  description: Chain-ID which owned the aliases.
+                  description: chain_id which owned the aliases.
                 aliases:
                   type: array
                   items:
                     type: string
-                  description: >-
-                    Multiple aliases of the chain id for UX improvement, used in
-                    front-end.
+                  title: >-
+                    aliases is set of aliases of the chain id for UX
+                    improvement,
+
+                    like we can do my-name@cosmos instead of my-name@cosmoshub-4
               description: AliasesOfChainId defines the multiple-aliases of a chain id.
             description: >-
-              Chain-IDs and their aliases, used for UX improvement, used in
-              front-end.
+              aliases_of_chain_ids is set of chain-ids and their corresponding
+              aliases,
+
+              used for UX improvement like we can do my-name@cosmos instead of
+              my-name@cosmoshub-4.
+
+
+              This list is prioritized over Roll-App aliases
+
+              the reason is to allow the community able to have control to fixes
+              the potential problems with the aliases.
           coin_type_60_chain_ids:
             type: array
             items:
               type: string
             description: >-
-              Chain-IDs that are using coin-type 60. Used to ensure address
-              conversion.
+              coin_type_60_chain_ids is set of chain-ids that are using
+              coin-type 60.
+
+              Used to ensure address conversion.
+
+              Chains that are not Coin-Type 60 will be limited in cross-chain
+              address conversion to reduce risk.
       misc:
-        description: Misc parameters.
+        description: misc is group of miscellaneous parameters.
         type: object
         properties:
           begin_epoch_hook_identifier:
             type: string
-            description: Identifier of the begin epoch hook.
+            description: >-
+              begin_epoch_hook_identifier is the identifier of the begin epoch
+              hook.
           end_epoch_hook_identifier:
             type: string
-            description: Identifier of the end epoch hook.
+            description: end_epoch_hook_identifier is the identifier of the end epoch hook.
           grace_period_duration:
             type: string
             description: >-
-              Amount of time that the former owner of an expired Dym-Name can
-              renew it before completely lost.
+              grace_period_duration is the amount of time that the former owner
+              of an expired Dym-Name
+
+              can renew it before completely lost.
           sell_order_duration:
             type: string
-            description: Amount of time of a Sell-Order from created to expired.
+            description: >-
+              sell_order_duration is the amount of time of a Sell-Order from
+              created to expired.
           preserved_closed_sell_order_duration:
             type: string
             description: >-
-              Amount of time to keep history version of closed SO before it is
+              preserved_closed_sell_order_duration is the amount of time
+
+              to keep closed Sell-Orders as historical records before it is
               deleted,
 
               based on expiry date and block time.
           prohibit_sell_duration:
             type: string
             description: >-
-              Amount of time, if the SO expiry date enter the range before
-              expiry of Dym-Name, the SO can not be placed.
+              prohibit_sell_duration is the amount of time,
 
-              This help reduce the risk of new owner of Dym-Name not able to
-              renew it on time.
+              if the Sell-Order expiration date enters the range before expiry
+              of Dym-Name, the Sell-Order can not be placed.
+
+              The logic also applies when the owner accepts an Offer-To-Buy, the
+              Dym-Name can not be sold.
+
+              This is to prevent the new owner of Dym-Name to sell it before the
+              Dym-Name expires,
+
+              therefore help reduce the risk of new owner of Dym-Name not able
+              to renew it on time.
       preserved_registration:
-        description: Preserved registration parameters.
+        description: >-
+          preserved_registration contains setting for preserved registration
+          Dym-Names,
+
+          allow to be registered by specific account within a short period of
+          time.
+
+          This list will be cleared after the expiration epoch to save space.
+
+          This is useful as when go-live, the team can reserve some Dym-Names
+          for specific purpose
+
+          and for well-known entities, not to be registered/stolen by others.
         type: object
         properties:
           expiration_epoch:
             type: string
             format: int64
             description: >-
-              expiration_epoch is the epoch that the preserved registration will
-              be expired.
+              expiration_epoch is the epoch that the preserved registration
+              period will be expired.
           preserved_dym_names:
             type: array
             items:
@@ -58107,14 +58525,31 @@ definitions:
               properties:
                 dym_name:
                   type: string
-                  description: dym_name is the preserved dym-name.
+                  description: >-
+                    dym_name is name of the preserved Dym-Name that enable
+                    whitelisted for.
                 whitelisted_address:
                   type: string
                   description: >-
                     whitelisted_address is the only address that can register
-                    the preserved dym-name.
+                    the preserved Dym-Name.
+              description: >-
+                PreservedDymName defines one preserved Dym-Name and the
+                whitelisted address that can register the preserved dym-name.
+
+                If want to reserve a Dym-Name for multiple addresses, add
+                multiple PreservedDymName with the same Dym-Name.
+
+                If want to reserve multiple Dym-Names for one address, add
+                multiple PreservedDymName with the same address.
             description: >-
               preserved_dym_names is the list of preserved dym-names.
+
+              It defines the Dym-Name and the whitelisted address that can
+              register the preserved Dym-Name.
+
+              It is allowed for one Dym-Name to have multiple whitelisted
+              addresses and vice versa.
 
               This list will be cleared after the expiration epoch to save
               space.
@@ -58124,12 +58559,23 @@ definitions:
     properties:
       dym_name:
         type: string
-        description: dym_name is the preserved dym-name.
+        description: >-
+          dym_name is name of the preserved Dym-Name that enable whitelisted
+          for.
       whitelisted_address:
         type: string
         description: >-
           whitelisted_address is the only address that can register the
-          preserved dym-name.
+          preserved Dym-Name.
+    description: >-
+      PreservedDymName defines one preserved Dym-Name and the whitelisted
+      address that can register the preserved dym-name.
+
+      If want to reserve a Dym-Name for multiple addresses, add multiple
+      PreservedDymName with the same Dym-Name.
+
+      If want to reserve multiple Dym-Names for one address, add multiple
+      PreservedDymName with the same address.
   dymensionxyz.dymension.dymns.PreservedRegistrationParams:
     type: object
     properties:
@@ -58137,8 +58583,8 @@ definitions:
         type: string
         format: int64
         description: >-
-          expiration_epoch is the epoch that the preserved registration will be
-          expired.
+          expiration_epoch is the epoch that the preserved registration period
+          will be expired.
       preserved_dym_names:
         type: array
         items:
@@ -58146,41 +58592,87 @@ definitions:
           properties:
             dym_name:
               type: string
-              description: dym_name is the preserved dym-name.
+              description: >-
+                dym_name is name of the preserved Dym-Name that enable
+                whitelisted for.
             whitelisted_address:
               type: string
               description: >-
                 whitelisted_address is the only address that can register the
-                preserved dym-name.
-        description: |-
+                preserved Dym-Name.
+          description: >-
+            PreservedDymName defines one preserved Dym-Name and the whitelisted
+            address that can register the preserved dym-name.
+
+            If want to reserve a Dym-Name for multiple addresses, add multiple
+            PreservedDymName with the same Dym-Name.
+
+            If want to reserve multiple Dym-Names for one address, add multiple
+            PreservedDymName with the same address.
+        description: >-
           preserved_dym_names is the list of preserved dym-names.
+
+          It defines the Dym-Name and the whitelisted address that can register
+          the preserved Dym-Name.
+
+          It is allowed for one Dym-Name to have multiple whitelisted addresses
+          and vice versa.
+
           This list will be cleared after the expiration epoch to save space.
     description: >-
-      PreservedRegistrationParams contains list of preserved registration
+      PreservedRegistrationParams contains setting for preserved registration
       Dym-Names,
 
       allow to be registered by specific account within a short period of time.
+
+      This list will be cleared after the expiration epoch to save space.
+
+      This is useful as when go-live, the team can reserve some Dym-Names for
+      specific purpose
+
+      and for well-known entities, not to be registered/stolen by others.
   dymensionxyz.dymension.dymns.PriceParams:
     type: object
     properties:
-      price_1_letter:
+      name_price_1_letter:
         type: string
         title: Price of 1 letter Dym-Name, apply to first year
-      price_2_letters:
+      name_price_2_letters:
         type: string
         title: Price of 2 letters Dym-Name, apply to first year
-      price_3_letters:
+      name_price_3_letters:
         type: string
         title: Price of 3 letters Dym-Name, apply to first year
-      price_4_letters:
+      name_price_4_letters:
         type: string
         title: Price of 4 letters Dym-Name, apply to first year
-      price_5plus_letters:
+      name_price_5plus_letters:
         type: string
         title: Price of 5+ letters Dym-Name, apply to first year
+      alias_price_1_letter:
+        type: string
+        title: Price of 1 letter Alias, one off payment
+      alias_price_2_letters:
+        type: string
+        title: Price of 2 letters Alias, one off payment
+      alias_price_3_letters:
+        type: string
+        title: Price of 3 letters Alias, one off payment
+      alias_price_4_letters:
+        type: string
+        title: Price of 4 letters Alias, one off payment
+      alias_price_5_letters:
+        type: string
+        title: Price of 5 letters Alias, one off payment
+      alias_price_6_letters:
+        type: string
+        title: Price of 6 letters Alias, one off payment
+      alias_price_7plus_letters:
+        type: string
+        title: Price of 7+ letters Alias, one off payment
       price_extends:
         type: string
-        title: Price extends yearly, after first year
+        title: Price extends Dym-Name yearly, after first year
       price_denom:
         type: string
         title: Denom of the price setup
@@ -58193,30 +58685,40 @@ definitions:
           offers,
 
           so the value should not be so low.
+    description: PriceParams defines the pricing of Dym-Name and price-related parameters.
   dymensionxyz.dymension.dymns.QueryDymNameResponse:
     type: object
     properties:
       dym_name:
+        description: dym_name is the Dym-Name queried for.
         type: object
         properties:
           name:
             type: string
+            description: name is the human-readable name of the Dym-Name.
           owner:
             type: string
             description: >-
-              Account address of the owner of the Dym-Name. Owner has permission
-              to transfer ownership.
+              owner is the account address that owns the Dym-Name. Owner has
+              permission to transfer ownership.
           controller:
             type: string
             description: >-
-              Account address of the controller of the Dym-Name. Controller has
-              permission to update resolve and contact for the Dym-Name.
+              controller is the account address that have permission update
+              configuration for the Dym-Name.
+
+              Default is the owner. Able to transfer control to another account.
+
+              Users can set Dym-Name owned by Cold-Wallet and controlled by
+              Hot-Wallet.
           expire_at:
             type: string
             format: int64
             description: >-
-              The last effective date of the Dym-Name, after which the Dym-Name
-              is no longer valid.
+              expire_at is the UTC epoch represent the last effective date of
+              the Dym-Name,
+
+              after which the Dym-Name is no longer valid.
 
               NOTE: Expired Dym-Names are not deleted from the store
 
@@ -58229,8 +58731,8 @@ definitions:
               properties:
                 type:
                   description: >-
-                    The type of the Dym-Name configuration (equals to Type in
-                    DNS).
+                    type is the type of the Dym-Name configuration (equals to
+                    Type in DNS).
                   type: string
                   enum:
                     - UNKNOWN
@@ -58239,27 +58741,37 @@ definitions:
                 chain_id:
                   type: string
                   description: >-
-                    The chain ID of the Dym-Name configuration (equals to
-                    top-level-domain).
+                    chain_id is the chain-id of the Dym-Name configuration
+                    (equals to top-level-domain).
 
-                    If empty, the configuration is for host chain aka Dymension
-                    Hub.
+                    If empty, the configuration is for host chain (Dymension
+                    Hub).
                 path:
                   type: string
                   description: >-
-                    The path of the Dym-Name configuration (equals to Host in
-                    DNS).
+                    path of the Dym-Name configuration (equals to Host in DNS).
 
-                    If not empty, is sub-path configuration.
+                    If the type of this config record is Name, it is the
+                    Sub-Name of the Dym-Name Address.
                 value:
                   type: string
                   description: >-
-                    The value of the Dym-Name configuration (equals to Value in
-                    DNS).
-            description: Configurations for the Dym-Name.
+                    value of the Dym-Name configuration resolves to (equals to
+                    Value in DNS).
+
+                    If the type of this config record is Name, it is the address
+                    which the Dym-Name Address resolves to.
+              description: >-
+                DymNameConfig contains the resolution configuration for the
+                Dym-Name.
+
+                Each record is a resolution record, similar to DNS.
+            description: configs are configuration records for the Dym-Name.
           contact:
             type: string
-            description: The optional contact information for the Dym-Name.
+            description: |-
+              contact is an optional information for the Dym-Name.
+              Convenient for retails users.
     description: >-
       QueryDymNameResponse is the response type for the Query/DymName RPC
       method.
@@ -58273,22 +58785,31 @@ definitions:
           properties:
             name:
               type: string
+              description: name is the human-readable name of the Dym-Name.
             owner:
               type: string
               description: >-
-                Account address of the owner of the Dym-Name. Owner has
+                owner is the account address that owns the Dym-Name. Owner has
                 permission to transfer ownership.
             controller:
               type: string
               description: >-
-                Account address of the controller of the Dym-Name. Controller
-                has permission to update resolve and contact for the Dym-Name.
+                controller is the account address that have permission update
+                configuration for the Dym-Name.
+
+                Default is the owner. Able to transfer control to another
+                account.
+
+                Users can set Dym-Name owned by Cold-Wallet and controlled by
+                Hot-Wallet.
             expire_at:
               type: string
               format: int64
               description: >-
-                The last effective date of the Dym-Name, after which the
-                Dym-Name is no longer valid.
+                expire_at is the UTC epoch represent the last effective date of
+                the Dym-Name,
+
+                after which the Dym-Name is no longer valid.
 
                 NOTE: Expired Dym-Names are not deleted from the store
 
@@ -58301,8 +58822,8 @@ definitions:
                 properties:
                   type:
                     description: >-
-                      The type of the Dym-Name configuration (equals to Type in
-                      DNS).
+                      type is the type of the Dym-Name configuration (equals to
+                      Type in DNS).
                     type: string
                     enum:
                       - UNKNOWN
@@ -58311,28 +58832,51 @@ definitions:
                   chain_id:
                     type: string
                     description: >-
-                      The chain ID of the Dym-Name configuration (equals to
-                      top-level-domain).
+                      chain_id is the chain-id of the Dym-Name configuration
+                      (equals to top-level-domain).
 
-                      If empty, the configuration is for host chain aka
-                      Dymension Hub.
+                      If empty, the configuration is for host chain (Dymension
+                      Hub).
                   path:
                     type: string
                     description: >-
-                      The path of the Dym-Name configuration (equals to Host in
+                      path of the Dym-Name configuration (equals to Host in
                       DNS).
 
-                      If not empty, is sub-path configuration.
+                      If the type of this config record is Name, it is the
+                      Sub-Name of the Dym-Name Address.
                   value:
                     type: string
                     description: >-
-                      The value of the Dym-Name configuration (equals to Value
-                      in DNS).
-              description: Configurations for the Dym-Name.
+                      value of the Dym-Name configuration resolves to (equals to
+                      Value in DNS).
+
+                      If the type of this config record is Name, it is the
+                      address which the Dym-Name Address resolves to.
+                description: >-
+                  DymNameConfig contains the resolution configuration for the
+                  Dym-Name.
+
+                  Each record is a resolution record, similar to DNS.
+              description: configs are configuration records for the Dym-Name.
             contact:
               type: string
-              description: The optional contact information for the Dym-Name.
-        description: dym_names defines the Dym-Names owned by the account.
+              description: |-
+                contact is an optional information for the Dym-Name.
+                Convenient for retails users.
+          description: >-
+            DymName defines a Dym-Name, the mainly purpose is to stores
+            ownership and resolution information.
+
+            Dym-Name is similar to DNS. It is a human-readable name that maps to
+            a chain address.
+
+            One Dym-Name can have multiple configurations, each configuration is
+            a resolution record.
+
+            Dym-Name is owned by an account, able to grant permission to another
+            account to control the Dym-Name.
+        description: dym_names defines the Dym-Names owned by the input account.
     description: >-
       QueryDymNamesOwnedByAccountResponse is the response type for the
       Query/DymNamesOwnedByAccount RPC method.
@@ -58382,17 +58926,15 @@ definitions:
           properties:
             name:
               type: string
-              description: The name of the Dym-Name being opened to be sold.
+              description: name of the Dym-Name being opened to be sold.
             expire_at:
               type: string
               format: int64
-              description: >-
-                The last effective date of this SO, after which the Dym-Name
-                bid/buy is no longer valid.
+              title: expire_at is the last effective date of this SO
             min_price:
               description: >-
-                The minimum price that the owner is willing to accept for the
-                Dym-Name.
+                min_price is the minimum price that the owner is willing to
+                accept for the Dym-Name.
               type: object
               properties:
                 denom:
@@ -58401,11 +58943,13 @@ definitions:
                   type: string
             sell_price:
               description: >-
-                The price that the owner is willing to sell the Dym-Name for,
+                sell_price is the price that the owner is willing to sell the
+                Dym-Name for,
+
                 the SO will be closed when the price is met.
 
                 If the sell price is zero, the SO will be closed when the
-                expire_at is reached and the highest bid win.
+                expire_at is reached and the highest bidder wins.
               type: object
               properties:
                 denom:
@@ -58414,15 +58958,17 @@ definitions:
                   type: string
             highest_bid:
               description: >-
-                The highest bid on the SO, if any. Price must be greater than or
-                equal to the min_price.
+                highest_bid is the highest bid on the SO, if any. Price must be
+                greater than or equal to the min_price.
               type: object
               properties:
                 bidder:
                   type: string
-                  description: The address of the account which placed the bid.
+                  description: >-
+                    bidder is the account address of the account which placed
+                    the bid.
                 price:
-                  description: The price set by the bidder.
+                  description: price is the amount of coin offered by the bidder.
                   type: object
                   properties:
                     denom:
@@ -58432,14 +58978,19 @@ definitions:
           description: >-
             SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
 
-            After expiry date, if no one has placed a bid, this SO will be
-            closed, no change.
+            Sell-Order has an expiry date.
 
-            If there is a bid, the highest bid will win.
+            After expiry date, if no one has placed a bid, this Sell-Order will
+            be closed, no change.
 
-            SO will be moved to historical records after completed, no matter
-            reason.
-        description: result defines the historical SOs of the Dym-Name.
+            If there is a bid, the highest bid will win, and the Dym-Name
+            ownership will be transferred to the winner.
+
+            If the bid matches the sell price, the Dym-Name ownership will be
+            transferred to the bidder immediately.
+
+            SO will be moved to historical records after completion/expiry.
+        description: result defines the historical Sell-Orders of the Dym-Name queried.
     description: >-
       QueryHistoricalSellOrderResponse is the response type for the
       Query/HistoricalSellOrder RPC method.
@@ -58447,21 +58998,25 @@ definitions:
     type: object
     properties:
       offer:
+        description: offer is the Offer-To-Buy record queried for.
         type: object
         properties:
           id:
             type: string
-            description: The unique identifier of the offer.
+            description: id is the unique identifier of the offer. Generated by the module.
           name:
             type: string
-            description: The name of the Dym-Name willing to buy.
+            description: name of the Dym-Name willing to buy.
           buyer:
             type: string
-            description: The bech32 address of the account which placed the offer.
+            description: buyer is bech32 address of the account which placed the offer.
           offer_price:
-            description: |-
-              The amount of coins willing to pay for the Dym-Name.
-              This amount is deposited to the module account.
+            description: >-
+              offer_price is the amount of coins that buyer willing to pay for
+              the Dym-Name.
+
+              This amount is deposited to the module account upon placing the
+              offer.
             type: object
             properties:
               denom:
@@ -58470,19 +59025,20 @@ definitions:
                 type: string
           counterparty_offer_price:
             description: >-
-              The price that the Dym-Name owner is willing to sell the Dym-Name
-              for.
+              counterparty_offer_price is the price that the Dym-Name owner is
+              willing to sell the Dym-Name for.
 
-              When this price matches offer_price, the transaction done.
+              This is used for counterparty price negotiation and for
+              information only.
+
+              The transaction can only be executed when the owner accepts the
+              offer with exact offer_price.
             type: object
             properties:
               denom:
                 type: string
               amount:
                 type: string
-        description: |-
-          OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
-          Buyer will need to deposit the offer amount to the module account.
     description: >-
       QueryOfferToBuyByIdResponse is the response type for the
       Query/OfferToBuyById RPC method.
@@ -58496,17 +59052,22 @@ definitions:
           properties:
             id:
               type: string
-              description: The unique identifier of the offer.
+              description: >-
+                id is the unique identifier of the offer. Generated by the
+                module.
             name:
               type: string
-              description: The name of the Dym-Name willing to buy.
+              description: name of the Dym-Name willing to buy.
             buyer:
               type: string
-              description: The bech32 address of the account which placed the offer.
+              description: buyer is bech32 address of the account which placed the offer.
             offer_price:
-              description: |-
-                The amount of coins willing to pay for the Dym-Name.
-                This amount is deposited to the module account.
+              description: >-
+                offer_price is the amount of coins that buyer willing to pay for
+                the Dym-Name.
+
+                This amount is deposited to the module account upon placing the
+                offer.
               type: object
               properties:
                 denom:
@@ -58515,19 +59076,31 @@ definitions:
                   type: string
             counterparty_offer_price:
               description: >-
-                The price that the Dym-Name owner is willing to sell the
-                Dym-Name for.
+                counterparty_offer_price is the price that the Dym-Name owner is
+                willing to sell the Dym-Name for.
 
-                When this price matches offer_price, the transaction done.
+                This is used for counterparty price negotiation and for
+                information only.
+
+                The transaction can only be executed when the owner accepts the
+                offer with exact offer_price.
               type: object
               properties:
                 denom:
                   type: string
                 amount:
                   type: string
-          description: |-
+          description: >-
             OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
+
             Buyer will need to deposit the offer amount to the module account.
+
+            When the owner of the Dym-Name accepts the offer, deposited amount
+            will be transferred to the owner.
+
+            When the buyer cancels the offer, deposited amount will be refunded
+            to the buyer.
+        description: offers are the Offers-To-Buy for the Dym-Name.
     description: >-
       QueryOffersToBuyByDymNameResponse is the response type for the
       Query/OffersToBuyByDymName RPC method.
@@ -58541,17 +59114,22 @@ definitions:
           properties:
             id:
               type: string
-              description: The unique identifier of the offer.
+              description: >-
+                id is the unique identifier of the offer. Generated by the
+                module.
             name:
               type: string
-              description: The name of the Dym-Name willing to buy.
+              description: name of the Dym-Name willing to buy.
             buyer:
               type: string
-              description: The bech32 address of the account which placed the offer.
+              description: buyer is bech32 address of the account which placed the offer.
             offer_price:
-              description: |-
-                The amount of coins willing to pay for the Dym-Name.
-                This amount is deposited to the module account.
+              description: >-
+                offer_price is the amount of coins that buyer willing to pay for
+                the Dym-Name.
+
+                This amount is deposited to the module account upon placing the
+                offer.
               type: object
               properties:
                 denom:
@@ -58560,19 +59138,33 @@ definitions:
                   type: string
             counterparty_offer_price:
               description: >-
-                The price that the Dym-Name owner is willing to sell the
-                Dym-Name for.
+                counterparty_offer_price is the price that the Dym-Name owner is
+                willing to sell the Dym-Name for.
 
-                When this price matches offer_price, the transaction done.
+                This is used for counterparty price negotiation and for
+                information only.
+
+                The transaction can only be executed when the owner accepts the
+                offer with exact offer_price.
               type: object
               properties:
                 denom:
                   type: string
                 amount:
                   type: string
-          description: |-
+          description: >-
             OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
+
             Buyer will need to deposit the offer amount to the module account.
+
+            When the owner of the Dym-Name accepts the offer, deposited amount
+            will be transferred to the owner.
+
+            When the buyer cancels the offer, deposited amount will be refunded
+            to the buyer.
+        description: >-
+          offers are the Offers-To-Buy of the Dym-Names owned by the input
+          account.
     description: >-
       QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response type for
       the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
@@ -58586,17 +59178,22 @@ definitions:
           properties:
             id:
               type: string
-              description: The unique identifier of the offer.
+              description: >-
+                id is the unique identifier of the offer. Generated by the
+                module.
             name:
               type: string
-              description: The name of the Dym-Name willing to buy.
+              description: name of the Dym-Name willing to buy.
             buyer:
               type: string
-              description: The bech32 address of the account which placed the offer.
+              description: buyer is bech32 address of the account which placed the offer.
             offer_price:
-              description: |-
-                The amount of coins willing to pay for the Dym-Name.
-                This amount is deposited to the module account.
+              description: >-
+                offer_price is the amount of coins that buyer willing to pay for
+                the Dym-Name.
+
+                This amount is deposited to the module account upon placing the
+                offer.
               type: object
               properties:
                 denom:
@@ -58605,19 +59202,31 @@ definitions:
                   type: string
             counterparty_offer_price:
               description: >-
-                The price that the Dym-Name owner is willing to sell the
-                Dym-Name for.
+                counterparty_offer_price is the price that the Dym-Name owner is
+                willing to sell the Dym-Name for.
 
-                When this price matches offer_price, the transaction done.
+                This is used for counterparty price negotiation and for
+                information only.
+
+                The transaction can only be executed when the owner accepts the
+                offer with exact offer_price.
               type: object
               properties:
                 denom:
                   type: string
                 amount:
                   type: string
-          description: |-
+          description: >-
             OfferToBuy defines an offer to buy a Dym-Name, placed by buyer.
+
             Buyer will need to deposit the offer amount to the module account.
+
+            When the owner of the Dym-Name accepts the offer, deposited amount
+            will be transferred to the owner.
+
+            When the buyer cancels the offer, deposited amount will be refunded
+            to the buyer.
+        description: offers are the Offers-To-Buy placed by the account.
     description: >-
       QueryOffersToBuyByAccountResponse is the response type for the
       Query/OffersToBuyPlacedByAccount RPC method.
@@ -58629,27 +59238,50 @@ definitions:
         type: object
         properties:
           price:
-            description: Price of Dym-Name and related parameters.
+            description: >-
+              price defines setting for pricing of Dym-Name and price-related
+              parameters.
             type: object
             properties:
-              price_1_letter:
+              name_price_1_letter:
                 type: string
                 title: Price of 1 letter Dym-Name, apply to first year
-              price_2_letters:
+              name_price_2_letters:
                 type: string
                 title: Price of 2 letters Dym-Name, apply to first year
-              price_3_letters:
+              name_price_3_letters:
                 type: string
                 title: Price of 3 letters Dym-Name, apply to first year
-              price_4_letters:
+              name_price_4_letters:
                 type: string
                 title: Price of 4 letters Dym-Name, apply to first year
-              price_5plus_letters:
+              name_price_5plus_letters:
                 type: string
                 title: Price of 5+ letters Dym-Name, apply to first year
+              alias_price_1_letter:
+                type: string
+                title: Price of 1 letter Alias, one off payment
+              alias_price_2_letters:
+                type: string
+                title: Price of 2 letters Alias, one off payment
+              alias_price_3_letters:
+                type: string
+                title: Price of 3 letters Alias, one off payment
+              alias_price_4_letters:
+                type: string
+                title: Price of 4 letters Alias, one off payment
+              alias_price_5_letters:
+                type: string
+                title: Price of 5 letters Alias, one off payment
+              alias_price_6_letters:
+                type: string
+                title: Price of 6 letters Alias, one off payment
+              alias_price_7plus_letters:
+                type: string
+                title: Price of 7+ letters Alias, one off payment
               price_extends:
                 type: string
-                title: Price extends yearly, after first year
+                title: Price extends Dym-Name yearly, after first year
               price_denom:
                 type: string
                 title: Denom of the price setup
@@ -58663,7 +59295,9 @@ definitions:
 
                   so the value should not be so low.
           chains:
-            description: Chains related parameters.
+            description: >-
+              chains defines setting for aliases mapping, and list of chain-ids
+              that are using coin-type 60.
             type: object
             properties:
               aliases_of_chain_ids:
@@ -58673,60 +59307,109 @@ definitions:
                   properties:
                     chain_id:
                       type: string
-                      description: Chain-ID which owned the aliases.
+                      description: chain_id which owned the aliases.
                     aliases:
                       type: array
                       items:
                         type: string
-                      description: >-
-                        Multiple aliases of the chain id for UX improvement,
-                        used in front-end.
+                      title: >-
+                        aliases is set of aliases of the chain id for UX
+                        improvement,
+
+                        like we can do my-name@cosmos instead of
+                        my-name@cosmoshub-4
                   description: AliasesOfChainId defines the multiple-aliases of a chain id.
                 description: >-
-                  Chain-IDs and their aliases, used for UX improvement, used in
-                  front-end.
+                  aliases_of_chain_ids is set of chain-ids and their
+                  corresponding aliases,
+
+                  used for UX improvement like we can do my-name@cosmos instead
+                  of my-name@cosmoshub-4.
+
+
+                  This list is prioritized over Roll-App aliases
+
+                  the reason is to allow the community able to have control to
+                  fixes the potential problems with the aliases.
               coin_type_60_chain_ids:
                 type: array
                 items:
                   type: string
                 description: >-
-                  Chain-IDs that are using coin-type 60. Used to ensure address
-                  conversion.
+                  coin_type_60_chain_ids is set of chain-ids that are using
+                  coin-type 60.
+
+                  Used to ensure address conversion.
+
+                  Chains that are not Coin-Type 60 will be limited in
+                  cross-chain address conversion to reduce risk.
           misc:
-            description: Misc parameters.
+            description: misc is group of miscellaneous parameters.
             type: object
             properties:
               begin_epoch_hook_identifier:
                 type: string
-                description: Identifier of the begin epoch hook.
+                description: >-
+                  begin_epoch_hook_identifier is the identifier of the begin
+                  epoch hook.
               end_epoch_hook_identifier:
                 type: string
-                description: Identifier of the end epoch hook.
+                description: >-
+                  end_epoch_hook_identifier is the identifier of the end epoch
+                  hook.
               grace_period_duration:
                 type: string
                 description: >-
-                  Amount of time that the former owner of an expired Dym-Name
+                  grace_period_duration is the amount of time that the former
+                  owner of an expired Dym-Name
+
                   can renew it before completely lost.
               sell_order_duration:
                 type: string
-                description: Amount of time of a Sell-Order from created to expired.
+                description: >-
+                  sell_order_duration is the amount of time of a Sell-Order from
+                  created to expired.
               preserved_closed_sell_order_duration:
                 type: string
                 description: >-
-                  Amount of time to keep history version of closed SO before it
-                  is deleted,
+                  preserved_closed_sell_order_duration is the amount of time
+
+                  to keep closed Sell-Orders as historical records before it is
+                  deleted,
 
                   based on expiry date and block time.
               prohibit_sell_duration:
                 type: string
                 description: >-
-                  Amount of time, if the SO expiry date enter the range before
-                  expiry of Dym-Name, the SO can not be placed.
+                  prohibit_sell_duration is the amount of time,
 
-                  This help reduce the risk of new owner of Dym-Name not able to
-                  renew it on time.
+                  if the Sell-Order expiration date enters the range before
+                  expiry of Dym-Name, the Sell-Order can not be placed.
+
+                  The logic also applies when the owner accepts an Offer-To-Buy,
+                  the Dym-Name can not be sold.
+
+                  This is to prevent the new owner of Dym-Name to sell it before
+                  the Dym-Name expires,
+
+                  therefore help reduce the risk of new owner of Dym-Name not
+                  able to renew it on time.
           preserved_registration:
-            description: Preserved registration parameters.
+            description: >-
+              preserved_registration contains setting for preserved registration
+              Dym-Names,
+
+              allow to be registered by specific account within a short period
+              of time.
+
+              This list will be cleared after the expiration epoch to save
+              space.
+
+              This is useful as when go-live, the team can reserve some
+              Dym-Names for specific purpose
+
+              and for well-known entities, not to be registered/stolen by
+              others.
             type: object
             properties:
               expiration_epoch:
@@ -58734,7 +59417,7 @@ definitions:
                 format: int64
                 description: >-
                   expiration_epoch is the epoch that the preserved registration
-                  will be expired.
+                  period will be expired.
               preserved_dym_names:
                 type: array
                 items:
@@ -58742,14 +59425,32 @@ definitions:
                   properties:
                     dym_name:
                       type: string
-                      description: dym_name is the preserved dym-name.
+                      description: >-
+                        dym_name is name of the preserved Dym-Name that enable
+                        whitelisted for.
                     whitelisted_address:
                       type: string
                       description: >-
                         whitelisted_address is the only address that can
-                        register the preserved dym-name.
+                        register the preserved Dym-Name.
+                  description: >-
+                    PreservedDymName defines one preserved Dym-Name and the
+                    whitelisted address that can register the preserved
+                    dym-name.
+
+                    If want to reserve a Dym-Name for multiple addresses, add
+                    multiple PreservedDymName with the same Dym-Name.
+
+                    If want to reserve multiple Dym-Names for one address, add
+                    multiple PreservedDymName with the same address.
                 description: >-
                   preserved_dym_names is the list of preserved dym-names.
+
+                  It defines the Dym-Name and the whitelisted address that can
+                  register the preserved Dym-Name.
+
+                  It is allowed for one Dym-Name to have multiple whitelisted
+                  addresses and vice versa.
 
                   This list will be cleared after the expiration epoch to save
                   space.
@@ -58764,10 +59465,19 @@ definitions:
           properties:
             address:
               type: string
+              description: address is the input Dym-Name address to resolve.
             resolved_address:
               type: string
+              description: resolved_address is the resolved account address.
             error:
               type: string
+              description: error is the error that occurred during the resolution.
+          description: >-
+            ResultDymNameAddress defines the result of a single Dym-Name address
+            resolution.
+        description: >-
+          resolved_addresses defines the resolved addresses for each input
+          Dym-Name address.
     description: >-
       QueryResolveDymNameAddressesResponse is the response type for the
       Query/ResolveDymNameAddresses RPC method.
@@ -58783,9 +59493,13 @@ definitions:
               type: array
               items:
                 type: string
+              description: >-
+                candidates are the Dym-Name addresses that the input address
+                resolves to. Take one of them.
             error:
               type: string
-        description: resolved_addresses defines the resolved addresses.
+              description: error is the error that occurred during the resolution.
+        description: result defines the reverse resolution result for each input address.
       working_chain_id:
         type: string
         description: working_chain_id is the chain id used for the reverse resolution.
@@ -58800,17 +59514,15 @@ definitions:
         properties:
           name:
             type: string
-            description: The name of the Dym-Name being opened to be sold.
+            description: name of the Dym-Name being opened to be sold.
           expire_at:
             type: string
             format: int64
-            description: >-
-              The last effective date of this SO, after which the Dym-Name
-              bid/buy is no longer valid.
+            title: expire_at is the last effective date of this SO
           min_price:
             description: >-
-              The minimum price that the owner is willing to accept for the
-              Dym-Name.
+              min_price is the minimum price that the owner is willing to accept
+              for the Dym-Name.
             type: object
             properties:
               denom:
@@ -58819,11 +59531,13 @@ definitions:
                 type: string
           sell_price:
             description: >-
-              The price that the owner is willing to sell the Dym-Name for, the
-              SO will be closed when the price is met.
+              sell_price is the price that the owner is willing to sell the
+              Dym-Name for,
+
+              the SO will be closed when the price is met.
 
               If the sell price is zero, the SO will be closed when the
-              expire_at is reached and the highest bid win.
+              expire_at is reached and the highest bidder wins.
             type: object
             properties:
               denom:
@@ -58832,15 +59546,17 @@ definitions:
                 type: string
           highest_bid:
             description: >-
-              The highest bid on the SO, if any. Price must be greater than or
-              equal to the min_price.
+              highest_bid is the highest bid on the SO, if any. Price must be
+              greater than or equal to the min_price.
             type: object
             properties:
               bidder:
                 type: string
-                description: The address of the account which placed the bid.
+                description: >-
+                  bidder is the account address of the account which placed the
+                  bid.
               price:
-                description: The price set by the bidder.
+                description: price is the amount of coin offered by the bidder.
                 type: object
                 properties:
                   denom:
@@ -58850,13 +59566,18 @@ definitions:
         description: >-
           SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
 
-          After expiry date, if no one has placed a bid, this SO will be closed,
-          no change.
+          Sell-Order has an expiry date.
 
-          If there is a bid, the highest bid will win.
+          After expiry date, if no one has placed a bid, this Sell-Order will be
+          closed, no change.
 
-          SO will be moved to historical records after completed, no matter
-          reason.
+          If there is a bid, the highest bid will win, and the Dym-Name
+          ownership will be transferred to the winner.
+
+          If the bid matches the sell price, the Dym-Name ownership will be
+          transferred to the bidder immediately.
+
+          SO will be moved to historical records after completion/expiry.
     description: >-
       QuerySellOrderResponse is the response type for the Query/SellOrder RPC
       method.
@@ -58865,6 +59586,7 @@ definitions:
     properties:
       chain_id:
         type: string
+        description: chain_id is the chain id that the alias or chain id translates to.
     description: >-
       QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the
       Query/TranslateAliasOrChainIdToChainId RPC method.
@@ -58873,10 +59595,16 @@ definitions:
     properties:
       address:
         type: string
+        description: address is the input Dym-Name address to resolve.
       resolved_address:
         type: string
+        description: resolved_address is the resolved account address.
       error:
         type: string
+        description: error is the error that occurred during the resolution.
+    description: >-
+      ResultDymNameAddress defines the result of a single Dym-Name address
+      resolution.
   dymensionxyz.dymension.dymns.ReverseResolveAddressResult:
     type: object
     properties:
@@ -58884,24 +59612,26 @@ definitions:
         type: array
         items:
           type: string
+        description: >-
+          candidates are the Dym-Name addresses that the input address resolves
+          to. Take one of them.
       error:
         type: string
+        description: error is the error that occurred during the resolution.
   dymensionxyz.dymension.dymns.SellOrder:
     type: object
     properties:
       name:
         type: string
-        description: The name of the Dym-Name being opened to be sold.
+        description: name of the Dym-Name being opened to be sold.
       expire_at:
         type: string
         format: int64
-        description: >-
-          The last effective date of this SO, after which the Dym-Name bid/buy
-          is no longer valid.
+        title: expire_at is the last effective date of this SO
       min_price:
         description: >-
-          The minimum price that the owner is willing to accept for the
-          Dym-Name.
+          min_price is the minimum price that the owner is willing to accept for
+          the Dym-Name.
         type: object
         properties:
           denom:
@@ -58910,11 +59640,13 @@ definitions:
             type: string
       sell_price:
         description: >-
-          The price that the owner is willing to sell the Dym-Name for, the SO
-          will be closed when the price is met.
+          sell_price is the price that the owner is willing to sell the Dym-Name
+          for,
+
+          the SO will be closed when the price is met.
 
           If the sell price is zero, the SO will be closed when the expire_at is
-          reached and the highest bid win.
+          reached and the highest bidder wins.
         type: object
         properties:
           denom:
@@ -58923,15 +59655,15 @@ definitions:
             type: string
       highest_bid:
         description: >-
-          The highest bid on the SO, if any. Price must be greater than or equal
-          to the min_price.
+          highest_bid is the highest bid on the SO, if any. Price must be
+          greater than or equal to the min_price.
         type: object
         properties:
           bidder:
             type: string
-            description: The address of the account which placed the bid.
+            description: bidder is the account address of the account which placed the bid.
           price:
-            description: The price set by the bidder.
+            description: price is the amount of coin offered by the bidder.
             type: object
             properties:
               denom:
@@ -58941,26 +59673,33 @@ definitions:
     description: >-
       SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
 
-      After expiry date, if no one has placed a bid, this SO will be closed, no
-      change.
+      Sell-Order has an expiry date.
 
-      If there is a bid, the highest bid will win.
+      After expiry date, if no one has placed a bid, this Sell-Order will be
+      closed, no change.
 
-      SO will be moved to historical records after completed, no matter reason.
+      If there is a bid, the highest bid will win, and the Dym-Name ownership
+      will be transferred to the winner.
+
+      If the bid matches the sell price, the Dym-Name ownership will be
+      transferred to the bidder immediately.
+
+      SO will be moved to historical records after completion/expiry.
   dymensionxyz.dymension.dymns.SellOrderBid:
     type: object
     properties:
       bidder:
         type: string
-        description: The address of the account which placed the bid.
+        description: bidder is the account address of the account which placed the bid.
       price:
-        description: The price set by the bidder.
+        description: price is the amount of coin offered by the bidder.
         type: object
         properties:
           denom:
             type: string
           amount:
             type: string
+    description: SellOrderBid defines a bid placed by an account on a Sell-Order.
   dymensionxyz.dymension.rollapp.BlockDescriptor:
     type: object
     properties:
