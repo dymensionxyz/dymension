@@ -26,7 +26,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 
 	if m.ChainId == "" {
 		if m.ResolveTo != "" {
-			if _, err := sdk.AccAddressFromBech32(m.ResolveTo); err != nil {
+			if !dymnsutils.IsValidBech32AccountAddress(m.ResolveTo, true) {
 				return errorsmod.Wrap(
 					gerrc.ErrInvalidArgument,
 					"resolve address must be a valid bech32 account address on host chain",
@@ -35,7 +35,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 		}
 	}
 
-	if _, err := sdk.AccAddressFromBech32(m.Controller); err != nil {
+	if !dymnsutils.IsValidBech32AccountAddress(m.Controller, true) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "controller is not a valid bech32 account address")
 	}
 

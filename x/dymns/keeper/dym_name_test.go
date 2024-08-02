@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -2262,6 +2263,30 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
+			name: "pass - can resolve uppercase bech32",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    strings.ToUpper(ownerAcc.bech32()),
+			workingChainId:  chainId,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+			},
+		},
+		{
 			name: "pass - can resolve ICA",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
@@ -2271,6 +2296,26 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 				buildSlice(),
 			additionalSetup: nil,
 			inputAddress:    icaAcc.bech32(),
+			workingChainId:  chainId,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "ica",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+			},
+		},
+		{
+			name: "pass - can resolve ICA upper-case",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("", "ica", icaAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    strings.ToUpper(icaAcc.bech32()),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2320,6 +2365,54 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 				buildSlice(),
 			additionalSetup: nil,
 			inputAddress:    ownerAcc.hexStr(),
+			workingChainId:  chainId,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+			},
+		},
+		{
+			name: "pass - lookup by hex on host chain, uppercase address",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    strings.ToUpper(ownerAcc.hexStr()),
+			workingChainId:  chainId,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+				{
+					SubName:        "b",
+					Name:           "a",
+					ChainIdOrAlias: chainId,
+				},
+			},
+		},
+		{
+			name: "pass - lookup by hex on host chain, checksum address",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    common.BytesToAddress(ownerAcc.bytes()).String(),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{

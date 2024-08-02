@@ -25,6 +25,15 @@ var mockRollAppsData = map[string]mockRollAppData{
 	},
 }
 
+func (k Keeper) RegisterMockRollAppData(rollAppId, alias, bech32 string) {
+	mockRollAppsData[rollAppId] = mockRollAppData{
+		alias:  alias,
+		bech32: bech32,
+	}
+}
+
+// end of mock
+
 // IsRollAppId checks if the chain-id is a RollApp-Id.
 func (k Keeper) IsRollAppId(ctx sdk.Context, chainId string) bool {
 	_, found := k.rollappKeeper.GetRollapp(ctx, chainId)

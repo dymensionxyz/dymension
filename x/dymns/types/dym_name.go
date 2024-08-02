@@ -94,11 +94,22 @@ func (m *DymNameConfig) Validate() error {
 	}
 
 	if m.Type == DymNameConfigType_NAME {
-		if !m.IsDelete() && !dymnsutils.IsValidBech32AccountAddress(m.Value, false) {
-			return errorsmod.Wrap(
-				gerrc.ErrInvalidArgument,
-				"dym name config value must be a valid bech32 account address",
-			)
+		if !m.IsDelete() {
+			if m.ChainId == "" {
+				if !dymnsutils.IsValidBech32AccountAddress(m.Value, false) {
+					return errorsmod.Wrap(
+						gerrc.ErrInvalidArgument,
+						"dym name config value must be a valid bech32 account address",
+					)
+				}
+			} else {
+				if !dymnsutils.PossibleAccountRegardlessChain(m.Value) {
+					return errorsmod.Wrapf(
+						gerrc.ErrInvalidArgument,
+						"dym name config value: %s", m.Value,
+					)
+				}
+			}
 		}
 	} else {
 		return errorsmod.Wrapf(

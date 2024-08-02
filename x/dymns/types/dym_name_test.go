@@ -28,7 +28,7 @@ func TestDymName_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:       "valid dym name",
+			name:       "pass - valid dym name",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -48,7 +48,7 @@ func TestDymName_Validate(t *testing.T) {
 			contact: "contact@example.com",
 		},
 		{
-			name:       "empty name",
+			name:       "fail - empty name",
 			dymName:    "",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -69,7 +69,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "name is empty",
 		},
 		{
-			name:       "bad name",
+			name:       "fail - bad name",
 			dymName:    "-a",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -90,7 +90,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:       "empty owner",
+			name:       "fail - empty owner",
 			dymName:    "my-name",
 			owner:      "",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -111,7 +111,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "owner is empty",
 		},
 		{
-			name:       "bad owner",
+			name:       "fail - bad owner",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -132,7 +132,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:       "empty controller",
+			name:       "fail - empty controller",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "",
@@ -153,7 +153,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "controller is empty",
 		},
 		{
-			name:       "bad controller",
+			name:       "fail - bad controller",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5",
@@ -174,7 +174,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "controller is not a valid bech32 account address",
 		},
 		{
-			name:       "empty expire at",
+			name:       "fail - empty expire at",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -195,30 +195,48 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "expiry is empty",
 		},
 		{
-			name:       "valid dym name without config",
+			name:       "pass - valid dym name without config",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
 		},
 		{
-			name:       "bad config",
+			name:       "fail - bad config, value must be valid bech32 account address when chain-id is empty",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
-					Path:  "",
-					Value: "dym1fl48vsnmsdzcv85q5d2",
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "dym1fl48vsnmsdzcv85q5d2",
 				},
 			},
 			wantErr:         true,
 			wantErrContains: "dym name config value must be a valid bech32 account address",
 		},
 		{
-			name:       "duplicate config",
+			name:       "fail - bad config, value must be possible account address when chain-id is not empty",
+			dymName:    "my-name",
+			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			expireAt:   time.Now().Unix(),
+			configs: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "nim_1122-1",
+					Path:    "",
+					Value:   "@",
+				},
+			},
+			wantErr:         true,
+			wantErrContains: "dym name config value",
+		},
+		{
+			name:       "fail - duplicate config",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -239,7 +257,7 @@ func TestDymName_Validate(t *testing.T) {
 			wantErrContains: "dym name config is not unique",
 		},
 		{
-			name:       "contact is optional, provided",
+			name:       "pass - contact is optional, provided",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -247,7 +265,7 @@ func TestDymName_Validate(t *testing.T) {
 			contact:    "contact@example.com",
 		},
 		{
-			name:       "contact is optional, not provided",
+			name:       "pass - contact is optional, not provided",
 			dymName:    "my-name",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -255,7 +273,7 @@ func TestDymName_Validate(t *testing.T) {
 			contact:    "",
 		},
 		{
-			name:            "bad contact, too long",
+			name:            "fail - bad contact, too long",
 			dymName:         "my-name",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",

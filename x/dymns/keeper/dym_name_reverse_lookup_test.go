@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -310,6 +311,39 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		require.Len(t, linked3, 1)
 		require.Equal(t, dymName11.Name, linked3[0].Name)
 	})
+
+	t.Run("insert and get must be case-sensitive", func(t *testing.T) {
+		addr1 := strings.ToLower(owner1a)
+		addr2 := strings.ToUpper(owner1a)
+		addr3 := strings.ToLower(owner1a[:10]) + strings.ToUpper(owner1a[10:20]) + strings.ToLower(owner1a[20:])
+
+		dymName := dymnstypes.DymName{
+			Name:       "my-name",
+			Owner:      owner1a,
+			Controller: owner1a,
+			ExpireAt:   ctx.BlockTime().Add(time.Hour).Unix(),
+		}
+		require.NoError(t, dk.SetDymName(ctx, dymName))
+
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr1, dymName.Name)
+		require.NoError(t, err)
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr2, dymName.Name)
+		require.NoError(t, err)
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr3, dymName.Name)
+		require.NoError(t, err)
+
+		linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr1)
+		require.NoError(t, err1)
+		requireDymNameList(linked1, []string{dymName.Name}, t)
+
+		linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr2)
+		require.NoError(t, err2)
+		requireDymNameList(linked2, []string{dymName.Name}, t)
+
+		linked3, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr3)
+		require.NoError(t, err3)
+		requireDymNameList(linked3, []string{dymName.Name}, t)
+	})
 }
 
 func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
@@ -413,6 +447,46 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		linked, err = dk.GetDymNamesContainsConfiguredAddress(ctx, icaA)
 		require.NoError(t, err)
 		require.Empty(t, linked)
+	})
+
+	t.Run("remove must be case-sensitive", func(t *testing.T) {
+		addr1 := strings.ToLower(ownerA)
+		addr2 := strings.ToUpper(ownerA)
+		addr3 := strings.ToLower(ownerA[:10]) + strings.ToUpper(ownerA[10:20]) + strings.ToLower(ownerA[20:])
+
+		dymName := dymnstypes.DymName{
+			Name:       "my-name",
+			Owner:      ownerA,
+			Controller: ownerA,
+			ExpireAt:   ctx.BlockTime().Add(time.Hour).Unix(),
+		}
+		require.NoError(t, dk.SetDymName(ctx, dymName))
+
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr1, dymName.Name)
+		require.NoError(t, err)
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr2, dymName.Name)
+		require.NoError(t, err)
+		err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, addr3, dymName.Name)
+		require.NoError(t, err)
+
+		linked1, err1 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr1)
+		require.NoError(t, err1)
+		requireDymNameList(linked1, []string{dymName.Name}, t)
+
+		linked2, err2 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr2)
+		require.NoError(t, err2)
+		requireDymNameList(linked2, []string{dymName.Name}, t)
+
+		linked3, err3 := dk.GetDymNamesContainsConfiguredAddress(ctx, addr3)
+		require.NoError(t, err3)
+		requireDymNameList(linked3, []string{dymName.Name}, t)
+
+		err = dk.RemoveReverseMappingConfiguredAddressToDymName(ctx, addr3, dymName.Name)
+		require.NoError(t, err)
+
+		linked3, err3 = dk.GetDymNamesContainsConfiguredAddress(ctx, addr3)
+		require.NoError(t, err3)
+		require.Empty(t, linked3)
 	})
 }
 

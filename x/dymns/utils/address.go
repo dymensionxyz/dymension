@@ -69,3 +69,34 @@ func GetHexAddressFromBytes(bytes []byte) string {
 		panic("invalid bytes length")
 	}
 }
+
+// PossibleAccountRegardlessChain returns true if the given string is a POSSIBLE account address regardless of chain.
+// There is no guarantee that the address is valid on the chain.
+func PossibleAccountRegardlessChain(address string) bool {
+	if length := len(address); length < 5 || length > 130 {
+		return false
+	}
+
+	for _, r := range []rune(address) {
+		if r >= 'a' && r <= 'z' {
+			continue
+		}
+		if r >= 'A' && r <= 'Z' {
+			continue
+		}
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == '-' || r == ':' || r == '.' {
+			continue
+		}
+		if r == '*' || r == '@' {
+			// Stellar Federated Address
+			continue
+		}
+
+		return false
+	}
+
+	return true
+}

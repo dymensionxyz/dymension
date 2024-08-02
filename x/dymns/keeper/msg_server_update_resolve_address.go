@@ -7,7 +7,9 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
 
 // UpdateResolveAddress is message handler,
@@ -114,12 +116,34 @@ func (k msgServer) validateUpdateResolveAddress(ctx sdk.Context, msg *dymnstypes
 		return nil, gerrc.ErrPermissionDenied
 	}
 
-	if msg.ResolveTo != "" && (msg.ChainId == "" || msg.ChainId == ctx.ChainID()) {
-		if _, err := sdk.AccAddressFromBech32(msg.ResolveTo); err != nil {
-			return nil, errorsmod.Wrap(
-				gerrc.ErrInvalidArgument,
-				"resolve address must be a valid bech32 account address on host chain",
-			)
+	if msg.ResolveTo != "" {
+		if msg.ChainId == "" || msg.ChainId == ctx.ChainID() {
+			if !dymnsutils.IsValidBech32AccountAddress(msg.ResolveTo, true) {
+				return nil, errorsmod.Wrap(
+					gerrc.ErrInvalidArgument,
+					"resolve address must be a valid bech32 account address on host chain",
+				)
+			}
+		} else if k.IsRollAppId(ctx, msg.ChainId) {
+			if !dymnsutils.IsValidBech32AccountAddress(msg.ResolveTo, false) {
+				return nil, errorsmod.Wrap(
+					gerrc.ErrInvalidArgument,
+					"resolve address must be a valid bech32 account address on RollApp",
+				)
+			}
+			if bech32Prefix, found := k.GetRollAppBech32Prefix(ctx, msg.ChainId); found {
+				// TODO DymNS: write test cover this case
+				hrp, _, err := bech32.DecodeAndConvert(msg.ResolveTo)
+				if err != nil {
+					panic("unreachable")
+				}
+				if hrp != bech32Prefix {
+					return nil, errorsmod.Wrapf(
+						gerrc.ErrInvalidArgument,
+						"resolve address must be a valid bech32 account address on RollApps: %s", bech32Prefix,
+					)
+				}
+			}
 		}
 	}
 
