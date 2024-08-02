@@ -41,11 +41,11 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 		moduleParams := dk.GetParams(ctx)
 		// price
-		moduleParams.Price.Price_1Letter = sdk.NewInt(firstYearPrice1L)
-		moduleParams.Price.Price_2Letters = sdk.NewInt(firstYearPrice2L)
-		moduleParams.Price.Price_3Letters = sdk.NewInt(firstYearPrice3L)
-		moduleParams.Price.Price_4Letters = sdk.NewInt(firstYearPrice4L)
-		moduleParams.Price.Price_5PlusLetters = sdk.NewInt(firstYearPrice5PlusL)
+		moduleParams.Price.NamePrice_1Letter = sdk.NewInt(firstYearPrice1L)
+		moduleParams.Price.NamePrice_2Letters = sdk.NewInt(firstYearPrice2L)
+		moduleParams.Price.NamePrice_3Letters = sdk.NewInt(firstYearPrice3L)
+		moduleParams.Price.NamePrice_4Letters = sdk.NewInt(firstYearPrice4L)
+		moduleParams.Price.NamePrice_5PlusLetters = sdk.NewInt(firstYearPrice5PlusL)
 		moduleParams.Price.PriceExtends = sdk.NewInt(extendsPrice)
 		moduleParams.Price.PriceDenom = denom
 		// misc
@@ -831,11 +831,11 @@ func TestEstimateRegisterName(t *testing.T) {
 
 	params := dymnstypes.DefaultParams()
 	params.Price.PriceDenom = denom
-	params.Price.Price_1Letter = sdk.NewInt(price1L)
-	params.Price.Price_2Letters = sdk.NewInt(price2L)
-	params.Price.Price_3Letters = sdk.NewInt(price3L)
-	params.Price.Price_4Letters = sdk.NewInt(price4L)
-	params.Price.Price_5PlusLetters = sdk.NewInt(price5PlusL)
+	params.Price.NamePrice_1Letter = sdk.NewInt(price1L)
+	params.Price.NamePrice_2Letters = sdk.NewInt(price2L)
+	params.Price.NamePrice_3Letters = sdk.NewInt(price3L)
+	params.Price.NamePrice_4Letters = sdk.NewInt(price4L)
+	params.Price.NamePrice_5PlusLetters = sdk.NewInt(price5PlusL)
 	params.Price.PriceExtends = sdk.NewInt(extendsPrice)
 
 	buyerA := testAddr(1).bech32()

@@ -73,8 +73,6 @@ func (k Keeper) CheckChainIsCoinType60ByChainId(ctx sdk.Context, chainId string)
 //   - The alias is exists in the params, mapped by a chain-id or registered to a Roll-App.
 //   - The alias is equals to a known chain-id, from the params.
 func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate string) (can bool, err error) {
-	// TODO DymNS: write tests for this function
-
 	// TODO DymNS: use this in RollApp registration
 
 	if !dymnsutils.IsValidAlias(aliasCandidate) {
@@ -110,7 +108,6 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 		return
 	}
 
-	// TODO DymNS: check directly in params after implementing the feature
 	_, found := k.GetRollAppIdByAlias(ctx, aliasCandidate)
 	if found {
 		can = false

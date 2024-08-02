@@ -293,8 +293,8 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 					}
 					require.NotEmpty(t, actionName, "event attr action name could not be found")
 					require.Equalf(t,
-						actionName, dymnstypes.AttributeKeyOtbActionNameSet,
-						"event attr action name should be `%s`", dymnstypes.AttributeKeyOtbActionNameSet,
+						actionName, dymnstypes.AttributeValueOtbActionNameSet,
+						"event attr action name should be `%s`", dymnstypes.AttributeValueOtbActionNameSet,
 					)
 					return
 				}
@@ -337,8 +337,8 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 			}
 			require.NotEmpty(t, actionName, "event attr action name could not be found")
 			require.Equalf(t,
-				actionName, dymnstypes.AttributeKeyOtbActionNameDelete,
-				"event attr action name should be `%s`", dymnstypes.AttributeKeyOtbActionNameDelete,
+				actionName, dymnstypes.AttributeValueOtbActionNameDelete,
+				"event attr action name should be `%s`", dymnstypes.AttributeValueOtbActionNameDelete,
 			)
 			return
 		}

@@ -41,56 +41,105 @@ message Params {
 // PriceParams defines the pricing of Dym-Name and price-related parameters.
 message PriceParams {
   // Price of 1 letter Dym-Name, apply to first year
-  string price_1_letter = 1 [
+  string name_price_1_letter = 1 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"price_1_letter\"",
+    (gogoproto.moretags) = "yaml:\"name_price_1_letter\"",
     (gogoproto.nullable) = false
   ];
 
   // Price of 2 letters Dym-Name, apply to first year
-  string price_2_letters = 2 [
+  string name_price_2_letters = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"price_2_letters\"",
+    (gogoproto.moretags) = "yaml:\"name_price_2_letters\"",
     (gogoproto.nullable) = false
   ];
 
   // Price of 3 letters Dym-Name, apply to first year
-  string price_3_letters = 3 [
+  string name_price_3_letters = 3 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"price_3_letters\"",
+    (gogoproto.moretags) = "yaml:\"name_price_3_letters\"",
     (gogoproto.nullable) = false
   ];
 
   // Price of 4 letters Dym-Name, apply to first year
-  string price_4_letters = 4 [
+  string name_price_4_letters = 4 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"price_4_letters\"",
+    (gogoproto.moretags) = "yaml:\"name_price_4_letters\"",
     (gogoproto.nullable) = false
   ];
 
   // Price of 5+ letters Dym-Name, apply to first year
-  string price_5plus_letters = 5 [
+  string name_price_5plus_letters = 5 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.moretags) = "yaml:\"price_5plus_letters\"",
+    (gogoproto.moretags) = "yaml:\"name_price_5plus_letters\"",
     (gogoproto.nullable) = false
   ];
 
-  // Price extends yearly, after first year
-  string price_extends = 6 [
+  // Price of 1 letter Alias, one off payment
+  string alias_price_1_letter = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_1_letter\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 2 letters Alias, one off payment
+  string alias_price_2_letters = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_2_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 3 letters Alias, one off payment
+  string alias_price_3_letters = 8 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_3_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 4 letters Alias, one off payment
+  string alias_price_4_letters = 9 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_4_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 5 letters Alias, one off payment
+  string alias_price_5_letters = 10 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_5_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 6 letters Alias, one off payment
+  string alias_price_6_letters = 11 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_6_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price of 7+ letters Alias, one off payment
+  string alias_price_7plus_letters = 12 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.moretags) = "yaml:\"alias_price_7plus_letters\"",
+    (gogoproto.nullable) = false
+  ];
+
+  // Price extends Dym-Name yearly, after first year
+  string price_extends = 13 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"price_extends\"",
     (gogoproto.nullable) = false
   ];
 
   // Denom of the price setup
-  string price_denom = 7 [
+  string price_denom = 14 [
     (gogoproto.moretags) = "yaml:\"price_denom\""
   ];
 
   // Minimum price of an offer.
   // Mostly used to prevent spamming and abusing store with low price offers,
   // so the value should not be so low.
-  string min_offer_price = 8 [
+  string min_offer_price = 15 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"min_offer_price\"",
     (gogoproto.nullable) = false

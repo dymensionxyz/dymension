@@ -24,6 +24,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// DymNameConfigType specifies the type of the Dym-Name configuration.
+// Currently only supports Name, similar to DNS.
 type DymNameConfigType int32
 
 const (
@@ -49,19 +51,28 @@ func (DymNameConfigType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_463436600bef60e6, []int{0}
 }
 
+// DymName defines a Dym-Name, the mainly purpose is to stores ownership and resolution information.
+// Dym-Name is similar to DNS. It is a human-readable name that maps to a chain address.
+// One Dym-Name can have multiple configurations, each configuration is a resolution record.
+// Dym-Name is owned by an account, able to grant permission to another account to control the Dym-Name.
 type DymName struct {
+	// name is the human-readable name of the Dym-Name.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// Account address of the owner of the Dym-Name. Owner has permission to transfer ownership.
+	// owner is the account address that owns the Dym-Name. Owner has permission to transfer ownership.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	// Account address of the controller of the Dym-Name. Controller has permission to update resolve and contact for the Dym-Name.
+	// controller is the account address that have permission update configuration for the Dym-Name.
+	// Default is the owner. Able to transfer control to another account.
+	// Users can set Dym-Name owned by Cold-Wallet and controlled by Hot-Wallet.
 	Controller string `protobuf:"bytes,3,opt,name=controller,proto3" json:"controller,omitempty"`
-	// The last effective date of the Dym-Name, after which the Dym-Name is no longer valid.
+	// expire_at is the UTC epoch represent the last effective date of the Dym-Name,
+	// after which the Dym-Name is no longer valid.
 	// NOTE: Expired Dym-Names are not deleted from the store
 	// because iterating through store is very expensive because expiry date must be checked every use.
 	ExpireAt int64 `protobuf:"varint,4,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
-	// Configurations for the Dym-Name.
+	// configs are configuration records for the Dym-Name.
 	Configs []DymNameConfig `protobuf:"bytes,5,rep,name=configs,proto3" json:"configs"`
-	// The optional contact information for the Dym-Name.
+	// contact is an optional information for the Dym-Name.
+	// Convenient for retails users.
 	Contact string `protobuf:"bytes,6,opt,name=contact,proto3" json:"contact,omitempty"`
 }
 
@@ -140,16 +151,19 @@ func (m *DymName) GetContact() string {
 	return ""
 }
 
+// DymNameConfig contains the resolution configuration for the Dym-Name.
+// Each record is a resolution record, similar to DNS.
 type DymNameConfig struct {
-	// The type of the Dym-Name configuration (equals to Type in DNS).
+	// type is the type of the Dym-Name configuration (equals to Type in DNS).
 	Type DymNameConfigType `protobuf:"varint,1,opt,name=type,proto3,enum=dymensionxyz.dymension.dymns.DymNameConfigType" json:"type,omitempty"`
-	// The chain ID of the Dym-Name configuration (equals to top-level-domain).
-	// If empty, the configuration is for host chain aka Dymension Hub.
+	// chain_id is the chain-id of the Dym-Name configuration (equals to top-level-domain).
+	// If empty, the configuration is for host chain (Dymension Hub).
 	ChainId string `protobuf:"bytes,2,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
-	// The path of the Dym-Name configuration (equals to Host in DNS).
-	// If not empty, is sub-path configuration.
+	// path of the Dym-Name configuration (equals to Host in DNS).
+	// If the type of this config record is Name, it is the Sub-Name of the Dym-Name Address.
 	Path string `protobuf:"bytes,3,opt,name=path,proto3" json:"path,omitempty"`
-	// The value of the Dym-Name configuration (equals to Value in DNS).
+	// value of the Dym-Name configuration resolves to (equals to Value in DNS).
+	// If the type of this config record is Name, it is the address which the Dym-Name Address resolves to.
 	Value string `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
 }
 
@@ -216,6 +230,7 @@ func (m *DymNameConfig) GetValue() string {
 
 // ReverseLookupDymNames contains a list of Dym-Names for reverse lookup.
 type ReverseLookupDymNames struct {
+	// dym_names is a list of name of the Dym-Names linked to the reverse-lookup record.
 	DymNames []string `protobuf:"bytes,1,rep,name=dym_names,json=dymNames,proto3" json:"dym_names,omitempty"`
 }
 

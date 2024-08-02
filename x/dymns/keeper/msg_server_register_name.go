@@ -27,15 +27,15 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	var firstYearPrice sdkmath.Int
 	nameLength := len(msg.Name)
 	if nameLength == 1 {
-		firstYearPrice = params.Price.Price_1Letter
+		firstYearPrice = params.Price.NamePrice_1Letter
 	} else if nameLength == 2 {
-		firstYearPrice = params.Price.Price_2Letters
+		firstYearPrice = params.Price.NamePrice_2Letters
 	} else if nameLength == 3 {
-		firstYearPrice = params.Price.Price_3Letters
+		firstYearPrice = params.Price.NamePrice_3Letters
 	} else if nameLength == 4 {
-		firstYearPrice = params.Price.Price_4Letters
+		firstYearPrice = params.Price.NamePrice_4Letters
 	} else {
-		firstYearPrice = params.Price.Price_5PlusLetters
+		firstYearPrice = params.Price.NamePrice_5PlusLetters
 	}
 
 	var pruneAnyHistoricalData bool
@@ -164,6 +164,14 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 		return nil, err
 	}
 
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		dymnstypes.EventTypeSell,
+		sdk.NewAttribute(dymnstypes.AttributeKeySellType, dymnstypes.AttributeValueSellTypeName),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellName, dymName.Name),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellPrice, totalCost.String()),
+		sdk.NewAttribute(dymnstypes.AttributeKeySellTo, msg.Owner),
+	))
+
 	return &dymnstypes.MsgRegisterNameResponse{}, nil
 }
 
@@ -242,15 +250,15 @@ func EstimateRegisterName(
 	getLengthBasedPrice := func() sdkmath.Int {
 		switch len(name) {
 		case 1:
-			return params.Price.Price_1Letter
+			return params.Price.NamePrice_1Letter
 		case 2:
-			return params.Price.Price_2Letters
+			return params.Price.NamePrice_2Letters
 		case 3:
-			return params.Price.Price_3Letters
+			return params.Price.NamePrice_3Letters
 		case 4:
-			return params.Price.Price_4Letters
+			return params.Price.NamePrice_4Letters
 		default:
-			return params.Price.Price_5PlusLetters
+			return params.Price.NamePrice_5PlusLetters
 		}
 	}
 

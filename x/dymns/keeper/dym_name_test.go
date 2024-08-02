@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -560,7 +559,10 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 	}
 
 	addr1a := testAddr(1).bech32()
-	addr2a := testAddr(2).bech32()
+
+	addr2Acc := testAddr(2)
+	addr2a := addr2Acc.bech32()
+
 	addr3a := testAddr(3).bech32()
 
 	generalSetupAlias := func(ctx sdk.Context, dk dymnskeeper.Keeper) {
@@ -1378,21 +1380,15 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Configs: []dymnstypes.DymNameConfig{
 					{
 						Type:  dymnstypes.DymNameConfigType_NAME,
-						Value: addr2a,
+						Value: addr2Acc.bech32(),
 					},
 				},
 			},
-			preSetup:       nil,
-			dymNameAddress: "a@nim",
-			wantError:      false,
-			wantOutputAddress: func() string {
-				_, bz, err := bech32.DecodeAndConvert(addr2a)
-				require.NoError(t, err)
-				addr2OnNim, err := bech32.ConvertAndEncode("nim", bz)
-				require.NoError(t, err)
-				return addr2OnNim
-			}(),
-			postTest: nil,
+			preSetup:          nil,
+			dymNameAddress:    "a@nim",
+			wantError:         false,
+			wantOutputAddress: addr2Acc.bech32C("nim"),
+			postTest:          nil,
 		},
 		{
 			// must resolve to address with nim prefix
@@ -2911,12 +2907,8 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 			Aliases: nil,
 		},
 		{
-			ChainId: "rollapp_2-2",
-			Aliases: nil,
-		},
-		{
-			ChainId: "rollapp_3-3",
-			Aliases: nil,
+			ChainId: "another-1",
+			Aliases: []string{"another"},
 		},
 	}
 	require.NoError(t, dk.SetParams(ctx, moduleParams))
@@ -2926,61 +2918,43 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 		Creator:   testAddr(1).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_1-1"))
+	require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_1-1", "ra1"))
+
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_2-2",
 		Creator:   testAddr(2).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_2-2"))
+
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
 		RollappId: "rollapp_3-3",
 		Creator:   testAddr(3).bech32(),
 	})
 	require.True(t, dk.IsRollAppId(ctx, "rollapp_3-3"))
 
-	input := []dymnstypes.ReverseResolvedDymNameAddress{
-		{
-			SubName:        "a",
-			Name:           "b",
-			ChainIdOrAlias: chainId,
-		},
-		{
-			SubName:        "a",
-			Name:           "b",
-			ChainIdOrAlias: "blumbus_111-1",
-		},
-		{
-			SubName:        "",
-			Name:           "z",
-			ChainIdOrAlias: "blumbus_111-1",
-		},
-		{
-			SubName:        "a",
-			Name:           "b",
-			ChainIdOrAlias: "froopyland_100-1",
-		},
-		{
-			SubName:        "",
-			Name:           "a",
-			ChainIdOrAlias: "froopyland_100-1",
-		},
-	}
+	rk.SetRollapp(ctx, rollapptypes.Rollapp{
+		RollappId: "rollapp_4-4",
+		Creator:   testAddr(4).bech32(),
+	})
+	require.True(t, dk.IsRollAppId(ctx, "rollapp_4-4"))
+	require.NoError(t, dk.SetAliasForRollAppId(ctx, "rollapp_4-4", "another"))
 
-	require.Equal(t,
-		[]dymnstypes.ReverseResolvedDymNameAddress{
+	t.Run("can replace from params", func(t *testing.T) {
+		input := []dymnstypes.ReverseResolvedDymNameAddress{
 			{
 				SubName:        "a",
 				Name:           "b",
-				ChainIdOrAlias: "dym",
+				ChainIdOrAlias: chainId,
 			},
 			{
 				SubName:        "a",
 				Name:           "b",
-				ChainIdOrAlias: "bb",
+				ChainIdOrAlias: "blumbus_111-1",
 			},
 			{
 				SubName:        "",
 				Name:           "z",
-				ChainIdOrAlias: "bb",
+				ChainIdOrAlias: "blumbus_111-1",
 			},
 			{
 				SubName:        "a",
@@ -2992,9 +2966,39 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 				Name:           "a",
 				ChainIdOrAlias: "froopyland_100-1",
 			},
-		},
-		dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
-	)
+		}
+
+		require.Equal(t,
+			[]dymnstypes.ReverseResolvedDymNameAddress{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "dym",
+				},
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "bb",
+				},
+				{
+					SubName:        "",
+					Name:           "z",
+					ChainIdOrAlias: "bb",
+				},
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "froopyland_100-1",
+				},
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: "froopyland_100-1",
+				},
+			},
+			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
+		)
+	})
 
 	t.Run("ful-fill with host-chain-id if empty", func(t *testing.T) {
 		input := []dymnstypes.ReverseResolvedDymNameAddress{
@@ -3016,12 +3020,12 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 		)
 	})
 
-	t.Run("FIXME * mapping correct alias for RollApp by ID", func(t *testing.T) {
+	t.Run("mapping correct alias for RollApp by ID", func(t *testing.T) {
 		input := []dymnstypes.ReverseResolvedDymNameAddress{
 			{
 				SubName:        "a",
 				Name:           "b",
-				ChainIdOrAlias: "ra1",
+				ChainIdOrAlias: "rollapp_1-1",
 			},
 			{
 				Name:           "a",
@@ -3037,7 +3041,7 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 				{
 					SubName:        "a",
 					Name:           "b",
-					ChainIdOrAlias: "rollapp_1-1",
+					ChainIdOrAlias: "ra1",
 				},
 				{
 					Name:           "a",
@@ -3046,6 +3050,84 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 				{
 					Name:           "b",
 					ChainIdOrAlias: "rollapp_3-3",
+				},
+			},
+			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
+		)
+	})
+
+	t.Run("mixed replacement from both params and RolApp alias", func(t *testing.T) {
+		input := []dymnstypes.ReverseResolvedDymNameAddress{
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "rollapp_1-1",
+			},
+			{
+				Name:           "a",
+				ChainIdOrAlias: "rollapp_2-2",
+			},
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "",
+			},
+			{
+				SubName:        "a",
+				Name:           "c",
+				ChainIdOrAlias: chainId,
+			},
+		}
+		require.Equal(t,
+			[]dymnstypes.ReverseResolvedDymNameAddress{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "ra1",
+				},
+				{
+					Name:           "a",
+					ChainIdOrAlias: "rollapp_2-2",
+				},
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "dym",
+				},
+				{
+					SubName:        "a",
+					Name:           "c",
+					ChainIdOrAlias: "dym",
+				},
+			},
+			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),
+		)
+	})
+
+	t.Run("do not use Roll-App alias if occupied in Params", func(t *testing.T) {
+		input := []dymnstypes.ReverseResolvedDymNameAddress{
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "rollapp_4-4",
+			},
+			{
+				SubName:        "a",
+				Name:           "b",
+				ChainIdOrAlias: "another-1",
+			},
+		}
+		require.Equal(t,
+			[]dymnstypes.ReverseResolvedDymNameAddress{
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "rollapp_4-4", // keep as is, even tho it has alias
+				},
+				{
+					SubName:        "a",
+					Name:           "b",
+					ChainIdOrAlias: "another",
 				},
 			},
 			dk.ReplaceChainIdWithAliasIfPossible(ctx, input),

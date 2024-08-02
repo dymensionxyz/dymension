@@ -23,12 +23,15 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MigrateChainIdsProposal defines a proposal to migrate replace chain-id,
+// MigrateChainIdsProposal defines a proposal to migrate replace chain-id in params and configurations,
 // used when chain-id of a connected network is changed.
 // This gov will lookup and replace in params and all configurations of all non-expired Dym-Names.
 type MigrateChainIdsProposal struct {
-	Title       string           `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description string           `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// title of the proposal
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// description of the proposal
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// replacements is set of chain-id replacements
 	Replacement []MigrateChainId `protobuf:"bytes,3,rep,name=replacement,proto3" json:"replacement"`
 }
 
@@ -86,9 +89,12 @@ func (m *MigrateChainIdsProposal) GetReplacement() []MigrateChainId {
 	return nil
 }
 
+// MigrateChainId defines a chain-id replacement.
 type MigrateChainId struct {
+	// previous_chain_id is the chain-id to be replaced
 	PreviousChainId string `protobuf:"bytes,1,opt,name=previous_chain_id,json=previousChainId,proto3" json:"previous_chain_id,omitempty"`
-	NewChainId      string `protobuf:"bytes,2,opt,name=new_chain_id,json=newChainId,proto3" json:"new_chain_id,omitempty"`
+	// new_chain_id is the new chain-id to replace with
+	NewChainId string `protobuf:"bytes,2,opt,name=new_chain_id,json=newChainId,proto3" json:"new_chain_id,omitempty"`
 }
 
 func (m *MigrateChainId) Reset()         { *m = MigrateChainId{} }
@@ -140,10 +146,14 @@ func (m *MigrateChainId) GetNewChainId() string {
 
 // UpdateAliasesProposal defines a proposal to update aliases of chain-ids.
 type UpdateAliasesProposal struct {
-	Title       string        `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Description string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
-	Add         []UpdateAlias `protobuf:"bytes,3,rep,name=add,proto3" json:"add"`
-	Remove      []UpdateAlias `protobuf:"bytes,4,rep,name=remove,proto3" json:"remove"`
+	// title of the proposal
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	// description of the proposal
+	Description string `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	// add is set of aliases to be mapped to chain-ids
+	Add []UpdateAlias `protobuf:"bytes,3,rep,name=add,proto3" json:"add"`
+	// remove is set of aliases to remove mapping from chain-ids
+	Remove []UpdateAlias `protobuf:"bytes,4,rep,name=remove,proto3" json:"remove"`
 }
 
 func (m *UpdateAliasesProposal) Reset()         { *m = UpdateAliasesProposal{} }
@@ -207,9 +217,13 @@ func (m *UpdateAliasesProposal) GetRemove() []UpdateAlias {
 	return nil
 }
 
+// UpdateAlias defines an alias to chain-id mapping.
+// It can be used to add or remove alias to chain-id mapping.
 type UpdateAlias struct {
+	// chain_id is the chain-id to take action on
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
-	Alias   string `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty"`
+	// alias is the alias to be mapped to chain-id or removed
+	Alias string `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty"`
 }
 
 func (m *UpdateAlias) Reset()         { *m = UpdateAlias{} }

@@ -523,11 +523,11 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 
 		params := dymnstypes.DefaultParams()
 		params.Price.PriceDenom = denom
-		params.Price.Price_1Letter = sdk.NewInt(price1L)
-		params.Price.Price_2Letters = sdk.NewInt(price2L)
-		params.Price.Price_3Letters = sdk.NewInt(price3L)
-		params.Price.Price_4Letters = sdk.NewInt(price4L)
-		params.Price.Price_5PlusLetters = sdk.NewInt(price5PlusL)
+		params.Price.NamePrice_1Letter = sdk.NewInt(price1L)
+		params.Price.NamePrice_2Letters = sdk.NewInt(price2L)
+		params.Price.NamePrice_3Letters = sdk.NewInt(price3L)
+		params.Price.NamePrice_4Letters = sdk.NewInt(price4L)
+		params.Price.NamePrice_5PlusLetters = sdk.NewInt(price5PlusL)
 		params.Price.PriceExtends = sdk.NewInt(extendsPrice)
 		params.Misc.GracePeriodDuration = 1 * 24 * time.Hour
 		err := dk.SetParams(ctx, params)

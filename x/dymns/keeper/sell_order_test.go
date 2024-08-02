@@ -78,8 +78,8 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 			}
 			require.NotEmpty(t, actionName, "event attr action name could not be found")
 			require.Equalf(t,
-				actionName, dymnstypes.AttributeKeyDymNameSoActionNameSet,
-				"event attr action name should be `%s`", dymnstypes.AttributeKeyDymNameSoActionNameSet,
+				actionName, dymnstypes.AttributeValueDymNameSoActionNameSet,
+				"event attr action name should be `%s`", dymnstypes.AttributeValueDymNameSoActionNameSet,
 			)
 			return
 		}
@@ -119,8 +119,8 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 			}
 			require.NotEmpty(t, actionName, "event attr action name could not be found")
 			require.Equalf(t,
-				actionName, dymnstypes.AttributeKeyDymNameSoActionNameSet,
-				"event attr action name should be `%s`", dymnstypes.AttributeKeyDymNameSoActionNameDelete,
+				actionName, dymnstypes.AttributeValueDymNameSoActionNameSet,
+				"event attr action name should be `%s`", dymnstypes.AttributeValueDymNameSoActionNameDelete,
 			)
 			return
 		}

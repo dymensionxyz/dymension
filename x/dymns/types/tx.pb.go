@@ -34,7 +34,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type MsgRegisterName struct {
 	// name is the Dym-Name to be registered.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// owner is the bech32-encoded address of the account which owns the order.
+	// owner is the account address of the account which owns the order.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// duration is the number of years the Dym-Name will be registered for.
 	Duration int64 `protobuf:"varint,3,opt,name=duration,proto3" json:"duration,omitempty"`
@@ -154,9 +154,9 @@ var xxx_messageInfo_MsgRegisterNameResponse proto.InternalMessageInfo
 type MsgTransferOwnership struct {
 	// name is the Dym-Name to be transferred ownership.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// owner is the bech32-encoded address of the account which is currently owner of the Dym-Name.
+	// owner is the account address of the account which is currently owner of the Dym-Name.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	// new_owner is the bech32-encoded address of the next account which will own the Dym-Name.
+	// new_owner is the account address of the next account which will own the Dym-Name.
 	NewOwner string `protobuf:"bytes,3,opt,name=new_owner,json=newOwner,proto3" json:"new_owner,omitempty"`
 }
 
@@ -255,9 +255,9 @@ var xxx_messageInfo_MsgTransferOwnershipResponse proto.InternalMessageInfo
 type MsgSetController struct {
 	// name is the Dym-Name to be updated controller.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// owner is the bech32-encoded address of the account which is currently owner of the Dym-Name.
+	// owner is the account address of the account which is currently owner of the Dym-Name.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
-	// controller is the bech32-encoded address of the account which will be the new controller of the Dym-Name.
+	// controller is the account address of the account which will be the new controller of the Dym-Name.
 	Controller string `protobuf:"bytes,3,opt,name=controller,proto3" json:"controller,omitempty"`
 }
 
@@ -356,7 +356,7 @@ var xxx_messageInfo_MsgSetControllerResponse proto.InternalMessageInfo
 type MsgUpdateResolveAddress struct {
 	// name is the Dym-Name to be updated controller.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// controller is the bech32-encoded address of the account which has permission to update configure of the Dym-Name.
+	// controller is the account address of the account which has permission to update configure of the Dym-Name.
 	Controller string `protobuf:"bytes,2,opt,name=controller,proto3" json:"controller,omitempty"`
 	// chain_id is an optional field, chain-based mapping
 	ChainId string `protobuf:"bytes,3,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
@@ -589,10 +589,10 @@ type MsgPutAdsSellName struct {
 	// owner is the bech32-encoded address of the account which owns the order.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// min_price is the minimum price that buyer must pay for the Dym-Name.
-	// Note: even tho only DYM is allowed for payment, the min_price is still a Coin type to be able for future expansion.
 	MinPrice types.Coin `protobuf:"bytes,3,opt,name=min_price,json=minPrice,proto3" json:"min_price"`
 	// sell_price is the price that buyer must pay for the Dym-Name to immediately own it.
-	// Setting this field to nil means the Dym-Name is not for immediate purchase and must wait until the order expired.
+	// Leaving this field empty/zero means
+	// the Dym-Name is not for immediate purchase and must wait until the Sell-Order expired.
 	SellPrice *types.Coin `protobuf:"bytes,4,opt,name=sell_price,json=sellPrice,proto3" json:"sell_price,omitempty"`
 }
 
@@ -790,7 +790,7 @@ var xxx_messageInfo_MsgCancelAdsSellNameResponse proto.InternalMessageInfo
 type MsgPurchaseName struct {
 	// name is the Dym-Name to be purchased.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+	// buyer is the account address of the account which is purchasing the Dym-Name.
 	Buyer string `protobuf:"bytes,2,opt,name=buyer,proto3" json:"buyer,omitempty"`
 	// offer is the price that buyer is willing to pay for the Dym-Name.
 	Offer types.Coin `protobuf:"bytes,3,opt,name=offer,proto3" json:"offer"`
@@ -891,7 +891,7 @@ var xxx_messageInfo_MsgPurchaseNameResponse proto.InternalMessageInfo
 type MsgOfferBuyName struct {
 	// name is the Dym-Name wishing to buy.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+	// buyer is the account address of the account which is purchasing the Dym-Name.
 	Buyer string `protobuf:"bytes,2,opt,name=buyer,proto3" json:"buyer,omitempty"`
 	// continue_offer_id is the optional field, if the buyer wants to extends an existing offer.
 	ContinueOfferId string `protobuf:"bytes,3,opt,name=continue_offer_id,json=continueOfferId,proto3" json:"continue_offer_id,omitempty"`
@@ -1010,7 +1010,7 @@ func (m *MsgOfferBuyNameResponse) GetOfferId() string {
 type MsgCancelOfferBuyName struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
-	// buyer is the bech32-encoded address of the account which is purchasing the Dym-Name.
+	// buyer is the account address of the account which is purchasing the Dym-Name.
 	Buyer string `protobuf:"bytes,2,opt,name=buyer,proto3" json:"buyer,omitempty"`
 }
 
@@ -1102,7 +1102,8 @@ var xxx_messageInfo_MsgCancelOfferBuyNameResponse proto.InternalMessageInfo
 type MsgAcceptOfferBuyName struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
-	// owner is the bech32-encoded address of the account which owns the Dym-Name.
+	// owner is the account address of the account which owns the Dym-Name.
+	// And is the only one who can accept the offer.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// min_accept is the minimum price that the owner is willing to accept for the Dym-Name.
 	// If this amount matches the offer, the Dym-Name will be transferred to the buyer.
@@ -1318,16 +1319,40 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	// RegisterName is message handler, handles registration of a new Dym-Name
+	// or extends the ownership duration of an existing Dym-Name.
 	RegisterName(ctx context.Context, in *MsgRegisterName, opts ...grpc.CallOption) (*MsgRegisterNameResponse, error)
+	// TransferOwnership is message handler,
+	// handles transfer of ownership of a Dym-Name, performed by the owner.
 	TransferOwnership(ctx context.Context, in *MsgTransferOwnership, opts ...grpc.CallOption) (*MsgTransferOwnershipResponse, error)
+	// SetController is message handler,
+	// handles setting a controller for a Dym-Name, performed by the owner.
 	SetController(ctx context.Context, in *MsgSetController, opts ...grpc.CallOption) (*MsgSetControllerResponse, error)
+	// UpdateResolveAddress is message handler,
+	// handles updating Dym-Name-Address resolution configuration, performed by the controller.
 	UpdateResolveAddress(ctx context.Context, in *MsgUpdateResolveAddress, opts ...grpc.CallOption) (*MsgUpdateResolveAddressResponse, error)
+	// UpdateDetails is message handler,
+	// handles updating Dym-Name details, performed by the controller.
 	UpdateDetails(ctx context.Context, in *MsgUpdateDetails, opts ...grpc.CallOption) (*MsgUpdateDetailsResponse, error)
+	// PutAdsSellName is message handler,
+	// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
 	PutAdsSellName(ctx context.Context, in *MsgPutAdsSellName, opts ...grpc.CallOption) (*MsgPutAdsSellNameResponse, error)
+	// CancelAdsSellName is message handler,
+	// handles canceling Sell-Order, performed by the owner.
+	// This will stop the advertisement and remove the Dym-Name from the market.
+	// Can only be performed if the Dym-Name is not in any offer.
 	CancelAdsSellName(ctx context.Context, in *MsgCancelAdsSellName, opts ...grpc.CallOption) (*MsgCancelAdsSellNameResponse, error)
+	// PurchaseName is message handler,
+	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
 	PurchaseName(ctx context.Context, in *MsgPurchaseName, opts ...grpc.CallOption) (*MsgPurchaseNameResponse, error)
+	// OfferBuyName is message handler,
+	// handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
 	OfferBuyName(ctx context.Context, in *MsgOfferBuyName, opts ...grpc.CallOption) (*MsgOfferBuyNameResponse, error)
+	// CancelOfferBuyName is message handler,
+	// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
 	CancelOfferBuyName(ctx context.Context, in *MsgCancelOfferBuyName, opts ...grpc.CallOption) (*MsgCancelOfferBuyNameResponse, error)
+	// AcceptOfferBuyName is message handler,
+	// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptOfferBuyName(ctx context.Context, in *MsgAcceptOfferBuyName, opts ...grpc.CallOption) (*MsgAcceptOfferBuyNameResponse, error)
 }
 
@@ -1440,16 +1465,40 @@ func (c *msgClient) AcceptOfferBuyName(ctx context.Context, in *MsgAcceptOfferBu
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	// RegisterName is message handler, handles registration of a new Dym-Name
+	// or extends the ownership duration of an existing Dym-Name.
 	RegisterName(context.Context, *MsgRegisterName) (*MsgRegisterNameResponse, error)
+	// TransferOwnership is message handler,
+	// handles transfer of ownership of a Dym-Name, performed by the owner.
 	TransferOwnership(context.Context, *MsgTransferOwnership) (*MsgTransferOwnershipResponse, error)
+	// SetController is message handler,
+	// handles setting a controller for a Dym-Name, performed by the owner.
 	SetController(context.Context, *MsgSetController) (*MsgSetControllerResponse, error)
+	// UpdateResolveAddress is message handler,
+	// handles updating Dym-Name-Address resolution configuration, performed by the controller.
 	UpdateResolveAddress(context.Context, *MsgUpdateResolveAddress) (*MsgUpdateResolveAddressResponse, error)
+	// UpdateDetails is message handler,
+	// handles updating Dym-Name details, performed by the controller.
 	UpdateDetails(context.Context, *MsgUpdateDetails) (*MsgUpdateDetailsResponse, error)
+	// PutAdsSellName is message handler,
+	// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
 	PutAdsSellName(context.Context, *MsgPutAdsSellName) (*MsgPutAdsSellNameResponse, error)
+	// CancelAdsSellName is message handler,
+	// handles canceling Sell-Order, performed by the owner.
+	// This will stop the advertisement and remove the Dym-Name from the market.
+	// Can only be performed if the Dym-Name is not in any offer.
 	CancelAdsSellName(context.Context, *MsgCancelAdsSellName) (*MsgCancelAdsSellNameResponse, error)
+	// PurchaseName is message handler,
+	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
 	PurchaseName(context.Context, *MsgPurchaseName) (*MsgPurchaseNameResponse, error)
+	// OfferBuyName is message handler,
+	// handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
 	OfferBuyName(context.Context, *MsgOfferBuyName) (*MsgOfferBuyNameResponse, error)
+	// CancelOfferBuyName is message handler,
+	// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
 	CancelOfferBuyName(context.Context, *MsgCancelOfferBuyName) (*MsgCancelOfferBuyNameResponse, error)
+	// AcceptOfferBuyName is message handler,
+	// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptOfferBuyName(context.Context, *MsgAcceptOfferBuyName) (*MsgAcceptOfferBuyNameResponse, error)
 }
 

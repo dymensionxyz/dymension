@@ -25,20 +25,23 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // SellOrder defines a sell order, placed by owner, to sell a Dym-Name.
-// After expiry date, if no one has placed a bid, this SO will be closed, no change.
-// If there is a bid, the highest bid will win.
-// SO will be moved to historical records after completed, no matter reason.
+// Sell-Order has an expiry date.
+// After expiry date, if no one has placed a bid, this Sell-Order will be closed, no change.
+// If there is a bid, the highest bid will win, and the Dym-Name ownership will be transferred to the winner.
+// If the bid matches the sell price, the Dym-Name ownership will be transferred to the bidder immediately.
+// SO will be moved to historical records after completion/expiry.
 type SellOrder struct {
-	// The name of the Dym-Name being opened to be sold.
+	// name of the Dym-Name being opened to be sold.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+	// expire_at is the last effective date of this SO
 	ExpireAt int64 `protobuf:"varint,2,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
-	// The minimum price that the owner is willing to accept for the Dym-Name.
+	// min_price is the minimum price that the owner is willing to accept for the Dym-Name.
 	MinPrice types.Coin `protobuf:"bytes,4,opt,name=min_price,json=minPrice,proto3" json:"min_price"`
-	// The price that the owner is willing to sell the Dym-Name for, the SO will be closed when the price is met.
-	// If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bid win.
+	// sell_price is the price that the owner is willing to sell the Dym-Name for,
+	// the SO will be closed when the price is met.
+	// If the sell price is zero, the SO will be closed when the expire_at is reached and the highest bidder wins.
 	SellPrice *types.Coin `protobuf:"bytes,5,opt,name=sell_price,json=sellPrice,proto3" json:"sell_price,omitempty"`
-	// The highest bid on the SO, if any. Price must be greater than or equal to the min_price.
+	// highest_bid is the highest bid on the SO, if any. Price must be greater than or equal to the min_price.
 	HighestBid *SellOrderBid `protobuf:"bytes,6,opt,name=highest_bid,json=highestBid,proto3" json:"highest_bid,omitempty"`
 }
 
@@ -156,10 +159,11 @@ func (m *ActiveSellOrdersExpiration) GetRecords() []ActiveSellOrdersExpirationRe
 	return nil
 }
 
+// ActiveSellOrdersExpirationRecord contains the expiration date of an active Sell-Order.
 type ActiveSellOrdersExpirationRecord struct {
-	// The name of the Dym-Name being opened to be sold.
+	// name of the Dym-Name being opened to be sold.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	// The last effective date of this SO, after which the Dym-Name bid/buy is no longer valid.
+	// expire_at is the last effective date of this Sell-Order.
 	ExpireAt int64 `protobuf:"varint,2,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
 }
 
@@ -210,10 +214,11 @@ func (m *ActiveSellOrdersExpirationRecord) GetExpireAt() int64 {
 	return 0
 }
 
+// SellOrderBid defines a bid placed by an account on a Sell-Order.
 type SellOrderBid struct {
-	// The address of the account which placed the bid.
+	// bidder is the account address of the account which placed the bid.
 	Bidder string `protobuf:"bytes,1,opt,name=bidder,proto3" json:"bidder,omitempty"`
-	// The price set by the bidder.
+	// price is the amount of coin offered by the bidder.
 	Price types.Coin `protobuf:"bytes,2,opt,name=price,proto3" json:"price"`
 }
 
@@ -264,8 +269,9 @@ func (m *SellOrderBid) GetPrice() types.Coin {
 	return types.Coin{}
 }
 
+// HistoricalSellOrders contains list of closed Sell-Orders of the same Dym-Name.
 type HistoricalSellOrders struct {
-	// List of closed SOs of the same Dym-Name.
+	// sell_orders is list of closed Sell-Orders of the same Dym-Name.
 	SellOrders []SellOrder `protobuf:"bytes,1,rep,name=sell_orders,json=sellOrders,proto3" json:"sell_orders"`
 }
 

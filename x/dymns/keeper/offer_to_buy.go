@@ -112,7 +112,7 @@ func (k Keeper) SetOfferToBuy(ctx sdk.Context, offer dymnstypes.OfferToBuy) erro
 	bz := k.cdc.MustMarshal(&offer)
 	store.Set(offerKey, bz)
 
-	ctx.EventManager().EmitEvent(offer.GetSdkEvent(dymnstypes.AttributeKeyOtbActionNameSet))
+	ctx.EventManager().EmitEvent(offer.GetSdkEvent(dymnstypes.AttributeValueOtbActionNameSet))
 
 	return nil
 }
@@ -128,5 +128,5 @@ func (k Keeper) DeleteOfferToBuy(ctx sdk.Context, offerId string) {
 	offerKey := dymnstypes.OfferToBuyKey(offerId)
 	store.Delete(offerKey)
 
-	ctx.EventManager().EmitEvent(offer.GetSdkEvent(dymnstypes.AttributeKeyOtbActionNameDelete))
+	ctx.EventManager().EmitEvent(offer.GetSdkEvent(dymnstypes.AttributeValueOtbActionNameDelete))
 }

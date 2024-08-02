@@ -19,6 +19,8 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x0A}, KeyPrefixOfferToBuy, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToOfferIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0C}, KeyPrefixRvlDymNameToOfferIds, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0D}, KeyPrefixRollAppIdToAlias, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0E}, KeyPrefixRvlAliasToRollAppId, "do not change it, will break the app")
 	})
 
 	t.Run("ensure key are not mistakenly modified", func(t *testing.T) {
@@ -39,8 +41,6 @@ func TestKeys(t *testing.T) {
 		})
 	}
 
-	require.Equal(t, append(KeyPrefixOfferToBuy, []byte("888")...), OfferToBuyKey("888"))
-
 	for _, bech32Address := range []string{
 		"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		"dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4",
@@ -52,6 +52,18 @@ func TestKeys(t *testing.T) {
 			require.Equal(t, append(KeyPrefixRvlConfiguredAddressToDymNamesInclude, []byte(bech32Address)...), ConfiguredAddressToDymNamesIncludeRvlKey(bech32Address))
 			require.Equal(t, append(KeyPrefixRvlHexAddressToDymNamesInclude, accAddr.Bytes()...), HexAddressToDymNamesIncludeRvlKey(accAddr))
 			require.Equal(t, append(KeyPrefixRvlBuyerToOfferIds, accAddr.Bytes()...), BuyerToOfferIdsRvlKey(accAddr.Bytes()))
+		})
+	}
+
+	for _, input := range []string{
+		"888",
+		"aaa",
+		"@@@",
+	} {
+		t.Run(input, func(t *testing.T) {
+			require.Equal(t, append(KeyPrefixOfferToBuy, []byte(input)...), OfferToBuyKey(input))
+			require.Equal(t, append(KeyPrefixRollAppIdToAlias, []byte(input)...), RollAppIdToAliasKey(input))
+			require.Equal(t, append(KeyPrefixRvlAliasToRollAppId, []byte(input)...), AliasToRollAppIdRvlKey(input))
 		})
 	}
 }

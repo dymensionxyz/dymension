@@ -115,6 +115,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 
 // QueryDymNameRequest is the request type for the Query/DymName RPC method.
 type QueryDymNameRequest struct {
+	// dym_name is the name of the Dym-Name to query.
 	DymName string `protobuf:"bytes,1,opt,name=dym_name,json=dymName,proto3" json:"dym_name,omitempty"`
 }
 
@@ -160,6 +161,7 @@ func (m *QueryDymNameRequest) GetDymName() string {
 
 // QueryDymNameResponse is the response type for the Query/DymName RPC method.
 type QueryDymNameResponse struct {
+	// dym_name is the Dym-Name queried for.
 	DymName *DymName `protobuf:"bytes,1,opt,name=dym_name,json=dymName,proto3" json:"dym_name,omitempty"`
 }
 
@@ -205,6 +207,7 @@ func (m *QueryDymNameResponse) GetDymName() *DymName {
 
 // QueryResolveDymNameAddressesRequest is the request type for the Query/ResolveDymNameAddresses RPC method.
 type QueryResolveDymNameAddressesRequest struct {
+	// addresses defines the Dym-Name addresses to resolve.
 	Addresses []string `protobuf:"bytes,1,rep,name=addresses,proto3" json:"addresses,omitempty"`
 }
 
@@ -248,10 +251,14 @@ func (m *QueryResolveDymNameAddressesRequest) GetAddresses() []string {
 	return nil
 }
 
+// ResultDymNameAddress defines the result of a single Dym-Name address resolution.
 type ResultDymNameAddress struct {
-	Address         string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// address is the input Dym-Name address to resolve.
+	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	// resolved_address is the resolved account address.
 	ResolvedAddress string `protobuf:"bytes,2,opt,name=resolved_address,json=resolvedAddress,proto3" json:"resolved_address,omitempty"`
-	Error           string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	// error is the error that occurred during the resolution.
+	Error string `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (m *ResultDymNameAddress) Reset()         { *m = ResultDymNameAddress{} }
@@ -310,6 +317,7 @@ func (m *ResultDymNameAddress) GetError() string {
 
 // QueryResolveDymNameAddressesResponse is the response type for the Query/ResolveDymNameAddresses RPC method.
 type QueryResolveDymNameAddressesResponse struct {
+	// resolved_addresses defines the resolved addresses for each input Dym-Name address.
 	ResolvedAddresses []ResultDymNameAddress `protobuf:"bytes,1,rep,name=resolved_addresses,json=resolvedAddresses,proto3" json:"resolved_addresses"`
 }
 
@@ -401,7 +409,7 @@ func (m *QueryDymNamesOwnedByAccountRequest) GetOwner() string {
 
 // QueryDymNamesOwnedByAccountResponse is the response type for the Query/DymNamesOwnedByAccount RPC method.
 type QueryDymNamesOwnedByAccountResponse struct {
-	// dym_names defines the Dym-Names owned by the account.
+	// dym_names defines the Dym-Names owned by the input account.
 	DymNames []DymName `protobuf:"bytes,1,rep,name=dym_names,json=dymNames,proto3" json:"dym_names"`
 }
 
@@ -447,7 +455,7 @@ func (m *QueryDymNamesOwnedByAccountResponse) GetDymNames() []DymName {
 
 // QuerySellOrderRequest is the request type for the Query/SellOrder RPC method.
 type QuerySellOrderRequest struct {
-	// dym_name is the Dym-Name to query the active SO for.
+	// dym_name is the Dym-Name to query the active Sell-Order for.
 	DymName string `protobuf:"bytes,1,opt,name=dym_name,json=dymName,proto3" json:"dym_name,omitempty"`
 }
 
@@ -493,7 +501,7 @@ func (m *QuerySellOrderRequest) GetDymName() string {
 
 // QuerySellOrderResponse is the response type for the Query/SellOrder RPC method.
 type QuerySellOrderResponse struct {
-	// result is the active SO for the Dym-Name.
+	// result is the active Sell-Order for the Dym-Name.
 	Result SellOrder `protobuf:"bytes,1,opt,name=result,proto3" json:"result"`
 }
 
@@ -539,7 +547,7 @@ func (m *QuerySellOrderResponse) GetResult() SellOrder {
 
 // QueryHistoricalSellOrderRequest is the request type for the Query/HistoricalSellOrder RPC method.
 type QueryHistoricalSellOrderRequest struct {
-	// dym_name is the Dym-Name to query the historical SO for.
+	// dym_name is the Dym-Name to query the historical Sell-Orders for.
 	DymName string `protobuf:"bytes,1,opt,name=dym_name,json=dymName,proto3" json:"dym_name,omitempty"`
 }
 
@@ -585,7 +593,7 @@ func (m *QueryHistoricalSellOrderRequest) GetDymName() string {
 
 // QueryHistoricalSellOrderResponse is the response type for the Query/HistoricalSellOrder RPC method.
 type QueryHistoricalSellOrderResponse struct {
-	// result defines the historical SOs of the Dym-Name.
+	// result defines the historical Sell-Orders of the Dym-Name queried.
 	Result []SellOrder `protobuf:"bytes,1,rep,name=result,proto3" json:"result"`
 }
 
@@ -815,7 +823,7 @@ func (m *QueryReverseResolveAddressRequest) GetWorkingChainId() string {
 
 // QueryReverseResolveAddressResponse is the response type for the Query/ReverseResolveAddress RPC method.
 type QueryReverseResolveAddressResponse struct {
-	// resolved_addresses defines the resolved addresses.
+	// result defines the reverse resolution result for each input address.
 	Result map[string]ReverseResolveAddressResult `protobuf:"bytes,1,rep,name=result,proto3" json:"result" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	// working_chain_id is the chain id used for the reverse resolution.
 	WorkingChainId string `protobuf:"bytes,2,opt,name=working_chain_id,json=workingChainId,proto3" json:"working_chain_id,omitempty"`
@@ -869,8 +877,10 @@ func (m *QueryReverseResolveAddressResponse) GetWorkingChainId() string {
 }
 
 type ReverseResolveAddressResult struct {
+	// candidates are the Dym-Name addresses that the input address resolves to. Take one of them.
 	Candidates []string `protobuf:"bytes,1,rep,name=candidates,proto3" json:"candidates,omitempty"`
-	Error      string   `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	// error is the error that occurred during the resolution.
+	Error string `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 }
 
 func (m *ReverseResolveAddressResult) Reset()         { *m = ReverseResolveAddressResult{} }
@@ -922,6 +932,7 @@ func (m *ReverseResolveAddressResult) GetError() string {
 
 // QueryTranslateAliasOrChainIdToChainIdRequest is the request type for the Query/TranslateAliasOrChainIdToChainId RPC method.
 type QueryTranslateAliasOrChainIdToChainIdRequest struct {
+	// alias_or_chain_id is the alias or chain id to translate.
 	AliasOrChainId string `protobuf:"bytes,1,opt,name=alias_or_chain_id,json=aliasOrChainId,proto3" json:"alias_or_chain_id,omitempty"`
 }
 
@@ -971,6 +982,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdRequest) GetAliasOrChainId() strin
 
 // QueryTranslateAliasOrChainIdToChainIdResponse is the response type for the Query/TranslateAliasOrChainIdToChainId RPC method.
 type QueryTranslateAliasOrChainIdToChainIdResponse struct {
+	// chain_id is the chain id that the alias or chain id translates to.
 	ChainId string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
 }
 
@@ -1020,6 +1032,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) GetChainId() string {
 
 // QueryOfferToBuyByIdRequest is the request type for the Query/OfferToBuyById RPC method.
 type QueryOfferToBuyByIdRequest struct {
+	// id is the id of the Offer-To-Buy record to query.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 }
 
@@ -1065,6 +1078,7 @@ func (m *QueryOfferToBuyByIdRequest) GetId() string {
 
 // QueryOfferToBuyByIdResponse is the response type for the Query/OfferToBuyById RPC method.
 type QueryOfferToBuyByIdResponse struct {
+	// offer is the Offer-To-Buy record queried for.
 	Offer OfferToBuy `protobuf:"bytes,1,opt,name=offer,proto3" json:"offer"`
 }
 
@@ -1110,6 +1124,7 @@ func (m *QueryOfferToBuyByIdResponse) GetOffer() OfferToBuy {
 
 // QueryOffersToBuyByAccountRequest is the request type for the Query/OffersToBuyPlacedByAccount RPC method.
 type QueryOffersToBuyPlacedByAccountRequest struct {
+	// account is the account address to query the Offers-To-Buy for.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
@@ -1157,6 +1172,7 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) GetAccount() string {
 
 // QueryOffersToBuyByAccountResponse is the response type for the Query/OffersToBuyPlacedByAccount RPC method.
 type QueryOffersToBuyPlacedByAccountResponse struct {
+	// offers are the Offers-To-Buy placed by the account.
 	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
@@ -1204,6 +1220,7 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) GetOffers() []OfferToBuy {
 
 // QueryOffersToBuyByDymNameRequest is the request type for the Query/OffersToBuyByDymName RPC method.
 type QueryOffersToBuyByDymNameRequest struct {
+	// name is the Dym-Name to query the Offers-To-Buy for.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 
@@ -1249,6 +1266,7 @@ func (m *QueryOffersToBuyByDymNameRequest) GetName() string {
 
 // QueryOffersToBuyByDymNameResponse is the response type for the Query/OffersToBuyByDymName RPC method.
 type QueryOffersToBuyByDymNameResponse struct {
+	// offers are the Offers-To-Buy for the Dym-Name.
 	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
@@ -1294,6 +1312,7 @@ func (m *QueryOffersToBuyByDymNameResponse) GetOffers() []OfferToBuy {
 
 // QueryOffersToBuyOfDymNamesOwnedByAccountRequest is the request type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
 type QueryOffersToBuyOfDymNamesOwnedByAccountRequest struct {
+	// account is the account address to query the Offers-To-Buy for.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
@@ -1343,6 +1362,7 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) GetAccount() string {
 
 // QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
 type QueryOffersToBuyOfDymNamesOwnedByAccountResponse struct {
+	// offers are the Offers-To-Buy of the Dym-Names owned by the input account.
 	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
@@ -1538,11 +1558,18 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
-	// Parameters queries the parameters of the module.
+	// Params queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(ctx context.Context, in *QueryDymNameRequest, opts ...grpc.CallOption) (*QueryDymNameResponse, error)
-	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account addresses.
+	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+	//
+	// For example:
+	//   - "my-name@dym" => "dym1a..."
+	//   - "another.my-name@dym" => "dym1b..."
+	//   - "my-name@nim" => "nim1..."
+	//   - (extra format) "0x1234...6789@nim" => "nim1..."
+	//   - (extra format) "dym1a...@nim" => "nim1..."
 	ResolveDymNameAddresses(ctx context.Context, in *QueryResolveDymNameAddressesRequest, opts ...grpc.CallOption) (*QueryResolveDymNameAddressesResponse, error)
 	// DymNamesOwnedByAccount queries the Dym-Names owned by an account.
 	DymNamesOwnedByAccount(ctx context.Context, in *QueryDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryDymNamesOwnedByAccountResponse, error)
@@ -1552,7 +1579,11 @@ type QueryClient interface {
 	HistoricalSellOrder(ctx context.Context, in *QueryHistoricalSellOrderRequest, opts ...grpc.CallOption) (*QueryHistoricalSellOrderResponse, error)
 	// EstimateRegisterName estimates the cost to register a Dym-Name.
 	EstimateRegisterName(ctx context.Context, in *QueryEstimateRegisterNameRequest, opts ...grpc.CallOption) (*QueryEstimateRegisterNameResponse, error)
-	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses.
+	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
+	// This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+	//
+	// For example: when we have "my-name@dym" resolves to "dym1a..."
+	// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 	ReverseResolveAddress(ctx context.Context, in *QueryReverseResolveAddressRequest, opts ...grpc.CallOption) (*QueryReverseResolveAddressResponse, error)
 	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
 	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
@@ -1694,11 +1725,18 @@ func (c *queryClient) OffersToBuyOfDymNamesOwnedByAccount(ctx context.Context, i
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
-	// Parameters queries the parameters of the module.
+	// Params queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// DymName queries a Dym-Name by its name.
 	DymName(context.Context, *QueryDymNameRequest) (*QueryDymNameResponse, error)
-	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account addresses.
+	// ResolveDymNameAddresses resolves multiple Dym-Name Addresses to account address of each pointing to.
+	//
+	// For example:
+	//   - "my-name@dym" => "dym1a..."
+	//   - "another.my-name@dym" => "dym1b..."
+	//   - "my-name@nim" => "nim1..."
+	//   - (extra format) "0x1234...6789@nim" => "nim1..."
+	//   - (extra format) "dym1a...@nim" => "nim1..."
 	ResolveDymNameAddresses(context.Context, *QueryResolveDymNameAddressesRequest) (*QueryResolveDymNameAddressesResponse, error)
 	// DymNamesOwnedByAccount queries the Dym-Names owned by an account.
 	DymNamesOwnedByAccount(context.Context, *QueryDymNamesOwnedByAccountRequest) (*QueryDymNamesOwnedByAccountResponse, error)
@@ -1708,7 +1746,11 @@ type QueryServer interface {
 	HistoricalSellOrder(context.Context, *QueryHistoricalSellOrderRequest) (*QueryHistoricalSellOrderResponse, error)
 	// EstimateRegisterName estimates the cost to register a Dym-Name.
 	EstimateRegisterName(context.Context, *QueryEstimateRegisterNameRequest) (*QueryEstimateRegisterNameResponse, error)
-	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses.
+	// ReverseResolveAddress resolves multiple account addresses to Dym-Name Addresses which point to each.
+	// This function may return multiple possible Dym-Name-Addresses those point to each of the input address.
+	//
+	// For example: when we have "my-name@dym" resolves to "dym1a..."
+	// so reverse resolve will return "my-name@dym" when input is "dym1a..."
 	ReverseResolveAddress(context.Context, *QueryReverseResolveAddressRequest) (*QueryReverseResolveAddressResponse, error)
 	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
 	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.

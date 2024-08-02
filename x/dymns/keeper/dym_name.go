@@ -735,12 +735,17 @@ func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolv
 		}
 
 		chainIdToAlias := make(map[string]string)
+		preservedAliasesInParams := make(map[string]bool)
 		// Describe usage of Go Map: used for caching purpose, no iteration.
 
 		chainsParams := k.ChainsParams(ctx)
 		for _, record := range chainsParams.AliasesOfChainIds {
 			if len(record.Aliases) > 0 {
 				chainIdToAlias[record.ChainId] = record.Aliases[0]
+
+				for _, alias := range record.Aliases {
+					preservedAliasesInParams[alias] = true
+				}
 			}
 		}
 
@@ -765,9 +770,14 @@ func (k Keeper) ReplaceChainIdWithAliasIfPossible(ctx sdk.Context, reverseResolv
 				continue
 			}
 
+			if _, preserved := preservedAliasesInParams[alias]; preserved {
+				// the alias is being used in the params, and we do prioritize it
+				chainIdToAlias[chainId] = chainId
+				continue
+			}
+
 			chainIdToAlias[chainId] = alias
 			reverseResolvedRecords[i].ChainIdOrAlias = alias
-			// TODO DymNS: write test cover this case
 		}
 	}
 

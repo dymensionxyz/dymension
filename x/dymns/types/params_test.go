@@ -81,13 +81,13 @@ func TestDefaultPriceParams(t *testing.T) {
 	t.Run("ensure setting is correct", func(t *testing.T) {
 		i, ok := sdk.NewIntFromString("5" + "000000000000000000")
 		require.True(t, ok)
-		require.Equal(t, i, priceParams.Price_5PlusLetters)
+		require.Equal(t, i, priceParams.NamePrice_5PlusLetters)
 	})
 
 	t.Run("ensure price setting is at least 1 DYM", func(t *testing.T) {
 		oneDym, ok := sdk.NewIntFromString("1" + "000000000000000000")
 		require.True(t, ok)
-		if oneDym.GT(priceParams.Price_5PlusLetters) {
+		if oneDym.GT(priceParams.NamePrice_5PlusLetters) {
 			require.Fail(t, "price should be at least 1 DYM")
 		}
 		if oneDym.GT(priceParams.PriceExtends) {
@@ -119,7 +119,7 @@ func TestParams_Validate(t *testing.T) {
 	require.NoError(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Price.Price_1Letter = sdk.ZeroInt()
+	moduleParams.Price.NamePrice_1Letter = sdk.ZeroInt()
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
@@ -137,14 +137,22 @@ func TestParams_Validate(t *testing.T) {
 
 func TestPriceParams_Validate(t *testing.T) {
 	validPriceParams := PriceParams{
-		Price_1Letter:      sdk.NewInt(6),
-		Price_2Letters:     sdk.NewInt(5),
-		Price_3Letters:     sdk.NewInt(4),
-		Price_4Letters:     sdk.NewInt(3),
-		Price_5PlusLetters: sdk.NewInt(2),
-		PriceExtends:       sdk.NewInt(2),
-		PriceDenom:         params.BaseDenom,
-		MinOfferPrice:      sdk.NewInt(7),
+		NamePrice_1Letter:       sdk.NewInt(6),
+		NamePrice_2Letters:      sdk.NewInt(5),
+		NamePrice_3Letters:      sdk.NewInt(4),
+		NamePrice_4Letters:      sdk.NewInt(3),
+		NamePrice_5PlusLetters:  sdk.NewInt(2),
+		AliasPrice_1Letter:      sdk.NewInt(16),
+		AliasPrice_2Letters:     sdk.NewInt(15),
+		AliasPrice_3Letters:     sdk.NewInt(14),
+		AliasPrice_4Letters:     sdk.NewInt(13),
+		AliasPrice_5Letters:     sdk.NewInt(12),
+		AliasPrice_6Letters:     sdk.NewInt(11),
+		AliasPrice_7PlusLetters: sdk.NewInt(10),
+
+		PriceExtends:  sdk.NewInt(2),
+		PriceDenom:    params.BaseDenom,
+		MinOfferPrice: sdk.NewInt(7),
 	}
 
 	require.NoError(t, validPriceParams.Validate())
@@ -180,56 +188,120 @@ func TestPriceParams_Validate(t *testing.T) {
 		swapPrice     swapPrice
 	}{
 		{
-			name:          "invalid 1 letter price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.Price_1Letter = v; return p },
+			name:          "invalid 1 letter name price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_1Letter = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.Price_1Letter
-				params.Price_1Letter = params.Price_2Letters
-				params.Price_2Letters = backup
+				backup := params.NamePrice_1Letter
+				params.NamePrice_1Letter = params.NamePrice_2Letters
+				params.NamePrice_2Letters = backup
 				return params
 			},
 		},
 		{
-			name:          "invalid 2 letters price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.Price_2Letters = v; return p },
+			name:          "invalid 2 letters name price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_2Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.Price_2Letters
-				params.Price_2Letters = params.Price_3Letters
-				params.Price_3Letters = backup
+				backup := params.NamePrice_2Letters
+				params.NamePrice_2Letters = params.NamePrice_3Letters
+				params.NamePrice_3Letters = backup
 				return params
 			},
 		},
 		{
-			name:          "invalid 3 letters price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.Price_3Letters = v; return p },
+			name:          "invalid 3 letters name price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_3Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.Price_3Letters
-				params.Price_3Letters = params.Price_4Letters
-				params.Price_4Letters = backup
+				backup := params.NamePrice_3Letters
+				params.NamePrice_3Letters = params.NamePrice_4Letters
+				params.NamePrice_4Letters = backup
 				return params
 			},
 		},
 		{
-			name:          "invalid 4 letters price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.Price_4Letters = v; return p },
+			name:          "invalid 4 letters name price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_4Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
-				backup := params.Price_4Letters
-				params.Price_4Letters = params.Price_5PlusLetters
-				params.Price_5PlusLetters = backup
+				backup := params.NamePrice_4Letters
+				params.NamePrice_4Letters = params.NamePrice_5PlusLetters
+				params.NamePrice_5PlusLetters = backup
 				return params
 			},
 		},
 		{
-			name:          "invalid 5+ letters price",
-			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.Price_5PlusLetters = v; return p },
+			name:          "invalid 5+ letters name price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_5PlusLetters = v; return p },
 		},
 		{
 			name:          "invalid yearly extends price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.PriceExtends = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
-				params.PriceExtends = params.Price_5PlusLetters.Add(params.Price_5PlusLetters)
+				params.PriceExtends = params.NamePrice_5PlusLetters.Add(params.NamePrice_5PlusLetters)
 				return params
 			},
+		},
+		{
+			name:          "invalid 1 letter alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_1Letter = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_1Letter
+				params.AliasPrice_1Letter = params.AliasPrice_2Letters
+				params.AliasPrice_2Letters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 2 letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_2Letters = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_2Letters
+				params.AliasPrice_2Letters = params.AliasPrice_3Letters
+				params.AliasPrice_3Letters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 3 letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_3Letters = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_3Letters
+				params.AliasPrice_3Letters = params.AliasPrice_4Letters
+				params.AliasPrice_4Letters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 4 letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_4Letters = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_4Letters
+				params.AliasPrice_4Letters = params.AliasPrice_5Letters
+				params.AliasPrice_5Letters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 5 letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_5Letters = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_5Letters
+				params.AliasPrice_5Letters = params.AliasPrice_6Letters
+				params.AliasPrice_6Letters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 6 letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_6Letters = v; return p },
+			swapPrice: func(params PriceParams) PriceParams {
+				backup := params.AliasPrice_6Letters
+				params.AliasPrice_6Letters = params.AliasPrice_7PlusLetters
+				params.AliasPrice_7PlusLetters = backup
+				return params
+			},
+		},
+		{
+			name:          "invalid 7+ letters alias price",
+			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_7PlusLetters = v; return p },
 		},
 	}
 	for _, tt := range testsInvalidPrice {

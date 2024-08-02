@@ -39,8 +39,8 @@ const (
 
 // Event to fire corresponding to the action of CRUD a SellOrder.
 const (
-	AttributeKeyDymNameSoActionNameSet    = "set"
-	AttributeKeyDymNameSoActionNameDelete = "delete"
+	AttributeValueDymNameSoActionNameSet    = "set"
+	AttributeValueDymNameSoActionNameDelete = "delete"
 )
 
 // Event to fire when an OfferToBuy is set into store.
@@ -55,6 +55,19 @@ const (
 
 // Event to fire corresponding to the action of CRUD a OfferToBuy.
 const (
-	AttributeKeyOtbActionNameSet    = "set"
-	AttributeKeyOtbActionNameDelete = "delete"
+	AttributeValueOtbActionNameSet    = "set"
+	AttributeValueOtbActionNameDelete = "delete"
+)
+
+const (
+	EventTypeSell         = ModuleName + "_sell"
+	AttributeKeySellType  = "type"
+	AttributeKeySellName  = "name"
+	AttributeKeySellPrice = "price"
+	AttributeKeySellTo    = "buyer"
+)
+
+const (
+	AttributeValueSellTypeName  = "name"
+	AttributeValueSellTypeAlias = "alias"
 )

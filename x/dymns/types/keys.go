@@ -32,6 +32,8 @@ const (
 	prefixOfferToBuy
 	prefixRvlBuyerToOfferIds   // reverse lookup store
 	prefixRvlDymNameToOfferIds // reverse lookup store
+	prefixRollAppIdToAlias
+	prefixRvlAliasToRollAppId // reverse lookup store
 )
 
 var (
@@ -64,6 +66,12 @@ var (
 
 	// KeyPrefixRvlDymNameToOfferIds is the key prefix for the reverse lookup for Buy-Order IDs by the Dym-Name
 	KeyPrefixRvlDymNameToOfferIds = []byte{prefixRvlDymNameToOfferIds}
+
+	// KeyPrefixRollAppIdToAlias is the key prefix for the Roll-App ID to Alias records
+	KeyPrefixRollAppIdToAlias = []byte{prefixRollAppIdToAlias}
+
+	// KeyPrefixRvlAliasToRollAppId is the key prefix for the reverse lookup for Alias to Roll-App ID records
+	KeyPrefixRvlAliasToRollAppId = []byte{prefixRvlAliasToRollAppId}
 )
 
 var (
@@ -122,4 +130,14 @@ func BuyerToOfferIdsRvlKey(bzHexAddr []byte) []byte {
 // DymNameToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the Dym-Name
 func DymNameToOfferIdsRvlKey(dymName string) []byte {
 	return append(KeyPrefixRvlDymNameToOfferIds, []byte(dymName)...)
+}
+
+// RollAppIdToAliasKey returns a key for the Roll-App ID to Alias records
+func RollAppIdToAliasKey(rollAppId string) []byte {
+	return append(KeyPrefixRollAppIdToAlias, []byte(rollAppId)...)
+}
+
+// AliasToRollAppIdRvlKey returns a key for reverse lookup for Alias to Roll-App ID records
+func AliasToRollAppIdRvlKey(alias string) []byte {
+	return append(KeyPrefixRvlAliasToRollAppId, []byte(alias)...)
 }

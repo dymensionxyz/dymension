@@ -25,11 +25,15 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the DymNS module's genesis state.
 type GenesisState struct {
-	Params   Params    `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// params defines all the parameters of the module.
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+	// dym_names defines all the dym names in the genesis state.
 	DymNames []DymName `protobuf:"bytes,2,rep,name=dym_names,json=dymNames,proto3" json:"dym_names"`
-	// used to refund the bid amount to the bidder of the SO which was not finished during genesis export
+	// sell_order_bids are records which used to refund the bid amount to the bidder
+	// of the Sell-Orders which was not finished during genesis export
 	SellOrderBids []SellOrderBid `protobuf:"bytes,3,rep,name=sell_order_bids,json=sellOrderBids,proto3" json:"sell_order_bids"`
-	// used to refund the bid amount to the bidder of the OTB which was not finished during genesis export
+	// offers_to_buy are records which used to refund the bid amount to the bidder
+	// of the Offer-To-Buy which was not finished during genesis export
 	OffersToBuy []OfferToBuy `protobuf:"bytes,4,rep,name=offers_to_buy,json=offersToBuy,proto3" json:"offers_to_buy"`
 }
 
