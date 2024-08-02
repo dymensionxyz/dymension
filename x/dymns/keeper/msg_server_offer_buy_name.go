@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -86,31 +87,31 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyNam
 
 	dymName := k.GetDymNameWithExpirationCheck(ctx, msg.Name)
 	if dymName == nil {
-		err = dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 		return
 	}
 	if dymName.Owner == msg.Buyer {
-		err = sdkerrors.ErrInvalidRequest.Wrap("cannot buy own Dym-Name")
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument, "cannot buy own Dym-Name")
 		return
 	}
 
 	params := k.GetParams(ctx)
 	if dymName.IsProhibitedTradingAt(ctx.BlockTime(), k.GetParams(ctx).Misc.ProhibitSellDuration) {
-		err = sdkerrors.ErrInvalidRequest.Wrapf(
-			"%s before Dym-Name expiry, can not trade",
+		err = errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
+			"duration before Dym-Name expiry, prohibited to trade: %s",
 			params.Misc.ProhibitSellDuration,
 		)
 		return
 	}
 
 	if msg.Offer.Denom != params.Price.PriceDenom {
-		err = sdkerrors.ErrInvalidRequest.Wrapf(
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
 			"invalid offer denomination, only accept %s", params.Price.PriceDenom,
 		)
 		return
 	}
 	if msg.Offer.Amount.LT(params.Price.MinOfferPrice) {
-		err = sdkerrors.ErrInvalidRequest.Wrapf(
+		err = errorsmod.Wrapf(gerrc.ErrInvalidArgument,
 			"offer price must be greater than or equal to %s", params.Price.MinOfferPrice.String(),
 		)
 		return
@@ -119,25 +120,28 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyNam
 	if msg.ContinueOfferId != "" {
 		existingOffer = k.GetOfferToBuy(ctx, msg.ContinueOfferId)
 		if existingOffer == nil {
-			err = dymnstypes.ErrOfferToBuyNotFound.Wrap(msg.ContinueOfferId)
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Offer-To-Buy: %s", msg.ContinueOfferId)
 			return
 		}
 		if existingOffer.Buyer != msg.Buyer {
-			err = sdkerrors.ErrUnauthorized.Wrap("not the owner of the offer")
+			err = errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 			return
 		}
 		if existingOffer.Name != msg.Name {
-			err = sdkerrors.ErrInvalidRequest.Wrap("Dym-Name mismatch with existing offer")
+			err = errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name mismatch with existing offer")
 			return
 		}
 		if existingOffer.OfferPrice.Denom != msg.Offer.Denom {
-			err = sdkerrors.ErrInvalidRequest.Wrap("offer denomination mismatch with existing offer")
+			err = errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"offer denomination mismatch with existing offer: %s != %s", msg.Offer.Denom, existingOffer.OfferPrice.Denom,
+			)
 			return
 		}
 		if msg.Offer.IsLTE(existingOffer.OfferPrice) {
-			err = sdkerrors.ErrInvalidRequest.Wrapf(
-				"offer price must be greater than existing offer price %s",
-				existingOffer.OfferPrice.String(),
+			err = errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"offer price must be greater than existing offer price %s", existingOffer.OfferPrice.String(),
 			)
 			return
 		}

@@ -144,7 +144,7 @@ func TestKeeper_GetSetInsertOfferToBuy(t *testing.T) {
 
 		_, err = dk.InsertOfferToBuy(ctx, offer)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Offer-To-Buy with ID 2 already exists")
+		require.Contains(t, err.Error(), "Offer-To-Buy-ID already exists")
 	})
 
 	t.Run("should automatically fill ID when insert", func(t *testing.T) {

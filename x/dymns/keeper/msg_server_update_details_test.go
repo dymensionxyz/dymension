@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -114,7 +116,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				require0xMappedNoDymName(ts, controllerA)
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
+			wantErrContains: gerrc.ErrInvalidArgument.Error(),
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: controllerA,
@@ -141,7 +143,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Controller: controllerA,
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: fmt.Sprintf("Dym-Name: %s: not found", recordName),
 			wantDymName:     nil,
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
@@ -199,7 +201,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Controller: anotherAcc.bech32(),
 			},
 			wantErr:         true,
-			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains: "permission denied",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: controllerA,
@@ -261,7 +263,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Controller: controllerA,
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
+			wantErrContains: "contact is too long; max length",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerA,
 				Controller: controllerA,

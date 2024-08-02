@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -67,46 +69,49 @@ func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchase
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.Owner == msg.Buyer {
-		return nil, nil, sdkerrors.ErrLogic.Wrap("cannot purchase your own dym name")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "cannot purchase your own dym name")
 	}
 
 	so := k.GetSellOrder(ctx, msg.Name)
 	if so == nil {
-		return nil, nil, dymnstypes.ErrSellOrderNotFound.Wrap(msg.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.Name)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {
-		return nil, nil, dymnstypes.ErrInvalidState.Wrap("cannot purchase an expired order")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot purchase an expired order")
 	}
 
 	if so.HasFinishedAtCtx(ctx) {
-		return nil, nil, dymnstypes.ErrInvalidState.Wrap("cannot purchase a completed order")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot purchase a completed order")
 	}
 
 	if msg.Offer.Denom != so.MinPrice.Denom {
-		return nil, nil, sdkerrors.ErrUnknownRequest.Wrapf(
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument,
 			"offer denom does not match the order denom: %s != %s",
 			msg.Offer.Denom, so.MinPrice.Denom,
 		)
 	}
 
 	if msg.Offer.IsLT(so.MinPrice) {
-		return nil, nil, sdkerrors.ErrInsufficientFunds.Wrap("offer is lower than minimum price")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer is lower than minimum price")
 	}
 
 	if so.HasSetSellPrice() {
 		if !msg.Offer.IsLTE(*so.SellPrice) { // overpaid protection
-			return nil, nil, sdkerrors.ErrInsufficientFunds.Wrap("offer is higher than sell price")
+			return nil, nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer is higher than sell price")
 		}
 	}
 
 	if so.HighestBid != nil {
 		if msg.Offer.IsLTE(so.HighestBid.Price) {
-			return nil, nil, sdkerrors.ErrInsufficientFunds.Wrap("new offer must be higher than current highest bid")
+			return nil, nil, errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
+				"new offer must be higher than current highest bid",
+			)
 		}
 	}
 

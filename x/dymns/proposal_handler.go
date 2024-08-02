@@ -18,7 +18,10 @@ func NewDymNsProposalHandler(dk dymnskeeper.Keeper) govv1beta1.Handler {
 		case *dymnstypes.UpdateAliasesProposal:
 			return handleUpdateAliasesProposal(ctx, dk, c)
 		default:
-			return errorsmod.Wrapf(errortypes.ErrUnknownRequest, "unrecognized %s proposal content type: %T", dymnstypes.ModuleName, c)
+			return errorsmod.Wrapf(
+				errortypes.ErrUnknownRequest,
+				"unrecognized %s proposal content type: %T", dymnstypes.ModuleName, c,
+			)
 		}
 	}
 }

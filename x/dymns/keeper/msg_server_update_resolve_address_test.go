@@ -1,13 +1,15 @@
 package keeper_test
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -112,7 +114,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				require0xMappedNoDymName(ts, controllerAcc.bech32())
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
+			wantErrContains: gerrc.ErrInvalidArgument.Error(),
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -139,7 +141,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: fmt.Sprintf("Dym-Name: %s: not found", recordName),
 			wantDymName:     nil,
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
@@ -197,7 +199,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				Controller: anotherAcc.bech32(),
 			},
 			wantErr:         true,
-			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains: "permission denied",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -259,7 +261,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
+			wantErrContains: "config is invalid:",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
@@ -291,7 +293,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				Controller: controllerAcc.bech32(),
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrValidationFailed.Error(),
+			wantErrContains: "config is invalid:",
 			wantDymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),

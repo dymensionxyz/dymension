@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
@@ -56,53 +60,53 @@ func (m *SellOrder) HasFinished(nowEpoch int64) bool {
 // Validate performs basic validation for the SellOrder.
 func (m *SellOrder) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("SO is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO is nil")
 	}
 
 	if m.Name == "" {
-		return ErrValidationFailed.Wrap("Dym-Name of SO is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is empty")
 	}
 
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("Dym-Name of SO is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
 	}
 
 	if m.ExpireAt == 0 {
-		return ErrValidationFailed.Wrap("SO expiry is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO expiry is empty")
 	}
 
 	if m.MinPrice.Amount.IsNil() || m.MinPrice.IsZero() {
-		return ErrValidationFailed.Wrap("SO min price is zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO min price is zero")
 	} else if m.MinPrice.IsNegative() {
-		return ErrValidationFailed.Wrap("SO min price is negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO min price is negative")
 	} else if err := m.MinPrice.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("SO min price is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO min price is invalid: %v", err)
 	}
 
 	if m.HasSetSellPrice() {
 		if m.SellPrice.IsNegative() {
-			return ErrValidationFailed.Wrap("SO sell price is negative")
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO sell price is negative")
 		} else if err := m.SellPrice.Validate(); err != nil {
-			return ErrValidationFailed.Wrapf("SO sell price is invalid: %v", err)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO sell price is invalid: %v", err)
 		}
 
 		if m.SellPrice.Denom != m.MinPrice.Denom {
-			return ErrValidationFailed.Wrap("SO sell price denom is different from min price denom")
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO sell price denom is different from min price denom")
 		}
 
 		if m.SellPrice.IsLT(m.MinPrice) {
-			return ErrValidationFailed.Wrap("SO sell price is less than min price")
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO sell price is less than min price")
 		}
 	}
 
 	if m.HighestBid == nil {
 		// valid, means no bid yet
 	} else if err := m.HighestBid.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("SO highest bid is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO highest bid is invalid: %v", err)
 	} else if m.HighestBid.Price.IsLT(m.MinPrice) {
-		return ErrValidationFailed.Wrap("SO highest bid price is less than min price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO highest bid price is less than min price")
 	} else if m.HasSetSellPrice() && m.SellPrice.IsLT(m.HighestBid.Price) {
-		return ErrValidationFailed.Wrap("SO sell price is less than highest bid price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO sell price is less than highest bid price")
 	}
 
 	return nil
@@ -111,23 +115,23 @@ func (m *SellOrder) Validate() error {
 // Validate performs basic validation for the SellOrderBid.
 func (m *SellOrderBid) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("SO bid is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid is nil")
 	}
 
 	if m.Bidder == "" {
-		return ErrValidationFailed.Wrap("SO bidder is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bidder is empty")
 	}
 
 	if !dymnsutils.IsValidBech32AccountAddress(m.Bidder, true) {
-		return ErrValidationFailed.Wrap("SO bidder is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bidder is not a valid bech32 account address")
 	}
 
 	if m.Price.Amount.IsNil() || m.Price.IsZero() {
-		return ErrValidationFailed.Wrap("SO bid price is zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid price is zero")
 	} else if m.Price.IsNegative() {
-		return ErrValidationFailed.Wrap("SO bid price is negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO bid price is negative")
 	} else if err := m.Price.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("SO bid price is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "SO bid price is invalid: %v", err)
 	}
 
 	return nil
@@ -136,7 +140,7 @@ func (m *SellOrderBid) Validate() error {
 // Validate performs basic validation for the HistoricalSellOrders.
 func (m *HistoricalSellOrders) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("historical SOs is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "historical SOs is nil")
 	}
 
 	if len(m.SellOrders) > 0 {
@@ -149,11 +153,11 @@ func (m *HistoricalSellOrders) Validate() error {
 			}
 
 			if so.Name != name {
-				return ErrValidationFailed.Wrapf("historical SOs have different Dym-Name, expected only %s but got %s", name, so.Name)
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different Dym-Names: %s != %s", name, so.Name)
 			}
 
 			if _, duplicated := uniqueIdentity[so.GetIdentity()]; duplicated {
-				return ErrValidationFailed.Wrapf("historical SO is not unique: %s", so.GetIdentity())
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SO is not unique: %s", so.GetIdentity())
 			}
 			uniqueIdentity[so.GetIdentity()] = true
 		}
@@ -201,11 +205,11 @@ func (m ActiveSellOrdersExpiration) Validate() error {
 
 		for i, record := range m.Records {
 			if record.ExpireAt < 1 {
-				return ErrValidationFailed.Wrap("active SO expiry is empty")
+				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO expiry is empty")
 			}
 
 			if _, duplicated := uniqueName[record.Name]; duplicated {
-				return ErrValidationFailed.Wrapf("active SO is not unique: %s", record.Name)
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "active SO is not unique: %s", record.Name)
 			}
 
 			uniqueName[record.Name] = true
@@ -213,7 +217,7 @@ func (m ActiveSellOrdersExpiration) Validate() error {
 		}
 
 		if !sort.StringsAreSorted(allNames) {
-			return ErrValidationFailed.Wrap("active SO names are not sorted")
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "active SO names are not sorted")
 		}
 	}
 

@@ -192,7 +192,7 @@ func TestDymName_Validate(t *testing.T) {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "expire at is empty",
+			wantErrContains: "expiry is empty",
 		},
 		{
 			name:       "valid dym name without config",
@@ -354,7 +354,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			Path:            "",
 			Value:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: "dym name config type is not",
+			wantErrContains: "dym name config type must be",
 		},
 		{
 			name:            "bad chain-id",

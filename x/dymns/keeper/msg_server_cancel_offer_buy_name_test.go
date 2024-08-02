@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -43,7 +45,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).CancelOfferBuyName(ctx, &dymnstypes.MsgCancelOfferBuyName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	dymName := &dymnstypes.DymName{
@@ -173,7 +175,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrOfferToBuyNotFound.Error(),
+			wantErrContains:        "Offer-To-Buy: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -188,7 +190,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrOfferToBuyNotFound.Error(),
+			wantErrContains:        "Offer-To-Buy: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,

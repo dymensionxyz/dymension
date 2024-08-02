@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
-	"cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -24,12 +25,12 @@ func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutA
 	so.ExpireAt = ctx.BlockTime().Add(params.Misc.SellOrderDuration).Unix()
 
 	if err := so.Validate(); err != nil {
-		panic(errors.Wrap(err, "un-expected invalid state of created SO"))
+		panic(errorsmod.Wrap(err, "un-expected invalid state of created SO"))
 	}
 
 	if dymName.IsProhibitedTradingAt(time.Unix(so.ExpireAt, 0), params.Misc.ProhibitSellDuration) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf(
-			"%s before Dym-Name expiry, can not sell",
+		return nil, errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
+			"duration before Dym-Name expiry, prohibited to sell: %s",
 			params.Misc.ProhibitSellDuration,
 		)
 	}
@@ -57,33 +58,34 @@ func (k msgServer) validatePutAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgPu
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return nil, nil, sdkerrors.ErrUnauthorized
+		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	existingActiveSo := k.GetSellOrder(ctx, dymName.Name)
 	if existingActiveSo != nil {
 		if existingActiveSo.HasFinishedAtCtx(ctx) {
-			return nil, nil, sdkerrors.ErrConflict.Wrap(
+			return nil, nil, errorsmod.Wrap(
+				gerrc.ErrAlreadyExists,
 				"an active expired/completed Sell-Order already exists for the Dym-Name, must wait until processed",
 			)
 		}
-		return nil, nil, sdkerrors.ErrConflict.Wrap("an active Sell-Order already exists for the Dym-Name")
+		return nil, nil, errorsmod.Wrap(gerrc.ErrAlreadyExists, "an active Sell-Order already exists for the Dym-Name")
 	}
 
 	params := k.GetParams(ctx)
 
 	if msg.MinPrice.Denom != params.Price.PriceDenom {
-		return nil, nil, sdkerrors.ErrInvalidRequest.Wrapf(
-			"only %s is allowed as price",
-			params.Price.PriceDenom,
+		return nil, nil, errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"the only denom allowed as price: %s", params.Price.PriceDenom,
 		)
 	}
 

@@ -847,7 +847,7 @@ func TestKeeper_UpdateAliases(t *testing.T) {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "already exists for",
+			wantErrContains: "alias: d1 for dymension_1100-1: already exists",
 			wantChainsAliasParams: []dymnstypes.AliasesOfChainId{
 				{
 					ChainId: "dymension_1100-1",

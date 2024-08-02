@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -66,25 +68,26 @@ func (k msgServer) validateUpdateDetails(ctx sdk.Context, msg *dymnstypes.MsgUpd
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	if dymName.Controller != msg.Controller {
 		if dymName.Owner == msg.Controller {
-			return nil, sdkerrors.ErrInvalidAddress.Wrapf(
+			return nil, errorsmod.Wrapf(
+				gerrc.ErrPermissionDenied,
 				"please use controller account '%s' to configure", dymName.Controller,
 			)
 		}
 
-		return nil, sdkerrors.ErrUnauthorized
+		return nil, gerrc.ErrPermissionDenied
 	}
 
 	if msg.Contact == dymnstypes.DoNotModifyDesc && msg.ClearConfigs && len(dymName.Configs) == 0 {
-		return nil, sdkerrors.ErrInvalidRequest.Wrap("no existing config to clear")
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "no existing config to clear")
 	}
 
 	return dymName, nil

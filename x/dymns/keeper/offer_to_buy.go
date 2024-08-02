@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // IncreaseOfferToBuyCountAndGet increases the count of the Offer-To-Buy and returns the updated value.
@@ -86,7 +87,9 @@ func (k Keeper) InsertOfferToBuy(ctx sdk.Context, offer dymnstypes.OfferToBuy) (
 
 	existingRecord := k.GetOfferToBuy(ctx, newOfferId)
 	if existingRecord != nil {
-		return offer, sdkerrors.ErrConflict.Wrapf("Offer-To-Buy with ID %s already exists", newOfferId)
+		return offer, errorsmod.Wrapf(
+			gerrc.ErrAlreadyExists, "Offer-To-Buy-ID already exists: %s", newOfferId,
+		)
 	}
 
 	offer.Id = newOfferId

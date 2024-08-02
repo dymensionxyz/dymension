@@ -3,6 +3,9 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
@@ -11,7 +14,7 @@ import (
 // ValidateBasic performs basic validation for the MigrateChainIdsProposal.
 func (m *MigrateChainIdsProposal) ValidateBasic() error {
 	if len(m.Replacement) == 0 {
-		return govtypes.ErrInvalidProposalContent.Wrap("replacement cannot be empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "replacement cannot be empty")
 	}
 
 	uniqueChainIds := make(map[string]bool)
@@ -25,12 +28,12 @@ func (m *MigrateChainIdsProposal) ValidateBasic() error {
 		normalizedNewChainId := strings.ToLower(r.NewChainId)
 
 		if _, found := uniqueChainIds[normalizedPreviousChainId]; found {
-			return govtypes.ErrInvalidProposalContent.Wrapf("duplicate chain id: %s", r.PreviousChainId)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate chain id: %s", r.PreviousChainId)
 		}
 		uniqueChainIds[normalizedPreviousChainId] = true
 
 		if _, found := uniqueChainIds[normalizedNewChainId]; found {
-			return govtypes.ErrInvalidProposalContent.Wrapf("duplicate chain id: %s", r.NewChainId)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "duplicate chain id: %s", r.NewChainId)
 		}
 		uniqueChainIds[normalizedNewChainId] = true
 	}

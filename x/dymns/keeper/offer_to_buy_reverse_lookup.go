@@ -1,22 +1,23 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // AddReverseMappingBuyerToOfferToBuyRecord stores a reverse mapping from buyer to Offer-To-Buy-Id into the KVStore.
 func (k Keeper) AddReverseMappingBuyerToOfferToBuyRecord(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap(buyer)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
 	if !dymnsutils.IsValidBuyNameOfferId(offerId) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Offer-To-Buy Id")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Offer-To-Buy-Id: %s", offerId)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
@@ -30,7 +31,7 @@ func (k Keeper) GetOfferToBuyByBuyer(
 ) ([]dymnstypes.OfferToBuy, error) {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
-		return nil, sdkerrors.ErrInvalidRequest.Wrap(buyer)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
@@ -58,11 +59,11 @@ func (k Keeper) GetOfferToBuyByBuyer(
 func (k Keeper) RemoveReverseMappingBuyerToOfferToBuy(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
-		return sdkerrors.ErrInvalidRequest.Wrap(buyer)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
 	if !dymnsutils.IsValidBuyNameOfferId(offerId) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Offer-To-Buy Id")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Offer-To-Buy-Id: %s", offerId)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
@@ -73,11 +74,11 @@ func (k Keeper) RemoveReverseMappingBuyerToOfferToBuy(ctx sdk.Context, buyer, of
 // AddReverseMappingDymNameToOfferToBuy add a reverse mapping from configured address to Dym-Name which contains the configuration, into the KVStore.
 func (k Keeper) AddReverseMappingDymNameToOfferToBuy(ctx sdk.Context, name, offerId string) error {
 	if !dymnsutils.IsValidDymName(name) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Dym-Name")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
 	if !dymnsutils.IsValidBuyNameOfferId(offerId) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Offer-To-Buy Id")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Offer-To-Buy-Id: %s", offerId)
 	}
 
 	return k.GenericAddReverseLookupOfferToBuyIdsRecord(
@@ -92,7 +93,7 @@ func (k Keeper) GetOffersToBuyOfDymName(
 	ctx sdk.Context, name string,
 ) ([]dymnstypes.OfferToBuy, error) {
 	if !dymnsutils.IsValidDymName(name) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrap("invalid Dym-Name")
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
 	key := dymnstypes.DymNameToOfferIdsRvlKey(name)
@@ -115,11 +116,11 @@ func (k Keeper) GetOffersToBuyOfDymName(
 // RemoveReverseMappingDymNameToOfferToBuy removes reverse mapping from Dym-Name to Offer-To-Buy which placed for it, from the KVStore.
 func (k Keeper) RemoveReverseMappingDymNameToOfferToBuy(ctx sdk.Context, name, offerId string) error {
 	if !dymnsutils.IsValidDymName(name) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Dym-Name")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
 	if !dymnsutils.IsValidBuyNameOfferId(offerId) {
-		return sdkerrors.ErrInvalidRequest.Wrap("invalid Offer-To-Buy Id")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Offer-To-Buy-Id: %s", offerId)
 	}
 
 	return k.GenericRemoveReverseLookupOfferToBuyIdsRecord(

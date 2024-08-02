@@ -1,8 +1,11 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -30,7 +33,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseName(ctx, &dymnstypes.MsgPurchaseName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -74,7 +77,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			withoutSellOrder:               true,
 			newBid:                         100,
 			wantErr:                        true,
-			wantErrContains:                dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:                fmt.Sprintf("Dym-Name: %s: not found", dymName.Name),
 			wantOwnerBalanceLater:          ownerOriginalBalance,
 			wantBuyerBalanceLater:          buyerOriginalBalance,
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
@@ -85,7 +88,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			withoutSellOrder:               false,
 			newBid:                         100,
 			wantErr:                        true,
-			wantErrContains:                dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:                fmt.Sprintf("Dym-Name: %s: not found", dymName.Name),
 			wantOwnerBalanceLater:          ownerOriginalBalance,
 			wantBuyerBalanceLater:          buyerOriginalBalance,
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,
@@ -96,7 +99,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			withoutSellOrder:               true,
 			newBid:                         100,
 			wantErr:                        true,
-			wantErrContains:                dymnstypes.ErrSellOrderNotFound.Error(),
+			wantErrContains:                fmt.Sprintf("Sell-Order: %s: not found", dymName.Name),
 			wantOwnerBalanceLater:          ownerOriginalBalance,
 			wantBuyerBalanceLater:          buyerOriginalBalance,
 			wantPreviousBidderBalanceLater: previousBidderOriginalBalance,

@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -119,11 +121,14 @@ func (k msgServer) RegisterName(goCtx context.Context, msg *dymnstypes.MsgRegist
 	}
 
 	if !totalCost.IsPositive() {
-		panic(sdkerrors.ErrLogic.Wrapf("total cost is not positive: %s", totalCost.String()))
+		panic(errorsmod.Wrapf(gerrc.ErrFault, "total cost is not positive: %s", totalCost.String()))
 	}
 
 	if !totalCost.Equal(msg.ConfirmPayment) {
-		return nil, dymnstypes.ErrUnAcknowledgedPayment.Wrapf("Actual payment is %s != %s provided by user", totalCost.String(), msg.ConfirmPayment)
+		return nil, errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"actual payment is is different with provided by user: %s != %s", totalCost.String(), msg.ConfirmPayment,
+		)
 	}
 
 	// At this place we don't do compare actual payment with estimated payment calculated by EstimateRegisterName
@@ -176,7 +181,7 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 			// just renew or extends
 		} else {
 			if !dymName.IsExpiredAtCtx(ctx) {
-				return nil, nil, sdkerrors.ErrUnauthorized
+				return nil, nil, gerrc.ErrUnauthenticated
 			}
 
 			// take over
@@ -189,8 +194,9 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 
 			if ctx.BlockTime().Unix() < dymNameCanBeTakeOverAfterEpoch {
 				// still in grace period
-				return nil, nil, dymnstypes.ErrGracePeriod.Wrapf(
-					"can be taken over after %s", time.Unix(dymNameCanBeTakeOverAfterEpoch, 0).UTC().Format(time.DateTime),
+				return nil, nil, errorsmod.Wrapf(
+					gerrc.ErrFailedPrecondition,
+					"can be taken over after: %s", time.Unix(dymNameCanBeTakeOverAfterEpoch, 0).UTC().Format(time.DateTime),
 				)
 			}
 
@@ -214,7 +220,10 @@ func (k msgServer) validateRegisterName(ctx sdk.Context, msg *dymnstypes.MsgRegi
 			} else {
 				_, found := whitelistedAddresses[msg.Owner]
 				if !found {
-					return nil, nil, sdkerrors.ErrUnauthorized.Wrapf("Dym-Name %s is preserved, only able to be registered by specific addresses", msg.Name)
+					return nil, nil, errorsmod.Wrapf(
+						gerrc.ErrUnauthenticated,
+						"Dym-Name is preserved, only able to be registered by specific addresses: %s", msg.Name,
+					)
 				}
 			}
 		}

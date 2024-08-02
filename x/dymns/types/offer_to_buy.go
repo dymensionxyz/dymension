@@ -1,8 +1,10 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
@@ -13,46 +15,49 @@ func (m *OfferToBuy) HasCounterpartyOfferPrice() bool {
 // Validate performs basic validation for the OfferToBuy.
 func (m *OfferToBuy) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("offer is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer is nil")
 	}
 
 	if m.Id == "" {
-		return ErrValidationFailed.Wrap("ID of offer is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is empty")
 	}
 
 	if !dymnsutils.IsValidBuyNameOfferId(m.Id) {
-		return ErrValidationFailed.Wrap("ID of offer is not a valid offer id")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
 	}
 
 	if m.Name == "" {
-		return ErrValidationFailed.Wrap("Dym-Name of offer is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is empty")
 	}
 
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("Dym-Name of offer is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
 	}
 
 	if !dymnsutils.IsValidBech32AccountAddress(m.Buyer, true) {
-		return ErrValidationFailed.Wrap("buyer is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}
 
 	if m.OfferPrice.Amount.IsNil() || m.OfferPrice.IsZero() {
-		return ErrValidationFailed.Wrap("offer price is zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer price is zero")
 	} else if m.OfferPrice.IsNegative() {
-		return ErrValidationFailed.Wrap("offer price is negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer price is negative")
 	} else if err := m.OfferPrice.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("offer price is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "offer price is invalid: %v", err)
 	}
 
 	if m.HasCounterpartyOfferPrice() {
 		if m.CounterpartyOfferPrice.IsNegative() {
-			return ErrValidationFailed.Wrap("counterparty offer price is negative")
+			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "counterparty offer price is negative")
 		} else if err := m.CounterpartyOfferPrice.Validate(); err != nil {
-			return ErrValidationFailed.Wrapf("counterparty offer price is invalid: %v", err)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "counterparty offer price is invalid: %v", err)
 		}
 
 		if m.CounterpartyOfferPrice.Denom != m.OfferPrice.Denom {
-			return ErrValidationFailed.Wrap("counterparty offer price denom is different from offer price denom")
+			return errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
+				"counterparty offer price denom is different from offer price denom",
+			)
 		}
 	}
 

@@ -101,7 +101,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			resolveTo:       "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: ErrDymNameTooLong.Error(),
+			wantErrContains: "sub name is too long",
 		},
 		{
 			name:            "bad multi-level sub-name",

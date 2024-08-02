@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -34,19 +36,19 @@ func (k msgServer) validateSetController(ctx sdk.Context, msg *dymnstypes.MsgSet
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("not the owner of the dym name")
+		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	if dymName.Controller == msg.Controller {
-		return nil, sdkerrors.ErrLogic.Wrap("controller already set")
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, "controller already set")
 	}
 
 	return dymName, nil

@@ -4,6 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -171,16 +175,16 @@ func (m *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate checks that the parameters have valid values.
 func (m *Params) Validate() error {
 	if err := m.Price.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("price params: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "price params: %v", err)
 	}
 	if err := m.Chains.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("chains params: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "chains params: %v", err)
 	}
 	if err := m.Misc.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("misc params: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "misc params: %v", err)
 	}
 	if err := m.PreservedRegistration.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("preserved registration params: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved registration params: %v", err)
 	}
 	return nil
 }
@@ -232,14 +236,14 @@ func validateEpochIdentifier(i interface{}) error {
 func validatePriceParams(i interface{}) error {
 	m, ok := i.(PriceParams)
 	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
 	validatePrice := func(price sdkmath.Int, letterDesc string) error {
 		if price.IsNil() || price.IsZero() {
-			return ErrValidationFailed.Wrapf("%s Dym-Name price is zero", letterDesc)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is zero for: %s", letterDesc)
 		} else if price.IsNegative() {
-			return ErrValidationFailed.Wrapf("%s Dym-Name price is negative", letterDesc)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is negative for: %s", letterDesc)
 		}
 		return nil
 	}
@@ -269,40 +273,43 @@ func validatePriceParams(i interface{}) error {
 	}
 
 	if m.Price_1Letter.LTE(m.Price_2Letters) {
-		return ErrValidationFailed.Wrap("1 letter price must be greater than 2 letters price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "1 letter price must be greater than 2 letters price")
 	}
 
 	if m.Price_2Letters.LTE(m.Price_3Letters) {
-		return ErrValidationFailed.Wrap("2 letters price must be greater than 3 letters price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "2 letters price must be greater than 3 letters price")
 	}
 
 	if m.Price_3Letters.LTE(m.Price_4Letters) {
-		return ErrValidationFailed.Wrap("3 letters price must be greater than 4 letters price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "3 letters price must be greater than 4 letters price")
 	}
 
 	if m.Price_4Letters.LTE(m.Price_5PlusLetters) {
-		return ErrValidationFailed.Wrap("4 letters price must be greater than 5+ letters price")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "4 letters price must be greater than 5+ letters price")
 	}
 
 	if m.Price_5PlusLetters.LT(m.PriceExtends) {
-		return ErrValidationFailed.Wrap("5 letters price must be greater or equals to yearly extend price")
+		return errorsmod.Wrap(
+			gerrc.ErrInvalidArgument,
+			"5 letters price must be greater or equals to yearly extend price",
+		)
 	}
 
 	if m.PriceDenom == "" {
-		return ErrValidationFailed.Wrap("Dym-Name price denom cannot be empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name price denom cannot be empty")
 	}
 
 	if err := (sdk.Coin{
 		Denom:  m.PriceDenom,
 		Amount: sdk.ZeroInt(),
 	}).Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("invalid Dym-Name price denom: %s", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name price denom: %s", err)
 	}
 
 	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.IsZero() {
-		return ErrValidationFailed.Wrap("min-offer-price is zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is zero")
 	} else if m.MinOfferPrice.IsNegative() {
-		return ErrValidationFailed.Wrap("min-offer-price is negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is negative")
 	}
 
 	return nil
@@ -312,7 +319,7 @@ func validatePriceParams(i interface{}) error {
 func validateChainsParams(i interface{}) error {
 	m, ok := i.(ChainsParams)
 	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
 	uniqueChainIdAliasAmongAliasConfig := make(map[string]bool)
@@ -321,25 +328,34 @@ func validateChainsParams(i interface{}) error {
 		chainID := record.ChainId
 		aliases := record.Aliases
 		if len(chainID) < 3 {
-			return ErrValidationFailed.Wrapf("alias: chain ID `%s` must be at least 3 characters", chainID)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias: chain ID must be at least 3 characters: %s", chainID)
 		}
 
 		if !dymnsutils.IsValidChainIdFormat(chainID) {
-			return ErrValidationFailed.Wrapf("alias: chain ID `%s` is not well-formed", chainID)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "alias: chain ID is not well-formed: %s", chainID)
 		}
 
 		if _, ok := uniqueChainIdAliasAmongAliasConfig[chainID]; ok {
-			return ErrValidationFailed.Wrapf("alias: chain ID and alias must unique among all, found duplicated '%s'", chainID)
+			return errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"alias: chain ID and alias must unique among all, found duplicated: %s", chainID,
+			)
 		}
 		uniqueChainIdAliasAmongAliasConfig[chainID] = true
 
 		for _, alias := range aliases {
 			if !dymnsutils.IsValidAlias(alias) {
-				return ErrValidationFailed.Wrapf("alias `%s` is not well-formed", alias)
+				return errorsmod.Wrapf(
+					gerrc.ErrInvalidArgument,
+					"alias is not well-formed: %s", alias,
+				)
 			}
 
 			if _, ok := uniqueChainIdAliasAmongAliasConfig[alias]; ok {
-				return ErrValidationFailed.Wrapf("alias: chain ID and alias must unique among all, found duplicated '%s'", alias)
+				return errorsmod.Wrapf(
+					gerrc.ErrInvalidArgument,
+					"alias: chain ID and alias must unique among all, found duplicated: %s", alias,
+				)
 			}
 			uniqueChainIdAliasAmongAliasConfig[alias] = true
 		}
@@ -349,15 +365,24 @@ func validateChainsParams(i interface{}) error {
 	// Describe usage of Go Map: only used for validation
 	for _, chainID := range m.CoinType60ChainIds {
 		if len(chainID) < 3 {
-			return ErrValidationFailed.Wrapf("coin-type-60 chains: chain ID `%s` must be at least 3 characters", chainID)
+			return errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"coin-type-60 chains: chain ID must be at least 3 characters: %s", chainID,
+			)
 		}
 
 		if !dymnsutils.IsValidChainIdFormat(chainID) {
-			return ErrValidationFailed.Wrapf("coin-type-60 chains: chain ID `%s` is not well-formed", chainID)
+			return errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"coin-type-60 chains: chain ID is not well-formed: %s", chainID,
+			)
 		}
 
 		if _, ok := uniqueChainIdAmongCoinType60ChainsConfig[chainID]; ok {
-			return ErrValidationFailed.Wrapf("coin-type-60 chains: chain ID is not unique '%s'", chainID)
+			return errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"coin-type-60 chains: chain ID is not unique: %s", chainID,
+			)
 		}
 		uniqueChainIdAmongCoinType60ChainsConfig[chainID] = true
 	}
@@ -369,31 +394,31 @@ func validateChainsParams(i interface{}) error {
 func validateMiscParams(i interface{}) error {
 	m, ok := i.(MiscParams)
 	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
 	if err := validateEpochIdentifier(m.BeginEpochHookIdentifier); err != nil {
-		return ErrValidationFailed.Wrapf("begin epoch hook identifier: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "begin epoch hook identifier: %v", err)
 	}
 
 	if err := validateEpochIdentifier(m.EndEpochHookIdentifier); err != nil {
-		return ErrValidationFailed.Wrapf("end epoch hook identifier: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "end epoch hook identifier: %v", err)
 	}
 
 	if m.GracePeriodDuration < 0 {
-		return ErrValidationFailed.Wrap("grace period duration cannot be negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "grace period duration cannot be negative")
 	}
 
 	if m.SellOrderDuration <= 0 {
-		return ErrValidationFailed.Wrap("Sell Orders duration can not be zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Sell Orders duration can not be zero")
 	}
 
 	if m.PreservedClosedSellOrderDuration <= 0 {
-		return ErrValidationFailed.Wrap("preserved closed Sell Orders duration can not be zero")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "preserved closed Sell Orders duration can not be zero")
 	}
 
 	if m.ProhibitSellDuration <= 0 {
-		return ErrValidationFailed.Wrapf("prohibit sell duration cannot be zero")
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "prohibit sell duration cannot be zero")
 	}
 
 	return nil
@@ -407,23 +432,23 @@ func validatePreservedRegistrationParams(i interface{}) error {
 	}
 
 	if m.ExpirationEpoch < 0 {
-		return ErrValidationFailed.Wrap("expiration epoch cannot be negative")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "expiration epoch cannot be negative")
 	}
 
 	uniquePairs := make(map[string]bool)
 	// Describe usage of Go Map: only used for validation
 	for _, preservedDymName := range m.PreservedDymNames {
 		if !dymnsutils.IsValidDymName(preservedDymName.DymName) {
-			return ErrValidationFailed.Wrapf("preserved dym name `%s` is not well-formed", preservedDymName.DymName)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved Dym-Name is not well-formed: %s", preservedDymName.DymName)
 		}
 
 		if !dymnsutils.IsValidBech32AccountAddress(preservedDymName.WhitelistedAddress, true) {
-			return ErrValidationFailed.Wrapf("preserved dym name `%s` has invalid whitelisted address `%s`", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved Dym-Name has invalid whitelisted address: %s", preservedDymName.WhitelistedAddress)
 		}
 
 		pairKey := fmt.Sprintf("%s|%s", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
 		if _, ok := uniquePairs[pairKey]; ok {
-			return ErrValidationFailed.Wrapf("preserved dym name `%s` with whitelisted address `%s` is duplicated", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "preserved dym name and whitelisted address pair is duplicated: %s & %s", preservedDymName.DymName, preservedDymName.WhitelistedAddress)
 		}
 		uniquePairs[pairKey] = true
 	}

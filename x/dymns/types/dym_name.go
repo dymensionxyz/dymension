@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/ethereum/go-ethereum/common"
@@ -14,28 +18,28 @@ import (
 // Validate checks if the DymName record is valid.
 func (m *DymName) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("dym name is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name is nil")
 	}
 	if m.Name == "" {
-		return ErrValidationFailed.Wrap("name is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is empty")
 	}
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("name is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
 	if m.Owner == "" {
-		return ErrValidationFailed.Wrap("owner is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "owner is empty")
 	}
 	if !dymnsutils.IsValidBech32AccountAddress(m.Owner, true) {
-		return ErrValidationFailed.Wrapf("owner is not a valid bech32 account address: %s", m.Owner)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "owner is not a valid bech32 account address: %s", m.Owner)
 	}
 	if m.Controller == "" {
-		return ErrValidationFailed.Wrap("controller is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "controller is empty")
 	}
 	if !dymnsutils.IsValidBech32AccountAddress(m.Controller, true) {
-		return ErrValidationFailed.Wrap("controller is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "controller is not a valid bech32 account address")
 	}
 	if m.ExpireAt == 0 {
-		return ErrValidationFailed.Wrap("expire at is empty")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "expiry is empty")
 	}
 
 	uniqueConfig := make(map[string]bool)
@@ -47,13 +51,18 @@ func (m *DymName) Validate() error {
 
 		configIdentity := config.GetIdentity()
 		if _, duplicated := uniqueConfig[configIdentity]; duplicated {
-			return ErrValidationFailed.Wrapf("dym name config is not unique: %s", configIdentity)
+			return errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument, "dym name config is not unique: %s", configIdentity,
+			)
 		}
 		uniqueConfig[configIdentity] = true
 	}
 
 	if len(m.Contact) > MaxDymNameContactLength {
-		return ErrValidationFailed.Wrapf("invalid contact length; got: %d, max: %d", len(m.Contact), MaxDymNameContactLength)
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"invalid contact length; got: %d, max: %d", len(m.Contact), MaxDymNameContactLength,
+		)
 	}
 
 	return nil
@@ -62,31 +71,40 @@ func (m *DymName) Validate() error {
 // Validate checks if the DymNameConfig record is valid.
 func (m *DymNameConfig) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("dym name config is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config is nil")
 	}
 
 	if m.ChainId == "" {
 		// ok to be empty
 	} else if !dymnsutils.IsValidChainIdFormat(m.ChainId) {
-		return ErrValidationFailed.Wrap("dym name config chain id must be a valid chain id format")
+		return errorsmod.Wrap(
+			gerrc.ErrInvalidArgument,
+			"dym name config chain id must be a valid chain id format",
+		)
 	}
 
 	if m.Path == "" {
 		// ok to be empty
 	} else if !dymnsutils.IsValidSubDymName(m.Path) {
-		return ErrValidationFailed.Wrap("dym name config path must be a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config path must be a valid dym name")
 	}
 
 	if m.Value != strings.ToLower(m.Value) {
-		return ErrValidationFailed.Wrap("dym name config value must be lowercase")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config value must be lowercase")
 	}
 
 	if m.Type == DymNameConfigType_NAME {
 		if !m.IsDelete() && !dymnsutils.IsValidBech32AccountAddress(m.Value, false) {
-			return ErrValidationFailed.Wrap("dym name config value must be a valid bech32 account address")
+			return errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
+				"dym name config value must be a valid bech32 account address",
+			)
 		}
 	} else {
-		return ErrValidationFailed.Wrapf("dym name config type is not %s - the only supported at this moment", DymNameConfigType_NAME.String())
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"dym name config type must be: %s", DymNameConfigType_NAME.String(),
+		)
 	}
 
 	return nil
@@ -95,12 +113,12 @@ func (m *DymNameConfig) Validate() error {
 // Validate checks if the ReverseLookupDymNames record is valid.
 func (m *ReverseLookupDymNames) Validate() error {
 	if m == nil {
-		return ErrValidationFailed.Wrap("reverse lookup record is nil")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "reverse lookup record is nil")
 	}
 
 	for _, name := range m.DymNames {
 		if !dymnsutils.IsValidDymName(name) {
-			return ErrValidationFailed.Wrapf("invalid dym name: %s", name)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid dym name: %s", name)
 		}
 	}
 

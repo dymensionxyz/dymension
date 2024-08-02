@@ -3,6 +3,9 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
@@ -84,15 +87,14 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context, dymName string) error
 	// find active record
 	so := k.GetSellOrder(ctx, dymName)
 	if so == nil {
-		return dymnstypes.ErrSellOrderNotFound.Wrap(dymName)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", dymName)
 	}
 
 	if so.HighestBid == nil {
 		// in-case of no bid, check if the order has expired
 		if !so.HasExpiredAtCtx(ctx) {
-			return dymnstypes.ErrInvalidState.Wrapf(
-				"Sell-Order of '%s' has not expired yet",
-				dymName,
+			return errorsmod.Wrapf(gerrc.ErrFailedPrecondition,
+				"Sell-Order not yet expired: %s", dymName,
 			)
 		}
 	}
@@ -185,7 +187,7 @@ func (k Keeper) DeleteHistoricalSellOrders(ctx sdk.Context, dymName string) {
 func (k Keeper) CompleteSellOrder(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
-		return dymnstypes.ErrDymNameNotFound.Wrap(name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 	}
 
 	// here we don't check Dym-Name expiration, because it can not happen,
@@ -193,11 +195,11 @@ func (k Keeper) CompleteSellOrder(ctx sdk.Context, name string) error {
 
 	so := k.GetSellOrder(ctx, name)
 	if so == nil {
-		return dymnstypes.ErrSellOrderNotFound.Wrap(name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
 	}
 
 	if !so.HasFinishedAtCtx(ctx) {
-		return dymnstypes.ErrInvalidState.Wrap("Sell-Order has not finished yet")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "Sell-Order has not finished yet")
 	}
 
 	// the SO can be expired at this point,
@@ -205,7 +207,7 @@ func (k Keeper) CompleteSellOrder(ctx sdk.Context, name string) error {
 	// so the order is expired, but no logic to complete the SO, then will be completed via hooks
 
 	if so.HighestBid == nil {
-		return dymnstypes.ErrInvalidState.Wrap("no bid placed")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "no bid placed")
 	}
 
 	newOwner := so.HighestBid.Bidder

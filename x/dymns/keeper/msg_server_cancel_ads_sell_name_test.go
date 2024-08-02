@@ -1,8 +1,11 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -55,7 +58,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			require.Nil(t, resp)
 
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	t.Run("do not process message that refer to non-existing Dym-Name", func(t *testing.T) {
@@ -65,7 +68,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), dymnstypes.ErrDymNameNotFound.Error())
+		require.Contains(t, err.Error(), "Dym-Name: not-exists: not found")
 	})
 
 	t.Run("do not process that owner does not match", func(t *testing.T) {
@@ -88,7 +91,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), "not the owner of the dym name")
+		require.Contains(t, err.Error(), "not the owner of the Dym-Name")
 	})
 
 	t.Run("do not process for Dym-Name that does not have any SO", func(t *testing.T) {
@@ -98,7 +101,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		})
 		require.Error(t, err)
 		require.Nil(t, resp)
-		require.Contains(t, err.Error(), dymnstypes.ErrSellOrderNotFound.Error())
+		require.Contains(t, err.Error(), fmt.Sprintf("Sell-Order: %s: not found", dymName1.Name))
 	})
 
 	t.Run("can not cancel expired", func(t *testing.T) {

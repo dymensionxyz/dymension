@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -40,24 +42,24 @@ func (k msgServer) validateCancelAdsSellName(ctx sdk.Context, msg *dymnstypes.Ms
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return sdkerrors.ErrUnauthorized.Wrap("not the owner of the dym name")
+		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
 	so := k.GetSellOrder(ctx, msg.Name)
 	if so == nil {
-		return dymnstypes.ErrSellOrderNotFound.Wrap(msg.Name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.Name)
 	}
 
 	if so.HasExpiredAtCtx(ctx) {
-		return dymnstypes.ErrInvalidState.Wrap("cannot cancel an expired order")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel an expired order")
 	}
 
 	if so.HighestBid != nil {
-		return dymnstypes.ErrInvalidState.Wrap("cannot cancel once bid placed")
+		return errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot cancel once bid placed")
 	}
 
 	return nil

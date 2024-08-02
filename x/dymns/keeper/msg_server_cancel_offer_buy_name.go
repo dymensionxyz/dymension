@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -40,11 +42,11 @@ func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCance
 
 	offer := k.GetOfferToBuy(ctx, msg.OfferId)
 	if offer == nil {
-		return nil, dymnstypes.ErrOfferToBuyNotFound.Wrap(msg.OfferId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Offer-To-Buy: %s", msg.OfferId)
 	}
 
 	if offer.Buyer != msg.Buyer {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("not the owner of the offer")
+		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the offer")
 	}
 
 	return offer, nil

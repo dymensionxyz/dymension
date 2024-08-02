@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -95,26 +97,27 @@ func (k msgServer) validateUpdateResolveAddress(ctx sdk.Context, msg *dymnstypes
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	if dymName.Controller != msg.Controller {
 		if dymName.Owner == msg.Controller {
-			return nil, sdkerrors.ErrInvalidAddress.Wrapf(
+			return nil, errorsmod.Wrapf(gerrc.ErrPermissionDenied,
 				"please use controller account '%s' to configure", dymName.Controller,
 			)
 		}
 
-		return nil, sdkerrors.ErrUnauthorized
+		return nil, gerrc.ErrPermissionDenied
 	}
 
 	if msg.ResolveTo != "" && (msg.ChainId == "" || msg.ChainId == ctx.ChainID()) {
 		if _, err := sdk.AccAddressFromBech32(msg.ResolveTo); err != nil {
-			return nil, sdkerrors.ErrInvalidAddress.Wrap(
+			return nil, errorsmod.Wrap(
+				gerrc.ErrInvalidArgument,
 				"resolve address must be a valid bech32 account address on host chain",
 			)
 		}

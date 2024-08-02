@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -33,22 +35,25 @@ func (k msgServer) validateTransferOwnership(ctx sdk.Context, msg *dymnstypes.Ms
 
 	dymName := k.GetDymName(ctx, msg.Name)
 	if dymName == nil {
-		return nil, dymnstypes.ErrDymNameNotFound.Wrap(msg.Name)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", msg.Name)
 	}
 
 	if dymName.Owner != msg.Owner {
-		return nil, sdkerrors.ErrUnauthorized
+		return nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
 	if dymName.IsExpiredAtCtx(ctx) {
-		return nil, sdkerrors.ErrUnauthorized.Wrap("Dym-Name is already expired")
+		return nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
 	so := k.GetSellOrder(ctx, msg.Name)
 	if so != nil {
 		// by ignoring SO, can fall into case that SO not completed/lost funds of bidder,...
 
-		return nil, sdkerrors.ErrInvalidRequest.Wrap("can not transfer ownership while there is an active Sell Order")
+		return nil, errorsmod.Wrap(
+			gerrc.ErrFailedPrecondition,
+			"can not transfer ownership while there is an active Sell Order",
+		)
 	}
 
 	return dymName, nil

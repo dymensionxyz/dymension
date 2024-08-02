@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 // MigrateChainIds called by GOV handler, migrate chain-ids in module params
@@ -193,7 +194,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 
 			_, foundAlias := existingAliases[alias]
 			if foundAlias {
-				err := sdkerrors.ErrInvalidRequest.Wrapf("alias %s already exists for %s", alias, chainId)
+				err := errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias: %s for %s", alias, chainId)
 				k.Logger(ctx).Error(
 					"failed to add alias for chain-id",
 					"chain-id", chainId,
@@ -217,7 +218,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 
 			aliasesPerChainId, foundExistingChainId := chainIdToAliasConfig[chainId]
 			if !foundExistingChainId {
-				err := sdkerrors.ErrInvalidRequest.Wrapf("chain id %s not found to remove", chainId)
+				err := errorsmod.Wrapf(gerrc.ErrNotFound, "chain id not found to remove: %s", chainId)
 				k.Logger(ctx).Error(
 					"failed to remove alias for chain-id",
 					"chain-id", chainId,
@@ -231,7 +232,7 @@ func (k Keeper) UpdateAliases(ctx sdk.Context, add, remove []dymnstypes.UpdateAl
 
 			_, foundAlias := aliasesPerChainId[alias]
 			if !foundAlias {
-				err := sdkerrors.ErrInvalidRequest.Wrapf("alias %s not found to remove", alias)
+				err := errorsmod.Wrapf(gerrc.ErrNotFound, "alias not found to remove: %s", alias)
 				k.Logger(ctx).Error(
 					"failed to remove alias for chain-id",
 					"chain-id", chainId,

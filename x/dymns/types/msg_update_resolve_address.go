@@ -1,8 +1,10 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ sdk.Msg = &MsgUpdateResolveAddress{}
@@ -10,22 +12,23 @@ var _ sdk.Msg = &MsgUpdateResolveAddress{}
 // ValidateBasic performs basic validation for the MsgUpdateResolveAddress.
 func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("name is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
 
 	if len(m.SubName) > MaxDymNameLength {
-		return ErrDymNameTooLong
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "sub name is too long")
 	}
 
 	_, config := m.GetDymNameConfig()
 	if err := config.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("config is invalid: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "config is invalid: %v", err)
 	}
 
 	if m.ChainId == "" {
 		if m.ResolveTo != "" {
 			if _, err := sdk.AccAddressFromBech32(m.ResolveTo); err != nil {
-				return ErrValidationFailed.Wrap(
+				return errorsmod.Wrap(
+					gerrc.ErrInvalidArgument,
 					"resolve address must be a valid bech32 account address on host chain",
 				)
 			}
@@ -33,7 +36,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Controller); err != nil {
-		return ErrValidationFailed.Wrap("controller is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "controller is not a valid bech32 account address")
 	}
 
 	return nil

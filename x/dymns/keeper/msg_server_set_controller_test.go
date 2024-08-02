@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -28,7 +29,7 @@ func Test_msgServer_SetController(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).SetController(ctx, &dymnstypes.MsgSetController{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -46,7 +47,7 @@ func Test_msgServer_SetController(t *testing.T) {
 			name:            "fail - reject if Dym-Name not found",
 			recordName:      "a",
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: "Dym-Name: a: not found",
 		},
 		{
 			name: "fail - reject if not owned",
@@ -58,7 +59,7 @@ func Test_msgServer_SetController(t *testing.T) {
 			},
 			recordName:      "a",
 			wantErr:         true,
-			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains: "not the owner of the Dym-Name",
 		},
 		{
 			name: "fail - reject if not new controller is the same as previous controller",

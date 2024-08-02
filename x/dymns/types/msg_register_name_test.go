@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -53,7 +54,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment:  dymnsutils.TestCoin(1),
 			wantErr:         true,
-			wantErrContains: ErrDymNameTooLong.Error(),
+			wantErrContains: fmt.Sprintf("name is too long, maximum %d characters", MaxDymNameLength),
 		},
 		{
 			name:            "invalid name",

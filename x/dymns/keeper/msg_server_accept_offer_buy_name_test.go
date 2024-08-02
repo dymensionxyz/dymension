@@ -1,8 +1,11 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
+
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -46,7 +49,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).AcceptOfferBuyName(ctx, &dymnstypes.MsgAcceptOfferBuyName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	dymName := &dymnstypes.DymName{
@@ -377,7 +380,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrOfferToBuyNotFound.Error(),
+			wantErrContains:        "Offer-To-Buy: 1: not found",
 			wantLaterOffer:         nil,
 			wantLaterDymName:       dymName,
 			wantLaterModuleBalance: 1,
@@ -394,7 +397,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrOfferToBuyNotFound.Error(),
+			wantErrContains:        "Offer-To-Buy: 673264823: not found",
 			wantLaterOffer:         offer,
 			wantLaterDymName:       dymName,
 			wantLaterModuleBalance: 1,
@@ -411,7 +414,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.Name),
 			wantLaterOffer:         offer,
 			wantLaterDymName:       nil,
 			wantLaterModuleBalance: 1,
@@ -435,7 +438,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalOwnerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:        fmt.Sprintf("Dym-Name: %s: not found", offer.Name),
 			wantLaterOffer:         offer,
 			wantLaterModuleBalance: 1,
 			wantLaterOwnerBalance:  2,
@@ -475,7 +478,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalOwnerBalance:  2,
 			wantErr:               true,
-			wantErrContains:       "before Dym-Name expiry, can not sell",
+			wantErrContains:       "duration before Dym-Name expiry, prohibited to sell",
 			wantLaterDymName: func() *dymnstypes.DymName {
 				return &dymnstypes.DymName{
 					Name:       dymName.Name,

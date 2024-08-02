@@ -3,6 +3,9 @@ package types
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
@@ -12,19 +15,19 @@ var _ sdk.Msg = &MsgTransferOwnership{}
 // ValidateBasic performs basic validation for the MsgTransferOwnership.
 func (m *MsgTransferOwnership) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("name is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.NewOwner); err != nil {
-		return ErrValidationFailed.Wrap("new owner is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "new owner is not a valid bech32 account address")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Owner); err != nil {
-		return ErrValidationFailed.Wrap("owner is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "owner is not a valid bech32 account address")
 	}
 
 	if strings.EqualFold(m.NewOwner, m.Owner) {
-		return ErrValidationFailed.Wrap("new owner must be different from the current owner")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "new owner must be different from the current owner")
 	}
 
 	return nil

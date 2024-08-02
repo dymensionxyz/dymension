@@ -4,10 +4,12 @@ import (
 	"regexp"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	"github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/ethereum/go-ethereum/common"
 )
+
+var accAddrBech32Prefix = sdk.GetConfig().GetBech32AccountAddrPrefix()
 
 // IsValidBech32AccountAddress returns true if the given string is a valid bech32 account address.
 // Depends on the flag, it will check the prefix of the bech32 account address
@@ -23,7 +25,7 @@ func IsValidBech32AccountAddress(address string, matchAccountAddressBech32Prefix
 		return false
 	}
 
-	return !matchAccountAddressBech32Prefix || hrp == params.AccountAddressPrefix
+	return !matchAccountAddressBech32Prefix || hrp == accAddrBech32Prefix
 }
 
 // pattern0xHex is a regex pattern for 0x prefixed hex string.

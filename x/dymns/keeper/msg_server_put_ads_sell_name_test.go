@@ -5,8 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -41,7 +42,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).PutAdsSellName(ctx, &dymnstypes.MsgPutAdsSellName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	const name = "my-name"
@@ -71,7 +72,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			withoutDymName:  true,
 			minPrice:        coin100,
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: fmt.Sprintf("Dym-Name: %s: not found", name),
 		},
 		{
 			name:               "fail - wrong owner",
@@ -79,7 +80,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			customDymNameOwner: notOwnerA,
 			minPrice:           coin100,
 			wantErr:            true,
-			wantErrContains:    sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains:    "not the owner of the Dym-Name",
 		},
 		{
 			name:                    "fail - expired Dym-Name",
@@ -146,14 +147,14 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			name:            "fail - not allowed denom",
 			minPrice:        sdk.NewInt64Coin("u"+denom, 100),
 			wantErr:         true,
-			wantErrContains: fmt.Sprintf("only %s is allowed as price", denom),
+			wantErrContains: fmt.Sprintf("the only denom allowed as price: %s", denom),
 		},
 		{
 			name:                    "fail - can not sell Dym-Name that almost expired",
 			dymNameExpiryOffsetDays: daysProhibitSell - 1,
 			minPrice:                coin100,
 			wantErr:                 true,
-			wantErrContains:         "before Dym-Name expiry, can not sell",
+			wantErrContains:         "duration before Dym-Name expiry, prohibited to sell",
 		},
 		{
 			name:                    "pass - successfully place ads for selling Dym-Name, without sell price",

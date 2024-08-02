@@ -1,8 +1,10 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ sdk.Msg = &MsgPutAdsSellName{}
@@ -10,7 +12,7 @@ var _ sdk.Msg = &MsgPutAdsSellName{}
 // ValidateBasic performs basic validation for the MsgPutAdsSellName.
 func (m *MsgPutAdsSellName) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
-		return ErrValidationFailed.Wrap("name is not a valid dym name")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
 
 	so := m.ToSellOrder()
@@ -20,11 +22,11 @@ func (m *MsgPutAdsSellName) ValidateBasic() error {
 	so.ExpireAt = 1
 
 	if err := so.Validate(); err != nil {
-		return ErrValidationFailed.Wrapf("invalid order: %v", err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid order: %v", err)
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Owner); err != nil {
-		return ErrValidationFailed.Wrap("owner is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "owner is not a valid bech32 account address")
 	}
 
 	return nil

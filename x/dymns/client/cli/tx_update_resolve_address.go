@@ -52,7 +52,7 @@ func NewUpdateResolveDymNameAddressTxCmd() *cobra.Command {
 				AliasOrChainId: chainIdOrAlias,
 			})
 			if err != nil || respTranslateChainId.ChainId == "" {
-				return errors.Wrapf(err, "failed to translate alias %s to chain-id", chainIdOrAlias)
+				return errors.Wrapf(err, "failed to translate alias to chain-id: %s", chainIdOrAlias)
 			}
 
 			chainId := respTranslateChainId.ChainId

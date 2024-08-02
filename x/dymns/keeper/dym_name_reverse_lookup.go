@@ -3,9 +3,11 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
@@ -13,7 +15,7 @@ import (
 func (k Keeper) AddReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
 	if err != nil {
-		return dymnstypes.ErrInvalidOwner.Wrap(owner)
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, owner)
 	}
 
 	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(bzAccAddr)
@@ -29,7 +31,7 @@ func (k Keeper) GetDymNamesOwnedBy(
 ) ([]dymnstypes.DymName, error) {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(owner)
 	if err != nil {
-		return nil, dymnstypes.ErrInvalidOwner.Wrap(owner)
+		return nil, errorsmod.Wrap(gerrc.ErrInvalidArgument, owner)
 	}
 
 	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(bzAccAddr)
@@ -57,7 +59,7 @@ func (k Keeper) GetDymNamesOwnedBy(
 func (k Keeper) RemoveReverseMappingOwnerToOwnedDymName(ctx sdk.Context, owner, name string) error {
 	accAddr, err := sdk.AccAddressFromBech32(owner)
 	if err != nil {
-		return dymnstypes.ErrInvalidOwner.Wrapf("owner `%s` is not a valid bech32 account address: %v", owner, err)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "owner is not a valid bech32 account address: %s", owner)
 	}
 
 	dymNamesOwnedByAccountKey := dymnstypes.DymNamesOwnedByAccountRvlKey(accAddr)
@@ -126,7 +128,7 @@ func (k Keeper) RemoveReverseMappingConfiguredAddressToDymName(ctx sdk.Context, 
 // validateConfiguredAddressForReverseMapping validates the configured address for reverse mapping.
 func validateConfiguredAddressForReverseMapping(configuredAddress string) error {
 	if configuredAddress == "" {
-		return sdkerrors.ErrInvalidRequest.Wrap("configured address cannot be blank")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "configured address cannot be blank")
 	}
 	return nil
 }
@@ -198,7 +200,7 @@ func (k Keeper) RemoveReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAd
 // validateHexAddressForReverseMapping validates the hex address for reverse mapping.
 func validateHexAddressForReverseMapping(bzHexAddr []byte) error {
 	if length := len(bzHexAddr); length != 20 && length != 32 {
-		return sdkerrors.ErrInvalidRequest.Wrapf("hex address must be 20 or 32 bytes, got %d", length)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "hex address must be 20 or 32 bytes, got: %d", length)
 	}
 	return nil
 }

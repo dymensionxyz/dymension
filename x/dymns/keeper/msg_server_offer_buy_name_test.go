@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -44,7 +45,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	dymName := &dymnstypes.DymName{
@@ -249,7 +250,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:        "Dym-Name: non-exists: not found",
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
@@ -271,7 +272,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
 			wantErr:                true,
-			wantErrContains:        dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:        "Dym-Name: expired: not found",
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
@@ -310,7 +311,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   minOfferPrice,
 			wantErr:                true,
-			wantErrContains:        "before Dym-Name expiry, can not trade",
+			wantErrContains:        "duration before Dym-Name expiry, prohibited to trade",
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
@@ -406,7 +407,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				dk.SetCountOfferToBuy(ctx, 1)
 			},
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrOfferToBuyNotFound.Error(),
+			wantErrContains: "Offer-To-Buy: 2: not found",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
 				Name:       dymName.Name,
@@ -441,7 +442,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				dk.SetCountOfferToBuy(ctx, 1)
 			},
 			wantErr:         true,
-			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains: "not the owner of the offer",
 			wantLaterOffer: &dymnstypes.OfferToBuy{
 				Id:         "1",
 				Name:       dymName.Name,

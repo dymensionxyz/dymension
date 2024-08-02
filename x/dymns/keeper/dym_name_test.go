@@ -116,7 +116,7 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 		err := dk.AfterDymNameOwnerChanged(ctx, "non-exists")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), dymnstypes.ErrDymNameNotFound.Error())
+		require.Contains(t, err.Error(), "Dym-Name: non-exists: not found")
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -196,7 +196,7 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 		err := dk.AfterDymNameConfigChanged(ctx, "non-exists")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), dymnstypes.ErrDymNameNotFound.Error())
+		require.Contains(t, err.Error(), "Dym-Name: non-exists: not found")
 	})
 
 	ownerAcc := testAddr(1)
@@ -1133,7 +1133,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:  "b@dym",
 			wantError:       true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: "Dym-Name: b: not found",
 		},
 		{
 			name: "resolve to owner when no Dym-Name config",
@@ -1220,7 +1220,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:  "a.dymension_1100-1",
 			wantError:       true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: "Dym-Name: a: not found",
 		},
 		{
 			name: "should not resolve for expired Dym-Name",
@@ -1237,7 +1237,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:  "a.a.dymension_1100-1",
 			wantError:       true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: "Dym-Name: a: not found",
 		},
 		{
 			name: "should not resolve if input addr is invalid",
@@ -1317,7 +1317,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "0x1234567890123456789012345678901234567890@unknown-1",
 			wantError:         true,
-			wantErrContains:   dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:   "Dym-Name: 0x1234567890123456789012345678901234567890: not found",
 			wantOutputAddress: "",
 		},
 		{
@@ -1336,7 +1336,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:    "0x1234567890123456789012345678901234567890@blumbus",
 			wantError:         true,
-			wantErrContains:   dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains:   "Dym-Name: 0x1234567890123456789012345678901234567890: not found",
 			wantOutputAddress: "",
 		},
 		{
@@ -2006,25 +2006,25 @@ func Test_ParseDymNameAddress(t *testing.T) {
 			name:            "fail - invalid sub-Dym-Name, @",
 			dymNameAddress:  "-b.a@dym",
 			wantErr:         true,
-			wantErrContains: "sub-Dym-Name is not well-formed",
+			wantErrContains: "Sub-Dym-Name part is not well-formed",
 		},
 		{
 			name:            "fail - invalid sub-Dym-Name",
 			dymNameAddress:  "-b.a.dym",
 			wantErr:         true,
-			wantErrContains: "sub-Dym-Name is not well-formed",
+			wantErrContains: "Sub-Dym-Name part is not well-formed",
 		},
 		{
 			name:            "fail - invalid multi-sub-Dym-Name, @",
 			dymNameAddress:  "c-.b.a@dym",
 			wantErr:         true,
-			wantErrContains: "sub-Dym-Name is not well-formed",
+			wantErrContains: "Sub-Dym-Name part is not well-formed",
 		},
 		{
 			name:            "fail - invalid multi-sub-Dym-Name",
 			dymNameAddress:  "c-.b.a.dym",
 			wantErr:         true,
-			wantErrContains: "sub-Dym-Name is not well-formed",
+			wantErrContains: "Sub-Dym-Name part is not well-formed",
 		},
 		{
 			name:            "fail - blank path",

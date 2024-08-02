@@ -3,9 +3,11 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 )
@@ -50,7 +52,7 @@ func (k Keeper) BeforeDymNameOwnerChanged(ctx sdk.Context, name string) error {
 func (k Keeper) AfterDymNameOwnerChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
-		return dymnstypes.ErrDymNameNotFound.Wrap(name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 	}
 
 	if err := k.AddReverseMappingOwnerToOwnedDymName(ctx, dymName.Owner, name); err != nil {
@@ -89,7 +91,7 @@ func (k Keeper) BeforeDymNameConfigChanged(ctx sdk.Context, name string) error {
 func (k Keeper) AfterDymNameConfigChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
-		return dymnstypes.ErrDymNameNotFound.Wrap(name)
+		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 	}
 
 	configuredAddresses, hexAddresses := dymName.GetAddressesForReverseMapping()
@@ -224,7 +226,7 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 
 	dymName := k.GetDymNameWithExpirationCheck(ctx, name)
 	if dymName == nil {
-		err = dymnstypes.ErrDymNameNotFound.Wrap(name)
+		err = errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 
 		// Dym-Name not found, in this case, there are 3 possible reasons:
 		// 1. Dym-Name does not exist
@@ -291,7 +293,8 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 
 	defer func() {
 		if outputAddress == "" {
-			err = sdkerrors.ErrInvalidRequest.Wrap("no resolution found")
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "no resolution found")
+			return
 		}
 	}()
 
@@ -383,8 +386,9 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 	accAddr := sdk.MustAccAddressFromBech32(resolveToAddress)
 	rollAppBasedBech32Addr, convertErr := bech32.ConvertAndEncode(rollAppBech32Prefix, accAddr)
 	if convertErr != nil {
-		err = sdkerrors.ErrInvalidAddress.Wrapf(
-			"failed to convert '%s' to RollApp-based address: %v", resolveToAddress, convertErr,
+		err = errorsmod.Wrapf(
+			gerrc.ErrUnknown,
+			"failed to convert address to RollApp-based address: %s", resolveToAddress,
 		)
 		return
 	}
@@ -447,7 +451,7 @@ func ParseDymNameAddress(
 	if lastAtIndex > -1 && lastDotIndex > -1 {
 		if lastDotIndex > lastAtIndex {
 			// do not accept '.' at chain-id/alias part
-			err = dymnstypes.ErrBadDymNameAddress.Wrap("misplaced '.'")
+			err = errorsmod.Wrap(dymnstypes.ErrBadDymNameAddress, "misplaced '.'")
 			return
 		}
 	}
@@ -456,7 +460,7 @@ func ParseDymNameAddress(
 	firstAtIndex := strings.IndexRune(dymNameAddress, '@')
 	if firstAtIndex > -1 {
 		if firstAtIndex != lastAtIndex {
-			err = dymnstypes.ErrBadDymNameAddress.Wrap("multiple '@' found")
+			err = errorsmod.Wrap(dymnstypes.ErrBadDymNameAddress, "multiple '@' found")
 			return
 		}
 	}
@@ -503,7 +507,10 @@ func ParseDymNameAddress(
 		subNameParts := chunks[:len(chunks)-2]
 		for _, subNamePart := range subNameParts {
 			if !dymnsutils.IsValidDymName(subNamePart) {
-				err = dymnstypes.ErrBadDymNameAddress.Wrap("sub-Dym-Name is not well-formed")
+				err = errorsmod.Wrapf(
+					dymnstypes.ErrBadDymNameAddress,
+					"Sub-Dym-Name part is not well-formed: %s", subNamePart,
+				)
 				return
 			}
 		}
@@ -512,7 +519,7 @@ func ParseDymNameAddress(
 
 	if !dymnsutils.IsValidChainIdFormat(chainIdOrAlias) &&
 		!dymnsutils.IsValidAlias(chainIdOrAlias) {
-		err = dymnstypes.ErrBadDymNameAddress.Wrap("chain-id/alias is not well-formed")
+		err = errorsmod.Wrapf(dymnstypes.ErrBadDymNameAddress, "chain-id/alias is not well-formed: %s", chainIdOrAlias)
 		return
 	}
 
@@ -528,7 +535,7 @@ func ParseDymNameAddress(
 	}
 
 	if !dymnsutils.IsValidDymName(dymName) {
-		err = dymnstypes.ErrBadDymNameAddress.Wrap("Dym-Name is not well-formed")
+		err = errorsmod.Wrapf(dymnstypes.ErrBadDymNameAddress, "Dym-Name is not well-formed: %s", dymName)
 		return
 	}
 
@@ -547,11 +554,11 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	is0xAddr := dymnsutils.IsValidHexAddress(inputAddress)
 
 	if !isBech32Addr && !is0xAddr {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("not supported address format: %s", inputAddress)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not supported address format: %s", inputAddress)
 	}
 
 	if !dymnsutils.IsValidChainIdFormat(workingChainId) {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("invalid chain-id format: %s", workingChainId)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid chain-id format: %s", workingChainId)
 	}
 
 	workingChainIdIsHostChain := workingChainId == ctx.ChainID()
@@ -699,7 +706,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 	_, bzHexAddr, err2 := bech32.DecodeAndConvert(bech32Addr)
 	if err2 != nil {
-		return nil, sdkerrors.ErrInvalidRequest.Wrapf("failed to decode bech32 address %s: %v", bech32Addr, err2)
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr)
 	}
 
 	dymNames, err3 := k.GetDymNamesContainsHexAddress(ctx, bzHexAddr)

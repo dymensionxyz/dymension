@@ -1,8 +1,10 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
 var _ sdk.Msg = &MsgCancelOfferBuyName{}
@@ -10,11 +12,11 @@ var _ sdk.Msg = &MsgCancelOfferBuyName{}
 // ValidateBasic performs basic validation for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) ValidateBasic() error {
 	if !dymnsutils.IsValidBuyNameOfferId(m.OfferId) {
-		return ErrValidationFailed.Wrap("offer id is not a valid buy name offer id")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer id is not a valid buy name offer id")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(m.Buyer); err != nil {
-		return ErrValidationFailed.Wrap("buyer is not a valid bech32 account address")
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}
 
 	return nil

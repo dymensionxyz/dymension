@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -74,7 +75,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).RegisterName(ctx, &dymnstypes.MsgRegisterName{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	const originalModuleBalance int64 = 88
@@ -131,7 +132,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Contact:    "existing@example.com",
 			},
 			wantErr:          true,
-			wantErrContains:  sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains:  "unauthenticated",
 			wantLaterBalance: 1,
 		},
 		{
@@ -171,7 +172,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			duration:         2,
 			confirmPayment:   dymnsutils.TestCoin(1),
 			wantErr:          true,
-			wantErrContains:  dymnstypes.ErrUnAcknowledgedPayment.Error(),
+			wantErrContains:  "actual payment is is different with provided by user",
 			wantLaterBalance: firstYearPrice5PlusL + extendsPrice + 3,
 		},
 		{

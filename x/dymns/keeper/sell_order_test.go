@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -211,7 +212,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	t.Run("should not move non-exists", func(t *testing.T) {
 		err := dk.MoveSellOrderToHistorical(ctx, "non-exists")
 		require.Error(t, err)
-		require.Contains(t, err.Error(), dymnstypes.ErrSellOrderNotFound.Error())
+		require.Contains(t, err.Error(), "Sell-Order: non-exists: not found")
 	})
 
 	t.Run("should able to move a duplicated without error", func(t *testing.T) {
@@ -262,7 +263,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 	t.Run("should not move yet finished SO", func(t *testing.T) {
 		err := dk.MoveSellOrderToHistorical(ctx, so12.Name)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "has not expired yet")
+		require.Contains(t, err.Error(), "Sell-Order not yet expired")
 	})
 
 	so12.HighestBid = &dymnstypes.SellOrderBid{
@@ -396,7 +397,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 	t.Run("Dym-Name not found", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
-		requireErrorContains(t, dk.CompleteSellOrder(ctx, "non-exists"), dymnstypes.ErrDymNameNotFound.Error())
+		requireErrorContains(t, dk.CompleteSellOrder(ctx, "non-exists"), "Dym-Name: non-exists: not found")
 	})
 
 	t.Run("SO not found", func(t *testing.T) {
@@ -405,7 +406,10 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		err := dk.SetDymName(ctx, dymName)
 		require.NoError(t, err)
 
-		requireErrorContains(t, dk.CompleteSellOrder(ctx, dymName.Name), dymnstypes.ErrSellOrderNotFound.Error())
+		requireErrorContains(t,
+			dk.CompleteSellOrder(ctx, dymName.Name),
+			fmt.Sprintf("Sell-Order: %s: not found", dymName.Name),
+		)
 	})
 
 	t.Run("SO not yet completed, no bidder", func(t *testing.T) {

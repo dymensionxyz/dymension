@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
@@ -29,7 +31,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 		requireErrorFContains(t, func() error {
 			_, err := dymnskeeper.NewMsgServerImpl(dk).TransferOwnership(ctx, &dymnstypes.MsgTransferOwnership{})
 			return err
-		}, dymnstypes.ErrValidationFailed.Error())
+		}, gerrc.ErrInvalidArgument.Error())
 	})
 
 	ownerA := testAddr(1).bech32()
@@ -51,7 +53,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 			name:            "fail - Dym-Name does not exists",
 			dymName:         nil,
 			wantErr:         true,
-			wantErrContains: dymnstypes.ErrDymNameNotFound.Error(),
+			wantErrContains: fmt.Sprintf("Dym-Name: %s: not found", recordName),
 		},
 		{
 			name: "fail - reject if not owned",
@@ -61,7 +63,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			wantErr:         true,
-			wantErrContains: sdkerrors.ErrUnauthorized.Error(),
+			wantErrContains: "not the owner of the Dym-Name",
 		},
 		{
 			name: "fail - reject if Dym-Name expired",
@@ -82,7 +84,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 			},
 			customNewOwner:  ownerA,
 			wantErr:         true,
-			wantErrContains: "new owner is same as current owner",
+			wantErrContains: "new owner must be different from the current owner",
 		},
 		{
 			name: "fail - reject if Sell Order exists, expired SO",
@@ -96,7 +98,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				MinPrice: dymnsutils.TestCoin(100),
 			},
 			wantErr:         true,
-			wantErrContains: "can not transfer ownership while there is an Sell Order",
+			wantErrContains: "can not transfer ownership while there is an active Sell Order",
 		},
 		{
 			name: "fail - reject if Sell Order exists, not finished SO",
@@ -110,7 +112,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				MinPrice: dymnsutils.TestCoin(100),
 			},
 			wantErr:         true,
-			wantErrContains: "can not transfer ownership while there is an Sell Order",
+			wantErrContains: "can not transfer ownership while there is an active Sell Order",
 		},
 		{
 			name: "fail - reject if Sell Order exists, not finished SO",
@@ -128,7 +130,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "can not transfer ownership while there is an Sell Order",
+			wantErrContains: "can not transfer ownership while there is an active Sell Order",
 		},
 		{
 			name: "fail - reject if Sell Order exists, completed SO",
@@ -147,7 +149,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "can not transfer ownership while there is an Sell Order",
+			wantErrContains: "can not transfer ownership while there is an active Sell Order",
 		},
 		{
 			name: "pass - can transfer ownership",
@@ -225,7 +227,9 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 			}
 
 			if tt.wantErr {
+				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.wantErrContains)
 
 				require.Nil(t, resp)
 
