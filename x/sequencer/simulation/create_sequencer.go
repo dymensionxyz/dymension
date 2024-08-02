@@ -10,14 +10,12 @@ import (
 
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func SimulateMsgCreateSequencer(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
-	k keeper.Keeper,
 ) simtypes.Operation {
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
@@ -43,22 +41,10 @@ func SimulateMsgCreateSequencer(
 			Creator:      seqAddress,
 			DymintPubKey: pkAny,
 			RollappId:    rollappId,
-			Description:  types.Description{},
+			Metadata:     types.SequencerMetadata{},
 		}
 
-		bNotPermissioned := false
-		if !bFailNoRollapp && len(rollapp.PermissionedAddresses) > 0 {
-			// check whether or not to fail the transaction because of permissioned sequencer
-			bNotPermissioned = true
-			for _, item := range rollapp.PermissionedAddresses {
-				if item == seqAddress {
-					bNotPermissioned = false
-					break
-				}
-			}
-		}
-
-		bExpectedError := bFailNoRollapp || bNotPermissioned
+		bExpectedError := bFailNoRollapp
 
 		// count how many sequencers already attached to this rollapp
 		rollappSeqNum := uint64(0)
@@ -76,9 +62,7 @@ func SimulateMsgCreateSequencer(
 			}
 		}
 
-		bMaxSequencersFailure := rollapp.MaxSequencers <= rollappSeqNum
-
-		bExpectedError = bExpectedError || bAlreadyExists || bMaxSequencersFailure
+		bExpectedError = bExpectedError || bAlreadyExists
 
 		if !bExpectedError {
 			sequencer := simulationtypes.SimSequencer{

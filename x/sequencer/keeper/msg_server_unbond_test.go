@@ -4,17 +4,20 @@ import (
 	"sort"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk1 := suite.CreateDefaultRollapp()
 
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 	seqAddrs := make([]string, 2)
-	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
-	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	pk2, pk3 := ed25519.GenPrivKey().PubKey(), ed25519.GenPrivKey().PubKey()
+	seqAddrs[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
+	seqAddrs[1] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk3)
 	// sort the  non proposer sequencers by address
 	sort.Strings(seqAddrs)
 	addr2 := seqAddrs[0]
@@ -74,8 +77,8 @@ func (suite *SequencerTestSuite) TestUnbondingStatusChange() {
 
 func (suite *SequencerTestSuite) TestUnbondingNotBondedSequencer() {
 	suite.SetupTest()
-	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk1 := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 
 	unbondMsg := types.MsgUnbond{Creator: addr1}
 	_, err := suite.msgServer.Unbond(suite.Ctx, &unbondMsg)

@@ -1,7 +1,7 @@
 package types
 
 import (
-	fmt "fmt"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,12 +12,9 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	// MinBond types.Coin `protobuf:"bytes,1,opt,name=min_bond,json=minBond,proto3" json:"min_bond,omitempty"`
-	// UnbondingTime time.Duration `protobuf:"bytes,2,opt,name=unbonding_time,json=unbondingTime,proto3,stdduration" json:"unbonding_time"`
-
-	// MinBond is the minimum bond required to be a validator
+	// DefaultMinBond is the minimum bond required to be a validator
 	DefaultMinBond uint64 = 1000000
-	// UnbondingTime is the time duration for unbonding
+	// DefaultUnbondingTime is the time duration for unbonding
 	DefaultUnbondingTime time.Duration = time.Hour * 24 * 7 * 2 // 2 weeks
 
 	// KeyMinBond is store's key for MinBond Params
