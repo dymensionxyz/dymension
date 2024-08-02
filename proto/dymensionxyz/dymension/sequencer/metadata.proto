@@ -1,0 +1,54 @@
+syntax = "proto3";
+package dymensionxyz.dymension.sequencer;
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/sequencer/types";
+
+import "gogoproto/gogo.proto";
+
+// Metadata defines rollapp/sequencer extra information.
+message SequencerMetadata {
+  // moniker defines a human-readable name for the sequencer.
+  string moniker = 1;
+  // field numbers not to be reused
+  reserved 2 to 4;
+  // details define other optional details.
+  string details = 5;
+  // bootstrap nodes list
+  repeated string p2p_seeds = 6;
+  // RPCs list
+  repeated string rpcs = 7;
+  // evm RPCs list
+  repeated string evm_rpcs = 8;
+  // REST API URLs
+  repeated string rest_api_urls = 9;
+  // block explorer URL
+  string explorer_url = 10;
+  // genesis URLs
+  repeated string genesis_urls = 11;
+  // contact details
+  ContactDetails contact_details = 12;
+  // json dump the sequencer can add (limited by size)
+  bytes extra_data = 13;
+  // snapshots of the sequencer
+  repeated SnapshotInfo snapshots = 14;
+  // gas_price defines the value for each gas unit
+  string gas_price = 15 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+}
+
+message ContactDetails {
+  // website URL
+  string website = 11;
+  // telegram link
+  string telegram = 1;
+  // twitter link
+  string x = 2;
+}
+
+message SnapshotInfo {
+  // the snapshot url
+  string snapshot_url = 1;
+  // The snapshot height
+  uint64 height = 2;
+  // sha-256 checksum value for the snapshot file
+  string checksum=3;
+}

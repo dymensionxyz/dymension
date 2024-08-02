@@ -20,5 +20,4 @@ message Params {
 
   // unbonding_time is the time duration of unbonding.
   google.protobuf.Duration unbonding_time = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-
 }
