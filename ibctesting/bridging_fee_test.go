@@ -47,6 +47,7 @@ func (s *bridgingFeeSuite) TestNotRollappNoBridgingFee() {
 func (s *bridgingFeeSuite) TestBridgingFee() {
 	path := s.newTransferPath(s.hubChain(), s.rollappChain())
 	s.coordinator.Setup(path)
+	s.fundSenderAccount()
 	s.createRollappWithFinishedGenesis(path.EndpointA.ChannelID)
 	s.registerSequencer()
 

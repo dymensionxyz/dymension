@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	types "github.com/dymensionxyz/dymension/v3/x/incentives/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/incentives/types"
 )
 
 // TestDistributeToRollappGauges tests distributing rewards to rollapp gauges.
@@ -32,8 +34,11 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			pubkey := ed25519.GenPrivKey().PubKey()
+			addr := sdk.AccAddress(pubkey.Address())
+
 			// create rollapp and check rollapp gauge created
-			rollapp := suite.CreateDefaultRollapp()
+			rollapp := suite.CreateDefaultRollapp(addr)
 			res, err := suite.querier.RollappGauges(sdk.WrapSDKContext(suite.Ctx), &types.GaugesRequest{})
 			suite.Require().NoError(err)
 			suite.Require().Len(res.Data, 1)
@@ -42,8 +47,9 @@ func (suite *KeeperTestSuite) TestDistributeToRollappGauges() {
 
 			var proposerAddr sdk.AccAddress
 			if !tc.noSequencer {
-				addr := suite.CreateDefaultSequencer(suite.Ctx, rollapp)
-				proposerAddr, _ = sdk.AccAddressFromBech32(addr)
+				err = suite.CreateSequencer(suite.Ctx, rollapp, pubkey)
+				suite.Require().NoError(err)
+				proposerAddr = addr
 			}
 
 			if tc.rewards.Len() > 0 {
