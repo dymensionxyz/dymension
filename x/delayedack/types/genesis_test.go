@@ -8,9 +8,13 @@ import (
 	chantypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	"github.com/stretchr/testify/require"
 
+	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	ctypes "github.com/dymensionxyz/dymension/v3/x/common/types"
 	"github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 )
+
+// this is needed to register the correct BECH32 prefix
+const _ = appparams.BaseDenom
 
 func TestGenesisState_Validate(t *testing.T) {
 	for _, tc := range []struct {

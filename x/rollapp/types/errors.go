@@ -39,9 +39,6 @@ var (
 	ErrInvalidMetadata                 = errorsmod.Wrap(gerrc.ErrInvalidArgument, "metadata")
 	ErrImmutableFieldUpdateAfterSealed = errorsmod.Wrap(gerrc.ErrInvalidArgument, "update immutable field after rollapp sealed")
 	ErrSealWithImmutableFieldsNotSet   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "seal with immutable fields not set")
-	ErrInvalidHandle                   = errorsmod.Wrap(gerrc.ErrInvalidArgument, "handle")
-	ErrInvalidRequest                  = errorsmod.Wrap(gerrc.ErrInvalidArgument, "invalid request")
-	ErrRollappAliasExists              = errorsmod.Wrap(gerrc.ErrInvalidArgument, "rollapp already exists for this alias; must use new alias")
 
 	/* ------------------------------ fraud related ----------------------------- */
 	ErrDisputeAlreadyFinalized = errorsmod.Register(ModuleName, 2000, "disputed height already finalized")

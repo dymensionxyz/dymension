@@ -31,7 +31,7 @@ type QueryTestSuite struct {
 // SetupLockAndGauge creates both a lock and a gauge.
 func (suite *QueryTestSuite) CreateDefaultRollapp() string {
 	alice := sdk.AccAddress("addr1---------------")
-	suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
+	// suite.FundAcc(alice, sdk.NewCoins(rollapptypes.DefaultRegistrationFee)) TODO: enable after x/dymns hooks are wired
 
 	msgCreateRollapp := rollapptypes.MsgCreateRollapp{
 		Creator:      alice.String(),

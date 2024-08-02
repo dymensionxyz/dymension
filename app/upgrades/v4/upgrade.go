@@ -1,8 +1,6 @@
 package v4
 
 import (
-	"strings"
-
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 
@@ -136,7 +134,6 @@ func migrateSequencers(ctx sdk.Context, sequencerkeeper sequencerkeeper.Keeper) 
 
 func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollapp {
 	bech32Prefix := oldRollapp.RollappId[:5]
-	alias := strings.Split(oldRollapp.RollappId, "_")[0]
 	return rollapptypes.Rollapp{
 		RollappId:        oldRollapp.RollappId,
 		Creator:          oldRollapp.Creator,
@@ -147,7 +144,6 @@ func ConvertOldRollappToNew(oldRollapp rollapptypes.Rollapp) rollapptypes.Rollap
 		// TODO: regarding missing data - https://github.com/dymensionxyz/dymension/issues/986
 		Bech32Prefix:    bech32Prefix,                                        // placeholder data
 		GenesisChecksum: string(crypto.Sha256([]byte(oldRollapp.RollappId))), // placeholder data
-		Alias:           alias,                                               // placeholder data
 		Metadata: &rollapptypes.RollappMetadata{
 			Website:          "",
 			Description:      "",

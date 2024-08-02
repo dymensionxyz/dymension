@@ -10,14 +10,24 @@ import (
 )
 
 func (k msgServer) CreateRollapp(goCtx context.Context, msg *types.MsgCreateRollapp) (*types.MsgCreateRollappResponse, error) {
-	if msg == nil {
-		return nil, types.ErrInvalidRequest
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, fmt.Errorf("validate rollapp: %w", err)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.RegisterRollapp(ctx, msg.GetRollapp()); err != nil {
+	rollappId, _ := types.NewChainID(msg.RollappId)
+	if err := k.CheckIfRollappExists(ctx, rollappId); err != nil {
 		return nil, err
+	}
+
+	k.SetRollapp(ctx, msg.GetRollapp())
+
+	// already validated
+	creator, _ := sdk.AccAddressFromBech32(msg.Creator)
+
+	if err := k.hooks.RollappCreated(ctx, msg.RollappId, msg.Alias, creator); err != nil {
+		return nil, fmt.Errorf("rollapp created hook: %w", err)
 	}
 
 	if err := ctx.EventManager().EmitTypedEvent(msg); err != nil {

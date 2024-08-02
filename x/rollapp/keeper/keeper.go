@@ -21,7 +21,6 @@ type Keeper struct {
 
 	ibcClientKeeper types.IBCClientKeeper
 	channelKeeper   types.ChannelKeeper
-	bankKeeper      types.BankKeeper
 
 	finalizePending func(ctx sdk.Context, stateInfoIndex types.StateInfoIndex) error
 }
@@ -32,7 +31,6 @@ func NewKeeper(
 	ps paramtypes.Subspace,
 	channelKeeper types.ChannelKeeper,
 	ibcclientKeeper types.IBCClientKeeper,
-	bankKeeper types.BankKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -46,7 +44,6 @@ func NewKeeper(
 		hooks:           nil,
 		channelKeeper:   channelKeeper,
 		ibcClientKeeper: ibcclientKeeper,
-		bankKeeper:      bankKeeper,
 	}
 	k.SetFinalizePendingFn(k.finalizePendingState)
 	return k

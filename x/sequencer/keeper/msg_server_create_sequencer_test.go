@@ -115,7 +115,6 @@ func (suite *SequencerTestSuite) TestCreateSequencer() {
 			Creator:         alice,
 			Bech32Prefix:    bech32Prefix,
 			GenesisChecksum: "1234567890abcdefg",
-			Alias:           "Rollapp",
 			Sealed:          true,
 			Metadata: &rollapptypes.RollappMetadata{
 				Website:          "https://dymension.xyz",

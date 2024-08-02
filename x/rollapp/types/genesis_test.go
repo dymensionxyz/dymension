@@ -3,7 +3,6 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -25,7 +24,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
 				},
 				RollappList: []types.Rollapp{
 					{
@@ -73,7 +71,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}, {RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -87,7 +84,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			genState: &types.GenesisState{
 				Params: types.Params{
 					DisputePeriodInBlocks: types.MinDisputePeriodInBlocks - 1,
-					RegistrationFee:       sdk.NewCoin("adym", sdk.NewInt(1000)),
 				},
 				RollappList:                        []types.Rollapp{{RollappId: "0"}},
 				StateInfoList:                      []types.StateInfo{},
@@ -126,20 +122,6 @@ func TestGenesisState_Validate(t *testing.T) {
 				StateInfoList:                      []types.StateInfo{},
 				LatestStateInfoIndexList:           []types.StateInfoIndex{},
 				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{{CreationHeight: 0}, {CreationHeight: 0}},
-			},
-			valid: false,
-		},
-		{
-			desc: "invalid registration fee",
-			genState: &types.GenesisState{
-				Params: types.Params{
-					DisputePeriodInBlocks: types.DefaultGenesis().Params.DisputePeriodInBlocks,
-					RegistrationFee:       sdk.NewCoin("cosmos", sdk.NewInt(0)),
-				},
-				RollappList:                        []types.Rollapp{},
-				StateInfoList:                      []types.StateInfo{},
-				LatestStateInfoIndexList:           []types.StateInfoIndex{},
-				BlockHeightToFinalizationQueueList: []types.BlockHeightToFinalizationQueue{},
 			},
 			valid: false,
 		},

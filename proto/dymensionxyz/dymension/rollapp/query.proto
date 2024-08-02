@@ -29,12 +29,6 @@ service Query {
         "/dymensionxyz/dymension/rollapp/eip155/{eip155}";
   }
 
-  rpc RollappByAlias(QueryGetRollappByAliasRequest)
-      returns (QueryGetRollappResponse) {
-    option (google.api.http).get =
-        "/dymensionxyz/dymension/rollapp/alias/{alias}";
-  }
-
   // Queries a list of Rollapp items.
   rpc RollappAll(QueryAllRollappRequest) returns (QueryAllRollappResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/rollapp/rollapp";
@@ -73,8 +67,6 @@ message QueryParamsResponse {
 message QueryGetRollappRequest { string rollappId = 1; }
 
 message QueryGetRollappByEIP155Request { uint64 eip155 = 1; }
-
-message QueryGetRollappByAliasRequest { string alias = 1; }
 
 message QueryGetLatestHeightRequest {
   string rollappId = 1;

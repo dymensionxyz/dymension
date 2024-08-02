@@ -53,12 +53,10 @@ message MsgUpdateRollappInformation {
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially serve this rollappId.
   string initial_sequencer_address = 3;
-  // alias is the chain alias used for display and namespace system
-  string alias = 4;
   // checksum used to verify integrity
-  string genesis_checksum = 5;
+  string genesis_checksum = 4;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 6 [(gogoproto.nullable) = true ];
+  RollappMetadata metadata = 5 [(gogoproto.nullable) = true ];
 }
 
 message MsgUpdateRollappInformationResponse {

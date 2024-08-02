@@ -17,6 +17,7 @@ func (suite *RollappTestSuite) TestCreateRollapp() {
 }
 
 func (suite *RollappTestSuite) TestCreateRollappUnauthorizedRollappCreator() {
+	suite.T().Skip() // TODO: enable after x/dymns hook is wired
 	suite.SetupTest()
 	suite.createRollappWithCreatorAndVerify(types.ErrFeePayment, bob) // bob is broke
 }
@@ -39,35 +40,6 @@ func (suite *RollappTestSuite) TestCreateRollappAlreadyExists() {
 
 	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
 	suite.ErrorIs(err, types.ErrRollappIDExists)
-}
-
-func (suite *RollappTestSuite) TestCreateRollappAliasAlreadyExists() {
-	suite.SetupTest()
-
-	goCtx := sdk.WrapSDKContext(suite.Ctx)
-	alias := "rollapp"
-
-	rollapp := types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp1",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   alias,
-	}
-	_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.Require().Nil(err)
-
-	rollapp = types.MsgCreateRollapp{
-		Creator:                 alice,
-		RollappId:               "rollapp2",
-		InitialSequencerAddress: sample.AccAddress(),
-		Bech32Prefix:            "rol",
-		GenesisChecksum:         "checksum",
-		Alias:                   alias,
-	}
-	_, err = suite.msgServer.CreateRollapp(goCtx, &rollapp)
-	suite.ErrorIs(err, types.ErrRollappAliasExists)
 }
 
 func (suite *RollappTestSuite) TestCreateRollappId() {
@@ -119,14 +91,13 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
-				Alias:                   alias,
+				Alias:                   aliasFromRollappID(test.rollappId),
 				Metadata:                &mockRollappMetadata,
 			}
 
@@ -145,6 +116,10 @@ func (suite *RollappTestSuite) TestCreateRollappId() {
 			}
 		})
 	}
+}
+
+func aliasFromRollappID(rollappId string) string {
+	return strings.NewReplacer("_", "", "-", "").Replace(strings.Split(rollappId, "_")[0])
 }
 
 func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
@@ -184,14 +159,13 @@ func (suite *RollappTestSuite) TestCreateRollappIdRevisionNumber() {
 	}
 	for _, test := range tests {
 		suite.Run(test.name, func() {
-			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
-				Alias:                   alias,
+				Alias:                   aliasFromRollappID(test.rollappId),
 			}
 
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
@@ -304,14 +278,13 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 		suite.Run(test.name, func() {
 			suite.SetupTest()
 			goCtx := sdk.WrapSDKContext(suite.Ctx)
-			alias := strings.NewReplacer("_", "", "-", "").Replace(test.rollappId) // reuse rollapp ID to avoid alias conflicts
 			rollapp := types.MsgCreateRollapp{
 				Creator:                 alice,
 				RollappId:               test.rollappId,
 				InitialSequencerAddress: sample.AccAddress(),
 				Bech32Prefix:            "rol",
 				GenesisChecksum:         "checksum",
-				Alias:                   alias,
+				Alias:                   aliasFromRollappID(test.rollappId),
 			}
 			_, err := suite.msgServer.CreateRollapp(goCtx, &rollapp)
 			suite.Require().NoError(err)
@@ -326,10 +299,6 @@ func (suite *RollappTestSuite) TestOverwriteEIP155Key() {
 			rollappFromEip1155, found := suite.App.RollappKeeper.GetRollappByEIP155(suite.Ctx, eip155key)
 			suite.Require().True(found)
 			suite.Require().Equal(rollappFromEip1155.RollappId, rollapp.RollappId)
-
-			rollappFromAlias, found := suite.App.RollappKeeper.GetRollappByAlias(suite.Ctx, rollapp.Alias)
-			suite.Require().True(found)
-			suite.Require().Equal(rollappFromAlias.RollappId, rollapp.RollappId)
 
 			// create bad rollapp
 			badRollapp := types.MsgCreateRollapp{
@@ -377,8 +346,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	// generate sequencer address
 	address := sample.AccAddress()
 	// rollapp is the rollapp to create
-	rollappID := fmt.Sprintf("%s%d", "rollapp", rand.Int63())         //nolint:gosec // this is for a test
-	alias := strings.NewReplacer("_", "", "-", "").Replace(rollappID) // reuse rollapp ID to avoid alias conflicts
+	rollappID := fmt.Sprintf("%s%d", "rollapp", rand.Int63()) //nolint:gosec // this is for a test
 
 	rollapp := types.MsgCreateRollapp{
 		Creator:                 creator,
@@ -386,7 +354,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		InitialSequencerAddress: address,
 		Bech32Prefix:            "rol",
 		GenesisChecksum:         "checksum",
-		Alias:                   alias,
+		Alias:                   aliasFromRollappID(rollappID),
 		Metadata:                &mockRollappMetadata,
 	}
 	// rollappExpect is the expected result of creating rollapp
@@ -396,7 +364,6 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 		InitialSequencerAddress: rollapp.GetInitialSequencerAddress(),
 		GenesisChecksum:         rollapp.GetGenesisChecksum(),
 		Bech32Prefix:            rollapp.GetBech32Prefix(),
-		Alias:                   rollapp.GetAlias(),
 		Metadata:                rollapp.GetMetadata(),
 	}
 	// create rollapp
@@ -411,13 +378,6 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	// query the specific rollapp
 	queryResponse, err := suite.queryClient.Rollapp(goCtx, &types.QueryGetRollappRequest{
 		RollappId: rollapp.GetRollappId(),
-	})
-	suite.Require().Nil(err)
-	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)
-
-	// query the specific rollapp by alias
-	queryResponse, err = suite.queryClient.RollappByAlias(goCtx, &types.QueryGetRollappByAliasRequest{
-		Alias: rollapp.GetAlias(),
 	})
 	suite.Require().Nil(err)
 	suite.Require().EqualValues(&rollappExpect, &queryResponse.Rollapp)

@@ -96,18 +96,6 @@ func TestMsgCreateRollapp_ValidateBasic(t *testing.T) {
 			err: ErrInvalidBech32Prefix,
 		},
 		{
-			name: "invalid alias: too long",
-			msg: MsgCreateRollapp{
-				Creator:                 sample.AccAddress(),
-				Bech32Prefix:            bech32Prefix,
-				InitialSequencerAddress: sample.AccAddress(),
-				RollappId:               "dym_100-1",
-				GenesisChecksum:         "checksum",
-				Alias:                   strings.Repeat("a", maxAliasLength+1),
-			},
-			err: ErrInvalidAlias,
-		},
-		{
 			name: "invalid metadata: invalid logo data uri",
 			msg: MsgCreateRollapp{
 				Creator:                 sample.AccAddress(),

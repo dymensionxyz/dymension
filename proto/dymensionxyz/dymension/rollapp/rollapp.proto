@@ -41,17 +41,15 @@ message Rollapp {
   repeated string registeredDenoms = 10;
   // unique bech32 prefix
   string bech32_prefix = 11;
-  // alias is the chain alias used for display and namespace system
-  string alias = 12;
   // checksum used to verify integrity of the genesis file
-  string genesis_checksum = 13;
+  string genesis_checksum = 12;
   // metadata is the rollapp metadata
-  RollappMetadata metadata = 14;
+  RollappMetadata metadata = 13;
   // initial_sequencer_address is a bech32-encoded address of the
   // sequencer that is allowed to initially register and serve for this rollapp.
-  string initial_sequencer_address = 15;
+  string initial_sequencer_address = 14;
   // sealed is a boolean that indicates if the immutable fields are no longer updatable.
-  bool sealed = 16;
+  bool sealed = 15;
 }
 
 // Rollapp summary is a compact representation of Rollapp
