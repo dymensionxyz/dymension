@@ -150,7 +150,7 @@ func DefaultPreservedRegistrationParams() PreservedRegistrationParams {
 		ExpirationEpoch: 1727740799, // 2024-09-30 23:59:59 UTC
 		PreservedDymNames: []PreservedDymName{
 			{
-				// TODO DymNS: this is just a pseudo address, replace it with the real one
+				// this is just a pseudo address, replace it with the real one
 				DymName:            "big-brain-staking",
 				WhitelistedAddress: "dym1nd3qxp7xec90n9exr4ua3v26r940pl9nyy8whh",
 			},
@@ -201,6 +201,40 @@ func (m *Params) Validate() error {
 // Validate checks that the PriceParams have valid values.
 func (m PriceParams) Validate() error {
 	return validatePriceParams(m)
+}
+
+func (m *PriceParams) GetFirstYearDymNamePrice(name string) sdkmath.Int {
+	switch len(name) {
+	case 1:
+		return m.NamePrice_1Letter
+	case 2:
+		return m.NamePrice_2Letters
+	case 3:
+		return m.NamePrice_3Letters
+	case 4:
+		return m.NamePrice_4Letters
+	default:
+		return m.NamePrice_5PlusLetters
+	}
+}
+
+func (m *PriceParams) GetAliasPrice(alias string) sdkmath.Int {
+	switch len(alias) {
+	case 1:
+		return m.AliasPrice_1Letter
+	case 2:
+		return m.AliasPrice_2Letters
+	case 3:
+		return m.AliasPrice_3Letters
+	case 4:
+		return m.AliasPrice_4Letters
+	case 5:
+		return m.AliasPrice_5Letters
+	case 6:
+		return m.AliasPrice_6Letters
+	default:
+		return m.AliasPrice_7PlusLetters
+	}
 }
 
 // Validate checks that the ChainsParams have valid values.

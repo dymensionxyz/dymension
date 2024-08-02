@@ -3,10 +3,17 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 )
+
+/* -------------------------------------------------------------------------- */
+/*                              x/epochs hooks                                */
+/* -------------------------------------------------------------------------- */
 
 var _ epochstypes.EpochHooks = epochHooks{}
 
@@ -251,6 +258,69 @@ func (e epochHooks) processActiveSellOrders(ctx sdk.Context, epochIdentifier str
 			"epoch-number", epochNumber, "epoch-identifier", epochIdentifier,
 			"error", err,
 		)
+		return err
+	}
+
+	return nil
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             x/rollapp hooks                                */
+/* -------------------------------------------------------------------------- */
+
+type RollAppHooks interface {
+	// TODO DymNS: connect hooks and remove this interface
+
+	RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error
+}
+
+func (k Keeper) GetRollAppHooks() RollAppHooks {
+	return rollappHooks{
+		Keeper: k,
+	}
+}
+
+type rollappHooks struct {
+	Keeper
+}
+
+var _ RollAppHooks = rollappHooks{}
+
+func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
+	if !h.Keeper.IsRollAppId(ctx, rollappID) {
+		// ensure RollApp record is set
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not a RollApp chain-id: %s", rollappID)
+	}
+
+	canUseAlias, err := h.CanUseAliasForNewRegistration(ctx, alias)
+	if err != nil {
+		return err
+	}
+
+	if !canUseAlias {
+		return errorsmod.Wrapf(gerrc.ErrAlreadyExists, "alias already in use or preserved: %s", alias)
+	}
+
+	if err := h.Keeper.SetAliasForRollAppId(ctx, rollappID, alias); err != nil {
+		return err
+	}
+
+	params := h.Keeper.GetParams(ctx)
+	aliasCost := sdk.NewCoins(
+		sdk.NewCoin(
+			params.Price.PriceDenom, params.Price.GetAliasPrice(alias),
+		),
+	)
+
+	if err := h.bankKeeper.SendCoinsFromAccountToModule(ctx,
+		creatorAddr,
+		dymnstypes.ModuleName,
+		aliasCost,
+	); err != nil {
+		return err
+	}
+
+	if err := h.bankKeeper.BurnCoins(ctx, dymnstypes.ModuleName, aliasCost); err != nil {
 		return err
 	}
 

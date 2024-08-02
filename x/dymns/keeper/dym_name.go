@@ -423,7 +423,6 @@ func (k Keeper) tryResolveChainIdOrAliasToChainId(ctx sdk.Context, chainIdOrAlia
 	}
 
 	if rollAppId, found := k.GetRollAppIdByAlias(ctx, chainIdOrAlias); found {
-		// TODO DymNS: require RollApp alias to use dymnsutils.IsValidAlias to validate the alias
 		return rollAppId, true
 	}
 

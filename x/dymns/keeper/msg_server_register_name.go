@@ -247,21 +247,6 @@ func EstimateRegisterName(
 	newOwner string,
 	duration int64,
 ) dymnstypes.QueryEstimateRegisterNameResponse {
-	getLengthBasedPrice := func() sdkmath.Int {
-		switch len(name) {
-		case 1:
-			return params.Price.NamePrice_1Letter
-		case 2:
-			return params.Price.NamePrice_2Letters
-		case 3:
-			return params.Price.NamePrice_3Letters
-		case 4:
-			return params.Price.NamePrice_4Letters
-		default:
-			return params.Price.NamePrice_5PlusLetters
-		}
-	}
-
 	var newFirstYearPrice, extendsPrice sdkmath.Int
 
 	if existingDymName != nil && existingDymName.Owner == newOwner {
@@ -273,7 +258,7 @@ func EstimateRegisterName(
 		)
 	} else {
 		// new registration or take over
-		newFirstYearPrice = getLengthBasedPrice() // charge based on name length for the first year
+		newFirstYearPrice = params.Price.GetFirstYearDymNamePrice(name) // charge based on name length for the first year
 		if duration > 1 {
 			extendsPrice = params.Price.PriceExtends.Mul(
 				sdkmath.NewInt(duration - 1), // subtract first year, which has different price

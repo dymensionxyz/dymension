@@ -5,6 +5,9 @@ import (
 	"testing"
 	"time"
 
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -1315,6 +1318,568 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+		})
+	}
+}
+
+func Test_rollappHooks_RollappCreated(t *testing.T) {
+	now := time.Now().UTC()
+
+	const price1L = 9
+	const price2L = 8
+	const price3L = 7
+	const price4L = 6
+	const price5L = 5
+	const price6L = 4
+	const price7PL = 3
+
+	setupTest := func() (dymnskeeper.Keeper, dymnskeeper.BankKeeper, rollappkeeper.Keeper, sdk.Context) {
+		dk, bk, rk, ctx := testkeeper.DymNSKeeper(t)
+		ctx = ctx.WithBlockTime(now)
+
+		moduleParams := dk.GetParams(ctx)
+		moduleParams.Price.AliasPrice_1Letter = sdk.NewInt(price1L)
+		moduleParams.Price.AliasPrice_2Letters = sdk.NewInt(price2L)
+		moduleParams.Price.AliasPrice_3Letters = sdk.NewInt(price3L)
+		moduleParams.Price.AliasPrice_4Letters = sdk.NewInt(price4L)
+		moduleParams.Price.AliasPrice_5Letters = sdk.NewInt(price5L)
+		moduleParams.Price.AliasPrice_6Letters = sdk.NewInt(price6L)
+		moduleParams.Price.AliasPrice_7PlusLetters = sdk.NewInt(price7PL)
+		err := dk.SetParams(ctx, moduleParams)
+		require.NoError(t, err)
+
+		return dk, bk, rk, ctx
+	}
+
+	creatorAccAddr := sdk.AccAddress(testAddr(1).bytes())
+	dymNameOwnerAcc := testAddr(2)
+	anotherAcc := testAddr(3)
+
+	tests := []struct {
+		name                    string
+		addRollApps             []string
+		preRunSetup             func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+		originalCreatorBalance  int64
+		originalModuleBalance   int64
+		rollAppId               string
+		alias                   string
+		wantErr                 bool
+		wantErrContains         string
+		wantSuccess             bool
+		wantLaterCreatorBalance int64
+		postTest                func(*testing.T, sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
+	}{
+		{
+			name:                    "pass - register without problem",
+			addRollApps:             []string{"rollapp_1-1"},
+			preRunSetup:             nil,
+			originalCreatorBalance:  price5L + 2,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 2,
+		},
+		{
+			name:                   "pass - mapping RollApp ID <=> Alias should be set",
+			addRollApps:            []string{"rollapp_1-1"},
+			preRunSetup:            nil,
+			originalCreatorBalance: price5L,
+			rollAppId:              "rollapp_1-1",
+			alias:                  "alias",
+			wantErr:                false,
+			wantSuccess:            true,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.True(t, found)
+				require.Equal(t, "alias", alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
+				require.True(t, found)
+				require.Equal(t, "rollapp_1-1", rollAppId)
+			},
+		},
+		{
+			name:                    "pass - Alias cost subtracted from creator and burned",
+			addRollApps:             []string{"rollapp_1-1"},
+			preRunSetup:             nil,
+			originalCreatorBalance:  price5L + 10,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 1 char",
+			addRollApps:             []string{"rollapp_1-1"},
+			preRunSetup:             nil,
+			originalCreatorBalance:  price1L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "a",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 2 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			preRunSetup:             nil,
+			originalCreatorBalance:  price2L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "ab",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 3 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price3L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "dog",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 4 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price4L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "pool",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 5 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price5L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "angel",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 6 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price6L + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "bridge",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 7 chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price7PL + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "academy",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "pass - charges correct price for Alias based on length, 7+ chars",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price7PL + 10,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "dymension",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 10,
+		},
+		{
+			name:                    "fail - RollApp not exists",
+			addRollApps:             nil,
+			originalCreatorBalance:  price1L,
+			rollAppId:               "nad_0-0",
+			alias:                   "alias",
+			wantErr:                 true,
+			wantErrContains:         "not a RollApp chain-id",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+		},
+		{
+			name:                    "fail - reject bad alias",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  price1L,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "@@@",
+			wantErr:                 true,
+			wantErrContains:         "alias candidate: invalid argument",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+		},
+		{
+			name:        "pass - can register if alias is not used",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price5L + 2,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 2,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.True(t, found)
+				require.Equal(t, "alias", alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
+				require.True(t, found)
+				require.Equal(t, "rollapp_1-1", rollAppId)
+			},
+		},
+		{
+			name:        "fail - reject if alias is presents as chain-id in params",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "bridge",
+						Aliases: []string{"b"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price1L,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "bridge",
+			wantErr:                 true,
+			wantErrContains:         "alias already in use or preserved",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
+			},
+		},
+		{
+			name:        "fail - reject if alias is presents as alias of a chain-id in params",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price1L,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "dym",
+			wantErr:                 true,
+			wantErrContains:         "alias already in use or preserved",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "dym")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
+			},
+		},
+		{
+			name:        "fail - reject if alias is presents as a coin-type-60 chain-id in params",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"bridge"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price1L,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "bridge",
+			wantErr:                 true,
+			wantErrContains:         "alias already in use or preserved",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
+			},
+		},
+		{
+			name:        "fail - reject if alias is a RollApp-ID",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2", "rollapp"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"kava_2222-10"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price1L,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "rollapp",
+			wantErr:                 true,
+			wantErrContains:         "alias already in use or preserved",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "rollapp")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
+			},
+		},
+		{
+			name:        "fail - reject if alias used by another RollApp",
+			addRollApps: []string{"rollapp_1-1", "rollapp_2-2", "rollapp"},
+			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				moduleParams := dk.GetParams(ctx)
+
+				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "dymension_1100-1",
+						Aliases: []string{"dym"},
+					},
+				}
+				moduleParams.Chains.CoinType60ChainIds = []string{"kava_2222-10"}
+
+				require.NoError(t, dk.SetParams(ctx, moduleParams))
+
+				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "alias")
+				require.NoError(t, err)
+			},
+			originalCreatorBalance:  price1L,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			wantErr:                 true,
+			wantErrContains:         "alias already in use or preserved",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: price1L,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
+				require.True(t, found)
+				require.Equal(t, "rollapp_2-2", rollAppId)
+			},
+		},
+		{
+			name:                    "fail - reject if creator does not have enough balance to pay the fee",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  1,
+			originalModuleBalance:   1,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "alias",
+			wantErr:                 true,
+			wantErrContains:         "insufficient funds",
+			wantSuccess:             false,
+			wantLaterCreatorBalance: 1,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
+			},
+		},
+		{
+			name:                   "pass - can resolve address using alias",
+			addRollApps:            []string{"rollapp_1-1"},
+			preRunSetup:            nil,
+			originalCreatorBalance: price5L,
+			rollAppId:              "rollapp_1-1",
+			alias:                  "alias",
+			wantErr:                false,
+			wantSuccess:            true,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				dymName := dymnstypes.DymName{
+					Name:       "my-name",
+					Owner:      dymNameOwnerAcc.bech32(),
+					Controller: dymNameOwnerAcc.bech32(),
+					ExpireAt:   now.Unix() + 1,
+					Configs: []dymnstypes.DymNameConfig{
+						{
+							Type:    dymnstypes.DymNameConfigType_NAME,
+							ChainId: "rollapp_1-1",
+							Value:   dymNameOwnerAcc.bech32(),
+						},
+						{
+							Type:    dymnstypes.DymNameConfigType_NAME,
+							ChainId: "rollapp_1-1",
+							Path:    "sub",
+							Value:   anotherAcc.bech32(),
+						},
+					},
+				}
+				setDymNameWithFunctionsAfter(context, dymName, t, dk)
+
+				outputAddr, err := dk.ResolveByDymNameAddress(context, "my-name@rollapp_1-1")
+				require.NoError(t, err)
+				require.Equal(t, dymNameOwnerAcc.bech32(), outputAddr)
+
+				outputAddr, err = dk.ResolveByDymNameAddress(context, "my-name@alias")
+				require.NoError(t, err)
+				require.Equal(t, dymNameOwnerAcc.bech32(), outputAddr)
+
+				outputAddr, err = dk.ResolveByDymNameAddress(context, "sub.my-name@alias")
+				require.NoError(t, err)
+				require.Equal(t, anotherAcc.bech32(), outputAddr)
+
+				outputs, err := dk.ReverseResolveDymNameAddress(context, anotherAcc.bech32(), "rollapp_1-1")
+				require.NoError(t, err)
+				require.NotEmpty(t, outputs)
+				require.Equal(t, "sub.my-name@alias", outputs[0].String())
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.NotEqual(t, tt.wantSuccess, tt.wantErr, "mis-configured test case")
+
+			dk, bk, rk, ctx := setupTest()
+
+			if tt.originalCreatorBalance > 0 {
+				err := bk.MintCoins(
+					ctx,
+					dymnstypes.ModuleName, dymnsutils.TestCoins(tt.originalCreatorBalance),
+				)
+				require.NoError(t, err)
+
+				err = bk.SendCoinsFromModuleToAccount(
+					ctx,
+					dymnstypes.ModuleName, creatorAccAddr,
+					dymnsutils.TestCoins(tt.originalCreatorBalance),
+				)
+				require.NoError(t, err)
+			}
+
+			if tt.originalModuleBalance > 0 {
+				err := bk.MintCoins(
+					ctx,
+					dymnstypes.ModuleName, dymnsutils.TestCoins(tt.originalModuleBalance),
+				)
+				require.NoError(t, err)
+			}
+
+			for _, rollAppId := range tt.addRollApps {
+				rk.SetRollapp(ctx, rollapptypes.Rollapp{
+					RollappId: rollAppId,
+					Creator:   creatorAccAddr.String(),
+				})
+			}
+
+			if tt.preRunSetup != nil {
+				tt.preRunSetup(t, ctx, dk, rk)
+			}
+
+			err := dk.GetRollAppHooks().RollappCreated(ctx, tt.rollAppId, tt.alias, creatorAccAddr)
+
+			defer func() {
+				if t.Failed() {
+					return
+				}
+
+				laterModuleBalance := bk.GetBalance(ctx, dymNsModuleAccAddr, dymnsutils.TestCoin(0).Denom)
+				require.NotNil(t, laterModuleBalance)
+				require.Equal(
+					t,
+					tt.originalModuleBalance, laterModuleBalance.Amount.Int64(),
+					"module balance should not be changed regardless of success because of burn",
+				)
+
+				if tt.postTest != nil {
+					tt.postTest(t, ctx, dk, rk)
+				}
+			}()
+
+			if tt.wantErr {
+				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tt.wantErrContains)
+				return
+			}
+
+			require.NoError(t, err)
+
+			laterCreatorBalance := bk.GetBalance(ctx, creatorAccAddr, dymnsutils.TestCoin(0).Denom)
+			require.NotNil(t, laterCreatorBalance)
+			require.Equal(t, tt.wantLaterCreatorBalance, laterCreatorBalance.Amount.Int64(), "creator balance mismatch")
 		})
 	}
 }

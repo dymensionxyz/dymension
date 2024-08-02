@@ -327,6 +327,26 @@ func TestPriceParams_Validate(t *testing.T) {
 	})
 }
 
+func TestPriceParams_GetPrice(t *testing.T) {
+	priceParams := DefaultPriceParams()
+
+	require.Equal(t, priceParams.NamePrice_1Letter, priceParams.GetFirstYearDymNamePrice("a"))
+	require.Equal(t, priceParams.NamePrice_2Letters, priceParams.GetFirstYearDymNamePrice("ab"))
+	require.Equal(t, priceParams.NamePrice_3Letters, priceParams.GetFirstYearDymNamePrice("dog"))
+	require.Equal(t, priceParams.NamePrice_4Letters, priceParams.GetFirstYearDymNamePrice("pool"))
+	require.Equal(t, priceParams.NamePrice_5PlusLetters, priceParams.GetFirstYearDymNamePrice("angel"))
+	require.Equal(t, priceParams.NamePrice_5PlusLetters, priceParams.GetFirstYearDymNamePrice("dymension"))
+
+	require.Equal(t, priceParams.AliasPrice_1Letter, priceParams.GetAliasPrice("a"))
+	require.Equal(t, priceParams.AliasPrice_2Letters, priceParams.GetAliasPrice("ab"))
+	require.Equal(t, priceParams.AliasPrice_3Letters, priceParams.GetAliasPrice("dog"))
+	require.Equal(t, priceParams.AliasPrice_4Letters, priceParams.GetAliasPrice("pool"))
+	require.Equal(t, priceParams.AliasPrice_5Letters, priceParams.GetAliasPrice("angel"))
+	require.Equal(t, priceParams.AliasPrice_6Letters, priceParams.GetAliasPrice("bridge"))
+	require.Equal(t, priceParams.AliasPrice_7PlusLetters, priceParams.GetAliasPrice("academy"))
+	require.Equal(t, priceParams.AliasPrice_7PlusLetters, priceParams.GetAliasPrice("dymension"))
+}
+
 //goland:noinspection SpellCheckingInspection
 func TestChainsParams_Validate(t *testing.T) {
 	tests := []struct {

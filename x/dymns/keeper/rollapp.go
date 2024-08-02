@@ -117,8 +117,5 @@ func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32P
 		return "", false
 	}
 
-	/*
-		// TODO DymNS: implement Get RollApp Bech32 Prefix
-		return "", false
-	*/
+	// TODO DymNS: implement Get RollApp Bech32 Prefix
 }
