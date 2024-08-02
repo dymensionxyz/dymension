@@ -23,7 +23,7 @@ const (
 	// We charge this high amount of gas for extra permanent data
 	// needed to be stored like reverse lookup record.
 	// We do not charge this fee on Delete operation.
-	OpGasConfig sdk.Gas = 30_000_000
+	OpGasConfig sdk.Gas = 35_000_000
 
 	// OpGasUpdateContact is the gas consumed when Dym-Name controller updating Dym-Name contact.
 	// We do not charge this fee on clear Contact operation.
