@@ -9,7 +9,6 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
@@ -75,12 +74,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
 	}
 
-	// TODO DymNS: migrate tests like this to pass bz in
-	requireFallbackAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		_, bz, err := bech32.DecodeAndConvert(bech32Addr)
-		require.NoError(ts.t, err)
-
-		dymNames, err := ts.dk.GetDymNamesContainsFallbackAddress(ts.ctx, bz)
+	requireFallbackAddressMappedDymNames := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {
+		dymNames, err := ts.dk.GetDymNamesContainsFallbackAddress(ts.ctx, fallbackAddr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -92,8 +87,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		}
 	}
 
-	requireFallbackAddressMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		requireFallbackAddressMappedDymNames(ts, bech32Addr)
+	requireFallbackAddressMappedNoDymName := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress) {
+		requireFallbackAddressMappedDymNames(ts, fallbackAddr)
 	}
 
 	tests := []struct {
@@ -118,8 +113,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			wantErr:         true,
 			wantErrContains: gerrc.ErrInvalidArgument.Error(),
@@ -131,8 +126,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -141,8 +136,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -154,8 +149,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -168,8 +163,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -185,8 +180,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -199,8 +194,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -216,8 +211,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -230,8 +225,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -247,8 +242,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -261,8 +256,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "0x1",
@@ -278,8 +273,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -292,8 +287,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				SubName:    "SUB", // upper-case is not accepted
@@ -310,8 +305,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -324,8 +319,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -349,8 +344,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -370,8 +365,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -399,8 +394,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -425,8 +420,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -454,8 +449,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -475,8 +470,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
@@ -494,8 +489,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -515,8 +510,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
@@ -540,8 +535,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -566,8 +561,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
@@ -591,8 +586,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 		},
 		{
@@ -617,8 +612,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
@@ -641,8 +636,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -667,8 +662,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  "",
@@ -697,8 +692,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
 			},
 		},
 		{
@@ -711,8 +706,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ResolveTo:  ownerAcc.bech32(),
@@ -734,8 +729,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -748,8 +743,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
@@ -775,8 +770,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -797,8 +792,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
@@ -824,8 +819,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -844,8 +839,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			wantErr: false,
 			wantDymName: &dymnstypes.DymName{
@@ -865,8 +860,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -887,8 +882,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
@@ -920,8 +915,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -948,8 +943,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "blumbus_100-1",
@@ -981,8 +976,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -995,8 +990,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
@@ -1015,8 +1010,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -1029,8 +1024,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    chainId,
@@ -1050,8 +1045,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32C("nim"))
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -1064,8 +1059,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
@@ -1085,8 +1080,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32Valoper())
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
 			},
 		},
 		{
@@ -1209,9 +1204,9 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerAcc.bech32())
 				requireConfiguredAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
-				requireFallbackAddressMappedNoDymName(ts, ownerAcc.bech32())
-				requireFallbackAddressMappedDymNames(ts, controllerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
+				requireFallbackAddressMappedNoDymName(ts, ownerAcc.fallback())
+				requireFallbackAddressMappedDymNames(ts, controllerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "",
@@ -1244,9 +1239,9 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				requireConfiguredAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
 				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
-				requireFallbackAddressMappedDymNames(ts, ownerAcc.bech32(), recordName)
-				requireFallbackAddressMappedNoDymName(ts, controllerAcc.bech32())
-				requireFallbackAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
+				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
 			},
 		},
 	}

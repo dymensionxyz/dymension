@@ -87,6 +87,10 @@ func (a ta) bech32C(customHrp string) string {
 	return sdk.MustBech32ifyAddressBytes(customHrp, a.bz)
 }
 
+func (a ta) fallback() dymnstypes.FallbackAddress {
+	return a.bz
+}
+
 func (a ta) hexStr() string {
 	return dymnsutils.GetHexAddressFromBytes(a.bz)
 }
