@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"fmt"
 	"strings"
+
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -93,6 +96,8 @@ func (k Keeper) GetDymNamesContainsConfiguredAddress(
 		return nil, err
 	}
 
+	fmt.Println("configuredAddress: ", configuredAddress)
+
 	key := dymnstypes.ConfiguredAddressToDymNamesIncludeRvlKey(configuredAddress)
 
 	currentDymNamesContainsConfiguredAddress := k.GenericGetReverseLookupDymNamesRecord(ctx, key)
@@ -136,7 +141,15 @@ func validateConfiguredAddressForReverseMapping(configuredAddress string) error 
 // normalizeConfiguredAddressForReverseMapping normalizes the configured address for reverse mapping
 // before putting it into the KVStore.
 func normalizeConfiguredAddressForReverseMapping(configuredAddress string) string {
-	return strings.ToLower(strings.TrimSpace(configuredAddress))
+	configuredAddress = strings.TrimSpace(configuredAddress)
+
+	if dymnsutils.IsValidHexAddress(configuredAddress) {
+		// if the address is hex format, then treat the chain is case-insensitive address,
+		// like Ethereum, where the address is case-insensitive and checksum address contains mixed case
+		configuredAddress = strings.ToLower(configuredAddress)
+	}
+
+	return configuredAddress
 }
 
 // AddReverseMappingFallbackAddressToDymName add a reverse mapping

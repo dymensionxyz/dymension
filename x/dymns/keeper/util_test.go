@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/dymensionxyz/dymension/v3/app/params"
@@ -93,6 +95,13 @@ func (a ta) fallback() dymnstypes.FallbackAddress {
 
 func (a ta) hexStr() string {
 	return dymnsutils.GetHexAddressFromBytes(a.bz)
+}
+
+func (a ta) checksumHex() string {
+	if len(a.bz) != 20 {
+		panic("invalid call")
+	}
+	return common.BytesToAddress(a.bz).Hex()
 }
 
 type dymNameBuilder struct {

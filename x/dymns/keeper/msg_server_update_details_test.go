@@ -55,8 +55,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 		}
 	}
 
-	requireConfiguredAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr)
+	requireConfiguredAddressMappedDymNames := func(ts testSuite, cfgAddr string, names ...string) {
+		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, cfgAddr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -68,8 +68,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 		}
 	}
 
-	requireConfiguredAddressMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
+	requireConfiguredAddressMappedNoDymName := func(ts testSuite, cfgAddr string) {
+		requireConfiguredAddressMappedDymNames(ts, cfgAddr)
 	}
 
 	requireFallbackAddressMappedDymNames := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {

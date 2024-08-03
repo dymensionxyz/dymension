@@ -551,8 +551,6 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not supported address format: %s", inputAddress)
 	}
 
-	// TODO DymNS: add testcase reverse-resolve checksum and non-checksum address
-
 	isBech32Addr := dymnsutils.IsValidBech32AccountAddress(inputAddress, false)
 	is0xAddr := dymnsutils.IsValidHexAddress(inputAddress)
 
@@ -582,6 +580,10 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		}
 
 		// on RollApps, guarantee of case-insensitive address
+		inputAddress = strings.ToLower(inputAddress)
+	} else if dymnsutils.IsValidHexAddress(inputAddress) {
+		// if the address is hex format, then treat the chain is case-insensitive address,
+		// like Ethereum, where the address is case-insensitive and checksum address contains mixed case
 		inputAddress = strings.ToLower(inputAddress)
 	}
 

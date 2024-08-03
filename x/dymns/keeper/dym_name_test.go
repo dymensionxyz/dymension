@@ -222,14 +222,14 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		},
 	}
 
-	requireConfiguredAddressMappedNoDymName := func(bech32Addr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
+	requireConfiguredAddressMappedNoDymName := func(cfgAddr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
+		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, cfgAddr)
 		require.NoError(t, err)
 		require.Empty(t, names)
 	}
 
-	requireConfiguredAddressMappedDymName := func(bech32Addr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
+	requireConfiguredAddressMappedDymName := func(cfgAddr string, ctx sdk.Context, dk dymnskeeper.Keeper) {
+		names, err := dk.GetDymNamesContainsConfiguredAddress(ctx, cfgAddr)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 		require.Equal(t, dymName.Name, names[0].Name)

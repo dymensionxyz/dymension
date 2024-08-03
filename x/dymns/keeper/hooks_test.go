@@ -842,8 +842,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		require.Equalf(t, wantAmount, accountBalance.Amount.Int64(), "account balance should be %d", wantAmount)
 	}
 
-	requireConfiguredAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr)
+	requireConfiguredAddressMappedDymNames := func(ts testSuite, cfgAddr string, names ...string) {
+		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, cfgAddr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -855,8 +855,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		}
 	}
 
-	requireConfiguredAddressMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
+	requireConfiguredAddressMappedNoDymName := func(ts testSuite, cfgAddr string) {
+		requireConfiguredAddressMappedDymNames(ts, cfgAddr)
 	}
 
 	requireFallbackAddrMappedDymNames := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {

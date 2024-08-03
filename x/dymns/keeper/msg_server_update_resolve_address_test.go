@@ -96,7 +96,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 
 	ownerAcc := testAddr(1)
 	controllerAcc := testAddr(2)
-	anotherAcc := testAddr(3)
+	anotherAcc := testAddr(14)
+	_32BytesAcc := testAddr(15)
 
 	const recordName = "my-name"
 
@@ -123,8 +124,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		}
 	}
 
-	requireConfiguredAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
-		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, bech32Addr)
+	requireConfiguredAddressMappedDymNames := func(ts testSuite, cfgAddr string, names ...string) {
+		dymNames, err := ts.dk.GetDymNamesContainsConfiguredAddress(ts.ctx, cfgAddr)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -136,8 +137,8 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 		}
 	}
 
-	requireConfiguredAddressMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
+	requireConfiguredAddressMappedNoDymName := func(ts testSuite, cfgAddr string) {
+		requireConfiguredAddressMappedDymNames(ts, cfgAddr)
 	}
 
 	requireFallbackAddressMappedDymNames := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress, names ...string) {
@@ -1127,6 +1128,170 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			},
 		},
 		{
+			name: "pass - if input is 20 bytes, hex address, lower-case when persist",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.checksumHex())
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+
+				require.NotEqual(ts.t, strings.ToLower(anotherAcc.hexStr()), anotherAcc.checksumHex())
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    "ethereum",
+				ResolveTo:  anotherAcc.checksumHex(),
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "ethereum",
+						Value:   strings.ToLower(anotherAcc.checksumHex()), // lower-cased
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				// should be able to search case-insensitive
+				requireConfiguredAddressMappedDymNames(ts, anotherAcc.checksumHex(), recordName)
+				requireConfiguredAddressMappedDymNames(ts, strings.ToLower(anotherAcc.checksumHex()), recordName)
+				requireConfiguredAddressMappedDymNames(ts, "0x"+strings.ToUpper(anotherAcc.checksumHex()[2:]), recordName)
+
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+			},
+		},
+		{
+			name: "pass - if input is 32 bytes, hex address, lower-case when persist",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedNoDymName(ts, "0x"+strings.ToLower(_32BytesAcc.hexStr()[2:]))
+				requireConfiguredAddressMappedNoDymName(ts, "0x"+strings.ToUpper(_32BytesAcc.hexStr()[2:]))
+				requireFallbackAddressMappedNoDymName(ts, _32BytesAcc.fallback())
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    "another",
+				ResolveTo:  "0x" + strings.ToUpper(_32BytesAcc.hexStr()[2:]), // upper-cased
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Value:   "0x" + strings.ToLower(_32BytesAcc.hexStr()[2:]), // lower-cased
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				// should be able to search case-insensitive
+				lowerCased := "0x" + strings.ToLower(_32BytesAcc.hexStr()[2:])
+				requireConfiguredAddressMappedDymNames(ts, lowerCased, recordName)
+				upperCased := "0x" + strings.ToUpper(_32BytesAcc.hexStr()[2:])
+				requireConfiguredAddressMappedDymNames(ts, upperCased, recordName)
+
+				requireFallbackAddressMappedNoDymName(ts, _32BytesAcc.fallback())
+			},
+		},
+		{
+			name: "pass - if input is 20 bytes, WITHOUT 0x hex address, keep case-sensitive when persist",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedNoDymName(ts, strings.ToUpper(anotherAcc.hexStr()[2:]))
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    "another",
+				ResolveTo:  strings.ToUpper(anotherAcc.hexStr()[2:]), // removed 0x part and upper-cased
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Value:   strings.ToUpper(anotherAcc.hexStr()[2:]), // keep as is
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedDymNames(ts, strings.ToUpper(anotherAcc.hexStr()[2:]), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, strings.ToLower(anotherAcc.hexStr()[2:]))
+
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+
+				// dont returns for similar address (+0x)
+				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.hexStr())
+				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.checksumHex())
+			},
+		},
+		{
+			name: "pass - if input is 32 bytes, WITHOUT 0x hex address, keep case-sensitive when persist",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedNoDymName(ts, strings.ToUpper(_32BytesAcc.hexStr()[2:]))
+				requireFallbackAddressMappedNoDymName(ts, _32BytesAcc.fallback())
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    "another",
+				ResolveTo:  strings.ToUpper(_32BytesAcc.hexStr()[2:]), // removed 0x part and upper-cased
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Value:   strings.ToUpper(_32BytesAcc.hexStr()[2:]), // keep as is
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedDymNames(ts, strings.ToUpper(_32BytesAcc.hexStr()[2:]), recordName)
+				requireConfiguredAddressMappedNoDymName(ts, strings.ToLower(_32BytesAcc.hexStr()[2:]))
+
+				requireFallbackAddressMappedNoDymName(ts, _32BytesAcc.fallback())
+
+				// dont returns for similar address (+0x)
+				requireConfiguredAddressMappedNoDymName(ts, _32BytesAcc.hexStr())
+				requireConfiguredAddressMappedNoDymName(ts, "0x"+strings.ToUpper(_32BytesAcc.hexStr()[2:]))
+			},
+		},
+		{
 			name: "fail - reject if address is not corresponding bech32 on host chain if target chain is host chain, case empty chain-id",
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
@@ -1484,6 +1649,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
+			wantRecordedValue := input
+			if dymnsutils.IsValidHexAddress(input) {
+				// if input is hex, lower-case it regardless chain
+				wantRecordedValue = strings.ToLower(input)
+			}
+
 			laterDymName := dk.GetDymName(ctx, dymName.Name)
 			require.NotNil(t, laterDymName)
 			require.Equal(t, dymnstypes.DymName{
@@ -1496,7 +1667,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 						Type:    dymnstypes.DymNameConfigType_NAME,
 						ChainId: anotherChainId,
 						Path:    "",
-						Value:   input,
+						Value:   wantRecordedValue,
 					},
 				},
 			}, *laterDymName)
@@ -1504,7 +1675,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			dymNameAddress := fmt.Sprintf("%s@%s", dymName.Name, anotherChainId)
 			outputAddress, err := dk.ResolveByDymNameAddress(ctx, dymNameAddress)
 			require.NoError(t, err)
-			require.Equal(t, input, outputAddress)
+			require.Equal(t, wantRecordedValue, outputAddress)
 
 			list, err := dk.ReverseResolveDymNameAddress(ctx, input, anotherChainId)
 			require.NoError(t, err)

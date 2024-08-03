@@ -33,6 +33,10 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 		// guarantee of case-insensitive on host and RollApps,
 		// so we do normalize input
 		newConfig.Value = strings.ToLower(newConfig.Value)
+	} else if dymnsutils.IsValidHexAddress(newConfig.Value) {
+		// if the address is hex format, then treat the chain is case-insensitive address,
+		// like Ethereum, where the address is case-insensitive and checksum address contains mixed case
+		newConfig.Value = strings.ToLower(newConfig.Value)
 	}
 
 	var minimumTxGasRequired sdk.Gas
