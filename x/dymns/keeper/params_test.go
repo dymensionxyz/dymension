@@ -169,6 +169,23 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 			want:    false,
 		},
 		{
+			name:  "pass - returns as NOT free if reserved in Params as chain-id, without alias",
+			alias: "zeta",
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				params := dk.GetParams(ctx)
+				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
+					{
+						ChainId: "zeta",
+						Aliases: nil,
+					},
+				}
+				err := dk.SetParams(ctx, params)
+				require.NoError(t, err)
+			},
+			wantErr: false,
+			want:    false,
+		},
+		{
 			name:  "pass - returns as NOT free if reserved in RollApp",
 			alias: "ra",
 			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {

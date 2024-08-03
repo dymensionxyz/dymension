@@ -121,6 +121,32 @@ func DefaultChainsParams() ChainsParams {
 				ChainId: "dymension_100-1",
 				Aliases: []string{"test"},
 			},
+			// reserves alias for non Cosmos-SDK chains
+			// TODO DymNS: review the list
+			{
+				ChainId: "bitcoin",
+				Aliases: []string{"btc"},
+			},
+			{
+				ChainId: "ethereum",
+				Aliases: []string{"eth", "ether"},
+			},
+			{
+				ChainId: "solana",
+				Aliases: []string{"sol"},
+			},
+			{
+				ChainId: "avalanche",
+				Aliases: []string{"avax"},
+			},
+			{
+				ChainId: "polygon",
+				Aliases: []string{"matic"},
+			},
+			{
+				ChainId: "polkadot",
+				Aliases: []string{"dot"},
+			},
 		},
 		CoinType60ChainIds: []string{
 			"evmos_9001-2",       // Evmos Mainnet
