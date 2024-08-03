@@ -1518,9 +1518,10 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 
 func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 	tests := []struct {
-		name string
-		m    DymNameConfigs
-		want DymNameConfigs
+		name                  string
+		m                     DymNameConfigs
+		dropEmptyValueConfigs bool
+		want                  DymNameConfigs
 	}{
 		{
 			name: "pass",
@@ -1637,10 +1638,68 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "pass - drop empty value configs",
+			m: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "a",
+				},
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "",
+				},
+			},
+			dropEmptyValueConfigs: true,
+			want: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "a",
+				},
+			},
+		},
+		{
+			name: "pass - drop empty value configs",
+			m: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "a",
+				},
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "",
+				},
+			},
+			dropEmptyValueConfigs: false,
+			want: []DymNameConfig{
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "a",
+				},
+				{
+					Type:    DymNameConfigType_NAME,
+					ChainId: "",
+					Path:    "",
+					Value:   "",
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.m.DefaultNameConfigs()
+			got := tt.m.DefaultNameConfigs(tt.dropEmptyValueConfigs)
 			if len(tt.want) == 0 {
 				require.Empty(t, got)
 			} else {

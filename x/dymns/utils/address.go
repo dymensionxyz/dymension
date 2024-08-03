@@ -77,7 +77,7 @@ func PossibleAccountRegardlessChain(address string) bool {
 		return false
 	}
 
-	for _, r := range []rune(address) {
+	for _, r := range address {
 		if r >= 'a' && r <= 'z' {
 			continue
 		}

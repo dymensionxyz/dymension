@@ -1,8 +1,10 @@
 package keeper_test
 
 import (
+	cryptorand "crypto/rand"
 	"fmt"
-	"math/rand"
+	"math"
+	"math/big"
 	"sort"
 	"strings"
 	"testing"
@@ -25,7 +27,10 @@ import (
 var nonHostChainBech32InputSet = []string{
 	"dym1fl48vsnmsdzcv8",                         // host-chain prefix but invalid bech32 format
 	"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38xuuuu", // host-chain prefix but invalid bech32 checksum
-	testAddr(uint64(rand.Uint32()) + 9471274174).bech32C("another"),
+	testAddr(func() uint64 {
+		n, _ := cryptorand.Int(cryptorand.Reader, big.NewInt(math.MaxInt64))
+		return n.Uint64()
+	}() + 9471274174).bech32C("another"),
 	"4BDtRc8Ym9wGFyEBzDWMSZ7iuUcNJ1ssiRkU6LjQgHURD4PGAMsZnzxAz2SGmNhinLxPF111N41bTHQBiu6QTmaZwKngDWrH",
 	"t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
 	"zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8jl04tak0d3mm47vdtahatqrlkngh9sly",

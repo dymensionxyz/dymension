@@ -197,10 +197,15 @@ type DymNameConfigs []DymNameConfig
 // DefaultNameConfigs returns a list of default name configs.
 // It returns a list instead of a single record with purpose is to negotiate case
 // where both add and delete operations are present.
-func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
+func (m DymNameConfigs) DefaultNameConfigs(dropEmptyValueConfigs bool) DymNameConfigs {
 	var defaultConfigs DymNameConfigs
 	for _, config := range m {
 		if config.IsDefaultNameConfig() {
+			if dropEmptyValueConfigs {
+				if config.Value == "" {
+					continue
+				}
+			}
 			defaultConfigs = append(defaultConfigs, config)
 		}
 	}
@@ -210,7 +215,7 @@ func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
 // GetAddressesForReverseMapping parses the Dym-Name configuration and returns a map of addresses to their configurations.
 func (m *DymName) GetAddressesForReverseMapping() (
 	configuredAddressesToConfigs map[string][]DymNameConfig,
-	fallbackAddressesToConfigs map[string][]DymNameConfig, // TODO DymNS: rename related
+	fallbackAddressesToConfigs map[string][]DymNameConfig,
 	// Describe usage of Go Map: used to mapping each address to its configuration,
 	// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
 ) {
@@ -265,10 +270,6 @@ func (m *DymName) GetAddressesForReverseMapping() (
 		if config.Value == "" {
 			continue
 		}
-
-		// TODO DymNS: remove this comment because we are going to widely support other formats
-		// just a friendly reminder, in the current implementation,
-		// config value is always a bech32 account address
 
 		if config.IsDefaultNameConfig() {
 			// default config is for host chain only so value must be valid bech32

@@ -362,7 +362,7 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 	}
 
 	resolveToAddress := dymName.Owner
-	for _, config := range dymnstypes.DymNameConfigs(dymName.Configs).DefaultNameConfigs() {
+	for _, config := range dymnstypes.DymNameConfigs(dymName.Configs).DefaultNameConfigs(true) {
 		resolveToAddress = config.Value
 		break
 	}
@@ -378,8 +378,6 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 	rollAppBech32Prefix, found := k.GetRollAppBech32Prefix(ctx, resolvedToChainId)
 	if !found {
 		// fallback does not apply for RollApp does not have this metadata
-
-		// TODO DymNS: write test cover this case
 		return
 	}
 
@@ -561,25 +559,15 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	workingChainIdIsHostChain := workingChainId == ctx.ChainID()
 	isWorkingOnCoinType60Chain := workingChainIdIsHostChain || k.CheckChainIsCoinType60ByChainId(ctx, workingChainId)
 
-	if workingChainIdIsHostChain {
+	if workingChainIdIsHostChain || k.IsRollAppId(ctx, workingChainId) {
 		if !isBech32Addr && !is0xAddr {
 			return nil, errorsmod.Wrapf(
 				gerrc.ErrInvalidArgument,
-				"not supported address format in host-chain: %s", inputAddress,
+				"not supported address format in host-chain and RollApp: %s", inputAddress,
 			)
 		}
 
-		// on host-chain, guarantee of case-insensitive address
-		inputAddress = strings.ToLower(inputAddress)
-	} else if k.IsRollAppId(ctx, workingChainId) {
-		if !isBech32Addr && !is0xAddr {
-			return nil, errorsmod.Wrapf(
-				gerrc.ErrInvalidArgument,
-				"not supported address format in RollApp: %s", inputAddress,
-			)
-		}
-
-		// on RollApps, guarantee of case-insensitive address
+		// on host-chain and RollApps, guarantee of case-insensitive address
 		inputAddress = strings.ToLower(inputAddress)
 	} else if dymnsutils.IsValidHexAddress(inputAddress) {
 		// if the address is hex format, then treat the chain is case-insensitive address,
@@ -615,18 +603,14 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 	addFallback := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
 		// only accept fallback for the case of default config
-		defaultNameConfigs := dymnstypes.DymNameConfigs(configs).DefaultNameConfigs()
+		for range dymnstypes.DymNameConfigs(configs).DefaultNameConfigs(true) {
+			outputDymNameAddresses = append(outputDymNameAddresses, dymnstypes.ReverseResolvedDymNameAddress{
+				SubName:        "",
+				Name:           dymName.Name,
+				ChainIdOrAlias: workingChainId, // fallback
+			})
 
-		for _, config := range defaultNameConfigs {
-			if config.Value != "" {
-				outputDymNameAddresses = append(outputDymNameAddresses, dymnstypes.ReverseResolvedDymNameAddress{
-					SubName:        "",
-					Name:           dymName.Name,
-					ChainIdOrAlias: workingChainId, // fallback
-				})
-
-				break
-			}
+			break
 		}
 	}
 
@@ -649,8 +633,6 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 			bech32Hrp = sdk.GetConfig().GetBech32AccountAddrPrefix()
 		} else if rollappBech32Hrp, found := k.GetRollAppBech32Prefix(ctx, workingChainId); found {
 			bech32Hrp = rollappBech32Hrp
-
-			// TODO DymNS: write test cover this case
 		}
 
 		{

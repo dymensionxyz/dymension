@@ -83,7 +83,7 @@ func TestKeeper_NewRegistration(t *testing.T) {
 		// reverse lookup from 0x address has some limitation, I'll provide more details at later parts
 	})
 
-	t.Run("this show how resolve address accross all RollApps", func(t *testing.T) {
+	t.Run("this show how resolve address across all RollApps", func(t *testing.T) {
 		dymName := sc.requireDymName("my-name").get()
 		ownerAccAddr := sdk.MustAccAddressFromBech32(dymName.Owner)
 
@@ -871,14 +871,6 @@ func (m *showcaseSetup) requireReverseResolve(addresses ...string) *reqReverseRe
 
 func (m *showcaseSetup) addLaterTest(laterTest func()) {
 	m.laterTests = append(m.laterTests, laterTest)
-}
-
-func (m *showcaseSetup) addLaterTestWithTitle(laterTest func(), title string) {
-	m.addLaterTest(func() {
-		m.t.Run(title, func(t *testing.T) {
-			laterTest()
-		})
-	})
 }
 
 func (m *showcaseSetup) runPendingTests() {
