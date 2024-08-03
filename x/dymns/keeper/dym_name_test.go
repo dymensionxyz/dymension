@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	testkeeper "github.com/dymensionxyz/dymension/v3/testutil/keeper"
@@ -1122,7 +1123,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			wantErrContains: "no resolution found",
 		},
 		{
-			name: "when no Dym-Name does not exists",
+			name: "when Dym-Name does not exists",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
 				Owner:      addr1a,
@@ -1150,6 +1151,63 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "a.dymension_1100-1",
 			wantError:         false,
 			wantOutputAddress: addr1a,
+		},
+		{
+			name: "resolve to non-bech32/non-hex",
+			dymName: &dymnstypes.DymName{
+				Name:       "a",
+				Owner:      addr1a,
+				Controller: addr2a,
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Path:    "",
+						Value:   "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
+					},
+				},
+			},
+			dymNameAddress:    "a.another",
+			wantError:         false,
+			wantOutputAddress: "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
+		},
+		{
+			name: "resolve to non-bech32/non-hex, with sub-name",
+			dymName: &dymnstypes.DymName{
+				Name:       "a",
+				Owner:      addr1a,
+				Controller: addr2a,
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Path:    "sub1",
+						Value:   "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
+					},
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Path:    "sub2",
+						Value:   "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
+					},
+				},
+			},
+			dymNameAddress:    "sub2.a.another",
+			wantError:         false,
+			wantOutputAddress: "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+				list, err := dk.ReverseResolveDymNameAddress(ctx, "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b", "another")
+				require.NoError(t, err)
+				require.Len(t, list, 1)
+				require.Equal(t, "sub2.a@another", list[0].String())
+
+				list, err = dk.ReverseResolveDymNameAddress(ctx, "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5", "another")
+				require.NoError(t, err)
+				require.Len(t, list, 1)
+				require.Equal(t, "sub1.a@another", list[0].String())
+			},
 		},
 		{
 			name: "resolve to owner when no default (without sub-name) Dym-Name config",
@@ -1433,7 +1491,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			}
 
 			if tt.dymName != nil {
-				require.NoError(t, dk.SetDymName(ctx, *tt.dymName))
+				setDymNameWithFunctionsAfter(ctx, *tt.dymName, t, dk)
 			}
 
 			outputAddress, err := dk.ResolveByDymNameAddress(ctx, tt.dymNameAddress)
@@ -2239,7 +2297,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		want            dymnstypes.ReverseResolvedDymNameAddresses
 	}{
 		{
-			name: "pass - can resolve",
+			name: "pass - can resolve bech32 on host-chain",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -2263,14 +2321,32 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - can resolve uppercase bech32",
+			name: "pass - can resolve bech32 on RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN(rollAppId1, "", ownerAcc.bech32C("ra")).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    ownerAcc.bech32(),
+			workingChainId:  rollAppId1,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: rollAppId1,
+				},
+			},
+		},
+		{
+			name: "pass - can resolve case-insensitive bech32 on host-chain",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    strings.ToUpper(ownerAcc.bech32()),
+			inputAddress:    swapCase(ownerAcc.bech32()),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2287,7 +2363,57 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - can resolve ICA",
+			name: "pass - can resolve case-insensitive bech32 on Roll-App",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN(rollAppId1, "", ownerAcc.bech32C("ra")).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    swapCase(ownerAcc.bech32C("ra")),
+			workingChainId:  rollAppId1,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: rollAppId1,
+				},
+			},
+		},
+		{
+			name: "pass - case-sensitive resolve bech32 on non-host-chain/non-Roll-App",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    ownerAcc.bech32(),
+			workingChainId:  "blumbus_111-1",
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "bb",
+					Name:           "a",
+					ChainIdOrAlias: "blumbus_111-1",
+				},
+			},
+		},
+		{
+			name: "pass - case-sensitive resolve bech32 on non-host-chain/non-Roll-App",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    swapCase(ownerAcc.bech32()),
+			workingChainId:  "blumbus_111-1",
+			wantErr:         false,
+			want:            nil,
+		},
+		{
+			name: "pass - can resolve ICA bech32 on host-chain",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -2307,7 +2433,26 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - can resolve ICA upper-case",
+			name: "pass - can resolve ICA bech32 on RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN(rollAppId1, "ica", icaAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    icaAcc.bech32(),
+			workingChainId:  rollAppId1,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "ica",
+					Name:           "a",
+					ChainIdOrAlias: rollAppId1,
+				},
+			},
+		},
+		{
+			name: "pass - can resolve case-insensitive ICA bech32 on host-chain",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -2315,7 +2460,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
 				buildSlice(),
 			additionalSetup: nil,
-			inputAddress:    strings.ToUpper(icaAcc.bech32()),
+			inputAddress:    swapCase(icaAcc.bech32()),
 			workingChainId:  chainId,
 			wantErr:         false,
 			want: dymnstypes.ReverseResolvedDymNameAddresses{
@@ -2325,6 +2470,86 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 					ChainIdOrAlias: chainId,
 				},
 			},
+		},
+		{
+			name: "pass - can resolve case-insensitive ICA bech32 on RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("", "b", ownerAcc.bech32()).
+				cfgN(rollAppId1, "ica", icaAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    swapCase(icaAcc.bech32()),
+			workingChainId:  rollAppId1,
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "ica",
+					Name:           "a",
+					ChainIdOrAlias: rollAppId1,
+				},
+			},
+		},
+		{
+			name: "pass - case-sensitive resolve ICA bech32 on non-host-chain/non-RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("blumbus_111-1", "ica", icaAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    icaAcc.bech32(),
+			workingChainId:  "blumbus_111-1",
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "ica",
+					Name:           "a",
+					ChainIdOrAlias: "blumbus_111-1",
+				},
+			},
+		},
+		{
+			name: "pass - case-sensitive resolve ICA bech32 on non-host-chain/non-RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("blumbus_111-1", "ica", icaAcc.bech32()).
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    swapCase(icaAcc.bech32()),
+			workingChainId:  "blumbus_111-1",
+			wantErr:         false,
+			want:            nil,
+		},
+
+		{
+			name: "pass - case-sensitive resolve other address on non-host-chain/non-RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("another", "", "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5").
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
+			workingChainId:  "another",
+			wantErr:         false,
+			want: dymnstypes.ReverseResolvedDymNameAddresses{
+				{
+					SubName:        "",
+					Name:           "a",
+					ChainIdOrAlias: "another",
+				},
+			},
+		},
+		{
+			name: "pass - case-sensitive resolve other address on non-host-chain/non-RollApp",
+			dymNames: newDN("a", ownerAcc.bech32()).
+				exp(now, +1).
+				cfgN("another", "", "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5").
+				buildSlice(),
+			additionalSetup: nil,
+			inputAddress:    swapCase("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5"),
+			workingChainId:  "another",
+			wantErr:         false,
+			want:            nil,
 		},
 		{
 			name: "pass - only take records matching input chain-id",
@@ -3231,4 +3456,16 @@ func TestKeeper_ReplaceChainIdWithAliasIfPossible(t *testing.T) {
 		require.Empty(t, dk.ReplaceChainIdWithAliasIfPossible(ctx, nil))
 		require.Empty(t, dk.ReplaceChainIdWithAliasIfPossible(ctx, []dymnstypes.ReverseResolvedDymNameAddress{}))
 	})
+}
+
+func swapCase(s string) string {
+	return strings.Map(func(r rune) rune {
+		switch {
+		case unicode.IsLower(r):
+			return unicode.ToUpper(r)
+		case unicode.IsUpper(r):
+			return unicode.ToLower(r)
+		}
+		return r
+	}, s)
 }

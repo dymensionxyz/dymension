@@ -47,7 +47,7 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 
 			// do nothing
 		} else {
-			if existingConfigCount == 1 {
+			if existingConfigCount <= 1 {
 				dymName.Configs = nil
 			} else {
 				dymName.Configs[foundSameConfigIdAtIdx] = dymName.Configs[existingConfigCount-1]

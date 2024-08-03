@@ -1574,8 +1574,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 			wantReject:             true, // RollApp requires bech32 as input
 		},
 		{
-			// TODO DymNS: fixme
-			name:           "FIXME * hex on external chain, without sub-name",
+			name:           "hex on external chain, without sub-name",
 			inputResolveTo: anotherAcc.hexStr(),
 			externalChain:  true,
 			useSubName:     false,
@@ -1584,12 +1583,11 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 				testMapFallbackAddrToDymName(anotherAcc.hexStr(), false), // cuz not host-chain, not default config
 				testResolveAddr(name+"@"+externalChainId, anotherAcc.hexStr()),
 				testReverseResolveAddr(anotherAcc.hexStr(), name+"@"+externalChainId),
-				testReverseResolveAddr(anotherAcc.bech32(), ""), // cuz it's hex
+				testReverseResolveAddr(anotherAcc.bech32(), ""), // cuz input is hex
 			},
 		},
 		{
-			// TODO DymNS: fixme
-			name:           "FIXME * hex on external chain, with sub-name",
+			name:           "hex on external chain, with sub-name",
 			inputResolveTo: anotherAcc.hexStr(),
 			externalChain:  true,
 			useSubName:     true,
@@ -1598,7 +1596,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 				testMapFallbackAddrToDymName(anotherAcc.hexStr(), false), // cuz not host-chain, not default config
 				testResolveAddr(subName+"."+name+"@"+externalChainId, anotherAcc.hexStr()),
 				testReverseResolveAddr(anotherAcc.hexStr(), subName+"."+name+"@"+externalChainId),
-				testReverseResolveAddr(anotherAcc.bech32(), ""), // cuz it's hex
+				testReverseResolveAddr(anotherAcc.bech32(), ""), // cuz input is hex
 			},
 		},
 	}
@@ -1608,11 +1606,10 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 		if dymnsutils.IsValidHexAddress(input) {
 			continue
 		}
-		// TODO DymNS: fixme
 		tests = append(
 			tests,
 			testStruct{
-				name:           fmt.Sprintf("FIXME * non-bech32 on external chain, without sub-name: %s", input),
+				name:           fmt.Sprintf("non-bech32 on external chain, without sub-name: %s", input),
 				inputResolveTo: input,
 				externalChain:  true,
 				useSubName:     false,
@@ -1623,7 +1620,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 				},
 			},
 			testStruct{
-				name:           fmt.Sprintf("FIXME * non-bech32 on external chain, with sub-name: %s", input),
+				name:           fmt.Sprintf("non-bech32 on external chain, with sub-name: %s", input),
 				inputResolveTo: input,
 				externalChain:  true,
 				useSubName:     true,

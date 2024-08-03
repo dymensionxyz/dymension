@@ -88,11 +88,13 @@ func (m *DymNameConfig) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config path must be a valid dym name")
 	}
 
-	if m.Value != strings.ToLower(m.Value) {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config value must be lowercase")
-	}
-
 	if m.Type == DymNameConfigType_NAME {
+		if m.ChainId == "" {
+			if m.Value != strings.ToLower(m.Value) {
+				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config value on host-chain must be lowercase")
+			}
+		}
+
 		if !m.IsDelete() {
 			if m.ChainId == "" {
 				if !dymnsutils.IsValidBech32AccountAddress(m.Value, false) {
@@ -209,8 +211,8 @@ func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
 func (m *DymName) GetAddressesForReverseMapping() (
 	configuredAddressesToConfigs map[string][]DymNameConfig,
 	fallbackAddressesToConfigs map[string][]DymNameConfig, // TODO DymNS: rename related
-	// Describe usage of Go Map: used to mapping each address to its configuration,
-	// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
+// Describe usage of Go Map: used to mapping each address to its configuration,
+// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
 ) {
 	if err := m.Validate(); err != nil {
 		// should validate before calling this method

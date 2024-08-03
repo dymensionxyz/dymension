@@ -547,14 +547,14 @@ func ParseDymNameAddress(
 // For example: when we have "my-name@dym" resolves to "dym1a..."
 // so reverse resolve will return "my-name@dym" when input is "dym1a..."
 func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, workingChainId string) (outputDymNameAddresses dymnstypes.ReverseResolvedDymNameAddresses, err error) {
-	inputAddress = strings.ToLower(inputAddress)
+	if !dymnsutils.PossibleAccountRegardlessChain(inputAddress) {
+		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not supported address format: %s", inputAddress)
+	}
+
+	// TODO DymNS: add testcase reverse-resolve checksum and non-checksum address
 
 	isBech32Addr := dymnsutils.IsValidBech32AccountAddress(inputAddress, false)
 	is0xAddr := dymnsutils.IsValidHexAddress(inputAddress)
-
-	if !isBech32Addr && !is0xAddr {
-		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "not supported address format: %s", inputAddress)
-	}
 
 	if !dymnsutils.IsValidChainIdFormat(workingChainId) {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid chain-id format: %s", workingChainId)
@@ -563,13 +563,35 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	workingChainIdIsHostChain := workingChainId == ctx.ChainID()
 	isWorkingOnCoinType60Chain := workingChainIdIsHostChain || k.CheckChainIsCoinType60ByChainId(ctx, workingChainId)
 
+	if workingChainIdIsHostChain {
+		if !isBech32Addr && !is0xAddr {
+			return nil, errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"not supported address format in host-chain: %s", inputAddress,
+			)
+		}
+
+		// on host-chain, guarantee of case-insensitive address
+		inputAddress = strings.ToLower(inputAddress)
+	} else if k.IsRollAppId(ctx, workingChainId) {
+		if !isBech32Addr && !is0xAddr {
+			return nil, errorsmod.Wrapf(
+				gerrc.ErrInvalidArgument,
+				"not supported address format in RollApp: %s", inputAddress,
+			)
+		}
+
+		// on RollApps, guarantee of case-insensitive address
+		inputAddress = strings.ToLower(inputAddress)
+	}
+
 	defer func() {
 		outputDymNameAddresses = outputDymNameAddresses.Distinct()
 		outputDymNameAddresses = k.ReplaceChainIdWithAliasIfPossible(ctx, outputDymNameAddresses)
 		outputDymNameAddresses.Sort()
 	}()
 
-	addConfigs := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
+	addConfigsToResult := func(dymName dymnstypes.DymName, configs []dymnstypes.DymNameConfig) {
 		for _, config := range configs {
 			record := dymnstypes.ReverseResolvedDymNameAddress{
 				SubName:        config.Path,
@@ -614,10 +636,10 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		// we can assume the query comes from a coin-type-60 chain.
 		// The working chain-id can be either host chain or another chain.
 		//
-		// Should we do a fallback lookup?
-		// I think it should depend on the working chain-id is recognized or not.
-		// - If the working chain-id is recognized, we should do a fallback lookup.
-		// - If the working chain-id is NOT recognized, we should not do a fallback lookup.
+		// Should do a fallback lookup?
+		// Depend on the working chain-id is recognized or not.
+		// - If the working chain-id is recognized then DO a fallback lookup.
+		// - If the working chain-id is NOT recognized, DO NOT do a fallback lookup.
 
 		// But first, let try to convert it into a bech32 address to see if any result is available.
 		var bech32Hrp string
@@ -629,19 +651,22 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 			// TODO DymNS: write test cover this case
 		}
 
-		if bech32Hrp != "" {
-			// found bech32 prefix configured for this chain-id
+		{
+			lookupKey := inputAddress
+			if bech32Hrp != "" {
+				// found bech32 prefix configured for this chain-id
+				lookupKey = sdk.MustBech32ifyAddressBytes(bech32Hrp, bzAddr)
+			}
 
-			bech32Addr := sdk.MustBech32ifyAddressBytes(bech32Hrp, bzAddr)
-			dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
+			dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, lookupKey)
 			if err1 != nil {
 				return nil, err1
 			}
 
 			for _, dymName := range dymNames {
 				configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
-				configs := configuredAddresses[bech32Addr]
-				addConfigs(dymName, configs)
+				configs := configuredAddresses[lookupKey]
+				addConfigsToResult(dymName, configs)
 			}
 
 			if len(outputDymNameAddresses) > 0 {
@@ -684,7 +709,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	for _, dymName := range dymNames {
 		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
 		configs := configuredAddresses[bech32Addr]
-		addConfigs(dymName, configs)
+		addConfigsToResult(dymName, configs)
 	}
 
 	if len(outputDymNameAddresses) > 0 {
