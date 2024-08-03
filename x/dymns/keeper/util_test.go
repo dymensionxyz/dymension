@@ -59,10 +59,10 @@ func registerRollApp(
 	rollAppID, bech32, alias string,
 ) {
 	rk.SetRollapp(ctx, rollapptypes.Rollapp{
-		RollappId: rollAppID,
-		Creator:   testAddr(0).bech32(),
+		RollappId:    rollAppID,
+		Creator:      testAddr(0).bech32(),
+		Bech32Prefix: bech32,
 	})
-	dk.RegisterMockRollAppData(rollAppID, alias, bech32)
 	if alias != "" {
 		err := dk.SetAliasForRollAppId(ctx, rollAppID, alias)
 		require.NoError(t, err)

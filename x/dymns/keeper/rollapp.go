@@ -25,13 +25,6 @@ var mockRollAppsData = map[string]mockRollAppData{
 	},
 }
 
-func (k Keeper) RegisterMockRollAppData(rollAppId, alias, bech32 string) {
-	mockRollAppsData[rollAppId] = mockRollAppData{
-		alias:  alias,
-		bech32: bech32,
-	}
-}
-
 // end of mock
 
 // IsRollAppId checks if the chain-id is a RollApp-Id.
@@ -120,11 +113,14 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 
 // GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.
 func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32Prefix string, found bool) {
-	if data, found := mockRollAppsData[chainId]; found {
-		return data.bech32, len(data.bech32) > 0
-	} else {
-		return "", false
+	rollApp, found := k.rollappKeeper.GetRollapp(ctx, chainId)
+	if found && len(rollApp.Bech32Prefix) > 0 {
+		return rollApp.Bech32Prefix, true
 	}
 
-	// TODO DymNS: implement Get RollApp Bech32 Prefix
+	if data, found := mockRollAppsData[chainId]; found {
+		return data.bech32, len(data.bech32) > 0
+	}
+
+	return "", false
 }
