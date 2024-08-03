@@ -490,7 +490,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	})
 }
 
-func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
+func TestKeeper_GetAddReverseMappingFallbackAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	for size := 0; size <= 128; size++ {
@@ -502,11 +502,11 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 
 		require.Errorf(
 			t,
-			dk.AddReverseMappingHexAddressToDymName(ctx, addr, "a"),
+			dk.AddReverseMappingFallbackAddressToDymName(ctx, addr, "a"),
 			"should not allow %d bytes address", size,
 		)
 
-		_, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
+		_, err := dk.GetDymNamesContainsFallbackAddress(ctx, addr)
 		require.Errorf(
 			t,
 			err,
@@ -530,7 +530,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName11))
-	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName11.Name)
+	err := dk.AddReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName11.Name)
 	require.NoError(t, err)
 
 	dymName21 := dymnstypes.DymName{
@@ -540,7 +540,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName21))
-	err = dk.AddReverseMappingHexAddressToDymName(
+	err = dk.AddReverseMappingFallbackAddressToDymName(
 		ctx,
 		owner2Acc.bytes(),
 		dymName21.Name,
@@ -558,24 +558,24 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName22))
-	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName22.Name)
+	err = dk.AddReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName22.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
-		dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), "not-exists"),
+		dk.AddReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), "not-exists"),
 		"no check non-existing dym-name",
 	)
 
 	t.Run("no error if duplicated name", func(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			require.NoError(t,
-				dk.AddReverseMappingHexAddressToDymName(ctx, owner2Acc.bytes(), dymName21.Name),
+				dk.AddReverseMappingFallbackAddressToDymName(ctx, owner2Acc.bytes(), dymName21.Name),
 			)
 		}
 	})
 
-	linked1, err1 := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
+	linked1, err1 := dk.GetDymNamesContainsFallbackAddress(ctx, anotherAcc.bytes())
 	require.NoError(t, err1)
 	require.Len(t, linked1, 2)
 	requireEqualsStrings(t,
@@ -583,7 +583,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		[]string{linked1[0].Name, linked1[1].Name},
 	)
 
-	linked2, err2 := dk.GetDymNamesContainsHexAddress(ctx, owner2Acc.bytes())
+	linked2, err2 := dk.GetDymNamesContainsFallbackAddress(ctx, owner2Acc.bytes())
 	require.NoError(t, err2)
 	require.NotEqual(t, 2, len(linked2), "should not include non-existing dym-name")
 	require.Len(t, linked2, 1)
@@ -592,7 +592,7 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 		[]string{linked2[0].Name},
 	)
 
-	linkedByNotExists, err3 := dk.GetDymNamesContainsHexAddress(
+	linkedByNotExists, err3 := dk.GetDymNamesContainsFallbackAddress(
 		ctx,
 		make([]byte, 20),
 	)
@@ -602,17 +602,17 @@ func TestKeeper_GetAddReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("allow Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName11.Name),
+			dk.AddReverseMappingFallbackAddressToDymName(ctx, icaAcc.bytes(), dymName11.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
+		linked3, err := dk.GetDymNamesContainsFallbackAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 		require.Equal(t, dymName11.Name, linked3[0].Name)
 	})
 }
 
-func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
+func TestKeeper_RemoveReverseMappingFallbackAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	for size := 0; size <= 128; size++ {
@@ -620,11 +620,11 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 			continue // two valid size
 		}
 
-		addr := make([]byte, size)
+		bz := make([]byte, size)
 
 		require.Errorf(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, addr, "a"),
+			dk.RemoveReverseMappingFallbackAddressToDymName(ctx, bz, "a"),
 			"should not allow %d bytes address", size,
 		)
 	}
@@ -645,7 +645,7 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName1))
-	err := dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name)
+	err := dk.AddReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name)
 	require.NoError(t, err)
 
 	dymName2 := dymnstypes.DymName{
@@ -659,28 +659,28 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName2))
-	err = dk.AddReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name)
+	err = dk.AddReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name)
 	require.NoError(t, err)
 
 	require.NoError(
 		t,
-		dk.RemoveReverseMappingHexAddressToDymName(ctx,
+		dk.RemoveReverseMappingFallbackAddressToDymName(ctx,
 			someoneAcc.bytes(),
 			dymName2.Name,
 		),
 		"no error if record not exists",
 	)
 
-	linked, err := dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
+	linked, err := dk.GetDymNamesContainsFallbackAddress(ctx, anotherAcc.bytes())
 	require.NoError(t, err)
 	require.Len(t, linked, 2, "existing data must be kept")
 
 	t.Run("no error if element is not in the list", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), "not-in-list"),
+			dk.RemoveReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), "not-in-list"),
 		)
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
+		linked, err = dk.GetDymNamesContainsFallbackAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked, 2, "existing data must be kept")
 	})
@@ -688,20 +688,20 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("remove correctly", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name),
+			dk.RemoveReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName1.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
+		linked, err = dk.GetDymNamesContainsFallbackAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked, 1)
 		require.Equal(t, dymName2.Name, linked[0].Name)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name),
+			dk.RemoveReverseMappingFallbackAddressToDymName(ctx, anotherAcc.bytes(), dymName2.Name),
 		)
 
-		linked, err = dk.GetDymNamesContainsHexAddress(ctx, anotherAcc.bytes())
+		linked, err = dk.GetDymNamesContainsFallbackAddress(ctx, anotherAcc.bytes())
 		require.NoError(t, err)
 		require.Empty(t, linked)
 	})
@@ -709,18 +709,18 @@ func TestKeeper_RemoveReverseMappingHexAddressToDymName(t *testing.T) {
 	t.Run("allow Interchain Account (32 bytes)", func(t *testing.T) {
 		require.NoError(
 			t,
-			dk.AddReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
+			dk.AddReverseMappingFallbackAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
 		)
 
-		linked3, err := dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
+		linked3, err := dk.GetDymNamesContainsFallbackAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Len(t, linked3, 1)
 
 		require.NoError(
 			t,
-			dk.RemoveReverseMappingHexAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
+			dk.RemoveReverseMappingFallbackAddressToDymName(ctx, icaAcc.bytes(), dymName1.Name),
 		)
-		linked3, err = dk.GetDymNamesContainsHexAddress(ctx, icaAcc.bytes())
+		linked3, err = dk.GetDymNamesContainsFallbackAddress(ctx, icaAcc.bytes())
 		require.NoError(t, err)
 		require.Empty(t, linked3)
 	})

@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestIsValidBech32AccountAddress(t *testing.T) {

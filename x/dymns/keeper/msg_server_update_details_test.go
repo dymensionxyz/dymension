@@ -70,11 +70,12 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
 	}
 
-	require0xMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
+	// TODO DymNS: migrate tests like this to pass bz in
+	requireFallbackAddressMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
 		_, bz, err := bech32.DecodeAndConvert(bech32Addr)
-		require.NoError(ts.t, err)
+		require.NoError(ts.t, err, "input address must be valid bech32")
 
-		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz)
+		dymNames, err := ts.dk.GetDymNamesContainsFallbackAddress(ts.ctx, bz)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -86,8 +87,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 		}
 	}
 
-	require0xMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		require0xMappedDymNames(ts, bech32Addr)
+	requireFallbackAddressMappedNoDymName := func(ts testSuite, bech32Addr string) {
+		requireFallbackAddressMappedDymNames(ts, bech32Addr)
 	}
 
 	tests := []struct {
@@ -112,8 +113,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			wantErr:         true,
 			wantErrContains: gerrc.ErrInvalidArgument.Error(),
@@ -125,8 +126,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -135,8 +136,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
@@ -148,8 +149,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -162,8 +163,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
@@ -179,8 +180,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -193,8 +194,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
@@ -210,8 +211,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -224,8 +225,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
@@ -241,8 +242,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -255,8 +256,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901",
@@ -272,8 +273,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -287,8 +288,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "new-contact@example.com",
@@ -305,8 +306,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -320,8 +321,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "", // clear
@@ -338,8 +339,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -359,8 +360,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "",
@@ -378,8 +379,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -399,8 +400,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "new-contact@example.com",
@@ -418,8 +419,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -432,8 +433,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:    "contact@example.com",
@@ -450,8 +451,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -471,8 +472,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      "new-contact@example.com",
@@ -496,8 +497,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
 			},
 		},
 		{
@@ -525,9 +526,9 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
 				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("nim"), recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				ClearConfigs: true,
@@ -544,9 +545,9 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
 				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
-				require0xMappedNoDymName(ts, anotherAcc.bech32C("nim"))
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.bech32C("nim"))
 			},
 		},
 		{
@@ -568,8 +569,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, controllerA, recordName)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, controllerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, ownerA)
+				requireFallbackAddressMappedDymNames(ts, controllerA, recordName)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
@@ -587,8 +588,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -602,8 +603,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
@@ -622,8 +623,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 		{
@@ -637,8 +638,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			preTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 			msg: &dymnstypes.MsgUpdateDetails{
 				Contact:      dymnstypes.DoNotModifyDesc,
@@ -657,8 +658,8 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 			postTestFunc: func(ts testSuite) {
 				requireConfiguredAddressMappedDymNames(ts, ownerA, recordName)
 				requireConfiguredAddressMappedNoDymName(ts, controllerA)
-				require0xMappedDymNames(ts, ownerA, recordName)
-				require0xMappedNoDymName(ts, controllerA)
+				requireFallbackAddressMappedDymNames(ts, ownerA, recordName)
+				requireFallbackAddressMappedNoDymName(ts, controllerA)
 			},
 		},
 	}

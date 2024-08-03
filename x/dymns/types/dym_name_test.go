@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -356,6 +358,8 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			Path:    "",
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
+		// TODO DymNS: add test-cases of non-bech32 on host-chain
+		// TODO DymNS: add test-cases of non-bech32 on other-chains
 		{
 			name:            "not accept hex address value",
 			Type:            DymNameConfigType_NAME,
@@ -696,7 +700,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 		configs                 []DymNameConfig
 		wantPanic               bool
 		wantConfiguredAddresses map[string][]DymNameConfig
-		wantHexAddresses        map[string][]DymNameConfig
+		wantFallbackAddresses   map[string][]DymNameConfig
 	}{
 		{
 			name: "pass",
@@ -746,7 +750,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -758,7 +762,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - hex address is parsed correctly",
+			name: "pass - fallback address is parsed correctly",
 			configs: []DymNameConfig{
 				{
 					Type:    DymNameConfigType_NAME,
@@ -791,7 +795,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -836,7 +840,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -876,7 +880,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: { // default config resolved to owner
 					{
 						Type:    DymNameConfigType_NAME,
@@ -907,7 +911,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: { // respect
 					{
 						Type:    DymNameConfigType_NAME,
@@ -950,7 +954,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: { // respect
 					{
 						Type:    DymNameConfigType_NAME,
@@ -995,7 +999,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -1007,7 +1011,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - non-default config will not have hex records",
+			name: "pass - non-default config will not have fallback records",
 			configs: []DymNameConfig{
 				{
 					Type:    DymNameConfigType_NAME,
@@ -1066,7 +1070,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -1162,7 +1166,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -1207,7 +1211,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -1280,7 +1284,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 					},
 				},
 			},
-			wantHexAddresses: map[string][]DymNameConfig{
+			wantFallbackAddresses: map[string][]DymNameConfig{
 				icaHex: {
 					{
 						Type:    DymNameConfigType_NAME,
@@ -1310,13 +1314,24 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				return
 			}
 
-			gotConfiguredAddresses, gotCoinType60HexAddresses := m.GetAddressesForReverseMapping()
+			gotConfiguredAddresses, gotFallbackAddresses := m.GetAddressesForReverseMapping()
 
 			if !reflect.DeepEqual(tt.wantConfiguredAddresses, gotConfiguredAddresses) {
 				t.Errorf("gotConfiguredAddresses = %v, want %v", gotConfiguredAddresses, tt.wantConfiguredAddresses)
 			}
-			if !reflect.DeepEqual(tt.wantHexAddresses, gotCoinType60HexAddresses) {
-				t.Errorf("gotCoinType60HexAddresses = %v, want %v", gotCoinType60HexAddresses, tt.wantHexAddresses)
+			if !reflect.DeepEqual(tt.wantFallbackAddresses, gotFallbackAddresses) {
+				t.Errorf("gotFallbackAddresses = %v, want %v", gotFallbackAddresses, tt.wantFallbackAddresses)
+			}
+
+			if len(gotFallbackAddresses) > 0 {
+				require.Len(t, gotFallbackAddresses, 1, "there is only one default config, therefor only one fallback address")
+			}
+			for fba, cfgs := range gotFallbackAddresses {
+				require.True(t, dymnsutils.IsValidHexAddress(fba))
+				for _, cfg := range cfgs {
+					require.True(t, cfg.IsDefaultNameConfig())
+					require.NotEmpty(t, cfg.Value != "")
+				}
 			}
 		})
 	}

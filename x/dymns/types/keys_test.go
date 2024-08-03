@@ -12,7 +12,7 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x01}, KeyPrefixDymName, "do not change it, will break the app")
 		require.Equal(t, []byte{0x02}, KeyPrefixRvlDymNamesOwnedByAccount, "do not change it, will break the app")
 		require.Equal(t, []byte{0x03}, KeyPrefixRvlConfiguredAddressToDymNamesInclude, "do not change it, will break the app")
-		require.Equal(t, []byte{0x04}, KeyPrefixRvlHexAddressToDymNamesInclude, "do not change it, will break the app")
+		require.Equal(t, []byte{0x04}, KeyPrefixRvlFallbackAddressToDymNamesInclude, "do not change it, will break the app")
 		require.Equal(t, []byte{0x05}, KeyPrefixSellOrder, "do not change it, will break the app")
 		require.Equal(t, []byte{0x07}, KeyPrefixHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x08}, KeyPrefixMinExpiryHistoricalSellOrders, "do not change it, will break the app")
@@ -50,7 +50,7 @@ func TestKeys(t *testing.T) {
 			accAddr := sdk.MustAccAddressFromBech32(bech32Address)
 			require.Equal(t, append(KeyPrefixRvlDymNamesOwnedByAccount, accAddr.Bytes()...), DymNamesOwnedByAccountRvlKey(accAddr))
 			require.Equal(t, append(KeyPrefixRvlConfiguredAddressToDymNamesInclude, []byte(bech32Address)...), ConfiguredAddressToDymNamesIncludeRvlKey(bech32Address))
-			require.Equal(t, append(KeyPrefixRvlHexAddressToDymNamesInclude, accAddr.Bytes()...), HexAddressToDymNamesIncludeRvlKey(accAddr))
+			require.Equal(t, append(KeyPrefixRvlFallbackAddressToDymNamesInclude, accAddr.Bytes()...), FallbackAddressToDymNamesIncludeRvlKey(FallbackAddress(accAddr)))
 			require.Equal(t, append(KeyPrefixRvlBuyerToOfferIds, accAddr.Bytes()...), BuyerToOfferIdsRvlKey(accAddr.Bytes()))
 		})
 	}

@@ -71,7 +71,7 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 
 			dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx,
-				dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(ownerA)),
+				dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(ownerA))),
 			)
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
@@ -86,7 +86,7 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 
-			dymNames, err = dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(ownerA).Bytes())
+			dymNames, err = dk.GetDymNamesContainsFallbackAddress(ctx, sdk.MustAccAddressFromBech32(ownerA).Bytes())
 			require.NoError(t, err)
 			require.Empty(t, dymNames, "reverse mapping should be removed")
 		})
@@ -234,14 +234,14 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		require.Equal(t, dymName.Name, names[0].Name)
 	}
 
-	requireHexAddressMappedNoDymName := func(addr []byte, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
+	requireFallbackAddressMappedNoDymName := func(addr dymnstypes.FallbackAddress, ctx sdk.Context, dk dymnskeeper.Keeper) {
+		names, err := dk.GetDymNamesContainsFallbackAddress(ctx, addr)
 		require.NoError(t, err)
 		require.Empty(t, names)
 	}
 
-	requireHexAddressMappedDymName := func(addr []byte, ctx sdk.Context, dk dymnskeeper.Keeper) {
-		names, err := dk.GetDymNamesContainsHexAddress(ctx, addr)
+	requireFallbackAddressMappedDymName := func(addr dymnstypes.FallbackAddress, ctx sdk.Context, dk dymnskeeper.Keeper) {
+		names, err := dk.GetDymNamesContainsFallbackAddress(ctx, addr)
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 		require.Equal(t, dymName.Name, names[0].Name)
@@ -257,9 +257,9 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		requireConfiguredAddressMappedDymName(ownerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedDymName(controllerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedDymName(icaAcc.bech32(), ctx, dk)
-		requireHexAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 
 		// do test
 
@@ -268,9 +268,9 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		requireConfiguredAddressMappedNoDymName(ownerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedNoDymName(controllerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedNoDymName(icaAcc.bech32(), ctx, dk)
-		requireHexAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 	})
 
 	t.Run("after run BeforeDymNameConfigChanged, Dym-Name must be kept", func(t *testing.T) {
@@ -293,9 +293,9 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		requireConfiguredAddressMappedNoDymName(ownerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedNoDymName(controllerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedNoDymName(icaAcc.bech32(), ctx, dk)
-		requireHexAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(ownerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 
 		// do test
 
@@ -304,9 +304,9 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		requireConfiguredAddressMappedDymName(ownerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedDymName(controllerAcc.bech32(), ctx, dk)
 		requireConfiguredAddressMappedDymName(icaAcc.bech32(), ctx, dk)
-		requireHexAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
-		requireHexAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedDymName(ownerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(controllerAcc.bytes(), ctx, dk)
+		requireFallbackAddressMappedNoDymName(icaAcc.bytes(), ctx, dk)
 	})
 
 	t.Run("after run AfterDymNameConfigChanged, Dym-Name must be kept", func(t *testing.T) {
@@ -2760,7 +2760,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, ownerAcc.bech32(), "c")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
+				err = dk.AddReverseMappingFallbackAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
 				require.NoError(t, err)
 			},
 			inputAddress:   ownerAcc.bech32(),
@@ -2795,7 +2795,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, ownerAcc.bech32(), "c")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
+				err = dk.AddReverseMappingFallbackAddressToDymName(ctx, common.HexToAddress(ownerAcc.hexStr()).Bytes(), "c")
 				require.NoError(t, err)
 			},
 			inputAddress:   ownerAcc.hexStr(),
@@ -2824,7 +2824,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc.bech32(), "a")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
+				err = dk.AddReverseMappingFallbackAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
 				require.NoError(t, err)
 			},
 			inputAddress:   anotherAcc.bech32(),
@@ -2842,7 +2842,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherAcc.bech32(), "a")
 				require.NoError(t, err)
-				err = dk.AddReverseMappingHexAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
+				err = dk.AddReverseMappingFallbackAddressToDymName(ctx, common.HexToAddress(anotherAcc.hexStr()).Bytes(), "a")
 				require.NoError(t, err)
 			},
 			inputAddress:   anotherAcc.hexStr(),

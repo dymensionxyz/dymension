@@ -168,7 +168,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames := dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(dymName.Owner))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(dymName.Owner)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
@@ -181,7 +181,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(offer.Buyer))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(offer.Buyer)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
@@ -206,7 +206,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames := dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(offer.Buyer))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(offer.Buyer)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
@@ -219,7 +219,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(dymName.Owner))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(dymName.Owner)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
@@ -310,7 +310,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames := dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(dymName.Owner))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(dymName.Owner)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
@@ -322,7 +322,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(offer.Buyer))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(offer.Buyer)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
@@ -349,7 +349,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames := dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(dymName.Owner))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(dymName.Owner)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Equal(t, []string{dymName.Name}, dymNames.DymNames)
 
@@ -361,7 +361,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 
-				key = dymnstypes.HexAddressToDymNamesIncludeRvlKey(sdk.MustAccAddressFromBech32(offer.Buyer))
+				key = dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(dymnstypes.FallbackAddress(sdk.MustAccAddressFromBech32(offer.Buyer)))
 				dymNames = dk.GenericGetReverseLookupDymNamesRecord(ctx, key)
 				require.Empty(t, dymNames.DymNames)
 

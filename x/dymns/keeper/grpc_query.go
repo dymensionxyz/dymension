@@ -224,6 +224,12 @@ func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstype
 	}
 
 	for _, address := range req.Addresses {
+		if !dymnsutils.PossibleAccountRegardlessChain(address) {
+			// Simply ignore invalid address.
+			// Invalid address is not included here to prevent wasting resources due to bad requests.
+			continue
+		}
+
 		if dymnsutils.IsValidBech32AccountAddress(address, false) || dymnsutils.IsValidHexAddress(address) {
 			candidates, err := q.ReverseResolveDymNameAddress(ctx, address, workingChainId)
 			if err != nil {
@@ -233,6 +239,7 @@ func (q queryServer) ReverseResolveAddress(goCtx context.Context, req *dymnstype
 
 			addResult(address, candidates)
 		} else {
+			// TODO DymNS: should handle other chains format
 			// Simply ignore invalid address.
 			// Invalid address is not included here to prevent wasting resources due to bad requests.
 			continue

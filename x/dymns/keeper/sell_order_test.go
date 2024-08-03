@@ -644,9 +644,9 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			require.NoError(t, err)
 			laterConfiguredAddressBuyerDymNames, err := dk.GetDymNamesContainsConfiguredAddress(ctx, buyerA)
 			require.NoError(t, err)
-			laterHexAddressOwnerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(ownerA))
+			laterFallbackAddressOwnerDymNames, err := dk.GetDymNamesContainsFallbackAddress(ctx, sdk.MustAccAddressFromBech32(ownerA).Bytes())
 			require.NoError(t, err)
-			laterHexAddressBuyerDymNames, err := dk.GetDymNamesContainsHexAddress(ctx, sdk.MustAccAddressFromBech32(buyerA))
+			laterFallbackAddressBuyerDymNames, err := dk.GetDymNamesContainsFallbackAddress(ctx, sdk.MustAccAddressFromBech32(buyerA).Bytes())
 			require.NoError(t, err)
 
 			require.Equal(t, dymName.Name, laterDymName.Name, "name should not be changed")
@@ -669,8 +669,8 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 				require.Empty(t, laterDymNamesOwnedByBuyer, "reverse record should not be added")
 				require.Len(t, laterConfiguredAddressOwnerDymNames, 1, "reverse record should be kept")
 				require.Empty(t, laterConfiguredAddressBuyerDymNames, "reverse record should not be added")
-				require.Len(t, laterHexAddressOwnerDymNames, 1, "reverse record should be kept")
-				require.Empty(t, laterHexAddressBuyerDymNames, "reverse record should not be added")
+				require.Len(t, laterFallbackAddressOwnerDymNames, 1, "reverse record should be kept")
+				require.Empty(t, laterFallbackAddressBuyerDymNames, "reverse record should not be added")
 
 				require.Equal(t, ownerOriginalBalance, laterOwnerBalance.Amount.Int64(), "owner balance should not be changed")
 				require.Equal(t, tt.wantOwnerBalanceLater, laterOwnerBalance.Amount.Int64(), "owner balance mis-match")
@@ -691,8 +691,8 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			require.Len(t, laterDymNamesOwnedByBuyer, 1, "reverse record should be added")
 			require.Empty(t, laterConfiguredAddressOwnerDymNames, "reverse record should be removed")
 			require.Len(t, laterConfiguredAddressBuyerDymNames, 1, "reverse record should be added")
-			require.Empty(t, laterHexAddressOwnerDymNames, "reverse record should be removed")
-			require.Len(t, laterHexAddressBuyerDymNames, 1, "reverse record should be added")
+			require.Empty(t, laterFallbackAddressOwnerDymNames, "reverse record should be removed")
+			require.Len(t, laterFallbackAddressBuyerDymNames, 1, "reverse record should be added")
 
 			require.Equal(t, tt.wantOwnerBalanceLater, laterOwnerBalance.Amount.Int64(), "owner balance mis-match")
 			require.Equal(t, buyerOriginalBalance, laterBuyerBalance.Amount.Int64(), "buyer balance should not be changed")

@@ -12,7 +12,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 // Validate checks if the DymName record is valid.
@@ -209,7 +208,7 @@ func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
 // GetAddressesForReverseMapping parses the Dym-Name configuration and returns a map of addresses to their configurations.
 func (m *DymName) GetAddressesForReverseMapping() (
 	configuredAddressesToConfigs map[string][]DymNameConfig,
-	hexAddressesToConfigs map[string][]DymNameConfig,
+	fallbackAddressesToConfigs map[string][]DymNameConfig, // TODO DymNS: rename related
 	// Describe usage of Go Map: used to mapping each address to its configuration,
 	// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
 ) {
@@ -219,21 +218,15 @@ func (m *DymName) GetAddressesForReverseMapping() (
 	}
 
 	configuredAddressesToConfigs = make(map[string][]DymNameConfig)
-	hexAddressesToConfigs = make(map[string][]DymNameConfig)
+	fallbackAddressesToConfigs = make(map[string][]DymNameConfig)
 
 	addConfiguredAddress := func(address string, config DymNameConfig) {
 		configuredAddressesToConfigs[address] = append(configuredAddressesToConfigs[address], config)
 	}
 
-	addHexAddress := func(accAddr sdk.AccAddress, config DymNameConfig) {
-		var strAddr string
-		if len(accAddr.Bytes()) == 32 { // Interchain Account
-			strAddr = common.BytesToHash(accAddr.Bytes()).String()
-		} else {
-			strAddr = common.BytesToAddress(accAddr.Bytes()).String()
-		}
-		strAddr = strings.ToLower(strAddr)
-		hexAddressesToConfigs[strAddr] = append(hexAddressesToConfigs[strAddr], config)
+	addFallbackAddress := func(fallbackAddr FallbackAddress, config DymNameConfig) {
+		strAddr := fallbackAddr.String()
+		fallbackAddressesToConfigs[strAddr] = append(fallbackAddressesToConfigs[strAddr], config)
 	}
 
 	var nameConfigs []DymNameConfig
@@ -271,11 +264,12 @@ func (m *DymName) GetAddressesForReverseMapping() (
 			continue
 		}
 
+		// TODO DymNS: remove this comment because we are going to widely support other formats
 		// just a friendly reminder, in the current implementation,
 		// config value is always a bech32 account address
 
 		if config.IsDefaultNameConfig() {
-
+			// default config is for host chain only so value must be valid bech32
 			accAddr, err := sdk.AccAddressFromBech32(config.Value)
 			if err != nil {
 				// should not happen as configuration should be validated before calling this method
@@ -283,7 +277,7 @@ func (m *DymName) GetAddressesForReverseMapping() (
 			}
 
 			addConfiguredAddress(config.Value, config)
-			addHexAddress(accAddr, config)
+			addFallbackAddress(FallbackAddress(accAddr), config)
 
 			continue
 		}
@@ -291,7 +285,7 @@ func (m *DymName) GetAddressesForReverseMapping() (
 		addConfiguredAddress(config.Value, config)
 
 		// note: this config is not a default config, is not a part of fallback mechanism,
-		// so we don't add hex address for this config
+		// so we don't add fallback address for this config
 	}
 
 	return

@@ -857,11 +857,12 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		requireConfiguredAddressMappedDymNames(ts, bech32Addr)
 	}
 
-	require0xMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
+	// TODO DymNS: migrate tests like this to pass bz in
+	requireFallbackAddrMappedDymNames := func(ts testSuite, bech32Addr string, names ...string) {
 		_, bz, err := bech32.DecodeAndConvert(bech32Addr)
-		require.NoError(ts.t, err)
+		require.NoError(ts.t, err, "input must be valid bech32 addr")
 
-		dymNames, err := ts.dk.GetDymNamesContainsHexAddress(ts.ctx, bz)
+		dymNames, err := ts.dk.GetDymNamesContainsFallbackAddress(ts.ctx, bz)
 		require.NoError(ts.t, err)
 		require.Len(ts.t, dymNames, len(names))
 		sort.Strings(names)
@@ -873,8 +874,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 		}
 	}
 
-	require0xMappedNoDymName := func(ts testSuite, bech32Addr string) {
-		require0xMappedDymNames(ts, bech32Addr)
+	requireFallbackAddrMappedNoDymName := func(ts testSuite, bech32Addr string) {
+		requireFallbackAddrMappedDymNames(ts, bech32Addr)
 	}
 
 	tests := []struct {
@@ -905,8 +906,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
@@ -923,8 +924,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
@@ -945,8 +946,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
@@ -963,8 +964,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, bidderA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(ts, ownerA)
+				requireFallbackAddrMappedDymNames(ts, bidderA, dymNameA.Name)
 			},
 		},
 		{
@@ -985,8 +986,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: nil,
@@ -1003,8 +1004,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireConfiguredAddressMappedNoDymName(ts, ownerA)
 				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameA.Name)
-				require0xMappedNoDymName(ts, ownerA)
-				require0xMappedDymNames(ts, bidderA, dymNameA.Name)
+				requireFallbackAddrMappedNoDymName(ts, ownerA)
+				requireFallbackAddrMappedDymNames(ts, bidderA, dymNameA.Name)
 			},
 		},
 		{
@@ -1050,8 +1051,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1090,8 +1091,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				require0xMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedDymNames(ts, bidderA, dymNameC.Name, dymNameD.Name)
 			},
 		},
 		{
@@ -1138,8 +1139,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1174,8 +1175,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name, dymNameC.Name, dymNameD.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
@@ -1200,8 +1201,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr:             false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1212,8 +1213,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 		},
 		{
@@ -1238,8 +1239,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
@@ -1252,8 +1253,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				ts := nts(t, dk, bk, ctx)
 				requireConfiguredAddressMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
 				requireConfiguredAddressMappedNoDymName(ts, bidderA)
-				require0xMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
-				require0xMappedNoDymName(ts, bidderA)
+				requireFallbackAddrMappedDymNames(ts, ownerA, dymNameA.Name, dymNameB.Name)
+				requireFallbackAddrMappedNoDymName(ts, bidderA)
 			},
 		},
 	}

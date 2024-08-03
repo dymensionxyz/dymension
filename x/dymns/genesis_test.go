@@ -205,15 +205,15 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner1).Bytes())
+		names, err = newDymNsKeeper.GetDymNamesContainsFallbackAddress(newCtx, sdk.MustAccAddressFromBech32(owner1).Bytes())
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(owner2).Bytes())
+		names, err = newDymNsKeeper.GetDymNamesContainsFallbackAddress(newCtx, sdk.MustAccAddressFromBech32(owner2).Bytes())
 		require.NoError(t, err)
 		require.Len(t, names, 1)
 
-		names, err = newDymNsKeeper.GetDymNamesContainsHexAddress(newCtx, sdk.MustAccAddressFromBech32(anotherAccount).Bytes())
+		names, err = newDymNsKeeper.GetDymNamesContainsFallbackAddress(newCtx, sdk.MustAccAddressFromBech32(anotherAccount).Bytes())
 		require.NoError(t, err)
 		require.Empty(t, names, 0)
 	})

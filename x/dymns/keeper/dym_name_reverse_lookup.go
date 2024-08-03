@@ -139,38 +139,37 @@ func normalizeConfiguredAddressForReverseMapping(configuredAddress string) strin
 	return strings.ToLower(strings.TrimSpace(configuredAddress))
 }
 
-// AddReverseMappingHexAddressToDymName add a reverse mapping
-// from hex address (coin-type 60, secp256k1, ethereum address)
-// to Dym-Name which contains the hex address, into the KVStore.
-func (k Keeper) AddReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAddr []byte, name string) error {
-	if err := validateHexAddressForReverseMapping(bzHexAddr); err != nil {
+// AddReverseMappingFallbackAddressToDymName add a reverse mapping
+// from fallback address to Dym-Name which contains the fallback address, into the KVStore.
+func (k Keeper) AddReverseMappingFallbackAddressToDymName(ctx sdk.Context, fallbackAddr dymnstypes.FallbackAddress, name string) error {
+	if err := fallbackAddr.ValidateBasic(); err != nil {
 		return err
 	}
 
 	return k.GenericAddReverseLookupDymNamesRecord(
 		ctx,
-		dymnstypes.HexAddressToDymNamesIncludeRvlKey(bzHexAddr),
+		dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr),
 		name,
 	)
 }
 
-// GetDymNamesContainsHexAddress returns all Dym-Names
-// that contains the hex address (coin-type 60, secp256k1, ethereum address).
-// The action done by reverse mapping from hex address to Dym-Name.
-// The Dym-Names are filtered by the hex address and excluded expired Dym-Name using the time from context.
-func (k Keeper) GetDymNamesContainsHexAddress(
-	ctx sdk.Context, bzHexAddr []byte,
+// GetDymNamesContainsFallbackAddress returns all Dym-Names
+// that contains the fallback address.
+// The action done by reverse mapping from fallback address to Dym-Name.
+// The Dym-Names are filtered by the fallback address and excluded expired Dym-Name using the time from context.
+func (k Keeper) GetDymNamesContainsFallbackAddress(
+	ctx sdk.Context, fallbackAddr dymnstypes.FallbackAddress,
 ) ([]dymnstypes.DymName, error) {
-	if err := validateHexAddressForReverseMapping(bzHexAddr); err != nil {
+	if err := fallbackAddr.ValidateBasic(); err != nil {
 		return nil, err
 	}
 
-	key := dymnstypes.HexAddressToDymNamesIncludeRvlKey(bzHexAddr)
+	key := dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr)
 
-	currentDymNamesContainsHexAddress := k.GenericGetReverseLookupDymNamesRecord(ctx, key)
+	currentDymNamesContainsFallbackAddress := k.GenericGetReverseLookupDymNamesRecord(ctx, key)
 
 	var dymNames []dymnstypes.DymName
-	for _, name := range currentDymNamesContainsHexAddress.DymNames {
+	for _, name := range currentDymNamesContainsFallbackAddress.DymNames {
 		dymName := k.GetDymNameWithExpirationCheck(ctx, name)
 		if dymName == nil {
 			// dym-name not found, skip
@@ -182,27 +181,18 @@ func (k Keeper) GetDymNamesContainsHexAddress(
 	return dymNames, nil
 }
 
-// RemoveReverseMappingHexAddressToDymName removes reverse mapping
-// from hex address (coin-type 60, secp256k1, ethereum address)
-// to Dym-Names which contains it from the KVStore.
-func (k Keeper) RemoveReverseMappingHexAddressToDymName(ctx sdk.Context, bzHexAddr []byte, name string) error {
-	if err := validateHexAddressForReverseMapping(bzHexAddr); err != nil {
+// RemoveReverseMappingFallbackAddressToDymName removes reverse mapping
+// from fallback address to Dym-Names which contains it from the KVStore.
+func (k Keeper) RemoveReverseMappingFallbackAddressToDymName(ctx sdk.Context, fallbackAddr dymnstypes.FallbackAddress, name string) error {
+	if err := fallbackAddr.ValidateBasic(); err != nil {
 		return err
 	}
 
 	return k.GenericRemoveReverseLookupDymNamesRecord(
 		ctx,
-		dymnstypes.HexAddressToDymNamesIncludeRvlKey(bzHexAddr),
+		dymnstypes.FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr),
 		name,
 	)
-}
-
-// validateHexAddressForReverseMapping validates the hex address for reverse mapping.
-func validateHexAddressForReverseMapping(bzHexAddr []byte) error {
-	if length := len(bzHexAddr); length != 20 && length != 32 {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "hex address must be 20 or 32 bytes, got: %d", length)
-	}
-	return nil
 }
 
 // GenericAddReverseLookupDymNamesRecord is a utility method that help to add a reverse lookup record for Dym-Names.

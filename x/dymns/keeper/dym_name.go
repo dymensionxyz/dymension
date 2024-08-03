@@ -63,22 +63,22 @@ func (k Keeper) AfterDymNameOwnerChanged(ctx sdk.Context, name string) error {
 }
 
 // BeforeDymNameConfigChanged must be called before updating the configuration of a Dym-Name.
-// This function will remove the reverse mapping from the configured addresses and hex addresses to the Dym-Name.
+// This function will remove the reverse mapping from the configured addresses and fallback addresses to the Dym-Name.
 func (k Keeper) BeforeDymNameConfigChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
 		return nil
 	}
 
-	configuredAddresses, hexAddresses := dymName.GetAddressesForReverseMapping()
+	configuredAddresses, fallbackAddresses := dymName.GetAddressesForReverseMapping()
 	for _, configuredAddress := range dymnsutils.GetSortedStringKeys(configuredAddresses) {
 		if err := k.RemoveReverseMappingConfiguredAddressToDymName(ctx, configuredAddress, name); err != nil {
 			return err
 		}
 	}
-	for _, hexAddress := range dymnsutils.GetSortedStringKeys(hexAddresses) {
-		bzAddr := dymnsutils.GetBytesFromHexAddress(hexAddress)
-		if err := k.RemoveReverseMappingHexAddressToDymName(ctx, bzAddr, name); err != nil {
+	for _, fallbackAddress := range dymnsutils.GetSortedStringKeys(fallbackAddresses) {
+		bz := dymnsutils.GetBytesFromHexAddress(fallbackAddress)
+		if err := k.RemoveReverseMappingFallbackAddressToDymName(ctx, bz, name); err != nil {
 			return err
 		}
 	}
@@ -87,22 +87,22 @@ func (k Keeper) BeforeDymNameConfigChanged(ctx sdk.Context, name string) error {
 }
 
 // AfterDymNameConfigChanged must be called after the configuration of a Dym-Name is changed.
-// This function will add the reverse mapping from the configured addresses and hex addresses to the Dym-Name.
+// This function will add the reverse mapping from the configured addresses and fallback addresses to the Dym-Name.
 func (k Keeper) AfterDymNameConfigChanged(ctx sdk.Context, name string) error {
 	dymName := k.GetDymName(ctx, name)
 	if dymName == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Dym-Name: %s", name)
 	}
 
-	configuredAddresses, hexAddresses := dymName.GetAddressesForReverseMapping()
+	configuredAddresses, fallbackAddresses := dymName.GetAddressesForReverseMapping()
 	for _, configuredAddress := range dymnsutils.GetSortedStringKeys(configuredAddresses) {
 		if err := k.AddReverseMappingConfiguredAddressToDymName(ctx, configuredAddress, name); err != nil {
 			return err
 		}
 	}
-	for _, hexAddress := range dymnsutils.GetSortedStringKeys(hexAddresses) {
-		bzAddr := dymnsutils.GetBytesFromHexAddress(hexAddress)
-		if err := k.AddReverseMappingHexAddressToDymName(ctx, bzAddr, name); err != nil {
+	for _, fallbackAddrAsHex := range dymnsutils.GetSortedStringKeys(fallbackAddresses) {
+		bz := dymnsutils.GetBytesFromHexAddress(fallbackAddrAsHex)
+		if err := k.AddReverseMappingFallbackAddressToDymName(ctx, bz, name); err != nil {
 			return err
 		}
 	}
@@ -658,14 +658,14 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		}
 
 		// we are going to do a fallback lookup
-		dymNames, err2 := k.GetDymNamesContainsHexAddress(ctx, bzAddr)
+		dymNames, err2 := k.GetDymNamesContainsFallbackAddress(ctx, bzAddr)
 		if err2 != nil {
 			return nil, err2
 		}
 
 		for _, dymName := range dymNames {
-			_, hexAddresses := dymName.GetAddressesForReverseMapping()
-			configs := hexAddresses[hexAddr]
+			_, fallbackAddresses := dymName.GetAddressesForReverseMapping()
+			configs := fallbackAddresses[hexAddr]
 			addFallback(dymName, configs)
 		}
 
@@ -703,21 +703,21 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return
 	}
 
-	_, bzHexAddr, err2 := bech32.DecodeAndConvert(bech32Addr)
+	_, bz, err2 := bech32.DecodeAndConvert(bech32Addr)
 	if err2 != nil {
 		return nil, errorsmod.Wrapf(gerrc.ErrInvalidArgument, "failed to decode bech32 address %s", bech32Addr)
 	}
 
-	dymNames, err3 := k.GetDymNamesContainsHexAddress(ctx, bzHexAddr)
+	fallbackAddr := dymnstypes.FallbackAddress(bz)
+
+	dymNames, err3 := k.GetDymNamesContainsFallbackAddress(ctx, fallbackAddr)
 	if err3 != nil {
 		return nil, err3
 	}
 
-	hexAddr := dymnsutils.GetHexAddressFromBytes(bzHexAddr)
-
 	for _, dymName := range dymNames {
-		_, hexAddresses := dymName.GetAddressesForReverseMapping()
-		configs := hexAddresses[hexAddr]
+		_, fallbackAddresses := dymName.GetAddressesForReverseMapping()
+		configs := fallbackAddresses[fallbackAddr.String()]
 		addFallback(dymName, configs)
 	}
 
