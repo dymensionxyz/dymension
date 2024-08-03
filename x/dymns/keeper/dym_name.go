@@ -277,8 +277,6 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 		bech32Prefix, found := k.GetRollAppBech32Prefix(ctx, chainId)
 		if !found {
 			// no bech32 prefix configured for this RollApp
-
-			// TODO DymNS: write test cover this case
 			return
 		}
 		rollAppBasedBech32Addr, convertErr := bech32.ConvertAndEncode(bech32Prefix, accAddr)

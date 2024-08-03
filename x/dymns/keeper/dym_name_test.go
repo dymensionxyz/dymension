@@ -1474,6 +1474,16 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				require.Equal(t, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", outputAddr)
 			},
 		},
+		{
+			name:    "try resolve extra format dym1...@rollapp, cross bech32 format, but RollApp does not have bech32 configured",
+			dymName: nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "rollapp_1-1", "" /*no bech32*/, "")
+			},
+			dymNameAddress:  "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96@rollapp_1-1",
+			wantError:       true,
+			wantErrContains: "not found",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

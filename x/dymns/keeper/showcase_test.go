@@ -602,6 +602,7 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 
 	rollApp1 := sc.newRollApp("one_1-1").withBech32Prefix("one").withAlias("one").save()
 	rollApp2 := sc.newRollApp("two_2-2").withBech32Prefix("two").withAlias("two").save()
+	rollAppWithoutBech32 := sc.newRollApp("nob_3-3").withoutBech32Prefix().save()
 
 	testAccount := sc.newTestAccount()
 
@@ -614,6 +615,9 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 
 		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@" + rollApp2.RollappId).
 			Equals(testAccount.bech32C("two"))
+
+		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@" + rollAppWithoutBech32.RollappId).
+			NoResult() // won't work for RollApp without bech32 prefix because we don't know bech32 prefix to cast
 
 		// also works with alias
 		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@dym").
