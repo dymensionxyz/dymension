@@ -1004,6 +1004,8 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 	anotherAcc := testAddr(2)
 	icaAcc := testICAddr(3)
 	cosmosAcc := testAddr(4)
+	//goland:noinspection SpellCheckingInspection
+	bitcoinAddr := "12higDjoCCNXSA95xZMWUdPvXNmkAduhWv"
 
 	tests := []struct {
 		name               string
@@ -1382,6 +1384,33 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 				},
 			},
 			wantWorkingChainId: chainId,
+		},
+		{
+			name: "pass - reverse-resolve bitcoin address (neither bech32 nor hex address)",
+			dymNames: []dymnstypes.DymName{
+				{
+					Name:       "a",
+					Owner:      ownerAcc.bech32(),
+					Controller: ownerAcc.bech32(),
+					ExpireAt:   now.Unix() + 1,
+					Configs: []dymnstypes.DymNameConfig{
+						{
+							Type:    dymnstypes.DymNameConfigType_NAME,
+							ChainId: "bitcoin",
+							Value:   bitcoinAddr,
+						},
+					},
+				},
+			},
+			addresses:      []string{bitcoinAddr},
+			workingChainId: "bitcoin",
+			wantErr:        false,
+			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
+				bitcoinAddr: {
+					Candidates: []string{"a@bitcoin"},
+				},
+			},
+			wantWorkingChainId: "bitcoin",
 		},
 	}
 	for _, tt := range tests {
