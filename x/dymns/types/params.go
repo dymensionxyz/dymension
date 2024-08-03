@@ -282,20 +282,41 @@ func validatePriceParams(i interface{}) error {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid parameter type: %T", i)
 	}
 
+	if err := validateNamePriceParams(m); err != nil {
+		return err
+	}
+
+	if err := validateAliasPriceParams(m); err != nil {
+		return err
+	}
+
+	if m.PriceDenom == "" {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name price denom cannot be empty")
+	}
+
+	if err := (sdk.Coin{
+		Denom:  m.PriceDenom,
+		Amount: sdk.ZeroInt(),
+	}).Validate(); err != nil {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name price denom: %s", err)
+	}
+
+	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.IsZero() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is zero")
+	} else if m.MinOfferPrice.IsNegative() {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is negative")
+	}
+
+	return nil
+}
+
+// validateNamePriceParams checks if Dym-Name price in the given PriceParams are valid.
+func validateNamePriceParams(m PriceParams) error {
 	validateNamePrice := func(price sdkmath.Int, letterDesc string) error {
 		if price.IsNil() || price.IsZero() {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is zero for: %s", letterDesc)
 		} else if price.IsNegative() {
 			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Dym-Name price is negative for: %s", letterDesc)
-		}
-		return nil
-	}
-
-	validateAliasPrice := func(price sdkmath.Int, letterDesc string) error {
-		if price.IsNil() || price.IsZero() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is zero for: %s", letterDesc)
-		} else if price.IsNegative() {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is negative for: %s", letterDesc)
 		}
 		return nil
 	}
@@ -317,34 +338,6 @@ func validatePriceParams(i interface{}) error {
 	}
 
 	if err := validateNamePrice(m.NamePrice_5PlusLetters, "5+ letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_1Letter, "1 letter"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_2Letters, "2 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_3Letters, "3 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_4Letters, "4 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_5Letters, "5 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_6Letters, "6 letters"); err != nil {
-		return err
-	}
-
-	if err := validateAliasPrice(m.AliasPrice_7PlusLetters, "7+ letters"); err != nil {
 		return err
 	}
 
@@ -375,6 +368,48 @@ func validatePriceParams(i interface{}) error {
 		)
 	}
 
+	return nil
+}
+
+// validateAliasPriceParams checks if Alias price in the given PriceParams are valid.
+func validateAliasPriceParams(m PriceParams) error {
+	validateAliasPrice := func(price sdkmath.Int, letterDesc string) error {
+		if price.IsNil() || price.IsZero() {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is zero for: %s", letterDesc)
+		} else if price.IsNegative() {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Alias price is negative for: %s", letterDesc)
+		}
+		return nil
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_1Letter, "1 letter"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_2Letters, "2 letters"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_3Letters, "3 letters"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_4Letters, "4 letters"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_5Letters, "5 letters"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_6Letters, "6 letters"); err != nil {
+		return err
+	}
+
+	if err := validateAliasPrice(m.AliasPrice_7PlusLetters, "7+ letters"); err != nil {
+		return err
+	}
+
 	if m.AliasPrice_1Letter.LTE(m.AliasPrice_2Letters) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "1 letter price must be greater than 2 letters price")
 	}
@@ -397,23 +432,6 @@ func validatePriceParams(i interface{}) error {
 
 	if m.AliasPrice_6Letters.LTE(m.AliasPrice_7PlusLetters) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "6 letters price must be greater than 7+ letters price")
-	}
-
-	if m.PriceDenom == "" {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name price denom cannot be empty")
-	}
-
-	if err := (sdk.Coin{
-		Denom:  m.PriceDenom,
-		Amount: sdk.ZeroInt(),
-	}).Validate(); err != nil {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name price denom: %s", err)
-	}
-
-	if m.MinOfferPrice.IsNil() || m.MinOfferPrice.IsZero() {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is zero")
-	} else if m.MinOfferPrice.IsNegative() {
-		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "min-offer-price is negative")
 	}
 
 	return nil
