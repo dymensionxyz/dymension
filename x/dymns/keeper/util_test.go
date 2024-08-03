@@ -13,6 +13,8 @@ import (
 	dymnskeeper "github.com/dymensionxyz/dymension/v3/x/dymns/keeper"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
+	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
+	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -48,6 +50,27 @@ func requireErrorContains(t *testing.T, err error, contains string) {
 
 func requireErrorFContains(t *testing.T, f func() error, contains string) {
 	requireErrorContains(t, f(), contains)
+}
+
+func registerRollApp(
+	t *testing.T,
+	ctx sdk.Context,
+	rk rollappkeeper.Keeper, dk dymnskeeper.Keeper,
+	rollAppID, bech32, alias string,
+) {
+	rk.SetRollapp(ctx, rollapptypes.Rollapp{
+		RollappId: rollAppID,
+		Creator:   testAddr(0).bech32(),
+	})
+	dk.RegisterMockRollAppData(rollAppID, alias, bech32)
+	if alias != "" {
+		err := dk.SetAliasForRollAppId(ctx, rollAppID, alias)
+		require.NoError(t, err)
+
+		a, found := dk.GetAliasByRollAppId(ctx, rollAppID)
+		require.True(t, found)
+		require.Equal(t, alias, a)
+	}
 }
 
 // ta stands for test-address, a simple wrapper for generating account for testing purpose.

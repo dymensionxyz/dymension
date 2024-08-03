@@ -143,7 +143,6 @@ func (k msgServer) validateUpdateResolveAddress(ctx sdk.Context, msg *dymnstypes
 				)
 			}
 			if bech32Prefix, found := k.GetRollAppBech32Prefix(ctx, msg.ChainId); found {
-				// TODO DymNS: write test cover this case
 				hrp, _, err := bech32.DecodeAndConvert(msg.ResolveTo)
 				if err != nil {
 					panic("unreachable")

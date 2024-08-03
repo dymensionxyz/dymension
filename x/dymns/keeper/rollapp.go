@@ -121,7 +121,7 @@ func (k Keeper) SetAliasForRollAppId(ctx sdk.Context, rollAppId, alias string) e
 // GetRollAppBech32Prefix returns the Bech32 prefix of the RollApp by the chain-id.
 func (k Keeper) GetRollAppBech32Prefix(ctx sdk.Context, chainId string) (bech32Prefix string, found bool) {
 	if data, found := mockRollAppsData[chainId]; found {
-		return data.bech32, true
+		return data.bech32, len(data.bech32) > 0
 	} else {
 		return "", false
 	}

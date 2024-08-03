@@ -82,6 +82,16 @@ var nonHostChainBech32InputSet = []string{
 	"bc1q34aq5drpuwy3wgl9lhup9892qp6svr8ldzyy7c",
 }
 
+var nonBech32InputSet []string
+
+func init() {
+	for _, input := range nonHostChainBech32InputSet {
+		if !dymnsutils.IsValidBech32AccountAddress(input, false) {
+			nonBech32InputSet = append(nonBech32InputSet, input)
+		}
+	}
+}
+
 func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	now := time.Now().UTC()
 
@@ -1425,18 +1435,14 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			postTestFunc:       func(ts testSuite) {},
 		},
 		{
-			// TODO DymNS FIXME: bech32 prefix of RollApp is not implemented yet
-			name: "FIXME * fail - reject if address is not corresponding bech32 if target chain is RollApp",
+			name: "fail - reject if address is not corresponding bech32 if target chain is RollApp",
 			dymName: &dymnstypes.DymName{
 				Owner:      ownerAcc.bech32(),
 				Controller: controllerAcc.bech32(),
 				ExpireAt:   now.Unix() + 1,
 			},
 			preTestFunc: func(ts testSuite) {
-				ts.rk.SetRollapp(ts.ctx, rollapptypes.Rollapp{
-					RollappId: "nim_1122-1",
-					Creator:   anotherAcc.bech32(),
-				})
+				registerRollApp(ts.t, ts.ctx, ts.rk, ts.dk, "nim_1122-1", "nim", "nim")
 			},
 			msg: &dymnstypes.MsgUpdateResolveAddress{
 				ChainId:    "nim_1122-1",
@@ -1868,7 +1874,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 		{
 			name:                   "non-bech32 on RollApp, without sub-name",
 			inputResolveTo:         anotherAcc.hexStr(),
-			multipleInputResolveTo: nonHostChainBech32InputSet,
+			multipleInputResolveTo: nonBech32InputSet,
 			rollapp:                true,
 			useSubName:             false,
 			wantReject:             true, // RollApp requires bech32 as input
@@ -1876,7 +1882,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 		{
 			name:                   "non-bech32 on RollApp, with sub-name",
 			inputResolveTo:         anotherAcc.hexStr(),
-			multipleInputResolveTo: nonHostChainBech32InputSet,
+			multipleInputResolveTo: nonBech32InputSet,
 			rollapp:                true,
 			useSubName:             true,
 			wantReject:             true, // RollApp requires bech32 as input
@@ -1969,14 +1975,12 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 			setDymNameWithFunctionsAfter(ctx, dymName, t, dk)
 
 			if tt.rollapp {
-				rk.SetRollapp(ctx, rollapptypes.Rollapp{
-					RollappId: rollappChainId,
-					Creator:   ownerAcc.bech32(),
-				})
-
+				bech32Prefix := ""
 				if tt.rollappWithBech32 {
-					dk.RegisterMockRollAppData(rollappChainId, "", rollAppBech32)
+					bech32Prefix = rollAppBech32
 				}
+
+				registerRollApp(t, ctx, rk, dk, rollappChainId, bech32Prefix, "")
 			}
 
 			var useContextChainId string

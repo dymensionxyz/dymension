@@ -567,7 +567,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 
 	addr3a := testAddr(3).bech32()
 
-	generalSetupAlias := func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+	generalSetupAlias := func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
 		params := dk.GetParams(ctx)
 		params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 			{
@@ -582,10 +582,6 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ChainId: "froopyland_100-1",
 				Aliases: nil,
 			},
-			{
-				ChainId: "nim_1122-1",
-				Aliases: []string{"nim"},
-			},
 		}
 		err := dk.SetParams(ctx, params)
 		require.NoError(t, err)
@@ -594,12 +590,12 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 	tests := []struct {
 		name              string
 		dymName           *dymnstypes.DymName
-		preSetup          func(sdk.Context, dymnskeeper.Keeper)
+		preSetup          func(sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
 		dymNameAddress    string
 		wantError         bool
 		wantErrContains   string
 		wantOutputAddress string
-		postTest          func(sdk.Context, dymnskeeper.Keeper)
+		postTest          func(sdk.Context, dymnskeeper.Keeper, rollappkeeper.Keeper)
 	}{
 		{
 			name: "success, no sub name, chain-id",
@@ -798,7 +794,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a.dymension",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -848,7 +844,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			preSetup:          nil,
 			dymNameAddress:    "c.b.a.dymension_1100-1",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -901,7 +897,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "c.b.a@dym",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -947,7 +943,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 					Value: addr3a,
 				}},
 			},
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				dymNameB := dymnstypes.DymName{
 					Name:       "b",
 					Owner:      addr1a,
@@ -967,7 +963,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:    "b.a.dymension_1100-1",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -1015,7 +1011,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			},
 			dymNameAddress:    "a.blumbus_111-1",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -1072,7 +1068,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			preSetup:          generalSetupAlias,
 			dymNameAddress:    "a.blumbus_111-1",
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				var outputAddr string
 				var err error
 
@@ -1197,7 +1193,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "sub2.a.another",
 			wantError:         false,
 			wantOutputAddress: "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				list, err := dk.ReverseResolveDymNameAddress(ctx, "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b", "another")
 				require.NoError(t, err)
 				require.Len(t, list, 1)
@@ -1234,7 +1230,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "a.dymension_1100-1",
 			wantError:         false,
 			wantOutputAddress: addr1a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "sub.a.dym")
 				require.NoError(t, err)
 				require.Equal(t, addr3a, outputAddr)
@@ -1260,7 +1256,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:  "sub.a.dymension_1100-1",
 			wantError:       true,
 			wantErrContains: "no resolution found",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "a.dymension_1100-1")
 				require.NoError(t, err, "should fallback if not sub-name")
 				require.Equal(t, addr1a, outputAddr)
@@ -1339,7 +1335,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 					},
 				},
 			},
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				params := dk.GetParams(ctx)
 				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 					{
@@ -1353,7 +1349,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "a.blumbus",
 			wantError:         false,
 			wantOutputAddress: addr3a,
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "a@blumbus_111-1")
 				require.NoError(t, err)
 				require.Equal(t, addr2a, outputAddr)
@@ -1366,7 +1362,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "0x1234567890123456789012345678901234567890@dymension_1100-1",
 			wantError:         false,
 			wantOutputAddress: "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "0x1234567890123456789012345678901234567890.dym")
 				require.NoError(t, err)
 				require.Equal(t, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96", outputAddr)
@@ -1384,7 +1380,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		{
 			name:    "resolve extra format 0x1234...6789@dym, do not resolve if chain-id is not RollApp, even tho alias was defined",
 			dymName: nil,
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				params := dk.GetParams(ctx)
 				params.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
 					{
@@ -1407,7 +1403,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "0x1234567890123456789012345678901234567890123456789012345678901234@dymension_1100-1",
 			wantError:         false,
 			wantOutputAddress: "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "0x1234567890123456789012345678901234567890123456789012345678901234.dym")
 				require.NoError(t, err)
 				require.Equal(t, "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul", outputAddr)
@@ -1420,17 +1416,14 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			dymNameAddress:    "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9@dymension_1100-1",
 			wantError:         false,
 			wantOutputAddress: "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9.dym")
 				require.NoError(t, err)
 				require.Equal(t, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96", outputAddr)
 			},
 		},
 		{
-			// must resolve to address with nim prefix of corresponding address from default-config
-			// TODO DymNS FIXME: resolve to rollapp based address using bech32 prefix.
-			// This testcase is failed atm.
-			name: "FIXME * fallback resolve follow default config",
+			name: "fallback resolve follow default config",
 			dymName: &dymnstypes.DymName{
 				Name:       "a",
 				Owner:      addr1a,
@@ -1443,39 +1436,39 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 					},
 				},
 			},
-			preSetup:          nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+			},
 			dymNameAddress:    "a@nim",
 			wantError:         false,
 			wantOutputAddress: addr2Acc.bech32C("nim"),
 			postTest:          nil,
 		},
 		{
-			// must resolve to address with nim prefix
-			// TODO DymNS FIXME: resolve to rollapp based address using bech32 prefix.
-			// This testcase is failed atm.
-			name:              "FIXME * resolve extra format 0x1234...6789@nim (RollApp)",
-			dymName:           nil,
-			preSetup:          generalSetupAlias,
+			name:    "resolve extra format 0x1234...6789@nim (RollApp)",
+			dymName: nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+			},
 			dymNameAddress:    "0x1234567890123456789012345678901234567890@nim_1122-1",
 			wantError:         false,
 			wantOutputAddress: "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "0x1234567890123456789012345678901234567890.nim")
 				require.NoError(t, err)
 				require.Equal(t, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", outputAddr)
 			},
 		},
 		{
-			// must resolve to address with nim prefix
-			// TODO DymNS FIXME: resolve to rollapp based address using bech32 prefix.
-			// This testcase is failed atm.
-			name:              "FIXME * resolve extra format dym1...@nim (RollApp), cross bech32 format",
-			dymName:           nil,
-			preSetup:          generalSetupAlias,
+			name:    "resolve extra format dym1...@nim (RollApp), cross bech32 format",
+			dymName: nil,
+			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				registerRollApp(t, ctx, rk, dk, "nim_1122-1", "nim", "nim")
+			},
 			dymNameAddress:    "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96@nim_1122-1",
 			wantError:         false,
 			wantOutputAddress: "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9",
-			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
+			postTest: func(ctx sdk.Context, dk dymnskeeper.Keeper, _ rollappkeeper.Keeper) {
 				outputAddr, err := dk.ResolveByDymNameAddress(ctx, "dym1zg69v7yszg69v7yszg69v7yszg69v7ys8xdv96.nim")
 				require.NoError(t, err)
 				require.Equal(t, "nim1zg69v7yszg69v7yszg69v7yszg69v7yspkhdt9", outputAddr)
@@ -1484,10 +1477,10 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dk, _, ctx := setupTest()
+			dk, rk, ctx := setupTest()
 
 			if tt.preSetup != nil {
-				tt.preSetup(ctx, dk)
+				tt.preSetup(ctx, dk, rk)
 			}
 
 			if tt.dymName != nil {
@@ -1502,7 +1495,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				}
 
 				if tt.postTest != nil {
-					tt.postTest(ctx, dk)
+					tt.postTest(ctx, dk, rk)
 				}
 			}()
 
@@ -1518,7 +1511,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		})
 	}
 
-	t.Run("FIXME * mixed tests", func(t *testing.T) {
+	t.Run("mixed tests", func(t *testing.T) {
 		dk, rk, ctx := setupTest()
 
 		bech32Addr := func(no uint64) string {
@@ -1748,7 +1741,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			RollappId: "nim_1122-1",
 			Creator:   bech32Addr(1122),
 		}
-		rk.SetRollapp(ctx, rollAppNim)
+		registerRollApp(t, ctx, rk, dk, rollAppNim.RollappId, "nim", "nim")
 		rollAppNim, found := rk.GetRollapp(ctx, rollAppNim.RollappId)
 		require.True(t, found)
 
@@ -1827,9 +1820,6 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 		tc("name4", chainId).RequireResolveTo("dym1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp7vezn")
 		tc("name4", "dym").RequireResolveTo("dym1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqp7vezn")
 		tc("name4", rollAppNim.RollappId).RequireResolveTo(
-			// must resolve to owner with nim prefix
-			// TODO DymNS FIXME: resolve to rollapp based address using bech32 prefix.
-			// This testcase is failed atm.
 			"nim1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq8wkcvv",
 		)
 	})
@@ -2278,10 +2268,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 		dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
 		ctx = ctx.WithBlockTime(now).WithChainID(chainId)
 
-		rk.SetRollapp(ctx, rollapptypes.Rollapp{
-			RollappId: rollAppId1,
-			Creator:   ownerAcc.bech32(),
-		})
+		registerRollApp(t, ctx, rk, dk, rollAppId1, rollApp1Bech32, "")
 
 		return dk, rk, ctx
 	}
@@ -2697,9 +2684,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			// TODO DymNS FIXME: this test-case is failed because current x/rollapp implementation
-			//  does not support get bech32 of RollApp
-			name: "FIXME * pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, find out the matching configuration",
+			name: "pass - lookup by hex on RollApp with bech32 prefix mapped, find out the matching configuration",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -2740,9 +2725,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			// TODO DymNS FIXME: this test-case is failed because current x/rollapp implementation
-			//  does not support get bech32 of RollApp
-			name: "FIXME * pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, find out the matching configuration",
+			name: "pass - lookup by hex on RollApp with bech32 prefix mapped, find out the matching configuration",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
