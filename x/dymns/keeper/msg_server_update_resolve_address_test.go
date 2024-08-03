@@ -2,7 +2,9 @@ package keeper_test
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,6 +20,67 @@ import (
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	"github.com/stretchr/testify/require"
 )
+
+//goland:noinspection SpellCheckingInspection
+var nonHostChainBech32InputSet = []string{
+	"dym1fl48vsnmsdzcv8",                         // host-chain prefix but invalid bech32 format
+	"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38xuuuu", // host-chain prefix but invalid bech32 checksum
+	testAddr(uint64(rand.Uint32()) + 9471274174).bech32C("another"),
+	"4BDtRc8Ym9wGFyEBzDWMSZ7iuUcNJ1ssiRkU6LjQgHURD4PGAMsZnzxAz2SGmNhinLxPF111N41bTHQBiu6QTmaZwKngDWrH",
+	"t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
+	"zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8jl04tak0d3mm47vdtahatqrlkngh9sly",
+	"zcU1Cd6zYyZCd2VJF8yKgmzjxdiiU1rgTTjEwoN1CGUWCziPkUTXUjXmX7TMqdMNsTfuiGN1jQoVN4kGxUR4sAPN4XZ7pxb",
+	"XpLM8qBMd7CqukVzKXkQWuQJmgrAFb87Qr",
+	"0x7f533b5fbf6ef86c3b7df76cc27fc67744a9a760",
+	"2UEQTE5QDNXPI7M3TU44G6SYKLFWLPQO7EBZM7K7MHMQQMFI4QJPLHQFHM",
+	"ALGO-2UEQTE5QDNXPI7M3TU44G6SYKLFWLPQO7EBZM7K7MHMQQMFI4QJPLHQFHM",
+	"0.0.123",
+	"0.0.0",
+	"0.0.123-vfmkw",
+	"LMHEFMwRsQ3nHDfb9zZqynLHxjuJ2hgyyW",
+	"MC2JYMPVWaxqUb9qUkUbjtUwoNMo1tPaLF",
+	"ltc1qhzjptwpym9afcdjhs7jcz6fd0jma0l0rc0e5yr",
+	"ltc1qzvcgmntglcuv4smv3lzj6k8szcvsrmvk0phrr9wfq8w493r096ssm2fgsw",
+	"qrvax3jgtwqssnkpctlqdl0rq7rjn0l0hgny8pt0hp",
+	"bitcoincash:qrvax3jgtwqssnkpctlqdl0rq7rjn0l0hgny8pt0hp",
+	"D7wbmbjBWG5HPkT6d4gh6SdQPp6z25vcF2",
+	"0xBe588061d20fe359E69D78824EC45EA98C87069A",
+	"NVeu7XqbZ6WiL1prhChC1jMWgicuWtneDP",
+	"ALuhj3QNoxvAnMZsA2oKP5UxYsBmRwjwHL",
+	"tz1YWK1gDPQx9N1Jh4JnmVre7xN6xhGGM4uC",
+	"tz3T8djchG5FDwt7H6wEUU3sRFJwonYPqMJe",
+	"KT1S5hgipNSTFehZo7v81gq6fcLChbRwptqy",
+	"rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz",
+	"XV5sbjUmgPpvXv4ixFWZ5ptAYZ6PD28Sq49uo34VyjnmK5H",
+	"7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV",
+	"414450cf8c8b6a8229b7f628e36b3a658e84441b6f",
+	"TGCRkw1Vq759FBCrwxkZGgqZbRX1WkBHSu",
+	"xdc64b3b0a417775cfb441ed064611bf79826649c0f",
+	"0x64b3b0a417775cfb441ed064611bf79826649c0f",
+	"GBH4TZYZ4IRCPO44CBOLFUHULU2WGALXTAVESQA6432MBJMABBB4GIYI",
+	"jed*stellar.org",
+	"maria@gmail.com*stellar.org",
+	"bc1qeklep85ntjz4605drds6aww9u0qr46qzrv5xswd35uhjuj8ahfcqgf6hak",
+	"bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k",
+	"bc1prwgcpptoxrpfl5go81wpd5qlsig5yt4g7urb45e",
+	"bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej",
+	"0x3cA8ac240F6ebeA8684b3E629A8e8C1f0E3bC0Ff",
+	"X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
+	"Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
+	"DdzFFzCqrhsfZHjaBunVySZBU8i9Zom7Gujham6Jz8scCcAdkDmEbD9XSdXKdBiPoa1fjgL4ksGjQXD8ZkSNHGJfT25ieA9rWNCSA5qc",
+	"addr1q8gg2r3vf9zggn48g7m8vx62rwf6warcs4k7ej8mdzmqmesj30jz7psduyk6n4n2qrud2xlv9fgj53n6ds3t8cs4fvzs05yzmz",
+	"1a1LcBX6hGPKg5aQ6DXZpAHCCzWjckhea4sz3P1PvL3oc4F",
+	"HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F",
+	"5CdiCGvTEuzut954STAXRfL8Lazs3KCZa5LPpkPeqqJXdTHp",
+	"0x192c3c7e5789b461fbf1c7f614ba5eed0b22efc507cda60a5e7fda8e046bcdce",
+	"0x0380d46a00e427d89f35d78b4eacb4270bd5ecfd10b64662dcfe31eb117fc62c68",
+	"04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
+	"11111111111111111111BZbvjr",
+	"1111111111111111111114oLvT2",
+	"12higDjoCCNXSA95xZMWUdPvXNmkAduhWv",
+	"342ftSRCvFHfCeFFBuz4xwbeqnDw6BGUey",
+	"bc1q34aq5drpuwy3wgl9lhup9892qp6svr8ldzyy7c",
+}
 
 func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	now := time.Now().UTC()
@@ -38,6 +101,9 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 	const recordName = "my-name"
 
 	const rollAppId = "ra_9999-1"
+
+	//goland:noinspection SpellCheckingInspection
+	nonBech32NonHexUpperCaseA := strings.ToUpper("X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5")
 
 	params.SetAddressPrefixes()
 
@@ -346,6 +412,86 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				requireConfiguredAddressMappedNoDymName(ts, controllerAcc.bech32())
 				requireFallbackAddressMappedDymNames(ts, ownerAcc.fallback(), recordName)
 				requireFallbackAddressMappedNoDymName(ts, controllerAcc.fallback())
+			},
+		},
+		{
+			name: "pass - address on RollApp automatically lowercase",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedNoDymName(ts, anotherAcc.bech32C("rol"))
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+
+				ts.rk.SetRollapp(ts.ctx, rollapptypes.Rollapp{
+					RollappId: rollAppId,
+					Creator:   anotherAcc.bech32(),
+				})
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    rollAppId,
+				ResolveTo:  strings.ToUpper(anotherAcc.bech32C("rol")), // upper-cased
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: rollAppId,
+						Path:    "",
+						Value:   anotherAcc.bech32C("rol"),
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedDymNames(ts, anotherAcc.bech32C("rol"), recordName)
+				requireFallbackAddressMappedNoDymName(ts, anotherAcc.fallback())
+			},
+		},
+		{
+			name: "pass - keep case-sensitive address on non-host/non-RollApp",
+			dymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			},
+			preTestFunc: func(ts testSuite) {
+				require.Equal(t,
+					nonBech32NonHexUpperCaseA, strings.ToUpper(nonBech32NonHexUpperCaseA),
+					"bad setup, this address must be upper-cased, to be used in this testcase",
+				)
+
+				requireConfiguredAddressMappedNoDymName(ts, nonBech32NonHexUpperCaseA)
+			},
+			msg: &dymnstypes.MsgUpdateResolveAddress{
+				ChainId:    "another",
+				ResolveTo:  nonBech32NonHexUpperCaseA, // this address is neither bech32 nor hex
+				Controller: controllerAcc.bech32(),
+			},
+			wantErr: false,
+			wantDymName: &dymnstypes.DymName{
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: "another",
+						Path:    "",
+						Value:   nonBech32NonHexUpperCaseA,
+					},
+				},
+			},
+			wantMinGasConsumed: dymnstypes.OpGasConfig,
+			postTestFunc: func(ts testSuite) {
+				requireConfiguredAddressMappedDymNames(ts, nonBech32NonHexUpperCaseA, recordName)
 			},
 		},
 		{
@@ -1312,6 +1458,63 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 			require.Equal(t, *tt.wantDymName, *laterDymName)
 		})
 	}
+
+	for _, input := range nonHostChainBech32InputSet {
+		t.Run("non-bech32/non-hex on non-host/non-RollApp chain: "+input, func(t *testing.T) {
+			dk, _, ctx := setupTest()
+			ctx = ctx.WithBlockTime(now).WithChainID(chainId)
+
+			const anotherChainId = "another"
+
+			dymName := dymnstypes.DymName{
+				Name:       "a",
+				Owner:      ownerAcc.bech32(),
+				Controller: controllerAcc.bech32(),
+				ExpireAt:   now.Unix() + 1,
+			}
+			require.NoError(t, dk.SetDymName(ctx, dymName))
+
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).UpdateResolveAddress(ctx, &dymnstypes.MsgUpdateResolveAddress{
+				Name:       dymName.Name,
+				Controller: dymName.Controller,
+				ChainId:    anotherChainId,
+				SubName:    "",
+				ResolveTo:  input,
+			})
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+
+			laterDymName := dk.GetDymName(ctx, dymName.Name)
+			require.NotNil(t, laterDymName)
+			require.Equal(t, dymnstypes.DymName{
+				Name:       dymName.Name,
+				Owner:      dymName.Owner,
+				Controller: dymName.Controller,
+				ExpireAt:   dymName.ExpireAt,
+				Configs: []dymnstypes.DymNameConfig{
+					{
+						Type:    dymnstypes.DymNameConfigType_NAME,
+						ChainId: anotherChainId,
+						Path:    "",
+						Value:   input,
+					},
+				},
+			}, *laterDymName)
+
+			dymNameAddress := fmt.Sprintf("%s@%s", dymName.Name, anotherChainId)
+			outputAddress, err := dk.ResolveByDymNameAddress(ctx, dymNameAddress)
+			require.NoError(t, err)
+			require.Equal(t, input, outputAddress)
+
+			list, err := dk.ReverseResolveDymNameAddress(ctx, input, anotherChainId)
+			require.NoError(t, err)
+			require.Len(t, list, 1)
+			require.Equal(t, dymNameAddress, list[0].String())
+
+			list, err = dk.ReverseResolveDymNameAddress(ctx, input, chainId)
+			require.True(t, err != nil || len(list) == 0)
+		})
+	}
 }
 
 func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
@@ -1349,67 +1552,6 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 	}
 	testReverseResolveAddr := func(input, want string) tc {
 		return tc{_type: tcReverseResolveAddr, input: input, want: want}
-	}
-
-	//goland:noinspection ALL
-	nonHostChainBech32InputSet := []string{
-		"dym1fl48vsnmsdzcv8",                         // host-chain prefix but invalid bech32 format
-		"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38xuuuu", // host-chain prefix but invalid bech32 checksum
-		testAddr(1).bech32C("another"),
-		"4BDtRc8Ym9wGFyEBzDWMSZ7iuUcNJ1ssiRkU6LjQgHURD4PGAMsZnzxAz2SGmNhinLxPF111N41bTHQBiu6QTmaZwKngDWrH",
-		"t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
-		"zs1z7rejlpsa98s2rrrfkwmaxu53e4ue0ulcrw0h4x5g8jl04tak0d3mm47vdtahatqrlkngh9sly",
-		"zcU1Cd6zYyZCd2VJF8yKgmzjxdiiU1rgTTjEwoN1CGUWCziPkUTXUjXmX7TMqdMNsTfuiGN1jQoVN4kGxUR4sAPN4XZ7pxb",
-		"XpLM8qBMd7CqukVzKXkQWuQJmgrAFb87Qr",
-		"0x7f533b5fbf6ef86c3b7df76cc27fc67744a9a760",
-		"2UEQTE5QDNXPI7M3TU44G6SYKLFWLPQO7EBZM7K7MHMQQMFI4QJPLHQFHM",
-		"ALGO-2UEQTE5QDNXPI7M3TU44G6SYKLFWLPQO7EBZM7K7MHMQQMFI4QJPLHQFHM",
-		"0.0.123",
-		"0.0.0",
-		"0.0.123-vfmkw",
-		"LMHEFMwRsQ3nHDfb9zZqynLHxjuJ2hgyyW",
-		"MC2JYMPVWaxqUb9qUkUbjtUwoNMo1tPaLF",
-		"ltc1qhzjptwpym9afcdjhs7jcz6fd0jma0l0rc0e5yr",
-		"ltc1qzvcgmntglcuv4smv3lzj6k8szcvsrmvk0phrr9wfq8w493r096ssm2fgsw",
-		"qrvax3jgtwqssnkpctlqdl0rq7rjn0l0hgny8pt0hp",
-		"bitcoincash:qrvax3jgtwqssnkpctlqdl0rq7rjn0l0hgny8pt0hp",
-		"D7wbmbjBWG5HPkT6d4gh6SdQPp6z25vcF2",
-		"0xBe588061d20fe359E69D78824EC45EA98C87069A",
-		"NVeu7XqbZ6WiL1prhChC1jMWgicuWtneDP",
-		"ALuhj3QNoxvAnMZsA2oKP5UxYsBmRwjwHL",
-		"tz1YWK1gDPQx9N1Jh4JnmVre7xN6xhGGM4uC",
-		"tz3T8djchG5FDwt7H6wEUU3sRFJwonYPqMJe",
-		"KT1S5hgipNSTFehZo7v81gq6fcLChbRwptqy",
-		"rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz",
-		"XV5sbjUmgPpvXv4ixFWZ5ptAYZ6PD28Sq49uo34VyjnmK5H",
-		"7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV",
-		"414450cf8c8b6a8229b7f628e36b3a658e84441b6f",
-		"TGCRkw1Vq759FBCrwxkZGgqZbRX1WkBHSu",
-		"xdc64b3b0a417775cfb441ed064611bf79826649c0f",
-		"0x64b3b0a417775cfb441ed064611bf79826649c0f",
-		"GBH4TZYZ4IRCPO44CBOLFUHULU2WGALXTAVESQA6432MBJMABBB4GIYI",
-		"jed*stellar.org",
-		"maria@gmail.com*stellar.org",
-		"bc1qeklep85ntjz4605drds6aww9u0qr46qzrv5xswd35uhjuj8ahfcqgf6hak",
-		"bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k",
-		"bc1prwgcpptoxrpfl5go81wpd5qlsig5yt4g7urb45e",
-		"bc1qwqdg6squsna38e46795at95yu9atm8azzmyvckulcc7kytlcckxswvvzej",
-		"0x3cA8ac240F6ebeA8684b3E629A8e8C1f0E3bC0Ff",
-		"X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
-		"Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
-		"DdzFFzCqrhsfZHjaBunVySZBU8i9Zom7Gujham6Jz8scCcAdkDmEbD9XSdXKdBiPoa1fjgL4ksGjQXD8ZkSNHGJfT25ieA9rWNCSA5qc",
-		"addr1q8gg2r3vf9zggn48g7m8vx62rwf6warcs4k7ej8mdzmqmesj30jz7psduyk6n4n2qrud2xlv9fgj53n6ds3t8cs4fvzs05yzmz",
-		"1a1LcBX6hGPKg5aQ6DXZpAHCCzWjckhea4sz3P1PvL3oc4F",
-		"HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F",
-		"5CdiCGvTEuzut954STAXRfL8Lazs3KCZa5LPpkPeqqJXdTHp",
-		"0x192c3c7e5789b461fbf1c7f614ba5eed0b22efc507cda60a5e7fda8e046bcdce",
-		"0x0380d46a00e427d89f35d78b4eacb4270bd5ecfd10b64662dcfe31eb117fc62c68",
-		"04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
-		"11111111111111111111BZbvjr",
-		"1111111111111111111114oLvT2",
-		"12higDjoCCNXSA95xZMWUdPvXNmkAduhWv",
-		"342ftSRCvFHfCeFFBuz4xwbeqnDw6BGUey",
-		"bc1q34aq5drpuwy3wgl9lhup9892qp6svr8ldzyy7c",
 	}
 
 	type testStruct struct {

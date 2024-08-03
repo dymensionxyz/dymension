@@ -697,18 +697,16 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return
 	}
 
-	// try lookup using bech32 address
+	// try lookup using configured address
 
-	bech32Addr := inputAddress
-
-	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, bech32Addr)
+	dymNames, err1 := k.GetDymNamesContainsConfiguredAddress(ctx, inputAddress)
 	if err1 != nil {
 		return nil, err1
 	}
 
 	for _, dymName := range dymNames {
 		configuredAddresses, _ := dymName.GetAddressesForReverseMapping()
-		configs := configuredAddresses[bech32Addr]
+		configs := configuredAddresses[inputAddress]
 		addConfigsToResult(dymName, configs)
 	}
 
@@ -717,7 +715,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		return
 	}
 
-	// There is no matching result from lookup by bech32 address,
+	// There is no matching result from lookup by fallback-address,
 	// we are going to give it one more try lookup by hex address
 	// to see if any fallback is available.
 	// If the working chain-id is a coin-type-60 chain-id.
@@ -727,6 +725,9 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 		// we don't do fallback lookup for this case, just for safety purpose
 		return
 	}
+
+	// assume bech32 address
+	bech32Addr := inputAddress
 
 	_, bz, err2 := bech32.DecodeAndConvert(bech32Addr)
 	if err2 != nil {

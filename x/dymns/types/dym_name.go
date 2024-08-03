@@ -211,8 +211,8 @@ func (m DymNameConfigs) DefaultNameConfigs() DymNameConfigs {
 func (m *DymName) GetAddressesForReverseMapping() (
 	configuredAddressesToConfigs map[string][]DymNameConfig,
 	fallbackAddressesToConfigs map[string][]DymNameConfig, // TODO DymNS: rename related
-// Describe usage of Go Map: used to mapping each address to its configuration,
-// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
+	// Describe usage of Go Map: used to mapping each address to its configuration,
+	// caller should have responsibility to handle the result and aware of iterating over map can cause non-determinism
 ) {
 	if err := m.Validate(); err != nil {
 		// should validate before calling this method

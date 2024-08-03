@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
@@ -27,6 +28,12 @@ func (k msgServer) UpdateResolveAddress(goCtx context.Context, msg *dymnstypes.M
 		newConfig.ChainId = ""
 	}
 	newConfigIdentity := newConfig.GetIdentity()
+
+	if newConfig.ChainId == "" || k.IsRollAppId(ctx, newConfig.ChainId) {
+		// guarantee of case-insensitive on host and RollApps,
+		// so we do normalize input
+		newConfig.Value = strings.ToLower(newConfig.Value)
+	}
 
 	var minimumTxGasRequired sdk.Gas
 
