@@ -16,13 +16,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// NewPlaceBidOnDymNameAdsTxCmd is the CLI command for placing a bid on a Dym-Name Sell-Order.
-func NewPlaceBidOnDymNameAdsTxCmd() *cobra.Command {
+// NewPlaceBidOnOrderTxCmd is the CLI command for placing a bid on a Dym-Name Sell-Order.
+func NewPlaceBidOnOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("bid [Dym-Name] [amount] %s", params.DisplayDenom),
-		Short: "place a bid on a Dym-Name sell-order",
+		Use:     fmt.Sprintf("bid-name [Dym-Name] [amount] %s", params.DisplayDenom),
+		Aliases: []string{"bid"},
+		Short:   "place a bid on a Dym-Name Sell-Order",
 		Example: fmt.Sprintf(
-			"$ %s tx %s bid myname 100 %s",
+			"$ %s tx %s bid-name myname 100 %s",
 			version.AppName, dymnstypes.ModuleName, params.DisplayDenom,
 		),
 		Args: cobra.ExactArgs(3),
@@ -49,7 +50,7 @@ func NewPlaceBidOnDymNameAdsTxCmd() *cobra.Command {
 				return fmt.Errorf("denom must be %s", strings.ToUpper(params.DisplayDenom))
 			}
 
-			msg := &dymnstypes.MsgPurchaseName{
+			msg := &dymnstypes.MsgPurchaseOrder{
 				Name:  dymName,
 				Offer: sdk.NewCoin(params.BaseDenom, sdk.NewInt(int64(amount)).MulRaw(1e18)),
 				Buyer: clientCtx.GetFromAddress().String(),

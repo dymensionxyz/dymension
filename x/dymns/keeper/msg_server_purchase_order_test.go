@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_PurchaseName(t *testing.T) {
+func Test_msgServer_PurchaseOrder(t *testing.T) {
 	now := time.Now().UTC()
 	futureEpoch := now.Unix() + 1
 
@@ -31,7 +31,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseName(ctx, &dymnstypes.MsgPurchaseName{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -467,7 +467,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 			if tt.customBidDenom != "" {
 				useDenom = tt.customBidDenom
 			}
-			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseName(ctx, &dymnstypes.MsgPurchaseName{
+			resp, errPurchaseName := dymnskeeper.NewMsgServerImpl(dk).PurchaseOrder(ctx, &dymnstypes.MsgPurchaseOrder{
 				Name:  dymName.Name,
 				Offer: sdk.NewInt64Coin(useDenom, tt.newBid),
 				Buyer: useBuyer,
@@ -506,7 +506,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 				require.False(t, tt.wantOwnershipChanged, "mis-configured test case")
 
 				require.Less(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasBidAds,
+					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
 					"should not consume params gas on failed operation",
 				)
 			} else {
@@ -514,7 +514,7 @@ func Test_msgServer_PurchaseName(t *testing.T) {
 				require.NotNil(t, resp)
 
 				require.GreaterOrEqual(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasBidAds,
+					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceBidOnSellOrder,
 					"should consume params gas",
 				)
 			}

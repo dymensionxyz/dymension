@@ -15,13 +15,13 @@ const (
 )
 
 const (
-	// OpGasPutAds is the gas consumed when a Dym-Name owner creates a Sell-Order for selling Dym-Name.
-	OpGasPutAds sdk.Gas = 25_000_000
-	// OpGasCloseAds is the gas consumed when Dym-Name owner closes Sell-Order.
-	OpGasCloseAds sdk.Gas = 5_000_000
+	// OpGasPlaceSellOrder is the gas consumed when a Dym-Name owner creates a Sell-Order for selling Dym-Name.
+	OpGasPlaceSellOrder sdk.Gas = 25_000_000
+	// OpGasCloseSellOrder is the gas consumed when Dym-Name owner closes Sell-Order.
+	OpGasCloseSellOrder sdk.Gas = 5_000_000
 
-	// OpGasBidAds is the gas consumed when a buyer bids on a Dym-Name Sell-Order.
-	OpGasBidAds sdk.Gas = 20_000_000
+	// OpGasPlaceBidOnSellOrder is the gas consumed when a buyer bids on a Dym-Name Sell-Order.
+	OpGasPlaceBidOnSellOrder sdk.Gas = 20_000_000
 
 	// OpGasConfig is the gas consumed when Dym-Name controller updating Dym-Name configuration,
 	// We charge this high amount of gas for extra permanent data

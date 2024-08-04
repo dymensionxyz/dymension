@@ -13,17 +13,17 @@ const (
 	// TypeMsgUpdateDetails is type for MsgUpdateDetails.
 	TypeMsgUpdateDetails = "update_details"
 
-	// TypeMsgPutAdsSellName is type for MsgPutAdsSellName.
-	TypeMsgPutAdsSellName = "put_ads_sell_name"
-	// TypeMsgCancelAdsSellName is type for MsgCancelAdsSellName.
-	TypeMsgCancelAdsSellName = "cancel_ads_sell_name"
-	// TypeMsgPurchaseName is type for MsgPurchaseName.
-	TypeMsgPurchaseName = "purchase_name"
+	// TypeMsgPlaceSellOrder is type for MsgPlaceSellOrder.
+	TypeMsgPlaceSellOrder = "place_sell_order"
+	// TypeMsgCancelSellOrder is type for MsgCancelSellOrder.
+	TypeMsgCancelSellOrder = "cancel_sell_order"
+	// TypeMsgPurchaseOrder is type for MsgPurchaseOrder.
+	TypeMsgPurchaseOrder = "purchase_order"
 
-	// TypeMsgOfferBuyName is type for MsgOfferBuyName.
-	TypeMsgOfferBuyName = "offer_buy_name"
-	// TypeMsgCancelOfferBuyName is type for MsgCancelOfferBuyName.
-	TypeMsgCancelOfferBuyName = "cancel_offer_buy_name"
-	// TypeMsgAcceptOfferBuyName is type for MsgAcceptOfferBuyName.
-	TypeMsgAcceptOfferBuyName = "accept_offer_buy_name"
+	// TypeMsgPlaceBuyOrder is type for MsgPlaceBuyOrder.
+	TypeMsgPlaceBuyOrder = "place_buy_order"
+	// TypeMsgCancelBuyOrder is type for MsgCancelBuyOrder.
+	TypeMsgCancelBuyOrder = "cancel_buy_order"
+	// TypeMsgAcceptBuyOrder is type for MsgAcceptBuyOrder.
+	TypeMsgAcceptBuyOrder = "accept_buy_order"
 )

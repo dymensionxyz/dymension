@@ -7,10 +7,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = &MsgPutAdsSellName{}
+var _ sdk.Msg = &MsgPlaceSellOrder{}
 
-// ValidateBasic performs basic validation for the MsgPutAdsSellName.
-func (m *MsgPutAdsSellName) ValidateBasic() error {
+// ValidateBasic performs basic validation for the MsgPlaceSellOrder.
+func (m *MsgPlaceSellOrder) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
@@ -32,8 +32,8 @@ func (m *MsgPutAdsSellName) ValidateBasic() error {
 	return nil
 }
 
-// ToSellOrder converts the MsgPutAdsSellName to a SellOrder.
-func (m *MsgPutAdsSellName) ToSellOrder() SellOrder {
+// ToSellOrder converts the MsgPlaceSellOrder to a SellOrder.
+func (m *MsgPlaceSellOrder) ToSellOrder() SellOrder {
 	so := SellOrder{
 		Name:      m.Name,
 		MinPrice:  m.MinPrice,
@@ -47,8 +47,8 @@ func (m *MsgPutAdsSellName) ToSellOrder() SellOrder {
 	return so
 }
 
-// GetSigners returns the required signers for the MsgPutAdsSellName.
-func (m *MsgPutAdsSellName) GetSigners() []sdk.AccAddress {
+// GetSigners returns the required signers for the MsgPlaceSellOrder.
+func (m *MsgPlaceSellOrder) GetSigners() []sdk.AccAddress {
 	owner, err := sdk.AccAddressFromBech32(m.Owner)
 	if err != nil {
 		panic(err)
@@ -56,18 +56,18 @@ func (m *MsgPutAdsSellName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{owner}
 }
 
-// Route returns the message router key for the MsgPutAdsSellName.
-func (m *MsgPutAdsSellName) Route() string {
+// Route returns the message router key for the MsgPlaceSellOrder.
+func (m *MsgPlaceSellOrder) Route() string {
 	return RouterKey
 }
 
-// Type returns the message type for the MsgPutAdsSellName.
-func (m *MsgPutAdsSellName) Type() string {
-	return TypeMsgPutAdsSellName
+// Type returns the message type for the MsgPlaceSellOrder.
+func (m *MsgPlaceSellOrder) Type() string {
+	return TypeMsgPlaceSellOrder
 }
 
-// GetSignBytes returns the raw bytes for the MsgPutAdsSellName.
-func (m *MsgPutAdsSellName) GetSignBytes() []byte {
+// GetSignBytes returns the raw bytes for the MsgPlaceSellOrder.
+func (m *MsgPlaceSellOrder) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

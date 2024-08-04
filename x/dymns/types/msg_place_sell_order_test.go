@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
+func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
@@ -160,7 +160,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgPutAdsSellName{
+			m := &MsgPlaceSellOrder{
 				Name:      tt.dymName,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
@@ -179,7 +179,7 @@ func TestMsgPutAdsSellName_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgPutAdsSellName_ToSellOrder(t *testing.T) {
+func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
 	validMinPrice := dymnsutils.TestCoin(1)
 	validSellPrice := dymnsutils.TestCoin(1)
 
@@ -230,7 +230,7 @@ func TestMsgPutAdsSellName_ToSellOrder(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgPutAdsSellName{
+			m := &MsgPlaceSellOrder{
 				Name:      tt.Name,
 				MinPrice:  tt.MinPrice,
 				SellPrice: tt.SellPrice,

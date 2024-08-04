@@ -10,9 +10,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// PurchaseName is message handler,
+// PurchaseOrder is message handler,
 // handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
-func (k msgServer) PurchaseName(goCtx context.Context, msg *dymnstypes.MsgPurchaseName) (*dymnstypes.MsgPurchaseNameResponse, error) {
+func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.MsgPurchaseOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	dymName, so, err := k.validatePurchase(ctx, msg)
@@ -56,13 +56,13 @@ func (k msgServer) PurchaseName(goCtx context.Context, msg *dymnstypes.MsgPurcha
 		}
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasBidAds, "PurchaseName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceBidOnSellOrder, "PurchaseOrder")
 
-	return &dymnstypes.MsgPurchaseNameResponse{}, nil
+	return &dymnstypes.MsgPurchaseOrderResponse{}, nil
 }
 
-// validatePurchase handles validation for the message handled by PurchaseName.
-func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchaseName) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
+// validatePurchase handles validation for the message handled by PurchaseOrder.
+func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchaseOrder) (*dymnstypes.DymName, *dymnstypes.SellOrder, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err
 	}

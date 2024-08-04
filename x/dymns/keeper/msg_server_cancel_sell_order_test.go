@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_CancelAdsSellName(t *testing.T) {
+func Test_msgServer_CancelSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
@@ -50,7 +50,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 
 	t.Run("do not process message that not pass basic validation", func(t *testing.T) {
 		requireErrorFContains(t, func() error {
-			resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+			resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 				Name:  "abc",
 				Owner: "0x1", // invalid owner
 			})
@@ -62,7 +62,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	})
 
 	t.Run("do not process message that refer to non-existing Dym-Name", func(t *testing.T) {
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  "not-exists",
 			Owner: ownerA,
 		})
@@ -85,7 +85,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			dk.DeleteSellOrder(ctx, so11.Name)
 		}()
 
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  so11.Name,
 			Owner: notOwnerA,
 		})
@@ -95,7 +95,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 	})
 
 	t.Run("do not process for Dym-Name that does not have any SO", func(t *testing.T) {
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  dymName1.Name,
 			Owner: ownerA,
 		})
@@ -118,7 +118,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			dk.DeleteSellOrder(ctx, so11.Name)
 		}()
 
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  so11.Name,
 			Owner: ownerA,
 		})
@@ -144,7 +144,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			dk.DeleteSellOrder(ctx, so11.Name)
 		}()
 
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  so11.Name,
 			Owner: ownerA,
 		})
@@ -182,7 +182,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			dk.DeleteSellOrder(ctx, so12.Name)
 		}()
 
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  so11.Name,
 			Owner: ownerA,
 		})
@@ -223,7 +223,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 			dk.DeleteSellOrder(ctx, so12.Name)
 		}()
 
-		resp, err := msgServer.CancelAdsSellName(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelAdsSellName{
+		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
 			Name:  so11.Name,
 			Owner: ownerA,
 		})
@@ -237,7 +237,7 @@ func Test_msgServer_CancelAdsSellName(t *testing.T) {
 		require.Empty(t, list, "no historical record should be added")
 
 		require.GreaterOrEqual(t,
-			ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseAds,
+			ctx.GasMeter().GasConsumed(), dymnstypes.OpGasCloseSellOrder,
 			"should consume params gas",
 		)
 	})

@@ -7,10 +7,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = &MsgCancelOfferBuyName{}
+var _ sdk.Msg = &MsgCancelBuyOrder{}
 
-// ValidateBasic performs basic validation for the MsgCancelOfferBuyName.
-func (m *MsgCancelOfferBuyName) ValidateBasic() error {
+// ValidateBasic performs basic validation for the MsgCancelBuyOrder.
+func (m *MsgCancelBuyOrder) ValidateBasic() error {
 	if !dymnsutils.IsValidBuyOfferId(m.OfferId) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer id is not a valid buy name offer id")
 	}
@@ -22,8 +22,8 @@ func (m *MsgCancelOfferBuyName) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the required signers for the MsgCancelOfferBuyName.
-func (m *MsgCancelOfferBuyName) GetSigners() []sdk.AccAddress {
+// GetSigners returns the required signers for the MsgCancelBuyOrder.
+func (m *MsgCancelBuyOrder) GetSigners() []sdk.AccAddress {
 	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
 	if err != nil {
 		panic(err)
@@ -31,18 +31,18 @@ func (m *MsgCancelOfferBuyName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{buyer}
 }
 
-// Route returns the message router key for the MsgCancelOfferBuyName.
-func (m *MsgCancelOfferBuyName) Route() string {
+// Route returns the message router key for the MsgCancelBuyOrder.
+func (m *MsgCancelBuyOrder) Route() string {
 	return RouterKey
 }
 
-// Type returns the message type for the MsgCancelOfferBuyName.
-func (m *MsgCancelOfferBuyName) Type() string {
-	return TypeMsgCancelOfferBuyName
+// Type returns the message type for the MsgCancelBuyOrder.
+func (m *MsgCancelBuyOrder) Type() string {
+	return TypeMsgCancelBuyOrder
 }
 
-// GetSignBytes returns the raw bytes for the MsgCancelOfferBuyName.
-func (m *MsgCancelOfferBuyName) GetSignBytes() []byte {
+// GetSignBytes returns the raw bytes for the MsgCancelBuyOrder.
+func (m *MsgCancelBuyOrder) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

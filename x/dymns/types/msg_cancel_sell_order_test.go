@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgCancelAdsSellName_ValidateBasic(t *testing.T) {
+func TestMsgCancelSellOrder_ValidateBasic(t *testing.T) {
 	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
@@ -58,7 +58,7 @@ func TestMsgCancelAdsSellName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgCancelAdsSellName{
+			m := &MsgCancelSellOrder{
 				Name:  tt.dymName,
 				Owner: tt.owner,
 			}

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_CancelOfferBuyName(t *testing.T) {
+func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
@@ -43,7 +43,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).CancelOfferBuyName(ctx, &dymnstypes.MsgCancelOfferBuyName{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).CancelBuyOrder(ctx, &dymnstypes.MsgCancelBuyOrder{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -276,7 +276,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 				tt.preRunSetupFunc(ctx, dk)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).CancelOfferBuyName(ctx, &dymnstypes.MsgCancelOfferBuyName{
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).CancelBuyOrder(ctx, &dymnstypes.MsgCancelBuyOrder{
 				OfferId: tt.offerId,
 				Buyer:   tt.buyer,
 			})

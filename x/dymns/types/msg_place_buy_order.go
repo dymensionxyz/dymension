@@ -7,10 +7,10 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-var _ sdk.Msg = &MsgOfferBuyName{}
+var _ sdk.Msg = &MsgPlaceBuyOrder{}
 
-// ValidateBasic performs basic validation for the MsgOfferBuyName.
-func (m *MsgOfferBuyName) ValidateBasic() error {
+// ValidateBasic performs basic validation for the MsgPlaceBuyOrder.
+func (m *MsgPlaceBuyOrder) ValidateBasic() error {
 	if !dymnsutils.IsValidDymName(m.Name) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "name is not a valid dym name")
 	}
@@ -34,8 +34,8 @@ func (m *MsgOfferBuyName) ValidateBasic() error {
 	return nil
 }
 
-// GetSigners returns the required signers for the MsgOfferBuyName.
-func (m *MsgOfferBuyName) GetSigners() []sdk.AccAddress {
+// GetSigners returns the required signers for the MsgPlaceBuyOrder.
+func (m *MsgPlaceBuyOrder) GetSigners() []sdk.AccAddress {
 	buyer, err := sdk.AccAddressFromBech32(m.Buyer)
 	if err != nil {
 		panic(err)
@@ -43,18 +43,18 @@ func (m *MsgOfferBuyName) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{buyer}
 }
 
-// Route returns the message router key for the MsgOfferBuyName.
-func (m *MsgOfferBuyName) Route() string {
+// Route returns the message router key for the MsgPlaceBuyOrder.
+func (m *MsgPlaceBuyOrder) Route() string {
 	return RouterKey
 }
 
-// Type returns the message type for the MsgOfferBuyName.
-func (m *MsgOfferBuyName) Type() string {
-	return TypeMsgOfferBuyName
+// Type returns the message type for the MsgPlaceBuyOrder.
+func (m *MsgPlaceBuyOrder) Type() string {
+	return TypeMsgPlaceBuyOrder
 }
 
-// GetSignBytes returns the raw bytes for the MsgOfferBuyName.
-func (m *MsgOfferBuyName) GetSignBytes() []byte {
+// GetSignBytes returns the raw bytes for the MsgPlaceBuyOrder.
+func (m *MsgPlaceBuyOrder) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }

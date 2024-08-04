@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgPurchaseName_ValidateBasic(t *testing.T) {
+func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 	validOffer := dymnsutils.TestCoin(100)
 
 	//goland:noinspection SpellCheckingInspection
@@ -96,7 +96,7 @@ func TestMsgPurchaseName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgPurchaseName{
+			m := &MsgPurchaseOrder{
 				Name:  tt.dymName,
 				Offer: tt.offer,
 				Buyer: tt.buyer,

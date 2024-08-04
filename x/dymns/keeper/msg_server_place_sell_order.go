@@ -11,12 +11,12 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// PutAdsSellName is message handler,
+// PlaceSellOrder is message handler,
 // handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
-func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutAdsSellName) (*dymnstypes.MsgPutAdsSellNameResponse, error) {
+func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.MsgPlaceSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	dymName, params, err := k.validatePutAdsSellName(ctx, msg)
+	dymName, params, err := k.validatePlaceSellOrder(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
@@ -45,13 +45,13 @@ func (k msgServer) PutAdsSellName(goCtx context.Context, msg *dymnstypes.MsgPutA
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasPutAds, "PutAdsSellName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasPlaceSellOrder, "PlaceSellOrder")
 
-	return &dymnstypes.MsgPutAdsSellNameResponse{}, nil
+	return &dymnstypes.MsgPlaceSellOrderResponse{}, nil
 }
 
-// validatePutAdsSellName handles validation for message handled by PutAdsSellName
-func (k msgServer) validatePutAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgPutAdsSellName) (*dymnstypes.DymName, *dymnstypes.Params, error) {
+// validatePlaceSellOrder handles validation for message handled by PlaceSellOrder
+func (k msgServer) validatePlaceSellOrder(ctx sdk.Context, msg *dymnstypes.MsgPlaceSellOrder) (*dymnstypes.DymName, *dymnstypes.Params, error) {
 	if err := msg.ValidateBasic(); err != nil {
 		return nil, nil, err
 	}

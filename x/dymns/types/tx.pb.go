@@ -582,8 +582,8 @@ func (m *MsgUpdateDetailsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateDetailsResponse proto.InternalMessageInfo
 
-// MsgPutAdsSellName defines the message used for user to put a Dym-Name for sale.
-type MsgPutAdsSellName struct {
+// MsgPlaceSellOrder defines the message used for user to put a Dym-Name for sale.
+type MsgPlaceSellOrder struct {
 	// name is the Dym-Name to be opened for sell.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// owner is the bech32-encoded address of the account which owns the order.
@@ -596,18 +596,18 @@ type MsgPutAdsSellName struct {
 	SellPrice *types.Coin `protobuf:"bytes,4,opt,name=sell_price,json=sellPrice,proto3" json:"sell_price,omitempty"`
 }
 
-func (m *MsgPutAdsSellName) Reset()         { *m = MsgPutAdsSellName{} }
-func (m *MsgPutAdsSellName) String() string { return proto.CompactTextString(m) }
-func (*MsgPutAdsSellName) ProtoMessage()    {}
-func (*MsgPutAdsSellName) Descriptor() ([]byte, []int) {
+func (m *MsgPlaceSellOrder) Reset()         { *m = MsgPlaceSellOrder{} }
+func (m *MsgPlaceSellOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgPlaceSellOrder) ProtoMessage()    {}
+func (*MsgPlaceSellOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{10}
 }
-func (m *MsgPutAdsSellName) XXX_Unmarshal(b []byte) error {
+func (m *MsgPlaceSellOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPutAdsSellName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPlaceSellOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPutAdsSellName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPlaceSellOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -617,62 +617,62 @@ func (m *MsgPutAdsSellName) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *MsgPutAdsSellName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPutAdsSellName.Merge(m, src)
+func (m *MsgPlaceSellOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPlaceSellOrder.Merge(m, src)
 }
-func (m *MsgPutAdsSellName) XXX_Size() int {
+func (m *MsgPlaceSellOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPutAdsSellName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPutAdsSellName.DiscardUnknown(m)
+func (m *MsgPlaceSellOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPlaceSellOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPutAdsSellName proto.InternalMessageInfo
+var xxx_messageInfo_MsgPlaceSellOrder proto.InternalMessageInfo
 
-func (m *MsgPutAdsSellName) GetName() string {
+func (m *MsgPlaceSellOrder) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *MsgPutAdsSellName) GetOwner() string {
+func (m *MsgPlaceSellOrder) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-func (m *MsgPutAdsSellName) GetMinPrice() types.Coin {
+func (m *MsgPlaceSellOrder) GetMinPrice() types.Coin {
 	if m != nil {
 		return m.MinPrice
 	}
 	return types.Coin{}
 }
 
-func (m *MsgPutAdsSellName) GetSellPrice() *types.Coin {
+func (m *MsgPlaceSellOrder) GetSellPrice() *types.Coin {
 	if m != nil {
 		return m.SellPrice
 	}
 	return nil
 }
 
-// MsgPutAdsSellNameResponse defines the response for the name sell advertisement.
-type MsgPutAdsSellNameResponse struct {
+// MsgPlaceSellOrderResponse defines the response after placed the Sell-Order.
+type MsgPlaceSellOrderResponse struct {
 }
 
-func (m *MsgPutAdsSellNameResponse) Reset()         { *m = MsgPutAdsSellNameResponse{} }
-func (m *MsgPutAdsSellNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgPutAdsSellNameResponse) ProtoMessage()    {}
-func (*MsgPutAdsSellNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgPlaceSellOrderResponse) Reset()         { *m = MsgPlaceSellOrderResponse{} }
+func (m *MsgPlaceSellOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgPlaceSellOrderResponse) ProtoMessage()    {}
+func (*MsgPlaceSellOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{11}
 }
-func (m *MsgPutAdsSellNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgPlaceSellOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPutAdsSellNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPlaceSellOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPutAdsSellNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPlaceSellOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -682,38 +682,38 @@ func (m *MsgPutAdsSellNameResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MsgPutAdsSellNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPutAdsSellNameResponse.Merge(m, src)
+func (m *MsgPlaceSellOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPlaceSellOrderResponse.Merge(m, src)
 }
-func (m *MsgPutAdsSellNameResponse) XXX_Size() int {
+func (m *MsgPlaceSellOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPutAdsSellNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPutAdsSellNameResponse.DiscardUnknown(m)
+func (m *MsgPlaceSellOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPlaceSellOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPutAdsSellNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgPlaceSellOrderResponse proto.InternalMessageInfo
 
-// MsgCancelAdsSellName defines the message used for user to cancel a Dym-Name sell advertisement.
-type MsgCancelAdsSellName struct {
+// MsgCancelSellOrder defines the message used for user to cancel a Sell-Order.
+type MsgCancelSellOrder struct {
 	// name is the Dym-Name to be stopped selling.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// owner is the bech32-encoded address of the account which owns the Dym-Name as well as the order.
 	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
-func (m *MsgCancelAdsSellName) Reset()         { *m = MsgCancelAdsSellName{} }
-func (m *MsgCancelAdsSellName) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelAdsSellName) ProtoMessage()    {}
-func (*MsgCancelAdsSellName) Descriptor() ([]byte, []int) {
+func (m *MsgCancelSellOrder) Reset()         { *m = MsgCancelSellOrder{} }
+func (m *MsgCancelSellOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelSellOrder) ProtoMessage()    {}
+func (*MsgCancelSellOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{12}
 }
-func (m *MsgCancelAdsSellName) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelSellOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancelAdsSellName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelSellOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancelAdsSellName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelSellOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -723,48 +723,48 @@ func (m *MsgCancelAdsSellName) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *MsgCancelAdsSellName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelAdsSellName.Merge(m, src)
+func (m *MsgCancelSellOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelSellOrder.Merge(m, src)
 }
-func (m *MsgCancelAdsSellName) XXX_Size() int {
+func (m *MsgCancelSellOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancelAdsSellName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelAdsSellName.DiscardUnknown(m)
+func (m *MsgCancelSellOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelSellOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancelAdsSellName proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelSellOrder proto.InternalMessageInfo
 
-func (m *MsgCancelAdsSellName) GetName() string {
+func (m *MsgCancelSellOrder) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *MsgCancelAdsSellName) GetOwner() string {
+func (m *MsgCancelSellOrder) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-// MsgCancelAdsSellNameResponse defines the response for the name sell advertisement cancellation.
-type MsgCancelAdsSellNameResponse struct {
+// MsgCancelSellOrderResponse defines the response for the Sell-Order cancellation.
+type MsgCancelSellOrderResponse struct {
 }
 
-func (m *MsgCancelAdsSellNameResponse) Reset()         { *m = MsgCancelAdsSellNameResponse{} }
-func (m *MsgCancelAdsSellNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelAdsSellNameResponse) ProtoMessage()    {}
-func (*MsgCancelAdsSellNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCancelSellOrderResponse) Reset()         { *m = MsgCancelSellOrderResponse{} }
+func (m *MsgCancelSellOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelSellOrderResponse) ProtoMessage()    {}
+func (*MsgCancelSellOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{13}
 }
-func (m *MsgCancelAdsSellNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelSellOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancelAdsSellNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelSellOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancelAdsSellNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelSellOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -774,20 +774,20 @@ func (m *MsgCancelAdsSellNameResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *MsgCancelAdsSellNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelAdsSellNameResponse.Merge(m, src)
+func (m *MsgCancelSellOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelSellOrderResponse.Merge(m, src)
 }
-func (m *MsgCancelAdsSellNameResponse) XXX_Size() int {
+func (m *MsgCancelSellOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancelAdsSellNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelAdsSellNameResponse.DiscardUnknown(m)
+func (m *MsgCancelSellOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelSellOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancelAdsSellNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelSellOrderResponse proto.InternalMessageInfo
 
-// MsgPurchaseName defines the message used for user to bid/purchase a Dym-Name.
-type MsgPurchaseName struct {
+// MsgPurchaseOrder defines the message used for user to bid/purchase a Sell-Order.
+type MsgPurchaseOrder struct {
 	// name is the Dym-Name to be purchased.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// buyer is the account address of the account which is purchasing the Dym-Name.
@@ -796,18 +796,18 @@ type MsgPurchaseName struct {
 	Offer types.Coin `protobuf:"bytes,3,opt,name=offer,proto3" json:"offer"`
 }
 
-func (m *MsgPurchaseName) Reset()         { *m = MsgPurchaseName{} }
-func (m *MsgPurchaseName) String() string { return proto.CompactTextString(m) }
-func (*MsgPurchaseName) ProtoMessage()    {}
-func (*MsgPurchaseName) Descriptor() ([]byte, []int) {
+func (m *MsgPurchaseOrder) Reset()         { *m = MsgPurchaseOrder{} }
+func (m *MsgPurchaseOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgPurchaseOrder) ProtoMessage()    {}
+func (*MsgPurchaseOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{14}
 }
-func (m *MsgPurchaseName) XXX_Unmarshal(b []byte) error {
+func (m *MsgPurchaseOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPurchaseName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPurchaseOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPurchaseName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPurchaseOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -817,55 +817,55 @@ func (m *MsgPurchaseName) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *MsgPurchaseName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPurchaseName.Merge(m, src)
+func (m *MsgPurchaseOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPurchaseOrder.Merge(m, src)
 }
-func (m *MsgPurchaseName) XXX_Size() int {
+func (m *MsgPurchaseOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPurchaseName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPurchaseName.DiscardUnknown(m)
+func (m *MsgPurchaseOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPurchaseOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPurchaseName proto.InternalMessageInfo
+var xxx_messageInfo_MsgPurchaseOrder proto.InternalMessageInfo
 
-func (m *MsgPurchaseName) GetName() string {
+func (m *MsgPurchaseOrder) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *MsgPurchaseName) GetBuyer() string {
+func (m *MsgPurchaseOrder) GetBuyer() string {
 	if m != nil {
 		return m.Buyer
 	}
 	return ""
 }
 
-func (m *MsgPurchaseName) GetOffer() types.Coin {
+func (m *MsgPurchaseOrder) GetOffer() types.Coin {
 	if m != nil {
 		return m.Offer
 	}
 	return types.Coin{}
 }
 
-// MsgPurchaseNameResponse defines the response for the name purchase.
-type MsgPurchaseNameResponse struct {
+// MsgPurchaseOrderResponse defines the response for the purchase order.
+type MsgPurchaseOrderResponse struct {
 }
 
-func (m *MsgPurchaseNameResponse) Reset()         { *m = MsgPurchaseNameResponse{} }
-func (m *MsgPurchaseNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgPurchaseNameResponse) ProtoMessage()    {}
-func (*MsgPurchaseNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgPurchaseOrderResponse) Reset()         { *m = MsgPurchaseOrderResponse{} }
+func (m *MsgPurchaseOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgPurchaseOrderResponse) ProtoMessage()    {}
+func (*MsgPurchaseOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{15}
 }
-func (m *MsgPurchaseNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgPurchaseOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgPurchaseNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPurchaseOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgPurchaseNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPurchaseOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -875,20 +875,20 @@ func (m *MsgPurchaseNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *MsgPurchaseNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgPurchaseNameResponse.Merge(m, src)
+func (m *MsgPurchaseOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPurchaseOrderResponse.Merge(m, src)
 }
-func (m *MsgPurchaseNameResponse) XXX_Size() int {
+func (m *MsgPurchaseOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgPurchaseNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgPurchaseNameResponse.DiscardUnknown(m)
+func (m *MsgPurchaseOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPurchaseOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgPurchaseNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgPurchaseOrderResponse proto.InternalMessageInfo
 
-// MsgOfferBuyName defines the message used for user to place an offer, to buy a Dym-Name.
-type MsgOfferBuyName struct {
+// MsgPlaceBuyOrder defines the message used for user to place an offer, to buy a Dym-Name.
+type MsgPlaceBuyOrder struct {
 	// name is the Dym-Name wishing to buy.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	// buyer is the account address of the account which is purchasing the Dym-Name.
@@ -899,18 +899,18 @@ type MsgOfferBuyName struct {
 	Offer types.Coin `protobuf:"bytes,4,opt,name=offer,proto3" json:"offer"`
 }
 
-func (m *MsgOfferBuyName) Reset()         { *m = MsgOfferBuyName{} }
-func (m *MsgOfferBuyName) String() string { return proto.CompactTextString(m) }
-func (*MsgOfferBuyName) ProtoMessage()    {}
-func (*MsgOfferBuyName) Descriptor() ([]byte, []int) {
+func (m *MsgPlaceBuyOrder) Reset()         { *m = MsgPlaceBuyOrder{} }
+func (m *MsgPlaceBuyOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgPlaceBuyOrder) ProtoMessage()    {}
+func (*MsgPlaceBuyOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{16}
 }
-func (m *MsgOfferBuyName) XXX_Unmarshal(b []byte) error {
+func (m *MsgPlaceBuyOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPlaceBuyOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOfferBuyName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPlaceBuyOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -920,64 +920,64 @@ func (m *MsgOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *MsgOfferBuyName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOfferBuyName.Merge(m, src)
+func (m *MsgPlaceBuyOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPlaceBuyOrder.Merge(m, src)
 }
-func (m *MsgOfferBuyName) XXX_Size() int {
+func (m *MsgPlaceBuyOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOfferBuyName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOfferBuyName.DiscardUnknown(m)
+func (m *MsgPlaceBuyOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPlaceBuyOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOfferBuyName proto.InternalMessageInfo
+var xxx_messageInfo_MsgPlaceBuyOrder proto.InternalMessageInfo
 
-func (m *MsgOfferBuyName) GetName() string {
+func (m *MsgPlaceBuyOrder) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *MsgOfferBuyName) GetBuyer() string {
+func (m *MsgPlaceBuyOrder) GetBuyer() string {
 	if m != nil {
 		return m.Buyer
 	}
 	return ""
 }
 
-func (m *MsgOfferBuyName) GetContinueOfferId() string {
+func (m *MsgPlaceBuyOrder) GetContinueOfferId() string {
 	if m != nil {
 		return m.ContinueOfferId
 	}
 	return ""
 }
 
-func (m *MsgOfferBuyName) GetOffer() types.Coin {
+func (m *MsgPlaceBuyOrder) GetOffer() types.Coin {
 	if m != nil {
 		return m.Offer
 	}
 	return types.Coin{}
 }
 
-// MsgOfferBuyNameResponse defines the response for the name buy offer.
-type MsgOfferBuyNameResponse struct {
+// MsgPlaceBuyOrderResponse defines the response after placed the Buy-Offer.
+type MsgPlaceBuyOrderResponse struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
 }
 
-func (m *MsgOfferBuyNameResponse) Reset()         { *m = MsgOfferBuyNameResponse{} }
-func (m *MsgOfferBuyNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgOfferBuyNameResponse) ProtoMessage()    {}
-func (*MsgOfferBuyNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgPlaceBuyOrderResponse) Reset()         { *m = MsgPlaceBuyOrderResponse{} }
+func (m *MsgPlaceBuyOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgPlaceBuyOrderResponse) ProtoMessage()    {}
+func (*MsgPlaceBuyOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{17}
 }
-func (m *MsgOfferBuyNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgPlaceBuyOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgPlaceBuyOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgOfferBuyNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgPlaceBuyOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -987,45 +987,45 @@ func (m *MsgOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *MsgOfferBuyNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgOfferBuyNameResponse.Merge(m, src)
+func (m *MsgPlaceBuyOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgPlaceBuyOrderResponse.Merge(m, src)
 }
-func (m *MsgOfferBuyNameResponse) XXX_Size() int {
+func (m *MsgPlaceBuyOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgOfferBuyNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgOfferBuyNameResponse.DiscardUnknown(m)
+func (m *MsgPlaceBuyOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgPlaceBuyOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgOfferBuyNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgPlaceBuyOrderResponse proto.InternalMessageInfo
 
-func (m *MsgOfferBuyNameResponse) GetOfferId() string {
+func (m *MsgPlaceBuyOrderResponse) GetOfferId() string {
 	if m != nil {
 		return m.OfferId
 	}
 	return ""
 }
 
-// MsgCancelOfferBuyName defines the message used for buy to cancel a placed Buy-Offer.
-type MsgCancelOfferBuyName struct {
+// MsgCancelBuyOrder defines the message used for user to cancel a Buy-Offer.
+type MsgCancelBuyOrder struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
 	// buyer is the account address of the account which is purchasing the Dym-Name.
 	Buyer string `protobuf:"bytes,2,opt,name=buyer,proto3" json:"buyer,omitempty"`
 }
 
-func (m *MsgCancelOfferBuyName) Reset()         { *m = MsgCancelOfferBuyName{} }
-func (m *MsgCancelOfferBuyName) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelOfferBuyName) ProtoMessage()    {}
-func (*MsgCancelOfferBuyName) Descriptor() ([]byte, []int) {
+func (m *MsgCancelBuyOrder) Reset()         { *m = MsgCancelBuyOrder{} }
+func (m *MsgCancelBuyOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelBuyOrder) ProtoMessage()    {}
+func (*MsgCancelBuyOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{18}
 }
-func (m *MsgCancelOfferBuyName) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelBuyOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancelOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelBuyOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancelOfferBuyName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelBuyOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1035,48 +1035,48 @@ func (m *MsgCancelOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgCancelOfferBuyName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelOfferBuyName.Merge(m, src)
+func (m *MsgCancelBuyOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelBuyOrder.Merge(m, src)
 }
-func (m *MsgCancelOfferBuyName) XXX_Size() int {
+func (m *MsgCancelBuyOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancelOfferBuyName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelOfferBuyName.DiscardUnknown(m)
+func (m *MsgCancelBuyOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelBuyOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancelOfferBuyName proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelBuyOrder proto.InternalMessageInfo
 
-func (m *MsgCancelOfferBuyName) GetOfferId() string {
+func (m *MsgCancelBuyOrder) GetOfferId() string {
 	if m != nil {
 		return m.OfferId
 	}
 	return ""
 }
 
-func (m *MsgCancelOfferBuyName) GetBuyer() string {
+func (m *MsgCancelBuyOrder) GetBuyer() string {
 	if m != nil {
 		return m.Buyer
 	}
 	return ""
 }
 
-// MsgCancelOfferBuyNameResponse defines the response for the name buy offer cancellation.
-type MsgCancelOfferBuyNameResponse struct {
+// MsgCancelBuyOrderResponse defines the response for the Buy-Offer cancellation.
+type MsgCancelBuyOrderResponse struct {
 }
 
-func (m *MsgCancelOfferBuyNameResponse) Reset()         { *m = MsgCancelOfferBuyNameResponse{} }
-func (m *MsgCancelOfferBuyNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCancelOfferBuyNameResponse) ProtoMessage()    {}
-func (*MsgCancelOfferBuyNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCancelBuyOrderResponse) Reset()         { *m = MsgCancelBuyOrderResponse{} }
+func (m *MsgCancelBuyOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCancelBuyOrderResponse) ProtoMessage()    {}
+func (*MsgCancelBuyOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{19}
 }
-func (m *MsgCancelOfferBuyNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCancelBuyOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCancelOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCancelBuyOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCancelOfferBuyNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCancelBuyOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1086,20 +1086,20 @@ func (m *MsgCancelOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MsgCancelOfferBuyNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCancelOfferBuyNameResponse.Merge(m, src)
+func (m *MsgCancelBuyOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCancelBuyOrderResponse.Merge(m, src)
 }
-func (m *MsgCancelOfferBuyNameResponse) XXX_Size() int {
+func (m *MsgCancelBuyOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCancelOfferBuyNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCancelOfferBuyNameResponse.DiscardUnknown(m)
+func (m *MsgCancelBuyOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCancelBuyOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCancelOfferBuyNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCancelBuyOrderResponse proto.InternalMessageInfo
 
-// MsgAcceptOfferBuyName defines the message used for Dym-Name owner to accept a Buy-Offer.
-type MsgAcceptOfferBuyName struct {
+// MsgAcceptBuyOrder defines the message used for user to accept a Buy-Offer.
+type MsgAcceptBuyOrder struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
 	// owner is the account address of the account which owns the Dym-Name.
@@ -1111,18 +1111,18 @@ type MsgAcceptOfferBuyName struct {
 	MinAccept types.Coin `protobuf:"bytes,3,opt,name=min_accept,json=minAccept,proto3" json:"min_accept"`
 }
 
-func (m *MsgAcceptOfferBuyName) Reset()         { *m = MsgAcceptOfferBuyName{} }
-func (m *MsgAcceptOfferBuyName) String() string { return proto.CompactTextString(m) }
-func (*MsgAcceptOfferBuyName) ProtoMessage()    {}
-func (*MsgAcceptOfferBuyName) Descriptor() ([]byte, []int) {
+func (m *MsgAcceptBuyOrder) Reset()         { *m = MsgAcceptBuyOrder{} }
+func (m *MsgAcceptBuyOrder) String() string { return proto.CompactTextString(m) }
+func (*MsgAcceptBuyOrder) ProtoMessage()    {}
+func (*MsgAcceptBuyOrder) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{20}
 }
-func (m *MsgAcceptOfferBuyName) XXX_Unmarshal(b []byte) error {
+func (m *MsgAcceptBuyOrder) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAcceptOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAcceptBuyOrder) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAcceptOfferBuyName.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAcceptBuyOrder.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1132,57 +1132,57 @@ func (m *MsgAcceptOfferBuyName) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgAcceptOfferBuyName) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAcceptOfferBuyName.Merge(m, src)
+func (m *MsgAcceptBuyOrder) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAcceptBuyOrder.Merge(m, src)
 }
-func (m *MsgAcceptOfferBuyName) XXX_Size() int {
+func (m *MsgAcceptBuyOrder) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAcceptOfferBuyName) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAcceptOfferBuyName.DiscardUnknown(m)
+func (m *MsgAcceptBuyOrder) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAcceptBuyOrder.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAcceptOfferBuyName proto.InternalMessageInfo
+var xxx_messageInfo_MsgAcceptBuyOrder proto.InternalMessageInfo
 
-func (m *MsgAcceptOfferBuyName) GetOfferId() string {
+func (m *MsgAcceptBuyOrder) GetOfferId() string {
 	if m != nil {
 		return m.OfferId
 	}
 	return ""
 }
 
-func (m *MsgAcceptOfferBuyName) GetOwner() string {
+func (m *MsgAcceptBuyOrder) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-func (m *MsgAcceptOfferBuyName) GetMinAccept() types.Coin {
+func (m *MsgAcceptBuyOrder) GetMinAccept() types.Coin {
 	if m != nil {
 		return m.MinAccept
 	}
 	return types.Coin{}
 }
 
-// MsgAcceptOfferBuyNameResponse defines the response for the name buy offer acceptance.
-type MsgAcceptOfferBuyNameResponse struct {
+// MsgAcceptBuyOrderResponse defines the response for the Buy-Offer acceptance.
+type MsgAcceptBuyOrderResponse struct {
 	// accepted is the flag to indicate if the offer is accepted (price matched).
 	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
 }
 
-func (m *MsgAcceptOfferBuyNameResponse) Reset()         { *m = MsgAcceptOfferBuyNameResponse{} }
-func (m *MsgAcceptOfferBuyNameResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgAcceptOfferBuyNameResponse) ProtoMessage()    {}
-func (*MsgAcceptOfferBuyNameResponse) Descriptor() ([]byte, []int) {
+func (m *MsgAcceptBuyOrderResponse) Reset()         { *m = MsgAcceptBuyOrderResponse{} }
+func (m *MsgAcceptBuyOrderResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgAcceptBuyOrderResponse) ProtoMessage()    {}
+func (*MsgAcceptBuyOrderResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_88dd2f81468013c2, []int{21}
 }
-func (m *MsgAcceptOfferBuyNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgAcceptBuyOrderResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgAcceptOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgAcceptBuyOrderResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgAcceptOfferBuyNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgAcceptBuyOrderResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1192,19 +1192,19 @@ func (m *MsgAcceptOfferBuyNameResponse) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MsgAcceptOfferBuyNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgAcceptOfferBuyNameResponse.Merge(m, src)
+func (m *MsgAcceptBuyOrderResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgAcceptBuyOrderResponse.Merge(m, src)
 }
-func (m *MsgAcceptOfferBuyNameResponse) XXX_Size() int {
+func (m *MsgAcceptBuyOrderResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgAcceptOfferBuyNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgAcceptOfferBuyNameResponse.DiscardUnknown(m)
+func (m *MsgAcceptBuyOrderResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgAcceptBuyOrderResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgAcceptOfferBuyNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgAcceptBuyOrderResponse proto.InternalMessageInfo
 
-func (m *MsgAcceptOfferBuyNameResponse) GetAccepted() bool {
+func (m *MsgAcceptBuyOrderResponse) GetAccepted() bool {
 	if m != nil {
 		return m.Accepted
 	}
@@ -1222,18 +1222,18 @@ func init() {
 	proto.RegisterType((*MsgUpdateResolveAddressResponse)(nil), "dymensionxyz.dymension.dymns.MsgUpdateResolveAddressResponse")
 	proto.RegisterType((*MsgUpdateDetails)(nil), "dymensionxyz.dymension.dymns.MsgUpdateDetails")
 	proto.RegisterType((*MsgUpdateDetailsResponse)(nil), "dymensionxyz.dymension.dymns.MsgUpdateDetailsResponse")
-	proto.RegisterType((*MsgPutAdsSellName)(nil), "dymensionxyz.dymension.dymns.MsgPutAdsSellName")
-	proto.RegisterType((*MsgPutAdsSellNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgPutAdsSellNameResponse")
-	proto.RegisterType((*MsgCancelAdsSellName)(nil), "dymensionxyz.dymension.dymns.MsgCancelAdsSellName")
-	proto.RegisterType((*MsgCancelAdsSellNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgCancelAdsSellNameResponse")
-	proto.RegisterType((*MsgPurchaseName)(nil), "dymensionxyz.dymension.dymns.MsgPurchaseName")
-	proto.RegisterType((*MsgPurchaseNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgPurchaseNameResponse")
-	proto.RegisterType((*MsgOfferBuyName)(nil), "dymensionxyz.dymension.dymns.MsgOfferBuyName")
-	proto.RegisterType((*MsgOfferBuyNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgOfferBuyNameResponse")
-	proto.RegisterType((*MsgCancelOfferBuyName)(nil), "dymensionxyz.dymension.dymns.MsgCancelOfferBuyName")
-	proto.RegisterType((*MsgCancelOfferBuyNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgCancelOfferBuyNameResponse")
-	proto.RegisterType((*MsgAcceptOfferBuyName)(nil), "dymensionxyz.dymension.dymns.MsgAcceptOfferBuyName")
-	proto.RegisterType((*MsgAcceptOfferBuyNameResponse)(nil), "dymensionxyz.dymension.dymns.MsgAcceptOfferBuyNameResponse")
+	proto.RegisterType((*MsgPlaceSellOrder)(nil), "dymensionxyz.dymension.dymns.MsgPlaceSellOrder")
+	proto.RegisterType((*MsgPlaceSellOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgPlaceSellOrderResponse")
+	proto.RegisterType((*MsgCancelSellOrder)(nil), "dymensionxyz.dymension.dymns.MsgCancelSellOrder")
+	proto.RegisterType((*MsgCancelSellOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgCancelSellOrderResponse")
+	proto.RegisterType((*MsgPurchaseOrder)(nil), "dymensionxyz.dymension.dymns.MsgPurchaseOrder")
+	proto.RegisterType((*MsgPurchaseOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgPurchaseOrderResponse")
+	proto.RegisterType((*MsgPlaceBuyOrder)(nil), "dymensionxyz.dymension.dymns.MsgPlaceBuyOrder")
+	proto.RegisterType((*MsgPlaceBuyOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgPlaceBuyOrderResponse")
+	proto.RegisterType((*MsgCancelBuyOrder)(nil), "dymensionxyz.dymension.dymns.MsgCancelBuyOrder")
+	proto.RegisterType((*MsgCancelBuyOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgCancelBuyOrderResponse")
+	proto.RegisterType((*MsgAcceptBuyOrder)(nil), "dymensionxyz.dymension.dymns.MsgAcceptBuyOrder")
+	proto.RegisterType((*MsgAcceptBuyOrderResponse)(nil), "dymensionxyz.dymension.dymns.MsgAcceptBuyOrderResponse")
 }
 
 func init() {
@@ -1241,70 +1241,70 @@ func init() {
 }
 
 var fileDescriptor_88dd2f81468013c2 = []byte{
-	// 1003 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x57, 0x4f, 0x6f, 0xe3, 0x44,
-	0x14, 0xb7, 0xb7, 0x29, 0x4d, 0xde, 0xfe, 0x29, 0xb5, 0x8a, 0x36, 0xf5, 0xee, 0xba, 0x25, 0x08,
-	0xa9, 0x5a, 0x69, 0x6d, 0xb5, 0x65, 0x01, 0x75, 0x01, 0xa9, 0x2d, 0x07, 0x56, 0xda, 0xb0, 0x55,
-	0xb6, 0x5c, 0xb8, 0x44, 0x8e, 0x3d, 0x75, 0x2c, 0xd9, 0x33, 0x91, 0xc7, 0x4e, 0x1b, 0x84, 0x38,
-	0x20, 0x21, 0x71, 0x42, 0x1c, 0x10, 0xe2, 0x33, 0x70, 0x42, 0xe2, 0x13, 0x70, 0x62, 0x8f, 0x7b,
-	0xe4, 0x84, 0x50, 0x7b, 0xe0, 0x6b, 0xac, 0x3c, 0xe3, 0x4e, 0x3d, 0xb1, 0xb3, 0xb1, 0x73, 0x8a,
-	0x67, 0xe6, 0xfd, 0xde, 0xef, 0xf7, 0x9e, 0xdf, 0x9b, 0x17, 0xc3, 0xfb, 0xee, 0x24, 0x44, 0x98,
-	0xfa, 0x04, 0x9f, 0x4f, 0xbe, 0xb1, 0xc4, 0x22, 0x7d, 0xc2, 0xd4, 0x8a, 0xcf, 0xcd, 0x51, 0x44,
-	0x62, 0xa2, 0xdd, 0xcf, 0x9b, 0x99, 0x62, 0x61, 0x32, 0x33, 0x7d, 0xdd, 0x23, 0x1e, 0x61, 0x86,
-	0x56, 0xfa, 0xc4, 0x31, 0xba, 0xe1, 0x10, 0x1a, 0x12, 0x6a, 0x0d, 0x6c, 0x8a, 0xac, 0xf1, 0xce,
-	0x00, 0xc5, 0xf6, 0x8e, 0xe5, 0x10, 0x1f, 0x67, 0xe7, 0x77, 0xb3, 0xf3, 0x90, 0x7a, 0xd6, 0x78,
-	0x27, 0xfd, 0xe1, 0x07, 0x9d, 0xbf, 0x55, 0x58, 0xed, 0x52, 0xaf, 0x87, 0x3c, 0x9f, 0xc6, 0x28,
-	0xfa, 0xd2, 0x0e, 0x91, 0xa6, 0x41, 0x03, 0xdb, 0x21, 0x6a, 0xab, 0x5b, 0xea, 0x76, 0xab, 0xc7,
-	0x9e, 0xb5, 0x75, 0x58, 0x26, 0x67, 0x18, 0x45, 0xed, 0x1b, 0x6c, 0x93, 0x2f, 0x34, 0x1d, 0x9a,
-	0x6e, 0x12, 0xd9, 0xb1, 0x4f, 0x70, 0x7b, 0x69, 0x4b, 0xdd, 0x5e, 0xea, 0x89, 0xb5, 0xf6, 0x05,
-	0xac, 0x3a, 0x04, 0x9f, 0xfa, 0x51, 0xd8, 0x1f, 0xd9, 0x69, 0x10, 0x71, 0xbb, 0xb1, 0xa5, 0x6e,
-	0xdf, 0xdc, 0xdd, 0x30, 0xb9, 0x18, 0x33, 0x15, 0x6b, 0x66, 0x62, 0xcd, 0x23, 0xe2, 0xe3, 0xc3,
-	0xc6, 0xcb, 0x7f, 0x37, 0x95, 0xde, 0x9d, 0x0c, 0x77, 0xcc, 0x61, 0x5a, 0x1b, 0x56, 0x1c, 0x82,
-	0x63, 0xdb, 0x89, 0xdb, 0xcb, 0x8c, 0xfd, 0x6a, 0xb9, 0x0f, 0xdf, 0xff, 0xff, 0xc7, 0x43, 0xae,
-	0xa5, 0xb3, 0x01, 0x77, 0xa7, 0x02, 0xe9, 0x21, 0x3a, 0x22, 0x98, 0xa2, 0x8e, 0x0f, 0xeb, 0x5d,
-	0xea, 0x9d, 0x44, 0x36, 0xa6, 0xa7, 0x28, 0x7a, 0x9e, 0x9a, 0xd3, 0xa1, 0x3f, 0xaa, 0x11, 0xe8,
-	0x3d, 0x68, 0x61, 0x74, 0xd6, 0xe7, 0x27, 0x4b, 0xec, 0xa4, 0x89, 0xd1, 0x19, 0x73, 0x25, 0xa9,
-	0x30, 0xe0, 0x7e, 0x19, 0x95, 0x90, 0x32, 0x84, 0xb7, 0xbb, 0xd4, 0x7b, 0x81, 0xe2, 0x23, 0x82,
-	0xe3, 0x88, 0x04, 0x01, 0x8a, 0x6a, 0xc8, 0x30, 0x00, 0x1c, 0x81, 0xcb, 0x74, 0xe4, 0x76, 0x24,
-	0x25, 0x3a, 0xb4, 0xa7, 0x99, 0x84, 0x8a, 0x3f, 0x55, 0x96, 0xac, 0xaf, 0x46, 0xae, 0x1d, 0xa7,
-	0x69, 0x22, 0xc1, 0x18, 0x1d, 0xb8, 0x6e, 0x84, 0x28, 0x2d, 0x55, 0x23, 0xf3, 0xde, 0x98, 0xe6,
-	0xd5, 0x36, 0xa0, 0xe9, 0x0c, 0x6d, 0x1f, 0xf7, 0x7d, 0x37, 0x53, 0xb5, 0xc2, 0xd6, 0x4f, 0xdd,
-	0xf4, 0x88, 0x26, 0x83, 0x3e, 0x73, 0xd9, 0xe0, 0x47, 0x34, 0x19, 0xb0, 0x3a, 0x7b, 0x00, 0x10,
-	0x71, 0xee, 0x7e, 0x4c, 0xb2, 0x57, 0xdb, 0xca, 0x76, 0x4e, 0xc8, 0xfe, 0x6a, 0x1a, 0x4c, 0x8e,
-	0xa5, 0xf3, 0x2e, 0x6c, 0xce, 0x10, 0x2d, 0x02, 0xfb, 0x55, 0x65, 0xf9, 0xe5, 0x36, 0x9f, 0xa3,
-	0xd8, 0xf6, 0x83, 0xc5, 0x22, 0xca, 0xd5, 0xdc, 0x92, 0x54, 0x73, 0xda, 0x7b, 0x70, 0xdb, 0x09,
-	0x90, 0x1d, 0xf5, 0x59, 0x95, 0x7a, 0x94, 0x45, 0xd5, 0xec, 0xdd, 0x62, 0x9b, 0x47, 0x7c, 0xaf,
-	0xa8, 0x9d, 0xbf, 0x0d, 0x49, 0x97, 0x10, 0xfd, 0x97, 0x0a, 0x6b, 0x5d, 0xea, 0x1d, 0x27, 0xf1,
-	0x81, 0x4b, 0x5f, 0xa0, 0x20, 0xa8, 0xd9, 0x85, 0x9f, 0x40, 0x2b, 0xf4, 0x71, 0x7f, 0x14, 0xf9,
-	0x0e, 0x62, 0x6a, 0x2b, 0xf4, 0x58, 0x33, 0xf4, 0xf1, 0x71, 0x0a, 0xd0, 0x3e, 0x06, 0xa0, 0x28,
-	0x08, 0x32, 0xf8, 0xbc, 0x16, 0xed, 0xb5, 0x52, 0x63, 0x86, 0x94, 0xaa, 0xed, 0x1e, 0x6c, 0x14,
-	0x42, 0x10, 0x01, 0x3e, 0x63, 0xfd, 0x77, 0x64, 0x63, 0x07, 0x05, 0x0b, 0x85, 0x58, 0xd2, 0x62,
-	0x05, 0x6f, 0x82, 0xed, 0x3b, 0x76, 0xa3, 0x1d, 0x27, 0x91, 0x33, 0xb4, 0x29, 0x7a, 0x13, 0xd1,
-	0x20, 0x99, 0x5c, 0x13, 0xb1, 0x85, 0xf6, 0x18, 0x96, 0xc9, 0xe9, 0x69, 0xd6, 0x5c, 0x15, 0xf2,
-	0xc8, 0xad, 0x33, 0x7d, 0xcc, 0x45, 0x76, 0x11, 0xe5, 0xf9, 0x85, 0xb4, 0xdf, 0xf9, 0x6d, 0xfb,
-	0x3c, 0xc5, 0x1c, 0x26, 0x93, 0x9a, 0xda, 0x1e, 0xc2, 0x5a, 0x5a, 0x51, 0x3e, 0x4e, 0x50, 0x9f,
-	0xd1, 0x5e, 0xb7, 0xdb, 0xea, 0xd5, 0x01, 0x73, 0xfd, 0xd4, 0xbd, 0x8e, 0xa3, 0xb1, 0x70, 0x1c,
-	0x1f, 0xb0, 0x38, 0xf2, 0x5a, 0xaf, 0xe2, 0x48, 0x9b, 0x5a, 0x08, 0xe0, 0xba, 0x57, 0x08, 0x27,
-	0xee, 0x9c, 0xc0, 0x3b, 0xe2, 0xed, 0x48, 0x71, 0xce, 0xc6, 0x94, 0x87, 0x2b, 0x69, 0xd9, 0x84,
-	0x07, 0xa5, 0x5e, 0x45, 0x66, 0x7f, 0x51, 0x19, 0xef, 0x81, 0xe3, 0xa0, 0x51, 0x5c, 0x83, 0xb7,
-	0xa4, 0x9d, 0x3e, 0x03, 0x48, 0xdb, 0xc9, 0x66, 0xae, 0xaa, 0xd6, 0x41, 0xda, 0x81, 0x9c, 0x5c,
-	0xaa, 0xd5, 0x27, 0x4c, 0x77, 0x51, 0x95, 0xc8, 0xa4, 0x0e, 0x4d, 0x4e, 0x84, 0xb8, 0xba, 0x66,
-	0x4f, 0xac, 0x77, 0x7f, 0xbb, 0x09, 0x4b, 0x5d, 0xea, 0x69, 0x63, 0xb8, 0x25, 0xcd, 0xe7, 0x47,
-	0xe6, 0x9b, 0xfe, 0x21, 0x98, 0x53, 0x53, 0x50, 0x7f, 0x5c, 0xcb, 0x5c, 0x64, 0x54, 0xd1, 0x7e,
-	0x50, 0x61, 0xad, 0x38, 0x34, 0x77, 0xe7, 0xba, 0x2b, 0x60, 0xf4, 0xfd, 0xfa, 0x98, 0x9c, 0x8e,
-	0x09, 0xdc, 0x96, 0x07, 0xa6, 0x39, 0xd7, 0x9d, 0x64, 0xaf, 0x7f, 0x58, 0xcf, 0x3e, 0x47, 0xfd,
-	0x93, 0x0a, 0xeb, 0xa5, 0x53, 0x72, 0x7e, 0x52, 0xcb, 0x60, 0xfa, 0xa7, 0x0b, 0xc1, 0xe4, 0x5c,
-	0xc8, 0xc3, 0xcd, 0xac, 0xe8, 0x31, 0xb3, 0xaf, 0x90, 0x8b, 0xf2, 0x21, 0xa5, 0x68, 0xdf, 0xc2,
-	0x9d, 0xa9, 0x11, 0x65, 0xcd, 0xf5, 0x25, 0x03, 0xf4, 0x8f, 0x6a, 0x02, 0xa6, 0x8a, 0xb1, 0x38,
-	0x41, 0xe6, 0x17, 0x63, 0x01, 0x53, 0xa1, 0x18, 0x67, 0xcf, 0x16, 0x25, 0x6d, 0x46, 0x69, 0xb4,
-	0x3c, 0xaa, 0x10, 0xd2, 0xb5, 0x79, 0x85, 0x66, 0x2c, 0x1d, 0x1c, 0x8c, 0x57, 0xba, 0xd6, 0xe6,
-	0xf3, 0xe6, 0xcd, 0x2b, 0xf0, 0x96, 0x5e, 0xab, 0x8a, 0xf6, 0xa3, 0x0a, 0x5a, 0xc9, 0x6d, 0xbe,
-	0x57, 0x31, 0x89, 0x92, 0x88, 0x27, 0x0b, 0x80, 0xa6, 0xa4, 0x94, 0x5c, 0xf0, 0xf3, 0xa5, 0x14,
-	0x41, 0x15, 0xa4, 0xcc, 0xbe, 0xb4, 0x3b, 0xca, 0xe1, 0xb3, 0x97, 0x17, 0x86, 0xfa, 0xea, 0xc2,
-	0x50, 0xff, 0xbb, 0x30, 0xd4, 0x9f, 0x2f, 0x0d, 0xe5, 0xd5, 0xa5, 0xa1, 0xfc, 0x73, 0x69, 0x28,
-	0x5f, 0xef, 0x7a, 0x7e, 0x3c, 0x4c, 0x06, 0xa6, 0x43, 0x42, 0x6b, 0xc6, 0xf7, 0xde, 0x78, 0xcf,
-	0x3a, 0xbf, 0xfa, 0xe8, 0x9b, 0x8c, 0x10, 0x1d, 0xbc, 0xc5, 0xbe, 0xc5, 0xf6, 0x5e, 0x07, 0x00,
-	0x00, 0xff, 0xff, 0x9e, 0xda, 0x90, 0xc5, 0x21, 0x0e, 0x00, 0x00,
+	// 999 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x57, 0x41, 0x6f, 0xe3, 0x44,
+	0x14, 0x8e, 0x37, 0x29, 0x4d, 0x1e, 0xbb, 0x1b, 0x6a, 0x55, 0xda, 0xd4, 0x5b, 0xbc, 0x25, 0x08,
+	0xa9, 0x5a, 0x09, 0x9b, 0x76, 0x55, 0xba, 0xaa, 0x00, 0x69, 0x5b, 0x0e, 0x2c, 0x22, 0x34, 0xca,
+	0x2e, 0x17, 0x2e, 0x91, 0x63, 0x4f, 0x1d, 0x4b, 0xf6, 0x4c, 0xe4, 0x71, 0xd2, 0x06, 0x21, 0xad,
+	0x84, 0xc4, 0x15, 0xed, 0x89, 0x3f, 0xc1, 0x05, 0x89, 0x5f, 0xc0, 0x89, 0x3d, 0xee, 0x91, 0x13,
+	0x42, 0xed, 0x81, 0x5f, 0x81, 0xb4, 0x9a, 0x19, 0x67, 0x9a, 0x71, 0xdc, 0x8d, 0x9d, 0x53, 0x3c,
+	0x33, 0xef, 0x7b, 0xdf, 0xf7, 0xde, 0xbc, 0xe7, 0x17, 0xc3, 0x47, 0xde, 0x34, 0x42, 0x98, 0x06,
+	0x04, 0x5f, 0x4c, 0x7f, 0xb0, 0xe5, 0x82, 0x3d, 0x61, 0x6a, 0x27, 0x17, 0xd6, 0x28, 0x26, 0x09,
+	0xd1, 0xb7, 0xe7, 0xcd, 0x2c, 0xb9, 0xb0, 0xb8, 0x99, 0xb1, 0xe9, 0x13, 0x9f, 0x70, 0x43, 0x9b,
+	0x3d, 0x09, 0x8c, 0x61, 0xba, 0x84, 0x46, 0x84, 0xda, 0x03, 0x87, 0x22, 0x7b, 0xb2, 0x37, 0x40,
+	0x89, 0xb3, 0x67, 0xbb, 0x24, 0xc0, 0xe9, 0xf9, 0xbd, 0xf4, 0x3c, 0xa2, 0xbe, 0x3d, 0xd9, 0x63,
+	0x3f, 0xe2, 0xa0, 0xfd, 0x97, 0x06, 0xcd, 0x0e, 0xf5, 0x7b, 0xc8, 0x0f, 0x68, 0x82, 0xe2, 0x6f,
+	0x9d, 0x08, 0xe9, 0x3a, 0xd4, 0xb0, 0x13, 0xa1, 0x96, 0xb6, 0xa3, 0xed, 0x36, 0x7a, 0xfc, 0x59,
+	0xdf, 0x84, 0x35, 0x72, 0x8e, 0x51, 0xdc, 0xba, 0xc5, 0x37, 0xc5, 0x42, 0x37, 0xa0, 0xee, 0x8d,
+	0x63, 0x27, 0x09, 0x08, 0x6e, 0x55, 0x77, 0xb4, 0xdd, 0x6a, 0x4f, 0xae, 0xf5, 0xaf, 0xa0, 0xe9,
+	0x12, 0x7c, 0x16, 0xc4, 0x51, 0x7f, 0xe4, 0xb0, 0x20, 0x92, 0x56, 0x6d, 0x47, 0xdb, 0x7d, 0x77,
+	0x7f, 0xcb, 0x12, 0x62, 0x2c, 0x26, 0xd6, 0x4a, 0xc5, 0x5a, 0x27, 0x24, 0xc0, 0xc7, 0xb5, 0x57,
+	0xff, 0x3c, 0xa8, 0xf4, 0xee, 0xa6, 0xb8, 0xae, 0x80, 0xe9, 0x2d, 0x58, 0x77, 0x09, 0x4e, 0x1c,
+	0x37, 0x69, 0xad, 0x71, 0xf6, 0xd9, 0xf2, 0x08, 0x7e, 0xfa, 0xef, 0xf7, 0x87, 0x42, 0x4b, 0x7b,
+	0x0b, 0xee, 0x65, 0x02, 0xe9, 0x21, 0x3a, 0x22, 0x98, 0xa2, 0x76, 0x00, 0x9b, 0x1d, 0xea, 0x3f,
+	0x8f, 0x1d, 0x4c, 0xcf, 0x50, 0x7c, 0xca, 0xcc, 0xe9, 0x30, 0x18, 0x95, 0x08, 0xf4, 0x3e, 0x34,
+	0x30, 0x3a, 0xef, 0x8b, 0x93, 0x2a, 0x3f, 0xa9, 0x63, 0x74, 0xce, 0x5d, 0x29, 0x2a, 0x4c, 0xd8,
+	0xce, 0xa3, 0x92, 0x52, 0x86, 0xf0, 0x5e, 0x87, 0xfa, 0xcf, 0x50, 0x72, 0x42, 0x70, 0x12, 0x93,
+	0x30, 0x44, 0x71, 0x09, 0x19, 0x26, 0x80, 0x2b, 0x71, 0xa9, 0x8e, 0xb9, 0x1d, 0x45, 0x89, 0x01,
+	0xad, 0x2c, 0x93, 0x54, 0xf1, 0x87, 0xc6, 0x93, 0xf5, 0xdd, 0xc8, 0x73, 0x12, 0x96, 0x26, 0x12,
+	0x4e, 0xd0, 0x13, 0xcf, 0x8b, 0x11, 0xa5, 0xb9, 0x6a, 0x54, 0xde, 0x5b, 0x59, 0x5e, 0x7d, 0x0b,
+	0xea, 0xee, 0xd0, 0x09, 0x70, 0x3f, 0xf0, 0x52, 0x55, 0xeb, 0x7c, 0xfd, 0xd4, 0x63, 0x47, 0x74,
+	0x3c, 0xe8, 0x73, 0x97, 0x35, 0x71, 0x44, 0xc7, 0x03, 0x5e, 0x67, 0xef, 0x03, 0xc4, 0x82, 0xbb,
+	0x9f, 0x90, 0xf4, 0x6a, 0x1b, 0xe9, 0xce, 0x73, 0x72, 0xd4, 0x64, 0xc1, 0xcc, 0xb1, 0xb4, 0x3f,
+	0x80, 0x07, 0x37, 0x88, 0x96, 0x81, 0xfd, 0xaa, 0xf1, 0xfc, 0x0a, 0x9b, 0x2f, 0x51, 0xe2, 0x04,
+	0xe1, 0x6a, 0x11, 0xcd, 0xd5, 0x5c, 0x55, 0xa9, 0x39, 0xfd, 0x43, 0xb8, 0xe3, 0x86, 0xc8, 0x89,
+	0xfb, 0xbc, 0x4a, 0x7d, 0xca, 0xa3, 0xaa, 0xf7, 0x6e, 0xf3, 0xcd, 0x13, 0xb1, 0xb7, 0xa8, 0x5d,
+	0xdc, 0x86, 0xa2, 0x4b, 0x8a, 0xfe, 0x53, 0x83, 0x8d, 0x0e, 0xf5, 0xbb, 0xa1, 0xe3, 0xa2, 0x67,
+	0x28, 0x0c, 0x4f, 0x63, 0xaf, 0x54, 0x55, 0x7c, 0x06, 0x8d, 0x28, 0xc0, 0xfd, 0x51, 0x1c, 0xb8,
+	0x88, 0xab, 0x2d, 0xd0, 0x63, 0xf5, 0x28, 0xc0, 0x5d, 0x06, 0xd0, 0x1f, 0x03, 0x50, 0x14, 0x86,
+	0x29, 0x7c, 0x59, 0x8b, 0xf6, 0x1a, 0xcc, 0x98, 0x23, 0x95, 0x6a, 0xbb, 0x0f, 0x5b, 0x0b, 0x21,
+	0xc8, 0x00, 0xbf, 0x06, 0xbd, 0x43, 0xfd, 0x13, 0x07, 0xbb, 0x28, 0x5c, 0x21, 0x40, 0x85, 0x68,
+	0x1b, 0x8c, 0x45, 0x5f, 0x92, 0xe9, 0x05, 0xbf, 0xfe, 0xee, 0x38, 0x76, 0x87, 0x0e, 0x45, 0x6f,
+	0xe5, 0x19, 0x8c, 0xa7, 0xd7, 0x3c, 0x7c, 0xa1, 0x1f, 0xc0, 0x1a, 0x39, 0x3b, 0x4b, 0x3b, 0xab,
+	0x40, 0x12, 0x85, 0x75, 0x2a, 0x8f, 0xbb, 0x48, 0xef, 0x59, 0x11, 0x20, 0xc5, 0xfd, 0x26, 0x8a,
+	0x93, 0x27, 0xe9, 0x78, 0x3c, 0x2d, 0xab, 0xee, 0x21, 0x6c, 0xb0, 0x82, 0x0a, 0xf0, 0x18, 0xf5,
+	0x39, 0xf1, 0x75, 0xb7, 0x35, 0x67, 0x07, 0xa7, 0x6c, 0xff, 0xa9, 0x77, 0x1d, 0x49, 0x6d, 0xe5,
+	0x48, 0x0e, 0x44, 0x24, 0xf3, 0x62, 0x67, 0x91, 0xb0, 0xa6, 0x96, 0x0a, 0x84, 0xf0, 0x75, 0x22,
+	0x98, 0xdb, 0x5d, 0x5e, 0xcb, 0xe2, 0x7e, 0x64, 0x90, 0x37, 0xdb, 0xe7, 0xc7, 0xaa, 0x08, 0x11,
+	0xa5, 0xa5, 0x7a, 0x94, 0x39, 0x7d, 0x29, 0x7a, 0xe7, 0x89, 0xeb, 0xa2, 0x51, 0x52, 0x90, 0x2f,
+	0xa7, 0x85, 0xbe, 0x00, 0x60, 0x2d, 0xe4, 0x70, 0x37, 0x45, 0xaf, 0x9f, 0x75, 0x9d, 0x20, 0x56,
+	0x2a, 0xf4, 0x90, 0xeb, 0x55, 0x15, 0xc9, 0xcc, 0x19, 0x50, 0x17, 0x24, 0x48, 0x28, 0xab, 0xf7,
+	0xe4, 0x7a, 0xff, 0x7f, 0x80, 0x6a, 0x87, 0xfa, 0xfa, 0x04, 0x6e, 0x2b, 0xf3, 0xf8, 0x63, 0xeb,
+	0x6d, 0xff, 0x08, 0xac, 0xcc, 0xd4, 0x33, 0x0e, 0x4a, 0x99, 0xcb, 0x4c, 0x56, 0xf4, 0x9f, 0x35,
+	0xd8, 0x58, 0x1c, 0x92, 0xfb, 0x4b, 0xdd, 0x2d, 0x60, 0x8c, 0xa3, 0xf2, 0x98, 0x39, 0x1d, 0x53,
+	0xb8, 0xa3, 0x0e, 0x48, 0x6b, 0xa9, 0x3b, 0xc5, 0xde, 0xf8, 0xb4, 0x9c, 0xfd, 0x1c, 0xf5, 0x2f,
+	0x1a, 0x6c, 0xe6, 0x4e, 0xc5, 0xe5, 0x49, 0xcd, 0x83, 0x19, 0x9f, 0xaf, 0x04, 0x53, 0x73, 0xa1,
+	0x0e, 0x33, 0xab, 0xa0, 0xc7, 0xd4, 0xbe, 0x40, 0x2e, 0xf2, 0x87, 0x52, 0x45, 0xff, 0x11, 0xee,
+	0x66, 0x46, 0x92, 0xbd, 0xd4, 0x97, 0x0a, 0x30, 0x0e, 0x4b, 0x02, 0xe6, 0xd8, 0x5f, 0x40, 0x33,
+	0x3b, 0x30, 0x3e, 0x59, 0xea, 0x2d, 0x83, 0x30, 0x1e, 0x97, 0x45, 0xa8, 0x99, 0x57, 0xe7, 0xc8,
+	0xf2, 0xcc, 0x2b, 0xf6, 0x05, 0x32, 0x9f, 0x3f, 0x26, 0x04, 0xb5, 0x32, 0x24, 0xac, 0x62, 0x79,
+	0x9c, 0xd9, 0x17, 0xa1, 0xce, 0x7b, 0xaf, 0x8b, 0x4b, 0xcf, 0xbc, 0xbb, 0xed, 0x82, 0x39, 0x94,
+	0xe4, 0x87, 0x25, 0x01, 0x2a, 0x7b, 0xe6, 0x4d, 0xbe, 0x9c, 0x5d, 0x05, 0x14, 0x60, 0xcf, 0x7f,
+	0x33, 0xb7, 0x2b, 0xc7, 0xdf, 0xbc, 0xba, 0x34, 0xb5, 0xd7, 0x97, 0xa6, 0xf6, 0xef, 0xa5, 0xa9,
+	0xbd, 0xbc, 0x32, 0x2b, 0xaf, 0xaf, 0xcc, 0xca, 0xdf, 0x57, 0x66, 0xe5, 0xfb, 0x7d, 0x3f, 0x48,
+	0x86, 0xe3, 0x81, 0xe5, 0x92, 0xc8, 0xbe, 0xe1, 0x23, 0x6e, 0xf2, 0xc8, 0xbe, 0x98, 0x7d, 0xc9,
+	0x4d, 0x47, 0x88, 0x0e, 0xde, 0xe1, 0x1f, 0x58, 0x8f, 0xde, 0x04, 0x00, 0x00, 0xff, 0xff, 0xc3,
+	0x37, 0xc0, 0x06, 0xf6, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1334,26 +1334,26 @@ type MsgClient interface {
 	// UpdateDetails is message handler,
 	// handles updating Dym-Name details, performed by the controller.
 	UpdateDetails(ctx context.Context, in *MsgUpdateDetails, opts ...grpc.CallOption) (*MsgUpdateDetailsResponse, error)
-	// PutAdsSellName is message handler,
+	// PlaceSellOrder is message handler,
 	// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
-	PutAdsSellName(ctx context.Context, in *MsgPutAdsSellName, opts ...grpc.CallOption) (*MsgPutAdsSellNameResponse, error)
-	// CancelAdsSellName is message handler,
+	PlaceSellOrder(ctx context.Context, in *MsgPlaceSellOrder, opts ...grpc.CallOption) (*MsgPlaceSellOrderResponse, error)
+	// CancelSellOrder is message handler,
 	// handles canceling Sell-Order, performed by the owner.
 	// This will stop the advertisement and remove the Dym-Name from the market.
 	// Can only be performed if the Dym-Name is not in any offer.
-	CancelAdsSellName(ctx context.Context, in *MsgCancelAdsSellName, opts ...grpc.CallOption) (*MsgCancelAdsSellNameResponse, error)
-	// PurchaseName is message handler,
+	CancelSellOrder(ctx context.Context, in *MsgCancelSellOrder, opts ...grpc.CallOption) (*MsgCancelSellOrderResponse, error)
+	// PurchaseOrder is message handler,
 	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
-	PurchaseName(ctx context.Context, in *MsgPurchaseName, opts ...grpc.CallOption) (*MsgPurchaseNameResponse, error)
-	// OfferBuyName is message handler,
+	PurchaseOrder(ctx context.Context, in *MsgPurchaseOrder, opts ...grpc.CallOption) (*MsgPurchaseOrderResponse, error)
+	// PlaceBuyOrder is message handler,
 	// handles creating an offer to buy a Dym-Name, performed by the buyer.
-	OfferBuyName(ctx context.Context, in *MsgOfferBuyName, opts ...grpc.CallOption) (*MsgOfferBuyNameResponse, error)
-	// CancelOfferBuyName is message handler,
+	PlaceBuyOrder(ctx context.Context, in *MsgPlaceBuyOrder, opts ...grpc.CallOption) (*MsgPlaceBuyOrderResponse, error)
+	// CancelBuyOrder is message handler,
 	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
-	CancelOfferBuyName(ctx context.Context, in *MsgCancelOfferBuyName, opts ...grpc.CallOption) (*MsgCancelOfferBuyNameResponse, error)
-	// AcceptOfferBuyName is message handler,
+	CancelBuyOrder(ctx context.Context, in *MsgCancelBuyOrder, opts ...grpc.CallOption) (*MsgCancelBuyOrderResponse, error)
+	// AcceptBuyOrder is message handler,
 	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
-	AcceptOfferBuyName(ctx context.Context, in *MsgAcceptOfferBuyName, opts ...grpc.CallOption) (*MsgAcceptOfferBuyNameResponse, error)
+	AcceptBuyOrder(ctx context.Context, in *MsgAcceptBuyOrder, opts ...grpc.CallOption) (*MsgAcceptBuyOrderResponse, error)
 }
 
 type msgClient struct {
@@ -1409,54 +1409,54 @@ func (c *msgClient) UpdateDetails(ctx context.Context, in *MsgUpdateDetails, opt
 	return out, nil
 }
 
-func (c *msgClient) PutAdsSellName(ctx context.Context, in *MsgPutAdsSellName, opts ...grpc.CallOption) (*MsgPutAdsSellNameResponse, error) {
-	out := new(MsgPutAdsSellNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/PutAdsSellName", in, out, opts...)
+func (c *msgClient) PlaceSellOrder(ctx context.Context, in *MsgPlaceSellOrder, opts ...grpc.CallOption) (*MsgPlaceSellOrderResponse, error) {
+	out := new(MsgPlaceSellOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/PlaceSellOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) CancelAdsSellName(ctx context.Context, in *MsgCancelAdsSellName, opts ...grpc.CallOption) (*MsgCancelAdsSellNameResponse, error) {
-	out := new(MsgCancelAdsSellNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/CancelAdsSellName", in, out, opts...)
+func (c *msgClient) CancelSellOrder(ctx context.Context, in *MsgCancelSellOrder, opts ...grpc.CallOption) (*MsgCancelSellOrderResponse, error) {
+	out := new(MsgCancelSellOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/CancelSellOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) PurchaseName(ctx context.Context, in *MsgPurchaseName, opts ...grpc.CallOption) (*MsgPurchaseNameResponse, error) {
-	out := new(MsgPurchaseNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/PurchaseName", in, out, opts...)
+func (c *msgClient) PurchaseOrder(ctx context.Context, in *MsgPurchaseOrder, opts ...grpc.CallOption) (*MsgPurchaseOrderResponse, error) {
+	out := new(MsgPurchaseOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/PurchaseOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) OfferBuyName(ctx context.Context, in *MsgOfferBuyName, opts ...grpc.CallOption) (*MsgOfferBuyNameResponse, error) {
-	out := new(MsgOfferBuyNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/OfferBuyName", in, out, opts...)
+func (c *msgClient) PlaceBuyOrder(ctx context.Context, in *MsgPlaceBuyOrder, opts ...grpc.CallOption) (*MsgPlaceBuyOrderResponse, error) {
+	out := new(MsgPlaceBuyOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/PlaceBuyOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) CancelOfferBuyName(ctx context.Context, in *MsgCancelOfferBuyName, opts ...grpc.CallOption) (*MsgCancelOfferBuyNameResponse, error) {
-	out := new(MsgCancelOfferBuyNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/CancelOfferBuyName", in, out, opts...)
+func (c *msgClient) CancelBuyOrder(ctx context.Context, in *MsgCancelBuyOrder, opts ...grpc.CallOption) (*MsgCancelBuyOrderResponse, error) {
+	out := new(MsgCancelBuyOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/CancelBuyOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) AcceptOfferBuyName(ctx context.Context, in *MsgAcceptOfferBuyName, opts ...grpc.CallOption) (*MsgAcceptOfferBuyNameResponse, error) {
-	out := new(MsgAcceptOfferBuyNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/AcceptOfferBuyName", in, out, opts...)
+func (c *msgClient) AcceptBuyOrder(ctx context.Context, in *MsgAcceptBuyOrder, opts ...grpc.CallOption) (*MsgAcceptBuyOrderResponse, error) {
+	out := new(MsgAcceptBuyOrderResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Msg/AcceptBuyOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1480,26 +1480,26 @@ type MsgServer interface {
 	// UpdateDetails is message handler,
 	// handles updating Dym-Name details, performed by the controller.
 	UpdateDetails(context.Context, *MsgUpdateDetails) (*MsgUpdateDetailsResponse, error)
-	// PutAdsSellName is message handler,
+	// PlaceSellOrder is message handler,
 	// handles creating a Sell-Order that advertise a Dym-Name for sale, performed by the owner.
-	PutAdsSellName(context.Context, *MsgPutAdsSellName) (*MsgPutAdsSellNameResponse, error)
-	// CancelAdsSellName is message handler,
+	PlaceSellOrder(context.Context, *MsgPlaceSellOrder) (*MsgPlaceSellOrderResponse, error)
+	// CancelSellOrder is message handler,
 	// handles canceling Sell-Order, performed by the owner.
 	// This will stop the advertisement and remove the Dym-Name from the market.
 	// Can only be performed if the Dym-Name is not in any offer.
-	CancelAdsSellName(context.Context, *MsgCancelAdsSellName) (*MsgCancelAdsSellNameResponse, error)
-	// PurchaseName is message handler,
+	CancelSellOrder(context.Context, *MsgCancelSellOrder) (*MsgCancelSellOrderResponse, error)
+	// PurchaseOrder is message handler,
 	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
-	PurchaseName(context.Context, *MsgPurchaseName) (*MsgPurchaseNameResponse, error)
-	// OfferBuyName is message handler,
+	PurchaseOrder(context.Context, *MsgPurchaseOrder) (*MsgPurchaseOrderResponse, error)
+	// PlaceBuyOrder is message handler,
 	// handles creating an offer to buy a Dym-Name, performed by the buyer.
-	OfferBuyName(context.Context, *MsgOfferBuyName) (*MsgOfferBuyNameResponse, error)
-	// CancelOfferBuyName is message handler,
+	PlaceBuyOrder(context.Context, *MsgPlaceBuyOrder) (*MsgPlaceBuyOrderResponse, error)
+	// CancelBuyOrder is message handler,
 	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
-	CancelOfferBuyName(context.Context, *MsgCancelOfferBuyName) (*MsgCancelOfferBuyNameResponse, error)
-	// AcceptOfferBuyName is message handler,
+	CancelBuyOrder(context.Context, *MsgCancelBuyOrder) (*MsgCancelBuyOrderResponse, error)
+	// AcceptBuyOrder is message handler,
 	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
-	AcceptOfferBuyName(context.Context, *MsgAcceptOfferBuyName) (*MsgAcceptOfferBuyNameResponse, error)
+	AcceptBuyOrder(context.Context, *MsgAcceptBuyOrder) (*MsgAcceptBuyOrderResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1521,23 +1521,23 @@ func (*UnimplementedMsgServer) UpdateResolveAddress(ctx context.Context, req *Ms
 func (*UnimplementedMsgServer) UpdateDetails(ctx context.Context, req *MsgUpdateDetails) (*MsgUpdateDetailsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDetails not implemented")
 }
-func (*UnimplementedMsgServer) PutAdsSellName(ctx context.Context, req *MsgPutAdsSellName) (*MsgPutAdsSellNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PutAdsSellName not implemented")
+func (*UnimplementedMsgServer) PlaceSellOrder(ctx context.Context, req *MsgPlaceSellOrder) (*MsgPlaceSellOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlaceSellOrder not implemented")
 }
-func (*UnimplementedMsgServer) CancelAdsSellName(ctx context.Context, req *MsgCancelAdsSellName) (*MsgCancelAdsSellNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CancelAdsSellName not implemented")
+func (*UnimplementedMsgServer) CancelSellOrder(ctx context.Context, req *MsgCancelSellOrder) (*MsgCancelSellOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelSellOrder not implemented")
 }
-func (*UnimplementedMsgServer) PurchaseName(ctx context.Context, req *MsgPurchaseName) (*MsgPurchaseNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PurchaseName not implemented")
+func (*UnimplementedMsgServer) PurchaseOrder(ctx context.Context, req *MsgPurchaseOrder) (*MsgPurchaseOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PurchaseOrder not implemented")
 }
-func (*UnimplementedMsgServer) OfferBuyName(ctx context.Context, req *MsgOfferBuyName) (*MsgOfferBuyNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OfferBuyName not implemented")
+func (*UnimplementedMsgServer) PlaceBuyOrder(ctx context.Context, req *MsgPlaceBuyOrder) (*MsgPlaceBuyOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PlaceBuyOrder not implemented")
 }
-func (*UnimplementedMsgServer) CancelOfferBuyName(ctx context.Context, req *MsgCancelOfferBuyName) (*MsgCancelOfferBuyNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CancelOfferBuyName not implemented")
+func (*UnimplementedMsgServer) CancelBuyOrder(ctx context.Context, req *MsgCancelBuyOrder) (*MsgCancelBuyOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelBuyOrder not implemented")
 }
-func (*UnimplementedMsgServer) AcceptOfferBuyName(ctx context.Context, req *MsgAcceptOfferBuyName) (*MsgAcceptOfferBuyNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AcceptOfferBuyName not implemented")
+func (*UnimplementedMsgServer) AcceptBuyOrder(ctx context.Context, req *MsgAcceptBuyOrder) (*MsgAcceptBuyOrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AcceptBuyOrder not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1634,110 +1634,110 @@ func _Msg_UpdateDetails_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_PutAdsSellName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgPutAdsSellName)
+func _Msg_PlaceSellOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgPlaceSellOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).PutAdsSellName(ctx, in)
+		return srv.(MsgServer).PlaceSellOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/PutAdsSellName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/PlaceSellOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).PutAdsSellName(ctx, req.(*MsgPutAdsSellName))
+		return srv.(MsgServer).PlaceSellOrder(ctx, req.(*MsgPlaceSellOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CancelAdsSellName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCancelAdsSellName)
+func _Msg_CancelSellOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCancelSellOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CancelAdsSellName(ctx, in)
+		return srv.(MsgServer).CancelSellOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/CancelAdsSellName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/CancelSellOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CancelAdsSellName(ctx, req.(*MsgCancelAdsSellName))
+		return srv.(MsgServer).CancelSellOrder(ctx, req.(*MsgCancelSellOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_PurchaseName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgPurchaseName)
+func _Msg_PurchaseOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgPurchaseOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).PurchaseName(ctx, in)
+		return srv.(MsgServer).PurchaseOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/PurchaseName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/PurchaseOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).PurchaseName(ctx, req.(*MsgPurchaseName))
+		return srv.(MsgServer).PurchaseOrder(ctx, req.(*MsgPurchaseOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_OfferBuyName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgOfferBuyName)
+func _Msg_PlaceBuyOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgPlaceBuyOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).OfferBuyName(ctx, in)
+		return srv.(MsgServer).PlaceBuyOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/OfferBuyName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/PlaceBuyOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).OfferBuyName(ctx, req.(*MsgOfferBuyName))
+		return srv.(MsgServer).PlaceBuyOrder(ctx, req.(*MsgPlaceBuyOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_CancelOfferBuyName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCancelOfferBuyName)
+func _Msg_CancelBuyOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCancelBuyOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).CancelOfferBuyName(ctx, in)
+		return srv.(MsgServer).CancelBuyOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/CancelOfferBuyName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/CancelBuyOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).CancelOfferBuyName(ctx, req.(*MsgCancelOfferBuyName))
+		return srv.(MsgServer).CancelBuyOrder(ctx, req.(*MsgCancelBuyOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_AcceptOfferBuyName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgAcceptOfferBuyName)
+func _Msg_AcceptBuyOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgAcceptBuyOrder)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).AcceptOfferBuyName(ctx, in)
+		return srv.(MsgServer).AcceptBuyOrder(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Msg/AcceptOfferBuyName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Msg/AcceptBuyOrder",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).AcceptOfferBuyName(ctx, req.(*MsgAcceptOfferBuyName))
+		return srv.(MsgServer).AcceptBuyOrder(ctx, req.(*MsgAcceptBuyOrder))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1767,28 +1767,28 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_UpdateDetails_Handler,
 		},
 		{
-			MethodName: "PutAdsSellName",
-			Handler:    _Msg_PutAdsSellName_Handler,
+			MethodName: "PlaceSellOrder",
+			Handler:    _Msg_PlaceSellOrder_Handler,
 		},
 		{
-			MethodName: "CancelAdsSellName",
-			Handler:    _Msg_CancelAdsSellName_Handler,
+			MethodName: "CancelSellOrder",
+			Handler:    _Msg_CancelSellOrder_Handler,
 		},
 		{
-			MethodName: "PurchaseName",
-			Handler:    _Msg_PurchaseName_Handler,
+			MethodName: "PurchaseOrder",
+			Handler:    _Msg_PurchaseOrder_Handler,
 		},
 		{
-			MethodName: "OfferBuyName",
-			Handler:    _Msg_OfferBuyName_Handler,
+			MethodName: "PlaceBuyOrder",
+			Handler:    _Msg_PlaceBuyOrder_Handler,
 		},
 		{
-			MethodName: "CancelOfferBuyName",
-			Handler:    _Msg_CancelOfferBuyName_Handler,
+			MethodName: "CancelBuyOrder",
+			Handler:    _Msg_CancelBuyOrder_Handler,
 		},
 		{
-			MethodName: "AcceptOfferBuyName",
-			Handler:    _Msg_AcceptOfferBuyName_Handler,
+			MethodName: "AcceptBuyOrder",
+			Handler:    _Msg_AcceptBuyOrder_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2169,7 +2169,7 @@ func (m *MsgUpdateDetailsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgPutAdsSellName) Marshal() (dAtA []byte, err error) {
+func (m *MsgPlaceSellOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2179,12 +2179,12 @@ func (m *MsgPutAdsSellName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPutAdsSellName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPlaceSellOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPutAdsSellName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPlaceSellOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2228,7 +2228,7 @@ func (m *MsgPutAdsSellName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgPutAdsSellNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgPlaceSellOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2238,12 +2238,12 @@ func (m *MsgPutAdsSellNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPutAdsSellNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPlaceSellOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPutAdsSellNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPlaceSellOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2251,7 +2251,7 @@ func (m *MsgPutAdsSellNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancelAdsSellName) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelSellOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2261,12 +2261,12 @@ func (m *MsgCancelAdsSellName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancelAdsSellName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelSellOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancelAdsSellName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelSellOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2288,7 +2288,7 @@ func (m *MsgCancelAdsSellName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancelAdsSellNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelSellOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2298,12 +2298,12 @@ func (m *MsgCancelAdsSellNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancelAdsSellNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelSellOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancelAdsSellNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelSellOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2311,7 +2311,7 @@ func (m *MsgCancelAdsSellNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgPurchaseName) Marshal() (dAtA []byte, err error) {
+func (m *MsgPurchaseOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2321,12 +2321,12 @@ func (m *MsgPurchaseName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPurchaseName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPurchaseOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPurchaseName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPurchaseOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2358,7 +2358,7 @@ func (m *MsgPurchaseName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgPurchaseNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgPurchaseOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2368,12 +2368,12 @@ func (m *MsgPurchaseNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgPurchaseNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPurchaseOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgPurchaseNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPurchaseOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2381,7 +2381,7 @@ func (m *MsgPurchaseNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOfferBuyName) Marshal() (dAtA []byte, err error) {
+func (m *MsgPlaceBuyOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2391,12 +2391,12 @@ func (m *MsgOfferBuyName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOfferBuyName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPlaceBuyOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPlaceBuyOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2435,7 +2435,7 @@ func (m *MsgOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgPlaceBuyOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2445,12 +2445,12 @@ func (m *MsgOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgOfferBuyNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgPlaceBuyOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgOfferBuyNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgPlaceBuyOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2465,7 +2465,7 @@ func (m *MsgOfferBuyNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancelOfferBuyName) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelBuyOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2475,12 +2475,12 @@ func (m *MsgCancelOfferBuyName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancelOfferBuyName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelBuyOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancelOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelBuyOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2502,7 +2502,7 @@ func (m *MsgCancelOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCancelOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCancelBuyOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2512,12 +2512,12 @@ func (m *MsgCancelOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCancelOfferBuyNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCancelBuyOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCancelOfferBuyNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCancelBuyOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2525,7 +2525,7 @@ func (m *MsgCancelOfferBuyNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAcceptOfferBuyName) Marshal() (dAtA []byte, err error) {
+func (m *MsgAcceptBuyOrder) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2535,12 +2535,12 @@ func (m *MsgAcceptOfferBuyName) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAcceptOfferBuyName) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAcceptBuyOrder) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAcceptOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAcceptBuyOrder) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2572,7 +2572,7 @@ func (m *MsgAcceptOfferBuyName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgAcceptOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgAcceptBuyOrderResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2582,12 +2582,12 @@ func (m *MsgAcceptOfferBuyNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgAcceptOfferBuyNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgAcceptBuyOrderResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgAcceptOfferBuyNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgAcceptBuyOrderResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2782,7 +2782,7 @@ func (m *MsgUpdateDetailsResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgPutAdsSellName) Size() (n int) {
+func (m *MsgPlaceSellOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2805,7 +2805,7 @@ func (m *MsgPutAdsSellName) Size() (n int) {
 	return n
 }
 
-func (m *MsgPutAdsSellNameResponse) Size() (n int) {
+func (m *MsgPlaceSellOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2814,7 +2814,7 @@ func (m *MsgPutAdsSellNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancelAdsSellName) Size() (n int) {
+func (m *MsgCancelSellOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2831,7 +2831,7 @@ func (m *MsgCancelAdsSellName) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancelAdsSellNameResponse) Size() (n int) {
+func (m *MsgCancelSellOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2840,7 +2840,7 @@ func (m *MsgCancelAdsSellNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgPurchaseName) Size() (n int) {
+func (m *MsgPurchaseOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2859,7 +2859,7 @@ func (m *MsgPurchaseName) Size() (n int) {
 	return n
 }
 
-func (m *MsgPurchaseNameResponse) Size() (n int) {
+func (m *MsgPurchaseOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2868,7 +2868,7 @@ func (m *MsgPurchaseNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgOfferBuyName) Size() (n int) {
+func (m *MsgPlaceBuyOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2891,7 +2891,7 @@ func (m *MsgOfferBuyName) Size() (n int) {
 	return n
 }
 
-func (m *MsgOfferBuyNameResponse) Size() (n int) {
+func (m *MsgPlaceBuyOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2904,7 +2904,7 @@ func (m *MsgOfferBuyNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancelOfferBuyName) Size() (n int) {
+func (m *MsgCancelBuyOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2921,7 +2921,7 @@ func (m *MsgCancelOfferBuyName) Size() (n int) {
 	return n
 }
 
-func (m *MsgCancelOfferBuyNameResponse) Size() (n int) {
+func (m *MsgCancelBuyOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2930,7 +2930,7 @@ func (m *MsgCancelOfferBuyNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgAcceptOfferBuyName) Size() (n int) {
+func (m *MsgAcceptBuyOrder) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2949,7 +2949,7 @@ func (m *MsgAcceptOfferBuyName) Size() (n int) {
 	return n
 }
 
-func (m *MsgAcceptOfferBuyNameResponse) Size() (n int) {
+func (m *MsgAcceptBuyOrderResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4083,7 +4083,7 @@ func (m *MsgUpdateDetailsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgPutAdsSellName) Unmarshal(dAtA []byte) error {
+func (m *MsgPlaceSellOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4106,10 +4106,10 @@ func (m *MsgPutAdsSellName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPutAdsSellName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPlaceSellOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPutAdsSellName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPlaceSellOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4266,7 +4266,7 @@ func (m *MsgPutAdsSellName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgPutAdsSellNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgPlaceSellOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4289,10 +4289,10 @@ func (m *MsgPutAdsSellNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPutAdsSellNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPlaceSellOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPutAdsSellNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPlaceSellOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4316,7 +4316,7 @@ func (m *MsgPutAdsSellNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancelAdsSellName) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelSellOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4339,10 +4339,10 @@ func (m *MsgCancelAdsSellName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelAdsSellName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelSellOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelAdsSellName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelSellOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4430,7 +4430,7 @@ func (m *MsgCancelAdsSellName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancelAdsSellNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelSellOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4453,10 +4453,10 @@ func (m *MsgCancelAdsSellNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelAdsSellNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelSellOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelAdsSellNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelSellOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4480,7 +4480,7 @@ func (m *MsgCancelAdsSellNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgPurchaseName) Unmarshal(dAtA []byte) error {
+func (m *MsgPurchaseOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4503,10 +4503,10 @@ func (m *MsgPurchaseName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPurchaseName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPurchaseOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPurchaseName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPurchaseOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4627,7 +4627,7 @@ func (m *MsgPurchaseName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgPurchaseNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgPurchaseOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4650,10 +4650,10 @@ func (m *MsgPurchaseNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgPurchaseNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPurchaseOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgPurchaseNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPurchaseOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4677,7 +4677,7 @@ func (m *MsgPurchaseNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgOfferBuyName) Unmarshal(dAtA []byte) error {
+func (m *MsgPlaceBuyOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4700,10 +4700,10 @@ func (m *MsgOfferBuyName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOfferBuyName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPlaceBuyOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOfferBuyName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPlaceBuyOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4856,7 +4856,7 @@ func (m *MsgOfferBuyName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgPlaceBuyOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4879,10 +4879,10 @@ func (m *MsgOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgOfferBuyNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgPlaceBuyOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgOfferBuyNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgPlaceBuyOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4938,7 +4938,7 @@ func (m *MsgOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancelOfferBuyName) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelBuyOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4961,10 +4961,10 @@ func (m *MsgCancelOfferBuyName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelOfferBuyName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelBuyOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelOfferBuyName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelBuyOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5052,7 +5052,7 @@ func (m *MsgCancelOfferBuyName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCancelOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCancelBuyOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5075,10 +5075,10 @@ func (m *MsgCancelOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCancelOfferBuyNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCancelBuyOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCancelOfferBuyNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCancelBuyOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -5102,7 +5102,7 @@ func (m *MsgCancelOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAcceptOfferBuyName) Unmarshal(dAtA []byte) error {
+func (m *MsgAcceptBuyOrder) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5125,10 +5125,10 @@ func (m *MsgAcceptOfferBuyName) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAcceptOfferBuyName: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAcceptBuyOrder: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAcceptOfferBuyName: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAcceptBuyOrder: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5249,7 +5249,7 @@ func (m *MsgAcceptOfferBuyName) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgAcceptOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgAcceptBuyOrderResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5272,10 +5272,10 @@ func (m *MsgAcceptOfferBuyNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgAcceptOfferBuyNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgAcceptBuyOrderResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgAcceptOfferBuyNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgAcceptBuyOrderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

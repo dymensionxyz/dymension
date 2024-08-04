@@ -67,7 +67,7 @@ func NewAcceptDymNameBuyOfferTxCmd() *cobra.Command {
 				return err
 			}
 
-			msg := &dymnstypes.MsgAcceptOfferBuyName{
+			msg := &dymnstypes.MsgAcceptBuyOrder{
 				OfferId: offerId,
 				Owner:   owner,
 				MinAccept: sdk.Coin{

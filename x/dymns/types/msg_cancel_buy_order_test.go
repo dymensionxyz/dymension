@@ -7,7 +7,7 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func TestMsgCancelOfferBuyName_ValidateBasic(t *testing.T) {
+func TestMsgCancelBuyOrder_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
 		offerId         string
@@ -38,7 +38,7 @@ func TestMsgCancelOfferBuyName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgCancelOfferBuyName{
+			m := &MsgCancelBuyOrder{
 				OfferId: tt.offerId,
 				Buyer:   tt.buyer,
 			}

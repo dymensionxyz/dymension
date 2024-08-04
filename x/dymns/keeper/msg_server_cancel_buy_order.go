@@ -10,9 +10,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// CancelOfferBuyName is message handler,
+// CancelBuyOrder is message handler,
 // handles canceling a Buy-Offer, performed by the buyer who placed the offer.
-func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.MsgCancelOfferBuyNameResponse, error) {
+func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCancelBuyOrder) (*dymnstypes.MsgCancelBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	offer, err := k.validateCancelOffer(ctx, msg)
@@ -28,13 +28,13 @@ func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOffer, "CancelOfferBuyName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOffer, "CancelBuyOrder")
 
-	return &dymnstypes.MsgCancelOfferBuyNameResponse{}, nil
+	return &dymnstypes.MsgCancelBuyOrderResponse{}, nil
 }
 
-// validateCancelOffer handles validation for the message handled by CancelOfferBuyName.
-func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.BuyOffer, error) {
+// validateCancelOffer handles validation for the message handled by CancelBuyOrder.
+func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCancelBuyOrder) (*dymnstypes.BuyOffer, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err

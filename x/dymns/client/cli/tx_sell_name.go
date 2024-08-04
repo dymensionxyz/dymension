@@ -20,14 +20,15 @@ const (
 	flagImmediatelySellPrice = "immediately-sell-price"
 )
 
-// NewPutAdsSellDymNameTxCmd is the CLI command for creating a Sell-Order to sell a Dym-Name.
-func NewPutAdsSellDymNameTxCmd() *cobra.Command {
+// NewPlaceDymNameSellOrderTxCmd is the CLI command for creating a Sell-Order to sell a Dym-Name.
+func NewPlaceDymNameSellOrderTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sell [Dym-Name]",
-		Short: "Create a sell-order to sell your Dym-Name",
-		Long:  fmt.Sprintf(`Create a sell-order to sell your Dym-Name. Flag --%s indicate the starting price of the Dym-Name, and flag --%s indicate the immediately sell price of the Dym-Name. If immediately sell price is not supplied or the highest bid does not reaching this amount, auction can only be ended when the sell-order expired.`, flagMinPrice, flagImmediatelySellPrice),
+		Use:     "sell-name [Dym-Name]",
+		Aliases: []string{"sell"},
+		Short:   "Create a sell-order to sell your Dym-Name",
+		Long:    fmt.Sprintf(`Create a sell-order to sell your Dym-Name. Flag --%s indicate the starting price of the Dym-Name, and flag --%s indicate the immediately sell price of the Dym-Name. If immediately sell price is not supplied or the highest bid does not reaching this amount, auction can only be ended when the sell-order expired.`, flagMinPrice, flagImmediatelySellPrice),
 		Example: fmt.Sprintf(
-			"$ %s tx %s sell myname --%s 50 [--%s 100] --%s hub-user",
+			"$ %s tx %s sell-name myname --%s 50 [--%s 100] --%s hub-user",
 			version.AppName, dymnstypes.ModuleName,
 			flagMinPrice, flagImmediatelySellPrice,
 			flags.FlagFrom,
@@ -80,7 +81,7 @@ func NewPutAdsSellDymNameTxCmd() *cobra.Command {
 				}
 			}
 
-			msg := &dymnstypes.MsgPutAdsSellName{
+			msg := &dymnstypes.MsgPlaceSellOrder{
 				Name:      dymName,
 				MinPrice:  sdk.NewCoin(resParams.Params.Price.PriceDenom, sdk.NewInt(int64(minPriceDym)).MulRaw(1e18)),
 				SellPrice: sellPrice,

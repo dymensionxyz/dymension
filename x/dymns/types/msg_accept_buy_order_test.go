@@ -10,7 +10,7 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func TestMsgAcceptOfferBuyName_ValidateBasic(t *testing.T) {
+func TestMsgAcceptBuyOrder_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
 		offerId         string
@@ -72,7 +72,7 @@ func TestMsgAcceptOfferBuyName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgAcceptOfferBuyName{
+			m := &MsgAcceptBuyOrder{
 				OfferId:   tt.offerId,
 				Owner:     tt.owner,
 				MinAccept: tt.minAccept,

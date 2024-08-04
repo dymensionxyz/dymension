@@ -15,9 +15,9 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgSetController{}, "dymns/SetController", nil)
 	cdc.RegisterConcrete(&MsgUpdateResolveAddress{}, "dymns/UpdateResolveAddress", nil)
 	cdc.RegisterConcrete(&MsgUpdateDetails{}, "dymns/UpdateDetails", nil)
-	cdc.RegisterConcrete(&MsgPutAdsSellName{}, "dymns/PutAdsSellName", nil)
-	cdc.RegisterConcrete(&MsgCancelAdsSellName{}, "dymns/CancelAdsSellName", nil)
-	cdc.RegisterConcrete(&MsgPurchaseName{}, "dymns/PurchaseName", nil)
+	cdc.RegisterConcrete(&MsgPlaceSellOrder{}, "dymns/PlaceSellOrder", nil)
+	cdc.RegisterConcrete(&MsgCancelSellOrder{}, "dymns/CancelSellOrder", nil)
+	cdc.RegisterConcrete(&MsgPurchaseOrder{}, "dymns/PurchaseName", nil)
 }
 
 // RegisterInterfaces registers implementations by its interface, for the module
@@ -29,9 +29,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSetController{},
 		&MsgUpdateResolveAddress{},
 		&MsgUpdateDetails{},
-		&MsgPutAdsSellName{},
-		&MsgCancelAdsSellName{},
-		&MsgPurchaseName{},
+		&MsgPlaceSellOrder{},
+		&MsgCancelSellOrder{},
+		&MsgPurchaseOrder{},
 	)
 
 	registry.RegisterImplementations(

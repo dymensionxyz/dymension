@@ -10,7 +10,7 @@ import (
 )
 
 //goland:noinspection SpellCheckingInspection
-func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
+func TestMsgPlaceBuyOrder_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name            string
 		dymName         string
@@ -91,7 +91,7 @@ func TestMsgOfferBuyName_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &MsgOfferBuyName{
+			m := &MsgPlaceBuyOrder{
 				Name:            tt.dymName,
 				Buyer:           tt.buyer,
 				ContinueOfferId: tt.continueOfferId,

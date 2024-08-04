@@ -10,14 +10,14 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// CancelAdsSellName is message handler,
+// CancelSellOrder is message handler,
 // handles canceling Sell-Order, performed by the owner.
 // This will stop the advertisement and remove the Dym-Name from the market.
 // Can only be performed if the Dym-Name is not in any offer.
-func (k msgServer) CancelAdsSellName(goCtx context.Context, msg *dymnstypes.MsgCancelAdsSellName) (*dymnstypes.MsgCancelAdsSellNameResponse, error) {
+func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCancelSellOrder) (*dymnstypes.MsgCancelSellOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if err := k.validateCancelAdsSellName(ctx, msg); err != nil {
+	if err := k.validateCancelSellOrder(ctx, msg); err != nil {
 		return nil, err
 	}
 
@@ -29,13 +29,13 @@ func (k msgServer) CancelAdsSellName(goCtx context.Context, msg *dymnstypes.MsgC
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseAds, "CancelAdsSellName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseSellOrder, "CancelSellOrder")
 
-	return &dymnstypes.MsgCancelAdsSellNameResponse{}, nil
+	return &dymnstypes.MsgCancelSellOrderResponse{}, nil
 }
 
-// validateCancelAdsSellName handles validation for the message handled by CancelAdsSellName.
-func (k msgServer) validateCancelAdsSellName(ctx sdk.Context, msg *dymnstypes.MsgCancelAdsSellName) error {
+// validateCancelSellOrder handles validation for the message handled by CancelSellOrder.
+func (k msgServer) validateCancelSellOrder(ctx sdk.Context, msg *dymnstypes.MsgCancelSellOrder) error {
 	if err := msg.ValidateBasic(); err != nil {
 		return err
 	}

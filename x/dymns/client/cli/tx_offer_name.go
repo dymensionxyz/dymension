@@ -24,8 +24,9 @@ const (
 // NewOfferBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
 func NewOfferBuyDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("offer [Dym-Name] [amount] %s", params.DisplayDenom),
-		Short: "Create an offer to buy a Dym-Name",
+		Use:     fmt.Sprintf("offer-name [Dym-Name] [amount] %s", params.DisplayDenom),
+		Aliases: []string{"offer"},
+		Short:   "Create an offer to buy a Dym-Name",
 		Example: fmt.Sprintf(
 			"$ %s tx %s offer myname 50 %s --%s hub-user",
 			version.AppName, dymnstypes.ModuleName,
@@ -75,7 +76,7 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 				return err
 			}
 
-			msg := &dymnstypes.MsgOfferBuyName{
+			msg := &dymnstypes.MsgPlaceBuyOrder{
 				Name:            dymName,
 				Buyer:           buyer,
 				ContinueOfferId: continueOfferId,

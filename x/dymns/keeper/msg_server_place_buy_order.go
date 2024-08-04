@@ -10,9 +10,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// OfferBuyName is message handler,
+// PlaceBuyOrder is message handler,
 // handles creating an offer to buy a Dym-Name, performed by the buyer.
-func (k msgServer) OfferBuyName(goCtx context.Context, msg *dymnstypes.MsgOfferBuyName) (*dymnstypes.MsgOfferBuyNameResponse, error) {
+func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlaceBuyOrder) (*dymnstypes.MsgPlaceBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	existingOffer, err := k.validateOffer(ctx, msg)
@@ -71,15 +71,15 @@ func (k msgServer) OfferBuyName(goCtx context.Context, msg *dymnstypes.MsgOfferB
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, minimumTxGasRequired, "OfferBuyName")
+	consumeMinimumGas(ctx, minimumTxGasRequired, "PlaceBuyOrder")
 
-	return &dymnstypes.MsgOfferBuyNameResponse{
+	return &dymnstypes.MsgPlaceBuyOrderResponse{
 		OfferId: offer.Id,
 	}, nil
 }
 
-// validateOffer handles validation for the message handled by OfferBuyName.
-func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyName) (existingOffer *dymnstypes.BuyOffer, err error) {
+// validateOffer handles validation for the message handled by PlaceBuyOrder.
+func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrder) (existingOffer *dymnstypes.BuyOffer, err error) {
 	err = msg.ValidateBasic()
 	if err != nil {
 		return

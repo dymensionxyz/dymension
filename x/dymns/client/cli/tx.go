@@ -23,8 +23,8 @@ func GetTxCmd() *cobra.Command {
 		NewRegisterDymNameTxCmd(),
 		NewUpdateResolveDymNameAddressTxCmd(),
 		NewUpdateDetailsTxCmd(),
-		NewPutAdsSellDymNameTxCmd(),
-		NewPlaceBidOnDymNameAdsTxCmd(),
+		NewPlaceDymNameSellOrderTxCmd(),
+		NewPlaceBidOnOrderTxCmd(),
 		NewOfferBuyDymNameTxCmd(),
 		NewAcceptDymNameBuyOfferTxCmd(),
 	)

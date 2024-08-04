@@ -10,9 +10,9 @@ import (
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
 )
 
-// AcceptOfferBuyName is message handler,
+// AcceptBuyOrder is message handler,
 // handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
-func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.MsgAcceptOfferBuyNameResponse, error) {
+func (k msgServer) AcceptBuyOrder(goCtx context.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.MsgAcceptBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	offer, dymName, err := k.validateAcceptOffer(ctx, msg)
@@ -53,15 +53,15 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 		}
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptOfferBuyName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptBuyOrder")
 
-	return &dymnstypes.MsgAcceptOfferBuyNameResponse{
+	return &dymnstypes.MsgAcceptBuyOrderResponse{
 		Accepted: accepted,
 	}, nil
 }
 
-// validateAcceptOffer handles validation for the message handled by AcceptOfferBuyName
-func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.BuyOffer, *dymnstypes.DymName, error) {
+// validateAcceptOffer handles validation for the message handled by AcceptBuyOrder
+func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptBuyOrder) (*dymnstypes.BuyOffer, *dymnstypes.DymName, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, nil, err

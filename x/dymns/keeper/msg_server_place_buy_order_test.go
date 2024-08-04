@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_OfferBuyName(t *testing.T) {
+func Test_msgServer_PlaceBuyOrder(t *testing.T) {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
@@ -43,7 +43,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -642,7 +642,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, "1", offers[0].Id)
 
-				resp, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{
+				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
 					Name:  dymName.Name,
 					Buyer: anotherBuyerA,
 					Offer: dymnsutils.TestCoin(minOfferPrice),
@@ -718,7 +718,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, "2", offers[0].Id)
 
-				resp, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{
+				resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
 					Name:  dymName.Name,
 					Buyer: anotherBuyerA,
 					Offer: dymnsutils.TestCoin(minOfferPrice),
@@ -800,7 +800,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				tt.preRunSetupFunc(ctx, dk)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).OfferBuyName(ctx, &dymnstypes.MsgOfferBuyName{
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceBuyOrder(ctx, &dymnstypes.MsgPlaceBuyOrder{
 				Name:            tt.dymName,
 				Buyer:           tt.buyer,
 				ContinueOfferId: tt.existingOfferId,

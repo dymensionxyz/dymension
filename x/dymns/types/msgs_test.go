@@ -27,22 +27,22 @@ func TestMsgs_Signers(t *testing.T) {
 			&MsgUpdateDetails{
 				Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgPutAdsSellName{
+			&MsgPlaceSellOrder{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgCancelAdsSellName{
+			&MsgCancelSellOrder{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgPurchaseName{
+			&MsgPurchaseOrder{
 				Buyer: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgOfferBuyName{
+			&MsgPlaceBuyOrder{
 				Buyer: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgCancelOfferBuyName{
+			&MsgCancelBuyOrder{
 				Buyer: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
-			&MsgAcceptOfferBuyName{
+			&MsgAcceptBuyOrder{
 				Owner: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			},
 		}
@@ -59,12 +59,12 @@ func TestMsgs_Signers(t *testing.T) {
 			&MsgSetController{},
 			&MsgUpdateResolveAddress{},
 			&MsgUpdateDetails{},
-			&MsgPutAdsSellName{},
-			&MsgCancelAdsSellName{},
-			&MsgPurchaseName{},
-			&MsgOfferBuyName{},
-			&MsgCancelOfferBuyName{},
-			&MsgAcceptOfferBuyName{},
+			&MsgPlaceSellOrder{},
+			&MsgCancelSellOrder{},
+			&MsgPurchaseOrder{},
+			&MsgPlaceBuyOrder{},
+			&MsgCancelBuyOrder{},
+			&MsgAcceptBuyOrder{},
 		}
 
 		for _, msg := range msgs {
@@ -83,12 +83,12 @@ func TestMsgs_ImplementLegacyMsg(t *testing.T) {
 		&MsgSetController{},
 		&MsgUpdateResolveAddress{},
 		&MsgUpdateDetails{},
-		&MsgPutAdsSellName{},
-		&MsgCancelAdsSellName{},
-		&MsgPurchaseName{},
-		&MsgOfferBuyName{},
-		&MsgCancelOfferBuyName{},
-		&MsgAcceptOfferBuyName{},
+		&MsgPlaceSellOrder{},
+		&MsgCancelSellOrder{},
+		&MsgPurchaseOrder{},
+		&MsgPlaceBuyOrder{},
+		&MsgCancelBuyOrder{},
+		&MsgAcceptBuyOrder{},
 	}
 
 	for _, msg := range msgs {
@@ -104,10 +104,10 @@ func TestMsgs_Type(t *testing.T) {
 	require.Equal(t, "set_controller", (&MsgSetController{}).Type())
 	require.Equal(t, "update_resolve_address", (&MsgUpdateResolveAddress{}).Type())
 	require.Equal(t, "update_details", (&MsgUpdateDetails{}).Type())
-	require.Equal(t, "put_ads_sell_name", (&MsgPutAdsSellName{}).Type())
-	require.Equal(t, "cancel_ads_sell_name", (&MsgCancelAdsSellName{}).Type())
-	require.Equal(t, "purchase_name", (&MsgPurchaseName{}).Type())
-	require.Equal(t, "offer_buy_name", (&MsgOfferBuyName{}).Type())
-	require.Equal(t, "cancel_offer_buy_name", (&MsgCancelOfferBuyName{}).Type())
-	require.Equal(t, "accept_offer_buy_name", (&MsgAcceptOfferBuyName{}).Type())
+	require.Equal(t, "place_sell_order", (&MsgPlaceSellOrder{}).Type())
+	require.Equal(t, "cancel_sell_order", (&MsgCancelSellOrder{}).Type())
+	require.Equal(t, "purchase_order", (&MsgPurchaseOrder{}).Type())
+	require.Equal(t, "place_buy_order", (&MsgPlaceBuyOrder{}).Type())
+	require.Equal(t, "cancel_buy_order", (&MsgCancelBuyOrder{}).Type())
+	require.Equal(t, "accept_buy_order", (&MsgAcceptBuyOrder{}).Type())
 }

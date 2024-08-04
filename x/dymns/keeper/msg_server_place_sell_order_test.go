@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_PutAdsSellName(t *testing.T) {
+func Test_msgServer_PlaceSellOrder(t *testing.T) {
 	now := time.Now().UTC()
 
 	const daysProhibitSell = 30
@@ -40,7 +40,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).PutAdsSellName(ctx, &dymnstypes.MsgPutAdsSellName{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, &dymnstypes.MsgPlaceSellOrder{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -157,25 +157,25 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			wantErrContains:         "duration before Dym-Name expiry, prohibited to sell",
 		},
 		{
-			name:                    "pass - successfully place ads for selling Dym-Name, without sell price",
+			name:                    "pass - successfully place Dym-Name Sell-Order, without sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               nil,
 		},
 		{
-			name:                    "pass - successfully place ads for selling Dym-Name, without sell price",
+			name:                    "pass - successfully place Dym-Name Sell-Order, without sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               dymnsutils.TestCoinP(0),
 		},
 		{
-			name:                    "pass - successfully place ads for selling Dym-Name, with sell price",
+			name:                    "pass - successfully place Dym-Name Sell-Order, with sell price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               &coin300,
 		},
 		{
-			name:                    "pass - successfully place ads for selling Dym-Name, with sell price equals to min-price",
+			name:                    "pass - successfully place Dym-Name Sell-Order, with sell price equals to min-price",
 			dymNameExpiryOffsetDays: 9999,
 			minPrice:                coin100,
 			sellPrice:               &coin100,
@@ -214,13 +214,13 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			if tt.customOwner != "" {
 				useOwner = tt.customOwner
 			}
-			msg := &dymnstypes.MsgPutAdsSellName{
+			msg := &dymnstypes.MsgPlaceSellOrder{
 				Name:      name,
 				MinPrice:  tt.minPrice,
 				SellPrice: tt.sellPrice,
 				Owner:     useOwner,
 			}
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).PutAdsSellName(ctx, msg)
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).PlaceSellOrder(ctx, msg)
 			moduleParams := dk.GetParams(ctx)
 
 			defer func() {
@@ -255,7 +255,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 				}
 
 				require.Less(t,
-					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPutAds,
+					ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 					"should not consume params gas on failed operation",
 				)
 				return
@@ -283,7 +283,7 @@ func Test_msgServer_PutAdsSellName(t *testing.T) {
 			require.Equal(t, expectedSo, *so)
 
 			require.GreaterOrEqual(t,
-				ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPutAds,
+				ctx.GasMeter().GasConsumed(), dymnstypes.OpGasPlaceSellOrder,
 				"should consume params gas",
 			)
 

@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
+func Test_msgServer_AcceptBuyOrder(t *testing.T) {
 	now := time.Now().UTC()
 
 	denom := dymnsutils.TestCoin(0).Denom
@@ -47,7 +47,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 		dk, _, ctx := setupTest()
 
 		requireErrorFContains(t, func() error {
-			_, err := dymnskeeper.NewMsgServerImpl(dk).AcceptOfferBuyName(ctx, &dymnstypes.MsgAcceptOfferBuyName{})
+			_, err := dymnskeeper.NewMsgServerImpl(dk).AcceptBuyOrder(ctx, &dymnstypes.MsgAcceptBuyOrder{})
 			return err
 		}, gerrc.ErrInvalidArgument.Error())
 	})
@@ -643,7 +643,7 @@ func Test_msgServer_AcceptOfferBuyName(t *testing.T) {
 				tt.preRunSetupFunc(ctx, dk)
 			}
 
-			resp, err := dymnskeeper.NewMsgServerImpl(dk).AcceptOfferBuyName(ctx, &dymnstypes.MsgAcceptOfferBuyName{
+			resp, err := dymnskeeper.NewMsgServerImpl(dk).AcceptBuyOrder(ctx, &dymnstypes.MsgAcceptBuyOrder{
 				OfferId:   tt.offerId,
 				Owner:     tt.owner,
 				MinAccept: tt.minAccept,
