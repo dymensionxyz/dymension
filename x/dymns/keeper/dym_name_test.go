@@ -2717,7 +2717,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - lookup by hex on RollApp (coin-type-60 chain-id) with bech32 prefix mapped, but matching configuration of corresponding address so we do fallback lookup",
+			name: "pass - lookup by hex on RollApp with bech32 prefix mapped, but matching configuration of corresponding address so we do fallback lookup",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "b", ownerAcc.bech32()).
@@ -2758,7 +2758,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - skip lookup by hex after first try (direct match) if working-chain-id is NOT recorgnized as a coin-type-60 chain, by bech32",
+			name: "pass - skip lookup by hex after first try (direct match) if working-chain-id is Neither host-chain nor RollApp, by bech32",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "", ownerAcc.bech32()).
@@ -2769,7 +2769,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			want:           nil,
 		},
 		{
-			name: "pass - skip lookup by hex if working-chain-id is NOT recorgnized as a coin-type-60 chain, by hex",
+			name: "pass - skip lookup by hex if working-chain-id is Neither host-chain nor RollApp, by hex",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				cfgN("", "", ownerAcc.bech32()).
@@ -3086,7 +3086,7 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - matching by hex if bech32 is not found, on coin-type-60 chain",
+			name: "pass - matching by hex if bech32 is not found, on RollApp",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).
 				buildSlice(),

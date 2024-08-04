@@ -1333,7 +1333,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 			wantWorkingChainId: chainId,
 		},
 		{
-			name: "pass - chains not coin-type-60 should not support reverse-resolve hex address",
+			name: "pass - chains neither host-chain nor RollApp should not support reverse-resolve hex address",
 			dymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",

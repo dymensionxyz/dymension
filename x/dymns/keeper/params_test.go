@@ -56,11 +56,17 @@ func TestGetSetParams(t *testing.T) {
 }
 
 func TestKeeper_CheckChainIsCoinType60ByChainId(t *testing.T) {
+	const chainId = "dymension_1100-1"
 	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
+	ctx = ctx.WithChainID(chainId)
 
 	const chainIdInjective = "injective-1"
 
 	params := dk.GetParams(ctx)
+
+	t.Run("host-chain is coin-type 60", func(t *testing.T) {
+		require.True(t, dk.CheckChainIsCoinType60ByChainId(ctx, chainId))
+	})
 
 	t.Run("roll-app is coin-type 60", func(t *testing.T) {
 		rollApp1 := rollapptypes.Rollapp{

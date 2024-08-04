@@ -50,8 +50,12 @@ func (k Keeper) PreservedRegistrationParams(ctx sdk.Context) (res dymnstypes.Pre
 	return
 }
 
-// CheckChainIsCoinType60ByChainId checks if the chain-id is a CoinType60 chain-id, defined in the params.
+// CheckChainIsCoinType60ByChainId checks if the chain-id is a Coin-Type-60 chain-id (from params or host-chain or RollApp).
 func (k Keeper) CheckChainIsCoinType60ByChainId(ctx sdk.Context, chainId string) bool {
+	if chainId == ctx.ChainID() {
+		return true
+	}
+
 	if k.IsRollAppId(ctx, chainId) {
 		// all RollApps on Dymension use secp256k1
 		return true
