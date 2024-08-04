@@ -1559,6 +1559,16 @@ paths:
                   name:
                     type: string
                     description: name of the Dym-Name willing to buy.
+                  type:
+                    description: >-
+                      type is the type of the order, is Dym-Name for current
+                      version.
+                    type: string
+                    enum:
+                      - MOT_UNKNOWN
+                      - MOT_DYM_NAME
+                      - MOT_ALIAS
+                    default: MOT_UNKNOWN
                   buyer:
                     type: string
                     description: >-
@@ -1683,9 +1693,9 @@ paths:
                             (equals to Type in DNS).
                           type: string
                           enum:
-                            - UNKNOWN
-                            - NAME
-                          default: UNKNOWN
+                            - DCT_UNKNOWN
+                            - DCT_NAME
+                          default: DCT_UNKNOWN
                         chain_id:
                           type: string
                           description: >-
@@ -1858,6 +1868,16 @@ paths:
                     name:
                       type: string
                       description: name of the Dym-Name being opened to be sold.
+                    type:
+                      description: >-
+                        type is the type of the order, is Dym-Name for current
+                        version.
+                      type: string
+                      enum:
+                        - MOT_UNKNOWN
+                        - MOT_DYM_NAME
+                        - MOT_ALIAS
+                      default: MOT_UNKNOWN
                     expire_at:
                       type: string
                       format: int64
@@ -1982,6 +2002,16 @@ paths:
                     name:
                       type: string
                       description: name of the Dym-Name willing to buy.
+                    type:
+                      description: >-
+                        type is the type of the order, is Dym-Name for current
+                        version.
+                      type: string
+                      enum:
+                        - MOT_UNKNOWN
+                        - MOT_DYM_NAME
+                        - MOT_ALIAS
+                      default: MOT_UNKNOWN
                     buyer:
                       type: string
                       description: >-
@@ -2087,6 +2117,16 @@ paths:
                     name:
                       type: string
                       description: name of the Dym-Name willing to buy.
+                    type:
+                      description: >-
+                        type is the type of the order, is Dym-Name for current
+                        version.
+                      type: string
+                      enum:
+                        - MOT_UNKNOWN
+                        - MOT_DYM_NAME
+                        - MOT_ALIAS
+                      default: MOT_UNKNOWN
                     buyer:
                       type: string
                       description: >-
@@ -2196,6 +2236,16 @@ paths:
                     name:
                       type: string
                       description: name of the Dym-Name willing to buy.
+                    type:
+                      description: >-
+                        type is the type of the order, is Dym-Name for current
+                        version.
+                      type: string
+                      enum:
+                        - MOT_UNKNOWN
+                        - MOT_DYM_NAME
+                        - MOT_ALIAS
+                      default: MOT_UNKNOWN
                     buyer:
                       type: string
                       description: >-
@@ -2334,9 +2384,9 @@ paths:
                               (equals to Type in DNS).
                             type: string
                             enum:
-                              - UNKNOWN
-                              - NAME
-                            default: UNKNOWN
+                              - DCT_UNKNOWN
+                              - DCT_NAME
+                            default: DCT_UNKNOWN
                           chain_id:
                             type: string
                             description: >-
@@ -2852,6 +2902,16 @@ paths:
                   name:
                     type: string
                     description: name of the Dym-Name being opened to be sold.
+                  type:
+                    description: >-
+                      type is the type of the order, is Dym-Name for current
+                      version.
+                    type: string
+                    enum:
+                      - MOT_UNKNOWN
+                      - MOT_DYM_NAME
+                      - MOT_ALIAS
+                    default: MOT_UNKNOWN
                   expire_at:
                     type: string
                     format: int64
@@ -58547,6 +58607,14 @@ definitions:
       name:
         type: string
         description: name of the Dym-Name willing to buy.
+      type:
+        description: type is the type of the order, is Dym-Name for current version.
+        type: string
+        enum:
+          - MOT_UNKNOWN
+          - MOT_DYM_NAME
+          - MOT_ALIAS
+        default: MOT_UNKNOWN
       buyer:
         type: string
         description: buyer is bech32 address of the account which placed the offer.
@@ -58665,9 +58733,9 @@ definitions:
                 in DNS).
               type: string
               enum:
-                - UNKNOWN
-                - NAME
-              default: UNKNOWN
+                - DCT_UNKNOWN
+                - DCT_NAME
+              default: DCT_UNKNOWN
             chain_id:
               type: string
               description: >-
@@ -58722,9 +58790,9 @@ definitions:
           DNS).
         type: string
         enum:
-          - UNKNOWN
-          - NAME
-        default: UNKNOWN
+          - DCT_UNKNOWN
+          - DCT_NAME
+        default: DCT_UNKNOWN
       chain_id:
         type: string
         description: >-
@@ -58753,12 +58821,20 @@ definitions:
   dymensionxyz.dymension.dymns.DymNameConfigType:
     type: string
     enum:
-      - UNKNOWN
-      - NAME
-    default: UNKNOWN
+      - DCT_UNKNOWN
+      - DCT_NAME
+    default: DCT_UNKNOWN
     description: |-
       DymNameConfigType specifies the type of the Dym-Name configuration.
       Currently only supports Name, similar to DNS.
+  dymensionxyz.dymension.dymns.MarketOrderType:
+    type: string
+    enum:
+      - MOT_UNKNOWN
+      - MOT_DYM_NAME
+      - MOT_ALIAS
+    default: MOT_UNKNOWN
+    description: MarketOrderType present type of the Buy/Sell order.
   dymensionxyz.dymension.dymns.MiscParams:
     type: object
     properties:
@@ -59149,6 +59225,14 @@ definitions:
           name:
             type: string
             description: name of the Dym-Name willing to buy.
+          type:
+            description: type is the type of the order, is Dym-Name for current version.
+            type: string
+            enum:
+              - MOT_UNKNOWN
+              - MOT_DYM_NAME
+              - MOT_ALIAS
+            default: MOT_UNKNOWN
           buyer:
             type: string
             description: buyer is bech32 address of the account which placed the offer.
@@ -59200,6 +59284,14 @@ definitions:
             name:
               type: string
               description: name of the Dym-Name willing to buy.
+            type:
+              description: type is the type of the order, is Dym-Name for current version.
+              type: string
+              enum:
+                - MOT_UNKNOWN
+                - MOT_DYM_NAME
+                - MOT_ALIAS
+              default: MOT_UNKNOWN
             buyer:
               type: string
               description: buyer is bech32 address of the account which placed the offer.
@@ -59262,6 +59354,14 @@ definitions:
             name:
               type: string
               description: name of the Dym-Name willing to buy.
+            type:
+              description: type is the type of the order, is Dym-Name for current version.
+              type: string
+              enum:
+                - MOT_UNKNOWN
+                - MOT_DYM_NAME
+                - MOT_ALIAS
+              default: MOT_UNKNOWN
             buyer:
               type: string
               description: buyer is bech32 address of the account which placed the offer.
@@ -59326,6 +59426,14 @@ definitions:
             name:
               type: string
               description: name of the Dym-Name willing to buy.
+            type:
+              description: type is the type of the order, is Dym-Name for current version.
+              type: string
+              enum:
+                - MOT_UNKNOWN
+                - MOT_DYM_NAME
+                - MOT_ALIAS
+              default: MOT_UNKNOWN
             buyer:
               type: string
               description: buyer is bech32 address of the account which placed the offer.
@@ -59421,9 +59529,9 @@ definitions:
                     Type in DNS).
                   type: string
                   enum:
-                    - UNKNOWN
-                    - NAME
-                  default: UNKNOWN
+                    - DCT_UNKNOWN
+                    - DCT_NAME
+                  default: DCT_UNKNOWN
                 chain_id:
                   type: string
                   description: >-
@@ -59512,9 +59620,9 @@ definitions:
                       Type in DNS).
                     type: string
                     enum:
-                      - UNKNOWN
-                      - NAME
-                    default: UNKNOWN
+                      - DCT_UNKNOWN
+                      - DCT_NAME
+                    default: DCT_UNKNOWN
                   chain_id:
                     type: string
                     description: >-
@@ -59613,6 +59721,14 @@ definitions:
             name:
               type: string
               description: name of the Dym-Name being opened to be sold.
+            type:
+              description: type is the type of the order, is Dym-Name for current version.
+              type: string
+              enum:
+                - MOT_UNKNOWN
+                - MOT_DYM_NAME
+                - MOT_ALIAS
+              default: MOT_UNKNOWN
             expire_at:
               type: string
               format: int64
@@ -59951,6 +60067,14 @@ definitions:
           name:
             type: string
             description: name of the Dym-Name being opened to be sold.
+          type:
+            description: type is the type of the order, is Dym-Name for current version.
+            type: string
+            enum:
+              - MOT_UNKNOWN
+              - MOT_DYM_NAME
+              - MOT_ALIAS
+            default: MOT_UNKNOWN
           expire_at:
             type: string
             format: int64
@@ -60060,6 +60184,14 @@ definitions:
       name:
         type: string
         description: name of the Dym-Name being opened to be sold.
+      type:
+        description: type is the type of the order, is Dym-Name for current version.
+        type: string
+        enum:
+          - MOT_UNKNOWN
+          - MOT_DYM_NAME
+          - MOT_ALIAS
+        default: MOT_UNKNOWN
       expire_at:
         type: string
         format: int64
