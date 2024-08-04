@@ -32,7 +32,7 @@ func (m GenesisState) Validate() error {
 
 	for _, bo := range m.BuyOffers {
 		if err := bo.Validate(); err != nil {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Buy-Offer by '%s': %v", bo.Buyer, err)
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Buy-Order by '%s': %v", bo.Buyer, err)
 		}
 	}
 

@@ -71,6 +71,13 @@ func (m *SellOrder) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of SO is not a valid dym name")
 	}
 
+	if m.Type != MarketOrderType_MOT_DYM_NAME {
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"Sell-Order type must be: %s", MarketOrderType_MOT_DYM_NAME.String(),
+		)
+	}
+
 	if m.ExpireAt == 0 {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "SO expiry is empty")
 	}

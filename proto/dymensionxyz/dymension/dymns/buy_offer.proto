@@ -3,6 +3,7 @@ package dymensionxyz.dymension.dymns;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
@@ -17,17 +18,20 @@ message BuyOffer {
   // name of the Dym-Name willing to buy.
   string name = 2;
 
+  // type is the type of the order, is Dym-Name for current version.
+  MarketOrderType type = 3;
+
   // buyer is bech32 address of the account which placed the offer.
-  string buyer = 3;
+  string buyer = 4;
 
   // offer_price is the amount of coins that buyer willing to pay for the Dym-Name.
   // This amount is deposited to the module account upon placing the offer.
-  cosmos.base.v1beta1.Coin offer_price = 4 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin offer_price = 5 [(gogoproto.nullable) = false];
 
   // counterparty_offer_price is the price that the Dym-Name owner is willing to sell the Dym-Name for.
   // This is used for counterparty price negotiation and for information only.
   // The transaction can only be executed when the owner accepts the offer with exact offer_price.
-  cosmos.base.v1beta1.Coin counterparty_offer_price = 5;
+  cosmos.base.v1beta1.Coin counterparty_offer_price = 6;
 }
 
 // ReverseLookupOfferIds contains a list of offer-ids for reverse lookup.

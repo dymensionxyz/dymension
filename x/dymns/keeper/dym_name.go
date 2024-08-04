@@ -302,7 +302,7 @@ func (k Keeper) ResolveByDymNameAddress(ctx sdk.Context, dymNameAddress string) 
 		}
 
 		for _, config := range dymName.Configs {
-			if config.Type != dymnstypes.DymNameConfigType_NAME {
+			if config.Type != dymnstypes.DymNameConfigType_DCT_NAME {
 				continue
 			}
 

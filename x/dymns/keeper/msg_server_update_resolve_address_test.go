@@ -415,7 +415,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerAcc.bech32(),
@@ -458,7 +458,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: rollAppId,
 						Path:    "",
 						Value:   anotherAcc.bech32C("rol"),
@@ -498,7 +498,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Path:    "",
 						Value:   nonBech32NonHexUpperCaseA,
@@ -518,7 +518,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
@@ -541,12 +541,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: ownerAcc.bech32(),
 					},
@@ -568,12 +568,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -596,12 +596,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: ownerAcc.bech32(),
 					},
@@ -623,7 +623,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
@@ -663,7 +663,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
@@ -687,7 +687,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
@@ -709,12 +709,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -738,7 +738,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -760,12 +760,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -788,7 +788,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
@@ -810,12 +810,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -839,12 +839,12 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "a",
 						Value: ownerAcc.bech32(),
 					},
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: controllerAcc.bech32(),
 					},
@@ -882,7 +882,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: ownerAcc.bech32(),
 					},
 				},
@@ -921,7 +921,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "", // empty
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -944,7 +944,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "", // originally empty
 						Path:    "a",
 						Value:   controllerAcc.bech32(),
@@ -970,7 +970,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "", // empty
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -1011,7 +1011,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -1034,7 +1034,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -1060,13 +1060,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -1089,13 +1089,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "a",
 						Value:   controllerAcc.bech32(),
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
 						Value:   controllerAcc.bech32(),
@@ -1121,13 +1121,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "a",
 						Value:   controllerAcc.bech32(),
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_100-1",
 						Path:    "a",
 						Value:   ownerAcc.bech32(),
@@ -1167,7 +1167,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "ethereum",
 						Value:   strings.ToLower(anotherAcc.checksumHex()), // lower-cased
 					},
@@ -1207,7 +1207,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Value:   "0x" + strings.ToLower(_32BytesAcc.hexStr()[2:]), // lower-cased
 					},
@@ -1247,7 +1247,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Value:   strings.ToUpper(anotherAcc.hexStr()[2:]), // keep as is
 					},
@@ -1288,7 +1288,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Value:   strings.ToUpper(_32BytesAcc.hexStr()[2:]), // keep as is
 					},
@@ -1491,7 +1491,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
 						Value:   ownerAcc.bech32C("nim"),
@@ -1509,13 +1509,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   controllerAcc.bech32(),
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
 						Value:   anotherAcc.bech32C("nim"),
@@ -1543,13 +1543,13 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerAcc.bech32(),
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
 						Value:   anotherAcc.bech32C("nim"),
@@ -1675,7 +1675,7 @@ func Test_msgServer_UpdateResolveAddress(t *testing.T) {
 				ExpireAt:   dymName.ExpireAt,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: anotherChainId,
 						Path:    "",
 						Value:   wantRecordedValue,
@@ -2034,7 +2034,7 @@ func Test_msgServer_UpdateResolveAddress_ReverseMapping(t *testing.T) {
 				wantDymName := dymName
 				wantDymName.Configs = []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: msg.ChainId,
 						Path:    msg.SubName,
 						Value:   msg.ResolveTo,

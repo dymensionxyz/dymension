@@ -34,6 +34,13 @@ func (m *BuyOffer) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "Dym-Name of offer is not a valid dym name")
 	}
 
+	if m.Type != MarketOrderType_MOT_DYM_NAME {
+		return errorsmod.Wrapf(
+			gerrc.ErrInvalidArgument,
+			"Buy-Order type must be: %s", MarketOrderType_MOT_DYM_NAME.String(),
+		)
+	}
+
 	if !dymnsutils.IsValidBech32AccountAddress(m.Buyer, true) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}

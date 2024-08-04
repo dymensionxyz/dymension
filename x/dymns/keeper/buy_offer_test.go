@@ -42,6 +42,8 @@ func TestKeeper_IncreaseBuyOfferCountAndGet(t *testing.T) {
 }
 
 func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
+	// TODO DymNS: add test for Sell/Buy Alias
+
 	buyerA := testAddr(1).bech32()
 
 	t.Run("get non-exists offer should returns nil", func(t *testing.T) {
@@ -72,6 +74,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer := dymnstypes.BuyOffer{
 			Id:         "1",
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -92,6 +95,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 			_, _ = dk.InsertNewBuyOffer(ctx, dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "a",
+				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			})
@@ -104,6 +108,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1 := dymnstypes.BuyOffer{
 			Id:         "",
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -119,6 +124,8 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		require.Equal(t, offer1, *offerGot)
 	})
 
+	// TODO DymNS: add case for same id buy different type, should be allowed and not overwritten
+
 	t.Run("can not insert duplicated", func(t *testing.T) {
 		dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
@@ -128,6 +135,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		existing := dymnstypes.BuyOffer{
 			Id:         nextId,
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -144,7 +152,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 
 		_, err = dk.InsertNewBuyOffer(ctx, offer)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "Buy-Offer-ID already exists")
+		require.Contains(t, err.Error(), "Buy-Order-ID already exists")
 	})
 
 	t.Run("should automatically fill ID when insert", func(t *testing.T) {
@@ -153,6 +161,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1 := dymnstypes.BuyOffer{
 			Id:         "",
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -172,6 +181,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer2 := dymnstypes.BuyOffer{
 			Id:         "",
 			Name:       "b",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -194,6 +204,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer1 := dymnstypes.BuyOffer{
 			Id:         "1",
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -203,6 +214,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer2 := dymnstypes.BuyOffer{
 			Id:         "2",
 			Name:       "b",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(2),
 		}
@@ -212,6 +224,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer3 := dymnstypes.BuyOffer{
 			Id:         "3",
 			Name:       "c",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(3),
 		}
@@ -221,6 +234,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer4 := dymnstypes.BuyOffer{
 			Id:         "4",
 			Name:       "d",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(4),
 		}
@@ -262,6 +276,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 				offer: dymnstypes.BuyOffer{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -310,6 +325,7 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 		offer := dymnstypes.BuyOffer{
 			Id:         "1",
 			Name:       "a",
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      buyerA,
 			OfferPrice: dymnsutils.TestCoin(1),
 		}
@@ -348,6 +364,8 @@ func TestKeeper_GetSetInsertNewBuyOffer(t *testing.T) {
 }
 
 func TestKeeper_GetAllBuyOffers(t *testing.T) {
+	// TODO DymNS: add test for Sell/Buy Alias
+
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
 	buyerA := testAddr(1).bech32()
@@ -355,6 +373,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer1 := dymnstypes.BuyOffer{
 		Id:         "1",
 		Name:       "a",
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -368,6 +387,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "2",
 		Name:       "a",
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(1),
 	}
@@ -381,6 +401,7 @@ func TestKeeper_GetAllBuyOffers(t *testing.T) {
 	offer3 := dymnstypes.BuyOffer{
 		Id:         "3",
 		Name:       "b",
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(3),
 	}

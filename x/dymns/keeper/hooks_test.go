@@ -85,6 +85,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
 			Name:     dymName.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: getEpochWithOffset(offsetExpiry),
 			MinPrice: dymnsutils.TestCoin(100),
 		}
@@ -125,6 +126,8 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name)
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
+
+	// TODO DymNS: add test cleanup Alias SO
 
 	testsCleanupHistoricalSellOrders := []struct {
 		name                           string
@@ -771,6 +774,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 	) dymnstypes.SellOrder {
 		return dymnstypes.SellOrder{
 			Name: dymName.Name,
+			Type: dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: func() int64 {
 				if expired {
 					return soExpiredEpoch
@@ -875,6 +879,8 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 	requireFallbackAddrMappedNoDymName := func(ts testSuite, fallbackAddr dymnstypes.FallbackAddress) {
 		requireFallbackAddrMappedDymNames(ts, fallbackAddr)
 	}
+
+	// TODO DymNS: add test for Alias SOs
 
 	tests := []struct {
 		name                  string
@@ -1736,12 +1742,12 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "rollapp_1-1",
 							Value:   dymNameOwnerAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "rollapp_1-1",
 							Path:    "sub",
 							Value:   anotherAcc.bech32(),

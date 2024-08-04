@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
@@ -113,39 +114,28 @@ func (k Keeper) MoveSellOrderToHistorical(ctx sdk.Context, dymName string) error
 	}
 	hSo.SellOrders = append(hSo.SellOrders, *so)
 
-	var persist bool
-
 	if ignorableErr := hSo.Validate(); ignorableErr != nil {
 		k.Logger(ctx).Error(
 			"historical sell order validation failed, skip persist this historical record",
 			"error", ignorableErr,
 		)
 
-		// skip persisting historical record
+		// the historical record is not an important data for the chain to function,
+		// so in this case, we just skip persisting the invalid historical record.
 
-		/**
-		Why do we skip persisting the historical record when it fails validation?
-		- The historical record is not an important data for the chain to function.
-		- This method will be called in an epoch hooks.
-		- By skipping persisting the invalid historical record, we can prevent the chain from being halted.
-		*/
-	} else {
-		// only persist if passed validation
-		persist = true
+		return nil
 	}
 
-	if persist {
-		k.SetHistoricalSellOrders(ctx, dymName, hSo)
+	k.SetHistoricalSellOrders(ctx, dymName, hSo)
 
-		var minExpiry int64 = -1
-		for _, hSo := range hSo.SellOrders {
-			if minExpiry < 0 || hSo.ExpireAt < minExpiry {
-				minExpiry = hSo.ExpireAt
-			}
+	var minExpiry int64 = -1
+	for _, hSo := range hSo.SellOrders {
+		if minExpiry < 0 || hSo.ExpireAt < minExpiry {
+			minExpiry = hSo.ExpireAt
 		}
-		if minExpiry > 0 {
-			k.SetMinExpiryHistoricalSellOrder(ctx, dymName, minExpiry)
-		}
+	}
+	if minExpiry > 0 {
+		k.SetMinExpiryHistoricalSellOrder(ctx, dymName, minExpiry)
 	}
 
 	return nil
@@ -196,6 +186,10 @@ func (k Keeper) CompleteSellOrder(ctx sdk.Context, name string) error {
 	so := k.GetSellOrder(ctx, name)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", name)
+	}
+
+	if so.Type != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		panic(fmt.Sprintf("invalid call, only support type: %s", dymnstypes.MarketOrderType_MOT_DYM_NAME))
 	}
 
 	if !so.HasFinishedAtCtx(ctx) {

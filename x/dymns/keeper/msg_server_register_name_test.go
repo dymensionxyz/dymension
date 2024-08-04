@@ -342,7 +342,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
@@ -353,7 +353,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
@@ -373,7 +373,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "existing@example.com",
@@ -384,7 +384,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   now.Unix() + 1 + 86400*365*2,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "new-contact@example.com",
@@ -441,7 +441,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   5,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 			},
@@ -467,7 +467,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: buyerA,
 				ExpireAt:   5,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 			},
@@ -511,7 +511,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: previousOwnerA,
 				ExpireAt:   1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "old-contact@example.com",
@@ -536,7 +536,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				Controller: previousOwnerA,
 				ExpireAt:   1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: buyerA,
 				}},
 				Contact: "old-contact@example.com",
@@ -675,6 +675,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 				if tt.setupHistoricalData {
 					so1 := dymnstypes.SellOrder{
 						Name:     useRecordName,
+						Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 						ExpireAt: now.Unix() - 1,
 						MinPrice: dymnsutils.TestCoin(1),
 					}
@@ -686,6 +687,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 
 					so2 := dymnstypes.SellOrder{
 						Name:      useRecordName,
+						Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 						ExpireAt:  tt.existingDymName.ExpireAt - 1,
 						MinPrice:  dymnsutils.TestCoin(1),
 						SellPrice: dymnsutils.TestCoinP(2),

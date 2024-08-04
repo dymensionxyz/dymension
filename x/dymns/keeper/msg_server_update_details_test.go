@@ -350,7 +350,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Contact:    "contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: controllerA,
 					},
 				},
@@ -390,7 +390,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Contact:    "old-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: controllerA,
 					},
 				},
@@ -462,7 +462,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Contact:    "old-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: controllerA,
 					},
 				},
@@ -486,7 +486,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				Contact:    "new-contact@example.com",
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: controllerA,
 					},
 				},
@@ -507,13 +507,13 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   controllerA,
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "a",
 						Value:   anotherAcc.bech32C("nim"),
@@ -556,7 +556,7 @@ func Test_msgServer_UpdateDetails(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   controllerA,

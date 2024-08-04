@@ -39,8 +39,8 @@ message DymName {
 // DymNameConfigType specifies the type of the Dym-Name configuration.
 // Currently only supports Name, similar to DNS.
 enum DymNameConfigType {
-  UNKNOWN = 0;
-  NAME = 1;
+  DCT_UNKNOWN = 0;
+  DCT_NAME = 1;
 }
 
 // DymNameConfig contains the resolution configuration for the Dym-Name.

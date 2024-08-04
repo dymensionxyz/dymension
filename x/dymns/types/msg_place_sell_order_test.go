@@ -21,27 +21,28 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:      "valid sell order",
+			name:      "pass - valid sell order",
 			dymName:   "my-name",
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:      "valid sell order without bid",
+			name:      "pass - valid sell order without bid",
 			dymName:   "my-name",
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 			owner:     "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:     "valid sell order without setting sell price",
-			dymName:  "my-name",
+			name:    "pass - valid sell order without setting sell price",
+			dymName: "my-name",
+
 			minPrice: dymnsutils.TestCoin(1),
 			owner:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "empty name",
+			name:            "fail - empty name",
 			dymName:         "",
 			minPrice:        dymnsutils.TestCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -49,15 +50,15 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "bad name",
-			dymName:         "-bonded-pool",
+			name:            "fail - bad name",
+			dymName:         "-my-name",
 			minPrice:        dymnsutils.TestCoin(1),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "min price is zero",
+			name:            "fail - min price is zero",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(0),
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -65,7 +66,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO min price is zero",
 		},
 		{
-			name:            "min price is empty",
+			name:            "fail - min price is empty",
 			dymName:         "my-name",
 			minPrice:        sdk.Coin{},
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -73,7 +74,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO min price is zero",
 		},
 		{
-			name:    "min price is negative",
+			name:    "fail - min price is negative",
 			dymName: "my-name",
 			minPrice: sdk.Coin{
 				Denom:  params.BaseDenom,
@@ -84,7 +85,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO min price is negative",
 		},
 		{
-			name:    "min price is invalid",
+			name:    "fail - min price is invalid",
 			dymName: "my-name",
 			minPrice: sdk.Coin{
 				Denom:  "-",
@@ -95,7 +96,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO min price is invalid",
 		},
 		{
-			name:            "sell price is negative",
+			name:            "fail - sell price is negative",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoinP(-1),
@@ -104,7 +105,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO sell price is negative",
 		},
 		{
-			name:     "sell price is invalid",
+			name:     "fail - sell price is invalid",
 			dymName:  "my-name",
 			minPrice: dymnsutils.TestCoin(1),
 			sellPrice: &sdk.Coin{
@@ -116,7 +117,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO sell price is invalid",
 		},
 		{
-			name:            "sell price is less than min price",
+			name:            "fail - sell price is less than min price",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoinP(1),
@@ -125,7 +126,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO sell price is less than min price",
 		},
 		{
-			name:            "sell price denom must match min price denom",
+			name:            "fail - sell price denom must match min price denom",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoin2P(sdk.NewCoin("u"+params.BaseDenom, sdk.OneInt())),
@@ -134,7 +135,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "SO sell price denom is different from min price denom",
 		},
 		{
-			name:            "missing owner",
+			name:            "fail - missing owner",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "",
@@ -142,7 +143,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid owner",
+			name:            "fail - invalid owner",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "dym1fl48vsnmsdzcv85",
@@ -150,7 +151,7 @@ func TestMsgPlaceSellOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "owner must be dym1",
+			name:            "fail - owner must be dym1",
 			dymName:         "my-name",
 			minPrice:        dymnsutils.TestCoin(2),
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
@@ -185,44 +186,47 @@ func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		Name      string
-		MinPrice  sdk.Coin
-		SellPrice *sdk.Coin
+		dymName   string
+		minPrice  sdk.Coin
+		sellPrice *sdk.Coin
 		Owner     string
 		want      SellOrder
 	}{
 		{
-			name:      "valid",
-			Name:      "a",
-			MinPrice:  validMinPrice,
-			SellPrice: &validSellPrice,
+			name:      "normal",
+			dymName:   "a",
+			minPrice:  validMinPrice,
+			sellPrice: &validSellPrice,
 			Owner:     "",
 			want: SellOrder{
 				Name:      "a",
+				Type:      MarketOrderType_MOT_DYM_NAME,
 				MinPrice:  validMinPrice,
 				SellPrice: &validSellPrice,
 			},
 		},
 		{
-			name:      "valid without sell price",
-			Name:      "a",
-			MinPrice:  validMinPrice,
-			SellPrice: nil,
+			name:      "without sell price",
+			dymName:   "a",
+			minPrice:  validMinPrice,
+			sellPrice: nil,
 			Owner:     "",
 			want: SellOrder{
 				Name:      "a",
+				Type:      MarketOrderType_MOT_DYM_NAME,
 				MinPrice:  validMinPrice,
 				SellPrice: nil,
 			},
 		},
 		{
-			name:      "valid without sell price, auto omit zero sell price",
-			Name:      "a",
-			MinPrice:  validMinPrice,
-			SellPrice: dymnsutils.TestCoin2P(sdk.NewCoin(validMinPrice.Denom, sdk.ZeroInt())),
+			name:      "without sell price, auto omit zero sell price",
+			dymName:   "a",
+			minPrice:  validMinPrice,
+			sellPrice: dymnsutils.TestCoin2P(sdk.NewCoin(validMinPrice.Denom, sdk.ZeroInt())),
 			Owner:     "",
 			want: SellOrder{
 				Name:      "a",
+				Type:      MarketOrderType_MOT_DYM_NAME,
 				MinPrice:  validMinPrice,
 				SellPrice: nil,
 			},
@@ -231,9 +235,9 @@ func TestMsgPlaceSellOrder_ToSellOrder(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &MsgPlaceSellOrder{
-				Name:      tt.Name,
-				MinPrice:  tt.MinPrice,
-				SellPrice: tt.SellPrice,
+				Name:      tt.dymName,
+				MinPrice:  tt.minPrice,
+				SellPrice: tt.sellPrice,
 				Owner:     tt.Owner,
 			}
 

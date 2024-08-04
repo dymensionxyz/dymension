@@ -94,6 +94,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
+				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt: 1,
 				MinPrice: dymnsutils.TestCoin(100),
 			},
@@ -108,6 +109,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
+				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt: now.Unix() + 1,
 				MinPrice: dymnsutils.TestCoin(100),
 			},
@@ -122,6 +124,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
+				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt: now.Unix() + 1,
 				MinPrice: dymnsutils.TestCoin(100),
 				HighestBid: &dymnstypes.SellOrderBid{
@@ -140,6 +143,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 			},
 			sellOrder: &dymnstypes.SellOrder{
+				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:  now.Unix() + 1,
 				MinPrice:  dymnsutils.TestCoin(100),
 				SellPrice: dymnsutils.TestCoinP(200),
@@ -166,7 +170,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "a",
 					Value:   anotherA,
@@ -190,6 +194,7 @@ func Test_msgServer_TransferOwnership(t *testing.T) {
 
 				so := &dymnstypes.SellOrder{
 					Name:     recordName,
+					Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					MinPrice: dymnsutils.TestCoin(100),
 					ExpireAt: 1,
 				}

@@ -152,7 +152,7 @@ func (m *dymNameBuilder) exp(now time.Time, offset int64) *dymNameBuilder {
 
 func (m *dymNameBuilder) cfgN(chainId, subName, resolveTo string) *dymNameBuilder {
 	m.configs = append(m.configs, dymnstypes.DymNameConfig{
-		Type:    dymnstypes.DymNameConfigType_NAME,
+		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 		ChainId: chainId,
 		Path:    subName,
 		Value:   resolveTo,

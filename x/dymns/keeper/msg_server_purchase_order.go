@@ -81,6 +81,10 @@ func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchase
 		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.Name)
 	}
 
+	if so.Type != dymnstypes.MarketOrderType_MOT_DYM_NAME {
+		panic(errorsmod.Wrapf(gerrc.ErrInternal, "not yet supported Sell-Offer type: %s", so.Type))
+	}
+
 	if so.HasExpiredAtCtx(ctx) {
 		return nil, nil, errorsmod.Wrap(gerrc.ErrFailedPrecondition, "cannot purchase an expired order")
 	}

@@ -960,7 +960,7 @@ func (m *MsgPlaceBuyOrder) GetOffer() types.Coin {
 	return types.Coin{}
 }
 
-// MsgPlaceBuyOrderResponse defines the response after placed the Buy-Offer.
+// MsgPlaceBuyOrderResponse defines the response after placed the Buy-Order.
 type MsgPlaceBuyOrderResponse struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -1006,7 +1006,7 @@ func (m *MsgPlaceBuyOrderResponse) GetOfferId() string {
 	return ""
 }
 
-// MsgCancelBuyOrder defines the message used for user to cancel a Buy-Offer.
+// MsgCancelBuyOrder defines the message used for user to cancel a Buy-Order.
 type MsgCancelBuyOrder struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -1061,7 +1061,7 @@ func (m *MsgCancelBuyOrder) GetBuyer() string {
 	return ""
 }
 
-// MsgCancelBuyOrderResponse defines the response for the Buy-Offer cancellation.
+// MsgCancelBuyOrderResponse defines the response for the Buy-Order cancellation.
 type MsgCancelBuyOrderResponse struct {
 }
 
@@ -1098,7 +1098,7 @@ func (m *MsgCancelBuyOrderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCancelBuyOrderResponse proto.InternalMessageInfo
 
-// MsgAcceptBuyOrder defines the message used for user to accept a Buy-Offer.
+// MsgAcceptBuyOrder defines the message used for user to accept a Buy-Order.
 type MsgAcceptBuyOrder struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -1165,7 +1165,7 @@ func (m *MsgAcceptBuyOrder) GetMinAccept() types.Coin {
 	return types.Coin{}
 }
 
-// MsgAcceptBuyOrderResponse defines the response for the Buy-Offer acceptance.
+// MsgAcceptBuyOrderResponse defines the response for the Buy-Order acceptance.
 type MsgAcceptBuyOrderResponse struct {
 	// accepted is the flag to indicate if the offer is accepted (price matched).
 	Accepted bool `protobuf:"varint,1,opt,name=accepted,proto3" json:"accepted,omitempty"`
@@ -1349,10 +1349,10 @@ type MsgClient interface {
 	// handles creating an offer to buy a Dym-Name, performed by the buyer.
 	PlaceBuyOrder(ctx context.Context, in *MsgPlaceBuyOrder, opts ...grpc.CallOption) (*MsgPlaceBuyOrderResponse, error)
 	// CancelBuyOrder is message handler,
-	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
+	// handles canceling a Buy-Order, performed by the buyer who placed the offer.
 	CancelBuyOrder(ctx context.Context, in *MsgCancelBuyOrder, opts ...grpc.CallOption) (*MsgCancelBuyOrderResponse, error)
 	// AcceptBuyOrder is message handler,
-	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
+	// handles accepting a Buy-Order or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptBuyOrder(ctx context.Context, in *MsgAcceptBuyOrder, opts ...grpc.CallOption) (*MsgAcceptBuyOrderResponse, error)
 }
 
@@ -1495,10 +1495,10 @@ type MsgServer interface {
 	// handles creating an offer to buy a Dym-Name, performed by the buyer.
 	PlaceBuyOrder(context.Context, *MsgPlaceBuyOrder) (*MsgPlaceBuyOrderResponse, error)
 	// CancelBuyOrder is message handler,
-	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
+	// handles canceling a Buy-Order, performed by the buyer who placed the offer.
 	CancelBuyOrder(context.Context, *MsgCancelBuyOrder) (*MsgCancelBuyOrderResponse, error)
 	// AcceptBuyOrder is message handler,
-	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
+	// handles accepting a Buy-Order or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptBuyOrder(context.Context, *MsgAcceptBuyOrder) (*MsgAcceptBuyOrderResponse, error)
 }
 

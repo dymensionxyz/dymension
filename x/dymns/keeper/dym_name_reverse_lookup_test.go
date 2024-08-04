@@ -233,7 +233,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		Controller: owner1a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherA,
 		}},
 	}
@@ -257,7 +257,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		Controller: owner2a,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherA,
 		}},
 	}
@@ -366,7 +366,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		Controller: ownerA,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherA,
 		}},
 	}
@@ -380,7 +380,7 @@ func TestKeeper_RemoveReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		Controller: ownerA,
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherA,
 		}},
 	}
@@ -525,7 +525,7 @@ func TestKeeper_GetAddReverseMappingFallbackAddressToDymName(t *testing.T) {
 		Controller: owner1Acc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherAcc.bech32(),
 		}},
 	}
@@ -553,7 +553,7 @@ func TestKeeper_GetAddReverseMappingFallbackAddressToDymName(t *testing.T) {
 		Controller: owner2Acc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherAcc.bech32(),
 		}},
 	}
@@ -640,7 +640,7 @@ func TestKeeper_RemoveReverseMappingFallbackAddressToDymName(t *testing.T) {
 		Controller: ownerAcc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherAcc.bech32(),
 		}},
 	}
@@ -654,7 +654,7 @@ func TestKeeper_RemoveReverseMappingFallbackAddressToDymName(t *testing.T) {
 		Controller: ownerAcc.bech32(),
 		ExpireAt:   time.Now().UTC().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: anotherAcc.bech32(),
 		}},
 	}

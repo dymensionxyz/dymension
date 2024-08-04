@@ -3,6 +3,7 @@ package dymensionxyz.dymension.dymns;
 
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "dymensionxyz/dymension/dymns/market.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
@@ -16,8 +17,11 @@ message SellOrder {
   // name of the Dym-Name being opened to be sold.
   string name = 1;
 
+  // type is the type of the order, is Dym-Name for current version.
+  MarketOrderType type = 2;
+
   // expire_at is the last effective date of this SO
-  int64 expire_at = 2;
+  int64 expire_at = 3;
 
   // min_price is the minimum price that the owner is willing to accept for the Dym-Name.
   cosmos.base.v1beta1.Coin min_price = 4 [(gogoproto.nullable) = false];

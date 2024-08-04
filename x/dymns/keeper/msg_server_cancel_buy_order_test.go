@@ -58,6 +58,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	offer := &dymnstypes.BuyOffer{
 		Id:         "1",
 		Name:       dymName.Name,
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
@@ -65,6 +66,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 	offerByAnother := &dymnstypes.BuyOffer{
 		Id:         "999",
 		Name:       dymName.Name,
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      anotherBuyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
@@ -175,7 +177,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Buy-Offer ID: 2142142: not found",
+			wantErrContains:        "Buy-Order ID: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -190,7 +192,7 @@ func Test_msgServer_CancelBuyOrder(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Buy-Offer ID: 2142142: not found",
+			wantErrContains:        "Buy-Order ID: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,

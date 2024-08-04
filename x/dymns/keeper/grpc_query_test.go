@@ -62,7 +62,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: ownerA,
 					},
 				},
@@ -79,7 +79,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				ExpireAt:   now.Unix() + 99,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: ownerA,
 					},
 				},
@@ -96,7 +96,7 @@ func Test_queryServer_DymName(t *testing.T) {
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: ownerA,
 					},
 				},
@@ -166,7 +166,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr1a,
 		}},
 	}
@@ -178,7 +178,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr2a,
 		}},
 	}
@@ -190,7 +190,7 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr3a,
 		}},
 	}
@@ -203,12 +203,12 @@ func Test_queryServer_ResolveDymNameAddresses(t *testing.T) {
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{
 			{
-				Type:  dymnstypes.DymNameConfigType_NAME,
+				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 				Path:  "sub",
 				Value: addr3a,
 			},
 			{
-				Type:    dymnstypes.DymNameConfigType_NAME,
+				Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 				ChainId: "blumbus_111-1",
 				Path:    "",
 				Value:   addr3a,
@@ -285,7 +285,7 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 		Controller: addr2a,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr1a,
 		}},
 	}
@@ -305,7 +305,7 @@ func Test_queryServer_DymNamesOwnedByAccount(t *testing.T) {
 		Controller: addr2a,
 		ExpireAt:   now.Unix() - 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Value: addr3a,
 		}},
 	}
@@ -364,6 +364,7 @@ func Test_queryServer_SellOrder(t *testing.T) {
 	require.NoError(t, dk.SetDymName(ctx, dymNameA))
 	err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
 		Name:     dymNameA.Name,
+		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: now.Unix() + 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	})
@@ -431,6 +432,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	for r := int64(1); r <= 5; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
 			Name:      dymNameA.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(200),
@@ -454,6 +456,7 @@ func Test_queryServer_HistoricalSellOrder(t *testing.T) {
 	for r := int64(1); r <= 3; r++ {
 		err := dk.SetSellOrder(ctx, dymnstypes.SellOrder{
 			Name:      dymNameB.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + r,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -1083,13 +1086,13 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "another.account",
 							Value:   anotherAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmosAcc.bech32(),
@@ -1127,13 +1130,13 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "another.account",
 							Value:   anotherAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmosAcc.bech32(),
@@ -1171,7 +1174,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "a.b.c.d",
 							Value:   ownerAcc.bech32(),
@@ -1199,13 +1202,13 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "a.b.c.d",
 							Value:   ownerAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "another",
 							Value:   anotherAcc.bech32(),
@@ -1219,13 +1222,13 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "e.f.g.h",
 							Value:   ownerAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "another",
 							Value:   anotherAcc.bech32(),
@@ -1239,7 +1242,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "d",
 							Value:   ownerAcc.bech32(),
@@ -1269,13 +1272,13 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmosAcc.bech32(),
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: nimChainId,
 							Path:    "",
 							Value:   ownerAcc.bech32(),
@@ -1306,7 +1309,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "",
 							Path:    "ica",
 							Value:   icaAcc.bech32(),
@@ -1342,7 +1345,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmosAcc.bech32(),
@@ -1395,7 +1398,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "bitcoin",
 							Value:   bitcoinAddr,
 						},
@@ -1572,6 +1575,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1581,6 +1585,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			wantOffer: dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "a",
+				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(1),
 			},
@@ -1591,18 +1596,21 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -1612,6 +1620,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 			wantOffer: dymnstypes.BuyOffer{
 				Id:         "2",
 				Name:       "a",
+				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      buyerA,
 				OfferPrice: dymnsutils.TestCoin(2),
 			},
@@ -1622,12 +1631,14 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
@@ -1641,6 +1652,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1654,6 +1666,7 @@ func Test_queryServer_BuyOfferById(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1727,6 +1740,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1737,6 +1751,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1748,24 +1763,28 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "c",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA, // should exclude this
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "4",
 					Name:       "d",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
@@ -1776,18 +1795,21 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "4",
 					Name:       "d",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(4),
 				},
@@ -1799,12 +1821,14 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1819,6 +1843,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1832,6 +1857,7 @@ func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1932,6 +1958,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1942,6 +1969,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -1967,18 +1995,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -1989,12 +2020,14 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
@@ -2020,18 +2053,21 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2054,6 +2090,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2075,6 +2112,7 @@ func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2175,6 +2213,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2185,6 +2224,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2216,24 +2256,28 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
 				{
 					Id:         "4",
 					Name:       "c",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      ownerA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2244,18 +2288,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2281,18 +2328,21 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
 				{
 					Id:         "2",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(2),
 				},
 				{
 					Id:         "3",
 					Name:       "b",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      anotherA,
 					OfferPrice: dymnsutils.TestCoin(3),
 				},
@@ -2315,6 +2365,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},
@@ -2336,6 +2387,7 @@ func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 				{
 					Id:         "1",
 					Name:       "a",
+					Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 					Buyer:      buyerA,
 					OfferPrice: dymnsutils.TestCoin(1),
 				},

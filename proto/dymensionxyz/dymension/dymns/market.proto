@@ -1,0 +1,13 @@
+syntax = "proto3";
+package dymensionxyz.dymension.dymns;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
+
+// MarketOrderType present type of the Buy/Sell order.
+enum MarketOrderType {
+  MOT_UNKNOWN = 0;
+  MOT_DYM_NAME = 1;
+  MOT_ALIAS = 2;
+}

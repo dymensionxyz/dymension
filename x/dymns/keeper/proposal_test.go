@@ -41,7 +41,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
 						Path:    "",
 						Value:   cosmos3A,
@@ -79,7 +79,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "",
 						Value:   cosmos3A,
@@ -150,7 +150,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
 						Path:    "",
 						Value:   cosmos3A,
@@ -163,19 +163,19 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-3",
 							Path:    "",
 							Value:   cosmos3A,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "blumbus_111-1",
 							Path:    "",
 							Value:   addr2a,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "froopyland_100-1",
 							Path:    "",
 							Value:   addr2a,
@@ -201,7 +201,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "",
 						Value:   cosmos3A,
@@ -214,19 +214,19 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmos3A,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "blumbus_111-2",
 							Path:    "",
 							Value:   addr2a,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "froopyland_100-1",
 							Path:    "",
 							Value:   addr2a,
@@ -244,7 +244,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
 						Path:    "",
 						Value:   cosmos3A,
@@ -256,7 +256,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() - 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3",
 						Path:    "",
 						Value:   cosmos3A,
@@ -277,7 +277,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "",
 						Value:   cosmos3A,
@@ -289,7 +289,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() - 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-3", // keep
 						Path:    "",
 						Value:   cosmos3A,
@@ -306,7 +306,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
 						Value:   addr1a,
@@ -338,7 +338,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Controller: addr1a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1", // not updated
 						Path:    "",
 						Value:   addr1a,
@@ -445,13 +445,13 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Configs: []dymnstypes.DymNameConfig{
 						// migrate this will cause non-unique config
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-3",
 							Path:    "",
 							Value:   cosmos3A,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmos3A,
@@ -465,7 +465,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-3",
 							Path:    "",
 							Value:   cosmos3A,
@@ -479,7 +479,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmos3A,
@@ -502,13 +502,13 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-3", // keep
 							Path:    "",
 							Value:   cosmos3A,
 						},
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmos3A,
@@ -522,7 +522,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4", // migrated
 							Path:    "",
 							Value:   cosmos3A,
@@ -536,7 +536,7 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{
 						{
-							Type:    dymnstypes.DymNameConfigType_NAME,
+							Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 							ChainId: "cosmoshub-4",
 							Path:    "",
 							Value:   cosmos3A,

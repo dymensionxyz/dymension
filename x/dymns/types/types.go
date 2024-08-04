@@ -18,7 +18,7 @@ const (
 	AttributeKeySoRefundAmount = "amount"
 )
 
-// Event to fire when refunding deposited amount of a Buy-Offer.
+// Event to fire when refunding deposited amount of a Buy-Order.
 const (
 	EventTypeBoRefundOffer     = ModuleName + "_bo_refund"
 	AttributeKeyBoRefundBuyer  = "buyer"

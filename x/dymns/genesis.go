@@ -52,7 +52,7 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 		nonRefundedBids = append(nonRefundedBids, *bid.HighestBid)
 	}
 
-	// Collect buyers of active Buy-Offers so that we can refund them later.
+	// Collect buyers of active Buy-Orders so that we can refund them later.
 	var nonRefundedBuyOffers []dymnstypes.BuyOffer
 	for _, offer := range k.GetAllBuyOffers(ctx) {
 		truncatedOffer := offer

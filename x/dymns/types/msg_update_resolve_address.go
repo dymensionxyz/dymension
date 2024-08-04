@@ -45,7 +45,7 @@ func (m *MsgUpdateResolveAddress) ValidateBasic() error {
 // GetDymNameConfig casts MsgUpdateResolveAddress into DymNameConfig.
 func (m *MsgUpdateResolveAddress) GetDymNameConfig() (name string, config DymNameConfig) {
 	return m.Name, DymNameConfig{
-		Type:    DymNameConfigType_NAME,
+		Type:    DymNameConfigType_DCT_NAME,
 		ChainId: m.ChainId,
 		Path:    m.SubName,
 		Value:   m.ResolveTo,

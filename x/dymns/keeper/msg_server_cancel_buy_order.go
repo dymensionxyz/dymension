@@ -11,7 +11,7 @@ import (
 )
 
 // CancelBuyOrder is message handler,
-// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
+// handles canceling a Buy-Order, performed by the buyer who placed the offer.
 func (k msgServer) CancelBuyOrder(goCtx context.Context, msg *dymnstypes.MsgCancelBuyOrder) (*dymnstypes.MsgCancelBuyOrderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -42,7 +42,7 @@ func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCance
 
 	offer := k.GetBuyOffer(ctx, msg.OfferId)
 	if offer == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Offer ID: %s", msg.OfferId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.OfferId)
 	}
 
 	if offer.Buyer != msg.Buyer {
@@ -52,7 +52,7 @@ func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCance
 	return offer, nil
 }
 
-// removeBuyOffer removes the Buy-Offer from the store and the reverse mappings.
+// removeBuyOffer removes the Buy-Order from the store and the reverse mappings.
 func (k msgServer) removeBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
 	k.DeleteBuyOffer(ctx, offer.Id)
 

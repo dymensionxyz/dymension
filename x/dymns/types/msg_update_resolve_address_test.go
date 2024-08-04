@@ -206,7 +206,7 @@ func TestMsgUpdateResolveAddress_GetDymNameConfig(t *testing.T) {
 			Controller: "c",
 			wantName:   "a",
 			wantConfig: DymNameConfig{
-				Type:    DymNameConfigType_NAME,
+				Type:    DymNameConfigType_DCT_NAME,
 				ChainId: "dymension",
 				Path:    "sub",
 				Value:   "r",
@@ -215,7 +215,7 @@ func TestMsgUpdateResolveAddress_GetDymNameConfig(t *testing.T) {
 		{
 			name: "all empty",
 			wantConfig: DymNameConfig{
-				Type: DymNameConfigType_NAME,
+				Type: DymNameConfigType_DCT_NAME,
 			},
 		},
 	}

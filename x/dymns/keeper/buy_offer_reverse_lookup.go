@@ -9,7 +9,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// AddReverseMappingBuyerToBuyOfferRecord stores a reverse mapping from buyer to IDs of Buy-Offer into the KVStore.
+// AddReverseMappingBuyerToBuyOfferRecord stores a reverse mapping from buyer to IDs of Buy-Order into the KVStore.
 func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
@@ -25,7 +25,7 @@ func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, o
 	return k.GenericAddReverseLookupBuyOfferIdsRecord(ctx, key, offerId)
 }
 
-// GetBuyOffersByBuyer returns all Buy-Offers placed by the account address.
+// GetBuyOffersByBuyer returns all Buy-Orders placed by the account address.
 func (k Keeper) GetBuyOffersByBuyer(
 	ctx sdk.Context, buyer string,
 ) ([]dymnstypes.BuyOffer, error) {
@@ -55,7 +55,7 @@ func (k Keeper) GetBuyOffersByBuyer(
 	return offers, nil
 }
 
-// RemoveReverseMappingBuyerToBuyOffer removes a reverse mapping from buyer to a Buy-Offer ID from the KVStore.
+// RemoveReverseMappingBuyerToBuyOffer removes a reverse mapping from buyer to a Buy-Order ID from the KVStore.
 func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offerId string) error {
 	_, bzAccAddr, err := bech32.DecodeAndConvert(buyer)
 	if err != nil {
@@ -63,7 +63,7 @@ func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offe
 	}
 
 	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
@@ -78,7 +78,7 @@ func (k Keeper) AddReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerI
 	}
 
 	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
 	}
 
 	return k.GenericAddReverseLookupBuyOfferIdsRecord(
@@ -88,7 +88,7 @@ func (k Keeper) AddReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerI
 	)
 }
 
-// GetBuyOffersOfDymName returns all Buy-Offers that placed for the Dym-Name.
+// GetBuyOffersOfDymName returns all Buy-Orders that placed for the Dym-Name.
 func (k Keeper) GetBuyOffersOfDymName(
 	ctx sdk.Context, name string,
 ) ([]dymnstypes.BuyOffer, error) {
@@ -113,14 +113,14 @@ func (k Keeper) GetBuyOffersOfDymName(
 	return offers, nil
 }
 
-// RemoveReverseMappingDymNameToBuyOffer removes reverse mapping from Dym-Name to Buy-Offer which placed for it, from the KVStore.
+// RemoveReverseMappingDymNameToBuyOffer removes reverse mapping from Dym-Name to Buy-Order which placed for it, from the KVStore.
 func (k Keeper) RemoveReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerId string) error {
 	if !dymnsutils.IsValidDymName(name) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
 	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
 	}
 
 	return k.GenericRemoveReverseLookupBuyOfferIdRecord(
@@ -130,7 +130,7 @@ func (k Keeper) RemoveReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, off
 	)
 }
 
-// GenericAddReverseLookupBuyOfferIdsRecord is a utility method that help to add a reverse lookup record for Buy-Offer ID.
+// GenericAddReverseLookupBuyOfferIdsRecord is a utility method that help to add a reverse lookup record for Buy-Order ID.
 func (k Keeper) GenericAddReverseLookupBuyOfferIdsRecord(ctx sdk.Context, key []byte, offerId string) error {
 	return k.GenericAddReverseLookupRecord(
 		ctx,
@@ -149,7 +149,7 @@ func (k Keeper) GenericAddReverseLookupBuyOfferIdsRecord(ctx sdk.Context, key []
 	)
 }
 
-// GenericGetReverseLookupBuyOfferIdsRecord is a utility method that help to get a reverse lookup record for Buy-Offer IDs.
+// GenericGetReverseLookupBuyOfferIdsRecord is a utility method that help to get a reverse lookup record for Buy-Order IDs.
 func (k Keeper) GenericGetReverseLookupBuyOfferIdsRecord(
 	ctx sdk.Context, key []byte,
 ) dymnstypes.ReverseLookupOfferIds {
@@ -168,7 +168,7 @@ func (k Keeper) GenericGetReverseLookupBuyOfferIdsRecord(
 	}
 }
 
-// GenericRemoveReverseLookupBuyOfferIdRecord is a utility method that help to remove a reverse lookup record for Buy-Offer ID.
+// GenericRemoveReverseLookupBuyOfferIdRecord is a utility method that help to remove a reverse lookup record for Buy-Order ID.
 func (k Keeper) GenericRemoveReverseLookupBuyOfferIdRecord(ctx sdk.Context, key []byte, offerId string) error {
 	return k.GenericRemoveReverseLookupRecord(
 		ctx,

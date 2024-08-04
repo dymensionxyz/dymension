@@ -22,12 +22,12 @@ const (
 	targetTypeDymName = "dym-name"
 )
 
-// CmdQueryBuyOffer is the CLI command for querying Buy-Offers a Dym-Name
-func CmdQueryBuyOffer() *cobra.Command {
+// CmdQueryBuyOrder is the CLI command for querying Buy-Orders a Dym-Name
+func CmdQueryBuyOrder() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "buy-offer [target]",
+		Use:     "buy-order [target]",
 		Aliases: []string{"offer"},
-		Short:   "Get list of Buy-Offers corresponding to the target",
+		Short:   "Get list of Buy-Orders corresponding to the target",
 		Example: fmt.Sprintf(
 			`%s q %s offer 1 --%s=%s
 %s q %s offer dym1buyer --%s=%s
@@ -95,7 +95,7 @@ func CmdQueryBuyOffer() *cobra.Command {
 	return cmd
 }
 
-// queryOfferById fetches a Buy-Offer by its ID
+// queryOfferById fetches a Buy-Order by its ID
 func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, offerId string) (*dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidBuyOfferId(offerId) {
 		return nil, fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
@@ -111,7 +111,7 @@ func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, off
 	return &res.Offer, nil
 }
 
-// queryOffersPlacedByBuyer fetches Buy-Offers placed by a buyer
+// queryOffersPlacedByBuyer fetches Buy-Orders placed by a buyer
 func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Context, buyer string) ([]dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(buyer, true) {
 		return nil, fmt.Errorf("input buyer address '%s' is not a valid bech32 account address", buyer)
@@ -121,13 +121,13 @@ func queryOffersPlacedByBuyer(queryClient dymnstypes.QueryClient, ctx context.Co
 		Account: buyer,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch Buy-Offers placed by buyer '%s': %w", buyer, err)
+		return nil, fmt.Errorf("failed to fetch Buy-Orders placed by buyer '%s': %w", buyer, err)
 	}
 
 	return res.Offers, nil
 }
 
-// queryOffersOfDymNamesOwnedByOwner fetches all Buy-Offers of all Dym-Names owned by an owner
+// queryOffersOfDymNamesOwnedByOwner fetches all Buy-Orders of all Dym-Names owned by an owner
 func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx context.Context, owner string) ([]dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidBech32AccountAddress(owner, true) {
 		return nil, fmt.Errorf("input owner address '%s' is not a valid bech32 account address", owner)
@@ -137,13 +137,13 @@ func queryOffersOfDymNamesOwnedByOwner(queryClient dymnstypes.QueryClient, ctx c
 		Account: owner,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch Buy-Offers of Dym-Names owned by '%s': %w", owner, err)
+		return nil, fmt.Errorf("failed to fetch Buy-Orders of Dym-Names owned by '%s': %w", owner, err)
 	}
 
 	return res.Offers, nil
 }
 
-// queryOffersByDymName fetches all Buy-Offers of a Dym-Name
+// queryOffersByDymName fetches all Buy-Orders of a Dym-Name
 func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Context, dymName string) ([]dymnstypes.BuyOffer, error) {
 	if !dymnsutils.IsValidDymName(dymName) {
 		return nil, fmt.Errorf("input Dym-Name '%s' is not a valid Dym-Name", dymName)
@@ -153,7 +153,7 @@ func queryOffersByDymName(queryClient dymnstypes.QueryClient, ctx context.Contex
 		Name: dymName,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch Buy-Offers of Dym-Name '%s': %w", dymName, err)
+		return nil, fmt.Errorf("failed to fetch Buy-Orders of Dym-Name '%s': %w", dymName, err)
 	}
 
 	return res.Offers, nil

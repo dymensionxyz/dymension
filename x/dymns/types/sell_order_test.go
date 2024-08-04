@@ -185,6 +185,7 @@ func TestSellOrder_Validate(t *testing.T) {
 	tests := []struct {
 		name            string
 		dymName         string
+		_type           MarketOrderType
 		expireAt        int64
 		minPrice        sdk.Coin
 		sellPrice       *sdk.Coin
@@ -193,8 +194,9 @@ func TestSellOrder_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:      "valid sell order",
+			name:      "pass - valid sell order",
 			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -204,69 +206,96 @@ func TestSellOrder_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:      "valid sell order without bid",
+			name:      "pass - valid sell order without bid",
 			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
 		},
 		{
-			name:     "valid sell order without setting sell price",
+			name:     "pass - valid sell order without setting sell price",
 			dymName:  "my-name",
+			_type:    MarketOrderType_MOT_DYM_NAME,
 			expireAt: time.Now().Unix(),
 			minPrice: dymnsutils.TestCoin(1),
 		},
 		{
-			name:            "empty name",
+			name:            "fail - empty name",
 			dymName:         "",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of SO is empty",
 		},
 		{
-			name:            "bad name",
-			dymName:         "-bonded-pool",
+			name:            "fail - type is unknown",
+			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_UNKNOWN,
+			expireAt:        time.Now().Unix(),
+			minPrice:        dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "Sell-Order type must be",
+		},
+		{
+			name:            "fail - type is alias (not yet supported)",
+			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_ALIAS,
+			expireAt:        time.Now().Unix(),
+			minPrice:        dymnsutils.TestCoin(1),
+			wantErr:         true,
+			wantErrContains: "Sell-Order type must be",
+		},
+		{
+			name:            "fail - bad name",
+			dymName:         "-my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "Dym-Name of SO is not a valid dym name",
 		},
 		{
-			name:            "empty time",
+			name:            "fail - empty time",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        0,
 			minPrice:        dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "SO expiry is empty",
 		},
 		{
-			name:            "min price is zero",
+			name:            "fail - min price is zero",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(0),
 			wantErr:         true,
 			wantErrContains: "SO min price is zero",
 		},
 		{
-			name:            "min price is empty",
+			name:            "fail - min price is empty",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        sdk.Coin{},
 			wantErr:         true,
 			wantErrContains: "SO min price is zero",
 		},
 		{
-			name:            "min price is negative",
+			name:            "fail - min price is negative",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(-1),
 			wantErr:         true,
 			wantErrContains: "SO min price is negative",
 		},
 		{
-			name:     "min price is invalid",
+			name:     "fail - min price is invalid",
 			dymName:  "my-name",
+			_type:    MarketOrderType_MOT_DYM_NAME,
 			expireAt: time.Now().Unix(),
 			minPrice: sdk.Coin{
 				Denom:  "-",
@@ -276,8 +305,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO min price is invalid",
 		},
 		{
-			name:            "sell price is negative",
+			name:            "fail - sell price is negative",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoinP(-1),
@@ -285,8 +315,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO sell price is negative",
 		},
 		{
-			name:     "sell price is invalid",
+			name:     "fail - sell price is invalid",
 			dymName:  "my-name",
+			_type:    MarketOrderType_MOT_DYM_NAME,
 			expireAt: time.Now().Unix(),
 			minPrice: dymnsutils.TestCoin(1),
 			sellPrice: &sdk.Coin{
@@ -297,8 +328,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO sell price is invalid",
 		},
 		{
-			name:            "sell price is less than min price",
+			name:            "fail - sell price is less than min price",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(2),
 			sellPrice:       dymnsutils.TestCoinP(1),
@@ -306,8 +338,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO sell price is less than min price",
 		},
 		{
-			name:            "sell price denom must match min price denom",
+			name:            "fail - sell price denom must match min price denom",
 			dymName:         "my-name",
+			_type:           MarketOrderType_MOT_DYM_NAME,
 			expireAt:        time.Now().Unix(),
 			minPrice:        dymnsutils.TestCoin(1),
 			sellPrice:       dymnsutils.TestCoin2P(sdk.NewInt64Coin("u"+params.BaseDenom, 2)),
@@ -315,8 +348,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO sell price denom is different from min price denom",
 		},
 		{
-			name:      "invalid highest bid",
+			name:      "fail - invalid highest bid",
 			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(1),
 			sellPrice: dymnsutils.TestCoinP(1),
@@ -328,8 +362,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO bidder is not a valid bech32 account address",
 		},
 		{
-			name:      "highest bid < min price",
+			name:      "fail - highest bid < min price",
 			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),
@@ -341,8 +376,9 @@ func TestSellOrder_Validate(t *testing.T) {
 			wantErrContains: "SO highest bid price is less than min price",
 		},
 		{
-			name:      "highest bid > sell price",
+			name:      "fail - highest bid > sell price",
 			dymName:   "my-name",
+			_type:     MarketOrderType_MOT_DYM_NAME,
 			expireAt:  time.Now().Unix(),
 			minPrice:  dymnsutils.TestCoin(2),
 			sellPrice: dymnsutils.TestCoinP(3),
@@ -358,6 +394,7 @@ func TestSellOrder_Validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := &SellOrder{
 				Name:       tt.dymName,
+				Type:       tt._type,
 				ExpireAt:   tt.expireAt,
 				MinPrice:   tt.minPrice,
 				SellPrice:  tt.sellPrice,
@@ -475,35 +512,39 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name: "valid",
+			name: "pass - valid",
 			sellOrders: []SellOrder{
 				{
 					Name:      "a",
+					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
 					Name:     "a",
+					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
 				},
 			},
 		},
 		{
-			name:       "allow empty",
+			name:       "pass - allow empty",
 			sellOrders: []SellOrder{},
 		},
 		{
-			name: "reject if SO element is invalid",
+			name: "fail - reject if SO element is invalid",
 			sellOrders: []SellOrder{
 				{
 					Name:     "a",
+					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 1,
 					MinPrice: dymnsutils.TestCoin(0), // invalid
 				},
 				{
 					Name:     "a",
+					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
 				},
@@ -512,16 +553,18 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			wantErrContains: "SO min price is zero",
 		},
 		{
-			name: "reject if duplicated SO",
+			name: "fail - reject if duplicated SO",
 			sellOrders: []SellOrder{
 				{
 					Name:      "a",
+					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
 					Name:      "a",
+					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
@@ -531,16 +574,18 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			wantErrContains: "historical SO is not unique",
 		},
 		{
-			name: "reject if SO element has different Dym-Name",
+			name: "fail - reject if SO element has different Dym-Name",
 			sellOrders: []SellOrder{
 				{
 					Name:      "aaa",
+					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
 					Name:     "bbb",
+					Type:     MarketOrderType_MOT_DYM_NAME,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
 				},
@@ -560,9 +605,10 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.wantErrContains)
-			} else {
-				require.NoError(t, err)
+				return
 			}
+
+			require.NoError(t, err)
 		})
 	}
 }

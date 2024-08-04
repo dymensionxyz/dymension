@@ -412,7 +412,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 
 			dymName.Configs = []dymnstypes.DymNameConfig{
 				{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: ownerA,
 				},
 			}
@@ -423,6 +423,7 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 
 			so := dymnstypes.SellOrder{
 				Name:     dymName.Name,
+				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				MinPrice: dymnsutils.TestCoin(minPrice),
 			}
 

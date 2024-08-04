@@ -45,6 +45,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	so1 := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -89,6 +90,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		Name:     dymName2.Name,
+		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -144,6 +146,7 @@ func TestKeeper_GetSetDeleteSellOrder(t *testing.T) {
 	t.Run("omit Sell Price if not nil but zero", func(t *testing.T) {
 		so3 := dymnstypes.SellOrder{
 			Name:      "hello",
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(0),
@@ -187,6 +190,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 
 	so11 := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -236,6 +240,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		Name:     dymName2.Name,
+		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -254,6 +259,7 @@ func TestKeeper_MoveSellOrderToHistorical(t *testing.T) {
 
 	so12 := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  now.Unix() + 1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -324,6 +330,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 
 	so11 := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -335,6 +342,7 @@ func TestKeeper_GetAndDeleteHistoricalSellOrders(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		Name:     dymName2.Name,
+		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1,
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -412,6 +420,28 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		)
 	})
 
+	// TODO DymNS: add test for not type Name
+
+	/*
+		t.Run("panic when SO is not type Name", func(t *testing.T) {
+			dk, _, ctx := setupTest()
+
+			err := dk.SetDymName(ctx, dymName)
+			require.NoError(t, err)
+
+			so := dymnstypes.SellOrder{
+				Name:     dymName.Name,
+				Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+				ExpireAt: now.Unix() + 1,
+				MinPrice: dymnsutils.TestCoin(100),
+			}
+
+			require.Panics(t, func() {
+				_ = dk.SetSellOrder(ctx, so)
+			})
+		})
+	*/
+
 	t.Run("SO not yet completed, no bidder", func(t *testing.T) {
 		dk, _, ctx := setupTest()
 
@@ -420,6 +450,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 		so := dymnstypes.SellOrder{
 			Name:     dymName.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
@@ -437,6 +468,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 		so := dymnstypes.SellOrder{
 			Name:      dymName.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -459,6 +491,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 		so := dymnstypes.SellOrder{
 			Name:      dymName.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() - 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -477,6 +510,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 		so := dymnstypes.SellOrder{
 			Name:     dymName.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
@@ -593,7 +627,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 			dymName.Configs = []dymnstypes.DymNameConfig{
 				{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: ownerA,
 				},
 			}
@@ -601,6 +635,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 
 			so := dymnstypes.SellOrder{
 				Name:     dymName.Name,
+				Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				MinPrice: dymnsutils.TestCoin(100),
 			}
 

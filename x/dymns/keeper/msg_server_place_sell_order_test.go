@@ -94,6 +94,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, not finished",
 			existingSo: &dymnstypes.SellOrder{
+				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -105,6 +106,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired",
 			existingSo: &dymnstypes.SellOrder{
+				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -116,6 +118,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, not expired, completed",
 			existingSo: &dymnstypes.SellOrder{
+				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:  now.Add(time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -131,6 +134,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 		{
 			name: "fail - existing active SO, expired, completed",
 			existingSo: &dymnstypes.SellOrder{
+				Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:  now.Add(-1 * time.Hour).Unix(),
 				MinPrice:  coin100,
 				SellPrice: &coin200,
@@ -269,6 +273,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 
 			expectedSo := dymnstypes.SellOrder{
 				Name:       name,
+				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				ExpireAt:   ctx.BlockTime().Add(moduleParams.Misc.SellOrderDuration).Unix(),
 				MinPrice:   msg.MinPrice,
 				SellPrice:  msg.SellPrice,

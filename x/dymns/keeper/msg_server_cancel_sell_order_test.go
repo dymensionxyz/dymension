@@ -74,6 +74,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	t.Run("do not process that owner does not match", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:      dymName1.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  now.Unix() + 1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -107,6 +108,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	t.Run("can not cancel expired", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:      dymName1.Name,
+			Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  1,
 			MinPrice:  dymnsutils.TestCoin(100),
 			SellPrice: dymnsutils.TestCoinP(300),
@@ -130,6 +132,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	t.Run("can not cancel once bid placed", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 			HighestBid: &dymnstypes.SellOrderBid{
@@ -158,6 +161,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
@@ -167,6 +171,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 		so12 := dymnstypes.SellOrder{
 			Name:     dymName2.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
@@ -204,6 +209,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	t.Run("can cancel if satisfied conditions", func(t *testing.T) {
 		so11 := dymnstypes.SellOrder{
 			Name:     dymName1.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}
@@ -212,6 +218,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 
 		so12 := dymnstypes.SellOrder{
 			Name:     dymName2.Name,
+			Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: now.Unix() + 1,
 			MinPrice: dymnsutils.TestCoin(100),
 		}

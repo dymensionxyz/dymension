@@ -8,7 +8,7 @@ import (
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
 )
 
-// IncreaseBuyOfferCountAndGet increases the all-time Buy-Offer records count and returns the updated value.
+// IncreaseBuyOfferCountAndGet increases the all-time Buy-Order records count and returns the updated value.
 func (k Keeper) IncreaseBuyOfferCountAndGet(ctx sdk.Context) uint64 {
 	countFromStore := k.GetCountBuyOffer(ctx)
 	newCount := countFromStore + 1
@@ -22,7 +22,7 @@ func (k Keeper) IncreaseBuyOfferCountAndGet(ctx sdk.Context) uint64 {
 	return newCount
 }
 
-// GetCountBuyOffer returns the all-time Buy-Offer records count from the KVStore.
+// GetCountBuyOffer returns the all-time Buy-Order records count from the KVStore.
 // Note: do not use this function. This function should only be used in IncreaseBuyOfferCountAndGet and test.
 func (k Keeper) GetCountBuyOffer(ctx sdk.Context) uint64 {
 	store := ctx.KVStore(k.storeKey)
@@ -34,14 +34,14 @@ func (k Keeper) GetCountBuyOffer(ctx sdk.Context) uint64 {
 	return sdk.BigEndianToUint64(bz)
 }
 
-// SetCountBuyOffer sets the all-time Buy-Offer records count into the KVStore.
+// SetCountBuyOffer sets the all-time Buy-Order records count into the KVStore.
 // Note: do not use this function. This function should only be used in IncreaseBuyOfferCountAndGet and test.
 func (k Keeper) SetCountBuyOffer(ctx sdk.Context, value uint64) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(dymnstypes.KeyCountBuyOffers, sdk.Uint64ToBigEndian(value))
 }
 
-// GetAllBuyOffers returns all Buy-Offer records from the KVStore.
+// GetAllBuyOffers returns all Buy-Order records from the KVStore.
 // No filter is applied.
 func (k Keeper) GetAllBuyOffers(ctx sdk.Context) (list []dymnstypes.BuyOffer) {
 	store := ctx.KVStore(k.storeKey)
@@ -60,7 +60,7 @@ func (k Keeper) GetAllBuyOffers(ctx sdk.Context) (list []dymnstypes.BuyOffer) {
 	return list
 }
 
-// GetBuyOffer retrieves the Buy-Offer from the KVStore.
+// GetBuyOffer retrieves the Buy-Order from the KVStore.
 func (k Keeper) GetBuyOffer(ctx sdk.Context, offerId string) *dymnstypes.BuyOffer {
 	store := ctx.KVStore(k.storeKey)
 	offerKey := dymnstypes.BuyOfferKey(offerId)
@@ -76,7 +76,7 @@ func (k Keeper) GetBuyOffer(ctx sdk.Context, offerId string) *dymnstypes.BuyOffe
 	return &offer
 }
 
-// InsertNewBuyOffer assigns ID and insert new Buy-Offer record into the KVStore.
+// InsertNewBuyOffer assigns ID and insert new Buy-Order record into the KVStore.
 func (k Keeper) InsertNewBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) (dymnstypes.BuyOffer, error) {
 	if offer.Id != "" {
 		panic("ID of offer must be empty")
@@ -88,7 +88,7 @@ func (k Keeper) InsertNewBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) (d
 	existingRecord := k.GetBuyOffer(ctx, newOfferId)
 	if existingRecord != nil {
 		return offer, errorsmod.Wrapf(
-			gerrc.ErrAlreadyExists, "Buy-Offer-ID already exists: %s", newOfferId,
+			gerrc.ErrAlreadyExists, "Buy-Order-ID already exists: %s", newOfferId,
 		)
 	}
 
@@ -101,7 +101,7 @@ func (k Keeper) InsertNewBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) (d
 	return offer, nil
 }
 
-// SetBuyOffer stores the Buy-Offer into the KVStore.
+// SetBuyOffer stores the Buy-Order into the KVStore.
 func (k Keeper) SetBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
 	if err := offer.Validate(); err != nil {
 		return err
@@ -117,7 +117,7 @@ func (k Keeper) SetBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
 	return nil
 }
 
-// DeleteBuyOffer deletes the Buy-Offer from the KVStore.
+// DeleteBuyOffer deletes the Buy-Order from the KVStore.
 func (k Keeper) DeleteBuyOffer(ctx sdk.Context, offerId string) {
 	offer := k.GetBuyOffer(ctx, offerId)
 	if offer == nil {

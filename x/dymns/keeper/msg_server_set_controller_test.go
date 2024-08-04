@@ -103,7 +103,7 @@ func Test_msgServer_SetController(t *testing.T) {
 				Controller: ownerA,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: ownerA,
 				}},
 			},

@@ -43,6 +43,7 @@ func (k msgServer) PlaceBuyOrder(goCtx context.Context, msg *dymnstypes.MsgPlace
 		offer = dymnstypes.BuyOffer{
 			Id:         "", // will be auto-generated
 			Name:       msg.Name,
+			Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
 		}
@@ -120,7 +121,7 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgPlaceBuyOrd
 	if msg.ContinueOfferId != "" {
 		existingOffer = k.GetBuyOffer(ctx, msg.ContinueOfferId)
 		if existingOffer == nil {
-			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Offer ID: %s", msg.ContinueOfferId)
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Order ID: %s", msg.ContinueOfferId)
 			return
 		}
 		if existingOffer.Buyer != msg.Buyer {

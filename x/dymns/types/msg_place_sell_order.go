@@ -35,7 +35,9 @@ func (m *MsgPlaceSellOrder) ValidateBasic() error {
 // ToSellOrder converts the MsgPlaceSellOrder to a SellOrder.
 func (m *MsgPlaceSellOrder) ToSellOrder() SellOrder {
 	so := SellOrder{
-		Name:      m.Name,
+		Name: m.Name,
+		// TODO DymNS: support alias
+		Type:      MarketOrderType_MOT_DYM_NAME,
 		MinPrice:  m.MinPrice,
 		SellPrice: m.SellPrice,
 	}

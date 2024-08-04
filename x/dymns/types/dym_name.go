@@ -95,7 +95,7 @@ func (m *DymNameConfig) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config path must be a valid dym name")
 	}
 
-	if m.Type == DymNameConfigType_NAME {
+	if m.Type == DymNameConfigType_DCT_NAME {
 		if m.ChainId == "" {
 			if m.Value != strings.ToLower(m.Value) {
 				return errorsmod.Wrap(gerrc.ErrInvalidArgument, "dym name config value on host-chain must be lowercase")
@@ -122,7 +122,7 @@ func (m *DymNameConfig) Validate() error {
 	} else {
 		return errorsmod.Wrapf(
 			gerrc.ErrInvalidArgument,
-			"dym name config type must be: %s", DymNameConfigType_NAME.String(),
+			"Dym-Name config type must be: %s", DymNameConfigType_DCT_NAME.String(),
 		)
 	}
 
@@ -186,7 +186,7 @@ func (m DymNameConfig) GetIdentity() string {
 //   - ChainId is empty (means host chain)
 //   - Path is empty (means root Dym-Name)
 func (m DymNameConfig) IsDefaultNameConfig() bool {
-	return m.Type == DymNameConfigType_NAME &&
+	return m.Type == DymNameConfigType_DCT_NAME &&
 		m.ChainId == "" &&
 		m.Path == ""
 }
@@ -245,7 +245,7 @@ func (m *DymName) GetAddressesForReverseMapping() (
 
 	var nameConfigs []DymNameConfig
 	for _, config := range m.Configs {
-		if config.Type == DymNameConfigType_NAME {
+		if config.Type == DymNameConfigType_DCT_NAME {
 			nameConfigs = append(nameConfigs, config)
 		}
 	}
@@ -266,7 +266,7 @@ func (m *DymName) GetAddressesForReverseMapping() (
 	if defaultConfig == nil {
 		// add a fake record to be used to generate default address
 		nameConfigs = append(nameConfigs, DymNameConfig{
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "",
 			Path:    "",
 			Value:   m.Owner,

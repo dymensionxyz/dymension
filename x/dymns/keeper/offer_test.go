@@ -76,9 +76,12 @@ func TestKeeper_RefundOffer(t *testing.T) {
 				}
 			}
 
+			// TODO DymNS: add test for alias
+
 			offer := dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "a",
+				Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 				Buyer:      tt.refundToAccount,
 				OfferPrice: tt.refundAmount,
 			}

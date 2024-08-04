@@ -28,7 +28,7 @@ func TestKeeper_GetSetDeleteDymName(t *testing.T) {
 		Controller: ownerA,
 		ExpireAt:   1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: ownerA,
 		}},
@@ -128,7 +128,7 @@ func TestKeeper_BeforeAfterDymNameOwnerChanged(t *testing.T) {
 		Controller: ownerA,
 		ExpireAt:   time.Now().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: ownerA,
 		}},
@@ -211,11 +211,11 @@ func TestKeeper_BeforeAfterDymNameConfigChanged(t *testing.T) {
 		ExpireAt:   time.Now().Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{
 			{
-				Type:  dymnstypes.DymNameConfigType_NAME,
+				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 				Path:  "controller",
 				Value: controllerAcc.bech32(),
 			}, {
-				Type:  dymnstypes.DymNameConfigType_NAME,
+				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 				Path:  "ica",
 				Value: icaAcc.bech32(),
 			},
@@ -339,7 +339,7 @@ func TestKeeper_GetDymNameWithExpirationCheck(t *testing.T) {
 		Controller: ownerA,
 		ExpireAt:   now.Unix() + 1,
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: ownerA,
 		}},
@@ -377,7 +377,7 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 		Controller: owner1a,
 		ExpireAt:   now.Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: owner1a,
 		}},
@@ -390,7 +390,7 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 		Controller: owner2a,
 		ExpireAt:   now.Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: owner2a,
 		}},
@@ -403,7 +403,7 @@ func TestKeeper_GetAllNonExpiredDymNames(t *testing.T) {
 		Controller: owner3a,
 		ExpireAt:   now.Add(-time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{{
-			Type:  dymnstypes.DymNameConfigType_NAME,
+			Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 			Path:  "www",
 			Value: owner3a,
 		}},
@@ -503,6 +503,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	// setup historical SO
 	expiredSo := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -519,6 +520,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	// setup active SO
 	so := dymnstypes.SellOrder{
 		Name:     dymName1.Name,
+		Type:     dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: now.Add(time.Hour).Unix(),
 		MinPrice: dymnsutils.TestCoin(100),
 	}
@@ -605,7 +607,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
 				}},
 			},
@@ -620,7 +622,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
 				}},
 			},
@@ -635,7 +637,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr3a,
 				}},
@@ -651,7 +653,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr3a,
 				}},
@@ -667,7 +669,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}},
@@ -683,7 +685,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}},
@@ -699,7 +701,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
 				}},
 			},
@@ -715,7 +717,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Value: addr3a,
 				}},
 			},
@@ -731,7 +733,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr3a,
 				}},
@@ -748,7 +750,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr3a,
 				}},
@@ -765,7 +767,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}},
@@ -782,11 +784,11 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr2a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}},
@@ -811,7 +813,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}},
@@ -828,15 +830,15 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr2a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr1a,
 				}},
@@ -881,15 +883,15 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr2a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr1a,
 				}},
@@ -934,11 +936,11 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "b",
 					Value: addr3a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr3a,
 				}},
@@ -950,11 +952,11 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 					Controller: addr2a,
 					ExpireAt:   now.Unix() + 1,
 					Configs: []dymnstypes.DymNameConfig{{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "b",
 						Value: addr2a,
 					}, {
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "",
 						Value: addr2a,
 					}},
@@ -988,22 +990,22 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "b",
 					Value:   addr2a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   addr2a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
 					Value:   addr3a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "",
 					Value:   addr3a,
@@ -1044,22 +1046,22 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "b",
 					Value:   addr2a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   addr2a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
 					Value:   addr3a,
 				}, {
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "",
 					Value:   addr3a,
@@ -1105,11 +1107,11 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "c.b",
 					Value: addr3a,
 				}, {
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr2a,
 				}},
@@ -1126,7 +1128,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr3a,
 				}},
@@ -1157,7 +1159,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Path:    "",
 						Value:   "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
@@ -1177,13 +1179,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Path:    "sub1",
 						Value:   "X-avax1tzdcgj4ehsvhhgpl7zylwpw0gl2rxcg4r5afk5",
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "another",
 						Path:    "sub2",
 						Value:   "Ae2tdPwUPEZFSi1cTyL1ZL6bgixhc2vSy5heg6Zg9uP7PpumkAJ82Qprt8b",
@@ -1214,12 +1216,12 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Path:  "sub",
 						Value: addr3a,
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
 						Value:   addr2a,
@@ -1270,7 +1272,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr3a,
 				}},
@@ -1287,7 +1289,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() - 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr3a,
 				}},
@@ -1304,7 +1306,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				Controller: addr2a,
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{{
-					Type:  dymnstypes.DymNameConfigType_NAME,
+					Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: addr3a,
 				}},
@@ -1322,13 +1324,13 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
 						Value:   addr2a,
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus",
 						Path:    "",
 						Value:   addr3a,
@@ -1431,7 +1433,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 				ExpireAt:   now.Unix() + 1,
 				Configs: []dymnstypes.DymNameConfig{
 					{
-						Type:  dymnstypes.DymNameConfigType_NAME,
+						Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 						Value: addr2Acc.bech32(),
 					},
 				},
@@ -1558,49 +1560,49 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s1",
 					Value:   bech32Addr(3),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s2",
 					Value:   bech32Addr(4),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "a.s5",
 					Value:   bech32Addr(5),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
 					Value:   bech32Addr(6),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
 					Value:   bech32Addr(7),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "",
 					Value:   bech32Addr(8),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
 					Value:   bech32Addr(9),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "cosmoshub-4",
 					Path:    "",
 					Value:   bech32Addr(10),
@@ -1616,49 +1618,49 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s1",
 					Value:   bech32Addr(103),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s2",
 					Value:   bech32Addr(104),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "a.s5",
 					Value:   bech32Addr(105),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
 					Value:   bech32Addr(106),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
 					Value:   bech32Addr(107),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "",
 					Value:   bech32Addr(108),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
 					Value:   bech32Addr(109),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "froopyland_100-1",
 					Path:    "a",
 					Value:   bech32Addr(110),
@@ -1674,55 +1676,55 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s1",
 					Value:   bech32Addr(203),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s2",
 					Value:   bech32Addr(204),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "a.s5",
 					Value:   bech32Addr(205),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "b",
 					Value:   bech32Addr(206),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "c.b",
 					Value:   bech32Addr(207),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "",
 					Value:   bech32Addr(208),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "juno-1",
 					Path:    "a.b.c",
 					Value:   bech32Addr(209),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "froopyland_100-1",
 					Path:    "a",
 					Value:   bech32Addr(210),
 				},
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "cosmoshub-4",
 					Path:    "a",
 					Value:   bech32Addr(211),
@@ -1738,7 +1740,7 @@ func TestKeeper_ResolveByDymNameAddress(t *testing.T) {
 			ExpireAt:   now.Unix() + 1,
 			Configs: []dymnstypes.DymNameConfig{
 				{
-					Type:    dymnstypes.DymNameConfigType_NAME,
+					Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "s1",
 					Value:   bech32Addr(302),

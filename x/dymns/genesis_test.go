@@ -39,7 +39,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		ExpireAt:   now.Add(time.Hour).Unix(),
 		Configs: []dymnstypes.DymNameConfig{
 			{
-				Type:  dymnstypes.DymNameConfigType_NAME,
+				Type:  dymnstypes.DymNameConfigType_DCT_NAME,
 				Path:  "pseudo",
 				Value: anotherAccount,
 			},
@@ -63,8 +63,11 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName3Expired))
 
+	// TODO DymNS: add test for Sell/Buy Alias
+
 	so1 := dymnstypes.SellOrder{
 		Name:      dymName1.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(300),
@@ -77,6 +80,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so2 := dymnstypes.SellOrder{
 		Name:      dymName2.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(900),
@@ -89,6 +93,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	so3 := dymnstypes.SellOrder{
 		Name:      dymName3Expired.Name,
+		Type:      dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		ExpireAt:  1,
 		MinPrice:  dymnsutils.TestCoin(100),
 		SellPrice: dymnsutils.TestCoinP(200),
@@ -98,6 +103,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer1 := dymnstypes.BuyOffer{
 		Id:         "1",
 		Name:       dymName1.Name,
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer1,
 		OfferPrice: dymnsutils.TestCoin(100),
 	}
@@ -106,6 +112,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer2 := dymnstypes.BuyOffer{
 		Id:         "2",
 		Name:       dymName2.Name,
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer2,
 		OfferPrice: dymnsutils.TestCoin(200),
 	}
@@ -114,6 +121,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	offer3OfExpired := dymnstypes.BuyOffer{
 		Id:         "3",
 		Name:       dymName3Expired.Name,
+		Type:       dymnstypes.MarketOrderType_MOT_DYM_NAME,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
 	}

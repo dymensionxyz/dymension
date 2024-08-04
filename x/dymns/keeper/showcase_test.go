@@ -209,7 +209,7 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 		// why? Underthe hood, Dym-Name without any config equals with the one have a default config, which look like this
 		dymName.Configs = []dymnstypes.DymNameConfig{
 			{
-				Type:    dymnstypes.DymNameConfigType_NAME,
+				Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 				ChainId: "", // empty for host-chain
 				Path:    "",
 				Value:   owner,
@@ -226,7 +226,7 @@ func TestKeeper_DefaultDymNameConfiguration(t *testing.T) {
 
 		dymName.Configs = []dymnstypes.DymNameConfig{
 			{
-				Type:    dymnstypes.DymNameConfigType_NAME,
+				Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 				ChainId: "", // empty for host-chain
 				Path:    "",
 				Value:   notTheOwner.bech32(), // changed to another account
@@ -398,43 +398,43 @@ func TestKeeper_DymNameConfiguration(t *testing.T) {
 					// therefore my-name@dymension will resolve to the owner (account 1)
 
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "sub-name-host",
 						Value:   anotherUser2.bech32(), // account 2
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "",
 						Value:   anotherUser3.bech32C("cosmos"), // account 3
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "sub-name",
 						Value:   anotherUser4.bech32C("cosmos"), // account 4
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: rollAppId,
 						Path:    "",
 						Value:   anotherUser5.bech32C(rollAppBech32Prefix), // account 5
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: rollAppId,
 						Path:    "sub-rol",
 						Value:   anotherUser6.bech32C(rollAppBech32Prefix), // account 6
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "bitcoin",
 						Path:    "",
 						Value:   anotherUser7, // account 7
 					},
 					{
-						Type:    dymnstypes.DymNameConfigType_NAME,
+						Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 						ChainId: "ethereum",
 						Path:    "",
 						Value:   strings.ToLower(anotherUser8WithChecksum), // account 8
@@ -1116,7 +1116,7 @@ func (m *udtDymNameConfigResolveTo) add() {
 	}
 
 	m.udtDymName.dymName.Configs = append(m.udtDymName.dymName.Configs, dymnstypes.DymNameConfig{
-		Type:    dymnstypes.DymNameConfigType_NAME,
+		Type:    dymnstypes.DymNameConfigType_DCT_NAME,
 		ChainId: m.chainId,
 		Path:    m.subName,
 		Value:   value,

@@ -38,12 +38,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -58,12 +58,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -79,12 +79,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -100,12 +100,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -121,12 +121,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -142,12 +142,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -163,12 +163,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -184,12 +184,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   0,
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
@@ -212,7 +212,7 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "dym1fl48vsnmsdzcv85q5d2",
@@ -229,7 +229,7 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   "@",
@@ -246,12 +246,12 @@ func TestDymName_Validate(t *testing.T) {
 			expireAt:   time.Now().Unix(),
 			configs: []DymNameConfig{
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 				},
 				{
-					Type:  DymNameConfigType_NAME,
+					Type:  DymNameConfigType_DCT_NAME,
 					Path:  "www",
 					Value: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 				},
@@ -318,7 +318,7 @@ func TestDymName_Validate(t *testing.T) {
 
 		for i := 0; i < MaxConfigSize+1; i++ {
 			m.Configs = append(m.Configs, DymNameConfig{
-				Type:  DymNameConfigType_NAME,
+				Type:  DymNameConfigType_DCT_NAME,
 				Path:  fmt.Sprintf("s%d", i),
 				Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			})
@@ -348,41 +348,41 @@ func TestDymNameConfig_Validate(t *testing.T) {
 	}{
 		{
 			name:    "pass - valid name config",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "dymension_1100-1",
 			Path:    "abc",
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:  "pass - valid name config with multi-level path",
-			Type:  DymNameConfigType_NAME,
+			Type:  DymNameConfigType_DCT_NAME,
 			Path:  "abc.def",
 			Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:    "pass - valid name config with empty path",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "dymension_1100-1",
 			Path:    "",
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:    "pass - valid name config with empty chain-id",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "",
 			Path:    "abc",
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:    "pass - valid name config with empty chain-id and path",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "",
 			Path:    "",
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
 			name:            "reject - not accept hex address value on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
 			Value:           "0x1234567890123456789012345678901234567890",
@@ -391,7 +391,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - not accept hex address value on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
 			Value:           "0x1234567890123456789012345678901234567890",
@@ -400,7 +400,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - not accept other address value on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
 			Value:           "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -409,7 +409,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - not accept other address value on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
 			Value:           "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -418,7 +418,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - accept hex address value on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "",
 			Value:   "0x1234567890123456789012345678901234567890",
@@ -426,7 +426,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - accept hex address value on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "a",
 			Value:   "0x1234567890123456789012345678901234567890",
@@ -434,7 +434,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - accept other address value on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "",
 			Value:   "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -442,7 +442,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - accept other address value on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "a",
 			Value:   "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -450,7 +450,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - reject bad address value on non-host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "another",
 			Path:            "",
 			Value:           "@@",
@@ -459,7 +459,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "fail - reject bad address value on non-host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "another",
 			Path:            "a",
 			Value:           "@@",
@@ -468,16 +468,16 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - not accept unknown type",
-			Type:            DymNameConfigType_UNKNOWN,
+			Type:            DymNameConfigType_DCT_UNKNOWN,
 			ChainId:         "",
 			Path:            "",
 			Value:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
-			wantErrContains: "dym name config type must be",
+			wantErrContains: "Dym-Name config type must be",
 		},
 		{
 			name:            "reject - bad chain-id",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "dymension_",
 			Path:            "abc",
 			Value:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -486,7 +486,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - bad path",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "-a",
 			Value:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -495,7 +495,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - bad multi-level path",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a.b.",
 			Value:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -504,21 +504,21 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - value can be empty",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "",
 			Path:    "a",
 			Value:   "",
 		},
 		{
 			name:    "pass - value can be empty",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "",
 			Path:    "",
 			Value:   "",
 		},
 		{
 			name:            "reject - bad value on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
 			Value:           "0x01",
@@ -527,7 +527,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - reject value not normalized on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
 			Value:           "Dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -536,7 +536,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:            "reject - reject value not normalized on host-chain",
-			Type:            DymNameConfigType_NAME,
+			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
 			Value:           "Dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -545,7 +545,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - allow not-lowercased on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "",
 			Value:   "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -553,7 +553,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 		},
 		{
 			name:    "pass - allow not-lowercased on non-host-chain",
-			Type:    DymNameConfigType_NAME,
+			Type:    DymNameConfigType_DCT_NAME,
 			ChainId: "another",
 			Path:    "a",
 			Value:   "t1Rv4exT7bqhZqi2j7xz8bUHDMxwosrjADU",
@@ -712,62 +712,62 @@ func TestDymNameConfig_GetIdentity(t *testing.T) {
 	}{
 		{
 			name:    "combination of Type & Chain Id & Path, exclude Value",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "1",
 			path:    "2",
 			value:   "3",
-			want:    "name|1|2",
+			want:    "dct_name|1|2",
 		},
 		{
 			name:    "combination of Type & Chain Id & Path, exclude Value",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "1",
 			path:    "2",
 			value:   "",
-			want:    "name|1|2",
+			want:    "dct_name|1|2",
 		},
 		{
 			name:    "normalize material fields",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "AaA",
 			path:    "bBb",
 			value:   "",
-			want:    "name|aaa|bbb",
+			want:    "dct_name|aaa|bbb",
 		},
 		{
 			name:    "use String() of type",
-			_type:   DymNameConfigType_UNKNOWN,
+			_type:   DymNameConfigType_DCT_UNKNOWN,
 			chainId: "1",
 			path:    "2",
-			want:    "unknown|1|2",
+			want:    "dct_unknown|1|2",
 		},
 		{
 			name:    "use String() of type",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "1",
 			path:    "2",
-			want:    "name|1|2",
+			want:    "dct_name|1|2",
 		},
 		{
 			name:    "respect empty chain-id",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "",
 			path:    "2",
-			want:    "name||2",
+			want:    "dct_name||2",
 		},
 		{
 			name:    "respect empty path",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "1",
 			path:    "",
-			want:    "name|1|",
+			want:    "dct_name|1|",
 		},
 		{
 			name:    "respect empty chain-id and path",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "",
 			path:    "",
-			want:    "name||",
+			want:    "dct_name||",
 		},
 	}
 	for _, tt := range tests {
@@ -828,19 +828,19 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   ownerBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   bondedPoolBech32,
@@ -849,7 +849,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -857,7 +857,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -865,7 +865,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "my-name",
 						Value:   bondedPoolBech32,
@@ -875,7 +875,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -887,13 +887,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - fallback address is parsed correctly",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   ownerBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   bondedPoolBech32,
@@ -902,7 +902,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -910,7 +910,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "my-name",
 						Value:   bondedPoolBech32,
@@ -920,7 +920,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -932,13 +932,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - configured bech32 address is kept as is",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   ownerBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim, // not dym1, it's nim1
@@ -947,7 +947,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -955,7 +955,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -965,7 +965,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -977,7 +977,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - able to detect default config address when not configured",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   bondedPoolBech32,
@@ -987,7 +987,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: { // default config resolved to owner
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -995,7 +995,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "my-name",
 						Value:   bondedPoolBech32,
@@ -1005,7 +1005,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: { // default config resolved to owner
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -1017,7 +1017,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - respect default config when it is not owner",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   bondedPoolBech32, // not the owner
@@ -1026,7 +1026,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				bondedPoolBech32: { // respect
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1036,7 +1036,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: { // respect
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1048,13 +1048,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - respect default config when it is not owner",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   bondedPoolBech32, // not the owner
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "a",
 					Value:   bondedPoolBech32,
@@ -1063,13 +1063,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				bondedPoolBech32: { // respect
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
 					},
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "a",
 						Value:   bondedPoolBech32,
@@ -1079,7 +1079,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: { // respect
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1091,13 +1091,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - respect default config when it is not owner",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   bondedPoolBech32, // not owner
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim, // but this is owner, in different bech32 prefix
@@ -1106,7 +1106,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -1114,7 +1114,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1124,7 +1124,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				bondedPoolHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1136,25 +1136,25 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - non-default config will not have fallback records",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   ownerBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "cosmoshub-4",
 					Path:    "",
 					Value:   "cosmos1tygms3xhhs3yv487phx3dw4a95jn7t7lpm470r",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   bondedPoolBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "blumbus_111-1",
 					Path:    "",
 					Value:   bondedPoolBech32,
@@ -1163,7 +1163,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -1171,7 +1171,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				"cosmos1tygms3xhhs3yv487phx3dw4a95jn7t7lpm470r": {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "cosmoshub-4",
 						Path:    "",
 						Value:   "cosmos1tygms3xhhs3yv487phx3dw4a95jn7t7lpm470r",
@@ -1179,13 +1179,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "my-name",
 						Value:   bondedPoolBech32,
 					},
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "blumbus_111-1",
 						Path:    "",
 						Value:   bondedPoolBech32,
@@ -1195,7 +1195,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -1211,7 +1211,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 		{
 			name: "fail - not accept malformed config, not bech32 address value",
 			configs: []DymNameConfig{{
-				Type:    DymNameConfigType_NAME,
+				Type:    DymNameConfigType_DCT_NAME,
 				ChainId: "",
 				Path:    "a",
 				Value:   "0x1234567890123456789012345678901234567890",
@@ -1221,7 +1221,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 		{
 			name: "fail - not accept malformed config, default config is not bech32 address of host",
 			configs: []DymNameConfig{{
-				Type:    DymNameConfigType_NAME,
+				Type:    DymNameConfigType_DCT_NAME,
 				ChainId: "",
 				Path:    "",
 				Value:   ownerBech32AtNim,
@@ -1231,7 +1231,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 		{
 			name: "fail - not accept malformed config, not valid bech32 address",
 			configs: []DymNameConfig{{
-				Type:    DymNameConfigType_NAME,
+				Type:    DymNameConfigType_DCT_NAME,
 				ChainId: "",
 				Path:    "a",
 				Value:   ownerBech32 + "a",
@@ -1241,7 +1241,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 		{
 			name: "fail - not accept malformed config, default config is not bech32 address of host",
 			configs: []DymNameConfig{{
-				Type:    DymNameConfigType_NAME,
+				Type:    DymNameConfigType_DCT_NAME,
 				ChainId: "",
 				Path:    "",
 				Value:   ownerBech32 + "a",
@@ -1252,19 +1252,19 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - ignore empty value config",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   ownerBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   "", // empty value
@@ -1273,7 +1273,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -1281,7 +1281,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -1291,7 +1291,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32,
@@ -1303,13 +1303,13 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - ignore empty value default config",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "", // empty value
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim,
@@ -1318,7 +1318,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32, // detected & automatically filled default config
@@ -1326,7 +1326,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -1336,7 +1336,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				ownerHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   ownerBech32, // detected & automatically filled default config
@@ -1348,25 +1348,25 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			name: "pass - allow Interchain Account",
 			configs: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   icaBech32,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "ica",
 					Value:   icaBech32AtNim,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "nim_1122-1",
 					Path:    "",
 					Value:   ownerBech32AtNim,
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "my-name",
 					Value:   bondedPoolBech32,
@@ -1375,7 +1375,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantConfiguredAddresses: map[string][]DymNameConfig{
 				ownerBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "",
 						Value:   ownerBech32AtNim,
@@ -1383,7 +1383,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				bondedPoolBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "my-name",
 						Value:   bondedPoolBech32,
@@ -1391,7 +1391,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				icaBech32: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   icaBech32,
@@ -1399,7 +1399,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 				},
 				icaBech32AtNim: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "nim_1122-1",
 						Path:    "ica",
 						Value:   icaBech32AtNim,
@@ -1409,7 +1409,7 @@ func TestDymName_GetAddressesForReverseMapping(t *testing.T) {
 			wantFallbackAddresses: map[string][]DymNameConfig{
 				icaHex: {
 					{
-						Type:    DymNameConfigType_NAME,
+						Type:    DymNameConfigType_DCT_NAME,
 						ChainId: "",
 						Path:    "",
 						Value:   icaBech32,
@@ -1470,7 +1470,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 	}{
 		{
 			name:    "default name config",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "",
 			path:    "",
 			value:   "x",
@@ -1478,7 +1478,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "default name config, value can be empty",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "",
 			path:    "",
 			value:   "",
@@ -1486,7 +1486,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "config with type != name is not default name config",
-			_type:   DymNameConfigType_UNKNOWN,
+			_type:   DymNameConfigType_DCT_UNKNOWN,
 			chainId: "",
 			path:    "",
 			value:   "x",
@@ -1494,7 +1494,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "config with type != name is not default name config",
-			_type:   DymNameConfigType_UNKNOWN,
+			_type:   DymNameConfigType_DCT_UNKNOWN,
 			chainId: "",
 			path:    "",
 			value:   "",
@@ -1502,7 +1502,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "config with type != name is not default name config",
-			_type:   DymNameConfigType_UNKNOWN,
+			_type:   DymNameConfigType_DCT_UNKNOWN,
 			chainId: "",
 			path:    "x",
 			value:   "",
@@ -1510,7 +1510,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "non-empty chain-id is not default name config",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "x",
 			path:    "",
 			value:   "x",
@@ -1518,7 +1518,7 @@ func TestDymNameConfig_IsDefaultNameConfig(t *testing.T) {
 		},
 		{
 			name:    "non-empty path is not default name config",
-			_type:   DymNameConfigType_NAME,
+			_type:   DymNameConfigType_DCT_NAME,
 			chainId: "",
 			path:    "x",
 			value:   "x",
@@ -1549,13 +1549,13 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "b",
 					Path:    "b",
 					Value:   "b",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
@@ -1563,7 +1563,7 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			},
 			want: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
@@ -1584,7 +1584,7 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass - none",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "b",
 					Path:    "b",
 					Value:   "b",
@@ -1596,19 +1596,19 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass - multiple of more than one",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "b",
 					Path:    "b",
 					Value:   "b",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "c",
@@ -1616,13 +1616,13 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			},
 			want: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "c",
@@ -1633,19 +1633,19 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass - name config only",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_UNKNOWN,
+					Type:    DymNameConfigType_DCT_UNKNOWN,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "b",
 					Path:    "b",
 					Value:   "b",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "c",
@@ -1653,7 +1653,7 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			},
 			want: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "c",
@@ -1664,13 +1664,13 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass - drop empty value configs",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "",
@@ -1679,7 +1679,7 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			dropEmptyValueConfigs: true,
 			want: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
@@ -1690,13 +1690,13 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			name: "pass - drop empty value configs",
 			m: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "",
@@ -1705,13 +1705,13 @@ func TestDymNameConfigs_DefaultNameConfigs(t *testing.T) {
 			dropEmptyValueConfigs: false,
 			want: []DymNameConfig{
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "a",
 				},
 				{
-					Type:    DymNameConfigType_NAME,
+					Type:    DymNameConfigType_DCT_NAME,
 					ChainId: "",
 					Path:    "",
 					Value:   "",

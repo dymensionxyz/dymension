@@ -1170,7 +1170,7 @@ func (m *QueryBuyOffersPlacedByAccountRequest) GetAccount() string {
 
 // QueryBuyOffersByAccountResponse is the response type for the Query/BuyOffersPlacedByAccount RPC method.
 type QueryBuyOffersPlacedByAccountResponse struct {
-	// offers are the Buy-Offers placed by the account.
+	// offers are the Buy-Orders placed by the account.
 	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
