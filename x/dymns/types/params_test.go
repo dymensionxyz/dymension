@@ -32,7 +32,6 @@ func TestNewParams(t *testing.T) {
 					Aliases: []string{"dym", "dymension"},
 				},
 			},
-			CoinType60ChainIds: []string{"injective-1"},
 		},
 		MiscParams{
 			BeginEpochHookIdentifier:         "b",
@@ -60,8 +59,6 @@ func TestNewParams(t *testing.T) {
 	require.Len(t, moduleParams.Chains.AliasesOfChainIds, 1)
 	require.Equal(t, "dymension_1100-1", moduleParams.Chains.AliasesOfChainIds[0].ChainId)
 	require.Len(t, moduleParams.Chains.AliasesOfChainIds[0].Aliases, 2)
-	require.Len(t, moduleParams.Chains.CoinType60ChainIds, 1)
-	require.Equal(t, moduleParams.Chains.CoinType60ChainIds[0], "injective-1")
 	require.Equal(t, "b", moduleParams.Misc.BeginEpochHookIdentifier)
 	require.Equal(t, "c", moduleParams.Misc.EndEpochHookIdentifier)
 	require.Equal(t, 666.0, moduleParams.Misc.GracePeriodDuration.Hours())
@@ -123,7 +120,7 @@ func TestParams_Validate(t *testing.T) {
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
-	moduleParams.Chains.CoinType60ChainIds = []string{"invalid@"}
+	moduleParams.Chains.AliasesOfChainIds = []AliasesOfChainId{{ChainId: "@"}}
 	require.Error(t, (&moduleParams).Validate())
 
 	moduleParams = DefaultParams()
@@ -367,13 +364,6 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "coin-type-60-chains: empty is valid",
-			modifier: func(p ChainsParams) ChainsParams {
-				p.CoinType60ChainIds = nil
-				return p
-			},
-		},
-		{
 			name: "alias: empty alias of chain is valid",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
@@ -393,13 +383,6 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "coin-type-60-chains: valid and correct alias",
-			modifier: func(p ChainsParams) ChainsParams {
-				p.CoinType60ChainIds = []string{"injective-1", "cronosmainnet_25-1"}
-				return p
-			},
-		},
-		{
 			name: "alias: chain_id and alias must be unique among all, case alias & alias",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
@@ -410,15 +393,6 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 			wantErr:         true,
 			wantErrContains: "chain ID and alias must unique among all",
-		},
-		{
-			name: "coin-type-60-chains: chain_id must be unique among all",
-			modifier: func(p ChainsParams) ChainsParams {
-				p.CoinType60ChainIds = []string{"injective-1", "cronosmainnet_25-1", "injective-1"}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "chain ID is not unique",
 		},
 		{
 			name: "alias: chain_id and alias must be unique among all, case chain-id & alias",
@@ -444,24 +418,6 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 			wantErr:         true,
 			wantErrContains: "is not well-formed",
-		},
-		{
-			name: "coin-type-60-chains: reject if chain-id format is bad",
-			modifier: func(p ChainsParams) ChainsParams {
-				p.CoinType60ChainIds = []string{"injective@"}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "is not well-formed",
-		},
-		{
-			name: "coin-type-60-chains: reject if chain-id format is bad",
-			modifier: func(p ChainsParams) ChainsParams {
-				p.CoinType60ChainIds = []string{"in"}
-				return p
-			},
-			wantErr:         true,
-			wantErrContains: "must be at least 3 characters",
 		},
 		{
 			name: "alias: reject if chain-id format is bad",

@@ -555,9 +555,9 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	}
 
 	workingChainIdIsHostChain := workingChainId == ctx.ChainID()
-	isWorkingOnCoinType60Chain := workingChainIdIsHostChain || k.CheckChainIsCoinType60ByChainId(ctx, workingChainId)
+	workingChainIdIsRollApp := !workingChainIdIsHostChain && k.IsRollAppId(ctx, workingChainId)
 
-	if workingChainIdIsHostChain || k.IsRollAppId(ctx, workingChainId) {
+	if workingChainIdIsHostChain || workingChainIdIsRollApp {
 		if !isBech32Addr && !is0xAddr {
 			return nil, errorsmod.Wrapf(
 				gerrc.ErrInvalidArgument,
@@ -659,7 +659,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 		// check if we should do a fallback lookup
 
-		if !isWorkingOnCoinType60Chain {
+		if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
 			// we don't do fallback lookup for this case, just for safety purpose
 			return
 		}
@@ -703,7 +703,7 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	// If the working chain-id is a coin-type-60 chain-id.
 	// If the working chain-id is NOT a coin-type-60 chain-id, does not satisfy the condition.
 
-	if !isWorkingOnCoinType60Chain {
+	if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
 		// we don't do fallback lookup for this case, just for safety purpose
 		return
 	}

@@ -2671,29 +2671,6 @@ func TestKeeper_ReverseResolveDymNameAddress(t *testing.T) {
 			},
 		},
 		{
-			name: "pass - lookup by hex on coin-type-60 chain-id without bech32 prefix mapped, should do fallback lookup",
-			dymNames: newDN("a", ownerAcc.bech32()).
-				exp(now, +1).
-				cfgN("", "b", ownerAcc.bech32()).
-				cfgN("blumbus_111-1", "bb", ownerAcc.bech32()).
-				buildSlice(),
-			additionalSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
-				moduleParams.Chains.CoinType60ChainIds = []string{"blumbus_111-1"}
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-			},
-			inputAddress:   ownerAcc.hexStr(),
-			workingChainId: "blumbus_111-1",
-			wantErr:        false,
-			want: dymnstypes.ReverseResolvedDymNameAddresses{
-				{
-					SubName:        "", // fallback lookup from default name config so does not have Path => SubName
-					Name:           "a",
-					ChainIdOrAlias: "blumbus_111-1",
-				},
-			},
-		},
-		{
 			name: "pass - lookup by hex on RollApp with bech32 prefix mapped, find out the matching configuration",
 			dymNames: newDN("a", ownerAcc.bech32()).
 				exp(now, +1).

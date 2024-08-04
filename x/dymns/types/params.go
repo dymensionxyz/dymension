@@ -148,12 +148,6 @@ func DefaultChainsParams() ChainsParams {
 				Aliases: []string{"dot"},
 			},
 		},
-		CoinType60ChainIds: []string{
-			"evmos_9001-2",       // Evmos Mainnet
-			"evmos_9001-3",       // Evmos Mainnet Re-Genesis
-			"injective-1",        // Injective Mainnet
-			"cronosmainnet_25-1", // Cronos Mainnet
-		},
 	}
 }
 
@@ -507,32 +501,6 @@ func validateChainsParams(i interface{}) error {
 			}
 			uniqueChainIdAliasAmongAliasConfig[alias] = true
 		}
-	}
-
-	uniqueChainIdAmongCoinType60ChainsConfig := make(map[string]bool)
-	// Describe usage of Go Map: only used for validation
-	for _, chainID := range m.CoinType60ChainIds {
-		if len(chainID) < 3 {
-			return errorsmod.Wrapf(
-				gerrc.ErrInvalidArgument,
-				"coin-type-60 chains: chain ID must be at least 3 characters: %s", chainID,
-			)
-		}
-
-		if !dymnsutils.IsValidChainIdFormat(chainID) {
-			return errorsmod.Wrapf(
-				gerrc.ErrInvalidArgument,
-				"coin-type-60 chains: chain ID is not well-formed: %s", chainID,
-			)
-		}
-
-		if _, ok := uniqueChainIdAmongCoinType60ChainsConfig[chainID]; ok {
-			return errorsmod.Wrapf(
-				gerrc.ErrInvalidArgument,
-				"coin-type-60 chains: chain ID is not unique: %s", chainID,
-			)
-		}
-		uniqueChainIdAmongCoinType60ChainsConfig[chainID] = true
 	}
 
 	return nil

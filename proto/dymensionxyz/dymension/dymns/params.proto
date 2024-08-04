@@ -146,7 +146,7 @@ message PriceParams {
   ];
 }
 
-// ChainsParams defines setting for aliases mapping, and list of chain-ids that are using coin-type 60.
+// ChainsParams defines setting for prioritized aliases mapping.
 message ChainsParams {
   // aliases_of_chain_ids is set of chain-ids and their corresponding aliases,
   // used for UX improvement like we can do my-name@cosmos instead of my-name@cosmoshub-4.
@@ -156,14 +156,6 @@ message ChainsParams {
   repeated AliasesOfChainId aliases_of_chain_ids = 1 [
     (gogoproto.moretags) = "yaml:\"aliases_of_chain_ids\"",
     (gogoproto.nullable) = false
-  ];
-
-  // coin_type_60_chain_ids is set of chain-ids that are using coin-type 60.
-  // Used to ensure address conversion.
-  // Chains that are not Coin-Type 60 will be limited in cross-chain address conversion to reduce risk.
-  repeated string coin_type_60_chain_ids = 2 [
-    (gogoproto.customname) = "CoinType60ChainIds",
-    (gogoproto.moretags) = "yaml:\"coin_type_60_chain_ids\""
   ];
 }
 

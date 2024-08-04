@@ -50,26 +50,6 @@ func (k Keeper) PreservedRegistrationParams(ctx sdk.Context) (res dymnstypes.Pre
 	return
 }
 
-// CheckChainIsCoinType60ByChainId checks if the chain-id is a Coin-Type-60 chain-id (from params or host-chain or RollApp).
-func (k Keeper) CheckChainIsCoinType60ByChainId(ctx sdk.Context, chainId string) bool {
-	if chainId == ctx.ChainID() {
-		return true
-	}
-
-	if k.IsRollAppId(ctx, chainId) {
-		// all RollApps on Dymension use secp256k1
-		return true
-	}
-
-	for _, coinType60ChainId := range k.ChainsParams(ctx).CoinType60ChainIds {
-		if coinType60ChainId == chainId {
-			return true
-		}
-	}
-
-	return false
-}
-
 // CanUseAliasForNewRegistration checks if the alias can be used for a new alias registration.
 //
 // It returns False when
@@ -95,13 +75,6 @@ func (k Keeper) CanUseAliasForNewRegistration(ctx sdk.Context, aliasCandidate st
 				can = false
 				return
 			}
-		}
-	}
-
-	for _, chainId := range params.Chains.CoinType60ChainIds {
-		if aliasCandidate == chainId {
-			can = false
-			return
 		}
 	}
 

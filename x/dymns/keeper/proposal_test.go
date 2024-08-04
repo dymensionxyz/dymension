@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"reflect"
-	"sort"
 	"testing"
 	"time"
 
@@ -23,17 +22,15 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 	cosmos3A := testAddr(3).bech32C("cosmos")
 
 	tests := []struct {
-		name                       string
-		dymNames                   []dymnstypes.DymName
-		replacement                []dymnstypes.MigrateChainId
-		chainsAliasParams          []dymnstypes.AliasesOfChainId
-		chainsCoinType60Params     []string
-		additionalSetup            func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper)
-		wantErr                    bool
-		wantErrContains            string
-		wantDymNames               []dymnstypes.DymName
-		wantChainsAliasParams      []dymnstypes.AliasesOfChainId
-		wantChainsCoinType60Params []string
+		name                  string
+		dymNames              []dymnstypes.DymName
+		replacement           []dymnstypes.MigrateChainId
+		chainsAliasParams     []dymnstypes.AliasesOfChainId
+		additionalSetup       func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper)
+		wantErr               bool
+		wantErrContains       string
+		wantDymNames          []dymnstypes.DymName
+		wantChainsAliasParams []dymnstypes.AliasesOfChainId
 	}{
 		{
 			name: "pass - can migrate",
@@ -73,9 +70,8 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"cosmos"},
 				},
 			},
-			chainsCoinType60Params: []string{"blumbus_111-1"},
-			additionalSetup:        nil,
-			wantErr:                false,
+			additionalSetup: nil,
+			wantErr:         false,
 			wantDymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
@@ -102,7 +98,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"cosmos"},
 				},
 			},
-			wantChainsCoinType60Params: []string{"blumbus_111-2"},
 		},
 		{
 			name: "pass - can migrate params alias chain-id",
@@ -145,38 +140,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"dym"},
 				},
 			},
-		},
-		{
-			name: "pass - can migrate params coin type 60 chain-id",
-			replacement: []dymnstypes.MigrateChainId{
-				{
-					PreviousChainId: "cosmoshub-3",
-					NewChainId:      "cosmoshub-4",
-				},
-				{
-					PreviousChainId: "blumbus_111-1",
-					NewChainId:      "blumbus_111-2",
-				},
-			},
-			chainsCoinType60Params:     []string{"blumbus_111-1", "nim_1122-1"},
-			wantErr:                    false,
-			wantChainsCoinType60Params: []string{"blumbus_111-2", "nim_1122-1"},
-		},
-		{
-			name: "pass - coin type 60 chain-ids should be shorted",
-			replacement: []dymnstypes.MigrateChainId{
-				{
-					PreviousChainId: "cosmoshub-3",
-					NewChainId:      "cosmoshub-4",
-				},
-				{
-					PreviousChainId: "blumbus_111-1",
-					NewChainId:      "blumbus_111-2",
-				},
-			},
-			chainsCoinType60Params:     []string{"nim_1122-1", "blumbus_111-1", "injective-1"},
-			wantErr:                    false,
-			wantChainsCoinType60Params: []string{"blumbus_111-2", "injective-1", "nim_1122-1"},
 		},
 		{
 			name: "pass - can Dym-Name",
@@ -366,9 +329,8 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"bb"},
 				},
 			},
-			chainsCoinType60Params: []string{"blumbus_111-1"},
-			wantErr:                true,
-			wantErrContains:        "chains params: alias: chain ID and alias must unique among all",
+			wantErr:         true,
+			wantErrContains: "chains params: alias: chain ID and alias must unique among all",
 			wantDymNames: []dymnstypes.DymName{
 				{
 					Name:       "a",
@@ -393,10 +355,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					ChainId: "blumbus_111-1",
 					Aliases: []string{"bb"},
 				},
-			},
-			wantChainsCoinType60Params: []string{
-				// not changed
-				"blumbus_111-1",
 			},
 		},
 		{
@@ -475,18 +433,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					Aliases: []string{"cosmos4"},
 				},
 			},
-		},
-		{
-			name: "pass - skip migrate coin-type-60 chain-ids if new chain-id present, just remove",
-			replacement: []dymnstypes.MigrateChainId{
-				{
-					PreviousChainId: "nim_1122-1",
-					NewChainId:      "nim_1122-2",
-				},
-			},
-			chainsCoinType60Params:     []string{"blumbus_1122-1", "nim_1122-1", "nim_1122-2"},
-			wantErr:                    false,
-			wantChainsCoinType60Params: []string{"blumbus_1122-1", "nim_1122-2"},
 		},
 		{
 			name: "pass - skip migrate Dym-Name if new record does not pass validation",
@@ -608,7 +554,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 
 			moduleParams := dk.GetParams(ctx)
 			moduleParams.Chains.AliasesOfChainIds = tt.chainsAliasParams
-			moduleParams.Chains.CoinType60ChainIds = tt.chainsCoinType60Params
 			require.NoError(t, dk.SetParams(ctx, moduleParams))
 
 			for _, dymName := range tt.dymNames {
@@ -627,11 +572,6 @@ func TestKeeper_MigrateChainIds(t *testing.T) {
 					if !reflect.DeepEqual(tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds) {
 						t.Errorf("alias: want %v, got %v", tt.wantChainsAliasParams, laterModuleParams.Chains.AliasesOfChainIds)
 					}
-				}
-				if len(tt.wantChainsCoinType60Params) > 0 || len(laterModuleParams.Chains.CoinType60ChainIds) > 0 {
-					sort.Strings(tt.wantChainsCoinType60Params)
-					sort.Strings(laterModuleParams.Chains.CoinType60ChainIds)
-					require.Equal(t, tt.wantChainsCoinType60Params, laterModuleParams.Chains.CoinType60ChainIds)
 				}
 			}()
 

@@ -55,50 +55,6 @@ func TestGetSetParams(t *testing.T) {
 	})
 }
 
-func TestKeeper_CheckChainIsCoinType60ByChainId(t *testing.T) {
-	const chainId = "dymension_1100-1"
-	dk, _, rk, ctx := testkeeper.DymNSKeeper(t)
-	ctx = ctx.WithChainID(chainId)
-
-	const chainIdInjective = "injective-1"
-
-	params := dk.GetParams(ctx)
-
-	t.Run("host-chain is coin-type 60", func(t *testing.T) {
-		require.True(t, dk.CheckChainIsCoinType60ByChainId(ctx, chainId))
-	})
-
-	t.Run("roll-app is coin-type 60", func(t *testing.T) {
-		rollApp1 := rollapptypes.Rollapp{
-			RollappId: "ra_1-1",
-			Creator:   testAddr(0).bech32(),
-		}
-		rk.SetRollapp(ctx, rollApp1)
-
-		require.True(t, dk.CheckChainIsCoinType60ByChainId(ctx, rollApp1.RollappId))
-	})
-
-	t.Run("chain-id in params is coin-type 60", func(t *testing.T) {
-		params.Chains.CoinType60ChainIds = []string{chainIdInjective}
-		err := dk.SetParams(ctx, params)
-		require.NoError(t, err)
-
-		require.True(t, dk.CheckChainIsCoinType60ByChainId(ctx, chainIdInjective))
-	})
-
-	t.Run("otherwise not coin-type 60", func(t *testing.T) {
-		require.False(t, dk.CheckChainIsCoinType60ByChainId(ctx, "cosmoshub-4"))
-	})
-
-	t.Run("chain-id not in params is not coin-type 60 regardless actual", func(t *testing.T) {
-		params.Chains.CoinType60ChainIds = nil
-		err := dk.SetParams(ctx, params)
-		require.NoError(t, err)
-
-		require.False(t, dk.CheckChainIsCoinType60ByChainId(ctx, chainIdInjective))
-	})
-}
-
 func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -250,18 +206,6 @@ func TestKeeper_CanUseAliasForNewRegistration(t *testing.T) {
 						Aliases: []string{"b"},
 					},
 				}
-				err := dk.SetParams(ctx, params)
-				require.NoError(t, err)
-			},
-			wantErr: false,
-			want:    false,
-		},
-		{
-			name:  "pass - returns as NOT free if it is a Chain-ID in params list Coin-Type-60",
-			alias: "bridge",
-			preSetup: func(ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				params := dk.GetParams(ctx)
-				params.Chains.CoinType60ChainIds = []string{"bridge"}
 				err := dk.SetParams(ctx, params)
 				require.NoError(t, err)
 			},

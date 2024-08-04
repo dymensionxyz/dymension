@@ -108,7 +108,6 @@ func DymNSKeeper(t testing.TB) (dymnskeeper.Keeper, dymnskeeper.BankKeeper, roll
 	// Initialize params
 	moduleParams := dymnstypes.DefaultParams()
 	moduleParams.Chains.AliasesOfChainIds = nil
-	moduleParams.Chains.CoinType60ChainIds = nil
 	err := k.SetParams(ctx, moduleParams)
 	require.NoError(t, err)
 

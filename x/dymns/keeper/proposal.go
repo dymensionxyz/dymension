@@ -69,22 +69,6 @@ func (k Keeper) migrateChainIdsInParams(ctx sdk.Context, previousChainIdsToNewCh
 		params.Chains.AliasesOfChainIds = newAliasesByChainId
 	}
 
-	if len(params.Chains.CoinType60ChainIds) > 0 {
-		newCoinType60UniqueChainIds := make(map[string]bool)
-		// Describe usage of Go Map: only used for collecting unique chain ids.
-		// Result should be extracted as sorted slice before use.
-
-		for _, chainId := range params.Chains.CoinType60ChainIds {
-			if newChainId, isPreviousChainId := previousChainIdsToNewChainId[chainId]; isPreviousChainId {
-				newCoinType60UniqueChainIds[newChainId] = true
-			} else {
-				newCoinType60UniqueChainIds[chainId] = true
-			}
-		}
-
-		params.Chains.CoinType60ChainIds = dymnsutils.GetSortedStringKeys(newCoinType60UniqueChainIds)
-	}
-
 	if err := k.SetParams(ctx, params); err != nil {
 		k.Logger(ctx).Error(
 			"failed to update params",

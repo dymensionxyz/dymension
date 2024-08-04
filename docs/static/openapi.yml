@@ -2530,18 +2530,6 @@ paths:
                           the reason is to allow the community able to have
                           control to fixes the potential problems with the
                           aliases.
-                      coin_type_60_chain_ids:
-                        type: array
-                        items:
-                          type: string
-                        description: >-
-                          coin_type_60_chain_ids is set of chain-ids that are
-                          using coin-type 60.
-
-                          Used to ensure address conversion.
-
-                          Chains that are not Coin-Type 60 will be limited in
-                          cross-chain address conversion to reduce risk.
                   misc:
                     description: misc is group of miscellaneous parameters.
                     type: object
@@ -3015,10 +3003,9 @@ paths:
           type: string
       tags:
         - Query
-  /dymensionxyz/dymension/rollapp/eip155/{eip155}:
+  /dymensionxyz/dymension/rollapp/alias/{alias}:
     get:
-      summary: Queries a Rollapp by index.
-      operationId: RollappByEIP155
+      operationId: RollappByAlias
       responses:
         '200':
           description: A successful response.
@@ -3028,38 +3015,18 @@ paths:
               rollapp:
                 type: object
                 properties:
-                  rollappId:
+                  rollapp_id:
                     type: string
                     description: >-
                       The unique identifier of the rollapp chain.
 
-                      The rollappId follows the same standard as cosmos
+                      The rollapp_id follows the same standard as cosmos
                       chain_id.
                   creator:
                     type: string
                     description: >-
                       creator is the bech32-encoded address of the rollapp
                       creator.
-                  version:
-                    type: string
-                    format: uint64
-                    title: |-
-                      version is the software and configuration version.
-                      starts from 1 and increases by one on every MsgUpdateState
-                  maxSequencers:
-                    type: string
-                    format: uint64
-                    description: maxSequencers is the maximum number of sequencers.
-                  permissionedAddresses:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      permissionedAddresses is a bech32-encoded address list of
-                      the sequencers that are allowed to serve this rollappId.
-
-                      In the case of an empty list, the rollapp is considered
-                      permissionless.
                   genesis_state:
                     title: >-
                       genesis_state is a partial repr of the state the hub can
@@ -3100,9 +3067,291 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
+                  bech32_prefix:
+                    type: string
+                    title: unique bech32 prefix
+                  alias:
+                    type: string
+                    title: >-
+                      alias is the chain alias used for display and namespace
+                      system
+                  genesis_checksum:
+                    type: string
+                    title: checksum used to verify integrity of the genesis file
+                  metadata:
+                    title: metadata is the rollapp metadata
+                    type: object
+                    properties:
+                      website:
+                        type: string
+                        title: website is the rollapp website
+                      description:
+                        type: string
+                        title: >-
+                          description is the rollapp description. should be
+                          limited to 512 chars
+                      logo_data_uri:
+                        type: string
+                        description: >-
+                          logo_data_uri is a base64 rep with a URI prefix to the
+                          rollapp logo. Should be limited to 25kb.
+                      token_logo_data_uri:
+                        type: string
+                        description: >-
+                          token_logo_data_uri is a URI to the native token logo.
+                          Should be limited to 25kb.
+                      telegram:
+                        type: string
+                        title: telegram is the rollapp telegram link
+                      x:
+                        type: string
+                        title: x is the rollapp twitter link
+                  initial_sequencer_address:
+                    type: string
+                    description: >-
+                      initial_sequencer_address is a bech32-encoded address of
+                      the
+
+                      sequencer that is allowed to initially register and serve
+                      for this rollapp.
+                  sealed:
+                    type: boolean
+                    description: >-
+                      sealed is a boolean that indicates if the immutable fields
+                      are no longer updatable.
                 title: >-
-                  Rollapp defines a rollapp object. First the RollApp is created
-                  and then
+                  Rollapp defines a rollapp object. First, the RollApp is
+                  created and then
+
+                  sequencers can be created and attached. The RollApp is
+                  identified by rollappId
+              latestStateIndex:
+                description: Defines the index of the last rollapp UpdateState.
+                type: object
+                properties:
+                  rollappId:
+                    type: string
+                    title: >-
+                      rollappId is the rollapp that the sequencer belongs to and
+                      asking to update
+
+                      it used to identify the what rollapp a StateInfo belongs
+
+                      The rollappId follows the same standard as cosmos chain_id
+                  index:
+                    type: string
+                    format: uint64
+                    title: >-
+                      index is a sequential increasing number, updating on each
+
+                      state update used for indexing to a specific state info,
+                      the first index is 1
+                title: >-
+                  StateInfoIndex is the data used for indexing and retrieving a
+                  StateInfo 
+
+                  it updated and saved with every UpdateState in StateInfo.
+
+                  We use the this structure also for:
+
+                  1. LatestStateInfoIndex which defines the rollapps' current
+                  (latest) index of the last UpdateState 
+
+                  2. LatestFinalizedStateIndex which defines the rollapps'
+                  current (latest) index of the latest StateInfo that was
+                  finalized
+              latestFinalizedStateIndex:
+                description: >-
+                  Defines the index of the last rollapp UpdateState that was
+                  finalized.
+                type: object
+                properties:
+                  rollappId:
+                    type: string
+                    title: >-
+                      rollappId is the rollapp that the sequencer belongs to and
+                      asking to update
+
+                      it used to identify the what rollapp a StateInfo belongs
+
+                      The rollappId follows the same standard as cosmos chain_id
+                  index:
+                    type: string
+                    format: uint64
+                    title: >-
+                      index is a sequential increasing number, updating on each
+
+                      state update used for indexing to a specific state info,
+                      the first index is 1
+                title: >-
+                  StateInfoIndex is the data used for indexing and retrieving a
+                  StateInfo 
+
+                  it updated and saved with every UpdateState in StateInfo.
+
+                  We use the this structure also for:
+
+                  1. LatestStateInfoIndex which defines the rollapps' current
+                  (latest) index of the last UpdateState 
+
+                  2. LatestFinalizedStateIndex which defines the rollapps'
+                  current (latest) index of the latest StateInfo that was
+                  finalized
+              latestHeight:
+                type: string
+                format: uint64
+              latestFinalizedHeight:
+                type: string
+                format: uint64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: alias
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /dymensionxyz/dymension/rollapp/eip155/{eip155}:
+    get:
+      summary: Queries a Rollapp by index.
+      operationId: RollappByEIP155
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              rollapp:
+                type: object
+                properties:
+                  rollapp_id:
+                    type: string
+                    description: >-
+                      The unique identifier of the rollapp chain.
+
+                      The rollapp_id follows the same standard as cosmos
+                      chain_id.
+                  creator:
+                    type: string
+                    description: >-
+                      creator is the bech32-encoded address of the rollapp
+                      creator.
+                  genesis_state:
+                    title: >-
+                      genesis_state is a partial repr of the state the hub can
+                      expect the rollapp to be in upon genesis
+                    type: object
+                    properties:
+                      transfers_enabled:
+                        type: boolean
+                        description: >-
+                          If true, then full usage of the canonical ibc transfer
+                          channel is enabled.
+
+                          Note: in v3.1.0 and prior this field marked the
+                          completion of the 'genesis event'
+
+                          Keeping and renaming the field enables a seamless
+                          upgrade
+                          https://www.notion.so/dymension/ADR-x-Genesis-Bridge-Phase-2-89769aa551b5440b9ed403a101775ce1?pvs=4#89698384d815435b87393dbe45bc5a74
+
+                          to the new genesis transfer protocol
+
+                          Note: if this field is false, ibc transfers may still
+                          be allowed in one or either direction.
+                  channel_id:
+                    type: string
+                    description: >-
+                      channel_id will be set to the canonical IBC channel of the
+                      rollapp.
+                  frozen:
+                    type: boolean
+                    description: >-
+                      frozen is a boolean that indicates if the rollapp is
+                      frozen.
+                  registeredDenoms:
+                    type: array
+                    items:
+                      type: string
+                    title: >-
+                      registeredDenoms is a list of registered denom bases on
+                      this rollapp
+                  bech32_prefix:
+                    type: string
+                    title: unique bech32 prefix
+                  alias:
+                    type: string
+                    title: >-
+                      alias is the chain alias used for display and namespace
+                      system
+                  genesis_checksum:
+                    type: string
+                    title: checksum used to verify integrity of the genesis file
+                  metadata:
+                    title: metadata is the rollapp metadata
+                    type: object
+                    properties:
+                      website:
+                        type: string
+                        title: website is the rollapp website
+                      description:
+                        type: string
+                        title: >-
+                          description is the rollapp description. should be
+                          limited to 512 chars
+                      logo_data_uri:
+                        type: string
+                        description: >-
+                          logo_data_uri is a base64 rep with a URI prefix to the
+                          rollapp logo. Should be limited to 25kb.
+                      token_logo_data_uri:
+                        type: string
+                        description: >-
+                          token_logo_data_uri is a URI to the native token logo.
+                          Should be limited to 25kb.
+                      telegram:
+                        type: string
+                        title: telegram is the rollapp telegram link
+                      x:
+                        type: string
+                        title: x is the rollapp twitter link
+                  initial_sequencer_address:
+                    type: string
+                    description: >-
+                      initial_sequencer_address is a bech32-encoded address of
+                      the
+
+                      sequencer that is allowed to initially register and serve
+                      for this rollapp.
+                  sealed:
+                    type: boolean
+                    description: >-
+                      sealed is a boolean that indicates if the immutable fields
+                      are no longer updatable.
+                title: >-
+                  Rollapp defines a rollapp object. First, the RollApp is
+                  created and then
 
                   sequencers can be created and attached. The RollApp is
                   identified by rollappId
@@ -3358,25 +3607,24 @@ paths:
                       dispute_period_in_blocks the number of blocks it takes
                       to change a status of a state from received to finalized.
                       during that period, any user could submit fraud proof
-                  deployer_whitelist:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        address:
-                          type: string
-                          description: |-
-                            address is a bech32-encoded address of the 
-                            accounts that are allowed to create a rollapp.
+                  registration_fee:
                     title: >-
-                      deployer_whitelist is a list of the
+                      registration_fee is the fee that is required to register a
+                      rollapp
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
 
-                      accounts that are allowed to create a rollapp and maximum
-                      number of rollapps.
 
-                      In the case of an empty list, there are no restrictions
-                  rollapps_enabled:
-                    type: boolean
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3629,38 +3877,18 @@ paths:
               rollapp:
                 type: object
                 properties:
-                  rollappId:
+                  rollapp_id:
                     type: string
                     description: >-
                       The unique identifier of the rollapp chain.
 
-                      The rollappId follows the same standard as cosmos
+                      The rollapp_id follows the same standard as cosmos
                       chain_id.
                   creator:
                     type: string
                     description: >-
                       creator is the bech32-encoded address of the rollapp
                       creator.
-                  version:
-                    type: string
-                    format: uint64
-                    title: |-
-                      version is the software and configuration version.
-                      starts from 1 and increases by one on every MsgUpdateState
-                  maxSequencers:
-                    type: string
-                    format: uint64
-                    description: maxSequencers is the maximum number of sequencers.
-                  permissionedAddresses:
-                    type: array
-                    items:
-                      type: string
-                    description: >-
-                      permissionedAddresses is a bech32-encoded address list of
-                      the sequencers that are allowed to serve this rollappId.
-
-                      In the case of an empty list, the rollapp is considered
-                      permissionless.
                   genesis_state:
                     title: >-
                       genesis_state is a partial repr of the state the hub can
@@ -3701,9 +3929,61 @@ paths:
                     title: >-
                       registeredDenoms is a list of registered denom bases on
                       this rollapp
+                  bech32_prefix:
+                    type: string
+                    title: unique bech32 prefix
+                  alias:
+                    type: string
+                    title: >-
+                      alias is the chain alias used for display and namespace
+                      system
+                  genesis_checksum:
+                    type: string
+                    title: checksum used to verify integrity of the genesis file
+                  metadata:
+                    title: metadata is the rollapp metadata
+                    type: object
+                    properties:
+                      website:
+                        type: string
+                        title: website is the rollapp website
+                      description:
+                        type: string
+                        title: >-
+                          description is the rollapp description. should be
+                          limited to 512 chars
+                      logo_data_uri:
+                        type: string
+                        description: >-
+                          logo_data_uri is a base64 rep with a URI prefix to the
+                          rollapp logo. Should be limited to 25kb.
+                      token_logo_data_uri:
+                        type: string
+                        description: >-
+                          token_logo_data_uri is a URI to the native token logo.
+                          Should be limited to 25kb.
+                      telegram:
+                        type: string
+                        title: telegram is the rollapp telegram link
+                      x:
+                        type: string
+                        title: x is the rollapp twitter link
+                  initial_sequencer_address:
+                    type: string
+                    description: >-
+                      initial_sequencer_address is a bech32-encoded address of
+                      the
+
+                      sequencer that is allowed to initially register and serve
+                      for this rollapp.
+                  sealed:
+                    type: boolean
+                    description: >-
+                      sealed is a boolean that indicates if the immutable fields
+                      are no longer updatable.
                 title: >-
-                  Rollapp defines a rollapp object. First the RollApp is created
-                  and then
+                  Rollapp defines a rollapp object. First, the RollApp is
+                  created and then
 
                   sequencers can be created and attached. The RollApp is
                   identified by rollappId
@@ -3884,10 +4164,6 @@ paths:
                   DAPath:
                     type: string
                     title: DAPath is the description of the location on the DA layer
-                  version:
-                    type: string
-                    format: uint64
-                    title: version is the version of the rollapp
                   creationHeight:
                     type: string
                     format: uint64
@@ -4219,12 +4495,12 @@ paths:
                 items:
                   type: object
                   properties:
-                    sequencerAddress:
+                    address:
                       type: string
                       description: >-
-                        sequencerAddress is the bech32-encoded address of the
-                        sequencer account which is the account that the message
-                        was sent from.
+                        address is the bech32-encoded address of the sequencer
+                        account which is the account that the message was sent
+                        from.
                     dymintPubKey:
                       type: object
                       properties:
@@ -4412,9 +4688,9 @@ paths:
                       description: >-
                         rollappId defines the rollapp to which the sequencer
                         belongs.
-                    description:
+                    metadata:
                       description: >-
-                        description defines the descriptive terms for the
+                        metadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -4423,22 +4699,73 @@ paths:
                           description: >-
                             moniker defines a human-readable name for the
                             sequencer.
-                        identity:
-                          type: string
-                          description: >-
-                            identity defines an optional identity signature (ex.
-                            UPort or Keybase).
-                        website:
-                          type: string
-                          description: website defines an optional website link.
-                        securityContact:
-                          type: string
-                          description: >-
-                            securityContact defines an optional email for
-                            security contact.
                         details:
                           type: string
                           description: details define other optional details.
+                        p2p_seeds:
+                          type: array
+                          items:
+                            type: string
+                          title: bootstrap nodes list
+                        rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: RPCs list
+                        evm_rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: evm RPCs list
+                        rest_api_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: REST API URLs
+                        explorer_url:
+                          type: string
+                          title: block explorer URL
+                        genesis_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: genesis URLs
+                        contact_details:
+                          title: contact details
+                          type: object
+                          properties:
+                            website:
+                              type: string
+                              title: website URL
+                            telegram:
+                              type: string
+                              title: telegram link
+                            x:
+                              type: string
+                              title: twitter link
+                        extra_data:
+                          type: string
+                          format: byte
+                          title: json dump the sequencer can add (limited by size)
+                        snapshots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              snapshot_url:
+                                type: string
+                                title: the snapshot url
+                              height:
+                                type: string
+                                format: uint64
+                                title: The snapshot height
+                              checksum:
+                                type: string
+                                title: sha-256 checksum value for the snapshot file
+                          title: snapshots of the sequencer
+                        gas_price:
+                          type: string
+                          title: gas_price defines the value for each gas unit
                     jailed:
                       type: boolean
                       description: >-
@@ -4795,12 +5122,12 @@ paths:
               sequencer:
                 type: object
                 properties:
-                  sequencerAddress:
+                  address:
                     type: string
                     description: >-
-                      sequencerAddress is the bech32-encoded address of the
-                      sequencer account which is the account that the message
-                      was sent from.
+                      address is the bech32-encoded address of the sequencer
+                      account which is the account that the message was sent
+                      from.
                   dymintPubKey:
                     type: object
                     properties:
@@ -4986,10 +5313,8 @@ paths:
                     description: >-
                       rollappId defines the rollapp to which the sequencer
                       belongs.
-                  description:
-                    description: >-
-                      description defines the descriptive terms for the
-                      sequencer.
+                  metadata:
+                    description: metadata defines the extra information for the sequencer.
                     type: object
                     properties:
                       moniker:
@@ -4997,22 +5322,73 @@ paths:
                         description: >-
                           moniker defines a human-readable name for the
                           sequencer.
-                      identity:
-                        type: string
-                        description: >-
-                          identity defines an optional identity signature (ex.
-                          UPort or Keybase).
-                      website:
-                        type: string
-                        description: website defines an optional website link.
-                      securityContact:
-                        type: string
-                        description: >-
-                          securityContact defines an optional email for security
-                          contact.
                       details:
                         type: string
                         description: details define other optional details.
+                      p2p_seeds:
+                        type: array
+                        items:
+                          type: string
+                        title: bootstrap nodes list
+                      rpcs:
+                        type: array
+                        items:
+                          type: string
+                        title: RPCs list
+                      evm_rpcs:
+                        type: array
+                        items:
+                          type: string
+                        title: evm RPCs list
+                      rest_api_urls:
+                        type: array
+                        items:
+                          type: string
+                        title: REST API URLs
+                      explorer_url:
+                        type: string
+                        title: block explorer URL
+                      genesis_urls:
+                        type: array
+                        items:
+                          type: string
+                        title: genesis URLs
+                      contact_details:
+                        title: contact details
+                        type: object
+                        properties:
+                          website:
+                            type: string
+                            title: website URL
+                          telegram:
+                            type: string
+                            title: telegram link
+                          x:
+                            type: string
+                            title: twitter link
+                      extra_data:
+                        type: string
+                        format: byte
+                        title: json dump the sequencer can add (limited by size)
+                      snapshots:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            snapshot_url:
+                              type: string
+                              title: the snapshot url
+                            height:
+                              type: string
+                              format: uint64
+                              title: The snapshot height
+                            checksum:
+                              type: string
+                              title: sha-256 checksum value for the snapshot file
+                        title: snapshots of the sequencer
+                      gas_price:
+                        type: string
+                        title: gas_price defines the value for each gas unit
                   jailed:
                     type: boolean
                     description: >-
@@ -5290,12 +5666,12 @@ paths:
                 items:
                   type: object
                   properties:
-                    sequencerAddress:
+                    address:
                       type: string
                       description: >-
-                        sequencerAddress is the bech32-encoded address of the
-                        sequencer account which is the account that the message
-                        was sent from.
+                        address is the bech32-encoded address of the sequencer
+                        account which is the account that the message was sent
+                        from.
                     dymintPubKey:
                       type: object
                       properties:
@@ -5483,9 +5859,9 @@ paths:
                       description: >-
                         rollappId defines the rollapp to which the sequencer
                         belongs.
-                    description:
+                    metadata:
                       description: >-
-                        description defines the descriptive terms for the
+                        metadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -5494,22 +5870,73 @@ paths:
                           description: >-
                             moniker defines a human-readable name for the
                             sequencer.
-                        identity:
-                          type: string
-                          description: >-
-                            identity defines an optional identity signature (ex.
-                            UPort or Keybase).
-                        website:
-                          type: string
-                          description: website defines an optional website link.
-                        securityContact:
-                          type: string
-                          description: >-
-                            securityContact defines an optional email for
-                            security contact.
                         details:
                           type: string
                           description: details define other optional details.
+                        p2p_seeds:
+                          type: array
+                          items:
+                            type: string
+                          title: bootstrap nodes list
+                        rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: RPCs list
+                        evm_rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: evm RPCs list
+                        rest_api_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: REST API URLs
+                        explorer_url:
+                          type: string
+                          title: block explorer URL
+                        genesis_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: genesis URLs
+                        contact_details:
+                          title: contact details
+                          type: object
+                          properties:
+                            website:
+                              type: string
+                              title: website URL
+                            telegram:
+                              type: string
+                              title: telegram link
+                            x:
+                              type: string
+                              title: twitter link
+                        extra_data:
+                          type: string
+                          format: byte
+                          title: json dump the sequencer can add (limited by size)
+                        snapshots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              snapshot_url:
+                                type: string
+                                title: the snapshot url
+                              height:
+                                type: string
+                                format: uint64
+                                title: The snapshot height
+                              checksum:
+                                type: string
+                                title: sha-256 checksum value for the snapshot file
+                          title: snapshots of the sequencer
+                        gas_price:
+                          type: string
+                          title: gas_price defines the value for each gas unit
                     jailed:
                       type: boolean
                       description: >-
@@ -5788,12 +6215,12 @@ paths:
                 items:
                   type: object
                   properties:
-                    sequencerAddress:
+                    address:
                       type: string
                       description: >-
-                        sequencerAddress is the bech32-encoded address of the
-                        sequencer account which is the account that the message
-                        was sent from.
+                        address is the bech32-encoded address of the sequencer
+                        account which is the account that the message was sent
+                        from.
                     dymintPubKey:
                       type: object
                       properties:
@@ -5981,9 +6408,9 @@ paths:
                       description: >-
                         rollappId defines the rollapp to which the sequencer
                         belongs.
-                    description:
+                    metadata:
                       description: >-
-                        description defines the descriptive terms for the
+                        metadata defines the extra information for the
                         sequencer.
                       type: object
                       properties:
@@ -5992,22 +6419,73 @@ paths:
                           description: >-
                             moniker defines a human-readable name for the
                             sequencer.
-                        identity:
-                          type: string
-                          description: >-
-                            identity defines an optional identity signature (ex.
-                            UPort or Keybase).
-                        website:
-                          type: string
-                          description: website defines an optional website link.
-                        securityContact:
-                          type: string
-                          description: >-
-                            securityContact defines an optional email for
-                            security contact.
                         details:
                           type: string
                           description: details define other optional details.
+                        p2p_seeds:
+                          type: array
+                          items:
+                            type: string
+                          title: bootstrap nodes list
+                        rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: RPCs list
+                        evm_rpcs:
+                          type: array
+                          items:
+                            type: string
+                          title: evm RPCs list
+                        rest_api_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: REST API URLs
+                        explorer_url:
+                          type: string
+                          title: block explorer URL
+                        genesis_urls:
+                          type: array
+                          items:
+                            type: string
+                          title: genesis URLs
+                        contact_details:
+                          title: contact details
+                          type: object
+                          properties:
+                            website:
+                              type: string
+                              title: website URL
+                            telegram:
+                              type: string
+                              title: telegram link
+                            x:
+                              type: string
+                              title: twitter link
+                        extra_data:
+                          type: string
+                          format: byte
+                          title: json dump the sequencer can add (limited by size)
+                        snapshots:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              snapshot_url:
+                                type: string
+                                title: the snapshot url
+                              height:
+                                type: string
+                                format: uint64
+                                title: The snapshot height
+                              checksum:
+                                type: string
+                                title: sha-256 checksum value for the snapshot file
+                          title: snapshots of the sequencer
+                        gas_price:
+                          type: string
+                          title: gas_price defines the value for each gas unit
                     jailed:
                       type: boolean
                       description: >-
@@ -58091,21 +58569,7 @@ definitions:
 
           the reason is to allow the community able to have control to fixes the
           potential problems with the aliases.
-      coin_type_60_chain_ids:
-        type: array
-        items:
-          type: string
-        description: >-
-          coin_type_60_chain_ids is set of chain-ids that are using coin-type
-          60.
-
-          Used to ensure address conversion.
-
-          Chains that are not Coin-Type 60 will be limited in cross-chain
-          address conversion to reduce risk.
-    description: >-
-      ChainsParams defines setting for aliases mapping, and list of chain-ids
-      that are using coin-type 60.
+    description: ChainsParams defines setting for prioritized aliases mapping.
   dymensionxyz.dymension.dymns.DymName:
     type: object
     properties:
@@ -58435,18 +58899,6 @@ definitions:
 
               the reason is to allow the community able to have control to fixes
               the potential problems with the aliases.
-          coin_type_60_chain_ids:
-            type: array
-            items:
-              type: string
-            description: >-
-              coin_type_60_chain_ids is set of chain-ids that are using
-              coin-type 60.
-
-              Used to ensure address conversion.
-
-              Chains that are not Coin-Type 60 will be limited in cross-chain
-              address conversion to reduce risk.
       misc:
         description: misc is group of miscellaneous parameters.
         type: object
@@ -59331,18 +59783,6 @@ definitions:
 
                   the reason is to allow the community able to have control to
                   fixes the potential problems with the aliases.
-              coin_type_60_chain_ids:
-                type: array
-                items:
-                  type: string
-                description: >-
-                  coin_type_60_chain_ids is set of chain-ids that are using
-                  coin-type 60.
-
-                  Used to ensure address conversion.
-
-                  Chains that are not Coin-Type 60 will be limited in
-                  cross-chain address conversion to reduce risk.
           misc:
             description: misc is group of miscellaneous parameters.
             type: object
@@ -59734,14 +60174,6 @@ definitions:
                 root of the block)
           description: BlockDescriptor defines a single rollapp chain block description.
     description: BlockDescriptors defines list of BlockDescriptor.
-  dymensionxyz.dymension.rollapp.DeployerParams:
-    type: object
-    properties:
-      address:
-        type: string
-        description: |-
-          address is a bech32-encoded address of the 
-          accounts that are allowed to create a rollapp.
   dymensionxyz.dymension.rollapp.Params:
     type: object
     properties:
@@ -59752,25 +60184,19 @@ definitions:
           dispute_period_in_blocks the number of blocks it takes
           to change a status of a state from received to finalized.
           during that period, any user could submit fraud proof
-      deployer_whitelist:
-        type: array
-        items:
-          type: object
-          properties:
-            address:
-              type: string
-              description: |-
-                address is a bech32-encoded address of the 
-                accounts that are allowed to create a rollapp.
-        title: >-
-          deployer_whitelist is a list of the
+      registration_fee:
+        title: registration_fee is the fee that is required to register a rollapp
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
 
-          accounts that are allowed to create a rollapp and maximum number of
-          rollapps.
-
-          In the case of an empty list, there are no restrictions
-      rollapps_enabled:
-        type: boolean
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
     description: Params defines the parameters for the module.
   dymensionxyz.dymension.rollapp.QueryAllRollappResponse:
     type: object
@@ -59930,34 +60356,14 @@ definitions:
       rollapp:
         type: object
         properties:
-          rollappId:
+          rollapp_id:
             type: string
             description: |-
               The unique identifier of the rollapp chain.
-              The rollappId follows the same standard as cosmos chain_id.
+              The rollapp_id follows the same standard as cosmos chain_id.
           creator:
             type: string
             description: creator is the bech32-encoded address of the rollapp creator.
-          version:
-            type: string
-            format: uint64
-            title: |-
-              version is the software and configuration version.
-              starts from 1 and increases by one on every MsgUpdateState
-          maxSequencers:
-            type: string
-            format: uint64
-            description: maxSequencers is the maximum number of sequencers.
-          permissionedAddresses:
-            type: array
-            items:
-              type: string
-            description: >-
-              permissionedAddresses is a bech32-encoded address list of the
-              sequencers that are allowed to serve this rollappId.
-
-              In the case of an empty list, the rollapp is considered
-              permissionless.
           genesis_state:
             title: >-
               genesis_state is a partial repr of the state the hub can expect
@@ -59995,8 +60401,57 @@ definitions:
             title: >-
               registeredDenoms is a list of registered denom bases on this
               rollapp
+          bech32_prefix:
+            type: string
+            title: unique bech32 prefix
+          alias:
+            type: string
+            title: alias is the chain alias used for display and namespace system
+          genesis_checksum:
+            type: string
+            title: checksum used to verify integrity of the genesis file
+          metadata:
+            title: metadata is the rollapp metadata
+            type: object
+            properties:
+              website:
+                type: string
+                title: website is the rollapp website
+              description:
+                type: string
+                title: >-
+                  description is the rollapp description. should be limited to
+                  512 chars
+              logo_data_uri:
+                type: string
+                description: >-
+                  logo_data_uri is a base64 rep with a URI prefix to the rollapp
+                  logo. Should be limited to 25kb.
+              token_logo_data_uri:
+                type: string
+                description: >-
+                  token_logo_data_uri is a URI to the native token logo. Should
+                  be limited to 25kb.
+              telegram:
+                type: string
+                title: telegram is the rollapp telegram link
+              x:
+                type: string
+                title: x is the rollapp twitter link
+          initial_sequencer_address:
+            type: string
+            description: >-
+              initial_sequencer_address is a bech32-encoded address of the
+
+              sequencer that is allowed to initially register and serve for this
+              rollapp.
+          sealed:
+            type: boolean
+            description: >-
+              sealed is a boolean that indicates if the immutable fields are no
+              longer updatable.
         title: >-
-          Rollapp defines a rollapp object. First the RollApp is created and
+          Rollapp defines a rollapp object. First, the RollApp is created and
           then
 
           sequencers can be created and attached. The RollApp is identified by
@@ -60130,10 +60585,6 @@ definitions:
           DAPath:
             type: string
             title: DAPath is the description of the location on the DA layer
-          version:
-            type: string
-            format: uint64
-            title: version is the version of the rollapp
           creationHeight:
             type: string
             format: uint64
@@ -60188,57 +60639,34 @@ definitions:
               dispute_period_in_blocks the number of blocks it takes
               to change a status of a state from received to finalized.
               during that period, any user could submit fraud proof
-          deployer_whitelist:
-            type: array
-            items:
-              type: object
-              properties:
-                address:
-                  type: string
-                  description: |-
-                    address is a bech32-encoded address of the 
-                    accounts that are allowed to create a rollapp.
-            title: >-
-              deployer_whitelist is a list of the
+          registration_fee:
+            title: registration_fee is the fee that is required to register a rollapp
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
 
-              accounts that are allowed to create a rollapp and maximum number
-              of rollapps.
 
-              In the case of an empty list, there are no restrictions
-          rollapps_enabled:
-            type: boolean
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   dymensionxyz.dymension.rollapp.Rollapp:
     type: object
     properties:
-      rollappId:
+      rollapp_id:
         type: string
         description: |-
           The unique identifier of the rollapp chain.
-          The rollappId follows the same standard as cosmos chain_id.
+          The rollapp_id follows the same standard as cosmos chain_id.
       creator:
         type: string
         description: creator is the bech32-encoded address of the rollapp creator.
-      version:
-        type: string
-        format: uint64
-        title: |-
-          version is the software and configuration version.
-          starts from 1 and increases by one on every MsgUpdateState
-      maxSequencers:
-        type: string
-        format: uint64
-        description: maxSequencers is the maximum number of sequencers.
-      permissionedAddresses:
-        type: array
-        items:
-          type: string
-        description: >-
-          permissionedAddresses is a bech32-encoded address list of the
-          sequencers that are allowed to serve this rollappId.
-
-          In the case of an empty list, the rollapp is considered
-          permissionless.
       genesis_state:
         title: >-
           genesis_state is a partial repr of the state the hub can expect the
@@ -60272,8 +60700,57 @@ definitions:
         items:
           type: string
         title: registeredDenoms is a list of registered denom bases on this rollapp
+      bech32_prefix:
+        type: string
+        title: unique bech32 prefix
+      alias:
+        type: string
+        title: alias is the chain alias used for display and namespace system
+      genesis_checksum:
+        type: string
+        title: checksum used to verify integrity of the genesis file
+      metadata:
+        title: metadata is the rollapp metadata
+        type: object
+        properties:
+          website:
+            type: string
+            title: website is the rollapp website
+          description:
+            type: string
+            title: >-
+              description is the rollapp description. should be limited to 512
+              chars
+          logo_data_uri:
+            type: string
+            description: >-
+              logo_data_uri is a base64 rep with a URI prefix to the rollapp
+              logo. Should be limited to 25kb.
+          token_logo_data_uri:
+            type: string
+            description: >-
+              token_logo_data_uri is a URI to the native token logo. Should be
+              limited to 25kb.
+          telegram:
+            type: string
+            title: telegram is the rollapp telegram link
+          x:
+            type: string
+            title: x is the rollapp twitter link
+      initial_sequencer_address:
+        type: string
+        description: >-
+          initial_sequencer_address is a bech32-encoded address of the
+
+          sequencer that is allowed to initially register and serve for this
+          rollapp.
+      sealed:
+        type: boolean
+        description: >-
+          sealed is a boolean that indicates if the immutable fields are no
+          longer updatable.
     title: >-
-      Rollapp defines a rollapp object. First the RollApp is created and then
+      Rollapp defines a rollapp object. First, the RollApp is created and then
 
       sequencers can be created and attached. The RollApp is identified by
       rollappId
@@ -60299,6 +60776,31 @@ definitions:
     title: >-
       RollappGenesisState is a partial repr of the state the hub can expect the
       rollapp to be in upon genesis
+  dymensionxyz.dymension.rollapp.RollappMetadata:
+    type: object
+    properties:
+      website:
+        type: string
+        title: website is the rollapp website
+      description:
+        type: string
+        title: description is the rollapp description. should be limited to 512 chars
+      logo_data_uri:
+        type: string
+        description: >-
+          logo_data_uri is a base64 rep with a URI prefix to the rollapp logo.
+          Should be limited to 25kb.
+      token_logo_data_uri:
+        type: string
+        description: >-
+          token_logo_data_uri is a URI to the native token logo. Should be
+          limited to 25kb.
+      telegram:
+        type: string
+        title: telegram is the rollapp telegram link
+      x:
+        type: string
+        title: x is the rollapp twitter link
   dymensionxyz.dymension.rollapp.RollappSummary:
     type: object
     properties:
@@ -60428,10 +60930,6 @@ definitions:
       DAPath:
         type: string
         title: DAPath is the description of the location on the DA layer
-      version:
-        type: string
-        format: uint64
-        title: version is the version of the rollapp
       creationHeight:
         type: string
         format: uint64
@@ -60504,27 +61002,18 @@ definitions:
 
       2. LatestFinalizedStateIndex which defines the rollapps' current (latest)
       index of the latest StateInfo that was finalized
-  dymensionxyz.dymension.sequencer.Description:
+  dymensionxyz.dymension.sequencer.ContactDetails:
     type: object
     properties:
-      moniker:
-        type: string
-        description: moniker defines a human-readable name for the sequencer.
-      identity:
-        type: string
-        description: >-
-          identity defines an optional identity signature (ex. UPort or
-          Keybase).
       website:
         type: string
-        description: website defines an optional website link.
-      securityContact:
+        title: website URL
+      telegram:
         type: string
-        description: securityContact defines an optional email for security contact.
-      details:
+        title: telegram link
+      x:
         type: string
-        description: details define other optional details.
-    description: Description defines a sequencer description.
+        title: twitter link
   dymensionxyz.dymension.sequencer.OperatingStatus:
     type: string
     enum:
@@ -60563,11 +61052,11 @@ definitions:
       sequencer:
         type: object
         properties:
-          sequencerAddress:
+          address:
             type: string
             description: >-
-              sequencerAddress is the bech32-encoded address of the sequencer
-              account which is the account that the message was sent from.
+              address is the bech32-encoded address of the sequencer account
+              which is the account that the message was sent from.
           dymintPubKey:
             type: object
             properties:
@@ -60741,29 +61230,80 @@ definitions:
           rollappId:
             type: string
             description: rollappId defines the rollapp to which the sequencer belongs.
-          description:
-            description: description defines the descriptive terms for the sequencer.
+          metadata:
+            description: metadata defines the extra information for the sequencer.
             type: object
             properties:
               moniker:
                 type: string
                 description: moniker defines a human-readable name for the sequencer.
-              identity:
-                type: string
-                description: >-
-                  identity defines an optional identity signature (ex. UPort or
-                  Keybase).
-              website:
-                type: string
-                description: website defines an optional website link.
-              securityContact:
-                type: string
-                description: >-
-                  securityContact defines an optional email for security
-                  contact.
               details:
                 type: string
                 description: details define other optional details.
+              p2p_seeds:
+                type: array
+                items:
+                  type: string
+                title: bootstrap nodes list
+              rpcs:
+                type: array
+                items:
+                  type: string
+                title: RPCs list
+              evm_rpcs:
+                type: array
+                items:
+                  type: string
+                title: evm RPCs list
+              rest_api_urls:
+                type: array
+                items:
+                  type: string
+                title: REST API URLs
+              explorer_url:
+                type: string
+                title: block explorer URL
+              genesis_urls:
+                type: array
+                items:
+                  type: string
+                title: genesis URLs
+              contact_details:
+                title: contact details
+                type: object
+                properties:
+                  website:
+                    type: string
+                    title: website URL
+                  telegram:
+                    type: string
+                    title: telegram link
+                  x:
+                    type: string
+                    title: twitter link
+              extra_data:
+                type: string
+                format: byte
+                title: json dump the sequencer can add (limited by size)
+              snapshots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    snapshot_url:
+                      type: string
+                      title: the snapshot url
+                    height:
+                      type: string
+                      format: uint64
+                      title: The snapshot height
+                    checksum:
+                      type: string
+                      title: sha-256 checksum value for the snapshot file
+                title: snapshots of the sequencer
+              gas_price:
+                type: string
+                title: gas_price defines the value for each gas unit
           jailed:
             type: boolean
             description: >-
@@ -60824,11 +61364,11 @@ definitions:
         items:
           type: object
           properties:
-            sequencerAddress:
+            address:
               type: string
               description: >-
-                sequencerAddress is the bech32-encoded address of the sequencer
-                account which is the account that the message was sent from.
+                address is the bech32-encoded address of the sequencer account
+                which is the account that the message was sent from.
             dymintPubKey:
               type: object
               properties:
@@ -61006,29 +61546,80 @@ definitions:
             rollappId:
               type: string
               description: rollappId defines the rollapp to which the sequencer belongs.
-            description:
-              description: description defines the descriptive terms for the sequencer.
+            metadata:
+              description: metadata defines the extra information for the sequencer.
               type: object
               properties:
                 moniker:
                   type: string
                   description: moniker defines a human-readable name for the sequencer.
-                identity:
-                  type: string
-                  description: >-
-                    identity defines an optional identity signature (ex. UPort
-                    or Keybase).
-                website:
-                  type: string
-                  description: website defines an optional website link.
-                securityContact:
-                  type: string
-                  description: >-
-                    securityContact defines an optional email for security
-                    contact.
                 details:
                   type: string
                   description: details define other optional details.
+                p2p_seeds:
+                  type: array
+                  items:
+                    type: string
+                  title: bootstrap nodes list
+                rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: RPCs list
+                evm_rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: evm RPCs list
+                rest_api_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: REST API URLs
+                explorer_url:
+                  type: string
+                  title: block explorer URL
+                genesis_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: genesis URLs
+                contact_details:
+                  title: contact details
+                  type: object
+                  properties:
+                    website:
+                      type: string
+                      title: website URL
+                    telegram:
+                      type: string
+                      title: telegram link
+                    x:
+                      type: string
+                      title: twitter link
+                extra_data:
+                  type: string
+                  format: byte
+                  title: json dump the sequencer can add (limited by size)
+                snapshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      snapshot_url:
+                        type: string
+                        title: the snapshot url
+                      height:
+                        type: string
+                        format: uint64
+                        title: The snapshot height
+                      checksum:
+                        type: string
+                        title: sha-256 checksum value for the snapshot file
+                  title: snapshots of the sequencer
+                gas_price:
+                  type: string
+                  title: gas_price defines the value for each gas unit
             jailed:
               type: boolean
               description: >-
@@ -61089,11 +61680,11 @@ definitions:
         items:
           type: object
           properties:
-            sequencerAddress:
+            address:
               type: string
               description: >-
-                sequencerAddress is the bech32-encoded address of the sequencer
-                account which is the account that the message was sent from.
+                address is the bech32-encoded address of the sequencer account
+                which is the account that the message was sent from.
             dymintPubKey:
               type: object
               properties:
@@ -61271,29 +61862,80 @@ definitions:
             rollappId:
               type: string
               description: rollappId defines the rollapp to which the sequencer belongs.
-            description:
-              description: description defines the descriptive terms for the sequencer.
+            metadata:
+              description: metadata defines the extra information for the sequencer.
               type: object
               properties:
                 moniker:
                   type: string
                   description: moniker defines a human-readable name for the sequencer.
-                identity:
-                  type: string
-                  description: >-
-                    identity defines an optional identity signature (ex. UPort
-                    or Keybase).
-                website:
-                  type: string
-                  description: website defines an optional website link.
-                securityContact:
-                  type: string
-                  description: >-
-                    securityContact defines an optional email for security
-                    contact.
                 details:
                   type: string
                   description: details define other optional details.
+                p2p_seeds:
+                  type: array
+                  items:
+                    type: string
+                  title: bootstrap nodes list
+                rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: RPCs list
+                evm_rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: evm RPCs list
+                rest_api_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: REST API URLs
+                explorer_url:
+                  type: string
+                  title: block explorer URL
+                genesis_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: genesis URLs
+                contact_details:
+                  title: contact details
+                  type: object
+                  properties:
+                    website:
+                      type: string
+                      title: website URL
+                    telegram:
+                      type: string
+                      title: telegram link
+                    x:
+                      type: string
+                      title: twitter link
+                extra_data:
+                  type: string
+                  format: byte
+                  title: json dump the sequencer can add (limited by size)
+                snapshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      snapshot_url:
+                        type: string
+                        title: the snapshot url
+                      height:
+                        type: string
+                        format: uint64
+                        title: The snapshot height
+                      checksum:
+                        type: string
+                        title: sha-256 checksum value for the snapshot file
+                  title: snapshots of the sequencer
+                gas_price:
+                  type: string
+                  title: gas_price defines the value for each gas unit
             jailed:
               type: boolean
               description: >-
@@ -61380,11 +62022,11 @@ definitions:
         items:
           type: object
           properties:
-            sequencerAddress:
+            address:
               type: string
               description: >-
-                sequencerAddress is the bech32-encoded address of the sequencer
-                account which is the account that the message was sent from.
+                address is the bech32-encoded address of the sequencer account
+                which is the account that the message was sent from.
             dymintPubKey:
               type: object
               properties:
@@ -61562,29 +62204,80 @@ definitions:
             rollappId:
               type: string
               description: rollappId defines the rollapp to which the sequencer belongs.
-            description:
-              description: description defines the descriptive terms for the sequencer.
+            metadata:
+              description: metadata defines the extra information for the sequencer.
               type: object
               properties:
                 moniker:
                   type: string
                   description: moniker defines a human-readable name for the sequencer.
-                identity:
-                  type: string
-                  description: >-
-                    identity defines an optional identity signature (ex. UPort
-                    or Keybase).
-                website:
-                  type: string
-                  description: website defines an optional website link.
-                securityContact:
-                  type: string
-                  description: >-
-                    securityContact defines an optional email for security
-                    contact.
                 details:
                   type: string
                   description: details define other optional details.
+                p2p_seeds:
+                  type: array
+                  items:
+                    type: string
+                  title: bootstrap nodes list
+                rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: RPCs list
+                evm_rpcs:
+                  type: array
+                  items:
+                    type: string
+                  title: evm RPCs list
+                rest_api_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: REST API URLs
+                explorer_url:
+                  type: string
+                  title: block explorer URL
+                genesis_urls:
+                  type: array
+                  items:
+                    type: string
+                  title: genesis URLs
+                contact_details:
+                  title: contact details
+                  type: object
+                  properties:
+                    website:
+                      type: string
+                      title: website URL
+                    telegram:
+                      type: string
+                      title: telegram link
+                    x:
+                      type: string
+                      title: twitter link
+                extra_data:
+                  type: string
+                  format: byte
+                  title: json dump the sequencer can add (limited by size)
+                snapshots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      snapshot_url:
+                        type: string
+                        title: the snapshot url
+                      height:
+                        type: string
+                        format: uint64
+                        title: The snapshot height
+                      checksum:
+                        type: string
+                        title: sha-256 checksum value for the snapshot file
+                  title: snapshots of the sequencer
+                gas_price:
+                  type: string
+                  title: gas_price defines the value for each gas unit
             jailed:
               type: boolean
               description: >-
@@ -61666,11 +62359,11 @@ definitions:
   dymensionxyz.dymension.sequencer.Sequencer:
     type: object
     properties:
-      sequencerAddress:
+      address:
         type: string
         description: >-
-          sequencerAddress is the bech32-encoded address of the sequencer
-          account which is the account that the message was sent from.
+          address is the bech32-encoded address of the sequencer account which
+          is the account that the message was sent from.
       dymintPubKey:
         type: object
         properties:
@@ -61838,27 +62531,80 @@ definitions:
       rollappId:
         type: string
         description: rollappId defines the rollapp to which the sequencer belongs.
-      description:
-        description: description defines the descriptive terms for the sequencer.
+      metadata:
+        description: metadata defines the extra information for the sequencer.
         type: object
         properties:
           moniker:
             type: string
             description: moniker defines a human-readable name for the sequencer.
-          identity:
-            type: string
-            description: >-
-              identity defines an optional identity signature (ex. UPort or
-              Keybase).
-          website:
-            type: string
-            description: website defines an optional website link.
-          securityContact:
-            type: string
-            description: securityContact defines an optional email for security contact.
           details:
             type: string
             description: details define other optional details.
+          p2p_seeds:
+            type: array
+            items:
+              type: string
+            title: bootstrap nodes list
+          rpcs:
+            type: array
+            items:
+              type: string
+            title: RPCs list
+          evm_rpcs:
+            type: array
+            items:
+              type: string
+            title: evm RPCs list
+          rest_api_urls:
+            type: array
+            items:
+              type: string
+            title: REST API URLs
+          explorer_url:
+            type: string
+            title: block explorer URL
+          genesis_urls:
+            type: array
+            items:
+              type: string
+            title: genesis URLs
+          contact_details:
+            title: contact details
+            type: object
+            properties:
+              website:
+                type: string
+                title: website URL
+              telegram:
+                type: string
+                title: telegram link
+              x:
+                type: string
+                title: twitter link
+          extra_data:
+            type: string
+            format: byte
+            title: json dump the sequencer can add (limited by size)
+          snapshots:
+            type: array
+            items:
+              type: object
+              properties:
+                snapshot_url:
+                  type: string
+                  title: the snapshot url
+                height:
+                  type: string
+                  format: uint64
+                  title: The snapshot height
+                checksum:
+                  type: string
+                  title: sha-256 checksum value for the snapshot file
+            title: snapshots of the sequencer
+          gas_price:
+            type: string
+            title: gas_price defines the value for each gas unit
       jailed:
         type: boolean
         description: >-
@@ -61908,6 +62654,93 @@ definitions:
       (sequencerAddress).
 
       The sequencer could be attached to only one rollapp (rollappId).
+  dymensionxyz.dymension.sequencer.SequencerMetadata:
+    type: object
+    properties:
+      moniker:
+        type: string
+        description: moniker defines a human-readable name for the sequencer.
+      details:
+        type: string
+        description: details define other optional details.
+      p2p_seeds:
+        type: array
+        items:
+          type: string
+        title: bootstrap nodes list
+      rpcs:
+        type: array
+        items:
+          type: string
+        title: RPCs list
+      evm_rpcs:
+        type: array
+        items:
+          type: string
+        title: evm RPCs list
+      rest_api_urls:
+        type: array
+        items:
+          type: string
+        title: REST API URLs
+      explorer_url:
+        type: string
+        title: block explorer URL
+      genesis_urls:
+        type: array
+        items:
+          type: string
+        title: genesis URLs
+      contact_details:
+        title: contact details
+        type: object
+        properties:
+          website:
+            type: string
+            title: website URL
+          telegram:
+            type: string
+            title: telegram link
+          x:
+            type: string
+            title: twitter link
+      extra_data:
+        type: string
+        format: byte
+        title: json dump the sequencer can add (limited by size)
+      snapshots:
+        type: array
+        items:
+          type: object
+          properties:
+            snapshot_url:
+              type: string
+              title: the snapshot url
+            height:
+              type: string
+              format: uint64
+              title: The snapshot height
+            checksum:
+              type: string
+              title: sha-256 checksum value for the snapshot file
+        title: snapshots of the sequencer
+      gas_price:
+        type: string
+        title: gas_price defines the value for each gas unit
+    description: Metadata defines rollapp/sequencer extra information.
+  dymensionxyz.dymension.sequencer.SnapshotInfo:
+    type: object
+    properties:
+      snapshot_url:
+        type: string
+        title: the snapshot url
+      height:
+        type: string
+        format: uint64
+        title: The snapshot height
+      checksum:
+        type: string
+        title: sha-256 checksum value for the snapshot file
   dymensionxyz.dymension.streamer.ActiveStreamsResponse:
     type: object
     properties:

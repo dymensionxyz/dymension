@@ -754,7 +754,7 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 			equals("my-name@one_1-1")
 	})
 
-	t.Run("normal reverse-resolve for NEITHER host-chain nor RollApp", func(t *testing.T) {
+	t.Run("normal reverse-resolve NOT work for chains those are NEITHER host-chain nor RollApp", func(t *testing.T) {
 		sc.
 			requireReverseResolve(owner.bech32()).
 			forChainId("injective-1").
@@ -778,45 +778,11 @@ func TestKeeper_ReverseResolve(t *testing.T) {
 		// so we CAN NOT convert from both bech32 & 0x format of Dymension to Cosmos Hub address.
 		// Because if user send funds to those address, it will be lost.
 
-		// And that's why we Do Not support reverse-resolve for NEITHER host-chain nor RollApp.
-
-		// But there is a way to make it works, by define the chain, into the module params.
-		sc.registerChainId("injective-1").asCoinType60Chain() // <= this put into module params
-
-		// now let's see how things are changed
-		sc.
-			requireReverseResolve(owner.bech32()).
-			forChainId("injective-1").
-			equals("my-name@injective-1") // now it works
-		sc.
-			requireReverseResolve(owner.hexStr()).
-			forChainId("injective-1").
-			equals("my-name@injective-1") // now it works either
-		sc.
-			requireReverseResolve(owner.bech32()).
-			forChainId("cosmoshub-4").
-			NoResult() // won't work
-		sc.
-			requireReverseResolve(owner.hexStr()).
-			forChainId("cosmoshub-4").
-			NoResult() // won't work
-
-		// but Forward-resolve will not return result because we don't know the bech32 prefix
-		sc.requireResolveDymNameAddress("my-name@injective-1").NoResult()
+		// And that's why we Do Not support reverse-resolve for chains those are NEITHER host-chain nor RollApp.
 	})
 
 	t.Run("when alias is registered, reverse resolve will use the alias instead of chain-id", func(t *testing.T) {
-		sc.registerAlias("inj").forChainId("injective-1")
 		sc.newRollApp("two_2-2").withAlias("two").save()
-
-		sc.
-			requireReverseResolve(owner.bech32()).
-			forChainId("injective-1").
-			equals("my-name@inj")
-		sc.
-			requireReverseResolve(owner.hexStr()).
-			forChainId("injective-1").
-			equals("my-name@inj")
 		sc.
 			requireReverseResolve(owner.hexStr()).
 			forChainId("two_2-2").
@@ -926,13 +892,6 @@ func (m *showcaseSetup) registerAlias(alias string) regAlias {
 	return regAlias{
 		scs:   m,
 		alias: alias,
-	}
-}
-
-func (m *showcaseSetup) registerChainId(chainId string) regChainId {
-	return regChainId{
-		scs:     m,
-		chainId: chainId,
 	}
 }
 
@@ -1178,21 +1137,6 @@ func (m regAlias) forChainId(chainId string) {
 		ChainId: chainId,
 		Aliases: []string{m.alias},
 	})
-
-	err := m.scs.dk.SetParams(m.scs.ctx, moduleParams)
-	require.NoError(m.scs.t, err)
-}
-
-type regChainId struct {
-	scs     *showcaseSetup
-	chainId string
-}
-
-func (m regChainId) asCoinType60Chain() {
-	require.NotEmpty(m.scs.t, m.chainId)
-
-	moduleParams := m.scs.dk.GetParams(m.scs.ctx)
-	moduleParams.Chains.CoinType60ChainIds = append(moduleParams.Chains.CoinType60ChainIds, m.chainId)
 
 	err := m.scs.dk.SetParams(m.scs.ctx, moduleParams)
 	require.NoError(m.scs.t, err)

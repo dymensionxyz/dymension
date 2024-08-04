@@ -1540,7 +1540,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						Aliases: []string{"dym"},
 					},
 				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
 
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 
@@ -1576,7 +1575,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						Aliases: []string{"b"},
 					},
 				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
 
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 
@@ -1613,7 +1611,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						Aliases: []string{"dym"},
 					},
 				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"another"}
 
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 
@@ -1639,43 +1636,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			},
 		},
 		{
-			name:        "fail - reject if alias is presents as a coin-type-60 chain-id in params",
-			addRollApps: []string{"rollapp_1-1", "rollapp_2-2"},
-			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				moduleParams := dk.GetParams(ctx)
-
-				moduleParams.Chains.AliasesOfChainIds = []dymnstypes.AliasesOfChainId{
-					{
-						ChainId: "dymension_1100-1",
-						Aliases: []string{"dym"},
-					},
-				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"bridge"}
-
-				require.NoError(t, dk.SetParams(ctx, moduleParams))
-
-				err := dk.SetAliasForRollAppId(ctx, "rollapp_2-2", "ra2")
-				require.NoError(t, err)
-			},
-			originalCreatorBalance:  price1L,
-			originalModuleBalance:   1,
-			rollAppId:               "rollapp_1-1",
-			alias:                   "bridge",
-			wantErr:                 true,
-			wantErrContains:         "alias already in use or preserved",
-			wantSuccess:             false,
-			wantLaterCreatorBalance: price1L,
-			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
-				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
-				require.False(t, found)
-				require.Empty(t, alias)
-
-				rollAppId, found := dk.GetRollAppIdByAlias(context, "bridge")
-				require.False(t, found)
-				require.Empty(t, rollAppId)
-			},
-		},
-		{
 			name:        "fail - reject if alias is a RollApp-ID",
 			addRollApps: []string{"rollapp_1-1", "rollapp_2-2", "rollapp"},
 			preRunSetup: func(t *testing.T, ctx sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
@@ -1687,7 +1647,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						Aliases: []string{"dym"},
 					},
 				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"kava_2222-10"}
 
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 
@@ -1724,7 +1683,6 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 						Aliases: []string{"dym"},
 					},
 				}
-				moduleParams.Chains.CoinType60ChainIds = []string{"kava_2222-10"}
 
 				require.NoError(t, dk.SetParams(ctx, moduleParams))
 
