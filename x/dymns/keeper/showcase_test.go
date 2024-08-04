@@ -23,6 +23,15 @@ This file contains showcases of how the DymNS config,
  resolve from Dym-Name-Address to address (forward-resolve),
  reverse-resolve from address to Dym-Name-Address,
  and how alias working in DymNS module.
+
+Why resolve Dym-Name-Address to address?
+ This is the main feature of DymNS, it allows users to resolve Dym-Name-Address to the configured address.
+ For example: resolve "my-name@dym" to "dym1fl48..."
+
+Why reverse-resolve address to Dym-Name-Address?
+ This is the feature that allows users to find the Dym-Name-Address from the address,
+ mostly used in UI to show the Dym-Name-Address to the user or integrated into other services like Block Explorer.
+ For example: reverse-resolve "dym1fl48..." to "my-name@dym"
 */
 
 //goland:noinspection SpellCheckingInspection

@@ -1049,7 +1049,7 @@ func Test_queryServer_ReverseResolveAddress(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr(), "0x123"},
+			addresses: []string{ownerAcc.bech32(), ownerAcc.hexStr(), "@", string(make([]rune, 1000))},
 			wantErr:   false,
 			wantResult: map[string]dymnstypes.ReverseResolveAddressResult{
 				ownerAcc.bech32(): {
