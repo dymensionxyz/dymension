@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -11,13 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//goland:noinspection SpellCheckingInspection
 func TestDymName_Validate(t *testing.T) {
 	t.Run("nil obj", func(t *testing.T) {
 		m := (*DymName)(nil)
 		require.Error(t, m.Validate())
 	})
 
-	//goland:noinspection SpellCheckingInspection
 	tests := []struct {
 		name            string
 		dymName         string
@@ -306,6 +307,27 @@ func TestDymName_Validate(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+
+	t.Run("maximum number of config", func(t *testing.T) {
+		m := &DymName{
+			Name:       "a",
+			Owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			Controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			ExpireAt:   1,
+		}
+
+		for i := 0; i < MaxConfigSize+1; i++ {
+			m.Configs = append(m.Configs, DymNameConfig{
+				Type:  DymNameConfigType_NAME,
+				Path:  fmt.Sprintf("s%d", i),
+				Value: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			})
+		}
+
+		err := m.Validate()
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "maximum number of configs allowed")
+	})
 }
 
 func TestDymNameConfig_Validate(t *testing.T) {

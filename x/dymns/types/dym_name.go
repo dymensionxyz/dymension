@@ -41,6 +41,13 @@ func (m *DymName) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "expiry is empty")
 	}
 
+	if len(m.Configs) > MaxConfigSize {
+		return errorsmod.Wrapf(
+			gerrc.ErrResourceExhausted,
+			"maximum number of configs allowed: %d", MaxConfigSize,
+		)
+	}
+
 	uniqueConfig := make(map[string]bool)
 	// Describe usage of Go Map: only used for validation
 	for _, config := range m.Configs {

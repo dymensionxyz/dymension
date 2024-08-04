@@ -8,6 +8,10 @@ const (
 
 	// MaxDymNameContactLength is the maximum length allowed for Dym-Name contact.
 	MaxDymNameContactLength = 140
+
+	// MaxConfigSize is the maximum size allowed for number Dym-Name configuration per Dym-Name.
+	// This is another layer protects spamming the chain with large data.
+	MaxConfigSize = 100
 )
 
 const (
