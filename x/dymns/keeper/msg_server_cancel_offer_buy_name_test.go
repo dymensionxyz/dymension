@@ -55,14 +55,14 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 		ExpireAt:   now.Unix() + 1,
 	}
 
-	offer := &dymnstypes.OfferToBuy{
+	offer := &dymnstypes.BuyOffer{
 		Id:         "1",
 		Name:       dymName.Name,
 		Buyer:      buyerA,
 		OfferPrice: dymnsutils.TestCoin(minOfferPrice),
 	}
 
-	offerByAnother := &dymnstypes.OfferToBuy{
+	offerByAnother := &dymnstypes.BuyOffer{
 		Id:         "999",
 		Name:       dymName.Name,
 		Buyer:      anotherBuyerA,
@@ -72,7 +72,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 	tests := []struct {
 		name                   string
 		existingDymName        *dymnstypes.DymName
-		existingOffer          *dymnstypes.OfferToBuy
+		existingOffer          *dymnstypes.BuyOffer
 		offerId                string
 		buyer                  string
 		originalModuleBalance  int64
@@ -80,7 +80,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 		preRunSetupFunc        func(ctx sdk.Context, dk dymnskeeper.Keeper)
 		wantErr                bool
 		wantErrContains        string
-		wantLaterOffer         *dymnstypes.OfferToBuy
+		wantLaterOffer         *dymnstypes.BuyOffer
 		wantLaterModuleBalance int64
 		wantLaterBuyerBalance  int64
 		wantMinConsumeGas      sdk.Gas
@@ -98,7 +98,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 0,
 			wantLaterBuyerBalance:  offer.OfferPrice.Amount.Int64(),
-			wantMinConsumeGas:      dymnstypes.OpGasCloseOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasCloseBuyOffer,
 		},
 		{
 			name:                   "pass - cancel offer will refund the buyer",
@@ -112,7 +112,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2 + offer.OfferPrice.Amount.Int64(),
-			wantMinConsumeGas:      dymnstypes.OpGasCloseOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasCloseBuyOffer,
 		},
 		{
 			name:                  "pass - cancel offer will remove the offer record",
@@ -123,15 +123,15 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance: offer.OfferPrice.Amount.Int64(),
 			originalBuyerBalance:  0,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.NotNil(t, dk.GetOfferToBuy(ctx, offer.Id))
+				require.NotNil(t, dk.GetBuyOffer(ctx, offer.Id))
 			},
 			wantErr:                false,
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 0,
 			wantLaterBuyerBalance:  offer.OfferPrice.Amount.Int64(),
-			wantMinConsumeGas:      dymnstypes.OpGasCloseOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasCloseBuyOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Nil(t, dk.GetOfferToBuy(ctx, offer.Id))
+				require.Nil(t, dk.GetBuyOffer(ctx, offer.Id))
 			},
 		},
 		{
@@ -143,11 +143,11 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance: offer.OfferPrice.Amount.Int64(),
 			originalBuyerBalance:  0,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				offerIds, err := dk.GetOfferToBuyByBuyer(ctx, offer.Buyer)
+				offerIds, err := dk.GetBuyOffersByBuyer(ctx, offer.Buyer)
 				require.NoError(t, err)
 				require.Len(t, offerIds, 1)
 
-				offerIds, err = dk.GetOffersToBuyOfDymName(ctx, offer.Name)
+				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.Name)
 				require.NoError(t, err)
 				require.Len(t, offerIds, 1)
 			},
@@ -155,13 +155,13 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 0,
 			wantLaterBuyerBalance:  offer.OfferPrice.Amount.Int64(),
-			wantMinConsumeGas:      dymnstypes.OpGasCloseOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasCloseBuyOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				offerIds, err := dk.GetOfferToBuyByBuyer(ctx, offer.Buyer)
+				offerIds, err := dk.GetBuyOffersByBuyer(ctx, offer.Buyer)
 				require.NoError(t, err)
 				require.Empty(t, offerIds)
 
-				offerIds, err = dk.GetOffersToBuyOfDymName(ctx, offer.Name)
+				offerIds, err = dk.GetBuyOffersOfDymName(ctx, offer.Name)
 				require.NoError(t, err)
 				require.Empty(t, offerIds)
 			},
@@ -175,7 +175,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Offer-To-Buy: 2142142: not found",
+			wantErrContains:        "Buy-Offer ID: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -190,7 +190,7 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			originalModuleBalance:  1,
 			originalBuyerBalance:   2,
 			wantErr:                true,
-			wantErrContains:        "Offer-To-Buy: 2142142: not found",
+			wantErrContains:        "Buy-Offer ID: 2142142: not found",
 			wantLaterOffer:         nil,
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  2,
@@ -262,13 +262,13 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 			}
 
 			if tt.existingOffer != nil {
-				err := dk.SetOfferToBuy(ctx, *tt.existingOffer)
+				err := dk.SetBuyOffer(ctx, *tt.existingOffer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, tt.existingOffer.Buyer, tt.existingOffer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, tt.existingOffer.Name, tt.existingOffer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, tt.existingOffer.Name, tt.existingOffer.Id)
 				require.NoError(t, err)
 			}
 
@@ -287,11 +287,11 @@ func Test_msgServer_CancelOfferBuyName(t *testing.T) {
 				}
 
 				if tt.wantLaterOffer != nil {
-					laterOffer := dk.GetOfferToBuy(ctx, tt.wantLaterOffer.Id)
+					laterOffer := dk.GetBuyOffer(ctx, tt.wantLaterOffer.Id)
 					require.NotNil(t, laterOffer)
 					require.Equal(t, *tt.wantLaterOffer, *laterOffer)
 				} else {
-					laterOffer := dk.GetOfferToBuy(ctx, tt.offerId)
+					laterOffer := dk.GetBuyOffer(ctx, tt.offerId)
 					require.Nil(t, laterOffer)
 				}
 

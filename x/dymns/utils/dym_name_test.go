@@ -385,7 +385,7 @@ func TestIsValidAlias(t *testing.T) {
 	}
 }
 
-func TestIsValidBuyNameOfferId(t *testing.T) {
+func TestIsValidBuyOfferId(t *testing.T) {
 	tests := []struct {
 		name string
 		id   string
@@ -429,7 +429,7 @@ func TestIsValidBuyNameOfferId(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, IsValidBuyNameOfferId(tt.id))
+			require.Equal(t, tt.want, IsValidBuyOfferId(tt.id))
 		})
 	}
 }

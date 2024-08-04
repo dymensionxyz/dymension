@@ -16,7 +16,7 @@ func TestStorePrefixes(t *testing.T) {
 		require.Equal(t, []byte{0x05}, KeyPrefixSellOrder, "do not change it, will break the app")
 		require.Equal(t, []byte{0x07}, KeyPrefixHistoricalSellOrders, "do not change it, will break the app")
 		require.Equal(t, []byte{0x08}, KeyPrefixMinExpiryHistoricalSellOrders, "do not change it, will break the app")
-		require.Equal(t, []byte{0x0A}, KeyPrefixOfferToBuy, "do not change it, will break the app")
+		require.Equal(t, []byte{0x0A}, KeyPrefixBuyOffer, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0B}, KeyPrefixRvlBuyerToOfferIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0C}, KeyPrefixRvlDymNameToOfferIds, "do not change it, will break the app")
 		require.Equal(t, []byte{0x0D}, KeyPrefixRollAppIdToAlias, "do not change it, will break the app")
@@ -25,7 +25,7 @@ func TestStorePrefixes(t *testing.T) {
 
 	t.Run("ensure key are not mistakenly modified", func(t *testing.T) {
 		require.Equal(t, []byte{0x06}, KeyActiveSellOrdersExpiration, "do not change it, will break the app")
-		require.Equal(t, []byte{0x09}, KeyCountOfferToBuy, "do not change it, will break the app")
+		require.Equal(t, []byte{0x09}, KeyCountBuyOffers, "do not change it, will break the app")
 	})
 }
 
@@ -61,7 +61,7 @@ func TestKeys(t *testing.T) {
 		"@@@",
 	} {
 		t.Run(input, func(t *testing.T) {
-			require.Equal(t, append(KeyPrefixOfferToBuy, []byte(input)...), OfferToBuyKey(input))
+			require.Equal(t, append(KeyPrefixBuyOffer, []byte(input)...), BuyOfferKey(input))
 			require.Equal(t, append(KeyPrefixRollAppIdToAlias, []byte(input)...), RollAppIdToAliasKey(input))
 			require.Equal(t, append(KeyPrefixRvlAliasToRollAppId, []byte(input)...), AliasToRollAppIdRvlKey(input))
 		})

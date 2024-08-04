@@ -95,29 +95,29 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
-	offer1 := dymnstypes.OfferToBuy{
+	offer1 := dymnstypes.BuyOffer{
 		Id:         "1",
 		Name:       dymName1.Name,
 		Buyer:      buyer1,
 		OfferPrice: dymnsutils.TestCoin(100),
 	}
-	require.NoError(t, oldKeeper.SetOfferToBuy(oldCtx, offer1))
+	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer1))
 
-	offer2 := dymnstypes.OfferToBuy{
+	offer2 := dymnstypes.BuyOffer{
 		Id:         "2",
 		Name:       dymName2.Name,
 		Buyer:      buyer2,
 		OfferPrice: dymnsutils.TestCoin(200),
 	}
-	require.NoError(t, oldKeeper.SetOfferToBuy(oldCtx, offer2))
+	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer2))
 
-	offer3OfExpired := dymnstypes.OfferToBuy{
+	offer3OfExpired := dymnstypes.BuyOffer{
 		Id:         "3",
 		Name:       dymName3Expired.Name,
 		Buyer:      buyer3,
 		OfferPrice: dymnsutils.TestCoin(300),
 	}
-	require.NoError(t, oldKeeper.SetOfferToBuy(oldCtx, offer3OfExpired))
+	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer3OfExpired))
 
 	// Export genesis state
 	genState := dymns.ExportGenesis(oldCtx, oldKeeper)
@@ -140,12 +140,12 @@ func TestExportThenInitGenesis(t *testing.T) {
 		// Expired sell order should not be exported
 	})
 
-	t.Run("offers-to-buy should be exported correctly", func(t *testing.T) {
-		require.Len(t, genState.OffersToBuy, 3)
-		require.Contains(t, genState.OffersToBuy, offer1)
-		require.Contains(t, genState.OffersToBuy, offer2)
+	t.Run("buy offers should be exported correctly", func(t *testing.T) {
+		require.Len(t, genState.BuyOffers, 3)
+		require.Contains(t, genState.BuyOffers, offer1)
+		require.Contains(t, genState.BuyOffers, offer2)
 		require.Contains(
-			t, genState.OffersToBuy, offer3OfExpired,
+			t, genState.BuyOffers, offer3OfExpired,
 			"offer should be exported even if the dym-name is expired",
 		)
 	})
@@ -284,7 +284,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.DefaultParams(),
-				OffersToBuy: []dymnstypes.OfferToBuy{
+				BuyOffers: []dymnstypes.BuyOffer{
 					{}, // empty content
 				},
 			})

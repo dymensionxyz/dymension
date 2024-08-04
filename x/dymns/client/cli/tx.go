@@ -25,8 +25,8 @@ func GetTxCmd() *cobra.Command {
 		NewUpdateDetailsTxCmd(),
 		NewPutAdsSellDymNameTxCmd(),
 		NewPlaceBidOnDymNameAdsTxCmd(),
-		NewOfferToBuyDymNameTxCmd(),
-		NewAcceptOfferToBuyDymNameTxCmd(),
+		NewOfferBuyDymNameTxCmd(),
+		NewAcceptDymNameBuyOfferTxCmd(),
 	)
 
 	return cmd

@@ -58,7 +58,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 	tests := []struct {
 		name                        string
 		existingDymName             *dymnstypes.DymName
-		existingOffer               *dymnstypes.OfferToBuy
+		existingOffer               *dymnstypes.BuyOffer
 		dymName                     string
 		buyer                       string
 		offer                       sdk.Coin
@@ -70,7 +70,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 		wantErr                     bool
 		wantErrContains             string
 		wantOfferId                 string
-		wantLaterOffer              *dymnstypes.OfferToBuy
+		wantLaterOffer              *dymnstypes.BuyOffer
 		wantLaterModuleBalance      int64
 		wantLaterBuyerBalance       int64
 		wantMinConsumeGas           sdk.Gas
@@ -88,7 +88,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  minOfferPrice + 2,
 			wantErr:               false,
 			wantOfferId:           "1",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -96,12 +96,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
 		},
 		{
 			name:            "pass - can extends offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -116,7 +116,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  1,
 			wantErr:               false,
 			wantOfferId:           "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "2",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -124,12 +124,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 		},
 		{
 			name:            "pass - can extends offer with counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -144,7 +144,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  2,
 			wantErr:               false,
 			wantOfferId:           "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -153,12 +153,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 1,
 			wantLaterBuyerBalance:  2 - 1,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 		},
 		{
 			name:            "pass - can extends offer with offer equals to counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -173,7 +173,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  5,
 			wantErr:               false,
 			wantOfferId:           "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -182,12 +182,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 3,
 			wantLaterBuyerBalance:  5 - 3,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 		},
 		{
 			name:            "pass - can extends offer with offer greater than counterparty offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -202,7 +202,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  5,
 			wantErr:               false,
 			wantOfferId:           "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -211,12 +211,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1 + 4,
 			wantLaterBuyerBalance:  5 - 4,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 		},
 		{
 			name:            "pass - extends an existing offer only take the extra amount instead of all",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -231,7 +231,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:  3,
 			wantErr:               false,
 			wantOfferId:           "1",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -239,7 +239,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + 2,
 			wantLaterBuyerBalance:  3 - 2,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 		},
 		{
 			name:                   "fail - reject offer for non-existing Dym-Name",
@@ -255,7 +255,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
@@ -277,7 +277,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
@@ -294,7 +294,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
@@ -316,7 +316,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
@@ -336,7 +336,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
@@ -353,13 +353,13 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Empty(t, dk.GetAllOffersToBuy(ctx))
+				require.Empty(t, dk.GetAllBuyOffers(ctx))
 			},
 		},
 		{
 			name:            "pass - if not continue offer, create another and charges full offer price",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -373,11 +373,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: minOfferPrice,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:     false,
 			wantOfferId: "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "2",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -385,12 +385,12 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: minOfferPrice + (minOfferPrice + 1),
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - (minOfferPrice + 1),
-			wantMinConsumeGas:      dymnstypes.OpGasPutOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
 		},
 		{
 			name:            "fail - continue a non-existing offer",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -404,11 +404,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
-			wantErrContains: "Offer-To-Buy: 2: not found",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantErrContains: "Buy-Offer ID: 2: not found",
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -418,14 +418,14 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but not yours",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  anotherBuyerA, // not the buyer
@@ -439,11 +439,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "not the owner of the offer",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      anotherBuyerA,
@@ -453,14 +453,14 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but the Dym-Name mismatch",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   "another-name",
 				Buyer:                  buyerA,
@@ -474,11 +474,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "Dym-Name mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "another-name",
 				Buyer:      buyerA,
@@ -488,14 +488,14 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but mis-match offer denom",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:    "1",
 				Name:  dymName.Name,
 				Buyer: buyerA,
@@ -512,11 +512,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer denomination mismatch with existing offer",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:    "1",
 				Name:  dymName.Name,
 				Buyer: buyerA,
@@ -529,14 +529,14 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but new offer less than previous",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -550,11 +550,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -564,14 +564,14 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
 			name:            "fail - continue an existing offer but new offer equals to previous",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "1",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -585,11 +585,11 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalModuleBalance: 1,
 			originalBuyerBalance:  minOfferPrice + 2,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 1)
+				dk.SetCountBuyOffer(ctx, 1)
 			},
 			wantErr:         true,
 			wantErrContains: "offer price must be greater than existing offer price",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -599,8 +599,8 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			wantLaterBuyerBalance:  minOfferPrice + 2,
 			wantMinConsumeGas:      1,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				require.Len(t, dk.GetAllOffersToBuy(ctx), 1)
-				require.Nil(t, dk.GetOfferToBuy(ctx, "2"))
+				require.Len(t, dk.GetAllBuyOffers(ctx), 1)
+				require.Nil(t, dk.GetBuyOffer(ctx, "2"))
 			},
 		},
 		{
@@ -616,7 +616,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalAnotherBuyerBalance: minOfferPrice,
 			wantErr:                     false,
 			wantOfferId:                 "1",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -624,21 +624,21 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 5 + minOfferPrice,
 			wantLaterBuyerBalance:  (minOfferPrice + 2) - minOfferPrice,
-			wantMinConsumeGas:      dymnstypes.OpGasPutOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasPutBuyOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds := dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
-				offers, err := dk.GetOffersToBuyOfDymName(ctx, dymName.Name)
+				offers, err := dk.GetBuyOffersOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "1", offers[0].Id)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
-				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyerA)
+				offers, err = dk.GetBuyOffersByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "1", offers[0].Id)
 
@@ -652,22 +652,22 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				require.Equal(t, "2", resp.OfferId)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"1"}, offerIds.OfferIds)
 
 				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"1", "2"}, offerIds.OfferIds)
 			},
 		},
 		{
 			name:            "pass - reverse record added after successful offer extends",
 			existingDymName: dymName,
-			existingOffer: &dymnstypes.OfferToBuy{
+			existingOffer: &dymnstypes.BuyOffer{
 				Id:                     "2",
 				Name:                   dymName.Name,
 				Buyer:                  buyerA,
@@ -682,17 +682,17 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			originalBuyerBalance:        1,
 			originalAnotherBuyerBalance: minOfferPrice,
 			preRunSetupFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
-				dk.SetCountOfferToBuy(ctx, 2)
+				dk.SetCountBuyOffer(ctx, 2)
 
-				err := dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, buyerA, "2")
+				err := dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, buyerA, "2")
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, dymName.Name, "2")
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, dymName.Name, "2")
 				require.NoError(t, err)
 			},
 			wantErr:     false,
 			wantOfferId: "2",
-			wantLaterOffer: &dymnstypes.OfferToBuy{
+			wantLaterOffer: &dymnstypes.BuyOffer{
 				Id:         "2",
 				Name:       dymName.Name,
 				Buyer:      buyerA,
@@ -700,21 +700,21 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			},
 			wantLaterModuleBalance: 1,
 			wantLaterBuyerBalance:  0,
-			wantMinConsumeGas:      dymnstypes.OpGasUpdateOffer,
+			wantMinConsumeGas:      dymnstypes.OpGasUpdateBuyOffer,
 			afterTestFunc: func(ctx sdk.Context, dk dymnskeeper.Keeper) {
 				key := dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds := dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds := dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				offers, err := dk.GetOffersToBuyOfDymName(ctx, dymName.Name)
+				offers, err := dk.GetBuyOffersOfDymName(ctx, dymName.Name)
 				require.NoError(t, err)
 				require.Equal(t, "2", offers[0].Id)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
-				offers, err = dk.GetOfferToBuyByBuyer(ctx, buyerA)
+				offers, err = dk.GetBuyOffersByBuyer(ctx, buyerA)
 				require.NoError(t, err)
 				require.Equal(t, "2", offers[0].Id)
 
@@ -728,15 +728,15 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				require.Equal(t, "3", resp.OfferId)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(anotherBuyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"3"}, offerIds.OfferIds)
 
 				key = dymnstypes.BuyerToOfferIdsRvlKey(sdk.MustAccAddressFromBech32(buyerA))
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"2"}, offerIds.OfferIds)
 
 				key = dymnstypes.DymNameToOfferIdsRvlKey(dymName.Name)
-				offerIds = dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key)
+				offerIds = dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key)
 				require.Equal(t, []string{"2", "3"}, offerIds.OfferIds)
 			},
 		},
@@ -792,7 +792,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 			}
 
 			if tt.existingOffer != nil {
-				err := dk.SetOfferToBuy(ctx, *tt.existingOffer)
+				err := dk.SetBuyOffer(ctx, *tt.existingOffer)
 				require.NoError(t, err)
 			}
 
@@ -813,7 +813,7 @@ func Test_msgServer_OfferBuyName(t *testing.T) {
 				}
 
 				if tt.wantLaterOffer != nil {
-					laterOffer := dk.GetOfferToBuy(ctx, tt.wantLaterOffer.Id)
+					laterOffer := dk.GetBuyOffer(ctx, tt.wantLaterOffer.Id)
 					require.NotNil(t, laterOffer)
 					require.Equal(t, *tt.wantLaterOffer, *laterOffer)
 				}

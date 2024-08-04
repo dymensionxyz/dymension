@@ -1538,7 +1538,7 @@ func Test_queryServer_TranslateAliasOrChainIdToChainId(t *testing.T) {
 	})
 }
 
-func Test_queryServer_OfferToBuyById(t *testing.T) {
+func Test_queryServer_BuyOfferById(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -1552,7 +1552,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.OfferToBuyById(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOfferById(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -1561,14 +1561,14 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		offers    []dymnstypes.OfferToBuy
+		offers    []dymnstypes.BuyOffer
 		offerId   string
 		wantErr   bool
-		wantOffer dymnstypes.OfferToBuy
+		wantOffer dymnstypes.BuyOffer
 	}{
 		{
 			name: "pass - can return",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1578,7 +1578,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 			},
 			offerId: "1",
 			wantErr: false,
-			wantOffer: dymnstypes.OfferToBuy{
+			wantOffer: dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "a",
 				Buyer:      buyerA,
@@ -1587,7 +1587,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		},
 		{
 			name: "pass - can return among multiple records",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1609,7 +1609,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 			},
 			offerId: "2",
 			wantErr: false,
-			wantOffer: dymnstypes.OfferToBuy{
+			wantOffer: dymnstypes.BuyOffer{
 				Id:         "2",
 				Name:       "a",
 				Buyer:      buyerA,
@@ -1618,7 +1618,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		},
 		{
 			name: "fail - return error if not found",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1637,7 +1637,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		},
 		{
 			name: "fail - reject empty offer-id",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1650,7 +1650,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 		},
 		{
 			name: "fail - reject bad offer-id",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1667,13 +1667,13 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 			dk, ctx := setupTest()
 
 			for _, offer := range tt.offers {
-				err := dk.SetOfferToBuy(ctx, offer)
+				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.OfferToBuyById(sdk.WrapSDKContext(ctx), &dymnstypes.QueryOfferToBuyByIdRequest{
+			resp, err := queryServer.BuyOfferById(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOfferByIdRequest{
 				Id: tt.offerId,
 			})
 
@@ -1691,7 +1691,7 @@ func Test_queryServer_OfferToBuyById(t *testing.T) {
 	}
 }
 
-func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
+func Test_queryServer_BuyOffersPlacedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -1705,7 +1705,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.OffersToBuyPlacedByAccount(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOffersPlacedByAccount(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -1716,14 +1716,14 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.OfferToBuy
+		offers     []dymnstypes.BuyOffer
 		account    string
 		wantErr    bool
-		wantOffers []dymnstypes.OfferToBuy
+		wantOffers []dymnstypes.BuyOffer
 	}{
 		{
 			name: "pass - can return",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1733,7 +1733,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 			},
 			account: buyerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1744,7 +1744,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "pass - returns all records made by account",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1772,7 +1772,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 			},
 			account: buyerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1795,7 +1795,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "pass - return empty if no match",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1815,7 +1815,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "fail - reject empty account",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1828,7 +1828,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 		},
 		{
 			name: "fail - reject bad account",
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1850,19 +1850,19 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetOfferToBuy(ctx, offer)
+				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.OffersToBuyPlacedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryOffersToBuyPlacedByAccountRequest{
+			resp, err := queryServer.BuyOffersPlacedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersPlacedByAccountRequest{
 				Account: tt.account,
 			})
 
@@ -1887,7 +1887,7 @@ func Test_queryServer_OffersToBuyPlacedByAccount(t *testing.T) {
 	}
 }
 
-func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
+func Test_queryServer_BuyOffersByDymName(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -1901,7 +1901,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.OffersToBuyByDymName(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOffersByDymName(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -1913,10 +1913,10 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.OfferToBuy
+		offers     []dymnstypes.BuyOffer
 		dymName    string
 		wantErr    bool
-		wantOffers []dymnstypes.OfferToBuy
+		wantOffers []dymnstypes.BuyOffer
 	}{
 		{
 			name: "pass - can return",
@@ -1928,7 +1928,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1938,7 +1938,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			},
 			dymName: "a",
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1963,7 +1963,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -1985,7 +1985,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			},
 			dymName: "a",
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2016,7 +2016,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2050,7 +2050,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2071,7 +2071,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2093,19 +2093,19 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetOfferToBuy(ctx, offer)
+				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.OffersToBuyByDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryOffersToBuyByDymNameRequest{
+			resp, err := queryServer.BuyOffersByDymName(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersByDymNameRequest{
 				Name: tt.dymName,
 			})
 
@@ -2130,7 +2130,7 @@ func Test_queryServer_OffersToBuyByDymName(t *testing.T) {
 	}
 }
 
-func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
+func Test_queryServer_BuyOffersOfDymNamesOwnedByAccount(t *testing.T) {
 	now := time.Now().UTC()
 
 	setupTest := func() (dymnskeeper.Keeper, sdk.Context) {
@@ -2144,7 +2144,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 		dk, ctx := setupTest()
 		queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-		resp, err := queryServer.OffersToBuyOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
+		resp, err := queryServer.BuyOffersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), nil)
 		require.Error(t, err)
 		require.Nil(t, resp)
 	})
@@ -2156,10 +2156,10 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 	tests := []struct {
 		name       string
 		dymNames   []dymnstypes.DymName
-		offers     []dymnstypes.OfferToBuy
+		offers     []dymnstypes.BuyOffer
 		owner      string
 		wantErr    bool
-		wantOffers []dymnstypes.OfferToBuy
+		wantOffers []dymnstypes.BuyOffer
 	}{
 		{
 			name: "pass - can return",
@@ -2171,7 +2171,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2181,7 +2181,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:   ownerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2212,7 +2212,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2240,7 +2240,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:   ownerA,
 			wantErr: false,
-			wantOffers: []dymnstypes.OfferToBuy{
+			wantOffers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2277,7 +2277,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2299,7 +2299,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			},
 			owner:      anotherA,
 			wantErr:    false,
-			wantOffers: []dymnstypes.OfferToBuy{},
+			wantOffers: []dymnstypes.BuyOffer{},
 		},
 		{
 			name: "fail - reject empty account",
@@ -2311,7 +2311,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2332,7 +2332,7 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 					ExpireAt:   now.Unix() + 1,
 				},
 			},
-			offers: []dymnstypes.OfferToBuy{
+			offers: []dymnstypes.BuyOffer{
 				{
 					Id:         "1",
 					Name:       "a",
@@ -2353,19 +2353,19 @@ func Test_queryServer_OffersToBuyOfDymNamesOwnedByAccount(t *testing.T) {
 			}
 
 			for _, offer := range tt.offers {
-				err := dk.SetOfferToBuy(ctx, offer)
+				err := dk.SetBuyOffer(ctx, offer)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingDymNameToOfferToBuy(ctx, offer.Name, offer.Id)
+				err = dk.AddReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
 				require.NoError(t, err)
 
-				err = dk.AddReverseMappingBuyerToOfferToBuyRecord(ctx, offer.Buyer, offer.Id)
+				err = dk.AddReverseMappingBuyerToBuyOfferRecord(ctx, offer.Buyer, offer.Id)
 				require.NoError(t, err)
 			}
 
 			queryServer := dymnskeeper.NewQueryServerImpl(dk)
 
-			resp, err := queryServer.OffersToBuyOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountRequest{
+			resp, err := queryServer.BuyOffersOfDymNamesOwnedByAccount(sdk.WrapSDKContext(ctx), &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest{
 				Account: tt.owner,
 			})
 

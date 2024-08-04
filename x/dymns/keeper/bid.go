@@ -44,9 +44,9 @@ func (k Keeper) refundBid(ctx sdk.Context, soBid dymnstypes.SellOrderBid, genesi
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			dymnstypes.EventTypeDymNameRefundBid,
-			sdk.NewAttribute(dymnstypes.AttributeKeyDymNameRefundBidder, soBid.Bidder),
-			sdk.NewAttribute(dymnstypes.AttributeKeyDymNameRefundAmount, soBid.Price.String()),
+			dymnstypes.EventTypeSoRefundBid,
+			sdk.NewAttribute(dymnstypes.AttributeKeySoRefundBidder, soBid.Bidder),
+			sdk.NewAttribute(dymnstypes.AttributeKeySoRefundAmount, soBid.Price.String()),
 		),
 	)
 

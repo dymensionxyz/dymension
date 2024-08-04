@@ -28,8 +28,8 @@ const (
 	prefixActiveSellOrdersExpiration
 	prefixHistoricalSellOrders
 	prefixMinExpiryHistoricalSellOrders
-	prefixCountOfferToBuy
-	prefixOfferToBuy
+	prefixCountBuyOffers
+	prefixBuyOffer
 	prefixRvlBuyerToOfferIds   // reverse lookup store
 	prefixRvlDymNameToOfferIds // reverse lookup store
 	prefixRollAppIdToAlias
@@ -37,7 +37,7 @@ const (
 )
 
 var (
-	// KeyPrefixDymName is the key prefix for the Dym-Name records
+	// KeyPrefixDymName is the key prefix for the DymName records
 	KeyPrefixDymName = []byte{prefixDymName}
 
 	// KeyPrefixRvlDymNamesOwnedByAccount is the key prefix for the reverse lookup for Dym-Names owned by an account
@@ -49,22 +49,22 @@ var (
 	// KeyPrefixRvlFallbackAddressToDymNamesInclude is the key prefix for the reverse lookup address for Dym-Names using fallback mechanism
 	KeyPrefixRvlFallbackAddressToDymNamesInclude = []byte{prefixRvlFallbackAddressToDymNamesInclude}
 
-	// KeyPrefixSellOrder is the key prefix for the active Sell-Order records
+	// KeyPrefixSellOrder is the key prefix for the active SellOrder records
 	KeyPrefixSellOrder = []byte{prefixSellOrder}
 
-	// KeyPrefixHistoricalSellOrders is the key prefix for the historical Sell-Order records
+	// KeyPrefixHistoricalSellOrders is the key prefix for the historical SellOrder records
 	KeyPrefixHistoricalSellOrders = []byte{prefixHistoricalSellOrders}
 
 	// KeyPrefixMinExpiryHistoricalSellOrders is the key prefix for the lowest expiry among the historical Sell-Order records of each specific Dym-Name
 	KeyPrefixMinExpiryHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders}
 
-	// KeyPrefixOfferToBuy is the key prefix for the active Offer-To-Buy records
-	KeyPrefixOfferToBuy = []byte{prefixOfferToBuy}
+	// KeyPrefixBuyOffer is the key prefix for the active BuyOffer records
+	KeyPrefixBuyOffer = []byte{prefixBuyOffer}
 
-	// KeyPrefixRvlBuyerToOfferIds is the key prefix for the reverse lookup for Buy-Order IDs by the buyer
+	// KeyPrefixRvlBuyerToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the buyer
 	KeyPrefixRvlBuyerToOfferIds = []byte{prefixRvlBuyerToOfferIds}
 
-	// KeyPrefixRvlDymNameToOfferIds is the key prefix for the reverse lookup for Buy-Order IDs by the Dym-Name
+	// KeyPrefixRvlDymNameToOfferIds is the key prefix for the reverse lookup for BuyOffer IDs by the Dym-Name
 	KeyPrefixRvlDymNameToOfferIds = []byte{prefixRvlDymNameToOfferIds}
 
 	// KeyPrefixRollAppIdToAlias is the key prefix for the Roll-App ID to Alias records
@@ -77,8 +77,8 @@ var (
 var (
 	KeyActiveSellOrdersExpiration = []byte{prefixActiveSellOrdersExpiration}
 
-	// KeyCountOfferToBuy is the key for the count of all-time Offer-To-Buy orders
-	KeyCountOfferToBuy = []byte{prefixCountOfferToBuy}
+	// KeyCountBuyOffers is the key for the count of all-time buy offer orders
+	KeyCountBuyOffers = []byte{prefixCountBuyOffers}
 )
 
 // DymNameKey returns a key for specific Dym-Name
@@ -117,9 +117,9 @@ func MinExpiryHistoricalSellOrdersKey(dymName string) []byte {
 	return append(KeyPrefixMinExpiryHistoricalSellOrders, []byte(dymName)...)
 }
 
-// OfferToBuyKey returns a key for the active Buy-Order of the Dym-Name
-func OfferToBuyKey(offerId string) []byte {
-	return append(KeyPrefixOfferToBuy, []byte(offerId)...)
+// BuyOfferKey returns a key for the active Buy-Order of the Dym-Name
+func BuyOfferKey(offerId string) []byte {
+	return append(KeyPrefixBuyOffer, []byte(offerId)...)
 }
 
 // BuyerToOfferIdsRvlKey returns a key for reverse lookup for Buy-Order IDs by the buyer

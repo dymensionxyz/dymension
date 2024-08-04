@@ -38,13 +38,13 @@ service Msg {
     rpc PurchaseName(MsgPurchaseName) returns (MsgPurchaseNameResponse) {}
 
     // OfferBuyName is message handler,
-    // handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
+    // handles creating an offer to buy a Dym-Name, performed by the buyer.
     rpc OfferBuyName(MsgOfferBuyName) returns (MsgOfferBuyNameResponse) {}
     // CancelOfferBuyName is message handler,
-    // handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
+    // handles canceling a Buy-Offer, performed by the buyer who placed the offer.
     rpc CancelOfferBuyName(MsgCancelOfferBuyName) returns (MsgCancelOfferBuyNameResponse) {}
     // AcceptOfferBuyName is message handler,
-    // handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
+    // handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
     rpc AcceptOfferBuyName(MsgAcceptOfferBuyName) returns (MsgAcceptOfferBuyNameResponse) {}
 }
 
@@ -200,7 +200,7 @@ message MsgPurchaseName {
 // MsgPurchaseNameResponse defines the response for the name purchase.
 message MsgPurchaseNameResponse {}
 
-// MsgOfferBuyName defines the message used for user to offer to buy a Dym-Name.
+// MsgOfferBuyName defines the message used for user to place an offer, to buy a Dym-Name.
 message MsgOfferBuyName {
     option (cosmos.msg.v1.signer) = "buyer";
     // name is the Dym-Name wishing to buy.
@@ -222,7 +222,7 @@ message MsgOfferBuyNameResponse {
     string offer_id = 1;
 }
 
-// MsgCancelOfferBuyName defines the message used for user to cancel an offer to buy a Dym-Name.
+// MsgCancelOfferBuyName defines the message used for buy to cancel a placed Buy-Offer.
 message MsgCancelOfferBuyName {
     option (cosmos.msg.v1.signer) = "buyer";
     // offer_id is the unique identifier of the offer.
@@ -235,7 +235,7 @@ message MsgCancelOfferBuyName {
 // MsgCancelOfferBuyNameResponse defines the response for the name buy offer cancellation.
 message MsgCancelOfferBuyNameResponse {}
 
-// MsgAcceptOfferBuyName defines the message used for Dym-Name owner to accept an offer to buy a Dym-Name.
+// MsgAcceptOfferBuyName defines the message used for Dym-Name owner to accept a Buy-Offer.
 message MsgAcceptOfferBuyName {
     option (cosmos.msg.v1.signer) = "owner";
 

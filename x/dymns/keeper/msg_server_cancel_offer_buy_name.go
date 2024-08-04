@@ -11,7 +11,7 @@ import (
 )
 
 // CancelOfferBuyName is message handler,
-// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
+// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
 func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.MsgCancelOfferBuyNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -24,25 +24,25 @@ func (k msgServer) CancelOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 		return nil, err
 	}
 
-	if err := k.removeOfferToBuy(ctx, *offer); err != nil {
+	if err := k.removeBuyOffer(ctx, *offer); err != nil {
 		return nil, err
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasCloseOffer, "CancelOfferBuyName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasCloseBuyOffer, "CancelOfferBuyName")
 
 	return &dymnstypes.MsgCancelOfferBuyNameResponse{}, nil
 }
 
 // validateCancelOffer handles validation for the message handled by CancelOfferBuyName.
-func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.OfferToBuy, error) {
+func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCancelOfferBuyName) (*dymnstypes.BuyOffer, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, err
 	}
 
-	offer := k.GetOfferToBuy(ctx, msg.OfferId)
+	offer := k.GetBuyOffer(ctx, msg.OfferId)
 	if offer == nil {
-		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Offer-To-Buy: %s", msg.OfferId)
+		return nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Offer ID: %s", msg.OfferId)
 	}
 
 	if offer.Buyer != msg.Buyer {
@@ -52,16 +52,16 @@ func (k msgServer) validateCancelOffer(ctx sdk.Context, msg *dymnstypes.MsgCance
 	return offer, nil
 }
 
-// removeOfferToBuy removes the Offer-To-Buy from the store and the reverse mappings.
-func (k msgServer) removeOfferToBuy(ctx sdk.Context, offer dymnstypes.OfferToBuy) error {
-	k.DeleteOfferToBuy(ctx, offer.Id)
+// removeBuyOffer removes the Buy-Offer from the store and the reverse mappings.
+func (k msgServer) removeBuyOffer(ctx sdk.Context, offer dymnstypes.BuyOffer) error {
+	k.DeleteBuyOffer(ctx, offer.Id)
 
-	err := k.RemoveReverseMappingBuyerToOfferToBuy(ctx, offer.Buyer, offer.Id)
+	err := k.RemoveReverseMappingBuyerToBuyOffer(ctx, offer.Buyer, offer.Id)
 	if err != nil {
 		return err
 	}
 
-	err = k.RemoveReverseMappingDymNameToOfferToBuy(ctx, offer.Name, offer.Id)
+	err = k.RemoveReverseMappingDymNameToBuyOffer(ctx, offer.Name, offer.Id)
 	if err != nil {
 		return err
 	}

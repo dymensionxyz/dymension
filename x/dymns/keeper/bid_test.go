@@ -113,14 +113,14 @@ func TestKeeper_RefundBid(t *testing.T) {
 
 			var found bool
 			for _, event := range events {
-				if event.Type == dymnstypes.EventTypeDymNameRefundBid {
+				if event.Type == dymnstypes.EventTypeSoRefundBid {
 					found = true
 					break
 				}
 			}
 
 			if !found {
-				t.Errorf("event %s not found", dymnstypes.EventTypeDymNameRefundBid)
+				t.Errorf("event %s not found", dymnstypes.EventTypeSoRefundBid)
 			}
 		})
 	}

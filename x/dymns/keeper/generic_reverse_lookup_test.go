@@ -70,16 +70,16 @@ func TestKeeper_GenericAddGetRemoveReverseLookupRecord(t *testing.T) {
 		},
 	}
 
-	otbIdsTE := testEntity{
+	boIdsTE := testEntity{
 		getter: func(ctx sdk.Context, key []byte) []string {
-			return dk.GenericGetReverseLookupOfferToBuyIdsRecord(ctx, key).OfferIds
+			return dk.GenericGetReverseLookupBuyOfferIdsRecord(ctx, key).OfferIds
 		},
 		adder: func(ctx sdk.Context, key []byte, value string) {
-			err := dk.GenericAddReverseLookupOfferToBuyIdsRecord(ctx, key, value)
+			err := dk.GenericAddReverseLookupBuyOfferIdsRecord(ctx, key, value)
 			require.NoError(t, err)
 		},
 		remover: func(ctx sdk.Context, key []byte, value string) {
-			err := dk.GenericRemoveReverseLookupOfferToBuyIdsRecord(ctx, key, value)
+			err := dk.GenericRemoveReverseLookupBuyOfferIdRecord(ctx, key, value)
 			require.NoError(t, err)
 		},
 	}
@@ -281,7 +281,7 @@ func TestKeeper_GenericAddGetRemoveReverseLookupRecord(t *testing.T) {
 			tt.testFunc(t, dymNameTE, branchedCtx2, dk)
 
 			branchedCtx3, _ := ctx.CacheContext()
-			tt.testFunc(t, otbIdsTE, branchedCtx3, dk)
+			tt.testFunc(t, boIdsTE, branchedCtx3, dk)
 		})
 	}
 }

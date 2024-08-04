@@ -21,11 +21,11 @@ const (
 	flagContinueOfferId = "continue-offer-id"
 )
 
-// NewOfferToBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
-func NewOfferToBuyDymNameTxCmd() *cobra.Command {
+// NewOfferBuyDymNameTxCmd is the CLI command for creating an offer to buy a Dym-Name.
+func NewOfferBuyDymNameTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   fmt.Sprintf("offer [Dym-Name] [amount] %s", params.DisplayDenom),
-		Short: "Create an offer to buy Dym-Name",
+		Short: "Create an offer to buy a Dym-Name",
 		Example: fmt.Sprintf(
 			"$ %s tx %s offer myname 50 %s --%s hub-user",
 			version.AppName, dymnstypes.ModuleName,
@@ -64,7 +64,7 @@ func NewOfferToBuyDymNameTxCmd() *cobra.Command {
 			}
 
 			continueOfferId, _ := cmd.Flags().GetString(flagContinueOfferId)
-			if continueOfferId != "" && !dymnsutils.IsValidBuyNameOfferId(continueOfferId) {
+			if continueOfferId != "" && !dymnsutils.IsValidBuyOfferId(continueOfferId) {
 				return fmt.Errorf("invalid continue offer id")
 			}
 

@@ -11,7 +11,7 @@ import (
 )
 
 // AcceptOfferBuyName is message handler,
-// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
+// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
 func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.MsgAcceptOfferBuyNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -37,7 +37,7 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 			return nil, err
 		}
 
-		if err := k.removeOfferToBuy(ctx, *offer); err != nil {
+		if err := k.removeBuyOffer(ctx, *offer); err != nil {
 			return nil, err
 		}
 
@@ -48,12 +48,12 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 		accepted = false
 
 		offer.CounterpartyOfferPrice = &msg.MinAccept
-		if err := k.SetOfferToBuy(ctx, *offer); err != nil {
+		if err := k.SetBuyOffer(ctx, *offer); err != nil {
 			return nil, err
 		}
 	}
 
-	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateOffer, "AcceptOfferBuyName")
+	consumeMinimumGas(ctx, dymnstypes.OpGasUpdateBuyOffer, "AcceptOfferBuyName")
 
 	return &dymnstypes.MsgAcceptOfferBuyNameResponse{
 		Accepted: accepted,
@@ -61,15 +61,15 @@ func (k msgServer) AcceptOfferBuyName(goCtx context.Context, msg *dymnstypes.Msg
 }
 
 // validateAcceptOffer handles validation for the message handled by AcceptOfferBuyName
-func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.OfferToBuy, *dymnstypes.DymName, error) {
+func (k msgServer) validateAcceptOffer(ctx sdk.Context, msg *dymnstypes.MsgAcceptOfferBuyName) (*dymnstypes.BuyOffer, *dymnstypes.DymName, error) {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	offer := k.GetOfferToBuy(ctx, msg.OfferId)
+	offer := k.GetBuyOffer(ctx, msg.OfferId)
 	if offer == nil {
-		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Offer-To-Buy: %s", msg.OfferId)
+		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Offer: %s", msg.OfferId)
 	}
 
 	dymName := k.GetDymNameWithExpirationCheck(ctx, offer.Name)

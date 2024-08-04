@@ -1030,24 +1030,24 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) GetChainId() string {
 	return ""
 }
 
-// QueryOfferToBuyByIdRequest is the request type for the Query/OfferToBuyById RPC method.
-type QueryOfferToBuyByIdRequest struct {
-	// id is the id of the Offer-To-Buy record to query.
+// QueryBuyOfferByIdRequest is the request type for the Query/BuyOfferById RPC method.
+type QueryBuyOfferByIdRequest struct {
+	// id of buy offer to query.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 }
 
-func (m *QueryOfferToBuyByIdRequest) Reset()         { *m = QueryOfferToBuyByIdRequest{} }
-func (m *QueryOfferToBuyByIdRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryOfferToBuyByIdRequest) ProtoMessage()    {}
-func (*QueryOfferToBuyByIdRequest) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOfferByIdRequest) Reset()         { *m = QueryBuyOfferByIdRequest{} }
+func (m *QueryBuyOfferByIdRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOfferByIdRequest) ProtoMessage()    {}
+func (*QueryBuyOfferByIdRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{20}
 }
-func (m *QueryOfferToBuyByIdRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOfferByIdRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOfferToBuyByIdRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOfferByIdRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOfferToBuyByIdRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOfferByIdRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1057,43 +1057,43 @@ func (m *QueryOfferToBuyByIdRequest) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *QueryOfferToBuyByIdRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOfferToBuyByIdRequest.Merge(m, src)
+func (m *QueryBuyOfferByIdRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOfferByIdRequest.Merge(m, src)
 }
-func (m *QueryOfferToBuyByIdRequest) XXX_Size() int {
+func (m *QueryBuyOfferByIdRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOfferToBuyByIdRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOfferToBuyByIdRequest.DiscardUnknown(m)
+func (m *QueryBuyOfferByIdRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOfferByIdRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOfferToBuyByIdRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOfferByIdRequest proto.InternalMessageInfo
 
-func (m *QueryOfferToBuyByIdRequest) GetId() string {
+func (m *QueryBuyOfferByIdRequest) GetId() string {
 	if m != nil {
 		return m.Id
 	}
 	return ""
 }
 
-// QueryOfferToBuyByIdResponse is the response type for the Query/OfferToBuyById RPC method.
-type QueryOfferToBuyByIdResponse struct {
-	// offer is the Offer-To-Buy record queried for.
-	Offer OfferToBuy `protobuf:"bytes,1,opt,name=offer,proto3" json:"offer"`
+// QueryBuyOfferByIdResponse is the response type for the Query/BuyOfferById RPC method.
+type QueryBuyOfferByIdResponse struct {
+	// offer is the result.
+	Offer BuyOffer `protobuf:"bytes,1,opt,name=offer,proto3" json:"offer"`
 }
 
-func (m *QueryOfferToBuyByIdResponse) Reset()         { *m = QueryOfferToBuyByIdResponse{} }
-func (m *QueryOfferToBuyByIdResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryOfferToBuyByIdResponse) ProtoMessage()    {}
-func (*QueryOfferToBuyByIdResponse) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOfferByIdResponse) Reset()         { *m = QueryBuyOfferByIdResponse{} }
+func (m *QueryBuyOfferByIdResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOfferByIdResponse) ProtoMessage()    {}
+func (*QueryBuyOfferByIdResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{21}
 }
-func (m *QueryOfferToBuyByIdResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOfferByIdResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOfferToBuyByIdResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOfferByIdResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOfferToBuyByIdResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOfferByIdResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1103,45 +1103,43 @@ func (m *QueryOfferToBuyByIdResponse) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *QueryOfferToBuyByIdResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOfferToBuyByIdResponse.Merge(m, src)
+func (m *QueryBuyOfferByIdResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOfferByIdResponse.Merge(m, src)
 }
-func (m *QueryOfferToBuyByIdResponse) XXX_Size() int {
+func (m *QueryBuyOfferByIdResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOfferToBuyByIdResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOfferToBuyByIdResponse.DiscardUnknown(m)
+func (m *QueryBuyOfferByIdResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOfferByIdResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOfferToBuyByIdResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOfferByIdResponse proto.InternalMessageInfo
 
-func (m *QueryOfferToBuyByIdResponse) GetOffer() OfferToBuy {
+func (m *QueryBuyOfferByIdResponse) GetOffer() BuyOffer {
 	if m != nil {
 		return m.Offer
 	}
-	return OfferToBuy{}
+	return BuyOffer{}
 }
 
-// QueryOffersToBuyByAccountRequest is the request type for the Query/OffersToBuyPlacedByAccount RPC method.
-type QueryOffersToBuyPlacedByAccountRequest struct {
-	// account is the account address to query the Offers-To-Buy for.
+// QueryBuyOffersByAccountRequest is the request type for the Query/BuyOffersPlacedByAccount RPC method.
+type QueryBuyOffersPlacedByAccountRequest struct {
+	// account is the account address to query the placed buy offers.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) Reset() {
-	*m = QueryOffersToBuyPlacedByAccountRequest{}
-}
-func (m *QueryOffersToBuyPlacedByAccountRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryOffersToBuyPlacedByAccountRequest) ProtoMessage()    {}
-func (*QueryOffersToBuyPlacedByAccountRequest) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOffersPlacedByAccountRequest) Reset()         { *m = QueryBuyOffersPlacedByAccountRequest{} }
+func (m *QueryBuyOffersPlacedByAccountRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersPlacedByAccountRequest) ProtoMessage()    {}
+func (*QueryBuyOffersPlacedByAccountRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{22}
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersPlacedByAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersPlacedByAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyPlacedByAccountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersPlacedByAccountRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1151,45 +1149,43 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_Marshal(b []byte, determini
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyPlacedByAccountRequest.Merge(m, src)
+func (m *QueryBuyOffersPlacedByAccountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersPlacedByAccountRequest.Merge(m, src)
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_Size() int {
+func (m *QueryBuyOffersPlacedByAccountRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyPlacedByAccountRequest.DiscardUnknown(m)
+func (m *QueryBuyOffersPlacedByAccountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersPlacedByAccountRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyPlacedByAccountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersPlacedByAccountRequest proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) GetAccount() string {
+func (m *QueryBuyOffersPlacedByAccountRequest) GetAccount() string {
 	if m != nil {
 		return m.Account
 	}
 	return ""
 }
 
-// QueryOffersToBuyByAccountResponse is the response type for the Query/OffersToBuyPlacedByAccount RPC method.
-type QueryOffersToBuyPlacedByAccountResponse struct {
-	// offers are the Offers-To-Buy placed by the account.
-	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
+// QueryBuyOffersByAccountResponse is the response type for the Query/BuyOffersPlacedByAccount RPC method.
+type QueryBuyOffersPlacedByAccountResponse struct {
+	// offers are the Buy-Offers placed by the account.
+	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) Reset() {
-	*m = QueryOffersToBuyPlacedByAccountResponse{}
-}
-func (m *QueryOffersToBuyPlacedByAccountResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryOffersToBuyPlacedByAccountResponse) ProtoMessage()    {}
-func (*QueryOffersToBuyPlacedByAccountResponse) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOffersPlacedByAccountResponse) Reset()         { *m = QueryBuyOffersPlacedByAccountResponse{} }
+func (m *QueryBuyOffersPlacedByAccountResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersPlacedByAccountResponse) ProtoMessage()    {}
+func (*QueryBuyOffersPlacedByAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{23}
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersPlacedByAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersPlacedByAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyPlacedByAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersPlacedByAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1199,43 +1195,43 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_Marshal(b []byte, determin
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyPlacedByAccountResponse.Merge(m, src)
+func (m *QueryBuyOffersPlacedByAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersPlacedByAccountResponse.Merge(m, src)
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_Size() int {
+func (m *QueryBuyOffersPlacedByAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyPlacedByAccountResponse.DiscardUnknown(m)
+func (m *QueryBuyOffersPlacedByAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersPlacedByAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyPlacedByAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersPlacedByAccountResponse proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) GetOffers() []OfferToBuy {
+func (m *QueryBuyOffersPlacedByAccountResponse) GetOffers() []BuyOffer {
 	if m != nil {
 		return m.Offers
 	}
 	return nil
 }
 
-// QueryOffersToBuyByDymNameRequest is the request type for the Query/OffersToBuyByDymName RPC method.
-type QueryOffersToBuyByDymNameRequest struct {
-	// name is the Dym-Name to query the Offers-To-Buy for.
+// QueryBuyOffersByDymNameRequest is the request type for the Query/BuyOffersByDymName RPC method.
+type QueryBuyOffersByDymNameRequest struct {
+	// name is the Dym-Name to query the buy offers placed for it.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }
 
-func (m *QueryOffersToBuyByDymNameRequest) Reset()         { *m = QueryOffersToBuyByDymNameRequest{} }
-func (m *QueryOffersToBuyByDymNameRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryOffersToBuyByDymNameRequest) ProtoMessage()    {}
-func (*QueryOffersToBuyByDymNameRequest) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOffersByDymNameRequest) Reset()         { *m = QueryBuyOffersByDymNameRequest{} }
+func (m *QueryBuyOffersByDymNameRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersByDymNameRequest) ProtoMessage()    {}
+func (*QueryBuyOffersByDymNameRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{24}
 }
-func (m *QueryOffersToBuyByDymNameRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersByDymNameRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyByDymNameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersByDymNameRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyByDymNameRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersByDymNameRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1245,43 +1241,43 @@ func (m *QueryOffersToBuyByDymNameRequest) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyByDymNameRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyByDymNameRequest.Merge(m, src)
+func (m *QueryBuyOffersByDymNameRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersByDymNameRequest.Merge(m, src)
 }
-func (m *QueryOffersToBuyByDymNameRequest) XXX_Size() int {
+func (m *QueryBuyOffersByDymNameRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyByDymNameRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyByDymNameRequest.DiscardUnknown(m)
+func (m *QueryBuyOffersByDymNameRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersByDymNameRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyByDymNameRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersByDymNameRequest proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyByDymNameRequest) GetName() string {
+func (m *QueryBuyOffersByDymNameRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-// QueryOffersToBuyByDymNameResponse is the response type for the Query/OffersToBuyByDymName RPC method.
-type QueryOffersToBuyByDymNameResponse struct {
-	// offers are the Offers-To-Buy for the Dym-Name.
-	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
+// QueryBuyOffersByDymNameResponse is the response type for the Query/BuyOffersByDymName RPC method.
+type QueryBuyOffersByDymNameResponse struct {
+	// offers are the buy offers of the Dym-Name.
+	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
-func (m *QueryOffersToBuyByDymNameResponse) Reset()         { *m = QueryOffersToBuyByDymNameResponse{} }
-func (m *QueryOffersToBuyByDymNameResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryOffersToBuyByDymNameResponse) ProtoMessage()    {}
-func (*QueryOffersToBuyByDymNameResponse) Descriptor() ([]byte, []int) {
+func (m *QueryBuyOffersByDymNameResponse) Reset()         { *m = QueryBuyOffersByDymNameResponse{} }
+func (m *QueryBuyOffersByDymNameResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryBuyOffersByDymNameResponse) ProtoMessage()    {}
+func (*QueryBuyOffersByDymNameResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{25}
 }
-func (m *QueryOffersToBuyByDymNameResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersByDymNameResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyByDymNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersByDymNameResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyByDymNameResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersByDymNameResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1291,47 +1287,47 @@ func (m *QueryOffersToBuyByDymNameResponse) XXX_Marshal(b []byte, deterministic 
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyByDymNameResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyByDymNameResponse.Merge(m, src)
+func (m *QueryBuyOffersByDymNameResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersByDymNameResponse.Merge(m, src)
 }
-func (m *QueryOffersToBuyByDymNameResponse) XXX_Size() int {
+func (m *QueryBuyOffersByDymNameResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyByDymNameResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyByDymNameResponse.DiscardUnknown(m)
+func (m *QueryBuyOffersByDymNameResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersByDymNameResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyByDymNameResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersByDymNameResponse proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyByDymNameResponse) GetOffers() []OfferToBuy {
+func (m *QueryBuyOffersByDymNameResponse) GetOffers() []BuyOffer {
 	if m != nil {
 		return m.Offers
 	}
 	return nil
 }
 
-// QueryOffersToBuyOfDymNamesOwnedByAccountRequest is the request type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
-type QueryOffersToBuyOfDymNamesOwnedByAccountRequest struct {
-	// account is the account address to query the Offers-To-Buy for.
+// QueryBuyOffersOfDymNamesOwnedByAccountRequest is the request type for the Query/BuyOffersOfDymNamesOwnedByAccount RPC method.
+type QueryBuyOffersOfDymNamesOwnedByAccountRequest struct {
+	// account is the account address to query all the buy offers of the Dym-Names owned by it.
 	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Reset() {
-	*m = QueryOffersToBuyOfDymNamesOwnedByAccountRequest{}
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) Reset() {
+	*m = QueryBuyOffersOfDymNamesOwnedByAccountRequest{}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) String() string {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) String() string {
 	return proto.CompactTextString(m)
 }
-func (*QueryOffersToBuyOfDymNamesOwnedByAccountRequest) ProtoMessage() {}
-func (*QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Descriptor() ([]byte, []int) {
+func (*QueryBuyOffersOfDymNamesOwnedByAccountRequest) ProtoMessage() {}
+func (*QueryBuyOffersOfDymNamesOwnedByAccountRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{26}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1341,47 +1337,47 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_Marshal(b []byte, 
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountRequest.Merge(m, src)
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountRequest.Merge(m, src)
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_Size() int {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountRequest.DiscardUnknown(m)
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountRequest proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) GetAccount() string {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) GetAccount() string {
 	if m != nil {
 		return m.Account
 	}
 	return ""
 }
 
-// QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
-type QueryOffersToBuyOfDymNamesOwnedByAccountResponse struct {
-	// offers are the Offers-To-Buy of the Dym-Names owned by the input account.
-	Offers []OfferToBuy `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
+// QueryBuyOffersOfDymNamesOwnedByAccountResponse is the response type for the Query/BuyOffersOfDymNamesOwnedByAccount RPC method.
+type QueryBuyOffersOfDymNamesOwnedByAccountResponse struct {
+	// offers are all the buy offers of the Dym-Names owned by the input account.
+	Offers []BuyOffer `protobuf:"bytes,1,rep,name=offers,proto3" json:"offers"`
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Reset() {
-	*m = QueryOffersToBuyOfDymNamesOwnedByAccountResponse{}
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Reset() {
+	*m = QueryBuyOffersOfDymNamesOwnedByAccountResponse{}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) String() string {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) String() string {
 	return proto.CompactTextString(m)
 }
-func (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse) ProtoMessage() {}
-func (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Descriptor() ([]byte, []int) {
+func (*QueryBuyOffersOfDymNamesOwnedByAccountResponse) ProtoMessage() {}
+func (*QueryBuyOffersOfDymNamesOwnedByAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c9fbab881fb7aa6c, []int{27}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1391,19 +1387,19 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_Marshal(b []byte,
 		return b[:n], nil
 	}
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountResponse.Merge(m, src)
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountResponse.Merge(m, src)
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_Size() int {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountResponse.DiscardUnknown(m)
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryOffersToBuyOfDymNamesOwnedByAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryBuyOffersOfDymNamesOwnedByAccountResponse proto.InternalMessageInfo
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) GetOffers() []OfferToBuy {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) GetOffers() []BuyOffer {
 	if m != nil {
 		return m.Offers
 	}
@@ -1432,14 +1428,14 @@ func init() {
 	proto.RegisterType((*ReverseResolveAddressResult)(nil), "dymensionxyz.dymension.dymns.ReverseResolveAddressResult")
 	proto.RegisterType((*QueryTranslateAliasOrChainIdToChainIdRequest)(nil), "dymensionxyz.dymension.dymns.QueryTranslateAliasOrChainIdToChainIdRequest")
 	proto.RegisterType((*QueryTranslateAliasOrChainIdToChainIdResponse)(nil), "dymensionxyz.dymension.dymns.QueryTranslateAliasOrChainIdToChainIdResponse")
-	proto.RegisterType((*QueryOfferToBuyByIdRequest)(nil), "dymensionxyz.dymension.dymns.QueryOfferToBuyByIdRequest")
-	proto.RegisterType((*QueryOfferToBuyByIdResponse)(nil), "dymensionxyz.dymension.dymns.QueryOfferToBuyByIdResponse")
-	proto.RegisterType((*QueryOffersToBuyPlacedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyPlacedByAccountRequest")
-	proto.RegisterType((*QueryOffersToBuyPlacedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyPlacedByAccountResponse")
-	proto.RegisterType((*QueryOffersToBuyByDymNameRequest)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyByDymNameRequest")
-	proto.RegisterType((*QueryOffersToBuyByDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyByDymNameResponse")
-	proto.RegisterType((*QueryOffersToBuyOfDymNamesOwnedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyOfDymNamesOwnedByAccountRequest")
-	proto.RegisterType((*QueryOffersToBuyOfDymNamesOwnedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryOffersToBuyOfDymNamesOwnedByAccountResponse")
+	proto.RegisterType((*QueryBuyOfferByIdRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOfferByIdRequest")
+	proto.RegisterType((*QueryBuyOfferByIdResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOfferByIdResponse")
+	proto.RegisterType((*QueryBuyOffersPlacedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersPlacedByAccountRequest")
+	proto.RegisterType((*QueryBuyOffersPlacedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersPlacedByAccountResponse")
+	proto.RegisterType((*QueryBuyOffersByDymNameRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersByDymNameRequest")
+	proto.RegisterType((*QueryBuyOffersByDymNameResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersByDymNameResponse")
+	proto.RegisterType((*QueryBuyOffersOfDymNamesOwnedByAccountRequest)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfDymNamesOwnedByAccountRequest")
+	proto.RegisterType((*QueryBuyOffersOfDymNamesOwnedByAccountResponse)(nil), "dymensionxyz.dymension.dymns.QueryBuyOffersOfDymNamesOwnedByAccountResponse")
 }
 
 func init() {
@@ -1447,103 +1443,103 @@ func init() {
 }
 
 var fileDescriptor_c9fbab881fb7aa6c = []byte{
-	// 1523 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0xcf, 0x6f, 0x1b, 0xc5,
-	0x17, 0xcf, 0x3a, 0xcd, 0xaf, 0x97, 0xaf, 0xf2, 0x4d, 0xa7, 0x6e, 0x49, 0xb7, 0x95, 0x1b, 0xb6,
-	0xbf, 0x52, 0xd1, 0x78, 0x1b, 0x87, 0x96, 0xb6, 0x88, 0x36, 0x71, 0x9b, 0xd2, 0xb4, 0xa5, 0x2e,
-	0x6e, 0x91, 0x28, 0x1c, 0x56, 0x6b, 0xef, 0xc4, 0x5d, 0xba, 0xde, 0x71, 0x76, 0xd6, 0x69, 0xb7,
-	0x51, 0x2e, 0x1c, 0xb8, 0x82, 0xc4, 0x11, 0x21, 0xc1, 0x99, 0x0b, 0x12, 0x77, 0xce, 0xbd, 0x51,
-	0x84, 0x90, 0x38, 0x20, 0x40, 0x2d, 0x12, 0xfc, 0x01, 0x9c, 0x38, 0x21, 0xcf, 0xbe, 0xf5, 0xaf,
-	0xae, 0xd7, 0xe3, 0x24, 0xb7, 0x9d, 0xf1, 0x7b, 0x9f, 0xf7, 0x3e, 0x6f, 0xde, 0xbc, 0xfd, 0xac,
-	0x61, 0xce, 0x0a, 0xaa, 0xd4, 0xe5, 0x36, 0x73, 0x1f, 0x07, 0x4f, 0xf4, 0xe6, 0xa2, 0xf1, 0xe4,
-	0x72, 0x7d, 0xbd, 0x4e, 0xbd, 0x20, 0x5b, 0xf3, 0x98, 0xcf, 0xc8, 0xe1, 0x76, 0xcb, 0x6c, 0x73,
-	0x91, 0x15, 0x96, 0x6a, 0xba, 0xc2, 0x2a, 0x4c, 0x18, 0xea, 0x8d, 0xa7, 0xd0, 0x47, 0x3d, 0x5c,
-	0x61, 0xac, 0xe2, 0x50, 0xdd, 0xac, 0xd9, 0xba, 0xe9, 0xba, 0xcc, 0x37, 0x7d, 0x9b, 0xb9, 0x1c,
-	0x7f, 0x3d, 0x95, 0x18, 0xbb, 0x66, 0x7a, 0x66, 0x35, 0x32, 0x7d, 0x2d, 0xd1, 0xd4, 0x0a, 0xaa,
-	0x86, 0x6b, 0x56, 0x29, 0x1a, 0xcf, 0x27, 0x1a, 0x73, 0xea, 0x38, 0x06, 0xf3, 0x2c, 0xea, 0xa1,
-	0xb9, 0x9e, 0x68, 0xce, 0xd6, 0xd6, 0xa8, 0x67, 0xf8, 0xcc, 0x28, 0xd5, 0xb1, 0x12, 0x6a, 0xa6,
-	0xcc, 0x78, 0x95, 0x71, 0xbd, 0x64, 0x72, 0xaa, 0x6f, 0x2c, 0x94, 0xa8, 0x6f, 0x2e, 0xe8, 0x65,
-	0x66, 0xbb, 0xe1, 0xef, 0x5a, 0x1a, 0xc8, 0xbb, 0x8d, 0xc2, 0xdd, 0x11, 0x0c, 0x8a, 0x74, 0xbd,
-	0x4e, 0xb9, 0xaf, 0xdd, 0x87, 0x7d, 0x1d, 0xbb, 0xbc, 0xc6, 0x5c, 0x4e, 0x49, 0x1e, 0x46, 0x43,
-	0xa6, 0x33, 0xca, 0xac, 0x32, 0x37, 0x99, 0x3b, 0x96, 0x4d, 0xaa, 0x73, 0x36, 0xf4, 0xce, 0xef,
-	0x79, 0xfa, 0xdb, 0x91, 0xa1, 0x22, 0x7a, 0x6a, 0xe7, 0x10, 0xfa, 0x6a, 0x50, 0xbd, 0x6d, 0x56,
-	0x29, 0x46, 0x24, 0x07, 0x61, 0x3c, 0xaa, 0x8c, 0x00, 0x9f, 0x28, 0x8e, 0x59, 0xa1, 0xc5, 0xc5,
-	0x3d, 0x7f, 0x7f, 0x75, 0x64, 0x48, 0x7b, 0x1f, 0xd2, 0x9d, 0x7e, 0x98, 0xd3, 0x52, 0x97, 0xe3,
-	0x64, 0xee, 0x78, 0x72, 0x56, 0x11, 0x40, 0x84, 0xaf, 0xad, 0xc2, 0x51, 0x81, 0x5c, 0xa4, 0x9c,
-	0x39, 0x1b, 0x14, 0x7f, 0x5f, 0xb6, 0x2c, 0x8f, 0x72, 0x4e, 0xa3, 0x9a, 0x90, 0xc3, 0x30, 0x61,
-	0x46, 0x7b, 0x33, 0xca, 0xec, 0xf0, 0xdc, 0x44, 0xb1, 0xb5, 0x81, 0x49, 0xae, 0x43, 0xba, 0x48,
-	0x79, 0xdd, 0xf1, 0x3b, 0x41, 0xc8, 0x0c, 0x8c, 0xa1, 0x69, 0x44, 0x0e, 0x97, 0xe4, 0x14, 0x4c,
-	0x7b, 0x61, 0x5c, 0xcb, 0x88, 0x4c, 0x52, 0xc2, 0xe4, 0xff, 0xd1, 0x7e, 0x04, 0x92, 0x86, 0x11,
-	0xea, 0x79, 0xcc, 0x9b, 0x19, 0x16, 0xbf, 0x87, 0x0b, 0xed, 0x53, 0x05, 0x8e, 0x25, 0xa7, 0x8f,
-	0x85, 0xaa, 0x00, 0xe9, 0x8e, 0x84, 0x44, 0x26, 0x73, 0xb9, 0xe4, 0x92, 0xc5, 0x71, 0xc2, 0x63,
-	0xdd, 0xdb, 0x95, 0x25, 0xe5, 0xda, 0x12, 0x68, 0xed, 0x27, 0xc5, 0x0b, 0x8f, 0x5c, 0x6a, 0xe5,
-	0x83, 0xe5, 0x72, 0x99, 0xd5, 0x5d, 0x3f, 0x2a, 0x67, 0x1a, 0x46, 0xd8, 0x23, 0x97, 0x7a, 0x58,
-	0x90, 0x70, 0x81, 0x65, 0x64, 0x78, 0x22, 0xbd, 0x10, 0x90, 0xd1, 0x75, 0x98, 0x88, 0x8e, 0x3e,
-	0x22, 0x22, 0x77, 0xf6, 0x98, 0xfb, 0x38, 0x76, 0x00, 0xd7, 0xce, 0xc3, 0x7e, 0x11, 0xf0, 0x2e,
-	0x75, 0x9c, 0x42, 0xe3, 0xba, 0x49, 0xb7, 0xa5, 0x01, 0x07, 0xba, 0x3d, 0x31, 0xbb, 0x15, 0x18,
-	0xf5, 0x44, 0xdd, 0xb0, 0x2d, 0x4f, 0x26, 0xa7, 0xd6, 0x04, 0x88, 0xee, 0x4b, 0xe8, 0xac, 0xe5,
-	0xe1, 0x88, 0x08, 0x70, 0xdd, 0xe6, 0x3e, 0xf3, 0xec, 0xb2, 0xe9, 0x0c, 0x9e, 0xa4, 0x0d, 0xb3,
-	0xbd, 0x31, 0x62, 0xd2, 0x1d, 0xde, 0x7e, 0xba, 0x2e, 0x86, 0x5a, 0xe1, 0xbe, 0x5d, 0x35, 0x7d,
-	0x5a, 0xa4, 0x15, 0x9b, 0xfb, 0xd4, 0x6b, 0xbf, 0xeb, 0x04, 0xf6, 0xb4, 0xe5, 0x2a, 0x9e, 0x89,
-	0x0a, 0xe3, 0x56, 0xdd, 0x13, 0x23, 0x57, 0xf4, 0xff, 0x70, 0xb1, 0xb9, 0x6e, 0xb5, 0xca, 0xf0,
-	0xcb, 0xad, 0xf2, 0x8f, 0x02, 0xaf, 0x26, 0x04, 0x44, 0x72, 0xab, 0x30, 0xbd, 0x66, 0x7b, 0xdc,
-	0x37, 0x02, 0x6a, 0x7a, 0x46, 0xcd, 0xb3, 0xcb, 0xd1, 0xb0, 0x38, 0x98, 0x0d, 0x07, 0x64, 0xb6,
-	0x31, 0x20, 0xb3, 0x38, 0x20, 0xb3, 0x57, 0x98, 0xed, 0x22, 0xb1, 0x29, 0xe1, 0x78, 0x9f, 0x9a,
-	0xde, 0x9d, 0x86, 0x1b, 0xc9, 0xc3, 0xff, 0xe8, 0x63, 0x9f, 0xba, 0x16, 0xc2, 0xa4, 0xe4, 0x60,
-	0x26, 0x43, 0xa7, 0x10, 0x63, 0x09, 0x26, 0x7d, 0xe6, 0x9b, 0x0e, 0x42, 0x0c, 0xcb, 0x41, 0x80,
-	0xf0, 0x11, 0x08, 0xda, 0x43, 0x64, 0x5d, 0xa4, 0x1b, 0xd4, 0xe3, 0x14, 0xef, 0x3e, 0xde, 0x41,
-	0xa9, 0x89, 0x45, 0xe6, 0x60, 0xfa, 0x11, 0xf3, 0x1e, 0xda, 0x6e, 0xc5, 0x28, 0x3f, 0x30, 0x6d,
-	0xd7, 0xb0, 0x2d, 0x9c, 0x3c, 0x53, 0xb8, 0x7f, 0xa5, 0xb1, 0xbd, 0x6a, 0x69, 0xdf, 0xa6, 0xf0,
-	0x46, 0xf7, 0x88, 0x86, 0x45, 0xfe, 0xa8, 0xab, 0x83, 0x6e, 0x25, 0x77, 0x50, 0x7f, 0x44, 0x9c,
-	0x3b, 0x2b, 0xae, 0xef, 0x05, 0x9d, 0x6d, 0x26, 0x9f, 0xbc, 0xea, 0xc3, 0x64, 0x1b, 0x0c, 0x99,
-	0x86, 0xe1, 0x87, 0x34, 0xc0, 0xd6, 0x6b, 0x3c, 0x92, 0x02, 0x8c, 0x6c, 0x98, 0x4e, 0x3d, 0x3a,
-	0xc9, 0x0b, 0xfd, 0x46, 0x61, 0x7c, 0xc2, 0x75, 0xc7, 0x2f, 0x86, 0x38, 0x17, 0x53, 0xe7, 0x15,
-	0xed, 0x2e, 0x1c, 0x4a, 0xb0, 0x24, 0x19, 0x80, 0xb2, 0xe9, 0x5a, 0xb6, 0x65, 0xfa, 0xcd, 0xa3,
-	0x69, 0xdb, 0x69, 0x8d, 0xfa, 0x54, 0xfb, 0xa8, 0xbf, 0x0f, 0xa7, 0x45, 0xd1, 0xee, 0x79, 0xa6,
-	0xcb, 0x1d, 0xd3, 0xa7, 0xcb, 0x8e, 0x6d, 0xf2, 0x82, 0x87, 0x54, 0xef, 0x31, 0x7c, 0x88, 0xce,
-	0xff, 0x14, 0xec, 0x35, 0x1b, 0x16, 0x06, 0xf3, 0x5a, 0x55, 0x0a, 0x99, 0x4f, 0x99, 0x1d, 0xae,
-	0xda, 0x0d, 0x98, 0x97, 0x84, 0xc6, 0xc3, 0x3e, 0x08, 0xe3, 0x5d, 0x90, 0x63, 0x65, 0xc4, 0x3a,
-	0x0d, 0xaa, 0xc0, 0x2a, 0x34, 0xd4, 0xc8, 0x3d, 0x96, 0xaf, 0x07, 0xf9, 0xa0, 0x95, 0xd4, 0x14,
-	0xa4, 0x9a, 0x2e, 0x29, 0xdb, 0xd2, 0xca, 0x70, 0x28, 0xd6, 0x1a, 0xe3, 0x5c, 0x85, 0x11, 0xa1,
-	0x6a, 0xf0, 0xba, 0xce, 0x25, 0x9f, 0x4e, 0x1b, 0x48, 0xd8, 0x2f, 0xa1, 0xb3, 0x96, 0x87, 0x13,
-	0xad, 0x20, 0x5c, 0x18, 0xdc, 0x71, 0xcc, 0x72, 0xcc, 0x6b, 0xa9, 0xf1, 0xa6, 0x0e, 0x77, 0x9a,
-	0x6f, 0xea, 0x70, 0xa9, 0xad, 0xc3, 0xc9, 0xbe, 0x18, 0x98, 0xf4, 0x35, 0x18, 0x15, 0x71, 0xa3,
-	0xb7, 0xd2, 0xa0, 0x59, 0xa3, 0xb7, 0x76, 0x0e, 0x87, 0x69, 0x5b, 0xc8, 0x7c, 0xb7, 0x70, 0x8a,
-	0x19, 0xa6, 0xcd, 0xe9, 0x10, 0xef, 0xb7, 0xcb, 0x49, 0xde, 0x04, 0xbd, 0x3b, 0x58, 0x61, 0x2d,
-	0xf9, 0xdd, 0xdf, 0xbb, 0xc8, 0x4f, 0xe0, 0x8c, 0x3c, 0xd8, 0xee, 0x12, 0xc9, 0x7d, 0x79, 0x00,
-	0x46, 0x44, 0x70, 0xf2, 0x85, 0x02, 0xa3, 0xa1, 0x78, 0x25, 0x67, 0x24, 0x86, 0x58, 0x87, 0x76,
-	0x56, 0x17, 0x06, 0xf0, 0x08, 0x19, 0x68, 0xa7, 0x3f, 0xfe, 0xe9, 0xcf, 0xcf, 0x53, 0x27, 0xc8,
-	0x31, 0x5d, 0xe2, 0x2b, 0x83, 0x7c, 0xa3, 0xc0, 0x18, 0x96, 0x84, 0xc8, 0x04, 0xeb, 0x6c, 0x18,
-	0x35, 0x37, 0x88, 0x0b, 0x26, 0x78, 0x41, 0x24, 0xb8, 0x48, 0x16, 0x74, 0xa9, 0x6f, 0x1b, 0x7d,
-	0x33, 0x7a, 0xda, 0x22, 0x3f, 0x28, 0xf0, 0x4a, 0x0f, 0x69, 0x4a, 0x96, 0xa5, 0xde, 0x10, 0x49,
-	0xaa, 0x5c, 0xcd, 0xef, 0x04, 0x02, 0xd9, 0xcd, 0x0b, 0x76, 0x27, 0xc9, 0xf1, 0x64, 0x76, 0xa8,
-	0x74, 0xc9, 0xcf, 0x0a, 0x1c, 0x88, 0x6f, 0x49, 0xb2, 0x24, 0x5f, 0xdb, 0xf8, 0xab, 0xa1, 0x2e,
-	0xef, 0x00, 0x01, 0xe9, 0x9c, 0x13, 0x74, 0xce, 0x90, 0x6c, 0x9f, 0x8f, 0xc5, 0x86, 0xb7, 0x51,
-	0x0a, 0xf4, 0x4d, 0xa1, 0xa7, 0xb6, 0xc8, 0x77, 0x0a, 0x4c, 0x34, 0x65, 0x1d, 0x59, 0x94, 0x48,
-	0xa4, 0x5b, 0x89, 0xaa, 0xaf, 0x0f, 0xe6, 0x84, 0x09, 0xbf, 0x29, 0x12, 0x3e, 0x4b, 0x16, 0x75,
-	0xc9, 0x8f, 0xe1, 0xf6, 0xfe, 0xfa, 0x55, 0x81, 0x7d, 0x31, 0xba, 0x96, 0xbc, 0x25, 0x91, 0x4a,
-	0x6f, 0x4d, 0xad, 0x5e, 0xda, 0xae, 0x3b, 0x72, 0xba, 0x26, 0x38, 0x2d, 0x91, 0x4b, 0xc9, 0x9c,
-	0x1e, 0x34, 0x21, 0x8c, 0x78, 0x7a, 0x7f, 0x29, 0x90, 0x8e, 0x93, 0xb6, 0x44, 0x26, 0xc1, 0x04,
-	0x11, 0xae, 0x5e, 0xde, 0xb6, 0x3f, 0x32, 0xbc, 0x2d, 0x18, 0x5e, 0x27, 0xd7, 0x92, 0x19, 0x52,
-	0xc4, 0x30, 0x3c, 0x04, 0xc1, 0x09, 0x21, 0xe8, 0xe9, 0x9b, 0x91, 0xc8, 0xdf, 0x22, 0x3f, 0x2a,
-	0xb0, 0x3f, 0x56, 0x33, 0x91, 0xcb, 0xdb, 0x17, 0x92, 0x21, 0xd7, 0xa5, 0x9d, 0x2a, 0x51, 0xed,
-	0xac, 0x20, 0xab, 0x93, 0xf9, 0x7e, 0x23, 0x42, 0x80, 0x18, 0xd1, 0xa8, 0xf8, 0x24, 0x05, 0xb3,
-	0xfd, 0x24, 0x15, 0xb9, 0x21, 0x91, 0x9d, 0xa4, 0xe4, 0x53, 0x6f, 0xee, 0x0a, 0x16, 0x92, 0x5e,
-	0x15, 0xa4, 0xaf, 0x90, 0xe5, 0x64, 0xd2, 0x7e, 0x84, 0x67, 0x08, 0x51, 0xa9, 0x6f, 0xbe, 0x24,
-	0x3a, 0xb7, 0xc8, 0xf7, 0x0a, 0x4c, 0x75, 0x2a, 0x3c, 0x72, 0x5e, 0x22, 0xd5, 0x58, 0x09, 0xa9,
-	0x5e, 0xd8, 0x86, 0x27, 0x52, 0x7a, 0x43, 0x50, 0x5a, 0x20, 0xba, 0xfc, 0x1f, 0x69, 0xfa, 0x66,
-	0x83, 0xc0, 0xbf, 0x0a, 0xa8, 0xbd, 0x95, 0x1f, 0xb9, 0x2a, 0x9b, 0x52, 0x92, 0xf8, 0x54, 0x57,
-	0x76, 0x88, 0x82, 0x24, 0x0b, 0x82, 0xe4, 0x2a, 0x79, 0x5b, 0x82, 0x24, 0x47, 0x96, 0x46, 0x4d,
-	0x80, 0x19, 0xa5, 0xc0, 0x40, 0x2d, 0xa6, 0x6f, 0xe2, 0xc3, 0x16, 0xf9, 0x5d, 0x81, 0x74, 0x9c,
-	0x96, 0x94, 0x1a, 0x42, 0x09, 0xe2, 0x55, 0x6a, 0x08, 0x25, 0x89, 0x58, 0xd9, 0x31, 0xdb, 0x49,
-	0xb5, 0x14, 0x18, 0x2d, 0xa5, 0x12, 0x8e, 0xd9, 0xaf, 0x53, 0x70, 0x54, 0x42, 0x73, 0x92, 0x77,
-	0x06, 0x4b, 0xb8, 0x8f, 0x10, 0x56, 0x6f, 0xef, 0x16, 0x1c, 0x96, 0xe3, 0x43, 0x51, 0x8e, 0xf7,
-	0xc8, 0xdd, 0x41, 0xca, 0xc1, 0xd6, 0x9a, 0xe5, 0xe0, 0x46, 0xa4, 0x0a, 0x5e, 0xee, 0x82, 0xfc,
-	0xad, 0xa7, 0xcf, 0x33, 0xca, 0xb3, 0xe7, 0x19, 0xe5, 0x8f, 0xe7, 0x19, 0xe5, 0xb3, 0x17, 0x99,
-	0xa1, 0x67, 0x2f, 0x32, 0x43, 0xbf, 0xbc, 0xc8, 0x0c, 0x7d, 0x90, 0xab, 0xd8, 0xfe, 0x83, 0x7a,
-	0x29, 0x5b, 0x66, 0xd5, 0x5e, 0x81, 0x37, 0x16, 0xf5, 0xc7, 0xd1, 0xbc, 0x08, 0x6a, 0x94, 0x97,
-	0x46, 0xc5, 0xff, 0xcf, 0x8b, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x8e, 0xdc, 0x41, 0x7a, 0xd5,
-	0x17, 0x00, 0x00,
+	// 1524 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0xdf, 0x6f, 0xd4, 0xc6,
+	0x16, 0x8e, 0x37, 0xe4, 0xd7, 0x09, 0xca, 0x0d, 0x43, 0xe0, 0x26, 0xbe, 0x68, 0x09, 0xbe, 0xfc,
+	0x08, 0xf7, 0x26, 0x6b, 0xb2, 0x01, 0x0a, 0xb4, 0xc0, 0x66, 0x03, 0x94, 0x00, 0x62, 0xe9, 0x42,
+	0xa5, 0xd2, 0x3e, 0x58, 0xde, 0xf5, 0x64, 0x71, 0xf1, 0x7a, 0x16, 0x8f, 0x37, 0xe0, 0x46, 0x79,
+	0xe1, 0xa1, 0xaf, 0xad, 0xd4, 0x47, 0x5e, 0xfa, 0xde, 0x97, 0x4a, 0x55, 0xff, 0x07, 0xde, 0x4a,
+	0x55, 0x55, 0x6a, 0xa5, 0xaa, 0xaa, 0xa0, 0x52, 0xfb, 0x07, 0xf0, 0x07, 0x54, 0x1e, 0x1f, 0x3b,
+	0xbb, 0x1b, 0xaf, 0xd7, 0x9b, 0xe4, 0xcd, 0x1e, 0x9f, 0xf3, 0xcd, 0xf7, 0x9d, 0x99, 0x39, 0xf3,
+	0xed, 0xc2, 0x9c, 0xe1, 0xd5, 0xa9, 0xcd, 0x4d, 0x66, 0x3f, 0xf3, 0x3e, 0x53, 0xa3, 0x17, 0xff,
+	0xc9, 0xe6, 0xea, 0x93, 0x26, 0x75, 0xbc, 0x5c, 0xc3, 0x61, 0x2e, 0x23, 0x47, 0x5a, 0x23, 0x73,
+	0xd1, 0x4b, 0x4e, 0x44, 0xca, 0x53, 0x35, 0x56, 0x63, 0x22, 0x50, 0xf5, 0x9f, 0x82, 0x1c, 0xf9,
+	0x48, 0x8d, 0xb1, 0x9a, 0x45, 0x55, 0xbd, 0x61, 0xaa, 0xba, 0x6d, 0x33, 0x57, 0x77, 0x4d, 0x66,
+	0x73, 0xfc, 0x7a, 0x3a, 0x71, 0xee, 0x86, 0xee, 0xe8, 0xf5, 0x30, 0xf4, 0xff, 0x89, 0xa1, 0x86,
+	0x57, 0xd7, 0x6c, 0xbd, 0x4e, 0x31, 0x78, 0x21, 0x31, 0x98, 0x53, 0xcb, 0xd2, 0x98, 0x63, 0x50,
+	0x07, 0xc3, 0xe7, 0x13, 0xc3, 0x2b, 0x4d, 0x4f, 0x63, 0x6b, 0x6b, 0x51, 0x74, 0xb6, 0xca, 0x78,
+	0x9d, 0x71, 0xb5, 0xa2, 0x73, 0xaa, 0xae, 0x2f, 0x56, 0xa8, 0xab, 0x2f, 0xaa, 0x55, 0x66, 0xda,
+	0xc1, 0x77, 0x65, 0x0a, 0xc8, 0x07, 0x7e, 0xd5, 0xee, 0x09, 0xfa, 0x65, 0xfa, 0xa4, 0x49, 0xb9,
+	0xab, 0x3c, 0x84, 0x83, 0x6d, 0xa3, 0xbc, 0xc1, 0x6c, 0x4e, 0x49, 0x11, 0x86, 0x03, 0x99, 0xd3,
+	0xd2, 0xac, 0x34, 0x37, 0x9e, 0x3f, 0x9e, 0x4b, 0x2a, 0x72, 0x2e, 0xc8, 0x2e, 0xee, 0x7b, 0xf9,
+	0xfb, 0xd1, 0x81, 0x32, 0x66, 0x2a, 0xe7, 0x11, 0xfa, 0x9a, 0x57, 0xbf, 0xab, 0xd7, 0x29, 0xce,
+	0x48, 0x66, 0x60, 0x34, 0x2c, 0x8b, 0x00, 0x1f, 0x2b, 0x8f, 0x18, 0x41, 0xc4, 0xa5, 0x7d, 0x7f,
+	0x7f, 0x7d, 0x74, 0x40, 0xf9, 0x08, 0xa6, 0xda, 0xf3, 0x90, 0x53, 0xa1, 0x23, 0x71, 0x3c, 0x7f,
+	0x22, 0x99, 0x55, 0x08, 0x10, 0xe2, 0x2b, 0xab, 0xf0, 0x5f, 0x81, 0x5c, 0xa6, 0x9c, 0x59, 0xeb,
+	0x14, 0xbf, 0x2f, 0x1b, 0x86, 0x43, 0x39, 0xa7, 0x61, 0x4d, 0xc8, 0x11, 0x18, 0xd3, 0xc3, 0xb1,
+	0x69, 0x69, 0x76, 0x70, 0x6e, 0xac, 0xbc, 0x35, 0x80, 0x24, 0x9f, 0xc0, 0x54, 0x99, 0xf2, 0xa6,
+	0xe5, 0xb6, 0x83, 0x90, 0x69, 0x18, 0xc1, 0xd0, 0x50, 0x1c, 0xbe, 0x92, 0xd3, 0x30, 0xe9, 0x04,
+	0xf3, 0x1a, 0x5a, 0x18, 0x92, 0x11, 0x21, 0xff, 0x0a, 0xc7, 0x43, 0x90, 0x29, 0x18, 0xa2, 0x8e,
+	0xc3, 0x9c, 0xe9, 0x41, 0xf1, 0x3d, 0x78, 0x51, 0xbe, 0x90, 0xe0, 0x78, 0x32, 0x7d, 0x2c, 0x54,
+	0x0d, 0x48, 0xe7, 0x4c, 0x28, 0x64, 0x3c, 0x9f, 0x4f, 0x2e, 0x59, 0x9c, 0x26, 0x5c, 0xd6, 0x03,
+	0x1d, 0x2c, 0x29, 0x57, 0x0a, 0xa0, 0xb4, 0xae, 0x14, 0x2f, 0x3d, 0xb5, 0xa9, 0x51, 0xf4, 0x96,
+	0xab, 0x55, 0xd6, 0xb4, 0xdd, 0xb0, 0x9c, 0x53, 0x30, 0xc4, 0x9e, 0xda, 0xd4, 0xc1, 0x82, 0x04,
+	0x2f, 0x58, 0x46, 0x86, 0x2b, 0xd2, 0x0d, 0x01, 0x15, 0xdd, 0x84, 0xb1, 0x70, 0xe9, 0x43, 0x21,
+	0xe9, 0xd6, 0x1e, 0xb9, 0x8f, 0xe2, 0x0e, 0xe0, 0xca, 0x05, 0x38, 0x24, 0x26, 0xbc, 0x4f, 0x2d,
+	0xab, 0xe4, 0x9f, 0xb5, 0xd4, 0xdb, 0x52, 0x83, 0xc3, 0x9d, 0x99, 0xc8, 0xee, 0x3a, 0x0c, 0x3b,
+	0xa2, 0x6e, 0xb8, 0x2d, 0x4f, 0x25, 0x53, 0x8b, 0x00, 0xc2, 0xf3, 0x12, 0x24, 0x2b, 0x45, 0x38,
+	0x2a, 0x26, 0xb8, 0x69, 0x72, 0x97, 0x39, 0x66, 0x55, 0xb7, 0xfa, 0x27, 0x69, 0xc2, 0x6c, 0x77,
+	0x8c, 0x18, 0xba, 0x83, 0x3b, 0xa7, 0x6b, 0xe3, 0x54, 0xd7, 0xb9, 0x6b, 0xd6, 0x75, 0x97, 0x96,
+	0x69, 0xcd, 0xe4, 0x2e, 0x75, 0x5a, 0xcf, 0x3a, 0x81, 0x7d, 0x2d, 0x5c, 0xc5, 0x33, 0x91, 0x61,
+	0xd4, 0x68, 0x3a, 0xa2, 0xdf, 0x8a, 0xfd, 0x3f, 0x58, 0x8e, 0xde, 0xb7, 0xb6, 0xca, 0xe0, 0xf6,
+	0xad, 0xf2, 0x56, 0x82, 0x63, 0x09, 0x13, 0xa2, 0xb8, 0x55, 0x98, 0x5c, 0x33, 0x1d, 0xee, 0x6a,
+	0x1e, 0xd5, 0x1d, 0xad, 0xe1, 0x98, 0xd5, 0xb0, 0x59, 0xcc, 0xe4, 0x82, 0x06, 0x99, 0xf3, 0x1b,
+	0x64, 0x0e, 0x1b, 0x64, 0x6e, 0x85, 0x99, 0x36, 0x0a, 0x9b, 0x10, 0x89, 0x0f, 0xa9, 0xee, 0xdc,
+	0xf3, 0xd3, 0x48, 0x11, 0xf6, 0xd3, 0x67, 0x2e, 0xb5, 0x0d, 0x84, 0xc9, 0xa4, 0x83, 0x19, 0x0f,
+	0x92, 0x02, 0x8c, 0x02, 0x8c, 0xbb, 0xcc, 0xd5, 0x2d, 0x84, 0x18, 0x4c, 0x07, 0x01, 0x22, 0x47,
+	0x20, 0x28, 0x8f, 0x51, 0x75, 0x99, 0xae, 0x53, 0x87, 0x53, 0x3c, 0xfb, 0x78, 0x06, 0x53, 0x75,
+	0x2c, 0x32, 0x07, 0x93, 0x4f, 0x99, 0xf3, 0xd8, 0xb4, 0x6b, 0x5a, 0xf5, 0x91, 0x6e, 0xda, 0x9a,
+	0x69, 0x60, 0xe7, 0x99, 0xc0, 0xf1, 0x15, 0x7f, 0x78, 0xd5, 0x50, 0xbe, 0xcd, 0xe0, 0x89, 0xee,
+	0x32, 0x1b, 0x16, 0xf9, 0xd3, 0x8e, 0x1d, 0x74, 0x27, 0x79, 0x07, 0xf5, 0x46, 0xc4, 0xbe, 0x73,
+	0xdd, 0x76, 0x1d, 0xaf, 0x7d, 0x9b, 0xa5, 0x27, 0x2f, 0xbb, 0x30, 0xde, 0x02, 0x43, 0x26, 0x61,
+	0xf0, 0x31, 0xf5, 0x70, 0xeb, 0xf9, 0x8f, 0xa4, 0x04, 0x43, 0xeb, 0xba, 0xd5, 0x0c, 0x57, 0xf2,
+	0x62, 0xaf, 0x56, 0x18, 0x4f, 0xb8, 0x69, 0xb9, 0xe5, 0x00, 0xe7, 0x52, 0xe6, 0x82, 0xa4, 0xdc,
+	0x87, 0xff, 0x24, 0x44, 0x92, 0x2c, 0x40, 0x55, 0xb7, 0x0d, 0xd3, 0xd0, 0xdd, 0x68, 0x69, 0x5a,
+	0x46, 0xb6, 0x5a, 0x7d, 0xa6, 0xb5, 0xd5, 0x3f, 0x84, 0x79, 0x51, 0xb4, 0x07, 0x8e, 0x6e, 0x73,
+	0x4b, 0x77, 0xe9, 0xb2, 0x65, 0xea, 0xbc, 0xe4, 0xa0, 0xd4, 0x07, 0x0c, 0x1f, 0xc2, 0xf5, 0x3f,
+	0x0d, 0x07, 0x74, 0x3f, 0x42, 0x63, 0xce, 0x56, 0x95, 0x02, 0xe5, 0x13, 0x7a, 0x5b, 0xaa, 0x72,
+	0x0b, 0x16, 0x52, 0x42, 0xe3, 0x62, 0xcf, 0xc0, 0x68, 0x07, 0xe4, 0x48, 0x15, 0xb1, 0xfe, 0x07,
+	0xd3, 0x02, 0xab, 0xd8, 0xf4, 0x4a, 0xbe, 0x13, 0x29, 0x7a, 0x5b, 0x94, 0x26, 0x20, 0x13, 0x25,
+	0x64, 0x4c, 0x43, 0xd1, 0x60, 0x26, 0x26, 0x36, 0xb2, 0x1b, 0x43, 0xc2, 0xca, 0xe0, 0x51, 0x3d,
+	0x99, 0xbc, 0x32, 0x11, 0x44, 0xb0, 0x53, 0x82, 0x54, 0xa5, 0x80, 0xb7, 0x63, 0xf8, 0x95, 0xdf,
+	0xb3, 0xf4, 0x6a, 0xcc, 0x75, 0xe4, 0xdf, 0xd0, 0xc1, 0x48, 0x74, 0x43, 0x07, 0xaf, 0x4a, 0x1d,
+	0x4e, 0xf4, 0x40, 0x40, 0xba, 0xd7, 0x60, 0x58, 0xcc, 0x19, 0xde, 0x45, 0xfd, 0xf1, 0xc5, 0x5c,
+	0xe5, 0x2c, 0x64, 0xdb, 0xa7, 0x2b, 0x76, 0x5a, 0xa5, 0x98, 0xf6, 0xa9, 0xd4, 0xf0, 0x96, 0x88,
+	0xcb, 0xda, 0x53, 0x7a, 0xab, 0xb8, 0x51, 0xa2, 0x89, 0x4a, 0x6b, 0xc9, 0xf7, 0x7c, 0xf7, 0xc2,
+	0xae, 0x43, 0x2e, 0x2d, 0xd4, 0x5e, 0x4a, 0xc8, 0x3f, 0x3f, 0x0c, 0x43, 0x62, 0x62, 0xf2, 0x42,
+	0x82, 0xe1, 0xc0, 0xa4, 0x92, 0x33, 0x29, 0x9a, 0x55, 0x9b, 0x47, 0x96, 0x17, 0xfb, 0xc8, 0x08,
+	0xf8, 0x2b, 0xf3, 0xcf, 0x7f, 0xfa, 0xf3, 0xab, 0xcc, 0x49, 0x72, 0x5c, 0x4d, 0xf1, 0x53, 0x82,
+	0x7c, 0x23, 0xc1, 0x08, 0x16, 0x84, 0xa4, 0x99, 0xac, 0x7d, 0x9b, 0xc8, 0xf9, 0x7e, 0x52, 0x90,
+	0xe0, 0x45, 0x41, 0x70, 0x89, 0x2c, 0xaa, 0xa9, 0x7e, 0xc0, 0xa8, 0x1b, 0xe1, 0xd3, 0x26, 0xf9,
+	0x41, 0x82, 0x7f, 0x77, 0xb1, 0xa0, 0x64, 0x39, 0xd5, 0x4d, 0x90, 0xe4, 0xbe, 0xe5, 0xe2, 0x6e,
+	0x20, 0x50, 0xdd, 0x82, 0x50, 0x77, 0x8a, 0x9c, 0x48, 0x56, 0x87, 0x8e, 0x96, 0xfc, 0x2c, 0xc1,
+	0xe1, 0xf8, 0x0d, 0x49, 0x0a, 0xe9, 0x6b, 0x1b, 0x7f, 0x2c, 0xe4, 0xe5, 0x5d, 0x20, 0xa0, 0x9c,
+	0xf3, 0x42, 0xce, 0x19, 0x92, 0x4b, 0x96, 0xe3, 0xbb, 0x25, 0x43, 0xab, 0x78, 0xea, 0x86, 0xf0,
+	0x4d, 0x9b, 0xe4, 0x3b, 0x09, 0xc6, 0x22, 0xfb, 0x46, 0x96, 0x52, 0x10, 0xe9, 0x74, 0x9c, 0xf2,
+	0xd9, 0xfe, 0x92, 0x90, 0xf0, 0xbb, 0x82, 0xf0, 0x39, 0xb2, 0xa4, 0xa6, 0xfc, 0xc5, 0xdb, 0xba,
+	0xbf, 0x7e, 0x93, 0xe0, 0x60, 0x8c, 0x7f, 0x25, 0x97, 0x53, 0x50, 0xe9, 0xee, 0x9d, 0xe5, 0x2b,
+	0x3b, 0x4d, 0x47, 0x4d, 0x37, 0x84, 0xa6, 0x02, 0xb9, 0x92, 0xac, 0xe9, 0x51, 0x04, 0xa1, 0xc5,
+	0xcb, 0xfb, 0x4b, 0x82, 0xa9, 0x38, 0x0b, 0x4b, 0xd2, 0x10, 0x4c, 0x30, 0xdb, 0xf2, 0xd5, 0x1d,
+	0xe7, 0xa3, 0xc2, 0xbb, 0x42, 0xe1, 0x4d, 0x72, 0x23, 0x59, 0x21, 0x45, 0x0c, 0xcd, 0x41, 0x10,
+	0xec, 0x10, 0x42, 0x9e, 0xba, 0x11, 0x9a, 0xf9, 0x4d, 0xf2, 0xa3, 0x04, 0x87, 0x62, 0xbd, 0x11,
+	0xb9, 0xba, 0x73, 0xc3, 0x18, 0x68, 0x2d, 0xec, 0xd6, 0x71, 0x2a, 0xe7, 0x84, 0x58, 0x95, 0x2c,
+	0xf4, 0x6a, 0x11, 0x02, 0x44, 0x0b, 0x5b, 0xc5, 0xe7, 0x19, 0x98, 0xed, 0x65, 0x9d, 0xc8, 0xad,
+	0x14, 0xec, 0x52, 0x5a, 0x3b, 0xf9, 0xf6, 0x9e, 0x60, 0xa1, 0xe8, 0x55, 0x21, 0x7a, 0x85, 0x2c,
+	0x27, 0x8b, 0x76, 0x43, 0x3c, 0x4d, 0x98, 0x47, 0x75, 0x63, 0x9b, 0xb9, 0xdc, 0x24, 0xdf, 0x4b,
+	0xb0, 0xbf, 0xd5, 0xcb, 0x91, 0xf3, 0x29, 0x88, 0xc6, 0x18, 0x45, 0xf9, 0x9d, 0xbe, 0xf3, 0x50,
+	0xcc, 0x59, 0x21, 0x26, 0x47, 0xe6, 0xd5, 0x74, 0xff, 0x93, 0xa9, 0x1b, 0x3e, 0xef, 0xb7, 0x12,
+	0x4c, 0x77, 0x33, 0x78, 0xa4, 0xd8, 0x07, 0x97, 0x2e, 0xfe, 0x52, 0x5e, 0xd9, 0x15, 0x06, 0x6a,
+	0x2b, 0x09, 0x6d, 0xab, 0xe4, 0xfd, 0x1e, 0x1d, 0x5f, 0x80, 0x68, 0x2e, 0xd3, 0x7c, 0x95, 0x0d,
+	0x01, 0xa6, 0x55, 0x3c, 0x0d, 0x8d, 0x97, 0xba, 0x81, 0x0f, 0x9b, 0xe4, 0x57, 0x09, 0xc8, 0x76,
+	0xcb, 0x48, 0xde, 0xeb, 0x87, 0x6c, 0xa7, 0x3f, 0x95, 0x2f, 0xef, 0x30, 0xbb, 0xbf, 0x8e, 0xda,
+	0x2e, 0xb2, 0xe2, 0x69, 0x5b, 0xa6, 0x24, 0xe8, 0xa8, 0x2f, 0x32, 0x70, 0xac, 0xa7, 0xb5, 0x24,
+	0xb7, 0xfb, 0x21, 0xdb, 0xc3, 0xeb, 0xca, 0x77, 0xf6, 0x06, 0x0c, 0x0b, 0xf1, 0x89, 0x28, 0xc4,
+	0x87, 0xe4, 0x7e, 0x3f, 0x85, 0x60, 0x6b, 0x51, 0x21, 0xb8, 0x16, 0x5e, 0xfd, 0xdb, 0x57, 0xbe,
+	0x78, 0xe7, 0xe5, 0xeb, 0xac, 0xf4, 0xea, 0x75, 0x56, 0xfa, 0xe3, 0x75, 0x56, 0xfa, 0xf2, 0x4d,
+	0x76, 0xe0, 0xd5, 0x9b, 0xec, 0xc0, 0x2f, 0x6f, 0xb2, 0x03, 0x1f, 0xe7, 0x6b, 0xa6, 0xfb, 0xa8,
+	0x59, 0xc9, 0x55, 0x59, 0xbd, 0xdb, 0xc4, 0xeb, 0x4b, 0xea, 0xb3, 0xb0, 0x29, 0x78, 0x0d, 0xca,
+	0x2b, 0xc3, 0xe2, 0xcf, 0xe4, 0xa5, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x51, 0xd6, 0x59, 0xd4,
+	0x9f, 0x17, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1588,14 +1584,14 @@ type QueryClient interface {
 	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
 	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
 	TranslateAliasOrChainIdToChainId(ctx context.Context, in *QueryTranslateAliasOrChainIdToChainIdRequest, opts ...grpc.CallOption) (*QueryTranslateAliasOrChainIdToChainIdResponse, error)
-	// OfferToBuyById queries an offer to buy by its id.
-	OfferToBuyById(ctx context.Context, in *QueryOfferToBuyByIdRequest, opts ...grpc.CallOption) (*QueryOfferToBuyByIdResponse, error)
-	// OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
-	OffersToBuyPlacedByAccount(ctx context.Context, in *QueryOffersToBuyPlacedByAccountRequest, opts ...grpc.CallOption) (*QueryOffersToBuyPlacedByAccountResponse, error)
-	// OffersToBuyByDymName queries the offers to buy by a Dym-Name.
-	OffersToBuyByDymName(ctx context.Context, in *QueryOffersToBuyByDymNameRequest, opts ...grpc.CallOption) (*QueryOffersToBuyByDymNameResponse, error)
-	// OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
-	OffersToBuyOfDymNamesOwnedByAccount(ctx context.Context, in *QueryOffersToBuyOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error)
+	// BuyOfferById queries a buy offer by its id.
+	BuyOfferById(ctx context.Context, in *QueryBuyOfferByIdRequest, opts ...grpc.CallOption) (*QueryBuyOfferByIdResponse, error)
+	// BuyOffersPlacedByAccount queries the all the buy offers placed by an account.
+	BuyOffersPlacedByAccount(ctx context.Context, in *QueryBuyOffersPlacedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOffersPlacedByAccountResponse, error)
+	// BuyOffersByDymName queries all the buy offers of a Dym-Name.
+	BuyOffersByDymName(ctx context.Context, in *QueryBuyOffersByDymNameRequest, opts ...grpc.CallOption) (*QueryBuyOffersByDymNameResponse, error)
+	// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
+	BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, in *QueryBuyOffersOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error)
 }
 
 type queryClient struct {
@@ -1687,36 +1683,36 @@ func (c *queryClient) TranslateAliasOrChainIdToChainId(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *queryClient) OfferToBuyById(ctx context.Context, in *QueryOfferToBuyByIdRequest, opts ...grpc.CallOption) (*QueryOfferToBuyByIdResponse, error) {
-	out := new(QueryOfferToBuyByIdResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/OfferToBuyById", in, out, opts...)
+func (c *queryClient) BuyOfferById(ctx context.Context, in *QueryBuyOfferByIdRequest, opts ...grpc.CallOption) (*QueryBuyOfferByIdResponse, error) {
+	out := new(QueryBuyOfferByIdResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOfferById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) OffersToBuyPlacedByAccount(ctx context.Context, in *QueryOffersToBuyPlacedByAccountRequest, opts ...grpc.CallOption) (*QueryOffersToBuyPlacedByAccountResponse, error) {
-	out := new(QueryOffersToBuyPlacedByAccountResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/OffersToBuyPlacedByAccount", in, out, opts...)
+func (c *queryClient) BuyOffersPlacedByAccount(ctx context.Context, in *QueryBuyOffersPlacedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOffersPlacedByAccountResponse, error) {
+	out := new(QueryBuyOffersPlacedByAccountResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOffersPlacedByAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) OffersToBuyByDymName(ctx context.Context, in *QueryOffersToBuyByDymNameRequest, opts ...grpc.CallOption) (*QueryOffersToBuyByDymNameResponse, error) {
-	out := new(QueryOffersToBuyByDymNameResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/OffersToBuyByDymName", in, out, opts...)
+func (c *queryClient) BuyOffersByDymName(ctx context.Context, in *QueryBuyOffersByDymNameRequest, opts ...grpc.CallOption) (*QueryBuyOffersByDymNameResponse, error) {
+	out := new(QueryBuyOffersByDymNameResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOffersByDymName", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) OffersToBuyOfDymNamesOwnedByAccount(ctx context.Context, in *QueryOffersToBuyOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error) {
-	out := new(QueryOffersToBuyOfDymNamesOwnedByAccountResponse)
-	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/OffersToBuyOfDymNamesOwnedByAccount", in, out, opts...)
+func (c *queryClient) BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, in *QueryBuyOffersOfDymNamesOwnedByAccountRequest, opts ...grpc.CallOption) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error) {
+	out := new(QueryBuyOffersOfDymNamesOwnedByAccountResponse)
+	err := c.cc.Invoke(ctx, "/dymensionxyz.dymension.dymns.Query/BuyOffersOfDymNamesOwnedByAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1755,14 +1751,14 @@ type QueryServer interface {
 	// TranslateAliasOrChainIdToChainId tries to translate an alias/handle to a chain id.
 	// If an alias/handle can not be translated to chain-id, it is treated as a chain-id and returns.
 	TranslateAliasOrChainIdToChainId(context.Context, *QueryTranslateAliasOrChainIdToChainIdRequest) (*QueryTranslateAliasOrChainIdToChainIdResponse, error)
-	// OfferToBuyById queries an offer to buy by its id.
-	OfferToBuyById(context.Context, *QueryOfferToBuyByIdRequest) (*QueryOfferToBuyByIdResponse, error)
-	// OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
-	OffersToBuyPlacedByAccount(context.Context, *QueryOffersToBuyPlacedByAccountRequest) (*QueryOffersToBuyPlacedByAccountResponse, error)
-	// OffersToBuyByDymName queries the offers to buy by a Dym-Name.
-	OffersToBuyByDymName(context.Context, *QueryOffersToBuyByDymNameRequest) (*QueryOffersToBuyByDymNameResponse, error)
-	// OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
-	OffersToBuyOfDymNamesOwnedByAccount(context.Context, *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error)
+	// BuyOfferById queries a buy offer by its id.
+	BuyOfferById(context.Context, *QueryBuyOfferByIdRequest) (*QueryBuyOfferByIdResponse, error)
+	// BuyOffersPlacedByAccount queries the all the buy offers placed by an account.
+	BuyOffersPlacedByAccount(context.Context, *QueryBuyOffersPlacedByAccountRequest) (*QueryBuyOffersPlacedByAccountResponse, error)
+	// BuyOffersByDymName queries all the buy offers of a Dym-Name.
+	BuyOffersByDymName(context.Context, *QueryBuyOffersByDymNameRequest) (*QueryBuyOffersByDymNameResponse, error)
+	// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
+	BuyOffersOfDymNamesOwnedByAccount(context.Context, *QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1796,17 +1792,17 @@ func (*UnimplementedQueryServer) ReverseResolveAddress(ctx context.Context, req 
 func (*UnimplementedQueryServer) TranslateAliasOrChainIdToChainId(ctx context.Context, req *QueryTranslateAliasOrChainIdToChainIdRequest) (*QueryTranslateAliasOrChainIdToChainIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TranslateAliasOrChainIdToChainId not implemented")
 }
-func (*UnimplementedQueryServer) OfferToBuyById(ctx context.Context, req *QueryOfferToBuyByIdRequest) (*QueryOfferToBuyByIdResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OfferToBuyById not implemented")
+func (*UnimplementedQueryServer) BuyOfferById(ctx context.Context, req *QueryBuyOfferByIdRequest) (*QueryBuyOfferByIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOfferById not implemented")
 }
-func (*UnimplementedQueryServer) OffersToBuyPlacedByAccount(ctx context.Context, req *QueryOffersToBuyPlacedByAccountRequest) (*QueryOffersToBuyPlacedByAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OffersToBuyPlacedByAccount not implemented")
+func (*UnimplementedQueryServer) BuyOffersPlacedByAccount(ctx context.Context, req *QueryBuyOffersPlacedByAccountRequest) (*QueryBuyOffersPlacedByAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersPlacedByAccount not implemented")
 }
-func (*UnimplementedQueryServer) OffersToBuyByDymName(ctx context.Context, req *QueryOffersToBuyByDymNameRequest) (*QueryOffersToBuyByDymNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OffersToBuyByDymName not implemented")
+func (*UnimplementedQueryServer) BuyOffersByDymName(ctx context.Context, req *QueryBuyOffersByDymNameRequest) (*QueryBuyOffersByDymNameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersByDymName not implemented")
 }
-func (*UnimplementedQueryServer) OffersToBuyOfDymNamesOwnedByAccount(ctx context.Context, req *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) (*QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method OffersToBuyOfDymNamesOwnedByAccount not implemented")
+func (*UnimplementedQueryServer) BuyOffersOfDymNamesOwnedByAccount(ctx context.Context, req *QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*QueryBuyOffersOfDymNamesOwnedByAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BuyOffersOfDymNamesOwnedByAccount not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1975,74 +1971,74 @@ func _Query_TranslateAliasOrChainIdToChainId_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OfferToBuyById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOfferToBuyByIdRequest)
+func _Query_BuyOfferById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOfferByIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OfferToBuyById(ctx, in)
+		return srv.(QueryServer).BuyOfferById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Query/OfferToBuyById",
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOfferById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OfferToBuyById(ctx, req.(*QueryOfferToBuyByIdRequest))
+		return srv.(QueryServer).BuyOfferById(ctx, req.(*QueryBuyOfferByIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OffersToBuyPlacedByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOffersToBuyPlacedByAccountRequest)
+func _Query_BuyOffersPlacedByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOffersPlacedByAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OffersToBuyPlacedByAccount(ctx, in)
+		return srv.(QueryServer).BuyOffersPlacedByAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Query/OffersToBuyPlacedByAccount",
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOffersPlacedByAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OffersToBuyPlacedByAccount(ctx, req.(*QueryOffersToBuyPlacedByAccountRequest))
+		return srv.(QueryServer).BuyOffersPlacedByAccount(ctx, req.(*QueryBuyOffersPlacedByAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OffersToBuyByDymName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOffersToBuyByDymNameRequest)
+func _Query_BuyOffersByDymName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOffersByDymNameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OffersToBuyByDymName(ctx, in)
+		return srv.(QueryServer).BuyOffersByDymName(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Query/OffersToBuyByDymName",
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOffersByDymName",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OffersToBuyByDymName(ctx, req.(*QueryOffersToBuyByDymNameRequest))
+		return srv.(QueryServer).BuyOffersByDymName(ctx, req.(*QueryBuyOffersByDymNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_OffersToBuyOfDymNamesOwnedByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryOffersToBuyOfDymNamesOwnedByAccountRequest)
+func _Query_BuyOffersOfDymNamesOwnedByAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryBuyOffersOfDymNamesOwnedByAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).OffersToBuyOfDymNamesOwnedByAccount(ctx, in)
+		return srv.(QueryServer).BuyOffersOfDymNamesOwnedByAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/dymensionxyz.dymension.dymns.Query/OffersToBuyOfDymNamesOwnedByAccount",
+		FullMethod: "/dymensionxyz.dymension.dymns.Query/BuyOffersOfDymNamesOwnedByAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).OffersToBuyOfDymNamesOwnedByAccount(ctx, req.(*QueryOffersToBuyOfDymNamesOwnedByAccountRequest))
+		return srv.(QueryServer).BuyOffersOfDymNamesOwnedByAccount(ctx, req.(*QueryBuyOffersOfDymNamesOwnedByAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2088,20 +2084,20 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_TranslateAliasOrChainIdToChainId_Handler,
 		},
 		{
-			MethodName: "OfferToBuyById",
-			Handler:    _Query_OfferToBuyById_Handler,
+			MethodName: "BuyOfferById",
+			Handler:    _Query_BuyOfferById_Handler,
 		},
 		{
-			MethodName: "OffersToBuyPlacedByAccount",
-			Handler:    _Query_OffersToBuyPlacedByAccount_Handler,
+			MethodName: "BuyOffersPlacedByAccount",
+			Handler:    _Query_BuyOffersPlacedByAccount_Handler,
 		},
 		{
-			MethodName: "OffersToBuyByDymName",
-			Handler:    _Query_OffersToBuyByDymName_Handler,
+			MethodName: "BuyOffersByDymName",
+			Handler:    _Query_BuyOffersByDymName_Handler,
 		},
 		{
-			MethodName: "OffersToBuyOfDymNamesOwnedByAccount",
-			Handler:    _Query_OffersToBuyOfDymNamesOwnedByAccount_Handler,
+			MethodName: "BuyOffersOfDymNamesOwnedByAccount",
+			Handler:    _Query_BuyOffersOfDymNamesOwnedByAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2826,7 +2822,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) MarshalToSizedBuffer(dAt
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOfferToBuyByIdRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOfferByIdRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2836,12 +2832,12 @@ func (m *QueryOfferToBuyByIdRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOfferToBuyByIdRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOfferByIdRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOfferToBuyByIdRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOfferByIdRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2856,7 +2852,7 @@ func (m *QueryOfferToBuyByIdRequest) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOfferToBuyByIdResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOfferByIdResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2866,12 +2862,12 @@ func (m *QueryOfferToBuyByIdResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOfferToBuyByIdResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOfferByIdResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOfferToBuyByIdResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOfferByIdResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2889,7 +2885,7 @@ func (m *QueryOfferToBuyByIdResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersPlacedByAccountRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2899,12 +2895,12 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) Marshal() (dAtA []byte, err err
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersPlacedByAccountRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersPlacedByAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2919,7 +2915,7 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) MarshalToSizedBuffer(dAtA []byt
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersPlacedByAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2929,12 +2925,12 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) Marshal() (dAtA []byte, err er
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersPlacedByAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersPlacedByAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2956,7 +2952,7 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) MarshalToSizedBuffer(dAtA []by
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyByDymNameRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersByDymNameRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2966,12 +2962,12 @@ func (m *QueryOffersToBuyByDymNameRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyByDymNameRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersByDymNameRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyByDymNameRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersByDymNameRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2986,7 +2982,7 @@ func (m *QueryOffersToBuyByDymNameRequest) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyByDymNameResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersByDymNameResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2996,12 +2992,12 @@ func (m *QueryOffersToBuyByDymNameResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyByDymNameResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersByDymNameResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyByDymNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersByDymNameResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3023,7 +3019,7 @@ func (m *QueryOffersToBuyByDymNameResponse) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3033,12 +3029,12 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Marshal() (dAtA []byte
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3053,7 +3049,7 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) MarshalToSizedBuffer(d
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3063,12 +3059,12 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Marshal() (dAtA []byt
 	return dAtA[:n], nil
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3399,7 +3395,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOfferToBuyByIdRequest) Size() (n int) {
+func (m *QueryBuyOfferByIdRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3412,7 +3408,7 @@ func (m *QueryOfferToBuyByIdRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryOfferToBuyByIdResponse) Size() (n int) {
+func (m *QueryBuyOfferByIdResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3423,7 +3419,7 @@ func (m *QueryOfferToBuyByIdResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyPlacedByAccountRequest) Size() (n int) {
+func (m *QueryBuyOffersPlacedByAccountRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3436,7 +3432,7 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyPlacedByAccountResponse) Size() (n int) {
+func (m *QueryBuyOffersPlacedByAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3451,7 +3447,7 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyByDymNameRequest) Size() (n int) {
+func (m *QueryBuyOffersByDymNameRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3464,7 +3460,7 @@ func (m *QueryOffersToBuyByDymNameRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyByDymNameResponse) Size() (n int) {
+func (m *QueryBuyOffersByDymNameResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3479,7 +3475,7 @@ func (m *QueryOffersToBuyByDymNameResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Size() (n int) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3492,7 +3488,7 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Size() (n int) {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -5508,7 +5504,7 @@ func (m *QueryTranslateAliasOrChainIdToChainIdResponse) Unmarshal(dAtA []byte) e
 	}
 	return nil
 }
-func (m *QueryOfferToBuyByIdRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOfferByIdRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5531,10 +5527,10 @@ func (m *QueryOfferToBuyByIdRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOfferToBuyByIdRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOfferByIdRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOfferToBuyByIdRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOfferByIdRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5590,7 +5586,7 @@ func (m *QueryOfferToBuyByIdRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOfferToBuyByIdResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOfferByIdResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5613,10 +5609,10 @@ func (m *QueryOfferToBuyByIdResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOfferToBuyByIdResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOfferByIdResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOfferToBuyByIdResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOfferByIdResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5673,7 +5669,7 @@ func (m *QueryOfferToBuyByIdResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOffersToBuyPlacedByAccountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersPlacedByAccountRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5696,10 +5692,10 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyPlacedByAccountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersPlacedByAccountRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyPlacedByAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersPlacedByAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5755,7 +5751,7 @@ func (m *QueryOffersToBuyPlacedByAccountRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOffersToBuyPlacedByAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersPlacedByAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5778,10 +5774,10 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyPlacedByAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersPlacedByAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyPlacedByAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersPlacedByAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5813,7 +5809,7 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Offers = append(m.Offers, OfferToBuy{})
+			m.Offers = append(m.Offers, BuyOffer{})
 			if err := m.Offers[len(m.Offers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -5839,7 +5835,7 @@ func (m *QueryOffersToBuyPlacedByAccountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOffersToBuyByDymNameRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersByDymNameRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5862,10 +5858,10 @@ func (m *QueryOffersToBuyByDymNameRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyByDymNameRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersByDymNameRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyByDymNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersByDymNameRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5921,7 +5917,7 @@ func (m *QueryOffersToBuyByDymNameRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOffersToBuyByDymNameResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersByDymNameResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5944,10 +5940,10 @@ func (m *QueryOffersToBuyByDymNameResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyByDymNameResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersByDymNameResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyByDymNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersByDymNameResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5979,7 +5975,7 @@ func (m *QueryOffersToBuyByDymNameResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Offers = append(m.Offers, OfferToBuy{})
+			m.Offers = append(m.Offers, BuyOffer{})
 			if err := m.Offers[len(m.Offers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -6005,7 +6001,7 @@ func (m *QueryOffersToBuyByDymNameResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6028,10 +6024,10 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Unmarshal(dAtA []byte)
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyOfDymNamesOwnedByAccountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersOfDymNamesOwnedByAccountRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyOfDymNamesOwnedByAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersOfDymNamesOwnedByAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -6087,7 +6083,7 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountRequest) Unmarshal(dAtA []byte)
 	}
 	return nil
 }
-func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryBuyOffersOfDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6110,10 +6106,10 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryOffersToBuyOfDymNamesOwnedByAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryBuyOffersOfDymNamesOwnedByAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryOffersToBuyOfDymNamesOwnedByAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryBuyOffersOfDymNamesOwnedByAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -6145,7 +6141,7 @@ func (m *QueryOffersToBuyOfDymNamesOwnedByAccountResponse) Unmarshal(dAtA []byte
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Offers = append(m.Offers, OfferToBuy{})
+			m.Offers = append(m.Offers, BuyOffer{})
 			if err := m.Offers[len(m.Offers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

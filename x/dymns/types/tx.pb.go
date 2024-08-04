@@ -887,7 +887,7 @@ func (m *MsgPurchaseNameResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgPurchaseNameResponse proto.InternalMessageInfo
 
-// MsgOfferBuyName defines the message used for user to offer to buy a Dym-Name.
+// MsgOfferBuyName defines the message used for user to place an offer, to buy a Dym-Name.
 type MsgOfferBuyName struct {
 	// name is the Dym-Name wishing to buy.
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -1006,7 +1006,7 @@ func (m *MsgOfferBuyNameResponse) GetOfferId() string {
 	return ""
 }
 
-// MsgCancelOfferBuyName defines the message used for user to cancel an offer to buy a Dym-Name.
+// MsgCancelOfferBuyName defines the message used for buy to cancel a placed Buy-Offer.
 type MsgCancelOfferBuyName struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -1098,7 +1098,7 @@ func (m *MsgCancelOfferBuyNameResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCancelOfferBuyNameResponse proto.InternalMessageInfo
 
-// MsgAcceptOfferBuyName defines the message used for Dym-Name owner to accept an offer to buy a Dym-Name.
+// MsgAcceptOfferBuyName defines the message used for Dym-Name owner to accept a Buy-Offer.
 type MsgAcceptOfferBuyName struct {
 	// offer_id is the unique identifier of the offer.
 	OfferId string `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -1346,13 +1346,13 @@ type MsgClient interface {
 	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
 	PurchaseName(ctx context.Context, in *MsgPurchaseName, opts ...grpc.CallOption) (*MsgPurchaseNameResponse, error)
 	// OfferBuyName is message handler,
-	// handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
+	// handles creating an offer to buy a Dym-Name, performed by the buyer.
 	OfferBuyName(ctx context.Context, in *MsgOfferBuyName, opts ...grpc.CallOption) (*MsgOfferBuyNameResponse, error)
 	// CancelOfferBuyName is message handler,
-	// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
+	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
 	CancelOfferBuyName(ctx context.Context, in *MsgCancelOfferBuyName, opts ...grpc.CallOption) (*MsgCancelOfferBuyNameResponse, error)
 	// AcceptOfferBuyName is message handler,
-	// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
+	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptOfferBuyName(ctx context.Context, in *MsgAcceptOfferBuyName, opts ...grpc.CallOption) (*MsgAcceptOfferBuyNameResponse, error)
 }
 
@@ -1492,13 +1492,13 @@ type MsgServer interface {
 	// handles purchasing a Dym-Name from a Sell-Order, performed by the buyer.
 	PurchaseName(context.Context, *MsgPurchaseName) (*MsgPurchaseNameResponse, error)
 	// OfferBuyName is message handler,
-	// handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
+	// handles creating an offer to buy a Dym-Name, performed by the buyer.
 	OfferBuyName(context.Context, *MsgOfferBuyName) (*MsgOfferBuyNameResponse, error)
 	// CancelOfferBuyName is message handler,
-	// handles canceling an Offer-ToBuy, performed by the buyer who placed the offer.
+	// handles canceling a Buy-Offer, performed by the buyer who placed the offer.
 	CancelOfferBuyName(context.Context, *MsgCancelOfferBuyName) (*MsgCancelOfferBuyNameResponse, error)
 	// AcceptOfferBuyName is message handler,
-	// handles accepting an Offer-To-Buy or raising the amount for negotiation, performed by the owner of the Dym-Name.
+	// handles accepting a Buy-Offer or raising the amount for negotiation, performed by the owner of the Dym-Name.
 	AcceptOfferBuyName(context.Context, *MsgAcceptOfferBuyName) (*MsgAcceptOfferBuyNameResponse, error)
 }
 

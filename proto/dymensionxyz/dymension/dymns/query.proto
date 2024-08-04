@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "dymensionxyz/dymension/dymns/params.proto";
 import "dymensionxyz/dymension/dymns/dym_name.proto";
 import "dymensionxyz/dymension/dymns/sell_order.proto";
-import "dymensionxyz/dymension/dymns/offer_to_buy.proto";
+import "dymensionxyz/dymension/dymns/buy_offer.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
@@ -70,23 +70,23 @@ service Query {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/translate_alias/{alias_or_chain_id}";
   }
 
-  // OfferToBuyById queries an offer to buy by its id.
-  rpc OfferToBuyById(QueryOfferToBuyByIdRequest) returns (QueryOfferToBuyByIdResponse) {
-    option (google.api.http).get = "/dymensionxyz/dymension/dymns/offer_to_buy/{id}";
+  // BuyOfferById queries a buy offer by its id.
+  rpc BuyOfferById(QueryBuyOfferByIdRequest) returns (QueryBuyOfferByIdResponse) {
+    option (google.api.http).get = "/dymensionxyz/dymension/dymns/buy_offer/{id}";
   }
 
-  // OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
-  rpc OffersToBuyPlacedByAccount(QueryOffersToBuyPlacedByAccountRequest) returns (QueryOffersToBuyPlacedByAccountResponse) {
+  // BuyOffersPlacedByAccount queries the all the buy offers placed by an account.
+  rpc BuyOffersPlacedByAccount(QueryBuyOffersPlacedByAccountRequest) returns (QueryBuyOffersPlacedByAccountResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_placed_by_account/{account}";
   }
 
-  // OffersToBuyByDymName queries the offers to buy by a Dym-Name.
-  rpc OffersToBuyByDymName(QueryOffersToBuyByDymNameRequest) returns (QueryOffersToBuyByDymNameResponse) {
+  // BuyOffersByDymName queries all the buy offers of a Dym-Name.
+  rpc BuyOffersByDymName(QueryBuyOffersByDymNameRequest) returns (QueryBuyOffersByDymNameResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_by_dym_name/{name}";
   }
 
-  // OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
-  rpc OffersToBuyOfDymNamesOwnedByAccount(QueryOffersToBuyOfDymNamesOwnedByAccountRequest) returns (QueryOffersToBuyOfDymNamesOwnedByAccountResponse) {
+  // BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
+  rpc BuyOffersOfDymNamesOwnedByAccount(QueryBuyOffersOfDymNamesOwnedByAccountRequest) returns (QueryBuyOffersOfDymNamesOwnedByAccountResponse) {
     option (google.api.http).get = "/dymensionxyz/dymension/dymns/offers_to_buy_of_dym_names_owned_by_account/{account}";
   }
 }
@@ -247,50 +247,50 @@ message QueryTranslateAliasOrChainIdToChainIdResponse {
   string chain_id = 1;
 }
 
-// QueryOfferToBuyByIdRequest is the request type for the Query/OfferToBuyById RPC method.
-message QueryOfferToBuyByIdRequest {
-  // id is the id of the Offer-To-Buy record to query.
+// QueryBuyOfferByIdRequest is the request type for the Query/BuyOfferById RPC method.
+message QueryBuyOfferByIdRequest {
+  // id of buy offer to query.
   string id = 1;
 }
 
-// QueryOfferToBuyByIdResponse is the response type for the Query/OfferToBuyById RPC method.
-message QueryOfferToBuyByIdResponse {
-  // offer is the Offer-To-Buy record queried for.
-  OfferToBuy offer = 1 [(gogoproto.nullable) = false];
+// QueryBuyOfferByIdResponse is the response type for the Query/BuyOfferById RPC method.
+message QueryBuyOfferByIdResponse {
+  // offer is the result.
+  BuyOffer offer = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryOffersToBuyByAccountRequest is the request type for the Query/OffersToBuyPlacedByAccount RPC method.
-message QueryOffersToBuyPlacedByAccountRequest {
-  // account is the account address to query the Offers-To-Buy for.
+// QueryBuyOffersByAccountRequest is the request type for the Query/BuyOffersPlacedByAccount RPC method.
+message QueryBuyOffersPlacedByAccountRequest {
+  // account is the account address to query the placed buy offers.
   string account = 1;
 }
 
-// QueryOffersToBuyByAccountResponse is the response type for the Query/OffersToBuyPlacedByAccount RPC method.
-message QueryOffersToBuyPlacedByAccountResponse {
-  // offers are the Offers-To-Buy placed by the account.
-  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+// QueryBuyOffersByAccountResponse is the response type for the Query/BuyOffersPlacedByAccount RPC method.
+message QueryBuyOffersPlacedByAccountResponse {
+  // offers are the Buy-Offers placed by the account.
+  repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryOffersToBuyByDymNameRequest is the request type for the Query/OffersToBuyByDymName RPC method.
-message QueryOffersToBuyByDymNameRequest {
-  // name is the Dym-Name to query the Offers-To-Buy for.
+// QueryBuyOffersByDymNameRequest is the request type for the Query/BuyOffersByDymName RPC method.
+message QueryBuyOffersByDymNameRequest {
+  // name is the Dym-Name to query the buy offers placed for it.
   string name = 1;
 }
 
-// QueryOffersToBuyByDymNameResponse is the response type for the Query/OffersToBuyByDymName RPC method.
-message QueryOffersToBuyByDymNameResponse {
-  // offers are the Offers-To-Buy for the Dym-Name.
-  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+// QueryBuyOffersByDymNameResponse is the response type for the Query/BuyOffersByDymName RPC method.
+message QueryBuyOffersByDymNameResponse {
+  // offers are the buy offers of the Dym-Name.
+  repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryOffersToBuyOfDymNamesOwnedByAccountRequest is the request type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
-message QueryOffersToBuyOfDymNamesOwnedByAccountRequest {
-  // account is the account address to query the Offers-To-Buy for.
+// QueryBuyOffersOfDymNamesOwnedByAccountRequest is the request type for the Query/BuyOffersOfDymNamesOwnedByAccount RPC method.
+message QueryBuyOffersOfDymNamesOwnedByAccountRequest {
+  // account is the account address to query all the buy offers of the Dym-Names owned by it.
   string account = 1;
 }
 
-// QueryOffersToBuyOfDymNamesOwnedByAccountResponse is the response type for the Query/OffersToBuyOfDymNamesOwnedByAccount RPC method.
-message QueryOffersToBuyOfDymNamesOwnedByAccountResponse {
-  // offers are the Offers-To-Buy of the Dym-Names owned by the input account.
-  repeated OfferToBuy offers = 1 [(gogoproto.nullable) = false];
+// QueryBuyOffersOfDymNamesOwnedByAccountResponse is the response type for the Query/BuyOffersOfDymNamesOwnedByAccount RPC method.
+message QueryBuyOffersOfDymNamesOwnedByAccountResponse {
+  // offers are all the buy offers of the Dym-Names owned by the input account.
+  repeated BuyOffer offers = 1 [(gogoproto.nullable) = false];
 }

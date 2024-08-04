@@ -8,12 +8,12 @@ import (
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
-func (m *OfferToBuy) HasCounterpartyOfferPrice() bool {
+func (m *BuyOffer) HasCounterpartyOfferPrice() bool {
 	return m.CounterpartyOfferPrice != nil && !m.CounterpartyOfferPrice.Amount.IsNil() && !m.CounterpartyOfferPrice.IsZero()
 }
 
-// Validate performs basic validation for the OfferToBuy.
-func (m *OfferToBuy) Validate() error {
+// Validate performs basic validation for the BuyOffer.
+func (m *BuyOffer) Validate() error {
 	if m == nil {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer is nil")
 	}
@@ -22,7 +22,7 @@ func (m *OfferToBuy) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is empty")
 	}
 
-	if !dymnsutils.IsValidBuyNameOfferId(m.Id) {
+	if !dymnsutils.IsValidBuyOfferId(m.Id) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
 	}
 
@@ -64,22 +64,22 @@ func (m *OfferToBuy) Validate() error {
 	return nil
 }
 
-// GetSdkEvent returns the sdk event contains information of Offer-To-Buy record.
-// Fired when Offer-To-Buy record is set into store.
-func (m OfferToBuy) GetSdkEvent(actionName string) sdk.Event {
+// GetSdkEvent returns the sdk event contains information of BuyOffer record.
+// Fired when BuyOffer record is set into store.
+func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 	var attrCounterpartyOfferPrice sdk.Attribute
 	if m.CounterpartyOfferPrice != nil {
-		attrCounterpartyOfferPrice = sdk.NewAttribute(AttributeKeyOtbCounterpartyOfferPrice, m.CounterpartyOfferPrice.String())
+		attrCounterpartyOfferPrice = sdk.NewAttribute(AttributeKeyBoCounterpartyOfferPrice, m.CounterpartyOfferPrice.String())
 	} else {
-		attrCounterpartyOfferPrice = sdk.NewAttribute(AttributeKeyOtbCounterpartyOfferPrice, "")
+		attrCounterpartyOfferPrice = sdk.NewAttribute(AttributeKeyBoCounterpartyOfferPrice, "")
 	}
 
 	return sdk.NewEvent(
-		EventTypeOfferToBuy,
-		sdk.NewAttribute(AttributeKeyOtbId, m.Id),
-		sdk.NewAttribute(AttributeKeyOtbName, m.Name),
-		sdk.NewAttribute(AttributeKeyOtbOfferPrice, m.OfferPrice.String()),
+		EventTypeBuyOffer,
+		sdk.NewAttribute(AttributeKeyBoId, m.Id),
+		sdk.NewAttribute(AttributeKeyBoName, m.Name),
+		sdk.NewAttribute(AttributeKeyBoOfferPrice, m.OfferPrice.String()),
 		attrCounterpartyOfferPrice,
-		sdk.NewAttribute(AttributeKeyOtbActionName, actionName),
+		sdk.NewAttribute(AttributeKeyBoActionName, actionName),
 	)
 }

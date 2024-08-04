@@ -41,7 +41,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 			},
-			OffersToBuy: []OfferToBuy{
+			BuyOffers: []BuyOffer{
 				{
 					Id:    "1",
 					Name:  "a",
@@ -97,10 +97,10 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
-	t.Run("invalid offer-to-buy", func(t *testing.T) {
+	t.Run("invalid buy offer", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),
-			OffersToBuy: []OfferToBuy{
+			BuyOffers: []BuyOffer{
 				{
 					Buyer: "",
 				},

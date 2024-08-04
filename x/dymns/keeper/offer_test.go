@@ -76,7 +76,7 @@ func TestKeeper_RefundOffer(t *testing.T) {
 				}
 			}
 
-			offer := dymnstypes.OfferToBuy{
+			offer := dymnstypes.BuyOffer{
 				Id:         "1",
 				Name:       "a",
 				Buyer:      tt.refundToAccount,
@@ -115,14 +115,14 @@ func TestKeeper_RefundOffer(t *testing.T) {
 
 			var found bool
 			for _, event := range events {
-				if event.Type == dymnstypes.EventTypeOtbRefundOffer {
+				if event.Type == dymnstypes.EventTypeBoRefundOffer {
 					found = true
 					break
 				}
 			}
 
 			if !found {
-				t.Errorf("event %s not found", dymnstypes.EventTypeOtbRefundOffer)
+				t.Errorf("event %s not found", dymnstypes.EventTypeBoRefundOffer)
 			}
 		})
 	}

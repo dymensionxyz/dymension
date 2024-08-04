@@ -11,7 +11,7 @@ import (
 )
 
 // OfferBuyName is message handler,
-// handles creating an Offer-ToBuy that offering to buy a Dym-Name, performed by the buyer.
+// handles creating an offer to buy a Dym-Name, performed by the buyer.
 func (k msgServer) OfferBuyName(goCtx context.Context, msg *dymnstypes.MsgOfferBuyName) (*dymnstypes.MsgOfferBuyNameResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -20,44 +20,44 @@ func (k msgServer) OfferBuyName(goCtx context.Context, msg *dymnstypes.MsgOfferB
 		return nil, err
 	}
 
-	var offer dymnstypes.OfferToBuy
+	var offer dymnstypes.BuyOffer
 	var deposit sdk.Coin
 	var minimumTxGasRequired sdk.Gas
 
 	if existingOffer != nil {
-		minimumTxGasRequired = dymnstypes.OpGasUpdateOffer
+		minimumTxGasRequired = dymnstypes.OpGasUpdateBuyOffer
 
 		deposit = msg.Offer.Sub(existingOffer.OfferPrice)
 
 		offer = *existingOffer
 		offer.OfferPrice = msg.Offer
 
-		if err := k.SetOfferToBuy(ctx, offer); err != nil {
+		if err := k.SetBuyOffer(ctx, offer); err != nil {
 			return nil, err
 		}
 	} else {
-		minimumTxGasRequired = dymnstypes.OpGasPutOffer
+		minimumTxGasRequired = dymnstypes.OpGasPutBuyOffer
 
 		deposit = msg.Offer
 
-		offer = dymnstypes.OfferToBuy{
+		offer = dymnstypes.BuyOffer{
 			Id:         "", // will be auto-generated
 			Name:       msg.Name,
 			Buyer:      msg.Buyer,
 			OfferPrice: msg.Offer,
 		}
 
-		offer, err = k.InsertOfferToBuy(ctx, offer)
+		offer, err = k.InsertNewBuyOffer(ctx, offer)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingBuyerToOfferToBuyRecord(ctx, msg.Buyer, offer.Id)
+		err = k.AddReverseMappingBuyerToBuyOfferRecord(ctx, msg.Buyer, offer.Id)
 		if err != nil {
 			return nil, err
 		}
 
-		err = k.AddReverseMappingDymNameToOfferToBuy(ctx, msg.Name, offer.Id)
+		err = k.AddReverseMappingDymNameToBuyOffer(ctx, msg.Name, offer.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (k msgServer) OfferBuyName(goCtx context.Context, msg *dymnstypes.MsgOfferB
 }
 
 // validateOffer handles validation for the message handled by OfferBuyName.
-func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyName) (existingOffer *dymnstypes.OfferToBuy, err error) {
+func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyName) (existingOffer *dymnstypes.BuyOffer, err error) {
 	err = msg.ValidateBasic()
 	if err != nil {
 		return
@@ -118,9 +118,9 @@ func (k msgServer) validateOffer(ctx sdk.Context, msg *dymnstypes.MsgOfferBuyNam
 	}
 
 	if msg.ContinueOfferId != "" {
-		existingOffer = k.GetOfferToBuy(ctx, msg.ContinueOfferId)
+		existingOffer = k.GetBuyOffer(ctx, msg.ContinueOfferId)
 		if existingOffer == nil {
-			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Offer-To-Buy: %s", msg.ContinueOfferId)
+			err = errorsmod.Wrapf(gerrc.ErrNotFound, "Buy-Offer ID: %s", msg.ContinueOfferId)
 			return
 		}
 		if existingOffer.Buyer != msg.Buyer {

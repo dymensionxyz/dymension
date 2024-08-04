@@ -268,66 +268,66 @@ func (q queryServer) TranslateAliasOrChainIdToChainId(goCtx context.Context, req
 	}, nil
 }
 
-// OfferToBuyById queries an offer to buy by its id.
-func (q queryServer) OfferToBuyById(goCtx context.Context, req *dymnstypes.QueryOfferToBuyByIdRequest) (*dymnstypes.QueryOfferToBuyByIdResponse, error) {
+// BuyOfferById queries a buy offer by its id.
+func (q queryServer) BuyOfferById(goCtx context.Context, req *dymnstypes.QueryBuyOfferByIdRequest) (*dymnstypes.QueryBuyOfferByIdResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if !dymnsutils.IsValidBuyNameOfferId(req.Id) {
+	if !dymnsutils.IsValidBuyOfferId(req.Id) {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid offer id: %s", req.Id)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offer := q.GetOfferToBuy(ctx, req.Id)
+	offer := q.GetBuyOffer(ctx, req.Id)
 	if offer == nil {
 		return nil, status.Error(codes.NotFound, "offer not found")
 	}
 
-	return &dymnstypes.QueryOfferToBuyByIdResponse{
+	return &dymnstypes.QueryBuyOfferByIdResponse{
 		Offer: *offer,
 	}, nil
 }
 
-// OffersToBuyPlacedByAccount queries the offers to buy placed by an account.
-func (q queryServer) OffersToBuyPlacedByAccount(goCtx context.Context, req *dymnstypes.QueryOffersToBuyPlacedByAccountRequest) (*dymnstypes.QueryOffersToBuyPlacedByAccountResponse, error) {
+// BuyOffersPlacedByAccount queries the all the buy offers placed by an account.
+func (q queryServer) BuyOffersPlacedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOffersPlacedByAccountRequest) (*dymnstypes.QueryBuyOffersPlacedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offers, err := q.GetOfferToBuyByBuyer(ctx, req.Account)
+	offers, err := q.GetBuyOffersByBuyer(ctx, req.Account)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &dymnstypes.QueryOffersToBuyPlacedByAccountResponse{
+	return &dymnstypes.QueryBuyOffersPlacedByAccountResponse{
 		Offers: offers,
 	}, nil
 }
 
-// OffersToBuyByDymName queries the offers to buy by a Dym-Name.
-func (q queryServer) OffersToBuyByDymName(goCtx context.Context, req *dymnstypes.QueryOffersToBuyByDymNameRequest) (*dymnstypes.QueryOffersToBuyByDymNameResponse, error) {
+// BuyOffersByDymName queries all the buy offers of a Dym-Name.
+func (q queryServer) BuyOffersByDymName(goCtx context.Context, req *dymnstypes.QueryBuyOffersByDymNameRequest) (*dymnstypes.QueryBuyOffersByDymNameResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	offers, err := q.GetOffersToBuyOfDymName(ctx, req.Name)
+	offers, err := q.GetBuyOffersOfDymName(ctx, req.Name)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &dymnstypes.QueryOffersToBuyByDymNameResponse{
+	return &dymnstypes.QueryBuyOffersByDymNameResponse{
 		Offers: offers,
 	}, nil
 }
 
-// OffersToBuyOfDymNamesOwnedByAccount queries the offers to buy of Dym-Names owned by an account.
-func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountRequest) (*dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountResponse, error) {
+// BuyOffersOfDymNamesOwnedByAccount queries all the buy offers of all Dym-Names owned by an account.
+func (q queryServer) BuyOffersOfDymNamesOwnedByAccount(goCtx context.Context, req *dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountRequest) (*dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -339,9 +339,9 @@ func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, 
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	offers := make([]dymnstypes.OfferToBuy, 0)
+	offers := make([]dymnstypes.BuyOffer, 0)
 	for _, dymName := range ownedDymNames {
-		offersOfDymName, err := q.GetOffersToBuyOfDymName(ctx, dymName.Name)
+		offersOfDymName, err := q.GetBuyOffersOfDymName(ctx, dymName.Name)
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
@@ -349,7 +349,7 @@ func (q queryServer) OffersToBuyOfDymNamesOwnedByAccount(goCtx context.Context, 
 		offers = append(offers, offersOfDymName...)
 	}
 
-	return &dymnstypes.QueryOffersToBuyOfDymNamesOwnedByAccountResponse{
+	return &dymnstypes.QueryBuyOffersOfDymNamesOwnedByAccountResponse{
 		Offers: offers,
 	}, nil
 }

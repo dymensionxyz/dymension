@@ -9,24 +9,24 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOfferToBuy_HasCounterpartyOfferPrice(t *testing.T) {
-	require.False(t, (&OfferToBuy{
+func TestBuyOffer_HasCounterpartyOfferPrice(t *testing.T) {
+	require.False(t, (&BuyOffer{
 		CounterpartyOfferPrice: nil,
 	}).HasCounterpartyOfferPrice())
-	require.False(t, (&OfferToBuy{
+	require.False(t, (&BuyOffer{
 		CounterpartyOfferPrice: &sdk.Coin{},
 	}).HasCounterpartyOfferPrice())
-	require.False(t, (&OfferToBuy{
+	require.False(t, (&BuyOffer{
 		CounterpartyOfferPrice: dymnsutils.TestCoinP(0),
 	}).HasCounterpartyOfferPrice())
-	require.True(t, (&OfferToBuy{
+	require.True(t, (&BuyOffer{
 		CounterpartyOfferPrice: dymnsutils.TestCoinP(1),
 	}).HasCounterpartyOfferPrice())
 }
 
-func TestOfferToBuy_Validate(t *testing.T) {
+func TestBuyOffer_Validate(t *testing.T) {
 	t.Run("nil obj", func(t *testing.T) {
-		m := (*OfferToBuy)(nil)
+		m := (*BuyOffer)(nil)
 		require.Error(t, m.Validate())
 	})
 
@@ -228,7 +228,7 @@ func TestOfferToBuy_Validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := &OfferToBuy{
+			m := &BuyOffer{
 				Id:                     tt.offerId,
 				Name:                   tt.dymName,
 				Buyer:                  tt.buyer,
@@ -250,9 +250,9 @@ func TestOfferToBuy_Validate(t *testing.T) {
 }
 
 //goland:noinspection SpellCheckingInspection
-func TestOfferToBuy_GetSdkEvent(t *testing.T) {
+func TestBuyOffer_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
-		event := OfferToBuy{
+		event := BuyOffer{
 			Id:                     "1",
 			Name:                   "a",
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -260,22 +260,22 @@ func TestOfferToBuy_GetSdkEvent(t *testing.T) {
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
-		require.Equal(t, EventTypeOfferToBuy, event.Type)
+		require.Equal(t, EventTypeBuyOffer, event.Type)
 		require.Len(t, event.Attributes, 5)
-		require.Equal(t, AttributeKeyOtbId, event.Attributes[0].Key)
+		require.Equal(t, AttributeKeyBoId, event.Attributes[0].Key)
 		require.Equal(t, "1", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeyOtbName, event.Attributes[1].Key)
+		require.Equal(t, AttributeKeyBoName, event.Attributes[1].Key)
 		require.Equal(t, "a", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeyOtbOfferPrice, event.Attributes[2].Key)
+		require.Equal(t, AttributeKeyBoOfferPrice, event.Attributes[2].Key)
 		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeyOtbCounterpartyOfferPrice, event.Attributes[3].Key)
+		require.Equal(t, AttributeKeyBoCounterpartyOfferPrice, event.Attributes[3].Key)
 		require.Equal(t, "2"+params.BaseDenom, event.Attributes[3].Value)
 		require.Equal(t, AttributeKeySoActionName, event.Attributes[4].Key)
 		require.Equal(t, "action-name", event.Attributes[4].Value)
 	})
 
 	t.Run("no counterparty offer price", func(t *testing.T) {
-		event := OfferToBuy{
+		event := BuyOffer{
 			Id:                     "1",
 			Name:                   "a",
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -283,15 +283,15 @@ func TestOfferToBuy_GetSdkEvent(t *testing.T) {
 			CounterpartyOfferPrice: nil,
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
-		require.Equal(t, EventTypeOfferToBuy, event.Type)
+		require.Equal(t, EventTypeBuyOffer, event.Type)
 		require.Len(t, event.Attributes, 5)
-		require.Equal(t, AttributeKeyOtbId, event.Attributes[0].Key)
+		require.Equal(t, AttributeKeyBoId, event.Attributes[0].Key)
 		require.Equal(t, "1", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeyOtbName, event.Attributes[1].Key)
+		require.Equal(t, AttributeKeyBoName, event.Attributes[1].Key)
 		require.Equal(t, "a", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeyOtbOfferPrice, event.Attributes[2].Key)
+		require.Equal(t, AttributeKeyBoOfferPrice, event.Attributes[2].Key)
 		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeyOtbCounterpartyOfferPrice, event.Attributes[3].Key)
+		require.Equal(t, AttributeKeyBoCounterpartyOfferPrice, event.Attributes[3].Key)
 		require.Empty(t, event.Attributes[3].Value)
 		require.Equal(t, AttributeKeySoActionName, event.Attributes[4].Key)
 		require.Equal(t, "action-name", event.Attributes[4].Value)

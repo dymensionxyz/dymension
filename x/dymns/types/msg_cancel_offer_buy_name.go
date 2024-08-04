@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgCancelOfferBuyName{}
 
 // ValidateBasic performs basic validation for the MsgCancelOfferBuyName.
 func (m *MsgCancelOfferBuyName) ValidateBasic() error {
-	if !dymnsutils.IsValidBuyNameOfferId(m.OfferId) {
+	if !dymnsutils.IsValidBuyOfferId(m.OfferId) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "offer id is not a valid buy name offer id")
 	}
 

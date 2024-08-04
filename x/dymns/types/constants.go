@@ -33,16 +33,16 @@ const (
 	// We do not charge this fee on clear Contact operation.
 	OpGasUpdateContact sdk.Gas = 1_000_000
 
-	// OpGasPutOffer is the gas consumed when a buyer putting an offer to buy Dym-Name.
-	OpGasPutOffer sdk.Gas = 25_000_000
+	// OpGasPutBuyOffer is the gas consumed when a buyer placing an offer to buy Dym-Name.
+	OpGasPutBuyOffer sdk.Gas = 25_000_000
 
-	// OpGasUpdateOffer is the gas consumed when the buyer who placed the Offer-To-Buy,
+	// OpGasUpdateBuyOffer is the gas consumed when the buyer who placed the buy offer,
 	// updating the offer to buy Dym-Name.
-	OpGasUpdateOffer sdk.Gas = 20_000_000
+	OpGasUpdateBuyOffer sdk.Gas = 20_000_000
 
-	// OpGasCloseOffer is the gas consumed when the buyer who placed the Offer-To-Buy,
+	// OpGasCloseBuyOffer is the gas consumed when the buyer who placed the buy offer,
 	// closing the offer to buy Dym-Name.
-	OpGasCloseOffer sdk.Gas = 5_000_000
+	OpGasCloseBuyOffer sdk.Gas = 5_000_000
 )
 
 const (

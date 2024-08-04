@@ -11,18 +11,18 @@ const (
 	AttributeKeyDymNameHasContactDetails = "has_contact"
 )
 
-// Event to fire when refunding a bid of a Sell-Order.
+// Event to fire when refunding a deposited bidding amount of a Sell-Order.
 const (
-	EventTypeDymNameRefundBid       = ModuleName + "_bid_refund"
-	AttributeKeyDymNameRefundBidder = "bidder"
-	AttributeKeyDymNameRefundAmount = "amount"
+	EventTypeSoRefundBid       = ModuleName + "_bid_refund"
+	AttributeKeySoRefundBidder = "bidder"
+	AttributeKeySoRefundAmount = "amount"
 )
 
-// Event to fire when refunding a bid of an Offer-To-Buy.
+// Event to fire when refunding deposited amount of a Buy-Offer.
 const (
-	EventTypeOtbRefundOffer     = ModuleName + "_offer_refund"
-	AttributeKeyOtbRefundBuyer  = "buyer"
-	AttributeKeyOtbRefundAmount = "amount"
+	EventTypeBoRefundOffer     = ModuleName + "_bo_refund"
+	AttributeKeyBoRefundBuyer  = "buyer"
+	AttributeKeyBoRefundAmount = "amount"
 )
 
 // Event to fire when a SellOrder is set into store.
@@ -43,20 +43,20 @@ const (
 	AttributeValueDymNameSoActionNameDelete = "delete"
 )
 
-// Event to fire when an OfferToBuy is set into store.
+// Event to fire when a BuyOffer is set into store.
 const (
-	EventTypeOfferToBuy                   = ModuleName + "_otb"
-	AttributeKeyOtbActionName             = "action"
-	AttributeKeyOtbId                     = "id"
-	AttributeKeyOtbName                   = "name"
-	AttributeKeyOtbOfferPrice             = "offer_price"
-	AttributeKeyOtbCounterpartyOfferPrice = "counterparty_offer_price"
+	EventTypeBuyOffer                    = ModuleName + "_bo"
+	AttributeKeyBoActionName             = "action"
+	AttributeKeyBoId                     = "id"
+	AttributeKeyBoName                   = "name"
+	AttributeKeyBoOfferPrice             = "offer_price"
+	AttributeKeyBoCounterpartyOfferPrice = "counterparty_offer_price"
 )
 
-// Event to fire corresponding to the action of CRUD a OfferToBuy.
+// Event to fire corresponding to the action of CRUD a BuyOffer.
 const (
-	AttributeValueOtbActionNameSet    = "set"
-	AttributeValueOtbActionNameDelete = "delete"
+	AttributeValueBoActionNameSet    = "set"
+	AttributeValueBoActionNameDelete = "delete"
 )
 
 const (

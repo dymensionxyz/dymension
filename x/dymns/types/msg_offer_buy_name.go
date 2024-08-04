@@ -20,7 +20,7 @@ func (m *MsgOfferBuyName) ValidateBasic() error {
 	}
 
 	if m.ContinueOfferId != "" {
-		if !dymnsutils.IsValidBuyNameOfferId(m.ContinueOfferId) {
+		if !dymnsutils.IsValidBuyOfferId(m.ContinueOfferId) {
 			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "continue offer id is not a valid buy name offer id")
 		}
 	}

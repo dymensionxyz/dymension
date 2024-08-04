@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 import "dymensionxyz/dymension/dymns/params.proto";
 import "dymensionxyz/dymension/dymns/dym_name.proto";
 import "dymensionxyz/dymension/dymns/sell_order.proto";
-import "dymensionxyz/dymension/dymns/offer_to_buy.proto";
+import "dymensionxyz/dymension/dymns/buy_offer.proto";
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/dymns/types";
 
@@ -21,7 +21,7 @@ message GenesisState {
   // of the Sell-Orders which was not finished during genesis export
   repeated SellOrderBid sell_order_bids = 3 [(gogoproto.nullable) = false];
 
-  // offers_to_buy are records which used to refund the bid amount to the bidder
-  // of the Offer-To-Buy which was not finished during genesis export
-  repeated OfferToBuy offers_to_buy = 4 [(gogoproto.nullable) = false];
+  // buy_offers are records which used to refund the bid amount to the bidder
+  // of the Buy-Offer which was not finished during genesis export
+  repeated BuyOffer buy_offers = 4 [(gogoproto.nullable) = false];
 }

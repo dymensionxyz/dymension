@@ -305,7 +305,7 @@ type MiscParams struct {
 	PreservedClosedSellOrderDuration time.Duration `protobuf:"bytes,5,opt,name=preserved_closed_sell_order_duration,json=preservedClosedSellOrderDuration,proto3,stdduration" json:"preserved_closed_sell_order_duration" yaml:"preserved_closed_sell_order_duration"`
 	// prohibit_sell_duration is the amount of time,
 	// if the Sell-Order expiration date enters the range before expiry of Dym-Name, the Sell-Order can not be placed.
-	// The logic also applies when the owner accepts an Offer-To-Buy, the Dym-Name can not be sold.
+	// The logic also applies when the owner accepts a Buy-Offer, the Dym-Name can not be sold.
 	// This is to prevent the new owner of Dym-Name to sell it before the Dym-Name expires,
 	// therefore help reduce the risk of new owner of Dym-Name not able to renew it on time.
 	ProhibitSellDuration time.Duration `protobuf:"bytes,6,opt,name=prohibit_sell_duration,json=prohibitSellDuration,proto3,stdduration" json:"prohibit_sell_duration" yaml:"prohibit_sell_duration"`

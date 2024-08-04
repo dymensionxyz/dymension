@@ -30,9 +30,9 @@ func (m GenesisState) Validate() error {
 		}
 	}
 
-	for _, otb := range m.OffersToBuy {
-		if err := otb.Validate(); err != nil {
-			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Offer-To-Buy by '%s': %v", otb.Buyer, err)
+	for _, bo := range m.BuyOffers {
+		if err := bo.Validate(); err != nil {
+			return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "Buy-Offer by '%s': %v", bo.Buyer, err)
 		}
 	}
 

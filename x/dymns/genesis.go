@@ -29,7 +29,7 @@ func InitGenesis(ctx sdk.Context, k dymnskeeper.Keeper, genState dymnstypes.Gene
 			panic(err)
 		}
 	}
-	for _, offer := range genState.OffersToBuy {
+	for _, offer := range genState.BuyOffers {
 		if err := k.GenesisRefundOffer(ctx, offer); err != nil {
 			panic(err)
 		}
@@ -52,18 +52,18 @@ func ExportGenesis(ctx sdk.Context, k dymnskeeper.Keeper) *dymnstypes.GenesisSta
 		nonRefundedBids = append(nonRefundedBids, *bid.HighestBid)
 	}
 
-	// Collect buyers of active Offers-To-Buy so that we can refund them later.
-	var nonRefundedOffersToBuy []dymnstypes.OfferToBuy
-	for _, offer := range k.GetAllOffersToBuy(ctx) {
+	// Collect buyers of active Buy-Offers so that we can refund them later.
+	var nonRefundedBuyOffers []dymnstypes.BuyOffer
+	for _, offer := range k.GetAllBuyOffers(ctx) {
 		truncatedOffer := offer
 		truncatedOffer.CounterpartyOfferPrice = nil
-		nonRefundedOffersToBuy = append(nonRefundedOffersToBuy, truncatedOffer)
+		nonRefundedBuyOffers = append(nonRefundedBuyOffers, truncatedOffer)
 	}
 
 	return &dymnstypes.GenesisState{
 		Params:        k.GetParams(ctx),
 		DymNames:      k.GetAllNonExpiredDymNames(ctx),
 		SellOrderBids: nonRefundedBids,
-		OffersToBuy:   nonRefundedOffersToBuy,
+		BuyOffers:     nonRefundedBuyOffers,
 	}
 }

@@ -25,7 +25,7 @@ func GetQueryCmd() *cobra.Command {
 		CmdQueryParams(),
 		CmdQueryDymName(),
 		CmdQuerySellOrder(),
-		CmdQueryOfferToBuy(),
+		CmdQueryBuyOffer(),
 		CmdQueryResolveDymNameAddress(),
 		CmdQueryReverseResolveDymNameAddress(),
 	)
