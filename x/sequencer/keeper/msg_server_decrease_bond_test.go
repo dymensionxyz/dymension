@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -8,16 +9,18 @@ import (
 func (suite *SequencerTestSuite) TestDecreaseBond() {
 	suite.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
 	// setup a default sequencer with has minBond + 20token
-	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)))
+	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
 	// setup an unbonded sequencer
-	unbondedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	unbondedPk := ed25519.GenPrivKey().PubKey()
+	unbondedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, unbondedPk)
 	unbondedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, unbondedSequencerAddress)
 	unbondedSequencer.Status = types.Unbonded
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, unbondedSequencer, unbondedSequencer.Status)
 	// setup a jailed sequencer
-	jailedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	jailedPk := ed25519.GenPrivKey().PubKey()
+	jailedSequencerAddress := suite.CreateDefaultSequencer(suite.Ctx, rollappId, jailedPk)
 	jailedSequencer, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, jailedSequencerAddress)
 	jailedSequencer.Jailed = true
 	suite.App.SequencerKeeper.UpdateSequencer(suite.Ctx, jailedSequencer, jailedSequencer.Status)

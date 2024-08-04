@@ -41,7 +41,7 @@ func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
 	} else {
 		// in case the sequencer is currently reducing its bond, then we need to remove it from the decreasing bond queue
 		// all the tokens are burned, so we don't need to reduce the bond anymore
-		bondReduce, isDecreasingBond := k.getSequencerDecreasingBond(ctx, seq.SequencerAddress)
+		bondReduce, isDecreasingBond := k.getSequencerDecreasingBond(ctx, seq.Address)
 		if isDecreasingBond {
 			k.removeDecreasingBondQueue(ctx, bondReduce)
 		}

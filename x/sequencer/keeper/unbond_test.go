@@ -129,9 +129,9 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 func (suite *SequencerTestSuite) TestHandleBondReduction() {
 	suite.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
 	// Create a sequencer with bond amount of minBond + 100
-	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(100)))
+	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(100)), pk)
 	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 50),
@@ -153,9 +153,9 @@ func (suite *SequencerTestSuite) TestHandleBondReduction() {
 func (suite *SequencerTestSuite) TestHandleBondReduction_MinBondIncrease() {
 	suite.SetupTest()
 	bondDenom := types.DefaultParams().MinBond.Denom
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
 	// Create a sequencer with bond amount of minBond + 100
-	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(100)))
+	defaultSequencerAddress := suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(100)), pk)
 	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &types.MsgDecreaseBond{
 		Creator:        defaultSequencerAddress,
 		DecreaseAmount: sdk.NewInt64Coin(bondDenom, 50),
