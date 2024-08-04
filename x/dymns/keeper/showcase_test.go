@@ -40,8 +40,10 @@ func TestKeeper_NewRegistration(t *testing.T) {
 
 	sc.
 		newDymName(
-			"my-name", // name of the Dym-Name
-			"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue", // the owner of the Dym-Name
+			// name of the Dym-Name
+			"my-name",
+			// the owner of the Dym-Name
+			"dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		).
 		withExpiry(dymNameExpirationDate).
 		save()
@@ -129,14 +131,22 @@ func TestKeeper_NewRegistration(t *testing.T) {
 	})
 
 	// Friendly notes for non-technical readers:
+	// _________________________________________
 	testAccount := sc.newTestAccount() // this creates a test account, which support procedure multiple address format
-	dym1 := testAccount.bech32()       // this will output the address in bech32 format with "dym" prefix
-	require.True(t, strings.HasPrefix(dym1, "dym1"))
-	rol1 := testAccount.bech32C("rol") // this will output the address in bech32 format with "rol" prefix
-	require.True(t, strings.HasPrefix(rol1, "rol1"))
-	hex := testAccount.hexStr() // this will output the address in 0x format
-	require.True(t, strings.HasPrefix(hex, "0x"))
-	// 3 formats of the same address, but in different format
+	// _________________________________________
+	_ = testAccount.bech32() // this will output the address in bech32 format with "dym" prefix
+	// look like this: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue"
+	// _________________________________________
+	_ = testAccount.bech32C("rol") // this will output the address in bech32 format with "rol" prefix
+	// look like this: "rol1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3n0r7hx"
+	// _________________________________________
+	_ = testAccount.hexStr() // this will output the address in 0x format
+	// look like this: "0x4fea76427b8345861e80a3540a8a9d936fd39391"
+	// _________________________________________
+	_ = testAccount.checksumHex() // this will output the address in 0x format, with checksum
+	// look like this: "0x4feA76427B8345861e80A3540a8a9D936FD39391" // similar hex but with mixed case for checksum
+	// _________________________________________
+	// 4 formats of the same address, but in different format
 	// will be used many times later.
 }
 
@@ -589,6 +599,16 @@ func TestKeeper_Alias(t *testing.T) {
 func TestKeeper_ResolveExtraFormat(t *testing.T) {
 	/**
 	This show additional details about Extra Format resolution for the Dym-Name-Address.
+	Extra formats:
+	- nim1...@dym
+	- 0x.....@dym
+
+	These formats are not the default resolution, but they are supported.
+	It converts the address to another-chain-based bech32 format like:
+	- nim1...@dym => dym1...
+	- 0x.....@dym => dym1...
+	- dym1...@nim => nim1...
+	- 0x.....@nim => nim1...
 
 	In this mode, no Dym-Name is required, and the resolution is based on the chain-id
 	and the input address must be in the correct format and no Sub-Name.
@@ -607,16 +627,20 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 	testAccount := sc.newTestAccount()
 
 	t.Run("resolve hex to chain-based bech32", func(t *testing.T) {
-		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@dymension").
+		// 0x...@dymension
+		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@dymension").
 			Equals(testAccount.bech32())
 
-		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@" + rollApp1.RollappId).
+		// 0x...@one_1-1
+		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@" + rollApp1.RollappId).
 			Equals(testAccount.bech32C("one"))
 
-		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@" + rollApp2.RollappId).
+		// 0x...@two_2-2
+		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@" + rollApp2.RollappId).
 			Equals(testAccount.bech32C("two"))
 
-		sc.requireResolveDymNameAddress( /* 0x */ testAccount.hexStr() + "@" + rollAppWithoutBech32.RollappId).
+		// 0x...@nob_3-3
+		sc.requireResolveDymNameAddress(testAccount.hexStr() + "@" + rollAppWithoutBech32.RollappId).
 			NoResult() // won't work for RollApp without bech32 prefix because we don't know bech32 prefix to cast
 
 		// also works with alias
@@ -627,12 +651,15 @@ func TestKeeper_ResolveExtraFormat(t *testing.T) {
 	})
 
 	t.Run("resolve bech32 to chain-based bech32", func(t *testing.T) {
+		// kava1...@dymension
 		sc.requireResolveDymNameAddress(testAccount.bech32C("kava") + "@dymension").
 			Equals(testAccount.bech32())
 
+		// dym1...@one_1-1
 		sc.requireResolveDymNameAddress(testAccount.bech32() + "@" + rollApp1.RollappId).
 			Equals(testAccount.bech32C("one"))
 
+		// whatever1...@two_2-2
 		sc.requireResolveDymNameAddress(testAccount.bech32C("whatever") + "@" + rollApp2.RollappId).
 			Equals(testAccount.bech32C("two"))
 
