@@ -15,7 +15,7 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  // chains defines setting for aliases mapping, and list of chain-ids that are using coin-type 60.
+  // chains defines setting for prioritized aliases mapping.
   ChainsParams chains = 2 [
     (gogoproto.moretags) = "yaml:\"chains\"",
     (gogoproto.nullable) = false

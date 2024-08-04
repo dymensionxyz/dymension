@@ -618,7 +618,8 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 
 		// When the input address is a hex address,
 		// we can assume the query comes from a coin-type-60 chain.
-		// The working chain-id can be either host chain or another chain.
+		// Only host-chain and RollApp are coin-type-60 chains and support reverse lookup,
+		// while other chains are ignored.
 		//
 		// Should do a fallback lookup?
 		// Depend on the working chain-id is recognized or not.
@@ -702,6 +703,8 @@ func (k Keeper) ReverseResolveDymNameAddress(ctx sdk.Context, inputAddress, work
 	// to see if any fallback is available.
 	// If the working chain-id is a coin-type-60 chain-id.
 	// If the working chain-id is NOT a coin-type-60 chain-id, does not satisfy the condition.
+	// Only host-chain and RollApp are coin-type-60 chains and support reverse lookup,
+	// while other chains are ignored.
 
 	if !workingChainIdIsHostChain && !workingChainIdIsRollApp {
 		// we don't do fallback lookup for this case, just for safety purpose

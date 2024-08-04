@@ -33,7 +33,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type Params struct {
 	// price defines setting for pricing of Dym-Name and price-related parameters.
 	Price PriceParams `protobuf:"bytes,1,opt,name=price,proto3" json:"price" yaml:"price"`
-	// chains defines setting for aliases mapping, and list of chain-ids that are using coin-type 60.
+	// chains defines setting for prioritized aliases mapping.
 	Chains ChainsParams `protobuf:"bytes,2,opt,name=chains,proto3" json:"chains" yaml:"chains"`
 	// misc is group of miscellaneous parameters.
 	Misc MiscParams `protobuf:"bytes,3,opt,name=misc,proto3" json:"misc" yaml:"misc"`
