@@ -399,7 +399,7 @@ func TestKeeper_DymNameConfiguration(t *testing.T) {
 
 					{
 						Type:    dymnstypes.DymNameConfigType_NAME,
-						ChainId: "", // chain-id will be set to empty if it is host-chain-id
+						ChainId: "",
 						Path:    "sub-name-host",
 						Value:   anotherUser2.bech32(), // account 2
 					},
@@ -438,8 +438,8 @@ func TestKeeper_DymNameConfiguration(t *testing.T) {
 						ChainId: "ethereum",
 						Path:    "",
 						Value:   strings.ToLower(anotherUser8WithChecksum), // account 8
-						// the value is lowercased, even tho the original value is mixed-case
-						// and the chain is neither host-chain nor RollApp
+						// the value is lowercased,
+						// even tho the original value is mixed-case and the chain is neither host-chain nor RollApp
 						// because it welformed as hex address, start with 0x
 					},
 				},
