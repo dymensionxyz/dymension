@@ -83,5 +83,5 @@ var validRollappPacket = ctypes.RollappPacket{
 	Relayer:                []byte("cosmos1"),
 	Type:                   ctypes.RollappPacket_ON_RECV,
 	Error:                  "error",
-	OriginalTransferTarget: "cosmos18wvvwfmq77a6d8tza4h5sfuy2yj3jj88yqg82a",
+	OriginalTransferTarget: "dym1hpnekcl344ckklw07j7qcfs2x3j03zn6rppt2r",
 }

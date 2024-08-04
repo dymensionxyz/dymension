@@ -8,11 +8,13 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/dymensionxyz/sdk-utils/utils/uptr"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/dymensionxyz/dymension/v3/testutil/sample"
 )
 
 func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
@@ -53,17 +55,34 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Bond:         bond,
 			},
 		}, {
-			name: "valid description",
+			name: "valid metadata",
 			msg: MsgCreateSequencer{
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Moniker:         strings.Repeat("a", MaxMonikerLength),
-					Identity:        strings.Repeat("a", MaxIdentityLength),
-					Website:         strings.Repeat("a", MaxWebsiteLength),
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength),
-					Details:         strings.Repeat("a", MaxDetailsLength),
+				Metadata: SequencerMetadata{
+					Moniker:     strings.Repeat("a", MaxMonikerLength),
+					Details:     strings.Repeat("a", MaxDetailsLength),
+					P2PSeeds:    []string{"seed1", "seed2"},
+					Rpcs:        []string{"rpc1", "rpc2"},
+					EvmRpcs:     []string{"evm1", "evm2"},
+					RestApiUrls: []string{"rest_api_url"},
+					ExplorerUrl: "explorer_url",
+					GenesisUrls: []string{"genesis1", "genesis2"},
+					ContactDetails: &ContactDetails{
+						Website:  strings.Repeat("a", MaxContactFieldLength),
+						Telegram: strings.Repeat("a", MaxContactFieldLength),
+						X:        strings.Repeat("a", MaxContactFieldLength),
+					},
+					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength)),
+					Snapshots: []*SnapshotInfo{
+						{
+							SnapshotUrl: "snapshot_url",
+							Height:      123,
+							Checksum:    "checksum",
+						},
+					},
+					GasPrice: uptr.To(sdk.NewInt(100)),
 				},
 			},
 		}, {
@@ -72,19 +91,8 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
+				Metadata: SequencerMetadata{
 					Moniker: strings.Repeat("a", MaxMonikerLength+1),
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
-			name: "invalid identity length",
-			msg: MsgCreateSequencer{
-				Creator:      sample.AccAddress(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				Description: Description{
-					Identity: strings.Repeat("a", MaxIdentityLength+1),
 				},
 			},
 			err: ErrInvalidRequest,
@@ -94,19 +102,10 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
-					Website: strings.Repeat("a", MaxWebsiteLength+1),
-				},
-			},
-			err: ErrInvalidRequest,
-		}, {
-			name: "invalid security contact length",
-			msg: MsgCreateSequencer{
-				Creator:      sample.AccAddress(),
-				DymintPubKey: pkAny,
-				Bond:         bond,
-				Description: Description{
-					SecurityContact: strings.Repeat("a", MaxSecurityContactLength+1),
+				Metadata: SequencerMetadata{
+					ContactDetails: &ContactDetails{
+						Website: strings.Repeat("a", MaxContactFieldLength+1),
+					},
 				},
 			},
 			err: ErrInvalidRequest,
@@ -116,8 +115,19 @@ func TestMsgCreateSequencer_ValidateBasic(t *testing.T) {
 				Creator:      sample.AccAddress(),
 				DymintPubKey: pkAny,
 				Bond:         bond,
-				Description: Description{
+				Metadata: SequencerMetadata{
 					Details: strings.Repeat("a", MaxDetailsLength+1),
+				},
+			},
+			err: ErrInvalidRequest,
+		}, {
+			name: "invalid extra data length",
+			msg: MsgCreateSequencer{
+				Creator:      sample.AccAddress(),
+				DymintPubKey: pkAny,
+				Bond:         bond,
+				Metadata: SequencerMetadata{
+					ExtraData: []byte(strings.Repeat("a", MaxExtraDataLength+1)),
 				},
 			},
 			err: ErrInvalidRequest,

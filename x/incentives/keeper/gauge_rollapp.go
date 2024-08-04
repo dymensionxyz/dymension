@@ -50,7 +50,7 @@ func (k Keeper) distributeToRollappGauge(ctx sdk.Context, gauge types.Gauge) (to
 	var addr sdk.AccAddress
 	for _, seq := range seqs {
 		if seq.Proposer {
-			addr, _ = sdk.AccAddressFromBech32(seq.SequencerAddress)
+			addr, _ = sdk.AccAddressFromBech32(seq.Address)
 			break
 		}
 	}

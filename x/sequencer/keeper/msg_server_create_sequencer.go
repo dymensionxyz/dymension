@@ -2,21 +2,20 @@ package keeper
 
 import (
 	"context"
-	"slices"
 	"strconv"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
 	errorsmod "cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // CreateSequencer defines a method for creating a new sequencer
 func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSequencer) (*types.MsgCreateSequencerResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.DymintPubKey == nil {
-		return nil, errorsmod.Wrapf(types.ErrInvalidPubKey, "sequencer pubkey can not be empty")
+	if err := msg.ValidateBasic(); err != nil {
+		return nil, errorsmod.Wrapf(types.ErrInvalidRequest, "validate basic: %v", err)
 	}
 
 	// check to see if the sequencer has been registered before
@@ -29,26 +28,30 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	if !found {
 		return nil, types.ErrUnknownRollappID
 	}
+
 	if rollapp.Frozen {
 		return nil, types.ErrRollappJailed
 	}
 
-	// check if there are permissionedAddresses.
-	// if the list is not empty, it means that only permissioned sequencers can be added
-	permissionedAddresses := rollapp.PermissionedAddresses
-	if 0 < len(permissionedAddresses) && !slices.Contains(permissionedAddresses, msg.Creator) {
-		return nil, types.ErrSequencerNotPermissioned
-	}
-
-	// check to see if the sequencer has enough balance and deduct the bond
-	seqAcc, err := sdk.AccAddressFromBech32(msg.Creator)
-	if err != nil {
-		return nil, err
+	// Only the initial sequencer can be the first to register, and is automatically selected as the first proposer,
+	// allowing the Rollapp to be sealed (provided that all the immutable fields are set in the Rollapp).
+	// This limitation prevents scenarios such as:
+	// a) any non-initial sequencer getting registered before the immutable fields are set in the Rollapp.
+	// b) situation when sequencer "X" is registered prior to the initial sequencer,
+	// after which the initial sequencer's address is set to sequencer X's address, effectively preventing:
+	// 	1. the initial sequencer from getting selected as the first proposer,
+	// 	2. the rollapp from getting sealed
+	isInitial := msg.Creator == rollapp.InitialSequencerAddress
+	if isInitial {
+		if err := k.rollappKeeper.SealRollapp(ctx, msg.RollappId); err != nil {
+			return nil, err
+		}
+	} else if !rollapp.Sealed {
+		return nil, types.ErrNotInitialSequencer
 	}
 
 	bond := sdk.Coins{}
-	minBond := k.GetParams(ctx).MinBond
-	if !minBond.IsNil() && !minBond.IsZero() {
+	if minBond := k.GetParams(ctx).MinBond; !(minBond.IsNil() || minBond.IsZero()) {
 		if msg.Bond.Denom != minBond.Denom {
 			return nil, errorsmod.Wrapf(
 				types.ErrInvalidCoinDenom, "got %s, expected %s", msg.Bond.Denom, minBond.Denom,
@@ -61,7 +64,8 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 			)
 		}
 
-		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
+		seqAcc, _ := sdk.AccAddressFromBech32(msg.Creator)
+		err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, seqAcc, types.ModuleName, sdk.NewCoins(msg.Bond))
 		if err != nil {
 			return nil, err
 		}
@@ -69,25 +73,13 @@ func (k msgServer) CreateSequencer(goCtx context.Context, msg *types.MsgCreateSe
 	}
 
 	sequencer := types.Sequencer{
-		SequencerAddress: msg.Creator,
-		DymintPubKey:     msg.DymintPubKey,
-		RollappId:        msg.RollappId,
-		Description:      msg.Description,
-		Status:           types.Bonded,
-		Proposer:         false,
-		Tokens:           bond,
-	}
-
-	bondedSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Bonded)
-	unbondingSequencers := k.GetSequencersByRollappByStatus(ctx, msg.RollappId, types.Unbonding)
-	// check to see if we reached the maximum number of sequencers for this rollapp
-	currentNumOfSequencers := len(bondedSequencers) + len(unbondingSequencers)
-	if rollapp.MaxSequencers > 0 && uint64(currentNumOfSequencers) >= rollapp.MaxSequencers {
-		return nil, types.ErrMaxSequencersLimit
-	}
-	// this is the first sequencer, make it a PROPOSER
-	if len(bondedSequencers) == 0 {
-		sequencer.Proposer = true
+		Address:      msg.Creator,
+		DymintPubKey: msg.DymintPubKey,
+		RollappId:    msg.RollappId,
+		Metadata:     msg.Metadata,
+		Status:       types.Bonded,
+		Proposer:     isInitial,
+		Tokens:       bond,
 	}
 
 	k.SetSequencer(ctx, sequencer)

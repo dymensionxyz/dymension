@@ -10,7 +10,6 @@ import (
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	appparams "github.com/dymensionxyz/dymension/v3/app/params"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
-
 	delayedacktypes "github.com/dymensionxyz/dymension/v3/x/delayedack/types"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	seqtypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
@@ -32,7 +31,6 @@ func CreateUpgradeHandler(
 
 		// overwrite params for rollapp module due to proto change
 		rollappParams := rollapptypes.DefaultParams()
-		rollappParams.RollappsEnabled = false
 		rollappParams.DisputePeriodInBlocks = 120960 // 1 week
 		keepers.RollappKeeper.SetParams(ctx, rollappParams)
 

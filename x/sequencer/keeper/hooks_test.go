@@ -3,7 +3,9 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -14,19 +16,22 @@ func (suite *SequencerTestSuite) TestFraudSubmittedHook() {
 
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
+	rollappId, pk := suite.CreateDefaultRollapp()
 
 	numOfSequencers := 5
 
 	// create 5 sequencers for rollapp1
 	seqAddrs := make([]string, numOfSequencers)
-	for i := 0; i < numOfSequencers; i++ {
-		seqAddrs[i] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)))
+	seqAddrs[0] = suite.CreateSequencerWithBond(suite.Ctx, rollappId, bond.AddAmount(sdk.NewInt(20)), pk)
+
+	for i := 1; i < numOfSequencers; i++ {
+		pki := ed25519.GenPrivKey().PubKey()
+		seqAddrs[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pki)
 	}
 	proposer := seqAddrs[0]
 
 	// queue the third sequencer to reduce bond
-	unbondMsg := types.MsgDecreaseBond{Creator: seqAddrs[2], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
+	unbondMsg := types.MsgDecreaseBond{Creator: seqAddrs[0], DecreaseAmount: sdk.NewInt64Coin(bond.Denom, 10)}
 	resp, err := suite.msgServer.DecreaseBond(suite.Ctx, &unbondMsg)
 	suite.Require().NoError(err)
 	bds := keeper.GetMatureDecreasingBondSequencers(suite.Ctx, resp.GetCompletionTime())

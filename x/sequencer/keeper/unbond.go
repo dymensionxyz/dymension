@@ -5,8 +5,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 	"github.com/osmosis-labs/osmosis/v15/osmoutils"
+
+	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
 // UnbondAllMatureSequencers unbonds all the mature unbonding sequencers that
@@ -15,11 +16,11 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	sequencers := k.GetMatureUnbondingSequencers(ctx, currTime)
 	for _, seq := range sequencers {
 		wrapFn := func(ctx sdk.Context) error {
-			return k.unbondUnbondingSequencer(ctx, seq.SequencerAddress)
+			return k.unbondUnbondingSequencer(ctx, seq.Address)
 		}
 		err := osmoutils.ApplyFuncIfNoError(ctx, wrapFn)
 		if err != nil {
-			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.SequencerAddress)
+			k.Logger(ctx).Error("unbond sequencer", "error", err, "sequencer", seq.Address)
 			continue
 		}
 	}
@@ -56,7 +57,7 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 
 	seqTokens := seq.Tokens
 	if !seqTokens.Empty() {
-		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
+		seqAcc, err := sdk.AccAddressFromBech32(seq.Address)
 		if err != nil {
 			return err
 		}
@@ -66,7 +67,7 @@ func (k Keeper) forceUnbondSequencer(ctx sdk.Context, seqAddr string) error {
 			return err
 		}
 	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
+		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.Address)
 	}
 
 	// set the status to unbonded and remove from the unbonding queue if needed
@@ -114,7 +115,7 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 	}
 	seqTokens := seq.Tokens
 	if !seqTokens.Empty() {
-		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
+		seqAcc, err := sdk.AccAddressFromBech32(seq.Address)
 		if err != nil {
 			return err
 		}
@@ -124,7 +125,7 @@ func (k Keeper) unbondUnbondingSequencer(ctx sdk.Context, seqAddr string) error 
 			return err
 		}
 	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
+		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.Address)
 	}
 
 	// set the status to unbonded and remove from the unbonding queue

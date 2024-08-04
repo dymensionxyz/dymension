@@ -3,7 +3,9 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
 
@@ -14,8 +16,8 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 
 	keeper := suite.App.SequencerKeeper
 
-	rollappId := suite.CreateDefaultRollapp()
-	rollappId2 := suite.CreateDefaultRollapp()
+	rollappId, pk1 := suite.CreateDefaultRollapp()
+	rollappId2, pk2 := suite.CreateDefaultRollapp()
 
 	numOfSequencers := 5
 	numOfSequencers2 := 3
@@ -25,13 +27,15 @@ func (suite *SequencerTestSuite) TestUnbondingMultiple() {
 	seqAddr2 := make([]string, numOfSequencers2)
 
 	// create 5 sequencers for rollapp1
-	for i := 0; i < numOfSequencers; i++ {
-		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	seqAddr1[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
+	for i := 1; i < numOfSequencers; i++ {
+		seqAddr1[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId, ed25519.GenPrivKey().PubKey())
 	}
 
 	// create 3 sequencers for rollapp2
-	for i := 0; i < numOfSequencers2; i++ {
-		seqAddr2[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId2)
+	seqAddr2[0] = suite.CreateDefaultSequencer(suite.Ctx, rollappId2, pk2)
+	for i := 1; i < numOfSequencers2; i++ {
+		seqAddr2[i] = suite.CreateDefaultSequencer(suite.Ctx, rollappId2, ed25519.GenPrivKey().PubKey())
 	}
 
 	// start unbonding for 2 sequencers in each rollapp
@@ -67,15 +71,16 @@ func (suite *SequencerTestSuite) TestTokensRefundOnUnbond() {
 	blockheight := 20
 	var err error
 
-	rollappId := suite.CreateDefaultRollapp()
-	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	rollappId, pk1 := suite.CreateDefaultRollapp()
+	addr1 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk1)
 	sequencer1, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr1)
 	suite.Require().True(sequencer1.Status == types.Bonded)
 	suite.Require().True(sequencer1.Proposer)
 
 	suite.Require().False(sequencer1.Tokens.IsZero())
 
-	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId)
+	pk2 := ed25519.GenPrivKey().PubKey()
+	addr2 := suite.CreateDefaultSequencer(suite.Ctx, rollappId, pk2)
 	sequencer2, _ := suite.App.SequencerKeeper.GetSequencer(suite.Ctx, addr2)
 	suite.Require().True(sequencer2.Status == types.Bonded)
 	suite.Require().False(sequencer2.Proposer)
