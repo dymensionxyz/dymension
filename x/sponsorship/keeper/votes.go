@@ -27,7 +27,7 @@ func (k Keeper) Vote(ctx sdk.Context, voter sdk.AccAddress, weights []types.Gaug
 	}
 
 	// Get the user’s total voting power from the x/staking
-	vpBreakdown, err := k.getValidatorBreakdown(ctx, voter)
+	vpBreakdown, err := k.GetValidatorBreakdown(ctx, voter)
 	if err != nil {
 		return types.Vote{}, types.Distribution{}, fmt.Errorf("failed to get voting power from x/staking: %w", err)
 	}
@@ -123,8 +123,8 @@ type ValidatorBreakdown struct {
 	Breakdown  []ValidatorPower
 }
 
-// getValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
-func (k Keeper) getValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
+// GetValidatorBreakdown returns the user's voting power calculated based on the x/staking module.
+func (k Keeper) GetValidatorBreakdown(ctx sdk.Context, voter sdk.AccAddress) (ValidatorBreakdown, error) {
 	var err error
 	totalPower := math.ZeroInt()
 	breakdown := make([]ValidatorPower, 0)

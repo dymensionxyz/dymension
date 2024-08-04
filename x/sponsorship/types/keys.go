@@ -16,6 +16,7 @@ const (
 	DistributionByte                         // Current distribution: Distribution
 	DelegatorValidatorPowerByte              // Delegator voting power by the validator: math.Int
 	VoteByte                                 // User's vote: Vote
+	InactiveVoterByte                        // Votes having less than the min voting power to be removed at the end of the block
 )
 
 func ParamsKey() []byte {
@@ -41,13 +42,10 @@ func AllDelegatorValidatorPowersKey(voterAddr sdk.AccAddress) []byte {
 	return key
 }
 
-func DelegatorPowerKey(voterAddr sdk.AccAddress) []byte {
-	key := make([]byte, 0, 1+len(voterAddr))
-	key = append(key, DelegatorValidatorPowerByte)
-	key = append(key, voterAddr.Bytes()...)
-	return key
-}
-
 func VoteKey(voterAddr sdk.AccAddress) []byte {
 	return append([]byte{VoteByte}, voterAddr.Bytes()...)
+}
+
+func InactiveVoterKey() []byte {
+	return []byte{InactiveVoterByte}
 }

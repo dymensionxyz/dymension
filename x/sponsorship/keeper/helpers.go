@@ -108,6 +108,11 @@ func (k Keeper) GetDelegatorValidatorPower(ctx sdk.Context, voterAddr sdk.AccAdd
 	return v.Int, nil
 }
 
+func (k Keeper) HasDelegatorValidatorPower(ctx sdk.Context, voterAddr sdk.AccAddress, valAddr sdk.ValAddress) bool {
+	store := ctx.KVStore(k.storeKey)
+	return store.Has(types.DelegatorValidatorPowerKey(voterAddr, valAddr))
+}
+
 func (k Keeper) IterateDelegatorValidatorPower(
 	ctx sdk.Context,
 	voterAddr sdk.AccAddress,
@@ -146,7 +151,13 @@ func (k Keeper) DeleteDelegatorValidatorPower(ctx sdk.Context, voterAddr sdk.Acc
 
 func (k Keeper) DeleteDelegatorPower(ctx sdk.Context, voterAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.DelegatorPowerKey(voterAddr)) // delete the whole record
+	iterKey := types.AllDelegatorValidatorPowersKey(voterAddr)
+	iterator := store.Iterator(iterKey, storetypes.PrefixEndBytes(iterKey))
+	defer iterator.Close() // nolint: errcheck
+
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
 }
 
 func (k Keeper) SaveVote(ctx sdk.Context, voterAddr sdk.AccAddress, v types.Vote) error {
@@ -216,4 +227,25 @@ func (k Keeper) IterateVotes(
 	}
 
 	return nil
+}
+
+func (k Keeper) SaveInactiveVoter(ctx sdk.Context, voterAddr sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.InactiveVoterKey()
+	store.Set(key, voterAddr.Bytes())
+}
+
+func (k Keeper) DequeueInactiveVoters(ctx sdk.Context) []sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	voteByte := []byte{types.VoteByte}
+	iterator := store.Iterator(voteByte, storetypes.PrefixEndBytes(voteByte))
+	defer iterator.Close() // nolint: errcheck
+
+	var voters []sdk.AccAddress
+	for ; iterator.Valid(); iterator.Next() {
+		voters = append(voters, iterator.Key())
+		store.Delete(iterator.Key())
+	}
+
+	return voters
 }

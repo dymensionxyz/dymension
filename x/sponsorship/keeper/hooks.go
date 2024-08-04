@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
@@ -52,9 +54,10 @@ func (h Hooks) afterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, 
 	// Calculate a staking voting power
 	stakingVP := v.TokensFromShares(d.GetShares()).Ceil().TruncateInt()
 
-	// Get the current voting power saved in x/sponsorship
+	// Get the current voting power saved in x/sponsorship. If the VP is not found, then we yet don't
+	// have a relevant record. This is a valid case when the VP is zero.
 	sponsorshipVP, err := h.k.GetDelegatorValidatorPower(ctx, delAddr, valAddr)
-	if err != nil {
+	if err != nil && !errors.Is(err, sdkerrors.ErrNotFound) {
 		return fmt.Errorf("cannot get current voting power: %w", err)
 	}
 
@@ -130,13 +133,11 @@ func (h Hooks) processHook(
 
 	// Calculate the diff: if it's > 0, then the user has bonded. Otherwise, unbonded.
 	powerDiff := newVP.Sub(oldVP)
-
-	// Update the current user's voting power
-	vote.VotingPower = vote.VotingPower.Add(powerDiff)
+	newTotalVP := vote.VotingPower.Add(powerDiff)
 
 	// Validate that the user has min voting power. Revoke the vote if not.
 	minVP := h.k.GetParams(ctx).MinVotingPower
-	if vote.VotingPower.LT(minVP) {
+	if newTotalVP.LT(minVP) {
 		distr, errX := h.k.revokeVote(ctx, delAddr, vote)
 		if errX != nil {
 			return nil, fmt.Errorf("could not revoke vote: %w", errX)
@@ -159,6 +160,9 @@ func (h Hooks) processHook(
 	if err != nil {
 		return nil, fmt.Errorf("failed to update distribution: %w", err)
 	}
+
+	// Update the current user's voting power
+	vote.VotingPower = newTotalVP
 
 	// Save the updated vote
 	err = h.k.SaveVote(ctx, delAddr, vote)
