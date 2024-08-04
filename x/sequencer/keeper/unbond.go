@@ -159,13 +159,21 @@ func (k Keeper) completeBondReduction(ctx sdk.Context, reduction types.BondReduc
 			reduction.UnbondAmount.String(),
 		)
 	}
+	newBalance := seq.Tokens.Sub(reduction.UnbondAmount)
+	// in case between unbonding queue and now, the minbond value is increased,
+	// handle it by only returning upto minBond amount and not all
+	minBond := k.GetParams(ctx).MinBond
+	if newBalance.IsAllLT(sdk.NewCoins(minBond)) {
+		diff := minBond.SubAmount(newBalance.AmountOf(minBond.Denom))
+		reduction.UnbondAmount = reduction.UnbondAmount.Sub(diff)
+	}
 	seqAddr := sdk.MustAccAddressFromBech32(reduction.SequencerAddress)
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAddr, sdk.NewCoins(reduction.UnbondAmount))
 	if err != nil {
 		return err
 	}
-	seq.Tokens = seq.Tokens.Sub(reduction.UnbondAmount)
 
+	seq.Tokens = seq.Tokens.Sub(reduction.UnbondAmount)
 	k.SetSequencer(ctx, seq)
 	k.removeDecreasingBondQueue(ctx, reduction)
 
