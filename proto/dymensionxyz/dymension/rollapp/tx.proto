@@ -45,9 +45,9 @@ message MsgCreateRollappResponse {
 
 // MsgUpdateRollappInformation updates the rollapp information.
 message MsgUpdateRollappInformation {
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the bech32-encoded address of the rollapp creator
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "owner";
+  // owner is the bech32-encoded address of the rollapp owner
+  string owner = 1;
   // rollapp_id is the unique identifier of the rollapp chain.
   string rollapp_id = 2;
   // initial_sequencer_address is a bech32-encoded address of the

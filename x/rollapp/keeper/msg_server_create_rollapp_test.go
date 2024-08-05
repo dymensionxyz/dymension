@@ -392,7 +392,7 @@ func (suite *RollappTestSuite) createRollappWithCreatorAndVerify(expectedErr err
 	// rollappExpect is the expected result of creating rollapp
 	rollappExpect := types.Rollapp{
 		RollappId:               rollapp.GetRollappId(),
-		Creator:                 rollapp.GetCreator(),
+		Owner:                   rollapp.GetCreator(),
 		InitialSequencerAddress: rollapp.GetInitialSequencerAddress(),
 		GenesisChecksum:         rollapp.GetGenesisChecksum(),
 		Bech32Prefix:            rollapp.GetBech32Prefix(),

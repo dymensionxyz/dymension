@@ -23,7 +23,7 @@ func (k Keeper) RegisterRollapp(ctx sdk.Context, rollapp types.Rollapp) error {
 		return err
 	}
 
-	creator, _ := sdk.AccAddressFromBech32(rollapp.Creator)
+	creator, _ := sdk.AccAddressFromBech32(rollapp.Owner)
 	registrationFee := sdk.NewCoins(k.RegistrationFee(ctx))
 
 	if !registrationFee.IsZero() {
@@ -66,7 +66,7 @@ func (k Keeper) canUpdateRollapp(ctx sdk.Context, update *types.MsgUpdateRollapp
 		return current, errRollappNotFound
 	}
 
-	if update.Creator != current.Creator {
+	if update.Owner != current.Owner {
 		return current, sdkerrors.ErrUnauthorized
 	}
 

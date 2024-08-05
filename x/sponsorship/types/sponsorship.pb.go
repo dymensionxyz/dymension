@@ -122,7 +122,7 @@ var xxx_messageInfo_Params proto.InternalMessageInfo
 //	a + i = e :                               power 0
 //
 // CONTRACT: Gauges are sorted by the gauge ID.
-// CONTRACT: Gauges hold gauges only with non-vero power.
+// CONTRACT: Gauges hold gauges only with non-zero power.
 type Distribution struct {
 	// VotingPower is the total voting power that the distribution holds.
 	VotingPower github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=voting_power,json=votingPower,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"voting_power"`

@@ -18,7 +18,7 @@ func NewMsgUpdateRollappInformation(
 	metadata *RollappMetadata,
 ) *MsgUpdateRollappInformation {
 	return &MsgUpdateRollappInformation{
-		Creator:                 creator,
+		Owner:                   creator,
 		RollappId:               rollappId,
 		InitialSequencerAddress: initSequencerAddress,
 		GenesisChecksum:         genesisChecksum,
@@ -36,7 +36,7 @@ func (msg *MsgUpdateRollappInformation) Type() string {
 }
 
 func (msg *MsgUpdateRollappInformation) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
 		panic(err)
 	}

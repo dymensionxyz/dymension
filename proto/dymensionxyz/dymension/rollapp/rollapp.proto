@@ -27,8 +27,8 @@ message Rollapp {
   // The unique identifier of the rollapp chain.
   // The rollapp_id follows the same standard as cosmos chain_id.
   string rollapp_id = 1;
-  // creator is the bech32-encoded address of the rollapp creator.
-  string creator = 2;
+  // owner is the bech32-encoded address of the rollapp owner.
+  string owner = 2;
   // field numbers not to be reused
   reserved 3 to 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
