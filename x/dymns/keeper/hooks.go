@@ -287,7 +287,9 @@ type rollappHooks struct {
 var _ RollAppHooks = rollappHooks{}
 
 func (h rollappHooks) RollappCreated(ctx sdk.Context, rollappID, alias string, creatorAddr sdk.AccAddress) error {
-	// TODO DymNS: if alias is empty, do nothing
+	if alias == "" {
+		return nil
+	}
 
 	if !h.Keeper.IsRollAppId(ctx, rollappID) {
 		// ensure RollApp record is set

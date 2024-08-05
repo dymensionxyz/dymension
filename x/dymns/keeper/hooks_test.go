@@ -1208,7 +1208,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
 				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
 			},
-			wantErr:             false,
+			wantErr: false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// removed reference to Dym-Name A because of processed
 				// removed reference to Dym-Name B because SO not exists
@@ -1401,6 +1401,27 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
 				require.True(t, found)
 				require.Equal(t, "rollapp_1-1", rollAppId)
+			},
+		},
+		{
+			name:                    "pass - if input alias is empty, do nothing",
+			addRollApps:             []string{"rollapp_1-1"},
+			originalCreatorBalance:  0,
+			rollAppId:               "rollapp_1-1",
+			alias:                   "",
+			wantErr:                 false,
+			wantSuccess:             true,
+			wantLaterCreatorBalance: 0,
+			postTest: func(t *testing.T, context sdk.Context, dk dymnskeeper.Keeper, rk rollappkeeper.Keeper) {
+				// mapping should not be created
+
+				alias, found := dk.GetAliasByRollAppId(context, "rollapp_1-1")
+				require.False(t, found)
+				require.Empty(t, alias)
+
+				rollAppId, found := dk.GetRollAppIdByAlias(context, "alias")
+				require.False(t, found)
+				require.Empty(t, rollAppId)
 			},
 		},
 		{
@@ -1849,4 +1870,15 @@ func Test_rollappHooks_RollappCreated(t *testing.T) {
 			require.Equal(t, tt.wantLaterCreatorBalance, laterCreatorBalance.Amount.Int64(), "creator balance mismatch")
 		})
 	}
+
+	t.Run("if alias is empty, do nothing", func(t *testing.T) {
+		dk, _, _, ctx := setupTest()
+
+		originalTxGas := ctx.GasMeter().GasConsumed()
+
+		err := dk.GetRollAppHooks().RollappCreated(ctx, "rollapp_1-1", "", creatorAccAddr)
+		require.NoError(t, err)
+
+		require.Equal(t, originalTxGas, ctx.GasMeter().GasConsumed(), "should not consume gas")
+	})
 }
