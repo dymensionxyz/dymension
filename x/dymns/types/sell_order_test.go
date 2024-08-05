@@ -492,9 +492,10 @@ func TestSellOrderBid_Validate(t *testing.T) {
 				require.NotEmpty(t, tt.wantErrContains, "mis-configured test case")
 				require.Error(t, err)
 				require.Contains(t, err.Error(), tt.wantErrContains)
-			} else {
-				require.NoError(t, err)
+				return
 			}
+
+			require.NoError(t, err)
 		})
 	}
 }
@@ -617,6 +618,32 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 	t.Run("all fields", func(t *testing.T) {
 		event := SellOrder{
 			Name:      "a",
+			Type:      MarketOrderType_MOT_DYM_NAME,
+			ExpireAt:  123456,
+			MinPrice:  dymnsutils.TestCoin(1),
+			SellPrice: dymnsutils.TestCoinP(3),
+			HighestBid: &SellOrderBid{
+				Bidder: "d",
+				Price:  dymnsutils.TestCoin(2),
+			},
+		}.GetSdkEvent("action-name")
+		requireEventEquals(t, event,
+			EventTypeSellOrder,
+			AttributeKeySoName, "a",
+			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
+			AttributeKeySoExpiryEpoch, "123456",
+			AttributeKeySoMinPrice, "1"+params.BaseDenom,
+			AttributeKeySoSellPrice, "3"+params.BaseDenom,
+			AttributeKeySoHighestBidder, "d",
+			AttributeKeySoHighestBidPrice, "2"+params.BaseDenom,
+			AttributeKeySoActionName, "action-name",
+		)
+	})
+
+	t.Run("SO type alias", func(t *testing.T) {
+		event := SellOrder{
+			Name:      "a",
+			Type:      MarketOrderType_MOT_ALIAS,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
 			SellPrice: dymnsutils.TestCoinP(3),
@@ -627,26 +654,15 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
 		require.Equal(t, EventTypeSellOrder, event.Type)
-		require.Len(t, event.Attributes, 7)
-		require.Equal(t, AttributeKeySoName, event.Attributes[0].Key)
-		require.Equal(t, "a", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeySoExpiryEpoch, event.Attributes[1].Key)
-		require.Equal(t, "123456", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeySoMinPrice, event.Attributes[2].Key)
-		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeySoSellPrice, event.Attributes[3].Key)
-		require.Equal(t, "3"+params.BaseDenom, event.Attributes[3].Value)
-		require.Equal(t, AttributeKeySoHighestBidder, event.Attributes[4].Key)
-		require.Equal(t, "d", event.Attributes[4].Value)
-		require.Equal(t, AttributeKeySoHighestBidPrice, event.Attributes[5].Key)
-		require.Equal(t, "2"+params.BaseDenom, event.Attributes[5].Value)
-		require.Equal(t, AttributeKeySoActionName, event.Attributes[6].Key)
-		require.Equal(t, "action-name", event.Attributes[6].Value)
+		require.Len(t, event.Attributes, 8)
+		require.Equal(t, AttributeKeySoType, event.Attributes[1].Key)
+		require.Equal(t, MarketOrderType_MOT_ALIAS.String(), event.Attributes[1].Value)
 	})
 
 	t.Run("no sell-price", func(t *testing.T) {
 		event := SellOrder{
 			Name:     "a",
+			Type:     MarketOrderType_MOT_DYM_NAME,
 			ExpireAt: 123456,
 			MinPrice: dymnsutils.TestCoin(1),
 			HighestBid: &SellOrderBid{
@@ -654,48 +670,38 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 				Price:  dymnsutils.TestCoin(2),
 			},
 		}.GetSdkEvent("action-name")
-		require.NotNil(t, event)
-		require.Equal(t, EventTypeSellOrder, event.Type)
-		require.Len(t, event.Attributes, 7)
-		require.Equal(t, AttributeKeySoName, event.Attributes[0].Key)
-		require.Equal(t, "a", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeySoExpiryEpoch, event.Attributes[1].Key)
-		require.Equal(t, "123456", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeySoMinPrice, event.Attributes[2].Key)
-		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeySoSellPrice, event.Attributes[3].Key)
-		require.Equal(t, "0"+params.BaseDenom, event.Attributes[3].Value)
-		require.Equal(t, AttributeKeySoHighestBidder, event.Attributes[4].Key)
-		require.Equal(t, "d", event.Attributes[4].Value)
-		require.Equal(t, AttributeKeySoHighestBidPrice, event.Attributes[5].Key)
-		require.Equal(t, "2"+params.BaseDenom, event.Attributes[5].Value)
-		require.Equal(t, AttributeKeySoActionName, event.Attributes[6].Key)
-		require.Equal(t, "action-name", event.Attributes[6].Value)
+		requireEventEquals(t, event,
+			EventTypeSellOrder,
+			AttributeKeySoName, "a",
+			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
+			AttributeKeySoExpiryEpoch, "123456",
+			AttributeKeySoMinPrice, "1"+params.BaseDenom,
+			AttributeKeySoSellPrice, "0"+params.BaseDenom,
+			AttributeKeySoHighestBidder, "d",
+			AttributeKeySoHighestBidPrice, "2"+params.BaseDenom,
+			AttributeKeySoActionName, "action-name",
+		)
 	})
+
 	t.Run("no highest bid", func(t *testing.T) {
 		event := SellOrder{
 			Name:      "a",
+			Type:      MarketOrderType_MOT_DYM_NAME,
 			ExpireAt:  123456,
 			MinPrice:  dymnsutils.TestCoin(1),
 			SellPrice: dymnsutils.TestCoinP(3),
 		}.GetSdkEvent("action-name")
-		require.NotNil(t, event)
-		require.Equal(t, EventTypeSellOrder, event.Type)
-		require.Len(t, event.Attributes, 7)
-		require.Equal(t, AttributeKeySoName, event.Attributes[0].Key)
-		require.Equal(t, "a", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeySoExpiryEpoch, event.Attributes[1].Key)
-		require.Equal(t, "123456", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeySoMinPrice, event.Attributes[2].Key)
-		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeySoSellPrice, event.Attributes[3].Key)
-		require.Equal(t, "3"+params.BaseDenom, event.Attributes[3].Value)
-		require.Equal(t, AttributeKeySoHighestBidder, event.Attributes[4].Key)
-		require.Empty(t, event.Attributes[4].Value)
-		require.Equal(t, AttributeKeySoHighestBidPrice, event.Attributes[5].Key)
-		require.Equal(t, "0"+params.BaseDenom, event.Attributes[5].Value)
-		require.Equal(t, AttributeKeySoActionName, event.Attributes[6].Key)
-		require.Equal(t, "action-name", event.Attributes[6].Value)
+		requireEventEquals(t, event,
+			EventTypeSellOrder,
+			AttributeKeySoName, "a",
+			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
+			AttributeKeySoExpiryEpoch, "123456",
+			AttributeKeySoMinPrice, "1"+params.BaseDenom,
+			AttributeKeySoSellPrice, "3"+params.BaseDenom,
+			AttributeKeySoHighestBidder, "",
+			AttributeKeySoHighestBidPrice, "0"+params.BaseDenom,
+			AttributeKeySoActionName, "action-name",
+		)
 	})
 }
 
@@ -996,5 +1002,16 @@ func TestActiveSellOrdersExpiration_Remove(t *testing.T) {
 
 			require.Equal(t, tt.want, m.Records)
 		})
+	}
+}
+
+func requireEventEquals(t *testing.T, event sdk.Event, wantType string, wantAttributePairs ...string) {
+	require.NotNil(t, event)
+	require.True(t, len(wantAttributePairs)%2 == 0, "size of expected attr pairs must be even")
+	require.Equal(t, wantType, event.Type)
+	require.Len(t, event.Attributes, len(wantAttributePairs)/2)
+	for i := 0; i < len(wantAttributePairs); i += 2 {
+		require.Equal(t, wantAttributePairs[i], event.Attributes[i/2].Key)
+		require.Equal(t, wantAttributePairs[i+1], event.Attributes[i/2].Value)
 	}
 }

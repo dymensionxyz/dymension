@@ -30,6 +30,7 @@ const (
 	EventTypeSellOrder            = ModuleName + "_so"
 	AttributeKeySoActionName      = "action"
 	AttributeKeySoName            = "name"
+	AttributeKeySoType            = "type"
 	AttributeKeySoExpiryEpoch     = "expiry_epoch"
 	AttributeKeySoMinPrice        = "min_price"
 	AttributeKeySoSellPrice       = "sell_price"
@@ -39,8 +40,8 @@ const (
 
 // Event to fire corresponding to the action of CRUD a SellOrder.
 const (
-	AttributeValueDymNameSoActionNameSet    = "set"
-	AttributeValueDymNameSoActionNameDelete = "delete"
+	AttributeValueSoActionNameSet    = "set"
+	AttributeValueSoActionNameDelete = "delete"
 )
 
 // Event to fire when a BuyOffer is set into store.
@@ -49,6 +50,8 @@ const (
 	AttributeKeyBoActionName             = "action"
 	AttributeKeyBoId                     = "id"
 	AttributeKeyBoName                   = "name"
+	AttributeKeyBoType                   = "type"
+	AttributeKeyBoBuyer                  = "buyer"
 	AttributeKeyBoOfferPrice             = "offer_price"
 	AttributeKeyBoCounterpartyOfferPrice = "counterparty_offer_price"
 )

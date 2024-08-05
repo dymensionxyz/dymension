@@ -27,7 +27,7 @@ func (k Keeper) SetSellOrder(ctx sdk.Context, so dymnstypes.SellOrder) error {
 	bz := k.cdc.MustMarshal(&so)
 	store.Set(soKey, bz)
 
-	ctx.EventManager().EmitEvent(so.GetSdkEvent(dymnstypes.AttributeValueDymNameSoActionNameSet))
+	ctx.EventManager().EmitEvent(so.GetSdkEvent(dymnstypes.AttributeValueSoActionNameSet))
 
 	return nil
 }
@@ -60,7 +60,7 @@ func (k Keeper) DeleteSellOrder(ctx sdk.Context, dymName string) {
 	soKey := dymnstypes.SellOrderKey(dymName)
 	store.Delete(soKey)
 
-	ctx.EventManager().EmitEvent(so.GetSdkEvent(dymnstypes.AttributeValueDymNameSoActionNameDelete))
+	ctx.EventManager().EmitEvent(so.GetSdkEvent(dymnstypes.AttributeValueSoActionNameDelete))
 }
 
 // GetAllSellOrders returns all active Sell-Orders from the KVStore.

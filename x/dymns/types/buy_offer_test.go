@@ -297,45 +297,57 @@ func TestBuyOffer_GetSdkEvent(t *testing.T) {
 		event := BuyOffer{
 			Id:                     "1",
 			Name:                   "a",
+			Type:                   MarketOrderType_MOT_DYM_NAME,
+			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			OfferPrice:             dymnsutils.TestCoin(1),
+			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
+		}.GetSdkEvent("action-name")
+		requireEventEquals(t, event,
+			EventTypeBuyOffer,
+			AttributeKeyBoId, "1",
+			AttributeKeyBoName, "a",
+			AttributeKeyBoType, MarketOrderType_MOT_DYM_NAME.String(),
+			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
+			AttributeKeyBoCounterpartyOfferPrice, "2"+params.BaseDenom,
+			AttributeKeyBoActionName, "action-name",
+		)
+	})
+
+	t.Run("BO type Alias", func(t *testing.T) {
+		event := BuyOffer{
+			Id:                     "1",
+			Name:                   "a",
+			Type:                   MarketOrderType_MOT_ALIAS,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
 			CounterpartyOfferPrice: dymnsutils.TestCoinP(2),
 		}.GetSdkEvent("action-name")
 		require.NotNil(t, event)
 		require.Equal(t, EventTypeBuyOffer, event.Type)
-		require.Len(t, event.Attributes, 5)
-		require.Equal(t, AttributeKeyBoId, event.Attributes[0].Key)
-		require.Equal(t, "1", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeyBoName, event.Attributes[1].Key)
-		require.Equal(t, "a", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeyBoOfferPrice, event.Attributes[2].Key)
-		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeyBoCounterpartyOfferPrice, event.Attributes[3].Key)
-		require.Equal(t, "2"+params.BaseDenom, event.Attributes[3].Value)
-		require.Equal(t, AttributeKeySoActionName, event.Attributes[4].Key)
-		require.Equal(t, "action-name", event.Attributes[4].Value)
+		require.Len(t, event.Attributes, 7)
+		require.Equal(t, AttributeKeyBoType, event.Attributes[2].Key)
+		require.Equal(t, MarketOrderType_MOT_ALIAS.String(), event.Attributes[2].Value)
 	})
 
 	t.Run("no counterparty offer price", func(t *testing.T) {
 		event := BuyOffer{
 			Id:                     "1",
 			Name:                   "a",
+			Type:                   MarketOrderType_MOT_DYM_NAME,
 			Buyer:                  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			OfferPrice:             dymnsutils.TestCoin(1),
 			CounterpartyOfferPrice: nil,
 		}.GetSdkEvent("action-name")
-		require.NotNil(t, event)
-		require.Equal(t, EventTypeBuyOffer, event.Type)
-		require.Len(t, event.Attributes, 5)
-		require.Equal(t, AttributeKeyBoId, event.Attributes[0].Key)
-		require.Equal(t, "1", event.Attributes[0].Value)
-		require.Equal(t, AttributeKeyBoName, event.Attributes[1].Key)
-		require.Equal(t, "a", event.Attributes[1].Value)
-		require.Equal(t, AttributeKeyBoOfferPrice, event.Attributes[2].Key)
-		require.Equal(t, "1"+params.BaseDenom, event.Attributes[2].Value)
-		require.Equal(t, AttributeKeyBoCounterpartyOfferPrice, event.Attributes[3].Key)
-		require.Empty(t, event.Attributes[3].Value)
-		require.Equal(t, AttributeKeySoActionName, event.Attributes[4].Key)
-		require.Equal(t, "action-name", event.Attributes[4].Value)
+		requireEventEquals(t, event,
+			EventTypeBuyOffer,
+			AttributeKeyBoId, "1",
+			AttributeKeyBoName, "a",
+			AttributeKeyBoType, MarketOrderType_MOT_DYM_NAME.String(),
+			AttributeKeyBoBuyer, "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			AttributeKeyBoOfferPrice, "1"+params.BaseDenom,
+			AttributeKeyBoCounterpartyOfferPrice, "",
+			AttributeKeyBoActionName, "action-name",
+		)
 	})
 }
