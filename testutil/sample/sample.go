@@ -16,11 +16,12 @@ func Acc() sdk.AccAddress {
 	return sdk.AccAddress(addr)
 }
 
-// GenerateAddresses generates numOfAddresses bech32 address
-func GenerateAddresses(numOfAddresses int) []string {
-	addresses := []string{}
-	for i := 0; i < numOfAddresses; i++ {
-		addresses = append(addresses, AccAddress())
-	}
-	return addresses
+func AccAddressFromSecret(secret string) string {
+	return AccFromSecret(secret).String()
+}
+
+func AccFromSecret(secret string) sdk.AccAddress {
+	pk := ed25519.GenPrivKeyFromSecret([]byte(secret)).PubKey()
+	addr := pk.Address()
+	return sdk.AccAddress(addr)
 }

@@ -63,8 +63,6 @@ import (
 	epochstypes "github.com/osmosis-labs/osmosis/v15/x/epochs/types"
 	gammkeeper "github.com/osmosis-labs/osmosis/v15/x/gamm/keeper"
 	gammtypes "github.com/osmosis-labs/osmosis/v15/x/gamm/types"
-	incentiveskeeper "github.com/osmosis-labs/osmosis/v15/x/incentives/keeper"
-	incentivestypes "github.com/osmosis-labs/osmosis/v15/x/incentives/types"
 	lockupkeeper "github.com/osmosis-labs/osmosis/v15/x/lockup/keeper"
 	lockuptypes "github.com/osmosis-labs/osmosis/v15/x/lockup/types"
 	poolmanagerkeeper "github.com/osmosis-labs/osmosis/v15/x/poolmanager/keeper"
@@ -81,6 +79,8 @@ import (
 	denommetadatamoduletypes "github.com/dymensionxyz/dymension/v3/x/denommetadata/types"
 	eibckeeper "github.com/dymensionxyz/dymension/v3/x/eibc/keeper"
 	eibcmoduletypes "github.com/dymensionxyz/dymension/v3/x/eibc/types"
+	incentiveskeeper "github.com/dymensionxyz/dymension/v3/x/incentives/keeper"
+	incentivestypes "github.com/dymensionxyz/dymension/v3/x/incentives/types"
 	rollappmodule "github.com/dymensionxyz/dymension/v3/x/rollapp"
 	rollappmodulekeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/transfergenesis"
@@ -331,6 +331,28 @@ func (a *AppKeepers) InitKeepers(
 		a.ScopedIBCKeeper,
 	)
 
+	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
+		a.BankKeeper,
+	)
+
+	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[rollappmoduletypes.StoreKey],
+		a.GetSubspace(rollappmoduletypes.ModuleName),
+		a.IBCKeeper.ChannelKeeper,
+		a.IBCKeeper.ClientKeeper,
+		a.BankKeeper,
+	)
+
+	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
+		appCodec,
+		a.keys[sequencermoduletypes.StoreKey],
+		a.keys[sequencermoduletypes.MemStoreKey],
+		a.GetSubspace(sequencermoduletypes.ModuleName),
+		a.BankKeeper,
+		a.RollappKeeper,
+	)
+
 	a.IncentivesKeeper = incentiveskeeper.NewKeeper(
 		a.keys[incentivestypes.StoreKey],
 		a.GetSubspace(incentivestypes.ModuleName),
@@ -339,6 +361,8 @@ func (a *AppKeepers) InitKeepers(
 		a.EpochsKeeper,
 		a.DistrKeeper,
 		a.TxFeesKeeper,
+		a.RollappKeeper,
+		&a.SequencerKeeper,
 	)
 
 	a.StreamerKeeper = *streamermodulekeeper.NewKeeper(
@@ -360,18 +384,6 @@ func (a *AppKeepers) InitKeepers(
 		nil,
 	)
 
-	a.DenomMetadataKeeper = denommetadatamodulekeeper.NewKeeper(
-		a.BankKeeper,
-	)
-
-	a.RollappKeeper = rollappmodulekeeper.NewKeeper(
-		appCodec,
-		a.keys[rollappmoduletypes.StoreKey],
-		a.GetSubspace(rollappmoduletypes.ModuleName),
-		a.IBCKeeper.ChannelKeeper,
-		a.IBCKeeper.ClientKeeper,
-	)
-
 	// Create Transfer Keepers
 	a.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
@@ -383,15 +395,6 @@ func (a *AppKeepers) InitKeepers(
 		a.AccountKeeper,
 		a.BankKeeper,
 		a.ScopedTransferKeeper,
-	)
-
-	a.SequencerKeeper = *sequencermodulekeeper.NewKeeper(
-		appCodec,
-		a.keys[sequencermoduletypes.StoreKey],
-		a.keys[sequencermoduletypes.MemStoreKey],
-		a.GetSubspace(sequencermoduletypes.ModuleName),
-		a.BankKeeper,
-		a.RollappKeeper,
 	)
 
 	a.DelayedAckKeeper = *delayedackkeeper.NewKeeper(
@@ -537,6 +540,7 @@ func (a *AppKeepers) SetupHooks() {
 		// insert rollapp hooks receivers here
 		a.SequencerKeeper.RollappHooks(),
 		a.delayedAckMiddleware,
+		a.StreamerKeeper.Hooks(),
 	))
 }
 

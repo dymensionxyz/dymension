@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+
 	"github.com/dymensionxyz/dymension/v3/simulation"
 	simulationtypes "github.com/dymensionxyz/dymension/v3/simulation/types"
 	"github.com/dymensionxyz/dymension/v3/x/rollapp/types"
@@ -71,7 +72,6 @@ func SimulateMsgUpdateState(
 			StartHeight: startHeight,
 			NumBlocks:   numBlocks,
 			DAPath:      "",
-			Version:     0,
 			BDs:         bds,
 		}
 

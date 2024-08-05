@@ -3,9 +3,13 @@ package dymensionxyz.dymension.rollapp;
 
 option go_package = "github.com/dymensionxyz/dymension/v3/x/rollapp/types";
 import "google/protobuf/any.proto";
+
 import "gogoproto/gogo.proto";
-import "dymensionxyz/dymension/rollapp/state_info.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+
+import "dymensionxyz/dymension/rollapp/state_info.proto";
+import "dymensionxyz/dymension/rollapp/metadata.proto";
 
 // RollappGenesisState is a partial repr of the state the hub can expect the rollapp to be in upon genesis
 message RollappGenesisState {
@@ -18,23 +22,16 @@ message RollappGenesisState {
   bool transfers_enabled = 2;
 }
 
-// Rollapp defines a rollapp object. First the RollApp is created and then
+// Rollapp defines a rollapp object. First, the RollApp is created and then
 // sequencers can be created and attached. The RollApp is identified by rollappId
 message Rollapp {
   // The unique identifier of the rollapp chain.
-  // The rollappId follows the same standard as cosmos chain_id.
-  string rollappId = 1;
+  // The rollapp_id follows the same standard as cosmos chain_id.
+  string rollapp_id = 1;
   // creator is the bech32-encoded address of the rollapp creator.
   string creator = 2;
-  // version is the software and configuration version.
-  // starts from 1 and increases by one on every MsgUpdateState
-  uint64 version = 3;
-  // maxSequencers is the maximum number of sequencers.
-  uint64 maxSequencers = 4;
-  // permissionedAddresses is a bech32-encoded address list of the sequencers that are allowed to serve this rollappId.
-  // In the case of an empty list, the rollapp is considered permissionless.
-  repeated string permissionedAddresses = 5;
-  reserved 6;
+  // field numbers not to be reused
+  reserved 3 to 6;
   // genesis_state is a partial repr of the state the hub can expect the rollapp to be in upon genesis
   RollappGenesisState genesis_state = 7 [(gogoproto.nullable) = false];
   // channel_id will be set to the canonical IBC channel of the rollapp.
@@ -43,6 +40,19 @@ message Rollapp {
   bool frozen = 9;
   // registeredDenoms is a list of registered denom bases on this rollapp
   repeated string registeredDenoms = 10;
+  // unique bech32 prefix
+  string bech32_prefix = 11;
+  // alias is the chain alias used for display and namespace system
+  string alias = 12;
+  // checksum used to verify integrity of the genesis file
+  string genesis_checksum = 13;
+  // metadata is the rollapp metadata
+  RollappMetadata metadata = 14;
+  // initial_sequencer_address is a bech32-encoded address of the
+  // sequencer that is allowed to initially register and serve for this rollapp.
+  string initial_sequencer_address = 15;
+  // sealed is a boolean that indicates if the immutable fields are no longer updatable.
+  bool sealed = 16;
 }
 
 // Rollapp summary is a compact representation of Rollapp

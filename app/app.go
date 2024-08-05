@@ -16,6 +16,7 @@ import (
 	simappparams "cosmossdk.io/simapp/params"
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
+
 	"github.com/dymensionxyz/dymension/v3/app/keepers"
 	"github.com/dymensionxyz/dymension/v3/app/upgrades"
 	v3 "github.com/dymensionxyz/dymension/v3/app/upgrades/v3"
@@ -387,9 +388,6 @@ func (app *App) setupUpgradeHandler(upgrade upgrades.Upgrade) {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Errorf("failed to read upgrade info from disk: %w", err))
-	}
-
-	switch upgradeInfo.Name {
 	}
 
 	if upgradeInfo.Name == upgrade.Name && !app.UpgradeKeeper.IsSkipHeight(upgradeInfo.Height) {

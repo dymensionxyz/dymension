@@ -5,20 +5,21 @@ import (
 	"encoding/json"
 	"testing"
 
-	cometbfttypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	cometbftproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	cometbfttypes "github.com/cometbft/cometbft/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	channeltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	ibctesting "github.com/cosmos/ibc-go/v7/testing"
 	"github.com/cosmos/ibc-go/v7/testing/mock"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/dymensionxyz/dymension/v3/app"
 	"github.com/dymensionxyz/dymension/v3/app/apptesting"
@@ -27,9 +28,6 @@ import (
 	rollappkeeper "github.com/dymensionxyz/dymension/v3/x/rollapp/keeper"
 	rollapptypes "github.com/dymensionxyz/dymension/v3/x/rollapp/types"
 	sequencertypes "github.com/dymensionxyz/dymension/v3/x/sequencer/types"
-
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
 // chainIDPrefix defines the default chain ID prefix for Evmos test chains
@@ -108,6 +106,11 @@ func (s *utilSuite) rollappMsgServer() rollapptypes.MsgServer {
 func (s *utilSuite) SetupTest() {
 	s.coordinator = ibctesting.NewCoordinator(s.T(), 2) // initializes test chains
 	s.coordinator.Chains[rollappChainID()] = s.newTestChainWithSingleValidator(s.T(), s.coordinator, rollappChainID())
+	s.fundSenderAccount()
+}
+
+func (s *utilSuite) fundSenderAccount() {
+	apptesting.FundAccount(s.hubApp(), s.hubCtx(), s.hubChain().SenderAccount.GetAddress(), sdk.NewCoins(rollapptypes.DefaultRegistrationFee))
 }
 
 // CreateRollappWithFinishedGenesis creates a rollapp whose 'genesis' protocol is complete:
@@ -117,7 +120,23 @@ func (s *utilSuite) createRollappWithFinishedGenesis(canonicalChannelID string) 
 }
 
 func (s *utilSuite) createRollapp(transfersEnabled bool, channelID *string) {
-	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(s.hubChain().SenderAccount.GetAddress().String(), rollappChainID(), 10, []string{})
+	msgCreateRollapp := rollapptypes.NewMsgCreateRollapp(
+		s.hubChain().SenderAccount.GetAddress().String(),
+		rollappChainID(),
+		s.hubChain().SenderAccount.GetAddress().String(),
+		"eth",
+		"somechecksum",
+		"Rollapp",
+
+		&rollapptypes.RollappMetadata{
+			Website:          "http://example.com",
+			Description:      "Some description",
+			LogoDataUri:      "data:image/png;base64,c2lzZQ==",
+			TokenLogoDataUri: "data:image/png;base64,ZHVwZQ==",
+			Telegram:         "rolly",
+			X:                "rolly",
+		},
+	)
 	_, err := s.hubChain().SendMsgs(msgCreateRollapp)
 	s.Require().NoError(err) // message committed
 	if channelID != nil {
@@ -143,7 +162,7 @@ func (s *utilSuite) registerSequencer() {
 		s.hubChain().SenderAccount.GetAddress().String(),
 		pk,
 		rollappChainID(),
-		&sequencertypes.Description{},
+		&sequencertypes.SequencerMetadata{},
 		bond,
 	)
 	s.Require().NoError(err) // message committed
@@ -173,10 +192,9 @@ func (s *utilSuite) updateRollappState(endHeight uint64) {
 	msgUpdateState := rollapptypes.NewMsgUpdateState(
 		s.hubChain().SenderAccount.GetAddress().String(),
 		rollappChainID(),
+		"mock-da-path",
 		startHeight,
 		endHeight-startHeight+1, // numBlocks
-		"mock-da-path",
-		0,
 		blockDescriptors,
 	)
 	err := msgUpdateState.ValidateBasic()
