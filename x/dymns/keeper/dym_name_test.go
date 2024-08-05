@@ -510,10 +510,10 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	}
 	err = dk.SetSellOrder(ctx, expiredSo)
 	require.NoError(t, err)
-	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.GoodsId)
+	err = dk.MoveSellOrderToHistorical(ctx, expiredSo.GoodsId, expiredSo.Type)
 	require.NoError(t, err)
-	require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name), 1)
-	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name)
+	require.Len(t, dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), 1)
+	minExpiry, found := dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 	require.True(t, found)
 	require.Equal(t, expiredSo.ExpireAt, minExpiry)
 
@@ -526,7 +526,7 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	}
 	err = dk.SetSellOrder(ctx, so)
 	require.NoError(t, err)
-	require.NotNil(t, dk.GetSellOrder(ctx, dymName1.Name))
+	require.NotNil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME))
 
 	// prune
 	err = dk.PruneDymName(ctx, dymName1.Name)
@@ -538,14 +538,14 @@ func TestKeeper_PruneDymName(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, owned, "reserve mapping should be removed")
 
-	require.Nil(t, dk.GetSellOrder(ctx, dymName1.Name), "active SO should be removed")
+	require.Nil(t, dk.GetSellOrder(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), "active SO should be removed")
 
 	require.Empty(t,
-		dk.GetHistoricalSellOrders(ctx, dymName1.Name),
+		dk.GetHistoricalSellOrders(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME),
 		"historical SO should be removed",
 	)
 
-	_, found = dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name)
+	_, found = dk.GetMinExpiryHistoricalSellOrder(ctx, dymName1.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 	require.False(t, found)
 }
 

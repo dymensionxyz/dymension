@@ -113,7 +113,7 @@ func (q queryServer) SellOrderOfDymName(goCtx context.Context, req *dymnstypes.Q
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	so := q.GetSellOrder(ctx, req.DymName)
+	so := q.GetSellOrder(ctx, req.DymName, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 	if so == nil {
 		return nil, status.Errorf(codes.NotFound, "no active Sell Order for '%s' at this moment", req.DymName)
 	}
@@ -134,7 +134,7 @@ func (q queryServer) HistoricalSellOrderOfDymName(goCtx context.Context, req *dy
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	hso := q.GetHistoricalSellOrders(ctx, req.DymName)
+	hso := q.GetHistoricalSellOrders(ctx, req.DymName, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 
 	return &dymnstypes.QueryHistoricalSellOrderOfDymNameResponse{
 		Result: hso,

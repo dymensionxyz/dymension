@@ -11,11 +11,18 @@ import (
 )
 
 func TestSellOrder_GetIdentity(t *testing.T) {
-	m := &SellOrder{
-		GoodsId:  "aabb",
+	nameSo := &SellOrder{
+		GoodsId:  "my-name",
+		Type:     MarketOrderType_MOT_DYM_NAME,
 		ExpireAt: 1234,
 	}
-	require.Equal(t, "aabb|1234", m.GetIdentity())
+	require.Equal(t, "my-name|1|1234", nameSo.GetIdentity())
+	aliasSo := &SellOrder{
+		GoodsId:  "alias",
+		Type:     MarketOrderType_MOT_ALIAS,
+		ExpireAt: 1234,
+	}
+	require.Equal(t, "alias|2|1234", aliasSo.GetIdentity())
 }
 
 func TestSellOrder_HasSetSellPrice(t *testing.T) {
@@ -558,15 +565,33 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "pass - valid",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "a",
+					GoodsId:   "my-name",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:  "a",
+					GoodsId:  "my-name",
 					Type:     MarketOrderType_MOT_DYM_NAME,
+					ExpireAt: 2,
+					MinPrice: dymnsutils.TestCoin(1),
+				},
+			},
+		},
+		{
+			name: "pass - valid",
+			sellOrders: []SellOrder{
+				{
+					GoodsId:   "alias",
+					Type:      MarketOrderType_MOT_ALIAS,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
+					SellPrice: dymnsutils.TestCoinP(1),
+				},
+				{
+					GoodsId:  "alias",
+					Type:     MarketOrderType_MOT_ALIAS,
 					ExpireAt: 2,
 					MinPrice: dymnsutils.TestCoin(1),
 				},
@@ -599,25 +624,44 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 			name: "fail - reject if duplicated SO",
 			sellOrders: []SellOrder{
 				{
-					GoodsId:   "a",
+					GoodsId:   "my-name",
 					Type:      MarketOrderType_MOT_DYM_NAME,
 					ExpireAt:  1,
 					MinPrice:  dymnsutils.TestCoin(1),
 					SellPrice: dymnsutils.TestCoinP(1),
 				},
 				{
-					GoodsId:   "a",
-					Type:      MarketOrderType_MOT_DYM_NAME,
-					ExpireAt:  1,
-					MinPrice:  dymnsutils.TestCoin(1),
-					SellPrice: dymnsutils.TestCoinP(1),
+					GoodsId:  "my-name",
+					Type:     MarketOrderType_MOT_DYM_NAME,
+					ExpireAt: 1,
+					MinPrice: dymnsutils.TestCoin(1),
 				},
 			},
 			wantErr:         true,
 			wantErrContains: "historical SO is not unique",
 		},
 		{
-			name: "fail - reject if SO element has different Dym-Name",
+			name: "fail - reject if duplicated SO",
+			sellOrders: []SellOrder{
+				{
+					GoodsId:   "alias",
+					Type:      MarketOrderType_MOT_ALIAS,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
+					SellPrice: dymnsutils.TestCoinP(1),
+				},
+				{
+					GoodsId:  "alias",
+					Type:     MarketOrderType_MOT_ALIAS,
+					ExpireAt: 1,
+					MinPrice: dymnsutils.TestCoin(1),
+				},
+			},
+			wantErr:         true,
+			wantErrContains: "historical SO is not unique",
+		},
+		{
+			name: "fail - reject if SO element has different goods ID",
 			sellOrders: []SellOrder{
 				{
 					GoodsId:   "aaa",
@@ -634,7 +678,47 @@ func TestHistoricalSellOrders_Validate(t *testing.T) {
 				},
 			},
 			wantErr:         true,
-			wantErrContains: "historical SOs have different Dym-Name",
+			wantErrContains: "historical SOs have different goods ID",
+		},
+		{
+			name: "fail - reject if SO element has different goods ID",
+			sellOrders: []SellOrder{
+				{
+					GoodsId:   "aaa",
+					Type:      MarketOrderType_MOT_ALIAS,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
+					SellPrice: dymnsutils.TestCoinP(1),
+				},
+				{
+					GoodsId:  "bbb",
+					Type:     MarketOrderType_MOT_ALIAS,
+					ExpireAt: 2,
+					MinPrice: dymnsutils.TestCoin(1),
+				},
+			},
+			wantErr:         true,
+			wantErrContains: "historical SOs have different goods ID",
+		},
+		{
+			name: "fail - reject if SO element has mixed order types",
+			sellOrders: []SellOrder{
+				{
+					GoodsId:   "aaa",
+					Type:      MarketOrderType_MOT_DYM_NAME,
+					ExpireAt:  1,
+					MinPrice:  dymnsutils.TestCoin(1),
+					SellPrice: dymnsutils.TestCoinP(1),
+				},
+				{
+					GoodsId:  "aaa",
+					Type:     MarketOrderType_MOT_ALIAS,
+					ExpireAt: 2,
+					MinPrice: dymnsutils.TestCoin(1),
+				},
+			},
+			wantErr:         true,
+			wantErrContains: "historical SOs have different order type",
 		},
 	}
 	for _, tt := range tests {
@@ -671,7 +755,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoName, "a",
+			AttributeKeySoGoodsId, "a",
 			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
@@ -714,7 +798,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoName, "a",
+			AttributeKeySoGoodsId, "a",
 			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,
@@ -735,7 +819,7 @@ func TestSellOrder_GetSdkEvent(t *testing.T) {
 		}.GetSdkEvent("action-name")
 		requireEventEquals(t, event,
 			EventTypeSellOrder,
-			AttributeKeySoName, "a",
+			AttributeKeySoGoodsId, "a",
 			AttributeKeySoType, MarketOrderType_MOT_DYM_NAME.String(),
 			AttributeKeySoExpiryEpoch, "123456",
 			AttributeKeySoMinPrice, "1"+params.BaseDenom,

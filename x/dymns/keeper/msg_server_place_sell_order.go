@@ -45,9 +45,9 @@ func (k msgServer) PlaceSellOrder(goCtx context.Context, msg *dymnstypes.MsgPlac
 		return nil, err
 	}
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx)
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, so.Type)
 	aSoe.Add(so.GoodsId, so.ExpireAt)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, so.Type); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (k msgServer) validatePlaceSellOrder(ctx sdk.Context, msg *dymnstypes.MsgPl
 		return nil, nil, errorsmod.Wrap(gerrc.ErrUnauthenticated, "Dym-Name is already expired")
 	}
 
-	existingActiveSo := k.GetSellOrder(ctx, dymName.Name)
+	existingActiveSo := k.GetSellOrder(ctx, dymName.Name, msg.OrderType)
 	if existingActiveSo != nil {
 		if existingActiveSo.HasFinishedAtCtx(ctx) {
 			return nil, nil, errorsmod.Wrap(

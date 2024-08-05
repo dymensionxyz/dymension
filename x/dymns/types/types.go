@@ -29,7 +29,7 @@ const (
 const (
 	EventTypeSellOrder            = ModuleName + "_so"
 	AttributeKeySoActionName      = "action"
-	AttributeKeySoName            = "name"
+	AttributeKeySoGoodsId         = "goods_id"
 	AttributeKeySoType            = "type"
 	AttributeKeySoExpiryEpoch     = "expiry_epoch"
 	AttributeKeySoMinPrice        = "min_price"

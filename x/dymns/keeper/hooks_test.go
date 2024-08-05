@@ -113,17 +113,17 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 	}
 
 	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.Nil(t, so)
 	}
 
 	requireActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.NotNil(t, so)
 	}
 
 	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name)
+		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
 
@@ -585,7 +585,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 			for _, so := range tt.historicalSOs {
 				err := dk.SetSellOrder(ctx, so)
 				require.NoError(t, err)
-				err = dk.MoveSellOrderToHistorical(ctx, so.GoodsId)
+				err = dk.MoveSellOrderToHistorical(ctx, so.GoodsId, so.Type)
 				require.NoError(t, err)
 			}
 
@@ -594,16 +594,16 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			meh := dk.GetMinExpiryOfAllHistoricalSellOrders(ctx)
+			meh := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
 			if len(meh) > 0 {
 				// clear existing records to simulate cases of malformed state
 				for _, record := range meh {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, record.DymName, 0)
+					dk.SetMinExpiryHistoricalSellOrder(ctx, record.DymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, 0)
 				}
 			}
 			if len(tt.minExpiryByDymName) > 0 {
 				for dymName, minExpiry := range tt.minExpiryByDymName {
-					dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, minExpiry)
+					dk.SetMinExpiryHistoricalSellOrder(ctx, dymName, dymnstypes.MarketOrderType_MOT_DYM_NAME, minExpiry)
 				}
 			}
 
@@ -623,7 +623,7 @@ func Test_epochHooks_BeforeEpochStart(t *testing.T) {
 
 				tt.afterHookTestFunc(t, dk, ctx)
 
-				meh := dk.GetMinExpiryOfAllHistoricalSellOrders(ctx)
+				meh := dk.GetMinExpiryOfAllHistoricalDymNameSellOrders(ctx)
 				if len(tt.wantMinExpiryPerDymNameRecords) == 0 {
 					require.Empty(t, meh)
 				} else {
@@ -823,12 +823,12 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 	}
 
 	requireNoActiveSO := func(dymName dymnstypes.DymName, ts testSuite) {
-		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name)
+		so := ts.dk.GetSellOrder(ts.ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.Nil(t, so)
 	}
 
 	requireHistoricalSOs := func(dymName dymnstypes.DymName, wantCount int, ts testSuite) {
-		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name)
+		historicalSOs := ts.dk.GetHistoricalSellOrders(ts.ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.Lenf(t, historicalSOs, wantCount, "should have %d historical SOs", wantCount)
 	}
 
@@ -1075,7 +1075,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				// SO for Dym-Name B not yet finished
 				requireDymNameNotChanged(dymNameB, ts)
-				soB := ts.dk.GetSellOrder(ts.ctx, dymNameB.Name)
+				soB := ts.dk.GetSellOrder(ts.ctx, dymNameB.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 				require.NotNil(t, soB)
 				requireHistoricalSOs(dymNameB, 0, ts)
 
@@ -1208,7 +1208,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 				requireFallbackAddrMappedDymNames(ts, ownerAcc.fallback(), dymNameA.Name, dymNameB.Name)
 				requireFallbackAddrMappedNoDymName(ts, bidderAcc.fallback())
 			},
-			wantErr: false,
+			wantErr:             false,
 			wantExpiryByDymName: []dymnstypes.ActiveSellOrdersExpirationRecord{
 				// removed reference to Dym-Name A because of processed
 				// removed reference to Dym-Name B because SO not exists
@@ -1276,7 +1276,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 			err := dk.SetActiveSellOrdersExpiration(ctx, &dymnstypes.ActiveSellOrdersExpiration{
 				Records: tt.expiryByDymName,
-			})
+			}, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 			require.NoError(t, err)
 
 			for _, dymName := range tt.dymNames {
@@ -1306,7 +1306,7 @@ func Test_epochHooks_AfterEpochEnd(t *testing.T) {
 
 				tt.afterHookTestFunc(t, dk, bk, ctx)
 
-				aSoe := dk.GetActiveSellOrdersExpiration(ctx)
+				aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 				if len(tt.wantExpiryByDymName) == 0 {
 					require.Empty(t, aSoe.Records)
 				} else {

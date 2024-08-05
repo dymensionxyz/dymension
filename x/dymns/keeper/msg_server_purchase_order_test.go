@@ -511,8 +511,8 @@ func Test_msgServer_PurchaseOrder(t *testing.T) {
 				require.Equal(t, originalDymNameExpiry, laterDymName.ExpireAt, "expiry should not be changed")
 			}
 
-			laterSo := dk.GetSellOrder(ctx, dymName.Name)
-			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name)
+			laterSo := dk.GetSellOrder(ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			historicalSo := dk.GetHistoricalSellOrders(ctx, dymName.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 			laterOwnerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(ownerA), params.BaseDenom)
 			laterBuyerBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(buyerA), params.BaseDenom)
 			laterPreviousBidderBalance := bk.GetBalance(ctx, sdk.MustAccAddressFromBech32(previousBidderA), params.BaseDenom)

@@ -106,7 +106,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.GoodsId)
+			dk.DeleteSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
@@ -142,7 +142,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.GoodsId)
+			dk.DeleteSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
@@ -170,7 +170,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.GoodsId)
+			dk.DeleteSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
@@ -184,7 +184,7 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 	})
 
 	t.Run("can will remove the active SO expiration mapping record", func(t *testing.T) {
-		aSoe := dk.GetActiveSellOrdersExpiration(ctx)
+		aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 
 		so11 := dymnstypes.SellOrder{
 			GoodsId:  dymName1.Name,
@@ -206,12 +206,12 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 		aSoe.Add(so12.GoodsId, so12.ExpireAt)
 
-		err = dk.SetActiveSellOrdersExpiration(ctx, aSoe)
+		err = dk.SetActiveSellOrdersExpiration(ctx, aSoe, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.GoodsId)
-			dk.DeleteSellOrder(ctx, so12.GoodsId)
+			dk.DeleteSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			dk.DeleteSellOrder(ctx, so12.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
@@ -222,9 +222,9 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId), "SO should be removed from active")
+		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME), "SO should be removed from active")
 
-		aSoe = dk.GetActiveSellOrdersExpiration(ctx)
+		aSoe = dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 
 		allNames := make(map[string]bool)
 		for _, record := range aSoe.Records {
@@ -254,8 +254,8 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 
 		defer func() {
-			dk.DeleteSellOrder(ctx, so11.GoodsId)
-			dk.DeleteSellOrder(ctx, so12.GoodsId)
+			dk.DeleteSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
+			dk.DeleteSellOrder(ctx, so12.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		}()
 
 		resp, err := msgServer.CancelSellOrder(sdk.WrapSDKContext(ctx), &dymnstypes.MsgCancelSellOrder{
@@ -266,10 +266,10 @@ func Test_msgServer_CancelSellOrder(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 
-		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId), "SO should be removed from active")
-		require.NotNil(t, dk.GetSellOrder(ctx, dymName2.Name), "other records remaining as-is")
+		require.Nil(t, dk.GetSellOrder(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME), "SO should be removed from active")
+		require.NotNil(t, dk.GetSellOrder(ctx, dymName2.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME), "other records remaining as-is")
 
-		list := dk.GetHistoricalSellOrders(ctx, so11.GoodsId)
+		list := dk.GetHistoricalSellOrders(ctx, so11.GoodsId, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.Empty(t, list, "no historical record should be added")
 
 		require.GreaterOrEqual(t,

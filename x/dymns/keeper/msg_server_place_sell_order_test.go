@@ -251,7 +251,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 
 				require.Nil(t, resp)
 
-				so := dk.GetSellOrder(ctx, name)
+				so := dk.GetSellOrder(ctx, name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 				if tt.existingSo != nil {
 					require.NotNil(t, so)
 					require.Equal(t, *tt.existingSo, *so)
@@ -269,7 +269,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, resp)
 
-			so := dk.GetSellOrder(ctx, name)
+			so := dk.GetSellOrder(ctx, name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 			require.NotNil(t, so)
 
 			expectedSo := dymnstypes.SellOrder{
@@ -293,7 +293,7 @@ func Test_msgServer_PlaceSellOrder(t *testing.T) {
 				"should consume params gas",
 			)
 
-			aSoe := dk.GetActiveSellOrdersExpiration(ctx)
+			aSoe := dk.GetActiveSellOrdersExpiration(ctx, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 
 			var found bool
 			for _, record := range aSoe.Records {

@@ -27,10 +27,13 @@ func TestExportThenInitGenesis(t *testing.T) {
 
 	bidder1 := "dym1gtcunp63a3aqypr250csar4devn8fjpqulq8d4"
 	bidder2 := "dym1wl60kvsq5c4wa600h7rnez8dguk5lpnqp4u0y2"
+	bidder3 := "dym1tzqn7ssw9jeh057vc5gu38eedk5jzwclqd4sk8"
 
 	buyer1 := "dym1nxswr2xhky3k0rt65paatpzjw8mg5d5rmylu3z"
 	buyer2 := "dym16vz9q7m9cxfjgf3v4tm4aqf50vde84hr39kqgd"
 	buyer3 := "dym1s62euc7nqg029m9v2rl77hf66u69pkuv2sg3uv"
+	buyer4 := "dym1t6k468snr89940cmxlu737m9al6k3y65hmx4ra"
+	buyer5 := "dym1zesdrnvdml3dvnj8clh4u3902mfl4pta783l0j"
 
 	dymName1 := dymnstypes.DymName{
 		Name:       "my-name",
@@ -62,8 +65,6 @@ func TestExportThenInitGenesis(t *testing.T) {
 		ExpireAt:   now.Add(-time.Hour).Unix(),
 	}
 	require.NoError(t, oldKeeper.SetDymName(oldCtx, dymName3Expired))
-
-	// TODO DymNS: add test for Sell/Buy Alias
 
 	so1 := dymnstypes.SellOrder{
 		GoodsId:   dymName1.Name,
@@ -100,6 +101,27 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so3))
 
+	so4 := dymnstypes.SellOrder{
+		GoodsId:   "alias",
+		Type:      dymnstypes.MarketOrderType_MOT_ALIAS,
+		ExpireAt:  1,
+		MinPrice:  dymnsutils.TestCoin(100),
+		SellPrice: dymnsutils.TestCoinP(900),
+		HighestBid: &dymnstypes.SellOrderBid{
+			Bidder: bidder3,
+			Price:  dymnsutils.TestCoin(777),
+		},
+	}
+	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so4))
+
+	so5 := dymnstypes.SellOrder{
+		GoodsId:  "cosmos",
+		Type:     dymnstypes.MarketOrderType_MOT_ALIAS,
+		ExpireAt: 1,
+		MinPrice: dymnsutils.TestCoin(100),
+	}
+	require.NoError(t, oldKeeper.SetSellOrder(oldCtx, so5))
+
 	offer1 := dymnstypes.BuyOffer{
 		Id:         "101",
 		GoodsId:    dymName1.Name,
@@ -127,6 +149,24 @@ func TestExportThenInitGenesis(t *testing.T) {
 	}
 	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer3OfExpired))
 
+	offer4 := dymnstypes.BuyOffer{
+		Id:         "204",
+		GoodsId:    "cosmos",
+		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Buyer:      buyer4,
+		OfferPrice: dymnsutils.TestCoin(333),
+	}
+	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer4))
+
+	offer5 := dymnstypes.BuyOffer{
+		Id:         "205",
+		GoodsId:    "alias",
+		Type:       dymnstypes.MarketOrderType_MOT_ALIAS,
+		Buyer:      buyer5,
+		OfferPrice: dymnsutils.TestCoin(555),
+	}
+	require.NoError(t, oldKeeper.SetBuyOffer(oldCtx, offer5))
+
 	// Export genesis state
 	genState := dymns.ExportGenesis(oldCtx, oldKeeper)
 
@@ -142,20 +182,23 @@ func TestExportThenInitGenesis(t *testing.T) {
 	})
 
 	t.Run("sell orders's non-refunded bids should be exported correctly", func(t *testing.T) {
-		require.Len(t, genState.SellOrderBids, 2)
+		require.Len(t, genState.SellOrderBids, 3)
 		require.Contains(t, genState.SellOrderBids, *so1.HighestBid)
 		require.Contains(t, genState.SellOrderBids, *so2.HighestBid)
+		require.Contains(t, genState.SellOrderBids, *so4.HighestBid)
 		// Expired sell order should not be exported
 	})
 
 	t.Run("buy offers should be exported correctly", func(t *testing.T) {
-		require.Len(t, genState.BuyOffers, 3)
+		require.Len(t, genState.BuyOffers, 5)
 		require.Contains(t, genState.BuyOffers, offer1)
 		require.Contains(t, genState.BuyOffers, offer2)
 		require.Contains(
 			t, genState.BuyOffers, offer3OfExpired,
 			"offer should be exported even if the dym-name is expired",
 		)
+		require.Contains(t, genState.BuyOffers, offer4)
+		require.Contains(t, genState.BuyOffers, offer5)
 	})
 
 	// Init genesis state
@@ -235,9 +278,13 @@ func TestExportThenInitGenesis(t *testing.T) {
 			dymnsutils.TestCoin(800),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(bidder2), params.BaseDenom),
 		)
+		require.Equal(t,
+			dymnsutils.TestCoin(777),
+			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(bidder3), params.BaseDenom),
+		)
 	})
 
-	t.Run("non-refunded offers should be refunded correctly", func(t *testing.T) {
+	t.Run("non-refunded buy-offers should be refunded correctly", func(t *testing.T) {
 		require.Equal(t,
 			dymnsutils.TestCoin(100),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer1), params.BaseDenom),
@@ -249,6 +296,14 @@ func TestExportThenInitGenesis(t *testing.T) {
 		require.Equal(t,
 			dymnsutils.TestCoin(300),
 			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer3), params.BaseDenom),
+		)
+		require.Equal(t,
+			dymnsutils.TestCoin(333),
+			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer4), params.BaseDenom),
+		)
+		require.Equal(t,
+			dymnsutils.TestCoin(555),
+			newBankKeeper.GetBalance(newCtx, sdk.MustAccAddressFromBech32(buyer5), params.BaseDenom),
 		)
 	})
 

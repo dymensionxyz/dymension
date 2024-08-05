@@ -55,7 +55,7 @@ func (k msgServer) PurchaseOrder(goCtx context.Context, msg *dymnstypes.MsgPurch
 	// try to complete the purchase
 
 	if so.HasFinishedAtCtx(ctx) {
-		if err := k.CompleteSellOrder(ctx, dymName.Name); err != nil {
+		if err := k.CompleteDymNameSellOrder(ctx, dymName.Name); err != nil {
 			return nil, err
 		}
 	}
@@ -80,7 +80,7 @@ func (k msgServer) validatePurchase(ctx sdk.Context, msg *dymnstypes.MsgPurchase
 		return nil, nil, errorsmod.Wrap(gerrc.ErrPermissionDenied, "cannot purchase your own dym name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId)
+	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
 	if so == nil {
 		return nil, nil, errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
 	}

@@ -14,7 +14,7 @@ import (
 
 // GetIdentity returns the unique identity of the SO
 func (m *SellOrder) GetIdentity() string {
-	return fmt.Sprintf("%s|%d", m.GoodsId, m.ExpireAt)
+	return fmt.Sprintf("%s|%d|%d", m.GoodsId, m.Type, m.ExpireAt)
 }
 
 // HasSetSellPrice returns true if the sell price is set
@@ -156,7 +156,8 @@ func (m *HistoricalSellOrders) Validate() error {
 	}
 
 	if len(m.SellOrders) > 0 {
-		name := m.SellOrders[0].GoodsId
+		goodsId := m.SellOrders[0].GoodsId
+		orderType := m.SellOrders[0].Type
 		uniqueIdentity := make(map[string]bool)
 		// Describe usage of Go Map: only used for validation
 		for _, so := range m.SellOrders {
@@ -164,8 +165,11 @@ func (m *HistoricalSellOrders) Validate() error {
 				return err
 			}
 
-			if so.GoodsId != name {
-				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different Dym-Names: %s != %s", name, so.GoodsId)
+			if so.GoodsId != goodsId {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different goods ID: %s != %s", goodsId, so.GoodsId)
+			}
+			if so.Type != orderType {
+				return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "historical SOs have different order type: %s != %s", orderType, so.Type)
 			}
 
 			if _, duplicated := uniqueIdentity[so.GetIdentity()]; duplicated {
@@ -199,7 +203,7 @@ func (m SellOrder) GetSdkEvent(actionName string) sdk.Event {
 
 	return sdk.NewEvent(
 		EventTypeSellOrder,
-		sdk.NewAttribute(AttributeKeySoName, m.GoodsId),
+		sdk.NewAttribute(AttributeKeySoGoodsId, m.GoodsId),
 		sdk.NewAttribute(AttributeKeySoType, m.Type.String()),
 		sdk.NewAttribute(AttributeKeySoExpiryEpoch, fmt.Sprintf("%d", m.ExpireAt)),
 		sdk.NewAttribute(AttributeKeySoMinPrice, m.MinPrice.String()),

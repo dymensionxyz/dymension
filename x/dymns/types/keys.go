@@ -58,6 +58,9 @@ var (
 	// KeyPrefixRvlFallbackAddressToDymNamesInclude is the key prefix for the reverse lookup address for Dym-Names using fallback mechanism
 	KeyPrefixRvlFallbackAddressToDymNamesInclude = []byte{prefixRvlFallbackAddressToDymNamesInclude}
 
+	// KeyPrefixSellOrder is the key prefix for the active SellOrder records of both type DymName/Alias
+	KeyPrefixSellOrder = []byte{prefixSellOrder}
+
 	// KeyPrefixDymNameSellOrder is the key prefix for the active SellOrder records of type DymName
 	KeyPrefixDymNameSellOrder = []byte{prefixSellOrder, partialStoreOrderTypeDymName}
 
@@ -66,6 +69,15 @@ var (
 
 	// KeyPrefixMinExpiryDymNameHistoricalSellOrders is the key prefix for the lowest expiry among the historical SellOrder records of each specific Dym-Name
 	KeyPrefixMinExpiryDymNameHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders, partialStoreOrderTypeDymName}
+
+	// KeyPrefixAliasSellOrder is the key prefix for the active SellOrder records of type Alias
+	KeyPrefixAliasSellOrder = []byte{prefixSellOrder, partialStoreOrderTypeAlias}
+
+	// KeyPrefixAliasHistoricalSellOrders is the key prefix for the historical SellOrder records of type Alias
+	KeyPrefixAliasHistoricalSellOrders = []byte{prefixHistoricalSellOrders, partialStoreOrderTypeAlias}
+
+	// KeyPrefixMinExpiryAliasHistoricalSellOrders is the key prefix for the lowest expiry among the historical SellOrder records of each specific Alias
+	KeyPrefixMinExpiryAliasHistoricalSellOrders = []byte{prefixMinExpiryHistoricalSellOrders, partialStoreOrderTypeAlias}
 
 	// KeyPrefixBuyOrder is the key prefix for the active BuyOffer records regardless order type DymName/Alias
 	KeyPrefixBuyOrder = []byte{prefixBuyOffer}
@@ -87,7 +99,9 @@ var (
 )
 
 var (
-	KeyActiveSellOrdersExpiration = []byte{prefixActiveSellOrdersExpiration}
+	KeyActiveSellOrdersExpirationOfDymName = []byte{prefixActiveSellOrdersExpiration, partialStoreOrderTypeDymName}
+
+	KeyActiveSellOrdersExpirationOfAlias = []byte{prefixActiveSellOrdersExpiration, partialStoreOrderTypeAlias}
 
 	// KeyCountBuyOffers is the key for the count of all-time buy offer orders
 	KeyCountBuyOffers = []byte{prefixCountBuyOffers}
@@ -113,20 +127,40 @@ func FallbackAddressToDymNamesIncludeRvlKey(fallbackAddr FallbackAddress) []byte
 	return append(KeyPrefixRvlFallbackAddressToDymNamesInclude, fallbackAddr...)
 }
 
-// SellOrderKey returns a key for the active Sell-Order of the Dym-Name
-func SellOrderKey(dymName string) []byte {
-	return append(KeyPrefixDymNameSellOrder, []byte(dymName)...)
+// SellOrderKey returns a key for the active Sell-Order of the Dym-Name/Alias
+func SellOrderKey(goodsId string, orderType MarketOrderType) []byte {
+	switch orderType {
+	case MarketOrderType_MOT_DYM_NAME:
+		return append(KeyPrefixDymNameSellOrder, []byte(goodsId)...)
+	case MarketOrderType_MOT_ALIAS:
+		return append(KeyPrefixAliasSellOrder, []byte(goodsId)...)
+	default:
+		panic("invalid order type: " + orderType.String())
+	}
 }
 
-// HistoricalSellOrdersKey returns a key for the historical Sell-Orders of the Dym-Name
-func HistoricalSellOrdersKey(dymName string) []byte {
-	return append(KeyPrefixDymNameHistoricalSellOrders, []byte(dymName)...)
+// HistoricalSellOrdersKey returns a key for the historical Sell-Orders of the Dym-Name/Alias
+func HistoricalSellOrdersKey(goodsId string, orderType MarketOrderType) []byte {
+	switch orderType {
+	case MarketOrderType_MOT_DYM_NAME:
+		return append(KeyPrefixDymNameHistoricalSellOrders, []byte(goodsId)...)
+	case MarketOrderType_MOT_ALIAS:
+		return append(KeyPrefixAliasHistoricalSellOrders, []byte(goodsId)...)
+	default:
+		panic("invalid order type: " + orderType.String())
+	}
 }
 
-// MinExpiryHistoricalSellOrdersKey returns a key for lowest expiry among the historical Sell-Orders
-// of the Dym-Name
-func MinExpiryHistoricalSellOrdersKey(dymName string) []byte {
-	return append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(dymName)...)
+// MinExpiryHistoricalSellOrdersKey returns a key for lowest expiry among the historical Sell-Orders of the Dym-Name/Alias
+func MinExpiryHistoricalSellOrdersKey(goodsId string, orderType MarketOrderType) []byte {
+	switch orderType {
+	case MarketOrderType_MOT_DYM_NAME:
+		return append(KeyPrefixMinExpiryDymNameHistoricalSellOrders, []byte(goodsId)...)
+	case MarketOrderType_MOT_ALIAS:
+		return append(KeyPrefixMinExpiryAliasHistoricalSellOrders, []byte(goodsId)...)
+	default:
+		panic("invalid order type: " + orderType.String())
+	}
 }
 
 // BuyOfferKey returns a key for the active Buy-Order of the Dym-Name

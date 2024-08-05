@@ -442,7 +442,7 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameA.Name)
+		err = dk.MoveSellOrderToHistorical(ctx, dymNameA.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.NoError(t, err)
 	}
 
@@ -466,7 +466,7 @@ func Test_queryServer_HistoricalSellOrderOfDymName(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		err = dk.MoveSellOrderToHistorical(ctx, dymNameB.Name)
+		err = dk.MoveSellOrderToHistorical(ctx, dymNameB.Name, dymnstypes.MarketOrderType_MOT_DYM_NAME)
 		require.NoError(t, err)
 	}
 

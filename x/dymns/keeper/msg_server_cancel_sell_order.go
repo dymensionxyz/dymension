@@ -25,11 +25,11 @@ func (k msgServer) CancelSellOrder(goCtx context.Context, msg *dymnstypes.MsgCan
 		return nil, err
 	}
 
-	k.DeleteSellOrder(ctx, msg.GoodsId)
+	k.DeleteSellOrder(ctx, msg.GoodsId, msg.OrderType)
 
-	aSoe := k.GetActiveSellOrdersExpiration(ctx)
+	aSoe := k.GetActiveSellOrdersExpiration(ctx, msg.OrderType)
 	aSoe.Remove(msg.GoodsId)
-	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe); err != nil {
+	if err := k.SetActiveSellOrdersExpiration(ctx, aSoe, msg.OrderType); err != nil {
 		return nil, err
 	}
 
@@ -53,7 +53,7 @@ func (k msgServer) validateCancelSellOrder(ctx sdk.Context, msg *dymnstypes.MsgC
 		return errorsmod.Wrap(gerrc.ErrPermissionDenied, "not the owner of the Dym-Name")
 	}
 
-	so := k.GetSellOrder(ctx, msg.GoodsId)
+	so := k.GetSellOrder(ctx, msg.GoodsId, msg.OrderType)
 	if so == nil {
 		return errorsmod.Wrapf(gerrc.ErrNotFound, "Sell-Order: %s", msg.GoodsId)
 	}
