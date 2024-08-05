@@ -16,19 +16,24 @@ message EventUpdateParams {
 message EventVote {
   string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
   Vote vote = 2 [ (gogoproto.nullable) = false ];
+  Distribution distribution = 3 [ (gogoproto.nullable) = false ];
 }
 
 message EventRevokeVote {
   string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  Distribution distribution = 2 [ (gogoproto.nullable) = false ];
 }
 
-message EventUpdateVotingPower {
+message EventVotingPowerUpdate {
   string voter = 1 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
-  string new_voting_power = 2 [
+  string validator = 2 [ (cosmos_proto.scalar) = "cosmos.AddressString" ];
+  Distribution distribution = 3 [ (gogoproto.nullable) = false ];
+  bool vote_pruned = 4;
+  string new_voting_power = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string old_voting_power = 3 [
+  string voting_power_diff = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
