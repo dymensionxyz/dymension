@@ -69,7 +69,7 @@ message Params {
 //   a + i = e :                               power 0
 //
 // CONTRACT: Gauges are sorted by the gauge ID.
-// CONTRACT: Gauges hold gauges only with non-vero power.
+// CONTRACT: Gauges hold gauges only with non-zero power.
 message Distribution {
   // VotingPower is the total voting power that the distribution holds.
   string voting_power = 1 [
