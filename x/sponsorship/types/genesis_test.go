@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/osmosis-labs/osmosis/v15/testutils/apptesting"
 	"github.com/stretchr/testify/require"
 
+	"github.com/dymensionxyz/dymension/v3/app/apptesting"
 	"github.com/dymensionxyz/dymension/v3/x/sponsorship/types"
 )
 

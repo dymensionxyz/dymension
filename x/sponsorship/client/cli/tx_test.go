@@ -20,7 +20,7 @@ func TestParseGaugeWeights(t *testing.T) {
 	}{
 		{
 			name:  "Valid input",
-			input: "15:60,10:30,12:10",
+			input: "15=60,10=30,12=10",
 			expected: []types.GaugeWeight{
 				{GaugeId: 15, Weight: math.NewInt(60)},
 				{GaugeId: 10, Weight: math.NewInt(30)},
@@ -31,35 +31,35 @@ func TestParseGaugeWeights(t *testing.T) {
 		},
 		{
 			name:          "Invalid input format",
-			input:         "15,10:70,12:10",
+			input:         "15,10=70,12=10",
 			expected:      nil,
 			expectError:   true,
 			errorContains: "invalid gauge weight format",
 		},
 		{
 			name:          "Weight > 100",
-			input:         "15:101,10:70,12:10",
+			input:         "15=101,10=70,12=10",
 			expected:      nil,
 			expectError:   true,
 			errorContains: "weight must be between 0 and 100",
 		},
 		{
 			name:          "Weight < 0",
-			input:         "15:-10,10:70,12:10",
+			input:         "15=-10,10=70,12=10",
 			expected:      nil,
 			expectError:   true,
 			errorContains: "weight must be between 0 and 100",
 		},
 		{
 			name:          "Sum of weighs > 100",
-			input:         "15:30,10:30,12:41",
+			input:         "15=30,10=30,12=41",
 			expected:      nil,
 			expectError:   true,
 			errorContains: "invalid gauge weights",
 		},
 		{
 			name:          "Sum of weighs < 100",
-			input:         "15:30,10:30,12:39",
+			input:         "15=30,10=30,12=39",
 			expected:      nil,
 			expectError:   true,
 			errorContains: "invalid gauge weights",
