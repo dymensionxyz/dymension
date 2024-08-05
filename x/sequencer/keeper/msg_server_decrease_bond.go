@@ -16,6 +16,11 @@ func (k msgServer) DecreaseBond(goCtx context.Context, msg *types.MsgDecreaseBon
 		return nil, err
 	}
 
+	// Check if the sequencer has enough bond to decrease
+	if sequencer.Tokens.IsAllLTE(sdk.NewCoins(msg.DecreaseAmount)) {
+		return nil, types.ErrInsufficientBond
+	}
+
 	if _, found := k.getSequencerDecreasingBond(ctx, msg.Creator); found {
 		return nil, types.ErrBondDecreaseInProgress
 	}

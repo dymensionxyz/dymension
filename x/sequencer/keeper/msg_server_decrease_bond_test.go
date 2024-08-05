@@ -63,6 +63,14 @@ func (suite *SequencerTestSuite) TestDecreaseBond() {
 			expectedErr: types.ErrInsufficientBond,
 		},
 		{
+			name: "trying to decrease more bond than they have tokens bonded",
+			msg: types.MsgDecreaseBond{
+				Creator:        defaultSequencerAddress,
+				DecreaseAmount: bond.AddAmount(sdk.NewInt(30)),
+			},
+			expectedErr: types.ErrInsufficientBond,
+		},
+		{
 			name: "valid decrease bond",
 			msg: types.MsgDecreaseBond{
 				Creator:        defaultSequencerAddress,
