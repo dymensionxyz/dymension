@@ -1,7 +1,8 @@
 package keeper
 
 import (
-	errorsmod "cosmossdk.io/errors"
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dymensionxyz/dymension/v3/x/sequencer/types"
 )
@@ -9,66 +10,39 @@ import (
 // Slashing slashes the sequencer for misbehaviour
 // Slashing can occur on both Bonded and Unbonding sequencers
 func (k Keeper) Slashing(ctx sdk.Context, seqAddr string) error {
-	seq, found := k.GetSequencer(ctx, seqAddr)
-	if !found {
-		return types.ErrUnknownSequencer
+	seq, err := k.unbondSequencerAndBurn(ctx, seqAddr)
+	if err != nil {
+		return fmt.Errorf("slash sequencer: %w", err)
 	}
 
-	if seq.Status == types.Unbonded {
-		return errorsmod.Wrap(
-			types.ErrInvalidSequencerStatus,
-			"can't slash unbonded sequencer",
-		)
-	}
-
-	seqTokens := seq.Tokens
-	if !seqTokens.Empty() {
-		err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
-		if err != nil {
-			return err
-		}
-	} else {
-		k.Logger(ctx).Error("sequencer has no tokens to slash", "sequencer", seq.SequencerAddress)
-	}
-	seq.Tokens = sdk.Coins{}
-	oldStatus := seq.Status
-
-	// remove from queue if unbonding
-	if oldStatus == types.Unbonding {
-		k.removeUnbondingSequencer(ctx, seq)
-	}
-	// remove from notice period queue if needed
-	if seq.IsNoticePeriodInProgress() {
-		k.removeNoticePeriodSequencer(ctx, seq)
-	}
-	// if the slashed sequencer is the proposer, remove it
-	// the caller should rotate the proposer
-	if k.isProposer(ctx, seq.RollappId, seqAddr) {
-		k.removeProposer(ctx, seq.RollappId)
-	}
-
-	// if we slash the next proposer, we're in the middle of rotation
-	// instead of removing the next proposer, we set it to empty
-	if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
-		k.setNextProposer(ctx, seq.RollappId, "")
-	}
-
-	// set the status to unbonded
-	seq.Status = types.Unbonded
 	seq.Jailed = true
-
 	seq.UnbondRequestHeight = ctx.BlockHeight()
 	seq.UnbondTime = ctx.BlockTime()
-	k.UpdateSequencer(ctx, seq, oldStatus)
+	k.UpdateSequencer(ctx, *seq)
 
 	// emit event
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeSlashed,
 			sdk.NewAttribute(types.AttributeKeySequencer, seqAddr),
-			sdk.NewAttribute(types.AttributeKeyBond, seqTokens.String()),
 		),
 	)
+
+	return nil
+}
+
+// InstantUnbondAllSequencers unbonds all sequencers for a rollapp
+// This is called by the `FraudSubmitted` hook
+func (k Keeper) InstantUnbondAllSequencers(ctx sdk.Context, rollappID string) error {
+	// unbond all bonded/unbonding sequencers
+	bonded := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
+	unbonding := k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
+	for _, sequencer := range append(bonded, unbonding...) {
+		err := k.unbondSequencer(ctx, sequencer.SequencerAddress)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

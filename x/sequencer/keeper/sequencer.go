@@ -54,6 +54,16 @@ func (k Keeper) GetSequencer(ctx sdk.Context, sequencerAddress string) (val type
 	return val, true
 }
 
+// MustGetSequencer returns a sequencer from its index
+// It will panic if the sequencer is not found
+func (k Keeper) MustGetSequencer(ctx sdk.Context, sequencerAddress string) types.Sequencer {
+	seq, found := k.GetSequencer(ctx, sequencerAddress)
+	if !found {
+		panic("sequencer not found")
+	}
+	return seq
+}
+
 // GetAllSequencers returns all sequencer
 func (k Keeper) GetAllSequencers(ctx sdk.Context) (list []types.Sequencer) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SequencersKeyPrefix)
@@ -181,7 +191,7 @@ func (k Keeper) GetAllProposers(ctx sdk.Context) (list []types.Sequencer) {
 
 	for ; iterator.Valid(); iterator.Next() {
 		address := string(iterator.Value())
-		seq, _ := k.GetSequencer(ctx, address)
+		seq := k.MustGetSequencer(ctx, address)
 		list = append(list, seq)
 	}
 

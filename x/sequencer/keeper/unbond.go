@@ -11,7 +11,7 @@ import (
 
 // startUnbondingPeriodForSequencer sets the sequencer to unbonding status
 // can be called after notice period or directly if notice period is not required
-// caller is responsible for updating the proposer for the rollapp if neeeded
+// caller is responsible for updating the proposer for the rollapp if needed
 func (k Keeper) startUnbondingPeriodForSequencer(ctx sdk.Context, seq *types.Sequencer) time.Time {
 	completionTime := ctx.BlockTime().Add(k.UnbondingTime(ctx))
 	seq.UnbondTime = completionTime
@@ -48,49 +48,80 @@ func (k Keeper) UnbondAllMatureSequencers(ctx sdk.Context, currTime time.Time) {
 	}
 }
 
+func (k Keeper) unbondSequencerAndBurn(ctx sdk.Context, seqAddr string) (*types.Sequencer, error) {
+	return k.unbondSequencerBurnOrRefund(ctx, seqAddr, true)
+}
+
 func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
+	_, err := k.unbondSequencerBurnOrRefund(ctx, seqAddr, false)
+	return err
+}
+
+func (k Keeper) unbondSequencerBurnOrRefund(ctx sdk.Context, seqAddr string, burnBond bool) (*types.Sequencer, error) {
 	seq, found := k.GetSequencer(ctx, seqAddr)
 	if !found {
-		return types.ErrUnknownSequencer
+		return nil, types.ErrUnknownSequencer
 	}
 
 	if seq.Status == types.Unbonded {
-		return errorsmod.Wrapf(
+		return nil, errorsmod.Wrapf(
 			types.ErrInvalidSequencerStatus,
 			"sequencer status is already unbonded",
 		)
 	}
-
+	// keep the old status for updating the sequencer
 	oldStatus := seq.Status
 
+	// handle bond
 	seqTokens := seq.Tokens
 	if !seqTokens.Empty() {
-		seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
-		if err != nil {
-			return err
-		}
+		if burnBond {
+			err := k.bankKeeper.BurnCoins(ctx, types.ModuleName, seqTokens)
+			if err != nil {
+				return nil, err
+			}
+		} else { //refund
+			seqAcc, err := sdk.AccAddressFromBech32(seq.SequencerAddress)
+			if err != nil {
+				return nil, err
+			}
 
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
-		if err != nil {
-			return err
+			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, seqAcc, seqTokens)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
 		k.Logger(ctx).Error("sequencer has no tokens to unbond", "sequencer", seq.SequencerAddress)
 	}
 
-	// set the status to unbonded and remove from the unbonding queue if needed
-	seq.Status = types.Unbonded
-	seq.Tokens = sdk.Coins{}
-
-	k.UpdateSequencer(ctx, seq, oldStatus)
-
+	// remove from queue if unbonding
 	if oldStatus == types.Unbonding {
 		k.removeUnbondingSequencer(ctx, seq)
 	}
 
+	// remove from notice period queue if needed
 	if seq.IsNoticePeriodInProgress() {
 		k.removeNoticePeriodSequencer(ctx, seq)
 	}
+
+	// if the slashed sequencer is the proposer, remove it
+	// the caller should rotate the proposer
+	if k.isProposer(ctx, seq.RollappId, seqAddr) {
+		k.removeProposer(ctx, seq.RollappId)
+	}
+
+	// if we slash the next proposer, we're in the middle of rotation
+	// instead of removing the next proposer, we set it to empty
+	if k.isNextProposer(ctx, seq.RollappId, seqAddr) {
+		//FIXME:refactor
+		k.setNextProposer(ctx, seq.RollappId, "")
+	}
+
+	// update the sequencer in store
+	seq.Status = types.Unbonded
+	seq.Tokens = sdk.Coins{}
+	k.UpdateSequencer(ctx, seq, oldStatus)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -100,5 +131,5 @@ func (k Keeper) unbondSequencer(ctx sdk.Context, seqAddr string) error {
 		),
 	)
 
-	return nil
+	return &seq, nil
 }

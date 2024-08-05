@@ -41,11 +41,11 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		return types.ErrSequencerRollappMismatch
 	}
 
-	seq, ok := hook.k.GetProposer(ctx, rollappId)
+	proposer, ok := hook.k.GetProposer(ctx, rollappId)
 	if !ok {
 		return errors.Join(gerrc.ErrNotFound, types.ErrNoProposer)
 	}
-	if sequencer.SequencerAddress != seq.SequencerAddress {
+	if sequencer.SequencerAddress != proposer.SequencerAddress {
 		return types.ErrNotActiveSequencer
 	}
 
@@ -53,7 +53,7 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		if !hook.k.IsRotating(ctx, rollappId) {
 			return types.ErrInvalidRequest
 		}
-		// last state update receieved by sequencer
+		// last state update received by sequencer
 		// it's expected that the sequencer produced a last block which handovers the proposer role on the L2
 		// any divergence from this is considered fraud
 		hook.k.RotateProposer(ctx, rollappId)
@@ -74,19 +74,11 @@ func (hook rollappHook) FraudSubmitted(ctx sdk.Context, rollappID string, height
 		return err
 	}
 
-	// unbond all other sequencers
-	bonded := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Bonded)
-	unbonding := hook.k.GetSequencersByRollappByStatus(ctx, rollappID, types.Unbonding)
-	for _, sequencer := range append(bonded, unbonding...) {
-		err := hook.k.unbondSequencer(ctx, sequencer.SequencerAddress)
-		if err != nil {
-			return err
-		}
+	// unbond all other other rollapp sequencers
+	err = hook.k.InstantUnbondAllSequencers(ctx, rollappID)
+	if err != nil {
+		return err
 	}
-
-	// clear the proposer and next proposer
-	hook.k.removeProposer(ctx, rollappID)
-	hook.k.removeNextProposer(ctx, rollappID)
 
 	return nil
 }
