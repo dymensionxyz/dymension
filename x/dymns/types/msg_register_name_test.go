@@ -24,7 +24,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:           "valid 1 yr",
+			name:           "pass - valid 1 yr",
 			dymName:        "a",
 			duration:       1,
 			owner:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -32,14 +32,14 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			contact:        "contact@example.com",
 		},
 		{
-			name:           "valid 1+ yrs",
+			name:           "pass - valid 1+ yrs",
 			dymName:        "a",
 			duration:       5,
 			owner:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			confirmPayment: dymnsutils.TestCoin(1),
 		},
 		{
-			name:            "missing name",
+			name:            "fail - missing name",
 			dymName:         "",
 			duration:        5,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -48,7 +48,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "name is too long",
+			name:            "fail - name is too long",
 			dymName:         "123456789012345678901",
 			duration:        5,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -57,7 +57,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: fmt.Sprintf("name is too long, maximum %d characters", MaxDymNameLength),
 		},
 		{
-			name:            "invalid name",
+			name:            "fail - invalid name",
 			dymName:         "-a",
 			duration:        5,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -66,7 +66,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "zero duration",
+			name:            "fail - zero duration",
 			dymName:         "a",
 			duration:        0,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -75,7 +75,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "duration must be at least 1 year",
 		},
 		{
-			name:            "negative duration",
+			name:            "fail - negative duration",
 			dymName:         "a",
 			duration:        -1,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -84,7 +84,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "duration must be at least 1 year",
 		},
 		{
-			name:            "empty owner",
+			name:            "fail - empty owner",
 			dymName:         "a",
 			duration:        1,
 			owner:           "",
@@ -93,7 +93,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid owner",
+			name:            "fail - invalid owner",
 			dymName:         "a",
 			duration:        1,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4",
@@ -102,7 +102,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "owner must be dym1",
+			name:            "fail - owner must be dym1",
 			dymName:         "a",
 			duration:        1,
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
@@ -111,7 +111,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "confirm-payment not set",
+			name:            "fail - confirm-payment not set",
 			dymName:         "a",
 			duration:        1,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -120,7 +120,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "confirm payment is not set",
 		},
 		{
-			name:            "confirm-payment is zero",
+			name:            "fail - confirm-payment is zero",
 			dymName:         "a",
 			duration:        1,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -129,7 +129,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "confirm payment is not set",
 		},
 		{
-			name:     "confirm-payment is negative",
+			name:     "fail - confirm-payment is negative",
 			dymName:  "a",
 			duration: 1,
 			owner:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -141,7 +141,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "negative coin amount",
 		},
 		{
-			name:     "confirm-payment without denom",
+			name:     "fail - confirm-payment without denom",
 			dymName:  "a",
 			duration: 1,
 			owner:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -153,7 +153,7 @@ func TestMsgRegisterName_ValidateBasic(t *testing.T) {
 			wantErrContains: "invalid denom",
 		},
 		{
-			name:            "contact too long",
+			name:            "fail - contact too long",
 			dymName:         "a",
 			duration:        1,
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",

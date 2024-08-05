@@ -17,25 +17,25 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:       "valid",
+			name:       "pass - valid",
 			dymName:    "a",
 			controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "controller and owner can be the same",
+			name:       "pass - controller and owner can be the same",
 			dymName:    "a",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "controller and owner can be the different",
+			name:       "pass - controller and owner can be the different",
 			dymName:    "a",
 			controller: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "missing name",
+			name:            "fail - missing name",
 			dymName:         "",
 			controller:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -43,7 +43,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "missing controller",
+			name:            "fail - missing controller",
 			dymName:         "a",
 			controller:      "",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -51,7 +51,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "controller is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid controller",
+			name:            "fail - invalid controller",
 			dymName:         "a",
 			controller:      "dym1tygms3xhhs3yv487phx",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -59,7 +59,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "controller is not a valid bech32 account address",
 		},
 		{
-			name:            "missing owner",
+			name:            "fail - missing owner",
 			dymName:         "a",
 			controller:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "",
@@ -67,7 +67,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid owner",
+			name:            "fail - invalid owner",
 			dymName:         "a",
 			controller:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "dym1fl48vsnmsdzcv85q5d2",
@@ -75,7 +75,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "controller must be dym1",
+			name:            "fail - controller must be dym1",
 			dymName:         "a",
 			controller:      "nim1tygms3xhhs3yv487phx3dw4a95jn7t7l4kreyj",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -83,7 +83,7 @@ func TestMsgSetController_ValidateBasic(t *testing.T) {
 			wantErrContains: "controller is not a valid bech32 account address",
 		},
 		{
-			name:            "owner must be dym1",
+			name:            "fail - owner must be dym1",
 			dymName:         "a",
 			controller:      "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",

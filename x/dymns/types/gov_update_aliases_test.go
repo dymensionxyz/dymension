@@ -17,7 +17,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:        "valid, single add",
+			name:        "pass - valid, single add",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -29,7 +29,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple add",
+			name:        "pass - valid, multiple add",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -45,7 +45,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple add of same chain id",
+			name:        "pass - valid, multiple add of same chain id",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -61,7 +61,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, single remove",
+			name:        "pass - valid, single remove",
 			title:       "T",
 			description: "D",
 			remove: []UpdateAlias{
@@ -73,7 +73,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple remove",
+			name:        "pass - valid, multiple remove",
 			title:       "T",
 			description: "D",
 			remove: []UpdateAlias{
@@ -89,7 +89,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple remove of same chain id",
+			name:        "pass - valid, multiple remove of same chain id",
 			title:       "T",
 			description: "D",
 			remove: []UpdateAlias{
@@ -105,7 +105,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple add and remove",
+			name:        "pass - valid, multiple add and remove",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -127,7 +127,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple add and remove of same chain id",
+			name:        "pass - valid, multiple add and remove of same chain id",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -153,7 +153,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "reject empty title",
+			name:        "fail - reject empty title",
 			title:       "",
 			description: "D",
 			add: []UpdateAlias{
@@ -166,7 +166,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "proposal title cannot be blank",
 		},
 		{
-			name:        "reject empty description",
+			name:        "fail - reject empty description",
 			title:       "T",
 			description: "",
 			add: []UpdateAlias{
@@ -179,14 +179,14 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "proposal description cannot be blank",
 		},
 		{
-			name:            "reject empty proposal",
+			name:            "fail - reject empty proposal",
 			title:           "T",
 			description:     "D",
 			wantErr:         true,
 			wantErrContains: "update list can not be empty",
 		},
 		{
-			name:        "reject non-unique combination of chain id and alias",
+			name:        "fail - reject non-unique combination of chain id and alias",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -213,7 +213,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id and alias pair",
 		},
 		{
-			name:        "reject non-unique combination of chain id and alias",
+			name:        "fail - reject non-unique combination of chain id and alias",
 			title:       "T",
 			description: "D",
 			add: []UpdateAlias{
@@ -240,7 +240,7 @@ func TestUpdateAliasesProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id and alias pair",
 		},
 		{
-			name:        "reject record that does not pass validation",
+			name:        "fail - reject record that does not pass validation",
 			title:       "T",
 			description: "",
 			add: []UpdateAlias{
@@ -288,55 +288,55 @@ func TestUpdateAlias_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:    "valid",
+			name:    "pass - valid",
 			chainId: "dymension_1100-1",
 			alias:   "dym",
 			wantErr: false,
 		},
 		{
-			name:            "chain-id can not be empty",
+			name:            "fail - chain-id can not be empty",
 			chainId:         "",
 			alias:           "dym",
 			wantErr:         true,
 			wantErrContains: "chain id cannot be empty",
 		},
 		{
-			name:            "chain-id must be well-formed",
+			name:            "fail - chain-id must be well-formed",
 			chainId:         "@dym",
 			alias:           "dym",
 			wantErr:         true,
 			wantErrContains: "chain id is not well-formed",
 		},
 		{
-			name:            "chain-id must be well-formed",
+			name:            "fail - chain-id must be well-formed",
 			chainId:         "Dymension_1100-1",
 			alias:           "dym",
 			wantErr:         true,
 			wantErrContains: "chain id is not well-formed",
 		},
 		{
-			name:            "alias can not be empty",
+			name:            "fail - alias can not be empty",
 			chainId:         "dymension_1100-1",
 			alias:           "",
 			wantErr:         true,
 			wantErrContains: "alias cannot be empty",
 		},
 		{
-			name:            "alias must be well-formed",
+			name:            "fail - alias must be well-formed",
 			chainId:         "dymension_1100-1",
 			alias:           "@dym",
 			wantErr:         true,
 			wantErrContains: "alias is not well-formed",
 		},
 		{
-			name:            "alias must be well-formed",
+			name:            "fail - alias must be well-formed",
 			chainId:         "dymension_1100-1",
 			alias:           "Dym",
 			wantErr:         true,
 			wantErrContains: "alias is not well-formed",
 		},
 		{
-			name:            "chain-id and alias can not be the same",
+			name:            "fail - chain-id and alias can not be the same",
 			chainId:         "dymension",
 			alias:           "dymension",
 			wantErr:         true,

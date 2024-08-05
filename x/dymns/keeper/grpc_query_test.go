@@ -554,7 +554,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 		wantExtendPrice    int64
 	}{
 		{
-			name:               "new registration, 1 letter, 1 year",
+			name:               "pass - new registration, 1 letter, 1 year",
 			dymName:            "a",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -563,7 +563,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    0,
 		},
 		{
-			name:               "new registration, empty buyer",
+			name:               "pass - new registration, empty buyer",
 			dymName:            "a",
 			existingDymName:    nil,
 			newOwner:           "",
@@ -572,7 +572,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    0,
 		},
 		{
-			name:               "new registration, 1 letter, 2 years",
+			name:               "pass - new registration, 1 letter, 2 years",
 			dymName:            "a",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -581,7 +581,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice,
 		},
 		{
-			name:               "new registration, 1 letter, N years",
+			name:               "pass - new registration, 1 letter, N years",
 			dymName:            "a",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -590,7 +590,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * (99 - 1),
 		},
 		{
-			name:               "new registration, 6 letters, 1 year",
+			name:               "pass - new registration, 6 letters, 1 year",
 			dymName:            "bridge",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -599,7 +599,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    0,
 		},
 		{
-			name:               "new registration, 6 letters, 2 years",
+			name:               "pass - new registration, 6 letters, 2 years",
 			dymName:            "bridge",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -608,7 +608,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice,
 		},
 		{
-			name:               "new registration, 5+ letters, N years",
+			name:               "pass - new registration, 5+ letters, N years",
 			dymName:            "my-name",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -617,7 +617,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * (99 - 1),
 		},
 		{
-			name:    "extends same owner, 1 letter, 1 year",
+			name:    "pass - extends same owner, 1 letter, 1 year",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -631,7 +631,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice,
 		},
 		{
-			name:    "extends same owner, 1 letter, 2 years",
+			name:    "pass - extends same owner, 1 letter, 2 years",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -645,7 +645,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:    "extends same owner, 1 letter, N years",
+			name:    "pass - extends same owner, 1 letter, N years",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -659,7 +659,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
-			name:    "extends same owner, 6 letters, 1 year",
+			name:    "pass - extends same owner, 6 letters, 1 year",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -673,7 +673,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice,
 		},
 		{
-			name:    "extends same owner, 6 letters, 2 years",
+			name:    "pass - extends same owner, 6 letters, 2 years",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -687,7 +687,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:    "extends same owner, 5+ letters, N years",
+			name:    "pass - extends same owner, 5+ letters, N years",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -701,7 +701,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 99,
 		},
 		{
-			name:    "extends expired, same owner, 5+ letters, 2 years",
+			name:    "pass - extends expired, same owner, 5+ letters, 2 years",
 			dymName: "my-name",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "my-name",
@@ -715,7 +715,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:    "extends expired, empty buyer, treat as take over",
+			name:    "pass - extends expired, empty buyer, treat as take over",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -729,7 +729,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice,
 		},
 		{
-			name:    "take-over, 1 letter, 1 year",
+			name:    "pass - take-over, 1 letter, 1 year",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -743,7 +743,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    0,
 		},
 		{
-			name:    "take-over, 1 letter, 3 years",
+			name:    "pass - take-over, 1 letter, 3 years",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -757,7 +757,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:    "take-over, 6 letters, 1 year",
+			name:    "pass - take-over, 6 letters, 1 year",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -771,7 +771,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    0,
 		},
 		{
-			name:    "take-over, 6 letters, 3 years",
+			name:    "pass - take-over, 6 letters, 3 years",
 			dymName: "bridge",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "bridge",
@@ -785,7 +785,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:               "new registration, 2 letters",
+			name:               "pass - new registration, 2 letters",
 			dymName:            "aa",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -794,7 +794,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:               "new registration, 3 letters",
+			name:               "pass - new registration, 3 letters",
 			dymName:            "aaa",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -803,7 +803,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:               "new registration, 4 letters",
+			name:               "pass - new registration, 4 letters",
 			dymName:            "less",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -812,7 +812,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:               "new registration, 5 letters",
+			name:               "pass - new registration, 5 letters",
 			dymName:            "angel",
 			existingDymName:    nil,
 			newOwner:           buyerA,
@@ -821,7 +821,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:            "reject invalid Dym-Name",
+			name:            "fail - reject invalid Dym-Name",
 			dymName:         "-a-",
 			existingDymName: nil,
 			newOwner:        buyerA,
@@ -830,7 +830,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantErrContains: "invalid dym name",
 		},
 		{
-			name:            "reject invalid duration",
+			name:            "fail - reject invalid duration",
 			dymName:         "a",
 			existingDymName: nil,
 			newOwner:        buyerA,
@@ -839,7 +839,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantErrContains: "duration must be at least 1 year",
 		},
 		{
-			name:    "reject estimation for Dym-Name owned by another and not expired",
+			name:    "fail - reject estimation for Dym-Name owned by another and not expired",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -853,7 +853,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantErrContains: "you are not the owner",
 		},
 		{
-			name:    "reject estimation for Dym-Name owned by another and not expired, empty buyer",
+			name:    "fail - reject estimation for Dym-Name owned by another and not expired, empty buyer",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -867,7 +867,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantErrContains: "you are not the owner",
 		},
 		{
-			name:    "allow estimation for take-over, regardless grace period",
+			name:    "pass - allow estimation for take-over, regardless grace period",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",
@@ -882,7 +882,7 @@ func Test_queryServer_EstimateRegisterName(t *testing.T) {
 			wantExtendPrice:    extendsPrice * 2,
 		},
 		{
-			name:    "allow estimation for take-over, regardless grace period, empty buyer",
+			name:    "pass - allow estimation for take-over, regardless grace period, empty buyer",
 			dymName: "a",
 			existingDymName: &dymnstypes.DymName{
 				Name:       "a",

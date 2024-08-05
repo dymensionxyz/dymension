@@ -16,7 +16,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:        "valid, single",
+			name:        "pass - valid, single",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -28,7 +28,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:        "valid, multiple",
+			name:        "pass - valid, multiple",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -44,7 +44,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:            "reject empty replacement",
+			name:            "fail - reject empty replacement",
 			title:           "T",
 			description:     "D",
 			replacement:     []MigrateChainId{},
@@ -52,7 +52,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "replacement cannot be empty",
 		},
 		{
-			name:            "reject empty replacement",
+			name:            "fail - reject empty replacement",
 			title:           "T",
 			description:     "D",
 			replacement:     nil,
@@ -60,7 +60,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "replacement cannot be empty",
 		},
 		{
-			name:        "reject empty title",
+			name:        "fail - reject empty title",
 			title:       "",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -73,7 +73,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "proposal title cannot be blank",
 		},
 		{
-			name:        "reject empty description",
+			name:        "fail - reject empty description",
 			title:       "T",
 			description: "",
 			replacement: []MigrateChainId{
@@ -86,7 +86,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "proposal description cannot be blank",
 		},
 		{
-			name:        "reject invalid replacement",
+			name:        "fail - reject invalid replacement",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -99,7 +99,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "previous chain id cannot be empty",
 		},
 		{
-			name:        "reject duplicate replacement",
+			name:        "fail - reject duplicate replacement",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -116,7 +116,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "reject duplicate replacement",
+			name:        "fail - reject duplicate replacement",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -133,7 +133,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "reject duplicate replacement",
+			name:        "fail - reject duplicate replacement",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -150,7 +150,7 @@ func TestMigrateChainIdsProposal_ValidateBasic(t *testing.T) {
 			wantErrContains: "duplicate chain id",
 		},
 		{
-			name:        "reject duplicate replacement",
+			name:        "fail - reject duplicate replacement",
 			title:       "T",
 			description: "D",
 			replacement: []MigrateChainId{
@@ -197,48 +197,48 @@ func TestMigrateChainId_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:            "valid",
+			name:            "pass - valid",
 			previousChainId: "cosmoshub-3",
 			newChainId:      "cosmoshub-4",
 			wantErr:         false,
 		},
 		{
-			name:            "not allow empty previous chain-id",
+			name:            "fail - not allow empty previous chain-id",
 			previousChainId: "",
 			newChainId:      "cosmoshub-4",
 			wantErr:         true,
 			wantErrContains: "previous chain id cannot be empty",
 		},
 		{
-			name:            "not allow empty new chain-id",
+			name:            "fail - not allow empty new chain-id",
 			previousChainId: "cosmoshub-3",
 			newChainId:      "",
 			wantErr:         true,
 			wantErrContains: "new chain id cannot be empty",
 		},
 		{
-			name:            "chain-id cannot be the same",
+			name:            "fail - chain-id cannot be the same",
 			previousChainId: "cosmoshub-3",
 			newChainId:      "cosmoshub-3",
 			wantErr:         true,
 			wantErrContains: "previous chain id and new chain id cannot be the same",
 		},
 		{
-			name:            "chain-id cannot be the same, case insensitive",
+			name:            "fail - chain-id cannot be the same, case insensitive",
 			previousChainId: "CosmosHub-3",
 			newChainId:      "cosmoshub-3",
 			wantErr:         true,
 			wantErrContains: "chain id is not well-formed",
 		},
 		{
-			name:            "reject invalid previous chain-id",
+			name:            "fail - reject invalid previous chain-id",
 			previousChainId: "cosmoshub@3",
 			newChainId:      "cosmoshub-4",
 			wantErr:         true,
 			wantErrContains: "previous chain id is not well-formed:",
 		},
 		{
-			name:            "reject invalid new chain-id",
+			name:            "fail - reject invalid new chain-id",
 			previousChainId: "cosmoshub-3",
 			newChainId:      "cosmoshub@4",
 			wantErr:         true,

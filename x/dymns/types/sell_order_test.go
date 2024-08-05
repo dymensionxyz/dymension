@@ -68,32 +68,32 @@ func TestSellOrder_HasFinished(t *testing.T) {
 	now := time.Now().UTC()
 
 	tests := []struct {
-		name       string
-		expireAt   int64
-		sellPrice  *sdk.Coin
-		highestBid *SellOrderBid
-		want       bool
+		name         string
+		expireAt     int64
+		sellPrice    *sdk.Coin
+		highestBid   *SellOrderBid
+		wantFinished bool
 	}{
 		{
-			name:       "expired, without sell-price, without bid",
-			expireAt:   now.Unix() - 1,
-			sellPrice:  &zeroCoin,
-			highestBid: nil,
-			want:       true,
+			name:         "expired, without sell-price, without bid",
+			expireAt:     now.Unix() - 1,
+			sellPrice:    &zeroCoin,
+			highestBid:   nil,
+			wantFinished: true,
 		},
 		{
-			name:       "expired, without sell-price, without bid",
-			expireAt:   now.Unix() - 1,
-			sellPrice:  nil,
-			highestBid: nil,
-			want:       true,
+			name:         "expired, without sell-price, without bid",
+			expireAt:     now.Unix() - 1,
+			sellPrice:    nil,
+			highestBid:   nil,
+			wantFinished: true,
 		},
 		{
-			name:       "expired, + sell-price, without bid",
-			expireAt:   now.Unix() - 1,
-			sellPrice:  &threeCoin,
-			highestBid: nil,
-			want:       true,
+			name:         "expired, + sell-price, without bid",
+			expireAt:     now.Unix() - 1,
+			sellPrice:    &threeCoin,
+			highestBid:   nil,
+			wantFinished: true,
 		},
 		{
 			name:      "expired, + sell-price, + bid (under sell-price)",
@@ -103,7 +103,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 				Bidder: "x",
 				Price:  oneCoin,
 			},
-			want: true,
+			wantFinished: true,
 		},
 		{
 			name:      "expired, + sell-price, + bid (= sell-price)",
@@ -113,28 +113,28 @@ func TestSellOrder_HasFinished(t *testing.T) {
 				Bidder: "x",
 				Price:  threeCoin,
 			},
-			want: true,
+			wantFinished: true,
 		},
 		{
-			name:       "not expired, without sell-price, without bid",
-			expireAt:   now.Unix() + 1,
-			sellPrice:  &zeroCoin,
-			highestBid: nil,
-			want:       false,
+			name:         "not expired, without sell-price, without bid",
+			expireAt:     now.Unix() + 1,
+			sellPrice:    &zeroCoin,
+			highestBid:   nil,
+			wantFinished: false,
 		},
 		{
-			name:       "not expired, without sell-price, without bid",
-			expireAt:   now.Unix() + 1,
-			sellPrice:  nil,
-			highestBid: nil,
-			want:       false,
+			name:         "not expired, without sell-price, without bid",
+			expireAt:     now.Unix() + 1,
+			sellPrice:    nil,
+			highestBid:   nil,
+			wantFinished: false,
 		},
 		{
-			name:       "not expired, + sell-price, without bid",
-			expireAt:   now.Unix() + 1,
-			sellPrice:  &threeCoin,
-			highestBid: nil,
-			want:       false,
+			name:         "not expired, + sell-price, without bid",
+			expireAt:     now.Unix() + 1,
+			sellPrice:    &threeCoin,
+			highestBid:   nil,
+			wantFinished: false,
 		},
 		{
 			name:      "not expired, + sell-price, + bid (under sell-price)",
@@ -144,7 +144,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 				Bidder: "x",
 				Price:  oneCoin,
 			},
-			want: false,
+			wantFinished: false,
 		},
 		{
 			name:      "not expired, + sell-price, + bid (= sell-price)",
@@ -154,7 +154,7 @@ func TestSellOrder_HasFinished(t *testing.T) {
 				Bidder: "x",
 				Price:  threeCoin,
 			},
-			want: true,
+			wantFinished: true,
 		},
 	}
 	for _, tt := range tests {
@@ -167,10 +167,10 @@ func TestSellOrder_HasFinished(t *testing.T) {
 				HighestBid: tt.highestBid,
 			}
 
-			require.Equal(t, tt.want, m.HasFinishedAtCtx(
+			require.Equal(t, tt.wantFinished, m.HasFinishedAtCtx(
 				sdk.Context{}.WithBlockTime(now),
 			))
-			require.Equal(t, tt.want, m.HasFinished(now.Unix()))
+			require.Equal(t, tt.wantFinished, m.HasFinished(now.Unix()))
 		})
 	}
 }
@@ -428,40 +428,40 @@ func TestSellOrderBid_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:   "valid sell order bid",
+			name:   "pass - valid sell order bid",
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:  dymnsutils.TestCoin(1),
 		},
 		{
-			name:            "empty bidder",
+			name:            "fail - empty bidder",
 			bidder:          "",
 			price:           dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "SO bidder is empty",
 		},
 		{
-			name:            "bad bidder",
+			name:            "fail - bad bidder",
 			bidder:          "0x1",
 			price:           dymnsutils.TestCoin(1),
 			wantErr:         true,
 			wantErrContains: "SO bidder is not a valid bech32 account address",
 		},
 		{
-			name:            "zero price",
+			name:            "fail - zero price",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           dymnsutils.TestCoin(0),
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
 		{
-			name:            "zero price",
+			name:            "fail - zero price",
 			bidder:          "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price:           sdk.Coin{},
 			wantErr:         true,
 			wantErrContains: "SO bid price is zero",
 		},
 		{
-			name:   "negative price",
+			name:   "fail - negative price",
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  params.BaseDenom,
@@ -471,7 +471,7 @@ func TestSellOrderBid_Validate(t *testing.T) {
 			wantErrContains: "SO bid price is negative",
 		},
 		{
-			name:   "invalid price",
+			name:   "fail - invalid price",
 			bidder: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			price: sdk.Coin{
 				Denom:  "-",

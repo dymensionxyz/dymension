@@ -255,7 +255,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 	// Init genesis state but with invalid input
 	newDymNsKeeper, newBankKeeper, _, newCtx = testkeeper.DymNSKeeper(t)
 
-	t.Run("invalid params", func(t *testing.T) {
+	t.Run("fail - invalid params", func(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.Params{
@@ -266,7 +266,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid dym-name", func(t *testing.T) {
+	t.Run("fail - invalid dym-name", func(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.DefaultParams(),
@@ -277,7 +277,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid highest bid", func(t *testing.T) {
+	t.Run("fail - invalid highest bid", func(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.DefaultParams(),
@@ -288,7 +288,7 @@ func TestExportThenInitGenesis(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid offer", func(t *testing.T) {
+	t.Run("fail - invalid offer", func(t *testing.T) {
 		require.Panics(t, func() {
 			dymns.InitGenesis(newCtx, newDymNsKeeper, dymnstypes.GenesisState{
 				Params: dymnstypes.DefaultParams(),

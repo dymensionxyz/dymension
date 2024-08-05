@@ -22,13 +22,13 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:    "valid",
+			name:    "pass - valid",
 			dymName: "abc",
 			offer:   validOffer,
 			buyer:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "not allow missing name",
+			name:            "fail - not allow missing name",
 			dymName:         "",
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -36,7 +36,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "bad name",
+			name:            "fail - bad name",
 			dymName:         "-a",
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -44,14 +44,14 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "missing offer",
+			name:            "fail - missing offer",
 			dymName:         "abc",
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "invalid offer",
 		},
 		{
-			name:            "offer can not be zero",
+			name:            "fail - offer can not be zero",
 			dymName:         "abc",
 			offer:           dymnsutils.TestCoin(0),
 			buyer:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -59,7 +59,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "offer must be positive",
 		},
 		{
-			name:    "offer can not be negative",
+			name:    "fail - offer can not be negative",
 			dymName: "abc",
 			offer: sdk.Coin{
 				Denom:  params.BaseDenom,
@@ -70,7 +70,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "invalid offer",
 		},
 		{
-			name:            "missing buyer",
+			name:            "fail - missing buyer",
 			dymName:         "abc",
 			offer:           validOffer,
 			buyer:           "",
@@ -78,7 +78,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid buyer",
+			name:            "fail - invalid buyer",
 			dymName:         "abc",
 			offer:           validOffer,
 			buyer:           "dym1fl48vsnmsdzcv",
@@ -86,7 +86,7 @@ func TestMsgPurchaseOrder_ValidateBasic(t *testing.T) {
 			wantErrContains: "buyer is not a valid bech32 account address",
 		},
 		{
-			name:            "buyer must be dym1",
+			name:            "fail - buyer must be dym1",
 			dymName:         "abc",
 			offer:           validOffer,
 			buyer:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",

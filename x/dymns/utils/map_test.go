@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetSortedStringKeys(t *testing.T) {
-	t.Run("empty", func(t *testing.T) {
+	t.Run("allow input is empty/nil", func(t *testing.T) {
 		require.Empty(t, GetSortedStringKeys(map[string]bool{}))
 		require.Empty(t, GetSortedStringKeys(map[string]string{}))
 		require.Empty(t, GetSortedStringKeys(map[string]int{}))
@@ -15,7 +15,7 @@ func TestGetSortedStringKeys(t *testing.T) {
 		require.Empty(t, GetSortedStringKeys(nilMap))
 	})
 
-	t.Run("sorted keys", func(t *testing.T) {
+	t.Run("sorted keys are in ascending order", func(t *testing.T) {
 		require.Equal(t, []string{"a", "b", "c", "d"}, GetSortedStringKeys(map[string]bool{
 			"b": true,
 			"a": true,

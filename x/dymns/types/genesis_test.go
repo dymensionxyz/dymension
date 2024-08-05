@@ -21,7 +21,7 @@ func TestGenesisState_Validate(t *testing.T) {
 	defaultGenesis := DefaultGenesis()
 	require.NoError(t, defaultGenesis.Validate())
 
-	t.Run("valid genesis", func(t *testing.T) {
+	t.Run("pass - valid genesis", func(t *testing.T) {
 		require.NoError(t, (GenesisState{
 			Params: DefaultParams(),
 			DymNames: []DymName{
@@ -56,7 +56,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
-	t.Run("invalid params", func(t *testing.T) {
+	t.Run("fail - invalid params", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: Params{
 				Price: DefaultPriceParams(),
@@ -76,7 +76,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
-	t.Run("invalid dym names", func(t *testing.T) {
+	t.Run("fail - invalid dym names", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),
 			DymNames: []DymName{
@@ -87,7 +87,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
-	t.Run("invalid bid", func(t *testing.T) {
+	t.Run("fail - invalid bid", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),
 			SellOrderBids: []SellOrderBid{
@@ -98,7 +98,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		}).Validate())
 	})
 
-	t.Run("invalid buy offer", func(t *testing.T) {
+	t.Run("fail - invalid buy offer", func(t *testing.T) {
 		require.Error(t, (GenesisState{
 			Params: DefaultParams(),
 			BuyOffers: []BuyOffer{

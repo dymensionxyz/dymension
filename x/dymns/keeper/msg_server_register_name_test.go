@@ -98,7 +98,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 		wantPruneHistoricalData bool
 	}{
 		{
-			name:            "can register, new Dym-Name",
+			name:            "pass - can register, new Dym-Name",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
@@ -113,7 +113,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "not allow to takeover a non-expired Dym-Name",
+			name:            "fail - not allow to takeover a non-expired Dym-Name",
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
@@ -136,7 +136,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 1,
 		},
 		{
-			name:            "not allow to takeover an expired Dym-Name which in grace period",
+			name:            "fail - not allow to takeover an expired Dym-Name which in grace period",
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
@@ -156,7 +156,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 1,
 		},
 		{
-			name:             "not enough balance to pay for the Dym-Name",
+			name:             "fail - not enough balance to pay for the Dym-Name",
 			buyer:            buyerA,
 			originalBalance:  1,
 			duration:         2,
@@ -166,7 +166,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 1,
 		},
 		{
-			name:             "mis-match confirm payment",
+			name:             "fail - mis-match confirm payment",
 			buyer:            buyerA,
 			originalBalance:  firstYearPrice5PlusL + extendsPrice + 3,
 			duration:         2,
@@ -176,7 +176,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: firstYearPrice5PlusL + extendsPrice + 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 5+ letters, multiple years",
+			name:            "pass - deduct balance for new Dym-Name, 5+ letters, multiple years",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice*2 + 3,
 			duration:        3,
@@ -189,7 +189,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 5+ letters, 1 year",
+			name:            "pass - deduct balance for new Dym-Name, 5+ letters, 1 year",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
@@ -202,7 +202,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 4 letters, multiple years",
+			name:            "pass - deduct balance for new Dym-Name, 4 letters, multiple years",
 			buyer:           buyerA,
 			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + extendsPrice + 3,
@@ -216,7 +216,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 4 letters, 1 year",
+			name:            "pass - deduct balance for new Dym-Name, 4 letters, 1 year",
 			buyer:           buyerA,
 			customDymName:   "kids",
 			originalBalance: firstYearPrice4L + 3,
@@ -230,7 +230,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 3 letters, multiple years",
+			name:            "pass - deduct balance for new Dym-Name, 3 letters, multiple years",
 			buyer:           buyerA,
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + extendsPrice + 3,
@@ -244,7 +244,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 3 letters, 1 year",
+			name:            "pass - deduct balance for new Dym-Name, 3 letters, 1 year",
 			buyer:           buyerA,
 			customDymName:   "abc",
 			originalBalance: firstYearPrice3L + 3,
@@ -258,7 +258,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 2 letters, multiple years",
+			name:            "pass - deduct balance for new Dym-Name, 2 letters, multiple years",
 			buyer:           buyerA,
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + extendsPrice + 3,
@@ -272,7 +272,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 2 letters, 1 year",
+			name:            "pass - deduct balance for new Dym-Name, 2 letters, 1 year",
 			buyer:           buyerA,
 			customDymName:   "ab",
 			originalBalance: firstYearPrice2L + 3,
@@ -286,7 +286,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 1 letter, multiple years",
+			name:            "pass - deduct balance for new Dym-Name, 1 letter, multiple years",
 			buyer:           buyerA,
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + extendsPrice + 3,
@@ -300,7 +300,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "deduct balance for new Dym-Name, 1 letter, 1 year",
+			name:            "pass - deduct balance for new Dym-Name, 1 letter, 1 year",
 			buyer:           buyerA,
 			customDymName:   "a",
 			originalBalance: firstYearPrice1L + 3,
@@ -314,7 +314,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "can extend owned Dym-Name, not expired",
+			name:            "pass - can extend owned Dym-Name, not expired",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -332,7 +332,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "when extend owned non-expired Dym-Name, keep config and historical data",
+			name:            "pass - when extend owned non-expired Dym-Name, keep config and historical data",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -362,7 +362,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantPruneHistoricalData: false,
 		},
 		{
-			name:            "when extend owned non-expired Dym-Name, keep config and historical data, update contact if provided",
+			name:            "pass - when extend owned non-expired Dym-Name, keep config and historical data, update contact if provided",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -393,7 +393,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantPruneHistoricalData: false,
 		},
 		{
-			name:            "can renew owned Dym-Name, expired",
+			name:            "pass - can renew owned Dym-Name, expired",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -411,7 +411,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "can renew owned Dym-Name, expired, update contact if provided",
+			name:            "pass - can renew owned Dym-Name, expired, update contact if provided",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -431,7 +431,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "when renew previously-owned expired Dym-Name, reset config",
+			name:            "pass - when renew previously-owned expired Dym-Name, reset config",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -456,7 +456,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantPruneHistoricalData: true,
 		},
 		{
-			name:            "when renew previously-owned expired Dym-Name, reset config, update contact if provided",
+			name:            "pass - when renew previously-owned expired Dym-Name, reset config, update contact if provided",
 			buyer:           buyerA,
 			originalBalance: extendsPrice*2 + 3,
 			duration:        2,
@@ -483,7 +483,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantPruneHistoricalData: true,
 		},
 		{
-			name:            "can take over an expired Dym-Name after grace period has passed",
+			name:            "pass - can take over an expired Dym-Name after grace period has passed",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
@@ -501,7 +501,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "take over an expired when ownership changed, reset config",
+			name:            "pass - take over an expired when ownership changed, reset config",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
@@ -525,7 +525,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "take over an expired when ownership changed, reset config, update contact if provided",
+			name:            "pass - take over an expired when ownership changed, reset config, update contact if provided",
 			buyer:           buyerA,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
 			duration:        2,
@@ -551,7 +551,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "not enough balance to take over an expired Dym-Name after grace period has passed",
+			name:            "fail - not enough balance to take over an expired Dym-Name after grace period has passed",
 			buyer:           buyerA,
 			originalBalance: 1,
 			duration:        2,
@@ -571,7 +571,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 1,
 		},
 		{
-			name:            "address in the preserved Dym-Name list, can still buy other Dym-Names",
+			name:            "pass - address in the preserved Dym-Name list, can still buy other Dym-Names",
 			buyer:           preservedAddr1a,
 			originalBalance: firstYearPrice5PlusL + 3,
 			duration:        1,
@@ -584,7 +584,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "only whitelisted address can buy preserved Dym-Name, addr 1",
+			name:            "pass - only whitelisted address can buy preserved Dym-Name, addr 1",
 			buyer:           preservedAddr1a,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + extendsPrice + 3,
@@ -598,7 +598,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:            "only whitelisted address can buy preserved Dym-Name, addr 2",
+			name:            "pass - only whitelisted address can buy preserved Dym-Name, addr 2",
 			buyer:           preservedAddr2a,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,
@@ -612,7 +612,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: 3,
 		},
 		{
-			name:             "only whitelisted address can buy preserved Dym-Name, reject others",
+			name:             "fail - only whitelisted address can buy preserved Dym-Name, reject others",
 			buyer:            buyerA,
 			customDymName:    preservedDymName,
 			originalBalance:  firstYearPrice5PlusL + 3,
@@ -623,7 +623,7 @@ func Test_msgServer_RegisterName(t *testing.T) {
 			wantLaterBalance: firstYearPrice5PlusL + 3,
 		},
 		{
-			name:            "after preserved expiration date, anyone can buy preserved Dym-Name",
+			name:            "pass - after preserved expiration date, anyone can buy preserved Dym-Name",
 			buyer:           buyerA,
 			customDymName:   preservedDymName,
 			originalBalance: firstYearPrice5PlusL + 3,

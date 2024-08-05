@@ -14,111 +14,111 @@ func TestIsValidBech32AccountAddress(t *testing.T) {
 		name                            string
 		address                         string
 		matchAccountAddressBech32Prefix bool
-		want                            bool
+		wantValid                       bool
 	}{
 		{
-			name:                            "valid bech32 account address",
+			name:                            "pass - valid bech32 account address",
 			address:                         "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			matchAccountAddressBech32Prefix: true,
-			want:                            true,
+			wantValid:                       true,
 		},
 		{
-			name:                            "valid bech32 account address, Interchain Account",
+			name:                            "pass - valid bech32 account address, Interchain Account",
 			address:                         "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul",
 			matchAccountAddressBech32Prefix: true,
-			want:                            true,
+			wantValid:                       true,
 		},
 		{
-			name: "reject bech32 account address which neither 20 nor 32 bytes, case 19 bytes",
+			name: "fail - reject bech32 account address which neither 20 nor 32 bytes, case 19 bytes",
 			address: func() string {
 				bz := make([]byte, 19)
 				addr, err := bech32.ConvertAndEncode("dym", bz)
 				require.NoError(t, err)
 				return addr
 			}(),
-			want: false,
+			wantValid: false,
 		},
 		{
-			name: "reject bech32 account address which neither 20 nor 32 bytes, case 21 bytes",
+			name: "fail - reject bech32 account address which neither 20 nor 32 bytes, case 21 bytes",
 			address: func() string {
 				bz := make([]byte, 21)
 				addr, err := bech32.ConvertAndEncode("dym", bz)
 				require.NoError(t, err)
 				return addr
 			}(),
-			want: false,
+			wantValid: false,
 		},
 		{
-			name: "reject bech32 account address which neither 20 nor 32 bytes, case 31 bytes",
+			name: "fail - reject bech32 account address which neither 20 nor 32 bytes, case 31 bytes",
 			address: func() string {
 				bz := make([]byte, 31)
 				addr, err := bech32.ConvertAndEncode("dym", bz)
 				require.NoError(t, err)
 				return addr
 			}(),
-			want: false,
+			wantValid: false,
 		},
 		{
-			name: "reject bech32 account address which neither 20 nor 32 bytes, case 33 bytes",
+			name: "fail - reject bech32 account address which neither 20 nor 32 bytes, case 33 bytes",
 			address: func() string {
 				bz := make([]byte, 33)
 				addr, err := bech32.ConvertAndEncode("dym", bz)
 				require.NoError(t, err)
 				return addr
 			}(),
-			want: false,
+			wantValid: false,
 		},
 		{
-			name: "reject bech32 account address which neither 20 nor 32 bytes, case 128 bytes",
+			name: "fail - reject bech32 account address which neither 20 nor 32 bytes, case 128 bytes",
 			address: func() string {
 				bz := make([]byte, 128)
 				addr, err := bech32.ConvertAndEncode("dym", bz)
 				require.NoError(t, err)
 				return addr
 			}(),
-			want: false,
+			wantValid: false,
 		},
 		{
-			name:                            "bad checksum bech32 account address",
+			name:                            "fail - bad checksum bech32 account address",
 			address:                         "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9feu",
 			matchAccountAddressBech32Prefix: true,
-			want:                            false,
+			wantValid:                       false,
 		},
 		{
-			name:                            "bad bech32 account address",
+			name:                            "fail - bad bech32 account address",
 			address:                         "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3",
 			matchAccountAddressBech32Prefix: true,
-			want:                            false,
+			wantValid:                       false,
 		},
 		{
-			name:                            "not bech32 address",
+			name:                            "fail - not bech32 address",
 			address:                         "0x4fea76427b8345861e80a3540a8a9d936fd39391",
 			matchAccountAddressBech32Prefix: true,
-			want:                            false,
+			wantValid:                       false,
 		},
 		{
-			name:                            "not bech32 address",
+			name:                            "fail - not bech32 address",
 			address:                         "0x4fea76427b8345861e80a3540a8a9d936fd39391",
 			matchAccountAddressBech32Prefix: false,
-			want:                            false,
+			wantValid:                       false,
 		},
 		{
-			name:                            "valid bech32 account address but mis-match HRP",
+			name:                            "fail - valid bech32 account address but mis-match HRP",
 			address:                         "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			matchAccountAddressBech32Prefix: true,
-			want:                            false,
+			wantValid:                       false,
 		},
 		{
-			name:                            "valid bech32 account address ignore mis-match HRP",
+			name:                            "pass - valid bech32 account address ignore mis-match HRP",
 			address:                         "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			matchAccountAddressBech32Prefix: false,
-			want:                            true,
+			wantValid:                       true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gotValid := IsValidBech32AccountAddress(tt.address, tt.matchAccountAddressBech32Prefix)
-			require.Equal(t, tt.want, gotValid)
+			require.Equal(t, tt.wantValid, gotValid)
 		})
 	}
 }
@@ -126,54 +126,54 @@ func TestIsValidBech32AccountAddress(t *testing.T) {
 //goland:noinspection SpellCheckingInspection
 func TestIsValidHexAddress(t *testing.T) {
 	tests := []struct {
-		name    string
-		address string
-		want    bool
+		name      string
+		address   string
+		wantValid bool
 	}{
 		{
-			name:    "allow hex address with 20 bytes",
-			address: "0x1234567890123456789012345678901234567890",
-			want:    true,
+			name:      "pass - allow hex address with 20 bytes",
+			address:   "0x1234567890123456789012345678901234567890",
+			wantValid: true,
 		},
 		{
-			name:    "allow hex address with 32 bytes, Interchain Account",
-			address: "0x1234567890123456789012345678901234567890123456789012345678901234",
-			want:    true,
+			name:      "pass - allow hex address with 32 bytes, Interchain Account",
+			address:   "0x1234567890123456789012345678901234567890123456789012345678901234",
+			wantValid: true,
 		},
 		{
-			name:    "disallow hex address with 19 bytes",
-			address: "0x123456789012345678901234567890123456789",
-			want:    false,
+			name:      "fail - disallow hex address with 19 bytes",
+			address:   "0x123456789012345678901234567890123456789",
+			wantValid: false,
 		},
 		{
-			name:    "disallow hex address with 21 bytes",
-			address: "0x12345678901234567890123456789012345678901",
-			want:    false,
+			name:      "fail - disallow hex address with 21 bytes",
+			address:   "0x12345678901234567890123456789012345678901",
+			wantValid: false,
 		},
 		{
-			name:    "disallow hex address with 31 bytes",
-			address: "0x123456789012345678901234567890123456789012345678901234567890123",
-			want:    false,
+			name:      "fail - disallow hex address with 31 bytes",
+			address:   "0x123456789012345678901234567890123456789012345678901234567890123",
+			wantValid: false,
 		},
 		{
-			name:    "disallow hex address with 33 bytes",
-			address: "0x12345678901234567890123456789012345678901234567890123456789012345",
-			want:    false,
+			name:      "fail - disallow hex address with 33 bytes",
+			address:   "0x12345678901234567890123456789012345678901234567890123456789012345",
+			wantValid: false,
 		},
 		{
-			name:    "disallow valid bech32 address",
-			address: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
-			want:    false,
+			name:      "fail - disallow valid bech32 address",
+			address:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
+			wantValid: false,
 		},
 		{
-			name:    "disallow valid bech32 address, Interchain Account",
-			address: "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul",
-			want:    false,
+			name:      "fail - disallow valid bech32 address, Interchain Account",
+			address:   "dym1zg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg69v7yszg6qrz80ul",
+			wantValid: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, IsValidHexAddress(tt.address))
+			require.Equal(t, tt.wantValid, IsValidHexAddress(tt.address))
 		})
 	}
 }

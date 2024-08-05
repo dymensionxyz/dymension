@@ -536,7 +536,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 		wantOwnerBalanceLater int64
 	}{
 		{
-			name:                  "completed, expired, no sell price",
+			name:                  "pass - completed, expired, no sell price",
 			expiredSO:             true,
 			sellPrice:             0,
 			bid:                   200,
@@ -544,7 +544,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance + 200,
 		},
 		{
-			name:                  "completed, expired, under sell price",
+			name:                  "pass - completed, expired, under sell price",
 			expiredSO:             true,
 			sellPrice:             300,
 			bid:                   200,
@@ -552,7 +552,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance + 200,
 		},
 		{
-			name:                  "completed, expired, equals sell price",
+			name:                  "pass - completed, expired, equals sell price",
 			expiredSO:             true,
 			sellPrice:             300,
 			bid:                   300,
@@ -560,7 +560,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance + 300,
 		},
 		{
-			name:                  "completed by sell-price met, not expired",
+			name:                  "pass - completed by sell-price met, not expired",
 			expiredSO:             false,
 			sellPrice:             300,
 			bid:                   300,
@@ -568,7 +568,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance + 300,
 		},
 		{
-			name:                  "expired without bid, no sell price",
+			name:                  "fail - expired without bid, no sell price",
 			expiredSO:             true,
 			sellPrice:             0,
 			bid:                   0,
@@ -577,7 +577,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance,
 		},
 		{
-			name:                  "expired without bid, with sell price",
+			name:                  "fail - expired without bid, with sell price",
 			expiredSO:             true,
 			sellPrice:             300,
 			bid:                   0,
@@ -586,7 +586,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance,
 		},
 		{
-			name:                  "not expired but bid under sell price",
+			name:                  "fail - not expired but bid under sell price",
 			expiredSO:             false,
 			sellPrice:             300,
 			bid:                   200,
@@ -595,7 +595,7 @@ func TestKeeper_CompleteSellOrder(t *testing.T) {
 			wantOwnerBalanceLater: ownerOriginalBalance,
 		},
 		{
-			name:                  "not expired has bid, no sell price",
+			name:                  "fail - not expired has bid, no sell price",
 			expiredSO:             false,
 			sellPrice:             0,
 			bid:                   200,

@@ -381,7 +381,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			Value:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "reject - not accept hex address value on host-chain",
+			name:            "fail - not accept hex address value on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
@@ -390,7 +390,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "must be a valid bech32 account address",
 		},
 		{
-			name:            "reject - not accept hex address value on host-chain",
+			name:            "fail - not accept hex address value on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
@@ -399,7 +399,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "must be a valid bech32 account address",
 		},
 		{
-			name:            "reject - not accept other address value on host-chain",
+			name:            "fail - not accept other address value on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
@@ -408,7 +408,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "dym name config value on host-chain must be lowercase",
 		},
 		{
-			name:            "reject - not accept other address value on host-chain",
+			name:            "fail - not accept other address value on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
@@ -467,7 +467,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "dym name config value: @@",
 		},
 		{
-			name:            "reject - not accept unknown type",
+			name:            "fail - not accept unknown type",
 			Type:            DymNameConfigType_DCT_UNKNOWN,
 			ChainId:         "",
 			Path:            "",
@@ -476,7 +476,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "Dym-Name config type must be",
 		},
 		{
-			name:            "reject - bad chain-id",
+			name:            "fail - bad chain-id",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "dymension_",
 			Path:            "abc",
@@ -485,7 +485,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "dym name config chain id must be a valid chain id format",
 		},
 		{
-			name:            "reject - bad path",
+			name:            "fail - bad path",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "-a",
@@ -494,7 +494,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "dym name config path must be a valid dym name",
 		},
 		{
-			name:            "reject - bad multi-level path",
+			name:            "fail - bad multi-level path",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a.b.",
@@ -517,7 +517,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			Value:   "",
 		},
 		{
-			name:            "reject - bad value on host-chain",
+			name:            "fail - bad value on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
@@ -526,7 +526,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "dym name config value must be a valid bech32 account address",
 		},
 		{
-			name:            "reject - reject value not normalized on host-chain",
+			name:            "fail - reject value not normalized on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "",
@@ -535,7 +535,7 @@ func TestDymNameConfig_Validate(t *testing.T) {
 			wantErrContains: "must be lowercase",
 		},
 		{
-			name:            "reject - reject value not normalized on host-chain",
+			name:            "fail - reject value not normalized on host-chain",
 			Type:            DymNameConfigType_DCT_NAME,
 			ChainId:         "",
 			Path:            "a",
@@ -594,21 +594,21 @@ func TestReverseLookupDymNames_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:     "valid reverse lookup record",
+			name:     "pass - valid reverse lookup record",
 			DymNames: []string{"my-name", "not-bonded-pool"},
 		},
 		{
-			name:     "allow empty",
+			name:     "pass - allow empty",
 			DymNames: []string{},
 		},
 		{
-			name:            "bad dym name",
+			name:            "fail - bad dym name",
 			DymNames:        []string{"my-name", "-not-bonded-pool"},
 			wantErr:         true,
 			wantErrContains: "invalid dym name:",
 		},
 		{
-			name:            "bad dym name",
+			name:            "fail - bad dym name",
 			DymNames:        []string{"-a"},
 			wantErr:         true,
 			wantErrContains: "invalid dym name:",

@@ -16,40 +16,40 @@ func TestMsgCancelSellOrder_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:    "valid",
+			name:    "pass - valid",
 			dymName: "abc",
 			owner:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "not allow empty name",
+			name:            "fail - not allow empty name",
 			dymName:         "",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "not allow invalid name",
+			name:            "fail - not allow invalid name",
 			dymName:         "-a",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			wantErr:         true,
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "invalid owner",
+			name:            "fail - invalid owner",
 			dymName:         "a",
 			owner:           "dym1fl48vsnmsdzcv85q5",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "missing owner",
+			name:            "fail - missing owner",
 			dymName:         "a",
 			owner:           "",
 			wantErr:         true,
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "owner must be dym1",
+			name:            "fail - owner must be dym1",
 			dymName:         "a",
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
 			wantErr:         true,

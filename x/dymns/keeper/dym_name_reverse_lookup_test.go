@@ -208,18 +208,12 @@ func TestKeeper_RemoveReverseMappingOwnerToOwnedDymName(t *testing.T) {
 func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 	dk, _, _, ctx := testkeeper.DymNSKeeper(t)
 
-	require.Error(
-		t,
-		dk.AddReverseMappingConfiguredAddressToDymName(ctx, " ", "a"),
-		"should not allow blank address",
-	)
+	t.Run("fail - should reject blank address", func(t *testing.T) {
+		require.Error(t, dk.AddReverseMappingConfiguredAddressToDymName(ctx, " ", "a"))
 
-	_, err := dk.GetDymNamesContainsConfiguredAddress(ctx, " ")
-	require.Error(
-		t,
-		err,
-		"should not allow invalid blank address",
-	)
+		_, err := dk.GetDymNamesContainsConfiguredAddress(ctx, " ")
+		require.Error(t, err)
+	})
 
 	owner1a := testAddr(1).bech32()
 	owner2a := testAddr(2).bech32()
@@ -238,7 +232,7 @@ func TestKeeper_GetAddReverseMappingConfiguredAddressToDymName(t *testing.T) {
 		}},
 	}
 	require.NoError(t, dk.SetDymName(ctx, dymName11))
-	err = dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName11.Name)
+	err := dk.AddReverseMappingConfiguredAddressToDymName(ctx, anotherA, dymName11.Name)
 	require.NoError(t, err)
 
 	dymName21 := dymnstypes.DymName{

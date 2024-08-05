@@ -22,13 +22,13 @@ func TestIsValidDymName(t *testing.T) {
 
 	t.Run("single character", func(t *testing.T) {
 		for i := 'a'; i <= 'z'; i++ {
-			require.True(t, IsValidDymName(string(i)), "failed for single char '%c'", i)
+			require.Truef(t, IsValidDymName(string(i)), "failed for single char '%c'", i)
 		}
 		for i := 'A'; i <= 'Z'; i++ {
-			require.False(t, IsValidDymName(string(i)), "should not accept '%c'", i)
+			require.Falsef(t, IsValidDymName(string(i)), "should not accept '%c'", i)
 		}
 		for i := '0'; i <= '9'; i++ {
-			require.True(t, IsValidDymName(string(i)), "failed for single char '%c'", i)
+			require.Truef(t, IsValidDymName(string(i)), "failed for single char '%c'", i)
 		}
 		require.False(t, IsValidDymName("-"), "should not accept single dash")
 		require.False(t, IsValidDymName("_"), "should not accept single underscore")
@@ -37,7 +37,7 @@ func TestIsValidDymName(t *testing.T) {
 	t.Run("not starts or ends with dash or underscore", func(t *testing.T) {
 		for _, prototype := range []string{"a", "aa", "aaa", "8"} {
 			check := func(dymName string) {
-				require.False(t, IsValidDymName(dymName), "should not accept '%s'", dymName)
+				require.Falsef(t, IsValidDymName(dymName), "should not accept '%s'", dymName)
 			}
 			check(prototype + "-")
 			check(prototype + "_")
@@ -144,13 +144,13 @@ func TestIsValidSubDymName(t *testing.T) {
 
 	t.Run("single character", func(t *testing.T) {
 		for i := 'a'; i <= 'z'; i++ {
-			require.True(t, IsValidSubDymName(string(i)), "failed for single char '%c'", i)
+			require.Truef(t, IsValidSubDymName(string(i)), "failed for single char '%c'", i)
 		}
 		for i := 'A'; i <= 'Z'; i++ {
-			require.False(t, IsValidSubDymName(string(i)), "should not accept '%c'", i)
+			require.Falsef(t, IsValidSubDymName(string(i)), "should not accept '%c'", i)
 		}
 		for i := '0'; i <= '9'; i++ {
-			require.True(t, IsValidSubDymName(string(i)), "failed for single char '%c'", i)
+			require.Truef(t, IsValidSubDymName(string(i)), "failed for single char '%c'", i)
 		}
 		require.False(t, IsValidSubDymName("-"), "should not accept single dash")
 		require.False(t, IsValidSubDymName("_"), "should not accept single underscore")
@@ -159,7 +159,7 @@ func TestIsValidSubDymName(t *testing.T) {
 	t.Run("not starts or ends with dash or underscore or dot", func(t *testing.T) {
 		for _, prototype := range []string{"a", "aa", "aaa", "8"} {
 			check := func(dymName string) {
-				require.False(t, IsValidSubDymName(dymName), "should not accept '%s'", dymName)
+				require.Falsef(t, IsValidSubDymName(dymName), "should not accept '%s'", dymName)
 			}
 			check(prototype + "-")
 			check(prototype + "_")
@@ -323,113 +323,113 @@ func TestIsValidSubDymName(t *testing.T) {
 
 func TestIsValidAlias(t *testing.T) {
 	tests := []struct {
-		name  string
-		alias string
-		want  bool
+		name      string
+		alias     string
+		wantValid bool
 	}{
 		{
-			name:  "valid 1 char",
-			alias: "a",
-			want:  true,
+			name:      "pass - valid 1 char",
+			alias:     "a",
+			wantValid: true,
 		},
 		{
-			name:  "valid 2 chars",
-			alias: "aa",
-			want:  true,
+			name:      "pass - valid 2 chars",
+			alias:     "aa",
+			wantValid: true,
 		},
 		{
-			name:  "valid 10 chars",
-			alias: "1234567890",
-			want:  true,
+			name:      "pass - valid 10 chars",
+			alias:     "1234567890",
+			wantValid: true,
 		},
 		{
-			name:  "not accept 11+ chars",
-			alias: "12345678901",
-			want:  false,
+			name:      "fail - not accept 11+ chars",
+			alias:     "12345678901",
+			wantValid: false,
 		},
 		{
-			name:  "not accept special chars",
-			alias: "a$a",
-			want:  false,
+			name:      "fail - not accept special chars",
+			alias:     "a$a",
+			wantValid: false,
 		},
 		{
-			name:  "not accept underscore",
-			alias: "a_a",
-			want:  false,
+			name:      "fail - not accept underscore",
+			alias:     "a_a",
+			wantValid: false,
 		},
 		{
-			name:  "not accept dash",
-			alias: "a-a",
-			want:  false,
+			name:      "fail - not accept dash",
+			alias:     "a-a",
+			wantValid: false,
 		},
 		{
-			name:  "not accept empty",
-			alias: "",
-			want:  false,
+			name:      "fail - not accept empty",
+			alias:     "",
+			wantValid: false,
 		},
 		{
-			name:  "not accept leading space",
-			alias: " a",
-			want:  false,
+			name:      "fail - not accept leading space",
+			alias:     " a",
+			wantValid: false,
 		},
 		{
-			name:  "not accept trailing space",
-			alias: "a ",
-			want:  false,
+			name:      "fail - not accept trailing space",
+			alias:     "a ",
+			wantValid: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, IsValidAlias(tt.alias))
+			require.Equal(t, tt.wantValid, IsValidAlias(tt.alias))
 		})
 	}
 }
 
 func TestIsValidBuyOfferId(t *testing.T) {
 	tests := []struct {
-		name string
-		id   string
-		want bool
+		name      string
+		id        string
+		wantValid bool
 	}{
 		{
-			name: "positive number",
-			id:   "1",
-			want: true,
+			name:      "pass - positive number",
+			id:        "1",
+			wantValid: true,
 		},
 		{
-			name: "reject zero",
-			id:   "0",
-			want: false,
+			name:      "fail - reject zero",
+			id:        "0",
+			wantValid: false,
 		},
 		{
-			name: "reject empty",
-			id:   "",
-			want: false,
+			name:      "fail - reject empty",
+			id:        "",
+			wantValid: false,
 		},
 		{
-			name: "reject negative",
-			id:   "-1",
-			want: false,
+			name:      "fail - reject negative",
+			id:        "-1",
+			wantValid: false,
 		},
 		{
-			name: "reject non-numeric",
-			id:   "a",
-			want: false,
+			name:      "fail - reject non-numeric",
+			id:        "a",
+			wantValid: false,
 		},
 		{
-			name: "maximum is max uint64",
-			id:   sdkmath.NewIntFromUint64(math.MaxUint64).String(),
-			want: true,
+			name:      "pass - maximum is max uint64",
+			id:        sdkmath.NewIntFromUint64(math.MaxUint64).String(),
+			wantValid: true,
 		},
 		{
-			name: "reject out-of-bound uint64",
-			id:   sdkmath.NewIntFromUint64(math.MaxUint64).AddRaw(1).String(),
-			want: false,
+			name:      "fail - reject out-of-bound uint64",
+			id:        sdkmath.NewIntFromUint64(math.MaxUint64).AddRaw(1).String(),
+			wantValid: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.want, IsValidBuyOfferId(tt.id))
+			require.Equal(t, tt.wantValid, IsValidBuyOfferId(tt.id))
 		})
 	}
 }

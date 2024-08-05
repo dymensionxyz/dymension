@@ -18,35 +18,35 @@ func TestMsgUpdateDetails_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:         "valid",
+			name:         "pass - valid",
 			dymName:      "a",
 			controller:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:      "contact@example.com",
 			clearConfigs: false,
 		},
 		{
-			name:         "valid",
+			name:         "pass - valid",
 			dymName:      "a",
 			controller:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:      "",
 			clearConfigs: false,
 		},
 		{
-			name:         "valid",
+			name:         "pass - valid",
 			dymName:      "a",
 			controller:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:      "",
 			clearConfigs: true,
 		},
 		{
-			name:         "valid",
+			name:         "pass - valid",
 			dymName:      "a",
 			controller:   "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:      "contact@example.com",
 			clearConfigs: true,
 		},
 		{
-			name:            "reject contact too long",
+			name:            "fail - reject contact too long",
 			dymName:         "a",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:         "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901",
@@ -55,7 +55,7 @@ func TestMsgUpdateDetails_ValidateBasic(t *testing.T) {
 			wantErrContains: "contact is too long",
 		},
 		{
-			name:            "reject bad Dym-Name",
+			name:            "fail - reject bad Dym-Name",
 			dymName:         "a@",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:         "",
@@ -63,14 +63,14 @@ func TestMsgUpdateDetails_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "reject bad controller",
+			name:            "fail - reject bad controller",
 			dymName:         "a",
 			controller:      "dym1fl48vsnmsdzcv85q",
 			wantErr:         true,
 			wantErrContains: "controller is not a valid bech32 account address",
 		},
 		{
-			name:            "reject message that does nothing",
+			name:            "fail - reject message that does nothing",
 			dymName:         "a",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			contact:         DoNotModifyDesc,

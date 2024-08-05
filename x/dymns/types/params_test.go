@@ -185,7 +185,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		swapPrice     swapPrice
 	}{
 		{
-			name:          "invalid 1 letter name price",
+			name:          "fail - invalid 1 letter name price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_1Letter = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.NamePrice_1Letter
@@ -195,7 +195,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 2 letters name price",
+			name:          "fail - invalid 2 letters name price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_2Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.NamePrice_2Letters
@@ -205,7 +205,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 3 letters name price",
+			name:          "fail - invalid 3 letters name price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_3Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.NamePrice_3Letters
@@ -215,7 +215,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 4 letters name price",
+			name:          "fail - invalid 4 letters name price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_4Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.NamePrice_4Letters
@@ -225,11 +225,11 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 5+ letters name price",
+			name:          "fail - invalid 5+ letters name price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.NamePrice_5PlusLetters = v; return p },
 		},
 		{
-			name:          "invalid yearly extends price",
+			name:          "fail - invalid yearly extends price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.PriceExtends = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				params.PriceExtends = params.NamePrice_5PlusLetters.Add(params.NamePrice_5PlusLetters)
@@ -237,7 +237,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 1 letter alias price",
+			name:          "fail - invalid 1 letter alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_1Letter = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_1Letter
@@ -247,7 +247,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 2 letters alias price",
+			name:          "fail - invalid 2 letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_2Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_2Letters
@@ -257,7 +257,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 3 letters alias price",
+			name:          "fail - invalid 3 letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_3Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_3Letters
@@ -267,7 +267,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 4 letters alias price",
+			name:          "fail - invalid 4 letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_4Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_4Letters
@@ -277,7 +277,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 5 letters alias price",
+			name:          "fail - invalid 5 letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_5Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_5Letters
@@ -287,7 +287,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 6 letters alias price",
+			name:          "fail - invalid 6 letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_6Letters = v; return p },
 			swapPrice: func(params PriceParams) PriceParams {
 				backup := params.AliasPrice_6Letters
@@ -297,7 +297,7 @@ func TestPriceParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name:          "invalid 7+ letters alias price",
+			name:          "fail - invalid 7+ letters alias price",
 			modifierPrice: func(p PriceParams, v sdkmath.Int) PriceParams { p.AliasPrice_7PlusLetters = v; return p },
 		},
 	}
@@ -318,7 +318,7 @@ func TestPriceParams_Validate(t *testing.T) {
 		})
 	}
 
-	t.Run("invalid type", func(t *testing.T) {
+	t.Run("fail - invalid type", func(t *testing.T) {
 		require.Error(t, validatePriceParams("hello world"))
 		require.Error(t, validatePriceParams(&PriceParams{}), "not accept pointer")
 	})
@@ -353,18 +353,18 @@ func TestChainsParams_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:     "default is valid",
+			name:     "pass - default is valid",
 			modifier: func(p ChainsParams) ChainsParams { return p },
 		},
 		{
-			name: "alias: empty is valid",
+			name: "pass - alias: empty is valid",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = nil
 				return p
 			},
 		},
 		{
-			name: "alias: empty alias of chain is valid",
+			name: "pass - alias: empty alias of chain is valid",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "dymension_1100-1", Aliases: nil},
@@ -373,7 +373,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "alias: valid and correct alias",
+			name: "pass - alias: valid and correct alias",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "blumbus_111-1", Aliases: []string{"bb", "blumbus"}},
@@ -383,7 +383,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "alias: chain_id and alias must be unique among all, case alias & alias",
+			name: "fail - alias: chain_id and alias must be unique among all, case alias & alias",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "dymension_1100-1", Aliases: []string{"dym"}},
@@ -395,7 +395,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			wantErrContains: "chain ID and alias must unique among all",
 		},
 		{
-			name: "alias: chain_id and alias must be unique among all, case chain-id & alias",
+			name: "fail - alias: chain_id and alias must be unique among all, case chain-id & alias",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "dymension_1100-1", Aliases: []string{"dym", "dymension"}},
@@ -408,7 +408,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			wantErrContains: "chain ID and alias must unique among all",
 		},
 		{
-			name: "alias: reject if chain-id format is bad",
+			name: "fail - alias: reject if chain-id format is bad",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "dymension@", Aliases: []string{"dym"}},
@@ -420,7 +420,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			wantErrContains: "is not well-formed",
 		},
 		{
-			name: "alias: reject if chain-id format is bad",
+			name: "fail - alias: reject if chain-id format is bad",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "d", Aliases: []string{"dym"}},
@@ -431,7 +431,7 @@ func TestChainsParams_Validate(t *testing.T) {
 			wantErrContains: "must be at least 3 characters",
 		},
 		{
-			name: "alias: reject if alias format is bad",
+			name: "fail - alias: reject if alias format is bad",
 			modifier: func(p ChainsParams) ChainsParams {
 				p.AliasesOfChainIds = []AliasesOfChainId{
 					{ChainId: "dymension_1100-1", Aliases: []string{"dym-dym"}},
@@ -457,7 +457,7 @@ func TestChainsParams_Validate(t *testing.T) {
 		})
 	}
 
-	t.Run("invalid type", func(t *testing.T) {
+	t.Run("fail - invalid type", func(t *testing.T) {
 		require.Error(t, validateChainsParams("hello world"))
 		require.Error(t, validateChainsParams(&ChainsParams{}), "not accept pointer")
 	})
@@ -471,11 +471,11 @@ func TestMiscParams_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:     "default is valid",
+			name:     "pass - default is valid",
 			modifier: func(p MiscParams) MiscParams { return p },
 		},
 		{
-			name: "all = 1 is valid",
+			name: "pass - all = 1 is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 1 * time.Nanosecond
 				p.SellOrderDuration = 1 * time.Nanosecond
@@ -485,7 +485,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "minimum allowed",
+			name: "pass - minimum allowed",
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 0
 				p.SellOrderDuration = 1 * time.Nanosecond
@@ -495,49 +495,49 @@ func TestMiscParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "epoch hour is valid",
+			name: "pass - begin epoch hour is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.BeginEpochHookIdentifier = "hour"
 				return p
 			},
 		},
 		{
-			name: "epoch hour is valid",
+			name: "pass - end epoch hour is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "hour"
 				return p
 			},
 		},
 		{
-			name: "epoch day is valid",
+			name: "pass - begin epoch day is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.BeginEpochHookIdentifier = "day"
 				return p
 			},
 		},
 		{
-			name: "epoch day is valid",
+			name: "pass - end epoch day is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "day"
 				return p
 			},
 		},
 		{
-			name: "epoch week is valid",
+			name: "pass - begin epoch week is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.BeginEpochHookIdentifier = "week"
 				return p
 			},
 		},
 		{
-			name: "epoch week is valid",
+			name: "pass - end epoch week is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "week"
 				return p
 			},
 		},
 		{
-			name: "other epoch is invalid",
+			name: "fail - begin other epoch is invalid",
 			modifier: func(p MiscParams) MiscParams {
 				p.BeginEpochHookIdentifier = "invalid"
 				return p
@@ -546,7 +546,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "invalid epoch identifier: invalid",
 		},
 		{
-			name: "other epoch is invalid",
+			name: "fail - end other epoch is invalid",
 			modifier: func(p MiscParams) MiscParams {
 				p.EndEpochHookIdentifier = "invalid"
 				return p
@@ -555,14 +555,14 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "invalid epoch identifier: invalid",
 		},
 		{
-			name: "grace period = 0 is valid",
+			name: "pass - grace period = 0 is valid",
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = 0
 				return p
 			},
 		},
 		{
-			name: "grace period can not be negative",
+			name: "fail - grace period can not be negative",
 			modifier: func(p MiscParams) MiscParams {
 				p.GracePeriodDuration = -1 * time.Nanosecond
 				return p
@@ -571,7 +571,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "grace period duration cannot be negative",
 		},
 		{
-			name: "days SO duration can not be zero",
+			name: "fail - days SO duration can not be zero",
 			modifier: func(p MiscParams) MiscParams {
 				p.SellOrderDuration = 0
 				return p
@@ -580,7 +580,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "Sell Orders duration can not be zero",
 		},
 		{
-			name: "days SO duration can not be negative",
+			name: "fail - days SO duration can not be negative",
 			modifier: func(p MiscParams) MiscParams {
 				p.SellOrderDuration = -1 * time.Nanosecond
 				return p
@@ -589,7 +589,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "Sell Orders duration can not be zero",
 		},
 		{
-			name: "days preserved closed SO duration can not be zero",
+			name: "fail - days preserved closed SO duration can not be zero",
 			modifier: func(p MiscParams) MiscParams {
 				p.PreservedClosedSellOrderDuration = 0
 				return p
@@ -598,7 +598,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "preserved closed Sell Orders duration can not be zero",
 		},
 		{
-			name: "days preserved closed SO duration can not be negative",
+			name: "fail - days preserved closed SO duration can not be negative",
 			modifier: func(p MiscParams) MiscParams {
 				p.PreservedClosedSellOrderDuration = -1 * time.Nanosecond
 				return p
@@ -607,7 +607,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "preserved closed Sell Orders duration can not be zero",
 		},
 		{
-			name: "days prohibit sell can not be zero",
+			name: "fail - days prohibit sell can not be zero",
 			modifier: func(p MiscParams) MiscParams {
 				p.ProhibitSellDuration = 0
 				return p
@@ -616,7 +616,7 @@ func TestMiscParams_Validate(t *testing.T) {
 			wantErrContains: "prohibit sell duration cannot be zero",
 		},
 		{
-			name: "days prohibit sell can not be negative",
+			name: "fail - days prohibit sell can not be negative",
 			modifier: func(p MiscParams) MiscParams {
 				p.ProhibitSellDuration = -1 * time.Nanosecond
 				return p
@@ -639,7 +639,7 @@ func TestMiscParams_Validate(t *testing.T) {
 		})
 	}
 
-	t.Run("invalid type", func(t *testing.T) {
+	t.Run("fail - invalid type", func(t *testing.T) {
 		require.Error(t, validateMiscParams("hello world"))
 		require.Error(t, validateMiscParams(&MiscParams{}), "not accept pointer")
 	})
@@ -654,11 +654,11 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:     "default is valid",
+			name:     "pass - default is valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams { return p },
 		},
 		{
-			name: "valid",
+			name: "pass - valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.ExpirationEpoch = 1
 				p.PreservedDymNames = []PreservedDymName{
@@ -675,14 +675,14 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			},
 		},
 		{
-			name: "expiration epoch = 0 is valid",
+			name: "pass - expiration epoch = 0 is valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.ExpirationEpoch = 0
 				return p
 			},
 		},
 		{
-			name: "negative expiration epoch is invalid",
+			name: "fail - negative expiration epoch is invalid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.ExpirationEpoch = -1
 				return p
@@ -691,21 +691,21 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			wantErrContains: "expiration epoch cannot be negative",
 		},
 		{
-			name: "expiration epoch in the pass is valid",
+			name: "pass - expiration epoch in the past is valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.ExpirationEpoch = 1 // epoch 1 is in the past
 				return p
 			},
 		},
 		{
-			name: "empty preserved Dym-Name list is valid",
+			name: "pass - empty preserved Dym-Name list is valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = nil
 				return p
 			},
 		},
 		{
-			name: "Dym-Name must be valid",
+			name: "fail - Dym-Name must be valid",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = []PreservedDymName{
 					{
@@ -719,7 +719,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			wantErrContains: "is not well-formed",
 		},
 		{
-			name: "Dym-Name must be valid, not allow @ part",
+			name: "fail - Dym-Name must be valid, not allow @ part",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = []PreservedDymName{
 					{
@@ -733,7 +733,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			wantErrContains: "is not well-formed",
 		},
 		{
-			name: "address must be valid bech32",
+			name: "fail - address must be valid bech32",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = []PreservedDymName{
 					{
@@ -747,7 +747,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			wantErrContains: "has invalid whitelisted address",
 		},
 		{
-			name: "address hex is not allowed",
+			name: "fail - address hex is not allowed",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = []PreservedDymName{
 					{
@@ -761,7 +761,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 			wantErrContains: "has invalid whitelisted address",
 		},
 		{
-			name: "duplicated pairs is now allowed",
+			name: "fail - duplicated pairs is now allowed",
 			modifier: func(p PreservedRegistrationParams) PreservedRegistrationParams {
 				p.PreservedDymNames = []PreservedDymName{
 					{
@@ -798,7 +798,7 @@ func TestPreservedRegistrationParams_Validate(t *testing.T) {
 		})
 	}
 
-	t.Run("invalid type", func(t *testing.T) {
+	t.Run("fail - invalid type", func(t *testing.T) {
 		require.Error(t, validatePreservedRegistrationParams("hello world"))
 		require.Error(t, validatePreservedRegistrationParams(&PreservedRegistrationParams{}), "not accept pointer")
 	})
@@ -832,24 +832,24 @@ func Test_validateEpochIdentifier(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "'hour' is valid",
+			name: "pass - 'hour' is valid",
 			i:    "hour",
 		},
 		{
-			name: "'day' is valid",
+			name: "pass - 'day' is valid",
 			i:    "day",
 		},
 		{
-			name: "'week' is valid",
+			name: "pass - 'week' is valid",
 			i:    "week",
 		},
 		{
-			name:    "empty",
+			name:    "fail - empty",
 			i:       "",
 			wantErr: true,
 		},
 		{
-			name:    "not string",
+			name:    "fail - not string",
 			i:       1,
 			wantErr: true,
 		},

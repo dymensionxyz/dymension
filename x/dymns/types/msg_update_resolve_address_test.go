@@ -19,7 +19,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:       "valid",
+			name:       "pass - valid",
 			dymName:    "a",
 			chainId:    "dymension_1100-1",
 			subName:    "abc",
@@ -27,7 +27,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "missing dym-name",
+			name:            "fail - missing dym-name",
 			dymName:         "",
 			resolveTo:       "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -35,7 +35,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "bad dym-name",
+			name:            "fail - bad dym-name",
 			dymName:         "",
 			resolveTo:       "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -43,14 +43,14 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:       "valid config resolve with multi-level sub-name",
+			name:       "pass - valid config resolve with multi-level sub-name",
 			dymName:    "a",
 			subName:    "abc.def",
 			resolveTo:  "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "valid config resolve without sub-name",
+			name:       "pass - valid config resolve without sub-name",
 			dymName:    "a",
 			chainId:    "dymension_1100-1",
 			subName:    "",
@@ -58,7 +58,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "valid config resolve with empty chain-id",
+			name:       "pass - valid config resolve with empty chain-id",
 			dymName:    "a",
 			chainId:    "",
 			subName:    "abc",
@@ -66,7 +66,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "valid config resolve with empty chain-id and sub-name",
+			name:       "pass - valid config resolve with empty chain-id and sub-name",
 			dymName:    "a",
 			chainId:    "",
 			subName:    "",
@@ -74,7 +74,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "bad chain-id",
+			name:            "fail - bad chain-id",
 			dymName:         "a",
 			chainId:         "dymension_",
 			subName:         "abc",
@@ -84,7 +84,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "dym name config chain id must be a valid chain id format",
 		},
 		{
-			name:            "bad sub-name",
+			name:            "fail - bad sub-name",
 			dymName:         "a",
 			chainId:         "",
 			subName:         "-a",
@@ -94,7 +94,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "dym name config path must be a valid dym name",
 		},
 		{
-			name:            "bad sub-name, too long",
+			name:            "fail - bad sub-name, too long",
 			dymName:         "a",
 			chainId:         "",
 			subName:         "123456789012345678901",
@@ -104,7 +104,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "sub name is too long",
 		},
 		{
-			name:            "bad multi-level sub-name",
+			name:            "fail - bad multi-level sub-name",
 			dymName:         "a",
 			chainId:         "",
 			subName:         "a.b.",
@@ -114,7 +114,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "dym name config path must be a valid dym name",
 		},
 		{
-			name:       "resolve to can be empty to allow delete",
+			name:       "pass - resolve to can be empty to allow delete",
 			dymName:    "a",
 			chainId:    "",
 			subName:    "a",
@@ -122,7 +122,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:       "resolve to can be empty to allow delete",
+			name:       "pass - resolve to can be empty to allow delete",
 			dymName:    "a",
 			chainId:    "",
 			subName:    "",
@@ -130,7 +130,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "bad resolve to",
+			name:            "fail - bad resolve to",
 			dymName:         "a",
 			chainId:         "",
 			subName:         "a",
@@ -140,7 +140,7 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "dym name config value must be a valid bech32 account address",
 		},
 		{
-			name:            "resolve must be dym1 format if chain-id is empty",
+			name:            "fail - resolve must be dym1 format if chain-id is empty",
 			dymName:         "a",
 			chainId:         "",
 			resolveTo:       "nim1tygms3xhhs3yv487phx3dw4a95jn7t7l4kreyj",
@@ -149,14 +149,14 @@ func TestMsgUpdateResolveAddress_ValidateBasic(t *testing.T) {
 			wantErrContains: "resolve address must be a valid bech32 account address on host chain",
 		},
 		{
-			name:       "resolve to can be non-dym1 format if chain-id is not empty",
+			name:       "pass - resolve to can be non-dym1 format if chain-id is not empty",
 			dymName:    "a",
 			chainId:    "nim_1122-1",
 			resolveTo:  "nim1tygms3xhhs3yv487phx3dw4a95jn7t7l4kreyj",
 			controller: "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "controller must be dym1",
+			name:            "fail - controller must be dym1",
 			dymName:         "a",
 			resolveTo:       "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			controller:      "nim1tygms3xhhs3yv487phx3dw4a95jn7t7l4kreyj",

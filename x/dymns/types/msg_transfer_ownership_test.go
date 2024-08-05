@@ -17,13 +17,13 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 		wantErrContains string
 	}{
 		{
-			name:     "valid",
+			name:     "pass - valid",
 			dymName:  "a",
 			newOwner: "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:    "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 		},
 		{
-			name:            "new owner and owner can not be the same",
+			name:            "fail - new owner and owner can not be the same",
 			dymName:         "a",
 			newOwner:        "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -31,7 +31,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "new owner must be different from the current owner",
 		},
 		{
-			name:            "missing name",
+			name:            "fail - missing name",
 			dymName:         "",
 			newOwner:        "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -39,7 +39,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "name is not a valid dym name",
 		},
 		{
-			name:            "missing new owner",
+			name:            "fail - missing new owner",
 			dymName:         "a",
 			newOwner:        "",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -47,7 +47,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "new owner is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid new owner",
+			name:            "fail - invalid new owner",
 			dymName:         "a",
 			newOwner:        "dym1tygms3xhhs3yv487phx",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -55,7 +55,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "new owner is not a valid bech32 account address",
 		},
 		{
-			name:            "missing owner",
+			name:            "fail - missing owner",
 			dymName:         "a",
 			newOwner:        "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "",
@@ -63,7 +63,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "invalid owner",
+			name:            "fail - invalid owner",
 			dymName:         "a",
 			newOwner:        "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "dym1fl48vsnmsdzcv85q5d2",
@@ -71,7 +71,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "owner is not a valid bech32 account address",
 		},
 		{
-			name:            "new owner must be dym1",
+			name:            "fail - new owner must be dym1",
 			dymName:         "a",
 			newOwner:        "nim1tygms3xhhs3yv487phx3dw4a95jn7t7l4kreyj",
 			owner:           "dym1fl48vsnmsdzcv85q5d2q4z5ajdha8yu38x9fue",
@@ -79,7 +79,7 @@ func TestMsgTransferOwnership_ValidateBasic(t *testing.T) {
 			wantErrContains: "new owner is not a valid bech32 account address",
 		},
 		{
-			name:            "owner must be dym1",
+			name:            "fail - owner must be dym1",
 			dymName:         "a",
 			newOwner:        "dym1tygms3xhhs3yv487phx3dw4a95jn7t7lnxec2d",
 			owner:           "nim1fl48vsnmsdzcv85q5d2q4z5ajdha8yu3pklgjx",
