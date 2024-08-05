@@ -53,9 +53,9 @@ func (hook rollappHook) BeforeUpdateState(ctx sdk.Context, seqAddr, rollappId st
 		if !hook.k.IsRotating(ctx, rollappId) {
 			return types.ErrInvalidRequest
 		}
-		// TODO: the hub should probably validate the lastBlock in the lastBatch,
-		// to make sure the sequencer is passing the correct nextSequencer on the L2
-
+		// last state update receieved by sequencer
+		// it's expected that the sequencer produced a last block which handovers the proposer role on the L2
+		// any divergence from this is considered fraud
 		hook.k.RotateProposer(ctx, rollappId)
 	}
 

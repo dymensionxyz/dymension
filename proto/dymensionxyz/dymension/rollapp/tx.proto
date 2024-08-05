@@ -59,7 +59,7 @@ message MsgUpdateState {
   // BDs is a list of block description objects (one per block)
   // the list must be ordered by height, starting from startHeight to startHeight+numBlocks-1
   BlockDescriptors BDs = 7 [(gogoproto.nullable) = false];
-  // last is a boolean flag indicating if this is the last batch of the sequencer
+  // last is true if this is the last batch of the sequencer
   bool last = 8;
 }
 

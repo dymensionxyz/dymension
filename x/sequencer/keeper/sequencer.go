@@ -22,7 +22,6 @@ func (k Keeper) SetSequencer(ctx sdk.Context, sequencer types.Sequencer) {
 
 // UpdateSequencer updates the state of a sequencer in the keeper.
 // Parameters:
-//   - ctx: The context object that provides access to the store and other information.
 //   - sequencer: The sequencer object to be updated.
 //   - oldStatus: An optional parameter representing the old status of the sequencer.
 //     Needs to be provided if the status of the sequencer has changed (e.g from Bonded to Unbonding).
