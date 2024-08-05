@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/dymensionxyz/dymension/v3/app/params"
 	dymnstypes "github.com/dymensionxyz/dymension/v3/x/dymns/types"
-	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -38,7 +37,7 @@ func NewAcceptDymNameBuyOfferTxCmd() *cobra.Command {
 			}
 
 			offerId := args[0]
-			if !dymnsutils.IsValidBuyOfferId(offerId) {
+			if !dymnstypes.IsValidBuyOfferId(offerId) {
 				return fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
 			}
 

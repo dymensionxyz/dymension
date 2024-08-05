@@ -274,7 +274,7 @@ func (q queryServer) BuyOfferById(goCtx context.Context, req *dymnstypes.QueryBu
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(req.Id) {
+	if !dymnstypes.IsValidBuyOfferId(req.Id) {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid offer id: %s", req.Id)
 	}
 

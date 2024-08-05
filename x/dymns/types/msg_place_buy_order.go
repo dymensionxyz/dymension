@@ -19,10 +19,8 @@ func (m *MsgPlaceBuyOrder) ValidateBasic() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "buyer is not a valid bech32 account address")
 	}
 
-	if m.ContinueOfferId != "" {
-		if !dymnsutils.IsValidBuyOfferId(m.ContinueOfferId) {
-			return errorsmod.Wrap(gerrc.ErrInvalidArgument, "continue offer id is not a valid buy name offer id")
-		}
+	if m.ContinueOfferId != "" && !IsValidBuyOfferId(m.ContinueOfferId) {
+		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "continue offer id is not a valid buy name offer id")
 	}
 
 	if !m.Offer.IsValid() {

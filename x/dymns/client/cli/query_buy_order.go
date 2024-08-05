@@ -97,7 +97,7 @@ func CmdQueryBuyOrder() *cobra.Command {
 
 // queryOfferById fetches a Buy-Order by its ID
 func queryOfferById(queryClient dymnstypes.QueryClient, ctx context.Context, offerId string) (*dymnstypes.BuyOffer, error) {
-	if !dymnsutils.IsValidBuyOfferId(offerId) {
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
 		return nil, fmt.Errorf("input Offer-ID '%s' is not a valid Offer-ID", offerId)
 	}
 

@@ -1,10 +1,7 @@
 package utils
 
 import (
-	"math"
 	"testing"
-
-	sdkmath "cosmossdk.io/math"
 
 	"github.com/stretchr/testify/require"
 )
@@ -381,55 +378,6 @@ func TestIsValidAlias(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			require.Equal(t, tt.wantValid, IsValidAlias(tt.alias))
-		})
-	}
-}
-
-func TestIsValidBuyOfferId(t *testing.T) {
-	tests := []struct {
-		name      string
-		id        string
-		wantValid bool
-	}{
-		{
-			name:      "pass - positive number",
-			id:        "1",
-			wantValid: true,
-		},
-		{
-			name:      "fail - reject zero",
-			id:        "0",
-			wantValid: false,
-		},
-		{
-			name:      "fail - reject empty",
-			id:        "",
-			wantValid: false,
-		},
-		{
-			name:      "fail - reject negative",
-			id:        "-1",
-			wantValid: false,
-		},
-		{
-			name:      "fail - reject non-numeric",
-			id:        "a",
-			wantValid: false,
-		},
-		{
-			name:      "pass - maximum is max uint64",
-			id:        sdkmath.NewIntFromUint64(math.MaxUint64).String(),
-			wantValid: true,
-		},
-		{
-			name:      "fail - reject out-of-bound uint64",
-			id:        sdkmath.NewIntFromUint64(math.MaxUint64).AddRaw(1).String(),
-			wantValid: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			require.Equal(t, tt.wantValid, IsValidBuyOfferId(tt.id))
 		})
 	}
 }

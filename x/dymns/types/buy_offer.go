@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	dymnsutils "github.com/dymensionxyz/dymension/v3/x/dymns/utils"
 	"github.com/dymensionxyz/gerr-cosmos/gerrc"
+	"strconv"
 )
 
 // HasCounterpartyOfferPrice returns true if the offer has a raise-offer request from the Dym-Name owner.
@@ -22,7 +23,7 @@ func (m *BuyOffer) Validate() error {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is empty")
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(m.Id) {
+	if !IsValidBuyOfferId(m.Id) {
 		return errorsmod.Wrap(gerrc.ErrInvalidArgument, "ID of offer is not a valid offer id")
 	}
 
@@ -91,4 +92,10 @@ func (m BuyOffer) GetSdkEvent(actionName string) sdk.Event {
 		attrCounterpartyOfferPrice,
 		sdk.NewAttribute(AttributeKeyBoActionName, actionName),
 	)
+}
+
+// IsValidBuyOfferId returns true if the given string is a valid offer-id for buy offer.
+func IsValidBuyOfferId(id string) bool {
+	ui, err := strconv.ParseUint(id, 10, 64)
+	return err == nil && ui > 0
 }

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -82,10 +81,4 @@ func IsValidAlias(alias string) bool {
 	}
 
 	return patternValidateAlias.MatchString(alias)
-}
-
-// IsValidBuyOfferId returns true if the given string is a valid offer-id for buy offer.
-func IsValidBuyOfferId(id string) bool {
-	ui, err := strconv.ParseUint(id, 10, 64)
-	return err == nil && ui > 0
 }

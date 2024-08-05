@@ -16,7 +16,7 @@ func (k Keeper) AddReverseMappingBuyerToBuyOfferRecord(ctx sdk.Context, buyer, o
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(offerId) {
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buy offer ID: %s", offerId)
 	}
 
@@ -62,8 +62,8 @@ func (k Keeper) RemoveReverseMappingBuyerToBuyOffer(ctx sdk.Context, buyer, offe
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid buyer address: %s", buyer)
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
 	key := dymnstypes.BuyerToOfferIdsRvlKey(bzAccAddr)
@@ -77,8 +77,8 @@ func (k Keeper) AddReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, offerI
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
 	return k.GenericAddReverseLookupBuyOfferIdsRecord(
@@ -119,8 +119,8 @@ func (k Keeper) RemoveReverseMappingDymNameToBuyOffer(ctx sdk.Context, name, off
 		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Dym-Name: %s", name)
 	}
 
-	if !dymnsutils.IsValidBuyOfferId(offerId) {
-		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Order ID: %s", offerId)
+	if !dymnstypes.IsValidBuyOfferId(offerId) {
+		return errorsmod.Wrapf(gerrc.ErrInvalidArgument, "invalid Buy-Offer ID: %s", offerId)
 	}
 
 	return k.GenericRemoveReverseLookupBuyOfferIdRecord(

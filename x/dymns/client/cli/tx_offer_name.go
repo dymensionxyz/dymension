@@ -65,7 +65,7 @@ func NewOfferBuyDymNameTxCmd() *cobra.Command {
 			}
 
 			continueOfferId, _ := cmd.Flags().GetString(flagContinueOfferId)
-			if continueOfferId != "" && !dymnsutils.IsValidBuyOfferId(continueOfferId) {
+			if continueOfferId != "" && !dymnstypes.IsValidBuyOfferId(continueOfferId) {
 				return fmt.Errorf("invalid continue offer id")
 			}
 
